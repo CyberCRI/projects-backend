@@ -1,0 +1,76 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:14
+    user: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:6.2-bullseye
+    command:
+      # Enable persistence
+      - redis-server
+      - --save
+      - "60"
+      - "1"
+      - --loglevel
+      - warning
+    ports:
+      - 6379:6379
+
+  mjml:
+    image: danihodovic/mjml-server
+    ports:
+      - 15500:15500
+
+  mailhog:
+    image: mailhog/mailhog
+    ports:
+      - 1025:1025
+      - 8025:8025
+
+  projects:
+    build:
+      context: .
+      args:
+        EXPORT_FLAG: --dev
+    user: root
+    restart: always
+    command: make test
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+      - keycloak
+      - mailhog
+      - redis
+      - mjml
+    environment:
+      DJANGO_SETTINGS_MODULE: projects.settings.local
+      PROJECTS_PEOPLE_TOKEN: 4DygAbNci0RyFu6CdwgOpOuAhD8rOFu1
+    entrypoint:
+    - bash
+    - -c
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile.keycloak
+    ports:
+      - 8001:8080
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+    healthcheck:
+      test: ["CMD", "curl", "-LIsSfo", "/dev/null", "http://127.0.0.1:8080/realms/lp/.well-known/openid-configuration"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s

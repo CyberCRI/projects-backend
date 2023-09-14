@@ -1,0 +1,32 @@
+{% load mjml %}
+
+{% mjml %}
+    <mjml>
+        <mj-body>
+            <mj-section>
+                <mj-column>
+
+                    <mj-text>
+                        Subject: <span style="color: #444444">{{ title }}</span>
+                    </mj-text>
+
+                    <mj-text>
+                        From: <span style="color: #444444">{{ reported_by }}</span>
+                    </mj-text>
+
+                    <mj-text>
+                        URL: <span style="color: #444444">{{ url }}</span>
+                    </mj-text>
+
+
+                    <mj-divider border-color="#F45E43"></mj-divider>
+
+                    <mj-text font-size="14px" color="#444444">
+                        {{ message|safe }}
+                    </mj-text>
+
+                </mj-column>
+            </mj-section>
+        </mj-body>
+    </mjml>
+{% endmjml %}

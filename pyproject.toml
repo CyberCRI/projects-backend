@@ -1,0 +1,119 @@
+[tool.poetry]
+name = "projects-back"
+version = "2.0.1"
+description = "Learning Planet Institute Projects backend"
+authors = ["LPI IT team <it-team@learningplanetinstitute.org>"]
+
+[tool.poetry.dependencies]
+python = "~3.10"
+algoliasearch-django = "^2.0.0"
+boto3 = "^1.18.59"
+bs4 = "^0.0.1"
+celery = { extras = ["redis"], version = "^5.2.1" }
+cryptography = "^41.0.3"
+Django = "^4.2.3"
+django-cleanup = "^6.0.0"
+django-cors-headers = "^3.10.0"
+django-extensions = "^3.1.5"
+django-filter = "21.1"
+django-mjml = { extras = ["requests"], version = "^1.1" }
+django-modeltranslation = "^0.17.3"
+django-redis = "^5.2.0"
+# See https://github.com/jazzband/django-simple-history/issues/399
+django-simple-history = { git = "https://github.com/thijskramer/django-simple-history.git", branch = "m2m-support" }
+django-stdimage = "^5.3.0"
+django-storages = { extras = ["azure"], version = "^1.11.1" }
+djangorestframework = "^3.12.4"
+djangorestframework-simplejwt = "^5.2.0"
+drf-nested-routers = "^0.93.4"
+drf-recaptcha = "^2.0.7"
+drf-spectacular = "^0.25.1"
+google = "^3.0.0"
+google-api-python-client = "^2.86.0"
+google-auth-httplib2 = "^0.1.0"
+google-auth-oauthlib = "^1.0.0"
+gunicorn = "^20.1.0"
+Pillow = "^9.3.0"
+psycopg2 = "^2.9.1"
+python-keycloak = "^1.3.0"
+redis = "^4.5.4"
+serializers = "^0.2.4"
+shortuuid = "^1.0.1"
+single-source = "^0.3.0"
+whitenoise = { extras = ["brotli"], version = "^6.0.0" }
+babel = "^2.11.0"
+mixpanel-utils = "^2.2.5"
+django-guardian = "^2.4.0"
+djangorestframework-guardian = "^0.3.0"
+ipython = "^8.14.0"
+
+[tool.poetry.dev-dependencies]
+bandit = "^1.7.3"
+black = "^22.3.0"
+coverage = { extras = ["toml"], version = "^6.2" }
+dj-inmemorystorage = "^2.1.0"
+django-debug-toolbar = "^3.2.4"
+factory-boy = "^3.2.0"
+flake8 = "^5.0.4"
+flake8-bugbear = "^22.1.11"
+flake8-builtins = "^1.5.3"
+flake8-django = "^1.1.5"
+flake8-eradicate = "^1.1.0"
+flake8-pie = "^0.15.0"
+flake8-return = "^1.1.3"
+flake8-simplify = "^0.19.2"
+isort = "^5.9.3"
+pep8-naming = "^0.12.1"
+pytest = "^7.1.2"
+pytest-django = "^4.5.2"
+tblib = "^1.7.0"
+toml = "^0.10.2"
+urllib3 = "^1.26.6"
+django-slowtests = "^1.1.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.isort]
+profile = "black"
+skip_glob = ["**/migrations/*.py", "**/sops/*.py"]
+
+[tool.black]
+exclude = '''
+(
+  /(
+    ...
+    | \.venv
+    | .+/migrations
+    | .+/sops
+  )/
+)
+'''
+
+[tool.coverage.run]
+branch = true
+command_line = "manage.py test --no-input --parallel --settings=projects.settings.test"
+source = ["apps"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+omit = [
+  "./venv/*",
+  "*tests*",
+  "*apps.py",
+  "*manage.py",
+  "*__init__.py",
+  "*migrations*",
+  "*asgi*",
+  "*wsgi*",
+  "*admin.py",
+  "*urls.py",
+]
+
+[tool.bandit]
+skips = ["B101"] # assert_used
+
+[tool.pytest.ini_options]
+addopts = "--ds=projects.settings.test"

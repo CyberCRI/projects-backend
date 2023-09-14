@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+  {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 4 }}
+  name: {{ tpl $.Values.fullName $ }}-celery
+spec:
+  replicas: {{ $.Values.celery.replicaCount }}
+  selector:
+    matchLabels:
+    {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 8 }}
+        {{ $.Values.redisAllowedLabel }}: "true"
+      annotations:
+      {{- if .Values.environment.nonSensitive }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/environment-configmap.yaml") . | sha256sum }}
+      {{- end }}
+      {{- if .Values.environment.sensitive }}
+        checksum/secret: {{ include (print $.Template.BasePath "/environment-secret.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      {{- with $.Values.image }}
+      - image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+        imagePullPolicy: IfNotPresent
+        name: projects-backend-celery
+        args:
+          - celery
+          - -A
+          - projects
+          - worker
+          - -B
+          - -l
+          - info
+        envFrom:
+          - configMapRef:
+              name: {{ tpl $.Values.fullName $ }}
+        resources:
+          {{- .Values.celery.resources | toYaml | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+      {{- if .Values.environment.sensitive }}
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: {{ tpl $.Values.fullName $ }}
+      {{- end }}

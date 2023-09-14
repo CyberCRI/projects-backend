@@ -1,0 +1,906 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2023-09-12 07:47+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#: apps/accounts/authentication.py:92
+msgid "Token contained no recognizable user identification"
+msgstr "Le token n'a pas permis de retrouver un utilisateur"
+
+#: apps/accounts/authentication.py:99
+msgid "User is inactive"
+msgstr "L'utilisateur.ice est inactif.ve"
+
+#: apps/accounts/authentication.py:111
+msgid "Invitation not found or expired"
+msgstr "Invitation invalide ou expirée"
+
+#: apps/accounts/models.py:113 apps/projects/models.py:147
+msgid "visibility"
+msgstr "visibilité"
+
+#: apps/accounts/models.py:501
+msgid "Hide"
+msgstr "Caché"
+
+#: apps/accounts/models.py:502
+msgid "Organization"
+msgstr "Organisation"
+
+#: apps/accounts/models.py:503
+msgid "Public"
+msgstr "Publique"
+
+#: apps/commons/serializers/fields.py:18
+msgid "This field is required."
+msgstr "Ce champ est obligatoire."
+
+#: apps/commons/serializers/fields.py:20
+#, python-brace-format
+msgid "Invalid keycloak_id \"{keycloak_id}\" - object does not exist."
+msgstr "Keycloak_id invalide \"{keycloak_id}\" - cet objet n'existe pas."
+
+#: apps/commons/serializers/fields.py:23
+#, python-brace-format
+msgid "Incorrect type. Expected str value, received {data_type}."
+msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
+
+#: apps/emailing/templates/contact/base.html:45
+#: apps/emailing/templates/notifications/base.html:45
+msgid ""
+"\n"
+"          the platform made to share your projects.<br/>\n"
+"          Created for you by the Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
+"          "
+msgstr ""
+"\n"
+"          la plateforme pour partager vos projets.<br/>\n"
+"          Créée pour vous par le Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
+"          "
+
+#: apps/emailing/templates/contact/contact/email_with_name.html:13
+#: apps/emailing/templates/notifications/new_application/mail.html:13
+#: apps/emailing/templates/notifications/reminder/mail.html:14
+#, python-format
+msgid ""
+"\n"
+"                    Hello %(given_name)s,\n"
+"                    "
+msgstr ""
+"\n"
+"                    Bonjour %(given_name)s,\n"
+"                    "
+
+#: apps/emailing/templates/contact/contact/email_with_name.txt:2
+#, python-format
+msgid "Hello %(given_name)s,"
+msgstr "Bonjour %(given_name)s,"
+
+#: apps/emailing/templates/notifications/base.html:52
+msgid ""
+"You receive this mail because you are subscribed to these notifications on "
+"Projects platform."
+msgstr ""
+"Vous recevez cet email car vous êtes abonné·e aux notifications sur la "
+"plateforme Projects."
+
+#: apps/emailing/templates/notifications/base.html:53
+msgid "Change your notification settings here."
+msgstr "Modifiez vos préférences de notification ici."
+
+#: apps/emailing/templates/notifications/group_member_added_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added a group as member to the project %(project)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a ajouté un groupe comme membre du projet %(project)s.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a ajouté %(count)s groupes comme membres du projet "
+"%(project)s.\n"
+
+#: apps/emailing/templates/notifications/group_member_added_self/mail.html:13
+#: apps/emailing/templates/notifications/member_added_self/mail.html:13
+#: apps/emailing/templates/notifications/member_updated_self/mail.html:13
+#: apps/emailing/templates/notifications/new_comment/mail.html:13
+#: apps/emailing/templates/notifications/new_reply/mail.html:13
+#: apps/emailing/templates/notifications/new_review/mail.html:13
+#: apps/emailing/templates/notifications/project_ready_for_review/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(given_name)s,\n"
+"          "
+msgstr ""
+"\n"
+"          Bonjour %(given_name)s,\n"
+"          "
+
+#: apps/emailing/templates/notifications/group_member_added_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s added the group %(group)s you are part of to the "
+"team of project <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
+"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s vous a ajouté le groupe %(group)s dont vous faites "
+"partie à l'équipe du projet <a class=\"lpi-link\" href=\"%(website_url)s/"
+"projects/%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/group_member_added_self/mail.html:28
+#: apps/emailing/templates/notifications/member_added_self/mail.html:28
+#: apps/emailing/templates/notifications/member_updated_self/mail.html:28
+#: apps/emailing/templates/notifications/new_review/mail.html:35
+#: apps/emailing/templates/notifications/project_ready_for_review/mail.html:28
+#: apps/emailing/templates/notifications/reminder/mail.html:42
+msgid "Go to project"
+msgstr "Voir le projet"
+
+#: apps/emailing/templates/notifications/group_member_added_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s added the group %(group)s you "
+"are part of to the team of project \"%(project_title)s\".\n"
+msgstr ""
+"\n"
+"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe %(group)s "
+"dont vous faites partie à l'équipe du projet \"%(project_title)s\".\n"
+
+#: apps/emailing/templates/notifications/group_member_added_self/object.txt:2
+#, python-format, python-brace-format
+msgid ""
+"\n"
+"%(full_name)s added group {group} you are part of to project "
+"%(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s a ajouté le groupe {group} dont vous faites partie à l'équipe "
+"du projet %(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/group_member_removed_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s removed a group from members.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s removed %(count)s groups from members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a retiré un groupe des membres.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a retiré %(count)s groupes des membres.\n"
+
+#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.html:13
+#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(name)s,\n"
+"          "
+msgstr ""
+"\n"
+"          Bonjour %(name)s,\n"
+"          "
+
+#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          A registration link you created for the group %(group_name)s will "
+"expire today.\n"
+"          "
+msgstr ""
+"\n"
+"          Un lien d’enregistrement que vous avez créé pour le groupe "
+"%(group_name)s arrive à expiration aujourdh'hui.\n"
+"          "
+
+#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.html:23
+#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.html:23
+#, python-format
+msgid ""
+"\n"
+"          You can create a new registration link <a class=\"lpi-link\" "
+"href=\"%(website_url)s/admin/links/list\">here</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          Vous pouvez créer un nouveau lien d’enregistrement <a class=\"lpi-"
+"link\" href=\"%(website_url)s/admin/links/list\">ici</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(name)s, A registration link you created for the group %(group_name)s "
+"will expire today.\n"
+"You can create a new registration link here.\n"
+msgstr ""
+"\n"
+"Bonjour %(name)s, Un lien d’enregistrement que vous avez créé pour le groupe "
+"%(group_name)s arrive à expiration aujourd'hui.\n"
+"Vous pouvez créer un nouveau lien d’enregistrement ici.\n"
+
+#: apps/emailing/templates/notifications/invitation_reminder_last_day/object.txt:2
+msgid "Registration link to expire today"
+msgstr "Lien d'enregistrement arrivant à expiration aujourd'hui"
+
+#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          A registration link you created for the group %(group_name)s will "
+"expire in a week.\n"
+"          "
+msgstr ""
+"\n"
+"          Un lien d’enregistrement que vous avez créé pour le groupe "
+"%(group_name)s arrivera à expiration dans une semaine.\n"
+"          "
+
+#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(name)s, A registration link you created for the group %(group_name)s "
+"will expire in a week.\n"
+"You can create a new registration link here.\n"
+msgstr ""
+"\n"
+"Bonjour %(name)s, Un lien d’enregistrement que vous avez créé pour le groupe "
+"%(group_name)s arrivera à expiration dans une semaine.\n"
+"Vous pouvez créer un nouveau lien d’enregistrement ici.\n"
+
+#: apps/emailing/templates/notifications/invitation_reminder_one_week/object.txt:2
+msgid "Registration link to expire in one week"
+msgstr "Lien d'enregistrement arrivant à expiration dans une semaine"
+
+#: apps/emailing/templates/notifications/member_added_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added a new member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s new members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a ajouté un membre.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a ajouté %(count)s membres.\n"
+
+#: apps/emailing/templates/notifications/member_added_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s added you to the team of project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s vous a ajouté à l'équipe du projet <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/member_added_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s added you to the team of "
+"project \"%(project_title)s\".\n"
+msgstr ""
+"\n"
+"Bonjour %(recipient.given_name)s, %(full_name)s vous a ajouté à l'équipe du "
+"projet \"%(project_title)s\".\n"
+
+#: apps/emailing/templates/notifications/member_added_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added you to the team of project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s vous a ajouté à l'équipe du projet %(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/member_removed_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s removed a member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s removed %(count)s members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a retiré un membre.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a retiré %(count)s membres.\n"
+
+#: apps/emailing/templates/notifications/member_updated_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s updated a member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s updated %(count)s members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a mis à jour le rôle d'un membre.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a mis à jour le rôle de %(count)s membres.\n"
+
+#: apps/emailing/templates/notifications/member_updated_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s gave you %(role)s rights in project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s vous a donné le rôle %(role)s dans le projet <a "
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/member_updated_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
+msgstr ""
+"\n"
+"%(full_name)s vous a donné le rôle %(role)s dans le projet "
+"\"%(project_title)s\".\n"
+
+#: apps/emailing/templates/notifications/member_updated_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s gave you %(role)s rights in project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s vous a donné le rôle %(role)s dans le projet "
+"%(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/new_announcement/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s published a new announcement.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s published %(count)s new announcements.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a publié une nouvelle annonce.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a publié %(count)s nouvelles annonces.\n"
+
+#: apps/emailing/templates/notifications/new_application/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"                    applied to the announcement "
+"<strong>\"%(announcement_title)s\"</strong>\n"
+"                    of the project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"                    "
+msgstr ""
+"\n"
+"                    a postulé à l'annonce "
+"<strong>\"%(announcement_title)s\"</strong>\n"
+"                    pour le projet <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"                    "
+
+#: apps/emailing/templates/notifications/new_application/mail.html:29
+msgid "Applicant:"
+msgstr "Candidat:"
+
+#: apps/emailing/templates/notifications/new_application/mail.html:30
+msgid "Email:"
+msgstr "Email:"
+
+#: apps/emailing/templates/notifications/new_application/mail.html:34
+msgid "Applicant's message:"
+msgstr "Message du candidat:"
+
+#: apps/emailing/templates/notifications/new_application/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s applied "
+"to on the project: %(project_title)s For a job work of "
+"%(announcement_title)s:\n"
+msgstr ""
+"\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s a postulé "
+"à l'annonce %(announcement_title)s pour le projet: %(project_title)s:\n"
+
+#: apps/emailing/templates/notifications/new_application/mail.txt:5
+#, python-format
+msgid ""
+"\n"
+"Description of the job: %(item.description|safe)s\n"
+msgstr ""
+"\n"
+"Description du poste: %(item.description|safe)s\n"
+
+#: apps/emailing/templates/notifications/new_application/mail.txt:8
+#, python-format
+msgid ""
+"\n"
+"User's email: %(application.applicant_email)s\n"
+msgstr ""
+"\n"
+"Adresse mail du candidat: %(application.applicant_email)s\n"
+
+#: apps/emailing/templates/notifications/new_application/mail.txt:11
+#, python-format
+msgid ""
+"\n"
+"User message: %(application.applicant_message|safe)s\n"
+msgstr ""
+"\n"
+"Message du candidat: %(application.applicant_message|safe)s\n"
+
+#: apps/emailing/templates/notifications/new_application/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(firstname)s %(lastname)s applied to the announcement: "
+"%(announcement_title)s.\n"
+msgstr ""
+"\n"
+"%(firstname)s %(lastname)s a postulé à l'annonce: %(announcement_title)s.\n"
+
+#: apps/emailing/templates/notifications/new_blogentry/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s published a new blog entry.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s published %(count)s new blog entries.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a publié une nouvelle entrée de blog.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a publié %(count)s nouvelles entrées de blog.\n"
+
+#: apps/emailing/templates/notifications/new_comment/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s commented project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s a commenté le projet <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_comment/mail.html:26
+#: apps/emailing/templates/notifications/new_reply/mail.html:26
+msgid "Comment by"
+msgstr "Commentaire de"
+
+#: apps/emailing/templates/notifications/new_comment/mail.html:35
+#: apps/emailing/templates/notifications/new_reply/mail.html:35
+msgid "Go to comment"
+msgstr "Voir le commentaire"
+
+#: apps/emailing/templates/notifications/new_comment/mail.txt:2
+#: apps/emailing/templates/notifications/new_comment/object.txt:2
+#: apps/emailing/templates/notifications/new_comment/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s commented project %(project_title)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s comments to project %(project_title)s.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a commenté le projet %(project_title)s.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a ajouté %(count)s commentaires au projet %(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/new_reply/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s replied to your comment on project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s a répondu à votre commentaire sur le projet <a "
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_reply/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s has replied on your comment on project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s a répondu à votre commentaire sur le projet "
+"%(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/new_reply/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s replied to your comment on project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s a répondu à votre commentaire sur le projet "
+"%(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/new_review/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s reviewed project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s a relu le projet <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_review/mail.html:26
+msgid "Review by"
+msgstr "Commentaire de"
+
+#: apps/emailing/templates/notifications/new_review/mail.txt:2
+#: apps/emailing/templates/notifications/new_review/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s reviewed project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s a relu le projet %(project_title)s.\n"
+
+#: apps/emailing/templates/notifications/project_edited/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s edited the %(updated_fields)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s a modifié les champs suivants: %(updated_fields)s.\n"
+
+#: apps/emailing/templates/notifications/project_ready_for_review/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s marked project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> as ready for review.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s a indiqué que le projet <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> est prêt à être relu.\n"
+"          "
+
+#: apps/emailing/templates/notifications/project_ready_for_review/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s marked project "
+"%(project_title)s as ready for review.\n"
+msgstr ""
+"\n"
+"Bonjour %(recipient.given_name)s, %(full_name)s a indiqué que le projet "
+"%(project_title)s est prêt à être relu.\n"
+
+#: apps/emailing/templates/notifications/project_ready_for_review/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s marked project %(project_title)s as ready for review.\n"
+msgstr ""
+"\n"
+"%(full_name)s a indiqué que le projet %(project_title)s est prêt à être "
+"relu.\n"
+
+#: apps/emailing/templates/notifications/reminder/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"                    Here are your highlights for %(dateOfTheDay)s\n"
+"                    "
+msgstr ""
+"\n"
+"                    Voici votre résumé d'activité pour le %(dateOfTheDay)s\n"
+"                    "
+
+#: apps/emailing/templates/notifications/reminder/mail.html:30
+msgid "Project"
+msgstr "Projet"
+
+#: apps/emailing/templates/notifications/reminder/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Here are your highlights for %(dateOfTheDay)s\n"
+msgstr ""
+"\n"
+"Voici votre résumé d'activité pour le %(dateOfTheDay)s\n"
+
+#: apps/emailing/templates/notifications/reminder/object.txt:2
+msgid "New highlights on Projects"
+msgstr "Résumé de l'activité sur Projects"
+
+#: apps/notifications/tasks.py:174
+msgid "editor"
+msgstr "éditeur"
+
+#: apps/notifications/tasks.py:175
+msgid "participant"
+msgstr "participant"
+
+#: apps/notifications/tasks.py:176
+msgid "reviewer"
+msgstr "correcteur"
+
+#: apps/notifications/utils.py:209
+msgid " and "
+msgstr " et "
+
+#: apps/projects/models.py:131
+msgid "title"
+msgstr "titre"
+
+#: apps/projects/models.py:140
+msgid "main goal"
+msgstr "objectif principal"
+
+#: apps/projects/models.py:153
+msgid "life status"
+msgstr "état d'avancement"
+
+#: apps/projects/models.py:164
+msgid "categories"
+msgstr "catégories"
+
+#: apps/projects/models.py:171
+msgid "wikipedia tags"
+msgstr "tags wikipedia"
+
+#: apps/projects/models.py:174
+msgid "organizational tags"
+msgstr "tags organisationnels"
+
+#: apps/projects/models.py:181
+msgid "sustainable development goals"
+msgstr "objectifs de développement durable"
+
+#: apps/projects/models.py:187
+msgid "main category"
+msgstr "objectif principal"
+
+#: apps/projects/serializers.py:597
+msgid "Only a reviewer can change this project's status."
+msgstr "Seul un correcteur peut modifier le statut de ce projet."
+
+#: projects/settings/base.py:245
+msgid "English"
+msgstr "Anglais"
+
+#: projects/settings/base.py:246
+msgid "French"
+msgstr "Français"
+
+#: services/google/exceptions.py:7
+msgid "This email is already used by another group"
+msgstr "Cet email est déjà utilisé par un autre groupe"
+
+#: services/google/exceptions.py:13
+msgid "This email is already used by another user"
+msgstr "Cet email est déjà utilisé par un autre utilisateur"
+
+#~ msgid "Service account not found"
+#~ msgstr "Compte de service inconnu"
+
+#, python-brace-format
+#~ msgid "Invalid representation \"{representation}\" - object does not exist."
+#~ msgstr ""
+#~ "Représentation invalide \"{representation}\" - cet objet n'existe pas."
+
+#, python-brace-format
+#~ msgid "{error}"
+#~ msgstr "{error}"
+
+#~ msgid ""
+#~ "\n"
+#~ "                    We are cleaning up our database. Your @cri-paris.org "
+#~ "or @external.cri-paris.org login will disappear.\n"
+#~ "                    To connect to Projects, please use the email address "
+#~ "you provided when you created your account. \n"
+#~ "                    You don't remember it? It's the one on which we send "
+#~ "you this email ;). \n"
+#~ "                    Your password remains unchanged.\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                    Nous faisons un peu de ménage dans nos bases de "
+#~ "données. Vos identifiants en @cri-paris.org ou @external.cri-paris.org "
+#~ "vont disparaître. \n"
+#~ "                    Pour vous connecter à Projects, utilisez dorénavant "
+#~ "l’email que vous avez renseigné à la création du compte. \n"
+#~ "                    Vous ne vous en souvenez plus ? C’est celui sur "
+#~ "lequel nous vous envoyons cet email ;). \n"
+#~ "                    Votre mot de passe reste inchangé.\n"
+#~ "                    "
+
+#~ msgid ""
+#~ "\n"
+#~ "                    If you have any questions, you can reach the support "
+#~ "team at <a class=\"lpi-link\" href=\"mailto:projects.platform@cri-paris."
+#~ "org\">projects.platform@cri-paris.org</a>.\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                    Si vous avez une question, vous pouvez joindre "
+#~ "l’équipe support à <a class=\"lpi-link\" href=\"mailto:projects."
+#~ "platform@cri-paris.org\">projects.platform@cri-paris.org</a>.\n"
+#~ "                    "
+
+#~ msgid ""
+#~ "\n"
+#~ "                    Have a nice day,\n"
+#~ "                    <br/>\n"
+#~ "                    The Projects team.\n"
+#~ "                    "
+#~ msgstr ""
+#~ "\n"
+#~ "                    Très bonne journée, \n"
+#~ "                    <br/>\n"
+#~ "                    L'équipe Projects.\n"
+#~ "                    "
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "Hello %(recipient.given_name)s, We are cleaning up our database. Your "
+#~ "@cri-paris.org or @external.cri-paris.org login will disappear. To "
+#~ "connect to Projects, please use the email address you provided when you "
+#~ "created your account. You don't remember it? It's the one on which we "
+#~ "send you this email ;). Your password remains unchanged. If you have any "
+#~ "questions, you can reach the support team at projects.platform@cri-paris."
+#~ "org. Have a nice day, The Projects team.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Bonjour %(recipient.given_name)s, Nous faisons un peu de ménage dans nos "
+#~ "bases de données. Vos identifiants en @cri-paris.org ou @external.cri-"
+#~ "paris.org vont disparaître. Pour vous connecter à Projects, utilisez "
+#~ "dorénavant l’email que vous avez renseigné à la création du compte. Vous "
+#~ "ne vous en souvenez plus ? C’est celui sur lequel nous vous envoyons cet "
+#~ "email ;). Votre mot de passe reste inchangé. Si vous avez une question, "
+#~ "vous pouvez joindre l’équipe support à projects.platform@cri-paris.org. "
+#~ "Très bonne journée, L’équipe Projects.\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "Projects Platform : this email address becomes your unique username.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Plateforme Projects : Cette adresse mail devient votre unique "
+#~ "identifiant.\n"
+
+#, python-format
+#~| msgid ""
+#~| "\n"
+#~| "%(full_name)s published a new announcement.\n"
+#~ msgid ""
+#~ "\n"
+#~ "%(full_name)s published "
+#~ "%(count|pluralize:\"a new announcement,new annoucements\")s.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "%(full_name)s a publié une nouvelle annonce.\n"
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "%(full_name)s removed member(s) from project %(project_title)s.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "%(full_name)s a retiré un membre de l'équipe du projet "
+#~ "%(project_title)s.\n"
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "%(full_name)s updated member(s) in project %(project_title)s.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "%(full_name)s a mis à jour le rôle d'un membre du projet "
+#~ "%(project_title)s.\n"
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "%(full_name)s published a new announcement for project "
+#~ "%(project_title)s.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "%(full_name)s a publié une nouvelle annonce pour le projet "
+#~ "%(project_title)s.\n"
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "%(full_name)s published a new blog entry on project %(project_title)s.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "%(full_name)s a publié une nouvelle entrée de blog sur le projet "
+#~ "%(project_title)s.\n"
+
+#, python-format
+#~ msgid ""
+#~ "\n"
+#~ "%(full_name)s edited the %(updated_fields)s in project "
+#~ "%(project_title)s.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "%(full_name)s a modifié les champs suivants dans le projet "
+#~ "%(project_title)s: %(updated_fields)s.\n"

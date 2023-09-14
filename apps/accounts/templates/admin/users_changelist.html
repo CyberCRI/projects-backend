@@ -1,0 +1,18 @@
+{% extends 'admin/change_list.html' %}
+{% block object-tools %}
+    <div style="display: flex;align-items: flex-start">
+        <div style="border: 1px solid #1d727c;border-radius: 50px;width: fit-content;padding: 11px;cursor: pointer;overflow: hidden;background: #1d727c;line-height: 18px;font-weight: 700;background: #1d727c;color: #ffffff !important;font-size: 1rem;margin: 10px 5px 5px 0;">
+            <a style="color: #ffffff;" href="download-csv-template/">
+                Download csv template
+            </a>
+        </div>
+        <div style="border: 1px solid #1d727c;border-radius: 50px;width: fit-content;padding: 11px;cursor: pointer;overflow: hidden;background: #1d727c;line-height: 18px;font-weight: 700;background: #1d727c;color: #ffffff !important;font-size: 1rem;margin: 10px 0 5px 5px;">
+            <a style="color: #ffffff;" href="import-users-with-csv/">
+                Import users with csv file
+            </a>
+        </div>
+    </div>
+
+    <br />
+    {{ block.super }}
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+{% mjml %}
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="15px">
+          {% blocktranslate %}
+          Hello {{ name }},
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text font-size="15px" line-height="20px">
+          {% blocktranslate with group_name=invitation.people_group.name%}
+          A registration link you created for the group {{ group_name}} will expire today.
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text font-size="15px" line-height="20px">
+          {% blocktranslate with website_url=invitation.organization.website_url %}
+          You can create a new registration link <a class="lpi-link" href="{{ website_url }}/admin/links/list">here</a>.
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+{% endmjml %}
+{% endblock %}

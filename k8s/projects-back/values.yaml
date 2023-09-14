@@ -1,0 +1,79 @@
+environment:
+  nonSensitive:
+    ALLOWED_HOSTS: localhost,127.0.0.1
+    # Kubernetes pods, required for the probes
+    ALLOWED_IP_CIDR: 10.244.0.0/16
+    POSTGRES_DB: projects
+    BEHIND_HTTPS_PROXY: "True"
+    ANALYTICS_URL: http://projects-analytics
+    WIKIPEDIA_GATEWAY_URL: http://wikipedia-gateway.wikipedia-gateway
+    MJML_HTTPSERVER_URL: http://mjml-server.mjml/v1/render
+    CELERY_BROKER_URL: redis://projects-api-redis-master:6379/0
+    CELERY_RESULT_BACKEND: redis://projects-api-redis-master:6379/0
+    CACHE_REDIS_URL: redis://projects-api-redis-master:6379/1
+    # Gunicorn workers
+    WEB_CONCURRENCY: "9"
+    ALGOLIA_AUTO_INDEXING: "1"
+    EMAIL_HOST: projects-mailhog
+    EMAIL_PORT: "1025"
+    # Debug
+    DJANGO_CHECK_FAIL_LEVEL: ERROR
+
+fullName: projects-backend
+
+projectsNamespace: projects
+
+image:
+  repository: criprodprod.azurecr.io
+  path: projects-backend
+  tag: "{{ .Values.application.revision }}"
+
+application:
+  revision: dummy-revision
+
+
+hostname: dummy-host
+ingressPath: /
+
+backend:
+  replicaCount: 1
+  commonLabels:
+    app.kubernetes.io/name: projects-backend
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/part-of: projects
+    app.kubernetes.io/managed-by: helm
+    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+    app.kubernetes.io/instance: main
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 10m
+      memory: 1Gi
+
+celery:
+  replicaCount: 1
+  commonLabels:
+    app.kubernetes.io/name: projects-celery
+    app.kubernetes.io/component: celery
+    app.kubernetes.io/part-of: projects
+    app.kubernetes.io/managed-by: helm
+    app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
+    app.kubernetes.io/instance: main
+  resources:
+    requests:
+      cpu: 20m
+      memory: 700Mi
+    limits:
+      memory: 1Gi
+
+redisAllowedLabel: projects-api-redis-client # Required for network policy
+
+redis:
+  enabled: false # todo: enable by default
+  autoSync: false
+  valueFiles: []
+  argocdAppName: projects-api-redis
+  argocdProject: default
+  helmReleaseName: projects-api-redis
+  targetRevision: main

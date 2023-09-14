@@ -1,0 +1,31 @@
+environment:
+  nonSensitive:
+    PUBLIC_URL: https://api-proj-810.projects.k8s.lp-i.dev
+    POSTGRES_DB: dev_proj810
+    ALLOWED_HOSTS: 127.0.0.1,localhost,127.0.0.1:8080,localhost:8080,api.projects.k8s.lp-i.dev,projects-backend,projects.vite.k8s.lp-i.dev,projects.k8s.lp-i.dev,cri.projects.k8s.lp-i.dev,profschercheurs.projects.k8s.lp-i.dev,api-proj-810.projects.k8s.lp-i.dev,projects.810.k8s.lp-i.dev
+    CELERY_BROKER_URL: redis://projects-api-redis-proj-810-master:6379/0
+    CELERY_RESULT_BACKEND: redis://projects-api-redis-proj-810-master:6379/0
+    CACHE_REDIS_URL: redis://projects-api-redis-proj-810-master:6379/1
+    ALGOLIA_PREFIX: proj_810
+
+hostname: api-proj-810.projects.k8s.lp-i.dev
+
+redis:
+  enabled: true
+  argocdAppName: projects-api-redis-proj-810
+  helmReleaseName: projects-api-redis-proj-810
+  values:
+    ingress:
+      enabled: false
+
+fullName: projects-proj-810-backend
+
+backend:
+  commonLabels:
+    app.kubernetes.io/instance: proj-810
+
+celery:
+  commonLabels:
+    app.kubernetes.io/instance: proj-810
+
+redisAllowedLabel: projects-api-redis-proj-810-client # Required for network policy

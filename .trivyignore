@@ -1,0 +1,5 @@
+# Ignore secrets
+gcp-service-account
+
+# Ignore Django 4.2.1 multiple file upload vulnerability
+CVE-2023-31047

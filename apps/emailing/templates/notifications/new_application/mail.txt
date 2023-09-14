@@ -1,0 +1,13 @@
+{% load i18n %}
+{% blocktranslate with project_title=project.title announcement_title=item.title %}
+{{ application.applicant_firstname }} {{ application.applicant_name }} applied to on the project: {{ project_title }} For a job work of {{ announcement_title }}:
+{% endblocktranslate %}
+{% blocktranslate %}
+Description of the job: {{ item.description|safe }}
+{% endblocktranslate %}
+{% blocktranslate %}
+User's email: {{ application.applicant_email }}
+{% endblocktranslate %}
+{% blocktranslate %}
+User message: {{ application.applicant_message|safe }}
+{% endblocktranslate %}

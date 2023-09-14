@@ -1,0 +1,44 @@
+{{- if .Values.redis.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Values.redis.argocdAppName}}
+  # You'll usually want to add your resources to the argocd namespace.
+  namespace: argocd
+  # Add a this finalizer ONLY if you want these to cascade delete.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # The project the application belongs to.
+  project: {{ .Values.redis.argocdProject }}
+
+  # Source of the application manifests
+  source:
+    repoURL: https://github.com/CyberCRI/external-helm-charts
+    targetRevision: {{ .Values.redis.targetRevision }}
+    path: redis
+    helm:
+      releaseName: {{ .Values.redis.helmReleaseName }}
+      valueFiles: {{- .Values.redis.valueFiles | toYaml | nindent 6 }}
+      version: v3
+      {{- with .Values.redis.values }}
+      values: |
+        {{- . | toYaml | nindent 8 }}
+      {{- end }}
+  # Destination cluster and namespace to deploy the application
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: {{ .Values.projectsNamespace }}
+
+  # Sync policy
+  syncPolicy:
+  {{- if .Values.redis.autoSync }}
+    automated:
+      prune: true
+  {{- end }}
+    syncOptions:
+    - CreateNamespace=true # Namespace Auto-Creation ensures that namespace specified as the application destination exists in the destination cluster.
+    managedNamespaceMetadata:
+      labels:
+        pod-security.kubernetes.io/enforce: restricted
+{{- end }}

@@ -1,0 +1,11 @@
+name: Lint & test with Algolia on
+on:
+  workflow_dispatch:
+jobs:
+  lint-and-test:
+    uses: ./.github/workflows/lint-and-test-workflow.yml
+    with:
+      test-algolia: true
+    secrets:
+      algolia-app-id: ${{ secrets.ALGOLIA_APP_ID }}
+      algolia-api-key: ${{ secrets.ALGOLIA_KEY }}

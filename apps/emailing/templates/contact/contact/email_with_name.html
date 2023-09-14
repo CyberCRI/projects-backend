@@ -1,0 +1,25 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+{% mjml %}
+<mjml>
+    <mj-body>
+        <mj-section>
+            <mj-column>
+                <mj-text font-size="15px">
+                    {% blocktranslate with given_name=recipient.given_name %}
+                    Hello {{ given_name }},
+                    {% endblocktranslate %}
+                </mj-text>
+                <mj-text font-size="15px" line-height="20px">
+                    {{ message|safe }}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>
+{% endmjml %}
+{% endblock %}

@@ -1,0 +1,19 @@
+name: Lint & test
+on:
+  workflow_call:
+
+jobs:
+  tests:
+    runs-on: [self-hosted, default-runner]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check the code formatting
+        run: docker compose -f docker-compose-tests.yml run projects "make format-check"
+      - name: Run the linter
+        run: docker compose -f docker-compose-tests.yml run projects "make lint"
+      - name: Check that migrations are up-to-date
+        run: docker compose -f docker-compose-tests.yml run projects "make check-migrations"
+      - name: Check that translations are up-to-date
+        run: docker compose -f docker-compose-tests.yml run projects "make makemessages-check"
+      - name: Run unit tests
+        run: docker compose -f docker-compose-tests.yml run projects "make test"

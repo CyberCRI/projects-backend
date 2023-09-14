@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
+  name: {{ tpl $.Values.fullName $ }}
+spec:
+  replicas: {{ .Values.backend.replicaCount }}
+  selector:
+    matchLabels:
+      {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 8 }}
+        {{ $.Values.redisAllowedLabel }}: "true"
+      annotations:
+      {{- if .Values.environment.nonSensitive }}
+        checksum/configmap: {{ include (print $.Template.BasePath "/environment-configmap.yaml") . | sha256sum }}
+      {{- end }}
+      {{- if .Values.environment.sensitive }}
+        checksum/secret: {{ include (print $.Template.BasePath "/environment-secret.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10000
+        runAsGroup: 10000
+        fsGroup: 10000
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+      {{- with $.Values.image }}
+      - image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+        imagePullPolicy: IfNotPresent
+        name: projects-backend-prestart
+        args:
+          - make
+          - prestart
+        envFrom:
+          - configMapRef:
+              name: {{ tpl $.Values.fullName $ }}
+        volumeMounts:
+        - name: static-files
+          mountPath: /app/static
+        {{- if .Values.environment.sensitive }}
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+      containers:
+      {{- with $.Values.image }}
+      - image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+        imagePullPolicy: IfNotPresent
+        name: projects-backend
+        args:
+          - make
+          - start
+        ports:
+          - name: http
+            containerPort: 8000
+        livenessProbe:
+          httpGet:
+            port: http
+            path: /v1/healthz/live
+          timeoutSeconds: 20
+        readinessProbe:
+          httpGet:
+            port: http
+            path: /v1/healthz/ready
+          timeoutSeconds: 20
+        envFrom:
+        - configMapRef:
+            name: {{ tpl $.Values.fullName $ }}
+        resources:
+          {{- .Values.backend.resources | toYaml | nindent 10 }}
+        volumeMounts:
+        - name: static-files
+          mountPath: /app/static
+        {{- if .Values.environment.sensitive }}
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+        {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
+      volumes:
+      - name: static-files
+        emptyDir: {}
+      {{- if .Values.environment.sensitive }}
+      - name: secrets
+        secret:
+          secretName: {{ tpl $.Values.fullName $ }}
+      {{- end }}

@@ -1,0 +1,59 @@
+{% load mjml %}
+{% load i18n %}
+{% load static %}
+
+{% mjml %}
+<mjml>
+  <mj-head>
+    <mj-font name="Ubuntu" href="https://fonts.google.com/specimen/Ubuntu"/>
+    <mj-style inline="inline">
+      .lpi-link {
+        color: #1D727C;
+        font-weight: 700;
+      }
+      .lpi-button {
+        padding: 0 !important;
+      }
+      .lpi-button td {
+        border: 1px solid #1d727c !important;
+        border-radius: 50px !important;
+        padding: 11px 1.5rem !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
+        background: #1d727c !important;
+      }
+      .lpi-button a {
+        line-height: 18px !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        background: #1d727c !important;
+        padding: 0px !important;
+      }
+    </mj-style>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-image width="250px" src="{{ public_url }}{% static 'projects_logo.png' %}"></mj-image>
+        <mj-divider border-color="#888888" border-width="2px"></mj-divider>
+        <mj-text font-family="Ubuntu">
+          {% block content %}{% endblock %}
+        </mj-text>
+        <mj-divider border-color="#888888" border-width="2px"></mj-divider>
+        <mj-text align="center" color="grey" font-family="Ubuntu">
+          <a class="lpi-link" href="https://projects.directory">Projects.directory</a>
+          {% blocktranslate %}
+          the platform made to share your projects.<br/>
+          Created for you by the Learning Planet Institute<br/>
+          8bis, rue Charles V, 75004 Paris, France
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text align="center" color="grey" font-family="Ubuntu">
+          {% blocktranslate %}You receive this mail because you are subscribed to these notifications on Projects platform.{% endblocktranslate %}
+          <a class="lpi-link" href="{{ frontend_url }}/me/myprojects?fromNotification">{% blocktranslate %}Change your notification settings here.{% endblocktranslate %}</a>
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+{% endmjml %}

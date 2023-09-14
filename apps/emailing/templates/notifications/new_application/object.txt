@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with announcement_title=item.title firstname=application.applicant_firstname lastname=application.applicant_name %}
+{{ firstname }} {{ lastname }} applied to the announcement: {{ announcement_title }}.
+{% endblocktranslate %}

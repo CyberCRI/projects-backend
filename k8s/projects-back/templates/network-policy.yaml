@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ tpl $.Values.fullName $ }}
+  labels:
+  {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      # Incoming http traffic from nginx-ingress
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: ingress-nginx
+      # Incoming traffic from projects namespace
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Values.projectsNamespace }}
+      ports:
+        - protocol: TCP
+          port: http
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ tpl $.Values.fullName $ }}-celery
+  labels:
+  {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+    {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 6 }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+      # Incoming http traffic from nginx-ingress
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: ingress-nginx
+      # Incoming traffic from projects namespace
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Values.projectsNamespace }}
+      ports:
+        - protocol: TCP
+          port: http

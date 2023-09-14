@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktranslate %}New highlights on Projects{% endblocktranslate %}

@@ -1,0 +1,2 @@
+{% load i18n %}
+{% blocktranslate %}Registration link to expire in one week{% endblocktranslate %}

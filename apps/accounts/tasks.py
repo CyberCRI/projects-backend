@@ -1,0 +1,179 @@
+import csv
+import json
+import logging
+from datetime import datetime
+
+from django.db.models import Q
+from requests import Request
+
+from apps.accounts.models import ProjectUser
+from apps.accounts.serializers import UserSerializer
+from apps.emailing.utils import send_email_with_attached_file
+from apps.organizations.models import Organization
+from projects.celery import app
+from services.keycloak.interface import KeycloakService
+
+logger = logging.getLogger(__name__)
+
+
+@app.task
+def import_users_from_keycloak():
+    """Import users that are in keycloak but not in projects."""
+    _import_users_from_keycloak()
+
+
+def _import_users_from_keycloak():
+    for organization in Organization.objects.all():
+        for user in KeycloakService.get_members_from_organization(
+            organization.code, "users"
+        ):
+            try:
+                projects_user = ProjectUser.objects.filter(keycloak_id=user["id"])
+                if not projects_user.exists():
+                    KeycloakService.import_user(user["id"])
+                else:
+                    projects_user = projects_user.get()
+                    KeycloakService.sync_groups_from_keycloak(projects_user)
+            except Exception as e:  # noqa
+                logger.error(f"Error importing user {user['id']}: {e}")
+
+        for user in KeycloakService.get_members_from_organization(
+            organization.code, "administrators"
+        ):
+            try:
+                projects_user = ProjectUser.objects.filter(keycloak_id=user["id"])
+                if not projects_user.exists():
+                    KeycloakService.import_user(user["id"])
+                else:
+                    projects_user = projects_user.get()
+                    KeycloakService.sync_groups_from_keycloak(projects_user)
+            except Exception as e:  # noqa
+                logger.error(f"Error importing user {user['id']}: {e}")
+
+
+@app.task
+def batch_create_users(users_data, request_user_pk, update_mode="no_update"):
+    """Create users in batch."""
+    _batch_create_users(users_data, request_user_pk, update_mode)
+
+
+def _clean_user_data_from_csv(user_data):
+    return {
+        key: (
+            [x for x in value.split(";") if x]
+            if key in ["roles_to_add", "sdgs"]
+            else value
+        )
+        for key, value in user_data.items()
+        if value
+    }
+
+
+def _create_user_from_csv_data(request, user_data):
+    user_data["keycloak_id"] = KeycloakService.create_user(user_data)
+    serializer = UserSerializer(
+        data=user_data,
+        context={"request": request},
+    )
+    if serializer.is_valid():
+        serializer.save()
+        return {"email": user_data["email"], "status": "created", "error": ""}
+    return {
+        "email": user_data["email"],
+        "status": "error",
+        "error": json.dumps(serializer.errors),
+    }
+
+
+def _get_serializer_update_data(user, user_data, update_mode=""):
+    if update_mode == "no_update":
+        return {"email": user.email}
+    if update_mode == "soft":
+        user_data = {
+            key: value
+            for key, value in user_data.items()
+            if (
+                key in ["roles_to_add", "sdgs"]
+                or (value and not getattr(user, key, None))
+            )
+        }
+    elif update_mode == "hard":
+        user_data = {key: value for key, value in user_data.items() if value}
+    else:
+        raise ValueError("Invalid update mode")
+    user_data["roles_to_add"] = user_data.get("roles_to_add", []) + list(
+        user.groups.values_list("id", flat=True)
+    )
+    user_data["sdgs"] = list(
+        set([int(i) for i in user_data.get("sdgs", []) + user.sdgs])
+    )
+    user_data["email"] = user.email
+    return user_data
+
+
+def _update_user_from_csv_data(request, user, user_data, update_mode="no_update"):
+    user_data = _get_serializer_update_data(user, user_data, update_mode)
+    serializer = UserSerializer(
+        user,
+        data=user_data,
+        context={"request": request},
+        partial=True,
+    )
+    if serializer.is_valid():
+        instance = serializer.save()
+        keycloak_data = {
+            "email": instance.personal_email
+            if instance.personal_email
+            else instance.email,
+            "username": instance.email,
+            "firstName": instance.given_name,
+            "lastName": instance.family_name,
+        }
+        KeycloakService.update_user(instance, keycloak_data)
+        return {"email": user_data["email"], "status": "updated", "error": ""}
+    return {
+        "email": user_data["email"],
+        "status": "error",
+        "error": json.dumps(serializer.errors),
+    }
+
+
+def _batch_create_users(users_data, request_user_pk, update_mode="no_update"):
+    request = Request()
+    request.user = ProjectUser.objects.get(pk=request_user_pk)
+    email_text = "CSV import results:\n"
+    output_file = f"import_users_{datetime.now().strftime('%Y_%m_%d_%H_%M_%S')}.csv"
+    with open(output_file, "w") as output_csv:
+        writer = csv.DictWriter(output_csv, fieldnames=["email", "status", "error"])
+        writer.writeheader()
+        for user_data in users_data:
+            try:
+                user_data = _clean_user_data_from_csv(user_data)
+                user = ProjectUser.objects.filter(
+                    Q(external_id=user_data.get("external_id", None))
+                    | Q(email=user_data["email"])
+                ).distinct()
+                if user.exists():
+                    results = _update_user_from_csv_data(
+                        request, user.get(), user_data, update_mode
+                    )
+                else:
+                    results = _create_user_from_csv_data(request, user_data)
+
+            except Exception as e:  # noqa
+                results = {
+                    "email": user_data["email"],
+                    "status": "error",
+                    "error": str(e),
+                }
+            writer.writerow(results)
+            email_text += f"{results['email']};{results['status']};{results['error']}\n"
+
+    with open(output_file, "r") as output_csv:
+        send_email_with_attached_file(
+            "Projects - CSV import results",
+            email_text,
+            [request.user.email],
+            output_csv,
+            "text/csv",
+        )
