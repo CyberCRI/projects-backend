@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-import pytest
 from faker import Faker
 
 from apps.accounts.factories import KeycloakAccountFactory
@@ -11,7 +10,6 @@ from services.keycloak.interface import KeycloakService
 faker = Faker()
 
 
-@pytest.mark.django_db
 class KeycloakServiceTestCase(TestCase):
     def test_import_user_with_groups(self):
         keycloak_user = KeycloakAccountFactory(

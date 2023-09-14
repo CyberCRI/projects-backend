@@ -1,6 +1,5 @@
 import datetime
 
-import pytest
 from django.urls import reverse
 from django.utils.timezone import make_aware
 from faker import Faker
@@ -18,7 +17,6 @@ from apps.projects.factories import ProjectFactory
 faker = Faker()
 
 
-@pytest.mark.django_db
 class UsersTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
