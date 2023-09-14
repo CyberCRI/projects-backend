@@ -1,8 +1,41 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
-from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase
+from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, UserRoles
+
+
+class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @parameterized.expand(
+        [
+            (UserRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (UserRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (UserRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (UserRoles.ORGANIZATION_ADMIN, status.HTTP_201_CREATED),
+            (UserRoles.ORGANIZATION_FACILITATOR, status.HTTP_201_CREATED),
+            (UserRoles.ORGANIZATION_USER, status.HTTP_403_FORBIDDEN),
+            (UserRoles.PEOPLE_GROUP_LEADER, status.HTTP_201_CREATED),
+            (UserRoles.PEOPLE_GROUP_MANAGER, status.HTTP_201_CREATED),
+            (UserRoles.PEOPLE_GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_create_people_group_header(self, role, expected_code):
+        instance = PeopleGroupFactory()
+        user = self.get_test_user(role, instance)
+        self.client.force_authenticate(user)
+        payload = {"file": self.get_test_image_file()}
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-header-list",
+                args=(instance.organization.code, instance.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            assert response.json()["static_url"] is not None
 
 
 class PeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
