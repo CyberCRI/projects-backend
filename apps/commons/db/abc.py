@@ -27,6 +27,10 @@ class ProjectRelated:
 class HasOwner:
     """Abstract class for models which have an owner."""
 
+    def get_owner(self):
+        """Get the owner of the object."""
+        raise NotImplementedError()
+
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         raise NotImplementedError()

@@ -2,15 +2,14 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models
 
-from apps.commons.db.abc import HasOwner, OrganizationRelated, ProjectRelated
+from apps.commons.db.abc import OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
-    from apps.accounts.models import ProjectUser
     from apps.organizations.models import Organization
     from apps.projects.models import Project
 
 
-class Announcement(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
+class Announcement(models.Model, ProjectRelated, OrganizationRelated):
     """Information about an announcement working on a Project.
 
     Attributes
@@ -62,10 +61,6 @@ class Announcement(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
     is_remunerated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    def is_owned_by(self, user: "ProjectUser") -> bool:
-        """Whether the given user is the owner of the object."""
-        return self.project.is_owner(user)
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

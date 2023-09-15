@@ -177,6 +177,10 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
         """Whether the given user is the owner of the object."""
         return self.owner == user
 
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.owner
+
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         Organization = apps.get_model("organizations", "Organization")  # noqa

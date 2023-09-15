@@ -376,6 +376,10 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         """Whether the given user is the owner of the object."""
         return self == user
 
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self
+
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         Organization = apps.get_model("organizations", "Organization")  # noqa
@@ -582,6 +586,10 @@ class PrivacySettings(models.Model, HasOwner):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self.user == user
+    
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.user
 
 
 class Skill(models.Model, HasOwner):
@@ -612,6 +620,10 @@ class Skill(models.Model, HasOwner):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self.user == user
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.user
 
 
 class AnonymousUser:

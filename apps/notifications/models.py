@@ -66,6 +66,10 @@ class Notification(models.Model, HasOwner):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.receiver == user
 
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.receiver
+
 
 class NotificationSettings(models.Model, HasOwner):
     user = models.OneToOneField(
@@ -86,3 +90,7 @@ class NotificationSettings(models.Model, HasOwner):
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.user == user
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.user
