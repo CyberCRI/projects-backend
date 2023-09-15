@@ -55,7 +55,9 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
     )
     def test_update_people_group_header(self, role, expected_code):
         people_group = PeopleGroupFactory(header_image=self.get_test_image())
-        user = self.get_test_user(role, owned_instance=people_group.header_image, people_group=people_group)
+        user = self.get_test_user(
+            role, owned_instance=people_group.header_image, people_group=people_group
+        )
         self.client.force_authenticate(user)
         payload = {
             "scale_x": 2.0,
@@ -98,7 +100,9 @@ class DeletePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
     )
     def test_delete_people_group_header(self, role, expected_code):
         people_group = PeopleGroupFactory(header_image=self.get_test_image())
-        user = self.get_test_user(role, owned_instance=people_group.header_image, people_group=people_group)
+        user = self.get_test_user(
+            role, owned_instance=people_group.header_image, people_group=people_group
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(

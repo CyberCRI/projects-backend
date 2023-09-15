@@ -34,15 +34,15 @@ msgstr "Invitation invalide ou expirée"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:542
+#: apps/accounts/models.py:505
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:543
+#: apps/accounts/models.py:506
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:544
+#: apps/accounts/models.py:507
 msgid "Public"
 msgstr "Publique"
 

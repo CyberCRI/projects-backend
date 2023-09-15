@@ -586,7 +586,7 @@ class PrivacySettings(models.Model, HasOwner):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self.user == user
-    
+
     def get_owner(self):
         """Get the owner of the object."""
         return self.user

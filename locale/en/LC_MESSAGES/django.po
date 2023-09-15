@@ -34,15 +34,15 @@ msgstr ""
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:542
+#: apps/accounts/models.py:505
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:543
+#: apps/accounts/models.py:506
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:544
+#: apps/accounts/models.py:507
 msgid "Public"
 msgstr ""
 

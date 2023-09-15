@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 from django.db import models
 from django.test import SimpleTestCase
@@ -75,7 +75,10 @@ class JwtAPITestCase(JwtTestCaseMixin, APITestCase):
         people_group: Optional[PeopleGroup] = None,
         organization: Optional[Organization] = None,
     ):
-        if sum([1 for obj in [project, organization, people_group] if obj is not None]) > 1:
+        if (
+            sum([1 for obj in [project, organization, people_group] if obj is not None])
+            > 1
+        ):
             raise ValueError(
                 "You can't give more than one project, organization or people group"
             )
@@ -87,51 +90,47 @@ class JwtAPITestCase(JwtTestCaseMixin, APITestCase):
         if role == self.Roles.SUPERADMIN:
             return UserFactory(groups=[get_superadmins_group()])
         # object owner roles
-        if owned_instance:
-            if role == self.Roles.OWNER:
-                return owned_instance.get_owner()
+        if owned_instance and role == self.Roles.OWNER:
+            return owned_instance.get_owner()
         # organization roles
-        if organization:
-            if role == self.Roles.ORG_ADMIN:
-                return UserFactory(groups=[organization.get_admins()])
-            if role == self.Roles.ORG_FACILITATOR:
-                return UserFactory(groups=[organization.get_facilitators()])
-            if role == self.Roles.ORG_USER:
-                return UserFactory(groups=[organization.get_users()])
+        if organization and role == self.Roles.ORG_ADMIN:
+            return UserFactory(groups=[organization.get_admins()])
+        if organization and role == self.Roles.ORG_FACILITATOR:
+            return UserFactory(groups=[organization.get_facilitators()])
+        if organization and role == self.Roles.ORG_USER:
+            return UserFactory(groups=[organization.get_users()])
         # people group roles
-        if people_group:
-            if role == self.Roles.GROUP_LEADER:
-                return UserFactory(groups=[people_group.get_leaders()])
-            if role == self.Roles.GROUP_MANAGER:
-                return UserFactory(groups=[people_group.get_managers()])
-            if role == self.Roles.GROUP_MEMBER:
-                return UserFactory(groups=[people_group.get_members()])
-            if role == self.Roles.ORG_ADMIN:
-                return UserFactory(groups=[people_group.organization.get_admins()])
-            if role == self.Roles.ORG_FACILITATOR:
-                return UserFactory(groups=[people_group.organization.get_facilitators()])
-            if role == self.Roles.ORG_USER:
-                return UserFactory(groups=[people_group.organization.get_users()])
+        if people_group and role == self.Roles.GROUP_LEADER:
+            return UserFactory(groups=[people_group.get_leaders()])
+        if people_group and role == self.Roles.GROUP_MANAGER:
+            return UserFactory(groups=[people_group.get_managers()])
+        if people_group and role == self.Roles.GROUP_MEMBER:
+            return UserFactory(groups=[people_group.get_members()])
+        if people_group and role == self.Roles.ORG_ADMIN:
+            return UserFactory(groups=[people_group.organization.get_admins()])
+        if people_group and role == self.Roles.ORG_FACILITATOR:
+            return UserFactory(groups=[people_group.organization.get_facilitators()])
+        if people_group and role == self.Roles.ORG_USER:
+            return UserFactory(groups=[people_group.organization.get_users()])
         # project roles
-        if project:
-            if role == self.Roles.PROJECT_OWNER:
-                return UserFactory(groups=[project.get_owners()])
-            if role == self.Roles.PROJECT_REVIEWER:
-                return UserFactory(groups=[project.get_reviewers()])
-            if role == self.Roles.PROJECT_MEMBER:
-                return UserFactory(groups=[project.get_members()])
-            if role == self.Roles.ORG_ADMIN:
-                return UserFactory(
-                    groups=[o.get_admins() for o in project.organizations.all()]
-                )
-            if role == self.Roles.ORG_FACILITATOR:
-                return UserFactory(
-                    groups=[o.get_facilitators() for o in project.organizations.all()]
-                )
-            if role == self.Roles.ORG_USER:
-                return UserFactory(
-                    groups=[o.get_users() for o in project.organizations.all()]
-                )
+        if project and role == self.Roles.PROJECT_OWNER:
+            return UserFactory(groups=[project.get_owners()])
+        if project and role == self.Roles.PROJECT_REVIEWER:
+            return UserFactory(groups=[project.get_reviewers()])
+        if project and role == self.Roles.PROJECT_MEMBER:
+            return UserFactory(groups=[project.get_members()])
+        if project and role == self.Roles.ORG_ADMIN:
+            return UserFactory(
+                groups=[o.get_admins() for o in project.organizations.all()]
+            )
+        if project and role == self.Roles.ORG_FACILITATOR:
+            return UserFactory(
+                groups=[o.get_facilitators() for o in project.organizations.all()]
+            )
+        if project and role == self.Roles.ORG_USER:
+            return UserFactory(
+                groups=[o.get_users() for o in project.organizations.all()]
+            )
         raise ValueError(f"Invalid role {role} for given object(s)")
 
 

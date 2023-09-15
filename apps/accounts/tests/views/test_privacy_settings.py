@@ -1,7 +1,7 @@
 from django.urls import reverse
 from faker import Faker
-from rest_framework import status
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
@@ -25,8 +25,13 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
     )
     def test_retrieve_public_notification_settings(self, role, expected_code):
         organization = OrganizationFactory()
-        instance = UserFactory(groups=[organization.get_users()], publication_status=PrivacySettings.PrivacyChoices.PUBLIC)
-        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        instance = UserFactory(
+            groups=[organization.get_users()],
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+        )
+        user = self.get_test_user(
+            role, organization=organization, owned_instance=instance.privacy_settings
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
@@ -44,7 +49,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
                     "personal_email",
                 ]
             )
-    
+
     @parameterized.expand(
         [
             (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
@@ -58,8 +63,13 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
     )
     def test_retrieve_org_notification_settings(self, role, expected_code):
         organization = OrganizationFactory()
-        instance = UserFactory(groups=[organization.get_users()], publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION)
-        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        instance = UserFactory(
+            groups=[organization.get_users()],
+            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+        )
+        user = self.get_test_user(
+            role, organization=organization, owned_instance=instance.privacy_settings
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
@@ -77,7 +87,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
                     "personal_email",
                 ]
             )
-    
+
     @parameterized.expand(
         [
             (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
@@ -91,8 +101,13 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
     )
     def test_retrieve_private_notification_settings(self, role, expected_code):
         organization = OrganizationFactory()
-        instance = UserFactory(groups=[organization.get_users()], publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        instance = UserFactory(
+            groups=[organization.get_users()],
+            publication_status=PrivacySettings.PrivacyChoices.HIDE,
+        )
+        user = self.get_test_user(
+            role, organization=organization, owned_instance=instance.privacy_settings
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
@@ -127,7 +142,9 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
     def test_update_notification_settings(self, role, expected_code):
         organization = OrganizationFactory()
         instance = UserFactory(groups=[organization.get_users()])
-        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        user = self.get_test_user(
+            role, organization=organization, owned_instance=instance.privacy_settings
+        )
         self.client.force_authenticate(user)
         payload = {
             key: faker.enum(PrivacySettings.PrivacyChoices)
@@ -146,7 +163,4 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == value
-                for key, value in payload.items()
-            )
+            assert all(response.json()[key] == value for key, value in payload.items())
