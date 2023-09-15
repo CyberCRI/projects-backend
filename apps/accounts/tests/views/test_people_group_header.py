@@ -3,21 +3,21 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
-from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, UserRoles
+from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase
 
 
 class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
-            (UserRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (UserRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (UserRoles.SUPERADMIN, status.HTTP_201_CREATED),
-            (UserRoles.ORGANIZATION_ADMIN, status.HTTP_201_CREATED),
-            (UserRoles.ORGANIZATION_FACILITATOR, status.HTTP_201_CREATED),
-            (UserRoles.ORGANIZATION_USER, status.HTTP_403_FORBIDDEN),
-            (UserRoles.PEOPLE_GROUP_LEADER, status.HTTP_201_CREATED),
-            (UserRoles.PEOPLE_GROUP_MANAGER, status.HTTP_201_CREATED),
-            (UserRoles.PEOPLE_GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.GROUP_LEADER, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.GROUP_MANAGER, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_create_people_group_header(self, role, expected_code):
@@ -41,16 +41,16 @@ class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
 class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
-            (UserRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (UserRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (UserRoles.OWNER, status.HTTP_200_OK),
-            (UserRoles.SUPERADMIN, status.HTTP_200_OK),
-            (UserRoles.ORGANIZATION_ADMIN, status.HTTP_200_OK),
-            (UserRoles.ORGANIZATION_FACILITATOR, status.HTTP_200_OK),
-            (UserRoles.ORGANIZATION_USER, status.HTTP_403_FORBIDDEN),
-            (UserRoles.PEOPLE_GROUP_LEADER, status.HTTP_200_OK),
-            (UserRoles.PEOPLE_GROUP_MANAGER, status.HTTP_200_OK),
-            (UserRoles.PEOPLE_GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.GROUP_LEADER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.GROUP_MANAGER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_update_people_group_header(self, role, expected_code):
@@ -84,16 +84,16 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
 class DeletePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
-            (UserRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (UserRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (UserRoles.OWNER, status.HTTP_204_NO_CONTENT),
-            (UserRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
-            (UserRoles.ORGANIZATION_ADMIN, status.HTTP_204_NO_CONTENT),
-            (UserRoles.ORGANIZATION_FACILITATOR, status.HTTP_204_NO_CONTENT),
-            (UserRoles.ORGANIZATION_USER, status.HTTP_403_FORBIDDEN),
-            (UserRoles.PEOPLE_GROUP_LEADER, status.HTTP_204_NO_CONTENT),
-            (UserRoles.PEOPLE_GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
-            (UserRoles.PEOPLE_GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_delete_people_group_header(self, role, expected_code):

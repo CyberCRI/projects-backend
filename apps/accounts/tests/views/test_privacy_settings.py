@@ -1,19 +1,136 @@
 from django.urls import reverse
 from faker import Faker
+from rest_framework import status
+from parameterized import parameterized
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
-from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 
-fake = Faker()
+faker = Faker()
 
 
-class PrivacySettingsTestCaseMixin:
-    def get_payload(self):
-        return {
-            key: fake.enum(PrivacySettings.PrivacyChoices)
+class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_200_OK),
+        ]
+    )
+    def test_retrieve_public_notification_settings(self, role, expected_code):
+        organization = OrganizationFactory()
+        instance = UserFactory(groups=[organization.get_users()], publication_status=PrivacySettings.PrivacyChoices.PUBLIC)
+        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert all(
+                response.json()[key] == getattr(instance.privacy_settings, key)
+                for key in [
+                    "publication_status",
+                    "profile_picture",
+                    "skills",
+                    "socials",
+                    "mobile_phone",
+                    "personal_email",
+                ]
+            )
+    
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_404_NOT_FOUND),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_200_OK),
+        ]
+    )
+    def test_retrieve_org_notification_settings(self, role, expected_code):
+        organization = OrganizationFactory()
+        instance = UserFactory(groups=[organization.get_users()], publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION)
+        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert all(
+                response.json()[key] == getattr(instance.privacy_settings, key)
+                for key in [
+                    "publication_status",
+                    "profile_picture",
+                    "skills",
+                    "socials",
+                    "mobile_phone",
+                    "personal_email",
+                ]
+            )
+    
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_404_NOT_FOUND),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_404_NOT_FOUND),
+        ]
+    )
+    def test_retrieve_private_notification_settings(self, role, expected_code):
+        organization = OrganizationFactory()
+        instance = UserFactory(groups=[organization.get_users()], publication_status=PrivacySettings.PrivacyChoices.HIDE)
+        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert all(
+                response.json()[key] == getattr(instance.privacy_settings, key)
+                for key in [
+                    "publication_status",
+                    "profile_picture",
+                    "skills",
+                    "socials",
+                    "mobile_phone",
+                    "personal_email",
+                ]
+            )
+
+
+class UpdateNotificationSettingsTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_notification_settings(self, role, expected_code):
+        organization = OrganizationFactory()
+        instance = UserFactory(groups=[organization.get_users()])
+        user = self.get_test_user(role, organization=organization, owned_instance=instance.privacy_settings)
+        self.client.force_authenticate(user)
+        payload = {
+            key: faker.enum(PrivacySettings.PrivacyChoices)
             for key in [
                 "publication_status",
                 "profile_picture",
@@ -23,173 +140,13 @@ class PrivacySettingsTestCaseMixin:
                 "personal_email",
             ]
         }
-
-
-class PrivacySettingsViewSetTestCaseAnonymous(
-    JwtAPITestCase, PrivacySettingsTestCaseMixin
-):
-    def test_retrieve_anonymous(self):
-        user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,))
-        )
-        assert response.status_code == 404
-
-    def test_partial_update_anonymous(self):
-        user = UserFactory()
-        payload = self.get_payload()
         response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,)),
+            reverse("PrivacySettings-detail", args=(instance.keycloak_id,)),
             data=payload,
         )
-        assert response.status_code == 401
-
-
-class PrivacySettingsViewSetTestCaseUser(JwtAPITestCase, PrivacySettingsTestCaseMixin):
-    def test_retrieve_self(self):
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=[user.keycloak_id])
-        )
-        assert response.status_code == 200
-
-    def test_retrieve_other(self):
-        user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=[user.keycloak_id])
-        )
-        assert response.status_code == 404
-
-    def test_partial_update_other(self):
-        user = UserFactory()
-        payload = self.get_payload()
-        self.client.force_authenticate(UserFactory())
-        response = self.client.patch(
-            reverse("PrivacySettings-detail", args=[user.keycloak_id]),
-            data=payload,
-        )
-        assert response.status_code == 403
-
-    def test_partial_update_self(self):
-        user = UserFactory()
-        payload = self.get_payload()
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse("PrivacySettings-detail", args=[user.keycloak_id]),
-            data=payload,
-        )
-        assert response.status_code == 200
-        for key in payload:
-            assert response.data[key] == payload[key]
-
-
-class PrivacySettingsViewSetTestCaseSuperAdmin(
-    JwtAPITestCase, PrivacySettingsTestCaseMixin
-):
-    def test_retrieve_superadmin_self(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,))
-        )
-        assert response.status_code == 200
-
-    def test_retrieve_superadmin_other(self):
-        user = UserFactory()
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,))
-        )
-        assert response.status_code == 200
-
-    def test_partial_update_superadmin_self(self):
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        payload = self.get_payload()
-        self.assertTrue(admin.notification_settings.notify_added_to_project)
-        response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(admin.keycloak_id,)),
-            data=payload,
-        )
-        assert response.status_code == 200
-        for key in payload:
-            assert response.data[key] == payload[key]
-
-    def test_partial_update_superadmin_other(self):
-        user = UserFactory()
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        payload = self.get_payload()
-        self.assertTrue(user.notification_settings.notify_added_to_project)
-        response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,)),
-            data=payload,
-        )
-        assert response.status_code == 200
-        for key in payload:
-            assert response.data[key] == payload[key]
-
-
-class PrivacySettingsViewSetTestCaseOrgAdmin(
-    JwtAPITestCase, PrivacySettingsTestCaseMixin
-):
-    def test_retrieve_orgadmin_self(self):
-        org_admin = UserFactory()
-        organization = OrganizationFactory()
-        organization.admins.add(org_admin)
-        self.client.force_authenticate(org_admin)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=(org_admin.keycloak_id,))
-        )
-        assert response.status_code == 200
-
-    def test_retrieve_orgadmin_other(self):
-        user = UserFactory(
-            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
-        )
-        org_admin = UserFactory()
-        organization = OrganizationFactory()
-        organization.admins.add(org_admin)
-        organization.users.add(user)
-        self.client.force_authenticate(org_admin)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=(org_admin.keycloak_id,))
-        )
-        assert response.status_code == 200
-
-    def test_partial_update_orgadmin_self(self):
-        org_admin = UserFactory()
-        organization = OrganizationFactory()
-        organization.admins.add(org_admin)
-        self.client.force_authenticate(org_admin)
-        payload = self.get_payload()
-        self.assertTrue(org_admin.notification_settings.notify_added_to_project)
-        response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(org_admin.keycloak_id,)),
-            data=payload,
-        )
-        assert response.status_code == 200
-        for key in payload:
-            assert response.data[key] == payload[key]
-
-    def test_partial_update_orgadmin_other(self):
-        user = UserFactory(
-            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
-        )
-        org_admin = UserFactory()
-        organization = OrganizationFactory()
-        organization.admins.add(org_admin)
-        organization.users.add(user)
-        self.client.force_authenticate(org_admin)
-        payload = self.get_payload()
-        self.assertTrue(user.notification_settings.notify_added_to_project)
-        response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,)),
-            data=payload,
-        )
-        assert response.status_code == 200
-        for key in payload:
-            assert response.data[key] == payload[key]
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert all(
+                response.json()[key] == value
+                for key, value in payload.items()
+            )

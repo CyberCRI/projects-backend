@@ -1,116 +1,112 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase
 
 
-class UserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
-    view = "PeopleGroup-logo-list"
-    field_name = "logo_image"
-    base_permissions = ["accounts.change_peoplegroup"]
-    org_permissions = ["organizations.change_peoplegroup"]
-    people_group_permissions = ["accounts.change_peoplegroup"]
-
-    def assert_delete_fk_image(
-        self, view_name, field_name, factory, denied=False, **kwargs
-    ):
-        image = self.get_test_image()
-        setattr(factory, field_name, image)
-        factory.save()
-        response = self.client.delete(reverse(view_name, kwargs=kwargs))
-        if not denied:
-            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        else:
-            self.assertEqual(
-                response.status_code, status.HTTP_403_FORBIDDEN, response.content
-            )
-
-    # Tests for POST calls that should pass
-    def test_upload_images_base_permission(self):
-        self.create_user(self.base_permissions)
+class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.GROUP_LEADER, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.GROUP_MANAGER, status.HTTP_201_CREATED),
+            (JwtAPITestCase.Roles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_create_people_group_logo(self, role, expected_code):
         people_group = PeopleGroupFactory()
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_image_upload(self.view, **kwargs)
-
-    def test_upload_images_org_permission(self):
-        _, _, organization = self.create_org_user(self.org_permissions)
-        people_group = PeopleGroupFactory(organization=organization)
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_image_upload(self.view, **kwargs)
-
-    def test_upload_images_people_group_permission(self):
-        people_group, _ = self.create_people_group_member(
-            permissions=self.people_group_permissions
+        user = self.get_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        payload = {"file": self.get_test_image_file()}
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-logo-list",
+                args=(people_group.organization.code, people_group.id),
+            ),
+            data=payload,
+            format="multipart",
         )
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_image_upload(self.view, **kwargs)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            assert response.json()["static_url"] is not None
 
-    # Tests for POST calls that should fail
-    def test_upload_oversized_image(self):
-        self.create_user(self.base_permissions)
-        people_group = PeopleGroupFactory()
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_image_too_large(self.view, **kwargs)
 
-    def test_upload_images_no_permission(self):
-        self.create_user()
-        people_group = PeopleGroupFactory()
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
+class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.GROUP_LEADER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.GROUP_MANAGER, status.HTTP_200_OK),
+            (JwtAPITestCase.Roles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_people_group_logo(self, role, expected_code):
+        people_group = PeopleGroupFactory(logo_image=self.get_test_image())
+        user = self.get_test_user(role, owned_instance=people_group.logo_image, people_group=people_group)
+        self.client.force_authenticate(user)
+        payload = {
+            "scale_x": 2.0,
+            "scale_y": 2.0,
+            "left": 1.0,
+            "top": 1.0,
+            "natural_ratio": 1.0,
         }
-        self.assert_image_upload(self.view, **kwargs, denied=True)
-
-    # Tests for DELETE calls that should pass
-    def test_delete_fk_images_base_permission(self):
-        self.create_user(self.base_permissions)
-        people_group = PeopleGroupFactory()
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_delete_fk_image(self.view, self.field_name, people_group, **kwargs)
-
-    def test_delete_fk_images_org_permission(self):
-        _, _, organization = self.create_org_user(self.org_permissions)
-        people_group = PeopleGroupFactory(organization=organization)
-        kwargs = {
-            "organization_code": organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_delete_fk_image(self.view, self.field_name, people_group, **kwargs)
-
-    def test_delete_images_people_group_permission(self):
-        people_group, _ = self.create_people_group_member(
-            permissions=self.people_group_permissions
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-logo-list",
+                args=(people_group.organization.code, people_group.id),
+            ),
+            data=payload,
+            format="multipart",
         )
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_delete_fk_image(self.view, self.field_name, people_group, **kwargs)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert response.json()["scale_x"] == payload["scale_x"]
+            assert response.json()["scale_y"] == payload["scale_y"]
+            assert response.json()["left"] == payload["left"]
+            assert response.json()["top"] == payload["top"]
+            assert response.json()["natural_ratio"] == payload["natural_ratio"]
 
-    # Tests for DELETE calls that should fail
-    def test_delete_fk_images_no_permission(self):
-        self.create_user()
-        people_group = PeopleGroupFactory()
-        kwargs = {
-            "organization_code": people_group.organization.code,
-            "people_group_id": people_group.id,
-        }
-        self.assert_delete_fk_image(
-            self.view, self.field_name, people_group, denied=True, **kwargs
+
+class DeletePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @parameterized.expand(
+        [
+            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.OWNER, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (JwtAPITestCase.Roles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (JwtAPITestCase.Roles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_delete_people_group_logo(self, role, expected_code):
+        people_group = PeopleGroupFactory(logo_image=self.get_test_image())
+        user = self.get_test_user(role, owned_instance=people_group.logo_image, people_group=people_group)
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse(
+                "PeopleGroup-logo-list",
+                args=(people_group.organization.code, people_group.id),
+            ),
         )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            people_group.refresh_from_db()
+            assert not people_group.logo_image
