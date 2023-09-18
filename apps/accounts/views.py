@@ -647,7 +647,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
+        return Response(
+            people_group.get_hierarchy(request.user), status=status.HTTP_200_OK
+        )
 
 
 class PeopleGroupHeaderView(ImageStorageView):
