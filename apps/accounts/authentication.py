@@ -31,9 +31,6 @@ class BearerToken(AccessToken):
 
 class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
-        return ProjectUser.objects.get(
-            keycloak_id="3241d03e-0e1e-4bde-9803-9e5d5638e4a9"
-        )
         code, token = KeycloakService.get_token_for_user(username, password)
         if code != status.HTTP_200_OK:
             return None
