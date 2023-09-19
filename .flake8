@@ -45,6 +45,7 @@ per-file-ignores =
     **/views.py: A003
     **/serializers.py: A003
     **/factories.py: A003
+    ./sops/*: N815 N816
 max-line-length = 88
 max-doc-length = 120
 extend-ignore = E203
