@@ -82,12 +82,15 @@ class PostDeployProcess(models.Model):
         date_done = task_result.date_done
         return make_aware(date_done) if date_done else None
 
-    @property
-    def status(self):
+    def _status(self):
         if not self.task_id:
             return "NONE"
         task_result = AsyncResult(self.task_id)
         return task_result.status
+
+    @property
+    def status(self):
+        return self._status()
 
     @property
     def error(self):

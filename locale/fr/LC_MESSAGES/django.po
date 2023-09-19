@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-09-12 07:47+0000\n"
+"POT-Creation-Date: 2023-09-19 16:42+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/authentication.py:92
+#: apps/accounts/authentication.py:98
 msgid "Token contained no recognizable user identification"
 msgstr "Le token n'a pas permis de retrouver un utilisateur"
 
-#: apps/accounts/authentication.py:99
+#: apps/accounts/authentication.py:105
 msgid "User is inactive"
 msgstr "L'utilisateur.ice est inactif.ve"
 
-#: apps/accounts/authentication.py:111
+#: apps/accounts/authentication.py:117
 msgid "Invitation not found or expired"
 msgstr "Invitation invalide ou expirée"
 

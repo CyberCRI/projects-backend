@@ -1,7 +1,11 @@
+from unittest.mock import patch
+
 from django.urls import reverse
 from faker import Faker
 
 from apps.commons.test import JwtAPITestCase
+from apps.deploys.models import PostDeployProcess
+from apps.deploys.task_managers import InstanceGroupsPermissions
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 
@@ -9,7 +13,15 @@ faker = Faker()
 
 
 class ReassignPermissionTestCase(JwtAPITestCase):
-    def test_reassign_project_permissions(self):
+    def _mocked_task_status(self, *args, **kwargs):
+        return "STARTED"
+
+    @patch("apps.deploys.models.PostDeployProcess._status")
+    def test_reassign_project_permissions(self, mocked):
+        mocked.side_effect = self._mocked_task_status
+        PostDeployProcess.objects.get_or_create(
+            task_name=InstanceGroupsPermissions.task_name
+        )
         project = ProjectFactory()
 
         for group in project.groups.all():
@@ -24,7 +36,12 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         project.refresh_from_db()
         assert project.permissions_up_to_date is True
 
-    def test_reassign_organization_permissions(self):
+    @patch("apps.deploys.models.PostDeployProcess._status")
+    def test_reassign_organization_permissions(self, mocked):
+        mocked.side_effect = self._mocked_task_status
+        PostDeployProcess.objects.get_or_create(
+            task_name=InstanceGroupsPermissions.task_name
+        )
         organization = OrganizationFactory()
 
         for group in organization.groups.all():
