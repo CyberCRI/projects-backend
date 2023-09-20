@@ -728,6 +728,10 @@ class AnonymousUser:
         """Return a list of the permissions representations."""
         return []
 
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return []
+
 
 class InvitationUser(AnonymousUser):
     def __init__(self, invitation):

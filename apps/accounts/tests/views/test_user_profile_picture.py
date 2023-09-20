@@ -3,25 +3,25 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase
+from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 
 
 class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_create_user_profile_picture(self, role, expected_code):
         organization = OrganizationFactory()
         instance = UserFactory(groups=[organization.get_users()])
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
         self.client.force_authenticate(user)
@@ -42,13 +42,13 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
 class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_update_user_profile_picture(self, role, expected_code):
@@ -58,7 +58,7 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
         )
         instance.profile_picture.owner = instance
         instance.profile_picture.save()
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
         self.client.force_authenticate(user)
@@ -89,13 +89,13 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
 class DeleteUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_delete_user_profile_picture(self, role, expected_code):
@@ -105,7 +105,7 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
         )
         instance.profile_picture.owner = instance
         instance.profile_picture.save()
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
         self.client.force_authenticate(user)

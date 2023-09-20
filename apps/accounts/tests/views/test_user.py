@@ -10,7 +10,7 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
@@ -22,17 +22,17 @@ faker = Faker()
 class CreateUserTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_create_user(self, role, expected_code):
         organization = OrganizationFactory()
-        user = self.get_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, organization=organization)
         self.client.force_authenticate(user)
         projects = ProjectFactory.create_batch(3, organizations=[organization])
         people_groups = PeopleGroupFactory.create_batch(3, organization=organization)
@@ -110,19 +110,19 @@ class CreateUserTestCase(JwtAPITestCase):
 class UpdateUserTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_update_user(self, role, expected_code):
         organization = OrganizationFactory()
         instance = SeedUserFactory(groups=[organization.get_users()])
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
         self.client.force_authenticate(user)
@@ -143,19 +143,19 @@ class UpdateUserTestCase(JwtAPITestCase):
 class DeleteUserTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_delete_user(self, role, expected_code):
         organization = OrganizationFactory()
         instance = SeedUserFactory(groups=[organization.get_users()])
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
         self.client.force_authenticate(user)

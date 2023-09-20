@@ -176,7 +176,8 @@ class PrivacySettingFieldMixin:
                 return True
             case PrivacySettings.PrivacyChoices.ORGANIZATION:
                 return instance.groups.filter(
-                    organizations__isnull=False, id__in=request.user.groups.values("id")
+                    organizations__isnull=False,
+                    organizations__in=request.user.get_related_organizations(),
                 ).exists()
         return False
 

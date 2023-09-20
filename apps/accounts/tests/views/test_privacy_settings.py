@@ -5,7 +5,7 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
@@ -14,13 +14,13 @@ faker = Faker()
 class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_200_OK),
+            (TestRoles.ANONYMOUS, status.HTTP_200_OK),
+            (TestRoles.DEFAULT, status.HTTP_200_OK),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_200_OK),
         ]
     )
     def test_retrieve_public_notification_settings(self, role, expected_code):
@@ -29,7 +29,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             groups=[organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
         self.client.force_authenticate(user)
@@ -52,13 +52,13 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_404_NOT_FOUND),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_200_OK),
+            (TestRoles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
+            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_200_OK),
         ]
     )
     def test_retrieve_org_notification_settings(self, role, expected_code):
@@ -67,7 +67,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             groups=[organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
         )
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
         self.client.force_authenticate(user)
@@ -90,13 +90,13 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_404_NOT_FOUND),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_404_NOT_FOUND),
+            (TestRoles.ANONYMOUS, status.HTTP_404_NOT_FOUND),
+            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_404_NOT_FOUND),
         ]
     )
     def test_retrieve_private_notification_settings(self, role, expected_code):
@@ -105,7 +105,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             groups=[organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
         )
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
         self.client.force_authenticate(user)
@@ -130,19 +130,19 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
 class UpdateNotificationSettingsTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_update_notification_settings(self, role, expected_code):
         organization = OrganizationFactory()
         instance = UserFactory(groups=[organization.get_users()])
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
         self.client.force_authenticate(user)

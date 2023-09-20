@@ -7,7 +7,7 @@ from rest_framework import status
 
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import Skill
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.commons.test.testcases import TagTestCase
 from apps.organizations.factories import OrganizationFactory
 
@@ -17,13 +17,13 @@ faker = Faker()
 class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_201_CREATED),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_201_CREATED),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
@@ -31,7 +31,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
         mocked.side_effect = self.side_effect
         organization = OrganizationFactory()
         instance = UserFactory(groups=[organization.get_users()])
-        user = self.get_test_user(
+        user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
         self.client.force_authenticate(user)
@@ -53,19 +53,21 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
 class UpdateSkillTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_200_OK),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_update_skill(self, role, expected_code):
         organization = OrganizationFactory()
         skill = SkillFactory(level=1)
-        user = self.get_test_user(role, organization=organization, owned_instance=skill)
+        user = self.get_parameterized_test_user(
+            role, organization=organization, owned_instance=skill
+        )
         self.client.force_authenticate(user)
         payload = {
             "level": 2,
@@ -81,19 +83,21 @@ class UpdateSkillTestCase(JwtAPITestCase):
 class DeleteSkillTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
-            (JwtAPITestCase.Roles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (JwtAPITestCase.Roles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.OWNER, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (JwtAPITestCase.Roles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
-            (JwtAPITestCase.Roles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_delete_skill(self, role, expected_code):
         organization = OrganizationFactory()
         skill = SkillFactory()
-        user = self.get_test_user(role, organization=organization, owned_instance=skill)
+        user = self.get_parameterized_test_user(
+            role, organization=organization, owned_instance=skill
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(reverse("Skill-detail", args=(skill.id,)))
         assert response.status_code == expected_code
