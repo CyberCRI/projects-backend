@@ -1,6 +1,21 @@
 name: Lint & test
 on:
   workflow_call:
+    inputs:
+      submodules-app-id:
+        type: string
+        required: false
+        description: 'The id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
+        default: "213843"
+      submodules-app-installation-id:
+        type: string
+        required: false
+        description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
+        default: "26790862"
+    secrets:
+      submodules-app-private-key:
+        required: false
+        description: 'The private-key of the app used for authentication. Only needed if `recursive-submodule-checkout` is true'
 
 jobs:
   tests:
