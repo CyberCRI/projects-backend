@@ -77,7 +77,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
-skip_glob = ["**/migrations/*.py", "**/sops/*.py"]
+skip_glob = ["**/migrations/*.py", "**/devops-toolbox/**.py"]
 
 [tool.black]
 exclude = '''
@@ -86,7 +86,7 @@ exclude = '''
     ...
     | \.venv
     | .+/migrations
-    | .+/sops
+    | .+/devops-toolbox
   )/
 )
 '''
@@ -110,6 +110,7 @@ omit = [
   "*wsgi*",
   "*admin.py",
   "*urls.py",
+  "./devops-toolbox/*",
 ]
 
 [tool.bandit]

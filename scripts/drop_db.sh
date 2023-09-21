@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Drop a database for the current backend
+# Drop a database for the current backend, with checks
 
 set -euo pipefail
 
