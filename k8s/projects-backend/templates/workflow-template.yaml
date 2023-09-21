@@ -30,13 +30,13 @@ metadata:
 spec:
   entrypoint: sort
   serviceAccountName: {{ .Values.workflowRbac.serviceAccountName }}
-  # securityContext:
-  #   runAsNonRoot: true
-  #   runAsUser: 10000
-  #   runAsGroup: 10000
-  #   fsGroup: 10000
-  #   seccompProfile:
-  #     type: RuntimeDefault
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+    seccompProfile:
+      type: RuntimeDefault
   templates:
     - name: drop-db
       container:
