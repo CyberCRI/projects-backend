@@ -135,6 +135,7 @@ class PeopleGroupFactory(factory.django.DjangoModelFactory):
     def create(cls, **kwargs):
         instance = super().create(**kwargs)
         instance.setup_permissions()
+        instance.organization.setup_permissions()
         return instance
 
 
