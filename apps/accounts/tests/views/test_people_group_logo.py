@@ -6,7 +6,7 @@ from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, TestRoles
 
 
-class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class CreatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -38,7 +38,7 @@ class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
             assert response.json()["static_url"] is not None
 
 
-class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class UpdatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -83,7 +83,7 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
             assert response.json()["natural_ratio"] == payload["natural_ratio"]
 
 
-class DeletePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class DeletePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),

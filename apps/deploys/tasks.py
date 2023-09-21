@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.management import call_command
 from guardian.shortcuts import assign_perm
 
@@ -14,7 +15,9 @@ from .utils import post_deploy_task
 
 @post_deploy_task
 def algolia_reindex_task():
-    call_command("algolia_reindex")
+    environment = settings.ENVIRONMENT
+    if environment != "test":
+        call_command("algolia_reindex")
 
 
 @post_deploy_task

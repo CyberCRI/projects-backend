@@ -1,9 +1,16 @@
+import uuid
+from unittest import mock
+
+from django.conf import settings
 from django.urls import reverse
 from faker import Faker
+from googleapiclient.errors import HttpError
+from parameterized import parameterized
+from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import PeopleGroup
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
@@ -11,675 +18,391 @@ from apps.projects.models import Project
 faker = Faker()
 
 
-class PeopleGroupAnonymousTestCase(JwtAPITestCase):
-    def test_create_people_group(self):
+class CreatePeopleGroupTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_create_people_group(self, role, expected_code):
         organization = OrganizationFactory()
         parent = PeopleGroupFactory(organization=organization)
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
+        members = UserFactory.create_batch(3)
+        managers = UserFactory.create_batch(3)
+        leaders = UserFactory.create_batch(3)
+        projects = ProjectFactory.create_batch(3)
         payload = {
             "name": faker.name(),
             "description": faker.text(),
             "email": faker.email(),
             "parent": parent.id,
+            "team": {
+                "members": [m.keycloak_id for m in members],
+                "managers": [r.keycloak_id for r in managers],
+                "leaders": [r.keycloak_id for r in leaders],
+            },
+            "featured_projects": [p.pk for p in projects],
         }
         response = self.client.post(
-            reverse("PeopleGroup-list", args=(organization.code,)), payload
+            reverse("PeopleGroup-list", args=(organization.code,)),
+            payload,
         )
-        self.assertEqual(response.status_code, 401)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            assert response.status_code == 201
+            assert response.data["name"] == payload["name"]
+            assert response.data["description"] == payload["description"]
+            assert response.data["email"] == payload["email"]
+            assert response.data["organization"] == organization.code
+            assert response.data["hierarchy"][0]["id"] == parent.id
+            people_group = PeopleGroup.objects.get(id=response.json()["id"])
+            assert all(member in people_group.members.all() for member in members)
+            assert all(manager in people_group.managers.all() for manager in managers)
+            assert all(leader in people_group.leaders.all() for leader in leaders)
+            assert all(
+                project in people_group.featured_projects.all() for project in projects
+            )
 
-    def test_list_people_group(self):
-        organization = OrganizationFactory()
-        groups = PeopleGroupFactory.create_batch(
-            3,
+
+class UpdatePeopleGroupTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MANAGER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_people_group(self, role, expected_code):
+        people_group = PeopleGroupFactory()
+        user = self.get_parameterized_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        payload = {
+            "description": faker.text(),
+        }
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-detail",
+                args=(people_group.organization.code, people_group.pk),
+            ),
+            payload,
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert response.json()["description"] == payload["description"]
+
+
+class DeletePeopleGroupTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_delete_people_group(self, role, expected_code):
+        people_group = PeopleGroupFactory()
+        user = self.get_parameterized_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse(
+                "PeopleGroup-detail",
+                args=(people_group.organization.code, people_group.pk),
+            ),
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert not PeopleGroup.objects.filter(id=people_group.id).exists()
+
+
+class PeopleGroupMemberTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_add_people_group_member(self, role, expected_code):
+        people_group = PeopleGroupFactory()
+        user = self.get_parameterized_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        members = UserFactory.create_batch(3)
+        managers = UserFactory.create_batch(3)
+        leaders = UserFactory.create_batch(3)
+        payload = {
+            "members": [m.keycloak_id for m in members],
+            "managers": [r.keycloak_id for r in managers],
+            "leaders": [r.keycloak_id for r in leaders],
+        }
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-add-member",
+                args=(people_group.organization.code, people_group.pk),
+            ),
+            payload,
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert all(member in people_group.members.all() for member in members)
+            assert all(manager in people_group.managers.all() for manager in managers)
+            assert all(leader in people_group.leaders.all() for leader in leaders)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_remove_people_group_member(self, role, expected_code):
+        people_group = PeopleGroupFactory()
+        user = self.get_parameterized_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        members = UserFactory.create_batch(3)
+        managers = UserFactory.create_batch(3)
+        leaders = UserFactory.create_batch(3)
+        people_group.members.add(*members)
+        people_group.managers.add(*managers)
+        people_group.leaders.add(*leaders)
+        payload = {
+            "users": [u.keycloak_id for u in members + managers + leaders],
+        }
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-remove-member",
+                args=(people_group.organization.code, people_group.pk),
+            ),
+            payload,
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert all(member not in people_group.members.all() for member in members)
+            assert all(
+                manager not in people_group.managers.all() for manager in managers
+            )
+            assert all(leader not in people_group.leaders.all() for leader in leaders)
+
+
+class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_add_featured_project(self, role, expected_code):
+        people_group = PeopleGroupFactory()
+        user = self.get_parameterized_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        projects = ProjectFactory.create_batch(3)
+        payload = {"featured_projects": [p.pk for p in projects]}
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-add-featured-project",
+                args=(people_group.organization.code, people_group.pk),
+            ),
+            payload,
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert all(
+                project in people_group.featured_projects.all() for project in projects
+            )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_remove_featured_project(self, role, expected_code):
+        people_group = PeopleGroupFactory()
+        user = self.get_parameterized_test_user(role, people_group=people_group)
+        self.client.force_authenticate(user)
+        projects = ProjectFactory.create_batch(3)
+        people_group.featured_projects.add(*projects)
+        payload = {"featured_projects": [p.pk for p in projects]}
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-remove-featured-project",
+                args=(people_group.organization.code, people_group.pk),
+            ),
+            payload,
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert all(
+                project not in people_group.featured_projects.all()
+                for project in projects
+            )
+
+
+class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
+    @staticmethod
+    def mocked_google_error(code=400):
+        def raise_error(*args, **kwargs):
+            raise HttpError(
+                resp=mock.Mock(status=code, reason="error reason"),
+                content=b'{"error": {"errors": [{"reason": "error reason"}]}}',
+            )
+
+        return raise_error
+
+    def test_google_error_create_people_group(self):
+        self.client.force_authenticate(
+            user=UserFactory(permissions=[("accounts.add_peoplegroup", None)])
+        )
+        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        payload = {
+            "name": faker.word(),
+            "description": faker.sentence(),
+            "create_in_google": True,
+            "organization": organization.pk,
+        }
+        with mock.patch(
+            "services.google.interface.GoogleService.create_group_process",
+            side_effect=self.mocked_google_error(),
+        ):
+            response = self.client.post(
+                reverse("PeopleGroup-list", args=(organization.code,)), data=payload
+            )
+        assert response.status_code == 400
+        assert response.json()["error"] == "An error occured in Google : error reason"
+        assert not PeopleGroup.objects.filter(name=payload["name"]).exists()
+
+    def test_google_error_update_people_group(self):
+        self.client.force_authenticate(
+            user=UserFactory(permissions=[("accounts.change_peoplegroup", None)])
+        )
+        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        group = PeopleGroupFactory(
+            email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=organization,
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
         )
-        response = self.client.get(
-            f"{reverse('PeopleGroup-list', args=(organization.code,))}?is_root=false"
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 3)
-        self.assertEqual(
-            {item["id"] for item in response.json()["results"]},
-            {item.id for item in groups},
-        )
+        payload = {
+            "description": faker.sentence(),
+        }
+        with mock.patch(
+            "services.google.interface.GoogleService.update_group_process",
+            side_effect=self.mocked_google_error(),
+        ):
+            response = self.client.patch(
+                reverse("PeopleGroup-detail", args=(organization.code, group.pk)),
+                data=payload,
+            )
+        assert response.status_code == 400
+        assert response.json()["error"] == "An error occured in Google : error reason"
+        group.refresh_from_db()
+        assert group.description != payload["description"]
 
-    def test_retrieve_people_group(self):
-        organization = OrganizationFactory()
-        people_group = PeopleGroupFactory(
+    def test_google_error_add_people_group_member(self):
+        self.client.force_authenticate(
+            user=UserFactory(permissions=[("accounts.change_peoplegroup", None)])
+        )
+        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        group = PeopleGroupFactory(
+            email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=organization,
+        )
+        user = SeedUserFactory(
+            email=f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
+            groups=[organization.get_users()],
+        )
+        payload = {
+            PeopleGroup.DefaultGroup.MEMBERS: [user.keycloak_id],
+        }
+        with mock.patch(
+            "services.google.interface.GoogleService.update_group_process",
+            side_effect=self.mocked_google_error(),
+        ):
+            response = self.client.post(
+                reverse("PeopleGroup-add-member", args=(organization.code, group.pk)),
+                data=payload,
+            )
+        assert response.status_code == 400
+        assert response.json()["error"] == "An error occured in Google : error reason"
+        assert not group.members.all().filter(pk=user.pk).exists()
+
+    def test_google_error_remove_people_group_member(self):
+        self.client.force_authenticate(
+            user=UserFactory(permissions=[("accounts.change_peoplegroup", None)])
+        )
+        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        group = PeopleGroupFactory(
+            email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=organization,
         )
-        response = self.client.get(
-            reverse("PeopleGroup-detail", args=(organization.code, people_group.pk))
+        user = SeedUserFactory(
+            email=f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
+            groups=[organization.get_users(), group.get_members()],
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], people_group.name)
-
-    def test_partial_update_people_group(self):
-        people_group = PeopleGroupFactory()
-        payload = {
-            "description": "update",
-        }
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail",
-                args=(people_group.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 401)
-
-    def test_destroy_people_group(self):
-        people_group = PeopleGroupFactory()
-        response = self.client.delete(
-            reverse(
-                "PeopleGroup-detail",
-                args=(people_group.organization.code, people_group.pk),
-            )
-        )
-        self.assertEqual(response.status_code, 401)
-
-    def test_members(self):
-        people_group = PeopleGroupFactory()
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: UserFactory().keycloak_id,
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-member",
-                args=(people_group.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 401)
-
-    def test_add_members(self):
-        people_group = PeopleGroupFactory()
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [UserFactory().keycloak_id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-member",
-                args=(people_group.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 401)
-
-    def test_remove_members(self):
-        people_group = PeopleGroupFactory()
-        user = UserFactory()
-        people_group.members.add(user)
         payload = {
             "users": [user.keycloak_id],
         }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-member",
-                args=(people_group.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 401)
-
-    def test_add_featured_project(self):
-        people_group = PeopleGroupFactory()
-        project = ProjectFactory()
-
-        payload = {
-            "featured_projects": [project.id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-featured-project",
-                args=(people_group.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 401)
-
-    def test_remove_featured_project(self):
-        people_group = PeopleGroupFactory()
-        project = ProjectFactory()
-        people_group.featured_projects.add(project)
-
-        payload = {
-            "project": project.id,
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-featured-project",
-                args=(people_group.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 401)
-
-
-class PeopleGroupNoPermissionTestCase(JwtAPITestCase):
-    def setUp(self):
-        super().setUp()
-        self.organization = OrganizationFactory()
-        self.user = UserFactory()
-        self.client.force_authenticate(user=self.user)
-
-    def test_create_people_group(self):
-        parent = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "name": faker.name(),
-            "description": faker.text(),
-            "email": faker.email(),
-            "parent": parent.id,
-        }
-        response = self.client.post(
-            reverse("PeopleGroup-list", args=(self.organization.code,)), payload
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_list_people_group(self):
-        groups = PeopleGroupFactory.create_batch(
-            3,
-            organization=self.organization,
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-        )
-        response = self.client.get(
-            f"{reverse('PeopleGroup-list', args=(self.organization.code,))}?is_root=false"
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 3)
-        self.assertEqual(
-            {item["id"] for item in response.json()["results"]},
-            {item.id for item in groups},
-        )
-
-    def test_retrieve_people_group(self):
-        people_group = PeopleGroupFactory(
-            organization=self.organization,
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-        )
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
+        with mock.patch(
+            "services.google.interface.GoogleService.update_group_process",
+            side_effect=self.mocked_google_error(),
+        ):
+            response = self.client.post(
+                reverse(
+                    "PeopleGroup-remove-member", args=(organization.code, group.pk)
+                ),
+                data=payload,
             )
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], people_group.name)
-
-    def test_partial_update_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "description": "update",
-        }
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_destroy_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        response = self.client.delete(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            )
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_add_members(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [UserFactory().keycloak_id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-member",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_remove_members(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        user = UserFactory()
-        people_group.members.add(user)
-        payload = {
-            "users": [user.keycloak_id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-member",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_add_featured_project(self):
-        project = ProjectFactory()
-        project.members.add(self.user)
-        people_group = PeopleGroupFactory(organization=self.organization)
-
-        payload = {
-            "featured_projects": [project.id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-featured-project",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_remove_featured_project(self):
-        project = ProjectFactory()
-        people_group = PeopleGroupFactory(organization=self.organization)
-        people_group.featured_projects.add(project)
-        project.members.add(self.user)
-
-        payload = {
-            "project": project.id,
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-featured-project",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 403)
+        assert response.status_code == 400
+        assert response.json()["error"] == "An error occured in Google : error reason"
+        assert group.members.all().filter(pk=user.pk).exists()
 
 
-class PeopleGroupInstancePermissionTestCase(JwtAPITestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.organization = OrganizationFactory()
-        self.people_group = PeopleGroupFactory(organization=self.organization)
-        self.user = UserFactory(groups=[self.people_group.get_managers()])
-        self.client.force_authenticate(user=self.user)
-
-    def test_create_people_group(self):
-        parent = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "name": faker.name(),
-            "description": faker.text(),
-            "email": faker.email(),
-            "parent": parent.id,
-        }
-        response = self.client.post(
-            reverse("PeopleGroup-list", args=(self.organization.code,)), payload
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_retrieve_people_group(self):
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-detail",
-                args=(self.organization.code, self.people_group.pk),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], self.people_group.name)
-
-    def test_partial_update_people_group(self):
-        payload = {
-            "description": "update",
-        }
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 200)
-
-    def test_destroy_people_group(self):
-        response = self.client.delete(
-            reverse(
-                "PeopleGroup-detail",
-                args=(self.organization.code, self.people_group.pk),
-            )
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_add_members(self):
-        user = UserFactory().keycloak_id
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [user],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-member",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_remove_members(self):
-        user = UserFactory()
-        self.people_group.members.add(user)
-        payload = {
-            "users": [user.keycloak_id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-member",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_add_featured_project(self):
-        project = ProjectFactory()
-        project.members.add(self.user)
-
-        payload = {"featured_projects": [project.id]}
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-featured-project",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_remove_featured_project(self):
-        project = ProjectFactory()
-        self.people_group.featured_projects.add(project)
-        project.members.add(self.user)
-
-        payload = {"project": project.id}
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-featured-project",
-                args=(self.organization.code, self.people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-
-class PeopleGroupBasePermissionTestCase(JwtAPITestCase):
-    def setUp(self):
-        super().setUp()
-        self.organization = OrganizationFactory()
-        self.user = UserFactory(
-            permissions=[
-                ("accounts.view_peoplegroup", None),
-                ("accounts.add_peoplegroup", None),
-                ("accounts.change_peoplegroup", None),
-                ("accounts.delete_peoplegroup", None),
-            ]
-        )
-        self.client.force_authenticate(user=self.user)
-
-    def test_create_people_group(self):
-        parent = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "name": faker.name(),
-            "description": faker.text(),
-            "email": faker.email(),
-            "parent": parent.id,
-        }
-        response = self.client.post(
-            reverse("PeopleGroup-list", args=(self.organization.code,)), payload
-        )
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["name"], payload["name"])
-        self.assertEqual(response.data["description"], payload["description"])
-        self.assertEqual(response.data["email"], payload["email"])
-        self.assertEqual(response.data["organization"], self.organization.code)
-        self.assertEqual(response.data["hierarchy"][0]["id"], parent.id)
-
-    def test_list_people_group(self):
-        groups = PeopleGroupFactory.create_batch(3, organization=self.organization)
-        response = self.client.get(
-            f"{reverse('PeopleGroup-list', args=(self.organization.code,))}?is_root=false"
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 3)
-        self.assertEqual(
-            {item["id"] for item in response.json()["results"]},
-            {item.id for item in groups},
-        )
-
-    def test_retrieve_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], people_group.name)
-
-    def test_partial_update_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "description": "update",
-        }
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["description"], payload["description"])
-
-    def test_destroy_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        response = self.client.delete(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            )
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_add_members(self):
-        user = UserFactory().keycloak_id
-        people_group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [user],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-member",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_remove_members(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        user = UserFactory()
-        people_group.managers.add(user)
-        payload = {
-            "users": [user.keycloak_id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-member",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_add_featured_project(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        project = ProjectFactory()
-        project.members.add(self.user)
-
-        payload = {"featured_projects": [project.id]}
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-featured-project",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_remove_featured_project(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        project = ProjectFactory()
-        people_group.featured_projects.add(project)
-        project.members.add(self.user)
-
-        payload = {"project": project.id}
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-featured-project",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-
-class PeopleGroupOrgPermissionTestCase(JwtAPITestCase):
-    def setUp(self):
-        super().setUp()
-        self.organization = OrganizationFactory()
-        self.user = UserFactory(groups=[self.organization.get_admins()])
-        self.client.force_authenticate(user=self.user)
-
-    def test_create_people_group(self):
-        parent = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "name": faker.name(),
-            "description": faker.text(),
-            "email": faker.email(),
-            "parent": parent.id,
-        }
-        response = self.client.post(
-            reverse("PeopleGroup-list", args=(self.organization.code,)), payload
-        )
-        self.assertEqual(response.status_code, 201)
-        self.assertEqual(response.data["name"], payload["name"])
-        self.assertEqual(response.data["description"], payload["description"])
-        self.assertEqual(response.data["email"], payload["email"])
-        self.assertEqual(response.data["organization"], self.organization.code)
-        self.assertEqual(response.data["hierarchy"][0]["id"], parent.id)
-
-    def test_list_people_group(self):
-        groups = PeopleGroupFactory.create_batch(3, organization=self.organization)
-        response = self.client.get(
-            f"{reverse('PeopleGroup-list', args=(self.organization.code,))}?is_root=false"
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["count"], 3)
-        self.assertEqual(
-            {item["id"] for item in response.json()["results"]},
-            {item.id for item in groups},
-        )
-
-    def test_retrieve_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["name"], people_group.name)
-
-    def test_partial_update_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "description": "update",
-        }
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data["description"], payload["description"])
-
-    def test_destroy_people_group(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        response = self.client.delete(
-            reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
-            )
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_add_members(self):
-        user = UserFactory().keycloak_id
-        people_group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [user],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-member",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_remove_members(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        user = UserFactory()
-        people_group.members.add(user)
-        payload = {
-            "users": [user.keycloak_id],
-        }
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-member",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_add_featured_project(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        project = ProjectFactory()
-        project.members.add(self.user)
-
-        payload = {"featured_projects": [project.id]}
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-add-featured-project",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-    def test_remove_featured_project(self):
-        people_group = PeopleGroupFactory(organization=self.organization)
-        project = ProjectFactory()
-        people_group.featured_projects.add(project)
-        project.members.add(self.user)
-
-        payload = {"project": project.id}
-        response = self.client.post(
-            reverse(
-                "PeopleGroup-remove-featured-project",
-                args=(self.organization.code, people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, 204)
-
-
-class PeopleGroupValidationTestCase(JwtAPITestCase):
+class ValidatePeopleGroupTestCase(JwtAPITestCase):
     def setUp(self):
         super().setUp()
         self.organization = OrganizationFactory()
@@ -891,34 +614,8 @@ class PeopleGroupValidationTestCase(JwtAPITestCase):
         assert response.status_code == 200
 
 
-class PeopleGroupTestCase(JwtAPITestCase):
-    def test_create_with_members(self):
-        organization = OrganizationFactory()
-        parent = PeopleGroupFactory(organization=organization)
-        members = UserFactory.create_batch(3)
-        managers = UserFactory.create_batch(3)
-        payload = {
-            "name": faker.name(),
-            "description": faker.text(),
-            "email": faker.email(),
-            "parent": parent.id,
-            "team": {
-                "members": [m.keycloak_id for m in members],
-                "managers": [r.keycloak_id for r in managers],
-            },
-        }
-        user = UserFactory(permissions=[("accounts.add_peoplegroup", None)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("PeopleGroup-list", args=(organization.code,)),
-            payload,
-        )
-        assert response.status_code == 201
-        people_group = PeopleGroup.objects.get(id=response.json()["id"])
-        assert all(member in people_group.members.all() for member in members)
-        assert all(manager in people_group.managers.all() for manager in managers)
-
-    def test_retrieve_members(self):
+class MiscPeopleGroupTestCase(JwtAPITestCase):
+    def test_annotate_members(self):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC
         )
@@ -970,7 +667,7 @@ class PeopleGroupTestCase(JwtAPITestCase):
         assert all(user["is_manager"] is False for user in batch_4)
         assert all(user["is_leader"] is False for user in batch_4)
 
-    def test_retrieve_projects(self):
+    def test_annotate_projects(self):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC
         )
