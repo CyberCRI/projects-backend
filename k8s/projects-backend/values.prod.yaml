@@ -14,6 +14,7 @@ environment:
     EMAIL_USE_SSL: "True"
     KEYCLOAK_SERVER_URL: https://lpi-prod.cloud-iam.com/auth/
     # KEYCLOAK_PUBLIC_KEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnOY26rMxJv+31a4giXjpAr9PzofGBG2gH43gpRMc8muSNg1t4x/OMoT0Rhbe8Q6bxP4kEmomqWdiqiplTkJtf8oxoNirR/mzF/AwzVTSjTLIKOEylS1zS7/A2kQ2Dy/r2VQodn7NYF40poNGPJkfmwKThbvSxDoP1bNNO68FkL48xKZkl3/XLescy9WWJKkZkJoR0sUmoDwp7dvAVFTzxc/+0OcHqcd8CURRIpKNxYnWq3fRc/Gq6bpG0vFA3myw4dRnf1AQ5g/yHoAUchGnuTZ+V4flvkRywlQKaNPlthFnUl36MLNpAParRw7qPdszCq2tt4FYw8fjAu3xgIUcAQIDAQAB
+    ENVIRONMENT: production
 
 hostname: api.projects.lp-i.org
 

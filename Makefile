@@ -91,6 +91,10 @@ test:
 	coverage run
 	coverage report
 
+.PHONY: dropdb
+dropdb:
+	./scripts/drop_db.sh
+
 .PHONY: check-migrations
 check-migrations:
 	python manage.py makemigrations --noinput --check

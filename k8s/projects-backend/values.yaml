@@ -18,6 +18,7 @@ environment:
     EMAIL_PORT: "1025"
     # Debug
     DJANGO_CHECK_FAIL_LEVEL: ERROR
+    INSTANCE: main
 
 fullName: projects-backend
 
@@ -43,7 +44,7 @@ backend:
     app.kubernetes.io/part-of: projects
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
-    app.kubernetes.io/instance: main
+    app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
     limits:
       memory: 2Gi
@@ -59,7 +60,7 @@ celery:
     app.kubernetes.io/part-of: projects
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
-    app.kubernetes.io/instance: main
+    app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
     requests:
       cpu: 20m
@@ -77,3 +78,5 @@ redis:
   argocdProject: default
   helmReleaseName: projects-api-redis
   targetRevision: main
+
+instance: main # By default, the instance of the backend is the main one

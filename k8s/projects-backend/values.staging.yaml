@@ -17,6 +17,7 @@ environment:
     CACHE_REDIS_URL: redis://projects-api-redis-stag-test-master:6379/1
     MJML_HTTPSERVER_URL: http://mjml-server.stag-test-mjml/v1/render
     WIKIPEDIA_GATEWAY_URL: http://wikipedia-gateway.stag-test-wikipedia-gateway
+    ENVIRONMENT: staging
 
 projectsNamespace: stag-test-projects
 
