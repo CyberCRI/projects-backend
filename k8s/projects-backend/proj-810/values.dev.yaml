@@ -1,4 +1,4 @@
-environment:
+config:
   nonSensitive:
     PUBLIC_URL: https://api-proj-810.projects.k8s.lp-i.dev
     POSTGRES_DB: dev_proj810

@@ -1,4 +1,4 @@
-environment:
+config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.develop
     ALLOWED_HOSTS: 127.0.0.1,localhost,127.0.0.1:8080,localhost:8080,api.projects.k8s.lp-i.dev,projects-backend,projects.k8s.lp-i.dev,cri.projects.k8s.lp-i.dev,profschercheurs.projects.k8s.lp-i.dev,vue3-nuxt.k8s.lp-i.dev,www.vue3-nuxt.k8s.lp-i.dev,cri.vue3-nuxt.k8s.lp-i.dev,www.cri.vue3-nuxt.k8s.lp-i.dev,profschercheurs.vue3-nuxt.k8s.lp-i.dev,www.profschercheurs.vue3-nuxt.k8s.lp-i.dev
