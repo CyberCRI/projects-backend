@@ -86,7 +86,8 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
         ]
     )
     def test_update_people_group(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         payload = {
@@ -95,7 +96,7 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "PeopleGroup-detail",
-                args=(people_group.organization.code, people_group.pk),
+                args=(organization.code, people_group.pk),
             ),
             payload,
         )
@@ -119,13 +120,14 @@ class DeletePeopleGroupTestCase(JwtAPITestCase):
         ]
     )
     def test_delete_people_group(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
                 "PeopleGroup-detail",
-                args=(people_group.organization.code, people_group.pk),
+                args=(organization.code, people_group.pk),
             ),
         )
         assert response.status_code == expected_code
@@ -148,7 +150,8 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         ]
     )
     def test_add_people_group_member(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         members = UserFactory.create_batch(3)
@@ -162,7 +165,7 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "PeopleGroup-add-member",
-                args=(people_group.organization.code, people_group.pk),
+                args=(organization.code, people_group.pk),
             ),
             payload,
         )
@@ -186,7 +189,8 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         ]
     )
     def test_remove_people_group_member(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         members = UserFactory.create_batch(3)
@@ -201,7 +205,7 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "PeopleGroup-remove-member",
-                args=(people_group.organization.code, people_group.pk),
+                args=(organization.code, people_group.pk),
             ),
             payload,
         )
@@ -229,7 +233,8 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         ]
     )
     def test_add_featured_project(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         projects = ProjectFactory.create_batch(3)
@@ -237,7 +242,7 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "PeopleGroup-add-featured-project",
-                args=(people_group.organization.code, people_group.pk),
+                args=(organization.code, people_group.pk),
             ),
             payload,
         )
@@ -261,7 +266,8 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         ]
     )
     def test_remove_featured_project(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         projects = ProjectFactory.create_batch(3)
@@ -270,7 +276,7 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "PeopleGroup-remove-featured-project",
-                args=(people_group.organization.code, people_group.pk),
+                args=(organization.code, people_group.pk),
             ),
             payload,
         )
