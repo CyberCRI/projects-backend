@@ -39,11 +39,21 @@ spec:
       type: RuntimeDefault
   templates:
     - name: drop-db
+      inputs:
+        parameters:
+          - name: dry_run
+            value: "true"
+            enum:
+            - 'true'
+            - 'false'
       container:
       {{- with $.Values.image }}
         image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
       {{- end }}
         args: ["make", "dropdb"]
+        env:
+        - name: DRY_RUN
+          value: {{ print "{{workflow.parameters.dry_run}}" | quote}}
         envFrom:
         - configMapRef:
             name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
