@@ -12,6 +12,8 @@ current_database=$POSTGRES_DB
 
 origin_database=$ORIGIN_POSTGRES_DB
 
+dry_run="${DRY_RUN-}"
+
 # Check that the instance is not the main one
 if [ "${INSTANCE}" == "main" ]; then
   echo "Cannot drop the main database"
@@ -32,7 +34,7 @@ fi
 # Drop the database
 echo "Dropping database ${current_database}"
 
-if [ "${DRY_RUN}" == "true" ]; then
+if [ "${dry_run}" == "true" ]; then
   echo "Would drop database ${current_database} (dry run)"
 else
   PGPASSWORD="$new_password" PGHOST="$hostname" PGUSER="$new_user" dropdb --if-exists "${current_database}"
