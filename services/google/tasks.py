@@ -5,29 +5,28 @@ from apps.emailing.utils import render_message, send_email
 from projects.celery import app
 from services.keycloak.interface import KeycloakService
 
-from .exceptions import GoogleGroupEmailUnavailable, GoogleUserEmailUnavailable
 from .interface import GoogleService
 from .models import GoogleSyncErrors
 
 
 @app.task
-def create_google_user_taks(
+def create_google_user_task(
     user_keycloal_id: str,
     notify: bool = False,
     notify_recipients: Optional[list] = None,
 ):
-    return _create_google_user_taks(user_keycloal_id, notify, notify_recipients)
+    return _create_google_user_task(user_keycloal_id, notify, notify_recipients)
 
 
-def _create_google_user_taks(
+def _create_google_user_task(
     user_keycloal_id: str,
     notify: bool = False,
     notify_recipients: Optional[list] = None,
 ):
+    if not notify_recipients:
+        notify_recipients = []
+    user = ProjectUser.objects.get(keycloak_id=user_keycloal_id)
     try:
-        if not notify_recipients:
-            notify_recipients = []
-        user = ProjectUser.objects.get(keycloak_id=user_keycloal_id)
         google_user = GoogleService.get_user(user.email, max_retries=5)
         GoogleService._add_user_alias(google_user)
         GoogleService._sync_user_groups(user, google_user)
@@ -54,25 +53,10 @@ def update_google_user_task(user_keycloak_id: str, **kwargs):
 
 
 def _update_google_user_task(user_keycloak_id: str, **kwargs):
+    user = ProjectUser.objects.get(keycloak_id=user_keycloak_id)
     try:
-        user = ProjectUser.objects.get(keycloak_id=user_keycloak_id)
-        google_user = GoogleService.get_user(user.email, max_retries=5)
+        google_user = GoogleService.get_user(user.email)
         if google_user:
-            emails = list(
-                filter(
-                    lambda x: x,
-                    [
-                        google_user.get("primaryEmail", ""),
-                        *[email["address"] for email in google_user.get("emails", [])],
-                    ],
-                )
-            )
-            if (
-                ProjectUser.objects.filter(email__in=emails)
-                .exclude(pk=user.pk)
-                .exists()
-            ):
-                raise GoogleUserEmailUnavailable
             GoogleService._update_user(user, google_user, **kwargs)
             GoogleService._sync_user_groups(user, google_user)
     except Exception as e:  # noqa
@@ -90,8 +74,8 @@ def suspend_google_user_task(user_keycloak_id: str):
 
 
 def _suspend_google_user_task(user_keycloak_id: str):
+    user = ProjectUser.objects.get(keycloak_id=user_keycloak_id)
     try:
-        user = ProjectUser.objects.get(keycloak_id=user_keycloak_id)
         GoogleService.suspend_user(user)
         if user.personal_email:
             subject, _ = render_message(
@@ -113,8 +97,8 @@ def create_google_group_task(group_id: int):
 
 
 def _create_google_group_task(group_id: int):
+    group = PeopleGroup.objects.get(pk=group_id)
     try:
-        group = PeopleGroup.objects.get(pk=group_id)
         google_group = GoogleService.get_group(group.email, max_retries=5)
         GoogleService._sync_group_members(group, google_group)
     except Exception as e:  # noqa
@@ -131,22 +115,10 @@ def update_google_group_task(group_id: int):
 
 
 def _update_google_group_task(group_id: int):
+    group = PeopleGroup.objects.get(pk=group_id)
     try:
-        group = PeopleGroup.objects.get(pk=group_id)
-        google_group = GoogleService.get_group(group.email, max_retries=5)
+        google_group = GoogleService.get_group(group.email)
         if google_group:
-            emails = list(
-                filter(
-                    lambda x: x,
-                    [google_group.get("email", ""), *google_group.get("aliases", [])],
-                )
-            )
-            if (
-                PeopleGroup.objects.filter(email__in=emails)
-                .exclude(id=group.id)
-                .exists()
-            ):
-                raise GoogleGroupEmailUnavailable
             GoogleService._update_group(group, google_group)
             GoogleService._sync_group_members(group, google_group)
     except Exception as e:  # noqa

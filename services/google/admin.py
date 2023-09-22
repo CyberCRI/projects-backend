@@ -7,7 +7,7 @@ from django.http.request import HttpRequest
 from .models import GoogleSyncErrors, LPIGoogleAccount, LPIGoogleGroup
 from .tasks import (
     create_google_group_task,
-    create_google_user_taks,
+    create_google_user_task,
     suspend_google_user_task,
     update_google_group_task,
     update_google_user_task,
@@ -110,7 +110,7 @@ class GoogleSyncErrorsAdmin(admin.ModelAdmin):
         for error in queryset:
             match error.on_task:
                 case GoogleSyncErrors.OnTaskChoices.CREATE_USER:
-                    create_google_user_taks.delay(error.user.keycloak_id)
+                    create_google_user_task.delay(error.user.keycloak_id)
                 case GoogleSyncErrors.OnTaskChoices.UPDATE_USER:
                     update_google_user_task.delay(
                         error.user.keycloak_id, **error.task_kwargs
