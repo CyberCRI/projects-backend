@@ -58,11 +58,36 @@ spec:
         - configMapRef:
             name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
         volumeMounts:
-      {{- if .Values.config.sensitive }}
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
+    - name: create-db
+      inputs:
+        parameters:
+          - name: dry_run
+            value: "true"
+            enum:
+            - 'true'
+            - 'false'
+      container:
+      {{- with $.Values.image }}
+        image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
       {{- end }}
+        args: ["make", "createdb"]
+        env:
+        - name: DRY_RUN
+          value: {{ print "{{workflow.parameters.dry_run}}" | quote}}
+        envFrom:
+        - configMapRef:
+            name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
       volumes:
       {{- if .Values.config.sensitive }}
       - name: secrets
