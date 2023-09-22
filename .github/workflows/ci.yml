@@ -7,6 +7,10 @@ on:
       - "**"
       - "!**_deploy"
 
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-docker:
     uses: CyberCRI/github-workflows/.github/workflows/build-push.yaml@main
