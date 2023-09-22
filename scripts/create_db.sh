@@ -4,13 +4,24 @@
 
 set -euo pipefail
 
+hostname=$POSTGRES_HOST
+
+new_user=$POSTGRES_USER
+new_password=$POSTGRES_PASSWORD
+new_database=$POSTGRES_DB
+
+admin_user=$ADMIN_POSTGRES_USER
+admin_password=$ADMIN_POSTGRES_PASSWORD
+
+origin_database=$ORIGIN_POSTGRES_DB
+
 # Check that the instance is not the main one
 if [ "${INSTANCE}" == "main" ]; then
   echo "Cannot create the main database"
   exit 1
 fi
 
-if [ "${POSTGRES_DATABASE}" == "${ORIGIN_POSTGRES_DATABASE}" ]; then
+if [ "${new_database}" == "${origin_database}" ]; then
   echo "Cannot create the origin database"
   exit 1
 fi
@@ -20,17 +31,6 @@ if [ "${ENVIRONMENT}" == "production" ]; then
   echo "Cannot create a database in production"
   exit 1
 fi
-
-hostname=$POSTGRES_HOST
-
-new_user=$POSTGRES_USER
-new_password=$POSTGRES_PASSWORD
-new_database=$POSTGRES_DATABASE
-
-admin_user=$ADMIN_POSTGRES_USER
-admin_password=$ADMIN_POSTGRES_PASSWORD
-
-origin_database=$ORIGIN_POSTGRES_DATABASE
 
 dump_file="/tmp/$origin_database.dump"
 

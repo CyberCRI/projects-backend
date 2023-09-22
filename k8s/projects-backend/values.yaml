@@ -22,8 +22,7 @@ config:
 
 workflowConfig:
   nonSensitive:
-    # Kubernetes pods, required for the probes
-    ORIGIN_POSTGRES_DATABASE: projects
+    ORIGIN_POSTGRES_DB: projects
 
 fullName: projects-backend
 

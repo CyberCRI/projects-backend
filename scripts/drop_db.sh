@@ -4,13 +4,21 @@
 
 set -euo pipefail
 
+hostname=$POSTGRES_HOST
+
+new_user=$POSTGRES_USER
+new_password=$POSTGRES_PASSWORD
+current_database=$POSTGRES_DB
+
+origin_database=$ORIGIN_POSTGRES_DB
+
 # Check that the instance is not the main one
 if [ "${INSTANCE}" == "main" ]; then
   echo "Cannot drop the main database"
   exit 1
 fi
 
-if [ "${POSTGRES_DATABASE}" == "${ORIGIN_POSTGRES_DATABASE}" ]; then
+if [ "${current_database}" == "${origin_database}" ]; then
   echo "Cannot drop the origin database"
   exit 1
 fi
@@ -22,10 +30,10 @@ if [ "${ENVIRONMENT}" == "production" ]; then
 fi
 
 # Drop the database
-echo "Dropping database ${PGDATABASE}"
+echo "Dropping database ${current_database}"
 
 if [ "${DRY_RUN}" == "true" ]; then
-  echo "Would drop database ${PGDATABASE} (dry run)"
+  echo "Would drop database ${current_database} (dry run)"
 else
-  dropdb --if-exists "${PGDATABASE}"
+  PGPASSWORD="$new_password" PGHOST="$hostname" PGUSER="$new_user" dropdb --if-exists "${current_database}"
 fi
