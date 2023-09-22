@@ -1,4 +1,4 @@
-environment:
+config:
   nonSensitive:
     ALLOWED_HOSTS: localhost,127.0.0.1
     # Kubernetes pods, required for the probes
@@ -19,6 +19,11 @@ environment:
     # Debug
     DJANGO_CHECK_FAIL_LEVEL: ERROR
     INSTANCE: main
+
+workflowConfig:
+  nonSensitive:
+    # Kubernetes pods, required for the probes
+    ORIGIN_POSTGRES_DATABASE: projects
 
 fullName: projects-backend
 

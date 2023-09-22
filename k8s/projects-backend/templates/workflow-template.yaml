@@ -46,7 +46,7 @@ spec:
         args: ["make", "dropdb"]
         envFrom:
         - configMapRef:
-            name: {{ tpl $.Values.fullName $ }}
+            name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
         volumeMounts:
       {{- if .Values.config.sensitive }}
         - name: secrets
@@ -57,5 +57,5 @@ spec:
       {{- if .Values.config.sensitive }}
       - name: secrets
         secret:
-          secretName: {{ tpl $.Values.fullName $ }}
+          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
       {{- end }}
