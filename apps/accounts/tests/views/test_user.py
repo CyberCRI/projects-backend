@@ -299,6 +299,33 @@ class UsersTestCase(JwtAPITestCase):
         assert response.status_code == 403
         assert f"organization:#{organization.pk}:users" in response.json()["detail"]
 
+    def test_get_slug(self):
+        given_name = faker.first_name()
+        family_name = faker.last_name()
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        slug_base = "-".join([given_name.lower(), family_name.lower()])
+        assert user.slug == slug_base
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"{slug_base}-1"
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"{slug_base}-2"
+        user = UserFactory(given_name="", family_name="")
+        slug_base = user.email.split("@")[0].lower()
+        assert user.slug == slug_base
+
+    def test_multiple_lookups(self):
+        user = UserFactory()
+        self.client.force_authenticate(user)
+        user_2 = UserFactory()
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(user_2.keycloak_id,))
+        )
+        assert response.status_code == 200
+        assert response.data["slug"] == user_2.slug
+        response = self.client.get(reverse("ProjectUser-detail", args=(user_2.slug,)))
+        assert response.status_code == 200
+        assert response.data["keycloak_id"] == user_2.keycloak_id
+
 
 class UserAnonymousTestCase(JwtAPITestCase):
     def test_create_user_anonymous(self):

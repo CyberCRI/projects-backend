@@ -1114,3 +1114,39 @@ class PeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, 204)
         assert user in people_group.managers.all()
         assert user not in people_group.members.all()
+
+    def test_get_slug(self):
+        name = "My AMazing TeST GroUP !"
+        people_group = PeopleGroupFactory(name=name)
+        assert people_group.slug == "my-amazing-test-group"
+        people_group = PeopleGroupFactory(name=name)
+        assert people_group.slug == "my-amazing-test-group-1"
+        people_group = PeopleGroupFactory(name=name)
+        assert people_group.slug == "my-amazing-test-group-2"
+        people_group = PeopleGroupFactory(name="", type="group")
+        assert people_group.slug.startswith("group")
+        people_group = PeopleGroupFactory(name="", type="club")
+        assert people_group.slug.startswith("club")
+
+    def test_multiple_lookups(self):
+        user = UserFactory()
+        self.client.force_authenticate(user)
+        people_group = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+        )
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-detail",
+                args=(people_group.organization.code, people_group.pk),
+            )
+        )
+        assert response.status_code == 200
+        assert response.data["slug"] == people_group.slug
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-detail",
+                args=(people_group.organization.code, people_group.slug),
+            )
+        )
+        assert response.status_code == 200
+        assert response.data["id"] == people_group.id

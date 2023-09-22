@@ -90,7 +90,7 @@ class ReadUpdateModelViewSet(
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = "keycloak_id"
-    lookup_value_regex = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+    lookup_value_regex = "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_@.-]+)"
     search_fields = [
         "given_name",
         "family_name",
@@ -138,10 +138,13 @@ class UserViewSet(viewsets.ModelViewSet):
         return queryset
 
     def get_object(self):
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
         try:
+            obj = ProjectUser.objects.filter(slug=self.kwargs[lookup_url_kwarg])
+            if obj.exists():
+                self.kwargs[lookup_url_kwarg] = obj.get().keycloak_id
             return super().get_object()
         except Http404:
-            lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
             if not ProjectUser.objects.filter(
                 **{self.lookup_field: self.kwargs[lookup_url_kwarg]}
             ).exists():
@@ -332,6 +335,13 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
     lookup_field = "id"
+
+    def get_object(self):
+        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+        obj = PeopleGroup.objects.filter(slug=self.kwargs[lookup_url_kwarg])
+        if obj.exists():
+            self.kwargs[lookup_url_kwarg] = obj.get().id
+        return super().get_object()
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "peoplegroup")
