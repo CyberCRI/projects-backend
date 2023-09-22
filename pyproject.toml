@@ -86,7 +86,7 @@ exclude = '''
     ...
     | \.venv
     | .+/migrations
-    | .+/devops-toolbox
+    | ./devops-toolbox
   )/
 )
 '''

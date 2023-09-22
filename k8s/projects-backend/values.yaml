@@ -18,7 +18,7 @@ config:
     EMAIL_PORT: "1025"
     # Debug
     DJANGO_CHECK_FAIL_LEVEL: ERROR
-    INSTANCE: main
+    INSTANCE: "{{ .Values.instance }}"
 
 workflowConfig:
   nonSensitive:

@@ -29,3 +29,5 @@ celery:
     app.kubernetes.io/instance: proj-810
 
 redisAllowedLabel: projects-api-redis-proj-810-client # Required for network policy
+
+instance: proj-810

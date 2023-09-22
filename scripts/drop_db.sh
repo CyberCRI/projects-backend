@@ -10,6 +10,11 @@ if [ "${INSTANCE}" == "main" ]; then
   exit 1
 fi
 
+if [ "${POSTGRES_DATABASE}" == "${ORIGIN_POSTGRES_DATABASE}" ]; then
+  echo "Cannot drop the origin database"
+  exit 1
+fi
+
 # Check that the environment is not production
 if [ "${ENVIRONMENT}" == "production" ]; then
   echo "Cannot drop a database in production"
