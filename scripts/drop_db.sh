@@ -32,10 +32,9 @@ if [ "${ENVIRONMENT}" == "production" ]; then
 fi
 
 # Drop the database
-echo "Dropping database ${current_database}"
-
 if [ "${dry_run}" == "true" ]; then
   echo "Would drop database ${current_database} (dry run)"
 else
+  echo "Dropping database ${current_database}"
   PGPASSWORD="$new_password" PGHOST="$hostname" PGUSER="$new_user" dropdb --if-exists "${current_database}"
 fi
