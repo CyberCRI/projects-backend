@@ -46,6 +46,11 @@ spec:
             enum:
             - 'true'
             - 'false'
+          - name: force_disconnect
+            value: "false"
+            enum:
+            - 'true'
+            - 'false'
       container:
       {{- with $.Values.image }}
         image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
@@ -53,7 +58,9 @@ spec:
         args: ["make", "dropdb"]
         env:
         - name: DRY_RUN
-          value: {{ print "{{workflow.parameters.dry_run}}" | quote}}
+          value: {{ print "{{workflow.parameters.dry_run}}" | quote }}
+        - name: FORCE_DISCONNECT
+          value: {{ print "{{workflow.parameters.force_disconnect}}" | quote }}
         envFrom:
         - configMapRef:
             name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
