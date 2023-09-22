@@ -1,6 +1,6 @@
 config:
   nonSensitive:
-    ALLOWED_HOSTS: localhost,127.0.0.1
+    ALLOWED_HOSTS: 127.0.0.1,localhost,127.0.0.1:8080,localhost:8080,{{ .Values.hostname }},{{ .Values.fullName }}
     # Kubernetes pods, required for the probes
     ALLOWED_IP_CIDR: 10.244.0.0/16
     POSTGRES_DB: projects
@@ -19,7 +19,7 @@ config:
     # Debug
     DJANGO_CHECK_FAIL_LEVEL: ERROR
     INSTANCE: "{{ .Values.instance }}"
-
+    PUBLIC_URL: "https://{{ .Values.hostname }}"
 
 fullName: projects-backend
 
