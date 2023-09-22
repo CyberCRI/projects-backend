@@ -50,3 +50,15 @@ PGPASSWORD="$admin_password" PGHOST="$hostname" PGUSER="$admin_user" PGDATABASE=
 echo "Granting privileges to $new_user on $new_database"
 PGPASSWORD="$admin_password" PGHOST="$hostname" PGUSER="$admin_user" PGDATABASE="$new_database" psql -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $new_user;";
 PGPASSWORD="$admin_password" PGHOST="$hostname" PGUSER="$admin_user" PGDATABASE="$new_database" psql -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $new_user;";
+
+# Grant ownership of all tables to the user
+PGPASSWORD="$admin_password" PGHOST="$hostname" PGUSER="$admin_user" PGDATABASE="$new_database" psql <<EOF
+SELECT format(
+  'ALTER TABLE public.%I OWNER TO $new_user',
+  table_name
+)
+FROM information_schema.tables
+WHERE table_schema = 'public'
+  AND table_type = 'BASE TABLE'
+\gexec
+EOF

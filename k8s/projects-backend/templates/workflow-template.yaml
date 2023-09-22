@@ -61,6 +61,10 @@ spec:
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
     - name: create-db
       inputs:
         parameters:
@@ -84,10 +88,7 @@ spec:
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
-      volumes:
-      - name: secrets
-        secret:
-          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+
       volumes:
       {{- if .Values.config.sensitive }}
       - name: secrets
