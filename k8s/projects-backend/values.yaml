@@ -1,6 +1,6 @@
-environment:
+config:
   nonSensitive:
-    ALLOWED_HOSTS: localhost,127.0.0.1
+    ALLOWED_HOSTS: 127.0.0.1,localhost,127.0.0.1:8080,localhost:8080,{{ .Values.hostname }},{{ .Values.fullName }}
     # Kubernetes pods, required for the probes
     ALLOWED_IP_CIDR: 10.244.0.0/16
     POSTGRES_DB: projects
@@ -18,6 +18,8 @@ environment:
     EMAIL_PORT: "1025"
     # Debug
     DJANGO_CHECK_FAIL_LEVEL: ERROR
+    INSTANCE: "{{ .Values.instance }}"
+    PUBLIC_URL: "https://{{ .Values.hostname }}"
 
 fullName: projects-backend
 
@@ -43,7 +45,7 @@ backend:
     app.kubernetes.io/part-of: projects
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
-    app.kubernetes.io/instance: main
+    app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
     limits:
       memory: 2Gi
@@ -59,7 +61,7 @@ celery:
     app.kubernetes.io/part-of: projects
     app.kubernetes.io/managed-by: helm
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
-    app.kubernetes.io/instance: main
+    app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
     requests:
       cpu: 20m
@@ -77,3 +79,9 @@ redis:
   argocdProject: default
   helmReleaseName: projects-api-redis
   targetRevision: main
+
+instance: main # By default, the instance of the backend is the main one
+
+workflowRbac:
+  executorClusterRoleName: executor
+  serviceAccountName: workflow

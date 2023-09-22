@@ -74,7 +74,7 @@ prestart: check collectstatic migrate
 .PHONY: start
 start:
 	gunicorn --config ./gunicorn.conf.py projects.wsgi:application
-	
+
 .PHONY: bandit
 bandit:
 	bandit -c pyproject.toml -r apps/ projects/
@@ -90,6 +90,14 @@ lint: flake8 bandit
 test:
 	coverage run
 	coverage report
+
+.PHONY: dropdb
+dropdb:
+	./scripts/drop_db.sh
+
+.PHONY: createdb
+createdb:
+	./scripts/create_db.sh
 
 .PHONY: check-migrations
 check-migrations:

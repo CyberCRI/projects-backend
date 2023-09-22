@@ -18,13 +18,17 @@ jobs:
       registry-name: ${{ vars.DOCKER_PROD_REGISTRY }}
       image-name: projects-backend
       image-tag: ${{ github.sha }}
+      recursive-submodule-checkout: true
     secrets:
+      submodules-app-private-key: ${{ secrets.INFRA_BOT_APP_PRIVATE_KEY }}
       registry-username: ${{ secrets.DOCKER_PROD_USERNAME }}
       registry-password: ${{ secrets.DOCKER_PROD_PASSWORD }}
 
 
   lint-and-test:
     uses: ./.github/workflows/lint-and-test-workflow.yml
+    secrets:
+      submodules-app-private-key: ${{ secrets.INFRA_BOT_APP_PRIVATE_KEY }}
   tag-deploy:
     needs:
       - build-docker

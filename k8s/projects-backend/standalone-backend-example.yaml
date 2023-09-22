@@ -1,0 +1,31 @@
+# Customization for the redis sub-application
+redis:
+  values:
+    redis:
+      networkPolicy:
+        extraIngress: []
+        allowExternal: false
+    ingress:
+      enabled: false
+  enabled: true
+  argocdAppName: projects-api-redis-standalone
+  helmReleaseName: projects-api-redis-standalone
+redisAllowedLabel: projects-api-redis-standalone-client # Required for network policy
+
+# Custom env variables to configure redis connection, frontend url, db and algolia
+config:
+  nonSensitive:
+    POSTGRES_DB: dev_proj810
+    ALLOWED_HOSTS: 127.0.0.1,localhost,127.0.0.1:8080,localhost:8080,{{ .Values.hostname }},{{ .Values.fullName }},standalone.k8s.lp-i.dev
+    CELERY_BROKER_URL: redis://projects-api-redis-standalone-master:6379/0
+    CELERY_RESULT_BACKEND: redis://projects-api-redis-standalone-master:6379/0
+    CACHE_REDIS_URL: redis://projects-api-redis-standalone-master:6379/1
+    ALGOLIA_PREFIX: proj_810
+
+# Url the backend is exposed to
+hostname: api-standalone.projects.k8s.lp-i.dev
+
+# Name of the resources
+fullName: projects-standalone-backend
+
+instance: standalone

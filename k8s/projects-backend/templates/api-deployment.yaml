@@ -15,10 +15,10 @@ spec:
         {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 8 }}
         {{ $.Values.redisAllowedLabel }}: "true"
       annotations:
-      {{- if .Values.environment.nonSensitive }}
+      {{- if .Values.config.nonSensitive }}
         checksum/configmap: {{ include (print $.Template.BasePath "/environment-configmap.yaml") . | sha256sum }}
       {{- end }}
-      {{- if .Values.environment.sensitive }}
+      {{- if .Values.config.sensitive }}
         checksum/secret: {{ include (print $.Template.BasePath "/environment-secret.yaml") . | sha256sum }}
       {{- end }}
     spec:
@@ -44,7 +44,7 @@ spec:
         volumeMounts:
         - name: static-files
           mountPath: /app/static
-        {{- if .Values.environment.sensitive }}
+        {{- if .Values.config.sensitive }}
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
@@ -83,7 +83,7 @@ spec:
         volumeMounts:
         - name: static-files
           mountPath: /app/static
-        {{- if .Values.environment.sensitive }}
+        {{- if .Values.config.sensitive }}
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
@@ -95,7 +95,7 @@ spec:
       volumes:
       - name: static-files
         emptyDir: {}
-      {{- if .Values.environment.sensitive }}
+      {{- if .Values.config.sensitive }}
       - name: secrets
         secret:
           secretName: {{ tpl $.Values.fullName $ }}

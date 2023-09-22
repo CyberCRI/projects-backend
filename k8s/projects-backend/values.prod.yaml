@@ -1,4 +1,4 @@
-environment:
+config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.production
     ALLOWED_HOSTS: api.projects.lp-i.org,projects-backend,agreenium.projets.app,cati.cy.projets.app,projects.learningplanetinstitute.org,cy.projets.app,projects.directory,digiur.projects.directory,france-edu-num.projets.app,eurip.projects.directory,greatvillage.projects.directory,learnin.projects.directory,projects.learning-planet.org,mda.projets.app,num-resp-education.projets.app,planeteapprenante.projects.learningplanetinstitute.org,plateforme.profschercheurs.org,profschercheurs-formation.projets.app,sapiens.projets.app,savanturiers-projects.learningplanetinstitute.org,test.projects.directory,univie.projects.directory,u-paris.projets.app,learningplanetinstitute.org,www.learningplanetinstitute.org,healthcarelab.learningplanetinstitute.org,institutdesdefis.learningplanetinstitute.org,licence.learningplanetinstitute.org,livingcampus.learningplanetinstitute.org,master.learningplanetinstitute.org,phd.learningplanetinstitute.org,research.learningplanetinstitute.org,sdgschool.learningplanetinstitute.org,profschercheurs.learningplanetinstitute.org,profschercheurs.org,www.profschercheurs.org,pp.people.cri-paris.org,people.cri-paris.org,profs-chercheurs-frontend.herokuapp.com,bioconvs.k8s.lp-i.dev,digitalecosystem.k8s.lp-i.dev,healthcarelab.k8s.lp-i.dev,ikigai.k8s.lp-i.dev,institutdesdefis.k8s.lp-i.dev,learningplanetinstitute.k8s.lp-i.dev,licence.k8s.lp-i.dev,livingcampus.k8s.lp-i.dev,master.k8s.lp-i.dev,phd.k8s.lp-i.dev,profschercheurs.k8s.lp-i.dev,research.k8s.lp-i.dev,sdgschool.k8s.lp-i.dev,www.utc.projets.app,utc.projets.app,www.projets.dsi.utc.fr,projets.dsi.utc.fr,lcc.projects.directory,www.lcc.projects.directory,univmer-amu.projets.app,www.univmer-amu.projets.app,bacheloract.projets.app,pattern.projects.directory,generations.cy.projets.app
@@ -7,13 +7,13 @@ environment:
     POSTGRES_HOST: prod-prod-projects-backend.postgres.database.azure.com
     EMAIL_HOST_USER: projects@learningplanetinstitute.org
     EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
-    PUBLIC_URL: https://api.projects.lp-i.org
     ALGOLIA_APP_ID: WJ95QBZUH1
     EMAIL_HOST: smtp.eu.mailgun.org
     EMAIL_PORT: "465"
     EMAIL_USE_SSL: "True"
     KEYCLOAK_SERVER_URL: https://lpi-prod.cloud-iam.com/auth/
     # KEYCLOAK_PUBLIC_KEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnOY26rMxJv+31a4giXjpAr9PzofGBG2gH43gpRMc8muSNg1t4x/OMoT0Rhbe8Q6bxP4kEmomqWdiqiplTkJtf8oxoNirR/mzF/AwzVTSjTLIKOEylS1zS7/A2kQ2Dy/r2VQodn7NYF40poNGPJkfmwKThbvSxDoP1bNNO68FkL48xKZkl3/XLescy9WWJKkZkJoR0sUmoDwp7dvAVFTzxc/+0OcHqcd8CURRIpKNxYnWq3fRc/Gq6bpG0vFA3myw4dRnf1AQ5g/yHoAUchGnuTZ+V4flvkRywlQKaNPlthFnUl36MLNpAParRw7qPdszCq2tt4FYw8fjAu3xgIUcAQIDAQAB
+    ENVIRONMENT: production
 
 hostname: api.projects.lp-i.org
 
