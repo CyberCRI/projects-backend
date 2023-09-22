@@ -9,13 +9,6 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from apps.accounts.models import PeopleGroup, ProjectUser
-from apps.emailing.tasks import send_email_task
-from apps.emailing.utils import render_message
-from services.google.exceptions import (
-    GoogleGroupEmailUnavailable,
-    GoogleUserEmailUnavailable,
-)
-from services.keycloak.interface import KeycloakService
 
 
 class GoogleService:
@@ -429,99 +422,6 @@ class GoogleService:
         google_group = cls.get_group(group.email)
         if google_group:
             cls._sync_group_members(group, google_group)
-
-    @classmethod
-    def create_user_process(cls, user: ProjectUser, main_group: str, notify: bool):
-        google_user = cls.create_user(user, main_group)
-
-        recipients = list(set(filter(lambda x: x, [user.email, user.personal_email])))
-
-        user.personal_email = user.email
-        user.email = google_user["primaryEmail"]
-        user.save()
-
-        google_user = cls.get_user(user.email, max_retries=5)
-        cls._add_user_alias(google_user)
-        cls._sync_user_groups(user, google_user)
-
-        KeycloakService.update_user(user)
-
-        if notify:
-            subject, _ = render_message(
-                "contact/google_account_created/object", user.language, user=user
-            )
-            text, html = render_message(
-                "contact/google_account_created/mail", user.language, user=user
-            )
-            send_email_task.delay(subject, text, recipients, html_content=html)
-
-        return user
-
-    @classmethod
-    def update_user_process(cls, user: ProjectUser, **kwargs):
-        google_user = cls.get_user(user.email, max_retries=5)
-        if google_user:
-            emails = list(
-                filter(
-                    lambda x: x,
-                    [
-                        google_user.get("primaryEmail", ""),
-                        *[email["address"] for email in google_user.get("emails", [])],
-                    ],
-                )
-            )
-            if (
-                ProjectUser.objects.filter(email__in=emails)
-                .exclude(pk=user.pk)
-                .exists()
-            ):
-                raise GoogleUserEmailUnavailable
-            cls._update_user(user, google_user, **kwargs)
-            cls._sync_user_groups(user, google_user)
-        return user
-
-    @classmethod
-    def suspend_user_process(cls, user: ProjectUser):
-        cls.suspend_user(user)
-        if user.personal_email:
-            subject, _ = render_message(
-                "contact/google_account_suspended/object", user.language, user=user
-            )
-            text, html = render_message(
-                "contact/google_account_suspended/mail", user.language, user=user
-            )
-            send_email_task.delay(
-                subject, text, [user.personal_email], html_content=html
-            )
-
-    @classmethod
-    def create_group_process(cls, group: PeopleGroup):
-        google_group = cls.create_group(group)
-        group.email = google_group["email"]
-        group.save()
-        google_group = cls.get_group(group.email, max_retries=5)
-        cls._sync_group_members(group, google_group)
-        return group
-
-    @classmethod
-    def update_group_process(cls, group: PeopleGroup):
-        google_group = cls.get_group(group.email, max_retries=5)
-        if google_group:
-            emails = list(
-                filter(
-                    lambda x: x,
-                    [google_group.get("email", ""), *google_group.get("aliases", [])],
-                )
-            )
-            if (
-                PeopleGroup.objects.filter(email__in=emails)
-                .exclude(id=group.id)
-                .exists()
-            ):
-                raise GoogleGroupEmailUnavailable
-            cls._update_group(group, google_group)
-            cls._sync_group_members(group, google_group)
-        return group
 
     @classmethod
     def get_org_units(cls):
