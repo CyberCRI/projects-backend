@@ -1,7 +1,6 @@
 import uuid
 from unittest import mock
 
-import pytest
 from django.conf import settings
 from django.urls import reverse
 from faker import Faker
@@ -11,7 +10,6 @@ from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFac
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
-from keycloak import KeycloakGetError
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -101,7 +99,7 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
             "roles_to_add": [organization.get_users().name],
         }
         with mock.patch(
-            "services.google.interface.GoogleService.create_user_process",
+            "services.google.interface.GoogleService.create_user",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(reverse("ProjectUser-list"), data=payload)
@@ -128,7 +126,7 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
             "personal_email": f"{faker.uuid4()}@yopmail.com",
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_user_process",
+            "services.google.interface.GoogleService.get_user",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.patch(
@@ -151,20 +149,17 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
         organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
         user = SeedUserFactory(groups=[organization.get_users()])
         with mock.patch(
-            "services.google.interface.GoogleService.suspend_user_process",
+            "services.google.tasks.suspend_google_user_task.delay",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.delete(
                 reverse("ProjectUser-detail", args=[user.keycloak_id])
             )
         assert response.status_code == 400
-        assert (
-            response.json()["error"]
-            == "User was deleted but an error occured in Google : error reason"
-        )
-        assert not ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
-        with pytest.raises(KeycloakGetError):
-            KeycloakService().get_user(user.keycloak_id)
+        assert response.json()["error"] == "An error occured in Google : error reason"
+        assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+        keycloak_user = KeycloakService().get_user(user.keycloak_id)
+        assert keycloak_user is not None
 
     def test_google_error_create_people_group(self):
         self.client.force_authenticate(
@@ -178,7 +173,7 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
             "organization": organization.pk,
         }
         with mock.patch(
-            "services.google.interface.GoogleService.create_group_process",
+            "services.google.interface.GoogleService.create_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(
@@ -202,7 +197,7 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
             "description": faker.sentence(),
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_group_process",
+            "services.google.interface.GoogleService.get_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.patch(
@@ -232,7 +227,7 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
             PeopleGroup.DefaultGroup.MEMBERS: [user.keycloak_id],
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_group_process",
+            "services.google.interface.GoogleService.get_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(
@@ -261,7 +256,7 @@ class GoogleKeycloakSyncErrorsTestCase(JwtAPITestCase):
             "users": [user.keycloak_id],
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_group_process",
+            "services.google.interface.GoogleService.get_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(

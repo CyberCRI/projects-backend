@@ -266,10 +266,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
+            suspend_google_account(instance)
             with transaction.atomic():
                 response = super().destroy(request, *args, **kwargs)
                 KeycloakService.delete_user(instance)
-            suspend_google_account(instance)
             return response
         except KeycloakDeleteError as e:
             keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
@@ -280,9 +280,7 @@ class UserViewSet(viewsets.ModelViewSet):
         except HttpError as e:
             google_error = e.reason
             return Response(
-                {
-                    "error": f"User was deleted but an error occured in Google : {google_error}"
-                },
+                {"error": f"An error occured in Google : {google_error}"},
                 status=e.status_code,
             )
 

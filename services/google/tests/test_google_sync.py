@@ -1,5 +1,6 @@
 import time
 import uuid
+from unittest.mock import patch
 
 from django.conf import settings
 from django.urls import reverse
@@ -13,6 +14,13 @@ from apps.organizations.factories import OrganizationFactory
 from keycloak import KeycloakGetError
 from services.google.factories import GoogleGroupFactory, GoogleUserFactory
 from services.google.interface import GoogleService
+from services.google.tasks import (
+    create_google_group_task,
+    create_google_user_task,
+    suspend_google_user_task,
+    update_google_group_task,
+    update_google_user_task,
+)
 from services.keycloak.interface import KeycloakService
 
 
@@ -70,7 +78,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
             "description": kwargs.get("description", "description"),
         }
 
-    def test_create_user(self):
+    @patch("services.google.tasks.create_google_user_task.delay")
+    def test_create_user(self, mocked):
+        mocked.side_effect = create_google_user_task
         payload = self.create_user_payload()
         response = self.client.post(reverse("ProjectUser-list"), data=payload)
         content = response.json()
@@ -106,7 +116,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         emails = [email["address"] for email in google_user["emails"]]
         assert alias in emails
 
-    def test_create_user_in_group(self):
+    @patch("services.google.tasks.create_google_user_task.delay")
+    def test_create_user_in_group(self, mocked):
+        mocked.side_effect = create_google_user_task
         people_group = GoogleGroupFactory(organization=self.organization)
         payload = self.create_user_payload(
             roles_to_add=[
@@ -143,7 +155,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert len(user_groups) == 1
         assert user_groups[0]["email"] == people_group.email
 
-    def test_create_account_for_existing_user(self):
+    @patch("services.google.tasks.create_google_user_task.delay")
+    def test_create_account_for_existing_user(self, mocked):
+        mocked.side_effect = create_google_user_task
         people_group = GoogleGroupFactory(organization=self.organization)
         user_data = self.create_user_payload()
         projects_user = SeedUserFactory(
@@ -188,7 +202,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert len(user_groups) == 1
         assert user_groups[0]["email"] == people_group.email
 
-    def test_create_user_email_increment(self):
+    @patch("services.google.tasks.create_google_user_task.delay")
+    def test_create_user_email_increment(self, mocked):
+        mocked.side_effect = create_google_user_task
         payload = self.create_user_payload()
         payload_1 = {
             **payload,
@@ -206,13 +222,20 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert response_2.status_code == 201
         content_1 = response_1.json()
         content_2 = response_2.json()
-        google_user_1 = GoogleService.get_user(content_1["email"], 5)
-        google_user_2 = GoogleService.get_user(content_2["email"], 5)
+        for _ in range(30):
+            google_user_1 = GoogleService.get_user(content_1["email"], 5)
+            google_user_2 = GoogleService.get_user(content_2["email"], 5)
+            if not google_user_1 or not google_user_2:
+                time.sleep(2)
+            else:
+                break
         assert google_user_1 is not None
         assert google_user_2 is not None
         assert ".1@".join(content_1["email"].split("@")) == content_2["email"]
 
-    def test_create_group_with_email(self):
+    @patch("services.google.tasks.create_google_group_task.delay")
+    def test_create_group_with_email(self, mocked):
+        mocked.side_effect = create_google_group_task
         payload = self.create_group_payload(
             email=f"team.googlesync.email@{settings.GOOGLE_EMAIL_DOMAIN}"
         )
@@ -221,12 +244,19 @@ class GoogleServiceTestCase(JwtAPITestCase):
         )
         assert response.status_code == 201
         content = response.json()
-        google_group = GoogleService.get_group(content["email"], 5)
+        for _ in range(30):
+            google_group = GoogleService.get_group(content["email"], 5)
+            if not google_group:
+                time.sleep(2)
+            else:
+                break
         projects_group = PeopleGroup.objects.get(id=response.json()["id"])
         assert google_group is not None
         assert projects_group.email == google_group["email"] == payload["email"]
 
-    def test_update_group_existing_email(self):
+    @patch("services.google.tasks.update_google_group_task.delay")
+    def test_update_group_existing_email(self, mocked):
+        mocked.side_effect = update_google_group_task
         group_1 = GoogleGroupFactory(organization=self.organization)
         group_2 = PeopleGroupFactory(organization=self.organization)
         payload = {"email": group_1.email}
@@ -242,7 +272,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         group_2.refresh_from_db()
         assert group_1.email != group_2.email
 
-    def test_update_user_existing_email(self):
+    @patch("services.google.tasks.update_google_user_task.delay")
+    def test_update_user_existing_email(self, mocked):
+        mocked.side_effect = update_google_user_task
         user_1 = GoogleUserFactory(groups=[self.organization.get_users()])
         # Delete user in Keycloak or it will throw an error before Google
         KeycloakService.delete_user(user_1)
@@ -261,19 +293,28 @@ class GoogleServiceTestCase(JwtAPITestCase):
         # Google sync is made outside of atomic block, so db transaction is not cancelled
         assert user_1.email == user_2.email
 
-    def test_create_group_without_email(self):
+    @patch("services.google.tasks.create_google_group_task.delay")
+    def test_create_group_without_email(self, mocked):
+        mocked.side_effect = create_google_group_task
         payload = self.create_group_payload()
         response = self.client.post(
             reverse("PeopleGroup-list", args=(self.organization.code,)), data=payload
         )
         assert response.status_code == 201
         content = response.json()
-        google_group = GoogleService.get_group(content["email"], 5)
+        for _ in range(30):
+            google_group = GoogleService.get_group(content["email"], 5)
+            if not google_group:
+                time.sleep(2)
+            else:
+                break
         projects_group = PeopleGroup.objects.get(id=response.json()["id"])
         assert google_group is not None
         assert projects_group.email == google_group["email"]
 
-    def test_create_group_for_existing_group(self):
+    @patch("services.google.tasks.create_google_group_task.delay")
+    def test_create_group_for_existing_group(self, mocked):
+        mocked.side_effect = create_google_group_task
         group_data = self.create_group_payload()
         projects_group = PeopleGroupFactory(
             name=group_data["name"],
@@ -291,11 +332,18 @@ class GoogleServiceTestCase(JwtAPITestCase):
         )
         assert response.status_code == 200
         content = response.json()
-        google_group = GoogleService.get_group(content["email"], 5)
+        for _ in range(30):
+            google_group = GoogleService.get_group(content["email"], 5)
+            if google_group["name"] != projects_group.name:
+                time.sleep(2)
+            else:
+                break
         assert google_group is not None
         assert content["email"] == google_group["email"]
 
-    def test_add_user_to_group(self):
+    @patch("services.google.tasks.update_google_group_task.delay")
+    def test_add_user_to_group(self, mocked):
+        mocked.side_effect = update_google_group_task
         people_group = GoogleGroupFactory(organization=self.organization)
         user = GoogleUserFactory(groups=[self.organization.get_users()])
         payload = {
@@ -319,7 +367,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert len(user_groups) == 1
         assert user_groups[0]["email"] == people_group.email
 
-    def test_remove_user_from_group(self):
+    @patch("services.google.tasks.update_google_group_task.delay")
+    def test_remove_user_from_group(self, mocked):
+        mocked.side_effect = update_google_group_task
         people_group = GoogleGroupFactory(organization=self.organization)
         user = GoogleUserFactory(groups=[self.organization.get_users()])
         GoogleService.add_user_to_group(user, people_group)
@@ -349,7 +399,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
                 break
         assert len(user_groups) == 0
 
-    def test_update_user(self):
+    @patch("services.google.tasks.update_google_user_task.delay")
+    def test_update_user(self, mocked):
+        mocked.side_effect = update_google_user_task
         user = GoogleUserFactory(groups=[self.organization.get_users()])
         payload = {
             "family_name": "test_update",
@@ -375,7 +427,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
             == content["family_name"]
         )
 
-    def test_update_user_main_group(self):
+    @patch("services.google.tasks.update_google_user_task.delay")
+    def test_update_user_main_group(self, mocked):
+        mocked.side_effect = update_google_user_task
         user = GoogleUserFactory(groups=[self.organization.get_users()])
         payload = {
             "main_google_group": "Test Google Sync Update",
@@ -393,7 +447,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
                 break
         assert google_user["orgUnitPath"] == "/CRI/Test Google Sync Update"
 
-    def test_update_group(self):
+    @patch("services.google.tasks.update_google_group_task.delay")
+    def test_update_group(self, mocked):
+        mocked.side_effect = update_google_group_task
         group = GoogleGroupFactory(organization=self.organization)
         payload = {
             "name": "test_update",
@@ -406,10 +462,17 @@ class GoogleServiceTestCase(JwtAPITestCase):
             data=payload,
         )
         assert response.status_code == 200
-        google_group = GoogleService.get_group(group.email, 5)
+        for _ in range(30):
+            google_group = GoogleService.get_group(group.email, 5)
+            if google_group["name"] != "test_update":
+                time.sleep(2)
+            else:
+                break
         assert google_group["name"] == "test_update"
 
-    def test_update_group_members(self):
+    @patch("services.google.tasks.update_google_group_task.delay")
+    def test_update_group_members(self, mocked):
+        mocked.side_effect = update_google_group_task
         group = GoogleGroupFactory(organization=self.organization)
         users = UserFactory.create_batch(3)
         org_users = UserFactory.create_batch(3, groups=[self.organization.get_users()])
@@ -456,7 +519,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
             group_members[2]["email"],
         } == {user.email for user in google_users}
 
-    def test_delete_user(self):
+    @patch("services.google.tasks.suspend_google_user_task.delay")
+    def test_delete_user(self, mocked):
+        mocked.side_effect = suspend_google_user_task
         user = GoogleUserFactory(groups=[self.organization.get_users()])
         response = self.client.delete(
             reverse("ProjectUser-detail", args=(user.keycloak_id,))
@@ -471,7 +536,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert google_user["suspended"] is True
         GoogleService.delete_user(user)  # cleanup
 
-    def test_delete_user_not_in_google(self):
+    @patch("services.google.tasks.suspend_google_user_task.delay")
+    def test_delete_user_not_in_google(self, mocked):
+        mocked.side_effect = suspend_google_user_task
         user = SeedUserFactory(groups=[self.organization.get_users()])
         response = self.client.delete(
             reverse("ProjectUser-detail", args=(user.keycloak_id,))
