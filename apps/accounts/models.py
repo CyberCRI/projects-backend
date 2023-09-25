@@ -255,7 +255,7 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
             slug = raw_slug
             same_slug_count = 0
             while PeopleGroup.objects.filter(slug=slug).exists():
-                same_slug_count = same_slug_count + 1
+                same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
             return slug
         return self.slug
@@ -526,7 +526,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
             slug = raw_slug
             same_slug_count = 0
             while ProjectUser.objects.filter(slug=slug).exists():
-                same_slug_count = same_slug_count + 1
+                same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
             return slug
         return self.slug

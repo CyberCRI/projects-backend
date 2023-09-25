@@ -15,7 +15,7 @@ def generate_slug_for_existing_projects(apps, schema_editor):
         same_slug_count = 0
         slug = raw_slug
         while Project.objects.filter(slug=slug).exists():
-            same_slug_count = same_slug_count + 1
+            same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
         Project.objects.filter(id=project.id).update(slug=slug)
         project.refresh_from_db()

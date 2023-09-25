@@ -16,7 +16,7 @@ def generate_slug_for_existing_groups(apps, schema_editor):
         slug = raw_slug
         same_slug_count = 0
         while PeopleGroup.objects.filter(slug=slug).exists():
-            same_slug_count = same_slug_count + 1
+            same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
         PeopleGroup.objects.filter(pk=people_group.pk).update(slug=slug)
         print(f"{index} / {len(people_groups)}")
@@ -34,7 +34,7 @@ def generate_slug_for_existing_users(apps, schema_editor):
         slug = raw_slug
         same_slug_count = 0
         while ProjectUser.objects.filter(slug=slug).exists():
-            same_slug_count = same_slug_count + 1
+            same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
         ProjectUser.objects.filter(pk=user.pk).update(slug=slug)
         print(f"{index} / {len(users)}")
