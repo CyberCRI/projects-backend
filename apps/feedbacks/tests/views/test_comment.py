@@ -274,6 +274,7 @@ class CommentTestCaseProjectPermission(JwtAPITestCase):
             "pronouns": user.pronouns,
             "job": user.job,
             "profile_picture": None,
+            "slug": user.slug,
         }
         self.assertEqual(content["author"], user_data)
         self.assertEqual(content["content"], payload["content"])
@@ -389,6 +390,7 @@ class CommentTestCaseOrganizationPermission(JwtAPITestCase):
             "pronouns": user.pronouns,
             "job": user.job,
             "profile_picture": None,
+            "slug": user.slug,
         }
         self.assertEqual(content["author"], user_data)
         self.assertEqual(content["content"], payload["content"])
