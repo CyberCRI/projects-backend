@@ -215,10 +215,14 @@ class OrganizationMemberTestCase(PeopleGroupPublicationStatusTestCase):
         )
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 2)
+        self.assertEqual(len(content), 3)
         self.assertEqual(
             {people_group["id"] for people_group in content},
-            {self.public_group.id, self.org_group.id},
+            {
+                self.organization.get_or_create_root_people_group().id,
+                self.public_group.id,
+                self.org_group.id,
+            },
         )
 
 
@@ -277,10 +281,11 @@ class OrganizationFacilitatorTestCase(PeopleGroupPublicationStatusTestCase):
         )
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 4)
+        self.assertEqual(len(content), 5)
         self.assertEqual(
             {people_group["id"] for people_group in content},
             {
+                self.organization.get_or_create_root_people_group().id,
                 self.public_group.id,
                 self.org_group.id,
                 self.private_group.id,
@@ -344,10 +349,11 @@ class OrganizationAdminTestCase(PeopleGroupPublicationStatusTestCase):
         )
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 4)
+        self.assertEqual(len(content), 5)
         self.assertEqual(
             {people_group["id"] for people_group in content},
             {
+                self.organization.get_or_create_root_people_group().id,
                 self.public_group.id,
                 self.org_group.id,
                 self.private_group.id,
@@ -412,10 +418,11 @@ class SuperAdminTestCase(PeopleGroupPublicationStatusTestCase):
         )
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 4)
+        self.assertEqual(len(content), 5)
         self.assertEqual(
             {people_group["id"] for people_group in content},
             {
+                self.organization.get_or_create_root_people_group().id,
                 self.public_group.id,
                 self.org_group.id,
                 self.private_group.id,
