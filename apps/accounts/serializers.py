@@ -54,6 +54,7 @@ class UserLightSerializer(serializers.ModelSerializer):
         model = ProjectUser
         fields = [
             "id",
+            "slug",
             "keycloak_id",
             "people_id",
             "email",
@@ -102,6 +103,7 @@ class PeopleGroupLightSerializer(serializers.ModelSerializer):
         read_only_fields = ["is_root", "publication_status"]
         fields = read_only_fields + [
             "id",
+            "slug",
             "name",
             "description",
             "short_description",
@@ -307,7 +309,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root"]
+        read_only_fields = ["is_root", "slug"]
         fields = read_only_fields + [
             "id",
             "name",
@@ -403,7 +405,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectUser
-        fields = [
+        read_only_fields = ["slug"]
+        fields = read_only_fields + [
             "roles",
             "roles_to_add",
             "roles_to_remove",

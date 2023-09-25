@@ -225,7 +225,7 @@ class Project(PermissionsSetupModel, ProjectRelated, OrganizationRelated):
             slug = raw_slug
             same_slug_count = 0
             while Project.objects.all_with_delete().filter(slug=slug).exists():
-                same_slug_count = same_slug_count + 1
+                same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
             return slug
         return self.slug

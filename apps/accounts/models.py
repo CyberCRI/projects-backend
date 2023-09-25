@@ -7,9 +7,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
@@ -74,6 +75,7 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
         LEADERS = "leaders"
 
     name = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(unique=True)
     description = models.TextField(blank=True)
     short_description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
@@ -244,6 +246,25 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
             self.managers.all() | self.members.all() | self.leaders.all()
         ).distinct()
 
+    def get_slug(self) -> str:
+        if self.slug == "":
+            name = self.name
+            if name == "":
+                name = self.type or "group"
+            raw_slug = slugify(name[0:46])
+            slug = raw_slug
+            same_slug_count = 0
+            while PeopleGroup.objects.filter(slug=slug).exists():
+                same_slug_count += 1
+                slug = f"{raw_slug}-{same_slug_count}"
+            return slug
+        return self.slug
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        self.slug = self.get_slug()
+        super().save(*args, **kwargs)
+
     class Meta:
         constraints = [
             UniqueConstraint(
@@ -290,6 +311,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
     email = models.CharField(max_length=255)
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(unique=True)
     groups = models.ManyToManyField(Group, related_name="users")
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
@@ -494,6 +516,25 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
             for permission in group_permissions
         ]
         return list(set(groups_permissions))
+
+    def get_slug(self) -> str:
+        if self.slug == "":
+            full_name = self.get_full_name()
+            if full_name == "":
+                full_name = self.email.split("@")[0] or "user"
+            raw_slug = slugify(full_name[0:46])
+            slug = raw_slug
+            same_slug_count = 0
+            while ProjectUser.objects.filter(slug=slug).exists():
+                same_slug_count += 1
+                slug = f"{raw_slug}-{same_slug_count}"
+            return slug
+        return self.slug
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        self.slug = self.get_slug()
+        super().save(*args, **kwargs)
 
 
 class PrivacySettings(models.Model, HasOwner):
