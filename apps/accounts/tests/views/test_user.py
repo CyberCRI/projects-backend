@@ -19,7 +19,6 @@ from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
-from keycloak import KeycloakGetError
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -257,7 +256,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "roles_to_add": [organization.get_users().name],
         }
         with mock.patch(
-            "services.google.interface.GoogleService.create_user_process",
+            "services.google.interface.GoogleService.create_user",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(reverse("ProjectUser-list"), data=payload)
@@ -284,7 +283,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "personal_email": f"{faker.uuid4()}@yopmail.com",
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_user_process",
+            "services.google.interface.GoogleService.get_user",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.patch(
@@ -307,20 +306,17 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
         user = SeedUserFactory(groups=[organization.get_users()])
         with mock.patch(
-            "services.google.interface.GoogleService.suspend_user_process",
+            "services.google.tasks.suspend_google_user_task.delay",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.delete(
                 reverse("ProjectUser-detail", args=[user.keycloak_id])
             )
         assert response.status_code == 400
-        assert (
-            response.json()["error"]
-            == "User was deleted but an error occured in Google : error reason"
-        )
-        assert not ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
-        with self.assertRaises(KeycloakGetError):
-            KeycloakService().get_user(user.keycloak_id)
+        assert response.json()["error"] == "An error occured in Google : error reason"
+        assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+        keycloak_user = KeycloakService().get_user(user.keycloak_id)
+        assert keycloak_user is not None
 
 
 class FilterSearchOrderUserTestCase(JwtAPITestCase):
@@ -646,3 +642,30 @@ class MiscUserTestCase(JwtAPITestCase):
             get_superadmins_group().name,
             get_default_group().name,
         }
+
+    def test_get_slug(self):
+        given_name = faker.first_name()
+        family_name = faker.last_name()
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        slug_base = "-".join([given_name.lower(), family_name.lower()])
+        assert user.slug == slug_base
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"{slug_base}-1"
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"{slug_base}-2"
+        user = UserFactory(given_name="", family_name="")
+        slug_base = user.email.split("@")[0].lower()
+        assert user.slug == slug_base
+
+    def test_multiple_lookups(self):
+        user = UserFactory()
+        self.client.force_authenticate(user)
+        user_2 = UserFactory()
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(user_2.keycloak_id,))
+        )
+        assert response.status_code == 200
+        assert response.data["slug"] == user_2.slug
+        response = self.client.get(reverse("ProjectUser-detail", args=(user_2.slug,)))
+        assert response.status_code == 200
+        assert response.data["keycloak_id"] == user_2.keycloak_id

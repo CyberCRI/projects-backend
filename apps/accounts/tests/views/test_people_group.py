@@ -311,7 +311,7 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
             "organization": organization.pk,
         }
         with mock.patch(
-            "services.google.interface.GoogleService.create_group_process",
+            "services.google.interface.GoogleService.create_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(
@@ -335,7 +335,7 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
             "description": faker.sentence(),
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_group_process",
+            "services.google.interface.GoogleService.get_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.patch(
@@ -365,7 +365,7 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
             PeopleGroup.DefaultGroup.MEMBERS: [user.keycloak_id],
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_group_process",
+            "services.google.interface.GoogleService.get_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(
@@ -394,7 +394,7 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
             "users": [user.keycloak_id],
         }
         with mock.patch(
-            "services.google.interface.GoogleService.update_group_process",
+            "services.google.interface.GoogleService.get_group",
             side_effect=self.mocked_google_error(),
         ):
             response = self.client.post(
