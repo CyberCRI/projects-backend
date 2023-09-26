@@ -18,7 +18,7 @@ config:
 hostname: api.projects.lp-i.org
 
 backend:
-  replicaCount: 12
+  replicaCount: 9
 
 redis:
   valueFiles:
