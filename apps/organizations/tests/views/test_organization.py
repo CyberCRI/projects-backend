@@ -13,6 +13,10 @@ from apps.organizations.models import Organization
 
 
 class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        pass  # override to avoid creating organization
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_anonymous(self, mocked):
         mocked.side_effect = self.side_effect
@@ -100,6 +104,10 @@ class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
 
 
 class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        pass  # override to avoid creating organization
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_no_permission(self, mocked):
         mocked.side_effect = self.side_effect
@@ -188,6 +196,10 @@ class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
 
 
 class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        pass  # override to avoid creating organization
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_base_permission(self, mocked):
         mocked.side_effect = self.side_effect
@@ -334,6 +346,10 @@ class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
 
 
 class OrganizationTestOrganizationPermission(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        pass  # override to avoid creating organization
+
     def test_retrieve_organization_permission(self):
         orga = OrganizationFactory()
         user = UserFactory()
