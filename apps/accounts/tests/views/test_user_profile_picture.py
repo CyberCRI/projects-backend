@@ -4,7 +4,6 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, TestRoles
-from apps.organizations.factories import OrganizationFactory
 
 
 class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
@@ -19,8 +18,8 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
         ]
     )
     def test_create_user_profile_picture(self, role, expected_code):
-        organization = OrganizationFactory()
-        instance = UserFactory(groups=[organization.get_users()])
+        organization = self.organization
+        instance = UserFactory(groups=[self.organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
@@ -52,12 +51,10 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
         ]
     )
     def test_update_user_profile_picture(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = UserFactory(
             groups=[organization.get_users()], profile_picture=self.get_test_image()
         )
-        instance.profile_picture.owner = instance
-        instance.profile_picture.save()
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )
@@ -99,12 +96,11 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
         ]
     )
     def test_delete_user_profile_picture(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = UserFactory(
-            groups=[organization.get_users()], profile_picture=self.get_test_image()
+            groups=[self.organization.get_users()],
+            profile_picture=self.get_test_image(),
         )
-        instance.profile_picture.owner = instance
-        instance.profile_picture.save()
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
         )

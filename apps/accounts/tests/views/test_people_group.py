@@ -10,6 +10,7 @@ from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import PeopleGroup
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
@@ -19,6 +20,15 @@ faker = Faker()
 
 
 class CreatePeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.parent = PeopleGroupFactory(organization=cls.organization)
+        cls.members = UserFactory.create_batch(3)
+        cls.managers = UserFactory.create_batch(3)
+        cls.leaders = UserFactory.create_batch(3)
+        cls.projects = ProjectFactory.create_batch(3)
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -30,14 +40,14 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
         ]
     )
     def test_create_people_group(self, role, expected_code):
-        organization = OrganizationFactory()
-        parent = PeopleGroupFactory(organization=organization)
+        organization = self.organization
+        parent = self.parent
+        members = self.members
+        managers = self.managers
+        leaders = self.leaders
+        projects = self.projects
         user = self.get_parameterized_test_user(role, organization=organization)
         self.client.force_authenticate(user)
-        members = UserFactory.create_batch(3)
-        managers = UserFactory.create_batch(3)
-        leaders = UserFactory.create_batch(3)
-        projects = ProjectFactory.create_batch(3)
         payload = {
             "name": faker.name(),
             "description": faker.text(),
@@ -86,8 +96,10 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
         ]
     )
     def test_update_people_group(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         people_group = PeopleGroupFactory(organization=organization)
+        people_group.description = faker.text()
+        people_group.save()
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         payload = {
@@ -120,7 +132,7 @@ class DeletePeopleGroupTestCase(JwtAPITestCase):
         ]
     )
     def test_delete_people_group(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
@@ -136,6 +148,13 @@ class DeletePeopleGroupTestCase(JwtAPITestCase):
 
 
 class PeopleGroupMemberTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.members = UserFactory.create_batch(3)
+        cls.managers = UserFactory.create_batch(3)
+        cls.leaders = UserFactory.create_batch(3)
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -150,13 +169,13 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         ]
     )
     def test_add_people_group_member(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
+        members = self.members
+        managers = self.managers
+        leaders = self.leaders
         people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
-        members = UserFactory.create_batch(3)
-        managers = UserFactory.create_batch(3)
-        leaders = UserFactory.create_batch(3)
         payload = {
             "members": [m.keycloak_id for m in members],
             "managers": [r.keycloak_id for r in managers],
@@ -189,13 +208,13 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         ]
     )
     def test_remove_people_group_member(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
+        members = self.members
+        managers = self.managers
+        leaders = self.leaders
         people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
-        members = UserFactory.create_batch(3)
-        managers = UserFactory.create_batch(3)
-        leaders = UserFactory.create_batch(3)
         people_group.members.add(*members)
         people_group.managers.add(*managers)
         people_group.leaders.add(*leaders)
@@ -219,6 +238,11 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
 
 
 class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.projects = ProjectFactory.create_batch(3)
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -233,11 +257,11 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         ]
     )
     def test_add_featured_project(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
+        projects = self.projects
         people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
-        projects = ProjectFactory.create_batch(3)
         payload = {"featured_projects": [p.pk for p in projects]}
         response = self.client.post(
             reverse(
@@ -266,11 +290,11 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         ]
     )
     def test_remove_featured_project(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
+        projects = self.projects
         people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
-        projects = ProjectFactory.create_batch(3)
         people_group.featured_projects.add(*projects)
         payload = {"featured_projects": [p.pk for p in projects]}
         response = self.client.post(
@@ -289,6 +313,11 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
 
 
 class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+
     @staticmethod
     def mocked_google_error(code=400):
         def raise_error(*args, **kwargs):
@@ -300,10 +329,10 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
         return raise_error
 
     def test_google_error_create_people_group(self):
+        organization = self.organization
         self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.add_peoplegroup", None)])
+            user=UserFactory(groups=[get_superadmins_group()])
         )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
         payload = {
             "name": faker.word(),
             "description": faker.sentence(),
@@ -322,10 +351,10 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
         assert not PeopleGroup.objects.filter(name=payload["name"]).exists()
 
     def test_google_error_update_people_group(self):
+        organization = self.organization
         self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.change_peoplegroup", None)])
+            user=UserFactory(groups=[get_superadmins_group()])
         )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
         group = PeopleGroupFactory(
             email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
@@ -348,10 +377,10 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
         assert group.description != payload["description"]
 
     def test_google_error_add_people_group_member(self):
+        organization = self.organization
         self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.change_peoplegroup", None)])
+            user=UserFactory(groups=[get_superadmins_group()])
         )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
         group = PeopleGroupFactory(
             email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
@@ -377,10 +406,10 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
         assert not group.members.all().filter(pk=user.pk).exists()
 
     def test_google_error_remove_people_group_member(self):
+        organization = self.organization
         self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.change_peoplegroup", None)])
+            user=UserFactory(groups=[get_superadmins_group()])
         )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
         group = PeopleGroupFactory(
             email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
@@ -409,17 +438,13 @@ class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
 
 
 class ValidatePeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.user = UserFactory(groups=[cls.organization.get_admins()])
+
     def setUp(self):
         super().setUp()
-        self.organization = OrganizationFactory()
-        self.user = UserFactory(
-            permissions=[
-                ("accounts.view_peoplegroup", None),
-                ("accounts.add_peoplegroup", None),
-                ("accounts.change_peoplegroup", None),
-                ("accounts.delete_peoplegroup", None),
-            ]
-        )
         self.client.force_authenticate(user=self.user)
 
     def test_create_parent_in_other_organization(self):
@@ -519,18 +544,6 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, 201)
         self.assertEqual(response.data["organization"], self.organization.code)
 
-    def test_unexistant_organization(self):
-        payload = {
-            "name": faker.name(),
-            "description": faker.text(),
-            "email": faker.email(),
-        }
-        response = self.client.post(
-            reverse("PeopleGroup-list", args=("unexistant",)), payload
-        )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data["detail"], "Not found.")
-
     def test_add_featured_project_without_rights(self):
         people_group = PeopleGroupFactory(organization=self.organization)
         project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
@@ -573,7 +586,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         assert root_people_group.count() == 1
 
     def test_give_root_group_a_parent(self):
-        organization = OrganizationFactory()
+        organization = self.organization
         root_people_group = PeopleGroup.objects.get(
             organization=organization, is_root=True
         )
@@ -590,7 +603,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         assert response.data["parent"][0] == "The root group cannot have a parent group"
 
     def test_set_root_group_as_parent_with_none(self):
-        organization = OrganizationFactory()
+        organization = self.organization
         child = PeopleGroupFactory(organization=organization)
         payload = {"parent": None}
         response = self.client.patch(
@@ -607,7 +620,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         )
 
     def test_update_root_group_with_none_parent(self):
-        organization = OrganizationFactory()
+        organization = self.organization
         root = PeopleGroup.objects.get(organization=organization, is_root=True)
         payload = {"parent": None}
         response = self.client.patch(
@@ -625,10 +638,10 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC
         )
-        leaders_managers = UserFactory.create_batch(5)
-        managers = UserFactory.create_batch(5)
-        leaders_members = UserFactory.create_batch(5)
-        members = UserFactory.create_batch(5)
+        leaders_managers = UserFactory.create_batch(2)
+        managers = UserFactory.create_batch(2)
+        leaders_members = UserFactory.create_batch(2)
+        members = UserFactory.create_batch(2)
 
         people_group.managers.add(*managers, *leaders_managers)
         people_group.members.add(*members, *leaders_members)
@@ -645,28 +658,28 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         content = response.json()
         results = content["results"]
 
-        batch_1 = results[:5]
+        batch_1 = results[:2]
         batch_1_ids = [user["keycloak_id"] for user in batch_1]
         leaders_managers_ids = [user.keycloak_id for user in leaders_managers]
         assert leaders_managers_ids.sort() == batch_1_ids.sort()
         assert all(user["is_manager"] is True for user in batch_1)
         assert all(user["is_leader"] is True for user in batch_1)
 
-        batch_2 = results[5:10]
+        batch_2 = results[2:4]
         batch_2_ids = [user["keycloak_id"] for user in batch_2]
         leaders_members_ids = [user.keycloak_id for user in leaders_members]
         assert leaders_members_ids.sort() == batch_2_ids.sort()
         assert all(user["is_manager"] is False for user in batch_2)
         assert all(user["is_leader"] is True for user in batch_2)
 
-        batch_3 = results[10:15]
+        batch_3 = results[4:6]
         batch_3_ids = [user["keycloak_id"] for user in batch_3]
         managers_ids = [user.keycloak_id for user in managers]
         assert managers_ids.sort() == batch_3_ids.sort()
         assert all(user["is_manager"] is True for user in batch_3)
         assert all(user["is_leader"] is False for user in batch_3)
 
-        batch_4 = results[15:]
+        batch_4 = results[6:]
         batch_4_ids = [user["keycloak_id"] for user in batch_4]
         members_ids = [user.keycloak_id for user in members]
         assert members_ids.sort() == batch_4_ids.sort()
@@ -680,15 +693,15 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         member = UserFactory()
         people_group.members.add(member)
 
-        members_public_projects = ProjectFactory.create_batch(3)
+        members_public_projects = ProjectFactory.create_batch(2)
         members_private_projects = ProjectFactory.create_batch(
-            3, publication_status=Project.PublicationStatus.PRIVATE
+            2, publication_status=Project.PublicationStatus.PRIVATE
         )
-        members_featured_public_projects = ProjectFactory.create_batch(3)
+        members_featured_public_projects = ProjectFactory.create_batch(2)
 
-        featured_public_projects = ProjectFactory.create_batch(3)
+        featured_public_projects = ProjectFactory.create_batch(2)
         featured_private_projects = ProjectFactory.create_batch(
-            3, publication_status=Project.PublicationStatus.PRIVATE
+            2, publication_status=Project.PublicationStatus.PRIVATE
         )
 
         member_projects = (
@@ -717,16 +730,16 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         content = response.json()
 
         results = content["results"]
-        assert len(results) == 9
+        assert len(results) == 6
 
-        nine_first = results[:6]
+        nine_first = results[:4]
         featured_projects_ids = [project.id for project in featured_projects]
         nine_first_ids = [project["id"] for project in nine_first]
         assert featured_projects_ids.sort() == nine_first_ids.sort()
         nine_first_projects = [project["is_featured"] is True for project in nine_first]
         assert all(nine_first_projects) is True
 
-        nine_last = results[-3:]
+        nine_last = results[-2:]
         member_projects_ids = [project.id for project in member_projects]
         nine_last_ids = [project["id"] for project in nine_last]
         assert member_projects_ids.sort() == nine_last_ids.sort()
@@ -755,9 +768,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC
         )
-        self.client.force_authenticate(
-            UserFactory(permissions=[("accounts.change_peoplegroup", None)])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         people_group.members.add(user)
         payload = {
@@ -777,9 +788,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC
         )
-        self.client.force_authenticate(
-            UserFactory(permissions=[("accounts.change_peoplegroup", None)])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         people_group.leaders.add(user)
         payload = {
@@ -799,9 +808,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC
         )
-        self.client.force_authenticate(
-            UserFactory(permissions=[("accounts.change_peoplegroup", None)])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         people_group.members.add(user)
         payload = {

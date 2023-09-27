@@ -21,14 +21,15 @@ class CreatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         ]
     )
     def test_create_people_group_logo(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = self.organization
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         payload = {"file": self.get_test_image_file()}
         response = self.client.post(
             reverse(
                 "PeopleGroup-logo-list",
-                args=(people_group.organization.code, people_group.id),
+                args=(organization.code, people_group.id),
             ),
             data=payload,
             format="multipart",
@@ -54,7 +55,10 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         ]
     )
     def test_update_people_group_logo(self, role, expected_code):
-        people_group = PeopleGroupFactory(logo_image=self.get_test_image())
+        organization = self.organization
+        people_group = PeopleGroupFactory(
+            organization=organization, logo_image=self.get_test_image()
+        )
         user = self.get_parameterized_test_user(
             role, owned_instance=people_group.logo_image, people_group=people_group
         )
@@ -69,7 +73,7 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         response = self.client.patch(
             reverse(
                 "PeopleGroup-logo-list",
-                args=(people_group.organization.code, people_group.id),
+                args=(organization.code, people_group.id),
             ),
             data=payload,
             format="multipart",
@@ -99,7 +103,10 @@ class DeletePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         ]
     )
     def test_delete_people_group_logo(self, role, expected_code):
-        people_group = PeopleGroupFactory(logo_image=self.get_test_image())
+        organization = self.organization
+        people_group = PeopleGroupFactory(
+            organization=organization, logo_image=self.get_test_image()
+        )
         user = self.get_parameterized_test_user(
             role, owned_instance=people_group.logo_image, people_group=people_group
         )

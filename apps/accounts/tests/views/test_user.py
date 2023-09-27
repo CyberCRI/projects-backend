@@ -36,7 +36,7 @@ class CreateUserTestCase(JwtAPITestCase):
         ]
     )
     def test_create_user(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         user = self.get_parameterized_test_user(role, organization=organization)
         self.client.force_authenticate(user)
         projects = ProjectFactory.create_batch(3, organizations=[organization])
@@ -70,6 +70,8 @@ class CreateUserTestCase(JwtAPITestCase):
             }
 
     def test_create_user_with_invitation(self):
+        organization = self.organization
+        people_group = PeopleGroupFactory(organization=self.organization)
         payload = {
             "people_id": faker.uuid4(),
             "email": faker.email(),
@@ -78,7 +80,9 @@ class CreateUserTestCase(JwtAPITestCase):
             "family_name": faker.last_name(),
         }
         invitation = InvitationFactory(
-            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(1))
+            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(1)),
+            organization=organization,
+            people_group=people_group,
         )
         self.client.force_authenticate(  # nosec
             token=invitation.token, token_type="Invite"
@@ -90,11 +94,13 @@ class CreateUserTestCase(JwtAPITestCase):
         user = user.get()
         assert {g.name for g in user.groups.all()} == {
             get_default_group().name,
-            invitation.organization.get_users().name,
-            invitation.people_group.get_members().name,
+            organization.get_users().name,
+            people_group.get_members().name,
         }
 
     def test_create_user_with_expired_invitation(self):
+        organization = self.organization
+        people_group = PeopleGroupFactory(organization=self.organization)
         payload = {
             "people_id": faker.uuid4(),
             "email": faker.email(),
@@ -103,7 +109,9 @@ class CreateUserTestCase(JwtAPITestCase):
             "family_name": faker.last_name(),
         }
         invitation = InvitationFactory(
-            expire_at=make_aware(datetime.datetime.now() - datetime.timedelta(1))
+            expire_at=make_aware(datetime.datetime.now() - datetime.timedelta(1)),
+            organization=organization,
+            people_group=people_group,
         )
         self.client.force_authenticate(  # nosec
             token=invitation.token, token_type="Invite"
@@ -125,7 +133,7 @@ class UpdateUserTestCase(JwtAPITestCase):
         ]
     )
     def test_update_user(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
@@ -158,7 +166,7 @@ class DeleteUserTestCase(JwtAPITestCase):
         ]
     )
     def test_delete_user(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
@@ -173,6 +181,11 @@ class DeleteUserTestCase(JwtAPITestCase):
 
 
 class UserSyncErrorsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+
     @staticmethod
     def mocked_google_error(code=400):
         def raise_error(*args, **kwargs):
@@ -184,9 +197,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         return raise_error
 
     def test_keycloak_error_create_user(self):
-        self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.add_projectuser", None)])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory()
         payload = {
             "people_id": faker.uuid4(),
@@ -204,9 +215,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         assert not ProjectUser.objects.filter(people_id=payload["people_id"]).exists()
 
     def test_keycloak_error_update_user(self):
-        self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.change_projectuser", None)])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory()
         user_2 = SeedUserFactory()
         payload = {
@@ -225,9 +234,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         )
 
     def test_keycloak_error_delete_user(self):
-        self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.delete_projectuser", None)])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         response = self.client.delete(
             reverse("ProjectUser-detail", args=[user.keycloak_id])
@@ -237,15 +244,8 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
 
     def test_google_error_create_user(self):
-        self.client.force_authenticate(
-            user=UserFactory(
-                permissions=[
-                    ("accounts.add_projectuser", None),
-                    ("organizations.change_organization", None),
-                ]
-            )
-        )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        organization = self.organization
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         payload = {
             "people_id": faker.uuid4(),
             "email": f"{faker.uuid4()}@yopmail.com",
@@ -271,10 +271,8 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         assert keycloak_user is not None
 
     def test_google_error_update_user(self):
-        self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.change_projectuser", None)])
-        )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        organization = self.organization
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory(
             email=f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             groups=[organization.get_users()],
@@ -300,10 +298,8 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         assert keycloak_user["email"] == user.personal_email
 
     def test_google_error_delete_user(self):
-        self.client.force_authenticate(
-            user=UserFactory(permissions=[("accounts.delete_projectuser", None)])
-        )
-        organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
+        organization = self.organization
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory(groups=[organization.get_users()])
         with mock.patch(
             "services.google.tasks.suspend_google_user_task.delay",
@@ -319,185 +315,158 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         assert keycloak_user is not None
 
 
-class FilterSearchOrderUserTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        # Overwrite this method because it creates a user and makes some tests fail
-        pass
-
-    def test_order_by_job(self):
-        user_a = UserFactory(job="A")
-        user_b = UserFactory(job="B")
-        user_c = UserFactory(job="C")
-        response = self.client.get(reverse("ProjectUser-list") + "?ordering=job")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_a.keycloak_id
-        assert response.data["results"][1]["keycloak_id"] == user_b.keycloak_id
-        assert response.data["results"][2]["keycloak_id"] == user_c.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?ordering=-job")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_c.keycloak_id
-        assert response.data["results"][1]["keycloak_id"] == user_b.keycloak_id
-        assert response.data["results"][2]["keycloak_id"] == user_a.keycloak_id
-
-    def test_order_by_role(self):
-        organization = OrganizationFactory()
-        organization.admins.first().delete()  # created by factory
-        user_a = UserFactory()
-        user_b = UserFactory()
-        user_c = UserFactory()
-        user_d = UserFactory()
-        organization.admins.add(user_a)
-        organization.facilitators.add(user_b)
-        organization.users.add(user_c)
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?ordering=current_org_role&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_a.keycloak_id
-        assert response.data["results"][1]["keycloak_id"] == user_b.keycloak_id
-        assert response.data["results"][2]["keycloak_id"] == user_c.keycloak_id
-        assert response.data["results"][3]["keycloak_id"] == user_d.keycloak_id
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?ordering=-current_org_role&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_d.keycloak_id
-        assert response.data["results"][1]["keycloak_id"] == user_c.keycloak_id
-        assert response.data["results"][2]["keycloak_id"] == user_b.keycloak_id
-        assert response.data["results"][3]["keycloak_id"] == user_a.keycloak_id
-
-    def filter_by_role(self):
-        organization = OrganizationFactory()
-        organization.admins.first().delete()  # created by factory
-        user_a = UserFactory()
-        user_b = UserFactory()
-        user_c = UserFactory()
-        user_d = UserFactory()
-        organization.admins.add(user_a)
-        organization.facilitators.add(user_b)
-        organization.users.add(user_c)
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=admins&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["keycloak_id"] == user_a.keycloak_id
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=facilitators&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["keycloak_id"] == user_b.keycloak_id
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=users&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["keycloak_id"] == user_c.keycloak_id
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=_no_role&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["keycloak_id"] == user_d.keycloak_id
-
-    def test_search_by_job(self):
-        params = {
-            "given_name": "test",
-            "family_name": "test",
-            "email": "test@test.com",
-        }
-        user_a = UserFactory(job="ABCDE", **params)
-        user_b = UserFactory(job="VWXYZ", **params)
-        user_c = UserFactory(job="FGHIJ", **params)
-        response = self.client.get(reverse("ProjectUser-list") + "?search=ABCDE")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_a.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=VWXYZ")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_b.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=FGHIJ")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_c.keycloak_id
-
-    def test_search_by_people_group(self):
-        params = {
-            "given_name": "test",
-            "family_name": "test",
-            "email": "test@test.com",
-            "job": "test",
-        }
-        people_group_a = PeopleGroupFactory(name="ABCDE")
-        people_group_b = PeopleGroupFactory(name="VWXYZ")
-        people_group_c = PeopleGroupFactory(name="FGHIJ")
-        user_a = UserFactory(**params)
-        user_b = UserFactory(**params)
-        user_c = UserFactory(**params)
-        people_group_a.members.add(user_a)
-        people_group_b.members.add(user_b)
-        people_group_c.members.add(user_c)
-        response = self.client.get(reverse("ProjectUser-list") + "?search=ABCDE")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_a.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=VWXYZ")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_b.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=FGHIJ")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_c.keycloak_id
-
-    def test_search_with_current_org_pk(self):
-        organization = OrganizationFactory()
-        organization.admins.first().delete()  # created by factory
-        params = {
-            "given_name": "test",
-            "family_name": "test",
-            "email": "test@test.com",
-        }
-        user_a = UserFactory(job="ABCDE", **params)
-        user_b = UserFactory(job="VWXYZ", **params)
-        user_c = UserFactory(job="FGHIJ", **params)
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?search=ABCDE&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_a.keycloak_id
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?search=VWXYZ&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_b.keycloak_id
-        response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?search=FGHIJ&current_org_pk={organization.pk}"
-        )
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == user_c.keycloak_id
-
+class ValidateUserTestCase(JwtAPITestCase):
     def test_create_user_group_validation_no_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("accounts.add_projectuser", None)])
-        self.client.force_authenticate(user=user)
+        organization = self.organization
+        organization_2 = OrganizationFactory()
+        self.client.force_authenticate(UserFactory(groups=[organization.get_admins()]))
         payload = {
             "people_id": faker.uuid4(),
             "email": f"{faker.uuid4()}@yopmail.com",
             "personal_email": f"{faker.uuid4()}@yopmail.com",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
-            "roles_to_add": [organization.get_users().name],
+            "roles_to_add": [
+                organization.get_users().name,
+                organization_2.get_users().name,
+            ],
         }
         response = self.client.post(reverse("ProjectUser-list"), data=payload)
         assert response.status_code == 403
-        assert f"organization:#{organization.pk}:users" in response.json()["detail"]
+        assert f"organization:#{organization_2.pk}:users" in response.json()["detail"]
+
+
+class FilterSearchOrderUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        ProjectUser.objects.all().delete()
+        params = {
+            "given_name": "test",
+            "family_name": "test",
+            "email": "test@test.com",
+        }
+        cls.user_a = UserFactory(job="ABC", **params)
+        cls.user_b = UserFactory(job="DEF", **params)
+        cls.user_c = UserFactory(job="GHI", **params)
+        cls.user_d = UserFactory(job="JKL", **params)
+        cls.people_group_a = PeopleGroupFactory(name="MNO")
+        cls.people_group_b = PeopleGroupFactory(name="PQR")
+        cls.people_group_c = PeopleGroupFactory(name="STU")
+        cls.people_group_d = PeopleGroupFactory(name="VWX")
+        cls.people_group_a.members.add(cls.user_a)
+        cls.people_group_b.members.add(cls.user_b)
+        cls.people_group_c.members.add(cls.user_c)
+        cls.people_group_d.members.add(cls.user_d)
+        cls.organization.admins.add(cls.user_a)
+        cls.organization.facilitators.add(cls.user_b)
+        cls.organization.users.add(cls.user_c)
+
+    def test_order_by_job(self):
+        response = self.client.get(reverse("ProjectUser-list") + "?ordering=job")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
+        assert response.data["results"][1]["keycloak_id"] == self.user_b.keycloak_id
+        assert response.data["results"][2]["keycloak_id"] == self.user_c.keycloak_id
+        assert response.data["results"][3]["keycloak_id"] == self.user_d.keycloak_id
+        response = self.client.get(reverse("ProjectUser-list") + "?ordering=-job")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_d.keycloak_id
+        assert response.data["results"][1]["keycloak_id"] == self.user_c.keycloak_id
+        assert response.data["results"][2]["keycloak_id"] == self.user_b.keycloak_id
+        assert response.data["results"][3]["keycloak_id"] == self.user_a.keycloak_id
+
+    def test_order_by_role(self):
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?ordering=current_org_role&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
+        assert response.data["results"][1]["keycloak_id"] == self.user_b.keycloak_id
+        assert response.data["results"][2]["keycloak_id"] == self.user_c.keycloak_id
+        assert response.data["results"][3]["keycloak_id"] == self.user_d.keycloak_id
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?ordering=-current_org_role&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_d.keycloak_id
+        assert response.data["results"][1]["keycloak_id"] == self.user_c.keycloak_id
+        assert response.data["results"][2]["keycloak_id"] == self.user_b.keycloak_id
+        assert response.data["results"][3]["keycloak_id"] == self.user_a.keycloak_id
+
+    def filter_by_role(self):
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?current_org_role=users&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?current_org_role=_no_role&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["keycloak_id"] == self.user_d.keycloak_id
+
+    def test_search_by_job(self):
+        response = self.client.get(reverse("ProjectUser-list") + "?search=ABC")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
+        response = self.client.get(reverse("ProjectUser-list") + "?search=DEF")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
+        response = self.client.get(reverse("ProjectUser-list") + "?search=GHI")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
+
+    def test_search_by_people_group(self):
+        response = self.client.get(reverse("ProjectUser-list") + "?search=MNO")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
+        response = self.client.get(reverse("ProjectUser-list") + "?search=PQR")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
+        response = self.client.get(reverse("ProjectUser-list") + "?search=STU")
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
+
+    def test_search_with_current_org_pk(self):
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?search=ABC&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?search=DEF&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?search=GHI&current_org_pk={self.organization.pk}"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
 
 
 class MiscUserTestCase(JwtAPITestCase):

@@ -5,7 +5,6 @@ from parameterized import parameterized
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings, Skill
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
@@ -86,7 +85,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
     def test_view_fields_retrieve_user(
         self, role, privacy_settings_value, fields_visible
     ):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
@@ -133,7 +132,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         ]
     )
     def test_view_fields_list_users(self, role, privacy_settings_value, fields_visible):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance

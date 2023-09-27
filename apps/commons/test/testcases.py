@@ -8,6 +8,7 @@ from rest_framework.test import APITestCase
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
+from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
@@ -34,6 +35,7 @@ class JwtTestCaseMixin(
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()  # noqa
+        cls.organization = OrganizationFactory()
         cls.test_image = cls.get_test_image()
 
     @classmethod

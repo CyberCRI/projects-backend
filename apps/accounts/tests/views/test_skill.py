@@ -9,7 +9,6 @@ from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import Skill
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.commons.test.testcases import TagTestCase
-from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
@@ -29,7 +28,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_skill(self, role, expected_code, mocked):
         mocked.side_effect = self.side_effect
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance
@@ -63,7 +62,7 @@ class UpdateSkillTestCase(JwtAPITestCase):
         ]
     )
     def test_update_skill(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         skill = SkillFactory(level=1)
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=skill
@@ -93,7 +92,7 @@ class DeleteSkillTestCase(JwtAPITestCase):
         ]
     )
     def test_delete_skill(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         skill = SkillFactory()
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=skill

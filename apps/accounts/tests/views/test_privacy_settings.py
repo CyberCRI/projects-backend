@@ -6,12 +6,27 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
 class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.public_user = UserFactory(
+            groups=[cls.organization.get_users()],
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+        )
+        cls.private_user = UserFactory(
+            groups=[cls.organization.get_users()],
+            publication_status=PrivacySettings.PrivacyChoices.HIDE,
+        )
+        cls.org_user = UserFactory(
+            groups=[cls.organization.get_users()],
+            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+        )
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_200_OK),
@@ -24,11 +39,8 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_retrieve_public_notification_settings(self, role, expected_code):
-        organization = OrganizationFactory()
-        instance = UserFactory(
-            groups=[organization.get_users()],
-            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
-        )
+        organization = self.organization
+        instance = self.public_user
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
@@ -62,11 +74,8 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_retrieve_org_notification_settings(self, role, expected_code):
-        organization = OrganizationFactory()
-        instance = UserFactory(
-            groups=[organization.get_users()],
-            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
-        )
+        organization = self.organization
+        instance = self.org_user
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
@@ -100,11 +109,8 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_retrieve_private_notification_settings(self, role, expected_code):
-        organization = OrganizationFactory()
-        instance = UserFactory(
-            groups=[organization.get_users()],
-            publication_status=PrivacySettings.PrivacyChoices.HIDE,
-        )
+        organization = self.organization
+        instance = self.private_user
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings
         )
@@ -140,7 +146,7 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_update_notification_settings(self, role, expected_code):
-        organization = OrganizationFactory()
+        organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
             role, organization=organization, owned_instance=instance.privacy_settings

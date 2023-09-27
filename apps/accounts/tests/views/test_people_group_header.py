@@ -21,14 +21,15 @@ class CreatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
         ]
     )
     def test_create_people_group_header(self, role, expected_code):
-        people_group = PeopleGroupFactory()
+        organization = self.organization
+        people_group = PeopleGroupFactory(organization=organization)
         user = self.get_parameterized_test_user(role, people_group=people_group)
         self.client.force_authenticate(user)
         payload = {"file": self.get_test_image_file()}
         response = self.client.post(
             reverse(
                 "PeopleGroup-header-list",
-                args=(people_group.organization.code, people_group.id),
+                args=(organization.code, people_group.id),
             ),
             data=payload,
             format="multipart",
@@ -54,7 +55,10 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
         ]
     )
     def test_update_people_group_header(self, role, expected_code):
-        people_group = PeopleGroupFactory(header_image=self.get_test_image())
+        organization = self.organization
+        people_group = PeopleGroupFactory(organization=organization)
+        people_group.header_image = self.get_test_image()
+        people_group.save()
         user = self.get_parameterized_test_user(
             role, owned_instance=people_group.header_image, people_group=people_group
         )
@@ -69,7 +73,7 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
         response = self.client.patch(
             reverse(
                 "PeopleGroup-header-list",
-                args=(people_group.organization.code, people_group.id),
+                args=(organization.code, people_group.id),
             ),
             data=payload,
             format="multipart",
@@ -99,7 +103,10 @@ class DeletePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
         ]
     )
     def test_delete_people_group_header(self, role, expected_code):
-        people_group = PeopleGroupFactory(header_image=self.get_test_image())
+        organization = self.organization
+        people_group = PeopleGroupFactory(organization=organization)
+        people_group.header_image = self.get_test_image()
+        people_group.save()
         user = self.get_parameterized_test_user(
             role, owned_instance=people_group.header_image, people_group=people_group
         )
@@ -107,7 +114,7 @@ class DeletePeopleGroupHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin)
         response = self.client.delete(
             reverse(
                 "PeopleGroup-header-list",
-                args=(people_group.organization.code, people_group.id),
+                args=(organization.code, people_group.id),
             ),
         )
         assert response.status_code == expected_code
