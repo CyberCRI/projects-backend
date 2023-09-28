@@ -391,6 +391,7 @@ class UserInvitationTestCase(JwtAPITestCase):
         assert user.exists()
         user = user.get()
         assert {g.name for g in user.groups.all()} == {
+            "default",
             f"organization:#{invitation.organization.id}:users",
             f"peoplegroup:#{invitation.people_group.id}:members",
         }
@@ -445,9 +446,10 @@ class UserBasePermissionTestCase(JwtAPITestCase):
         assert content["email"] == payload["email"]
         assert content["given_name"] == payload["given_name"]
         assert content["family_name"] == payload["family_name"]
-        assert len(content["roles"]) == 3
+        assert len(content["roles"]) == 4
         assert {*content["roles"]} == {
-            project.get_members().name for project in projects
+            "default",
+            *{project.get_members().name for project in projects},
         }
 
 
