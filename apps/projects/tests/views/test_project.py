@@ -92,6 +92,11 @@ class ProjectJwtAPITestCase(JwtAPITestCase):
 
 
 class ProjectTestCaseAnonymous(ProjectJwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_anonymous(self, mocked):
         mocked.side_effect = self.side_effect
@@ -304,6 +309,11 @@ class ProjectTestCaseAnonymous(ProjectJwtAPITestCase, TagTestCase):
 
 
 class ProjectTestCaseUserNoSDGsNoTagsNoImages(ProjectJwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def setUp(self):
         self.org = OrganizationFactory()
         self.fake = ProjectFactory.build(header_image=self.test_image)
@@ -370,6 +380,11 @@ class ProjectTestCaseUserNoSDGsNoTagsNoImages(ProjectJwtAPITestCase):
 
 
 class ProjectTestCaseNoPermission(ProjectJwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_no_permission(self, mocked):
         mocked.side_effect = self.side_effect
@@ -634,6 +649,11 @@ class ProjectTestCaseNoPermission(ProjectJwtAPITestCase, TagTestCase):
 
 
 class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def test_destroy_base_permission(self):
         public = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
         private = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
@@ -967,6 +987,11 @@ class ProjectLockUnlockTestCase(ProjectJwtAPITestCase, TagTestCase):
 
 
 class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def test_destroy_project_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
         organization = OrganizationFactory()
@@ -1298,6 +1323,11 @@ class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
 
 
 class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def test_destroy_org_permission(self):
         public = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
         private = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
@@ -1646,6 +1676,11 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
 
 
 class ProjectFilterTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def test_filter_category(self):
         category1 = ProjectCategoryFactory()
         category2 = ProjectCategoryFactory()
@@ -1937,6 +1972,11 @@ class ProjectOrderingTestCase(JwtAPITestCase):
 
 
 class ProjectTemplateTestCase(ProjectJwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def test_update_category_change_template_superadmin(self):
         user = UserFactory()
         user.groups.add(get_superadmins_group())

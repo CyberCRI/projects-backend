@@ -16,6 +16,11 @@ HistoricalProject = apps.get_model("projects", "HistoricalProject")
 
 
 class ProjectHistoryTestCase(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def test_create_project(self):
         owner = UserFactory()
         self.client.force_authenticate(owner)

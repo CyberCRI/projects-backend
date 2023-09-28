@@ -14,6 +14,11 @@ from apps.organizations.models import ProjectCategory
 
 
 class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_anonymous(self, mocked):
         mocked.side_effect = self.side_effect
@@ -88,6 +93,11 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
 
 
 class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_no_permission(self, mocked):
         mocked.side_effect = self.side_effect
@@ -176,6 +186,11 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
 
 
 class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_base_permission(self, mocked):
         mocked.side_effect = self.side_effect
@@ -333,6 +348,11 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
 
 
 class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_org_permissions(self, mocked):
         mocked.side_effect = self.side_effect
@@ -445,6 +465,11 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase)
 
 
 class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_with_template(self, mocked):
         mocked.side_effect = self.side_effect
