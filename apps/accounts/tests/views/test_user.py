@@ -545,3 +545,44 @@ class UserRolesTestCase(JwtAPITestCase):
             get_superadmins_group().name,
             get_default_group().name,
         }
+
+
+class UserAddedToDefaultTestCase(JwtAPITestCase):
+    def test_create_user_with_invitation(self):
+        payload = {
+            "people_id": faker.uuid4(),
+            "email": faker.email(),
+            "personal_email": faker.email(),
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+        }
+        invitation = InvitationFactory(
+            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(1))
+        )
+        self.client.force_authenticate(  # nosec
+            token=invitation.token, token_type="Invite"
+        )
+        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        assert response.status_code == 201
+        user = ProjectUser.objects.filter(email=payload["email"])
+        assert user.exists()
+        user = user.get()
+        assert "default" in {g.name for g in user.groups.all()}
+
+    def test_create_user_with_request(self):
+        payload = {
+            "people_id": faker.uuid4(),
+            "email": faker.email(),
+            "personal_email": faker.email(),
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+        }
+        self.client.force_authenticate(  # nosec
+            UserFactory(groups=[get_superadmins_group()])
+        )
+        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        assert response.status_code == 201
+        user = ProjectUser.objects.filter(email=payload["email"])
+        assert user.exists()
+        user = user.get()
+        assert "default" in {g.name for g in user.groups.all()}
