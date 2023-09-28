@@ -1,54 +1,21 @@
+import base64
 import logging
+import uuid
 from typing import Optional
 
+from django.conf import settings
+from django.core.files import File
 from django.db import models
-from django.test import SimpleTestCase
 from rest_framework.test import APITestCase
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
-from apps.organizations.factories import OrganizationFactory
+from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
 from .client import JwtClient
-from .mixins import GetImageTestCaseMixin
-
-
-class JwtTestCaseMixin(
-    SimpleTestCase,
-    GetImageTestCaseMixin,
-):
-    """Modify the default client to use JwtClient."""
-
-    client: JwtClient
-
-    client_class = JwtClient
-
-    @classmethod
-    def setUpClass(cls):
-        """Disable logging while testing."""
-        super().setUpClass()
-        logging.disable(logging.CRITICAL)
-
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()  # noqa
-        cls.organization = OrganizationFactory()
-        cls.test_image = cls.get_test_image()
-
-    @classmethod
-    def tearDownClass(cls):
-        """Re-enable logging after testing."""
-        super().tearDownClass()
-        logging.disable(logging.NOTSET)
-
-    def tearDown(self):
-        """Logout any authentication at the end of each test."""
-        super().tearDown()
-        self.client.logout()
-        self.client.credentials()
 
 
 class TestRoles(models.TextChoices):
@@ -67,8 +34,29 @@ class TestRoles(models.TextChoices):
     OWNER = "object_owner"
 
 
-class JwtAPITestCase(JwtTestCaseMixin, APITestCase):
+class JwtAPITestCase(APITestCase):
     """`APITestCase` using `JwtClient`."""
+
+    client: JwtClient
+    client_class = JwtClient
+
+    @classmethod
+    def setUpClass(cls):
+        """Disable logging while testing."""
+        super().setUpClass()
+        logging.disable(logging.CRITICAL)
+
+    @classmethod
+    def tearDownClass(cls):
+        """Re-enable logging after testing."""
+        super().tearDownClass()
+        logging.disable(logging.NOTSET)
+
+    def tearDown(self):
+        """Logout any authentication at the end of each test."""
+        super().tearDown()
+        self.client.logout()
+        self.client.credentials()
 
     def get_parameterized_test_user(
         self,
@@ -135,6 +123,43 @@ class JwtAPITestCase(JwtTestCaseMixin, APITestCase):
                 groups=[o.get_users() for o in project.organizations.all()]
             )
         raise ValueError(f"Invalid role {role} for given object(s)")
+
+    @classmethod
+    def get_test_image_file(cls) -> File:
+        """Return a dummy test image file."""
+        return File(
+            open(f"{settings.BASE_DIR}/assets/test_image.png", "rb")  # noqa: SIM115
+        )
+
+    @classmethod
+    def get_oversized_test_image_file(cls) -> File:
+        """Return a dummy test image file."""
+        return File(
+            open(  # noqa: SIM115
+                f"{settings.BASE_DIR}/assets/oversized_test_image.jpg", "rb"
+            )
+        )
+
+    @classmethod
+    def get_test_image(cls, owner=None) -> Image:
+        """Return an Image instance."""
+        image = Image(name=str(uuid.uuid4()), file=cls.get_test_image_file())
+        image._upload_to = lambda instance, filename: f"test/{uuid.uuid4()}"
+        image.owner = owner if owner else UserFactory()
+        image.save()
+        return image
+
+    @classmethod
+    def get_base64_image(cls) -> str:
+        return f'<img src="data:image/png;base64,{base64.b64encode(cls.get_test_image_file().read()).decode()}" alt=""/>'
+
+    @classmethod
+    def get_oversized_test_image(cls) -> Image:
+        """Return an Image instance."""
+        image = Image(name=str(uuid.uuid4()), file=cls.get_oversized_test_image_file())
+        image._upload_to = lambda instance, filename: f"test/{uuid.uuid4()}"
+        image.save()
+        return image
 
 
 class TagTestCase:

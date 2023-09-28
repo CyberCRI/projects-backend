@@ -9,11 +9,17 @@ from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import Skill
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.commons.test.testcases import TagTestCase
+from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
 class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -50,6 +56,11 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
 
 
 class UpdateSkillTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -80,6 +91,11 @@ class UpdateSkillTestCase(JwtAPITestCase):
 
 
 class DeleteSkillTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),

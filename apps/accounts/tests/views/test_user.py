@@ -25,6 +25,11 @@ faker = Faker()
 
 
 class CreateUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -121,6 +126,11 @@ class CreateUserTestCase(JwtAPITestCase):
 
 
 class UpdateUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -154,6 +164,11 @@ class UpdateUserTestCase(JwtAPITestCase):
 
 
 class DeleteUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -316,6 +331,11 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
 
 
 class ValidateUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     def test_create_user_group_validation_no_permission(self):
         organization = self.organization
         organization_2 = OrganizationFactory()
@@ -340,6 +360,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         ProjectUser.objects.all().delete()
         params = {
             "given_name": "test",
@@ -470,11 +491,6 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
 
 class MiscUserTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        # Overwrite this method because it creates a user and makes some tests fail
-        pass
-
     def test_notifications_count(self):
         user = UserFactory()
         NotificationFactory.create_batch(5, receiver=user, is_viewed=False)

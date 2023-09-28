@@ -23,6 +23,7 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         cls.parent = PeopleGroupFactory(organization=cls.organization)
         cls.members = UserFactory.create_batch(3)
         cls.managers = UserFactory.create_batch(3)
@@ -82,6 +83,11 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
 
 
 class UpdatePeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -118,6 +124,11 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
 
 
 class DeletePeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -151,6 +162,7 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         cls.members = UserFactory.create_batch(3)
         cls.managers = UserFactory.create_batch(3)
         cls.leaders = UserFactory.create_batch(3)
@@ -241,7 +253,8 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.projects = ProjectFactory.create_batch(3)
+        cls.organization = OrganizationFactory()
+        cls.projects = ProjectFactory.create_batch(3, organizations=[cls.organization])
 
     @parameterized.expand(
         [
@@ -441,6 +454,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         cls.user = UserFactory(groups=[cls.organization.get_admins()])
 
     def setUp(self):
@@ -634,9 +648,15 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
 
 
 class MiscPeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     def test_annotate_members(self):
         people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         leaders_managers = UserFactory.create_batch(2)
         managers = UserFactory.create_batch(2)
@@ -688,20 +708,31 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
 
     def test_annotate_projects(self):
         people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         member = UserFactory()
         people_group.members.add(member)
 
-        members_public_projects = ProjectFactory.create_batch(2)
-        members_private_projects = ProjectFactory.create_batch(
-            2, publication_status=Project.PublicationStatus.PRIVATE
+        members_public_projects = ProjectFactory.create_batch(
+            2, organizations=[self.organization]
         )
-        members_featured_public_projects = ProjectFactory.create_batch(2)
+        members_private_projects = ProjectFactory.create_batch(
+            2,
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[self.organization],
+        )
+        members_featured_public_projects = ProjectFactory.create_batch(
+            2, organizations=[self.organization]
+        )
 
-        featured_public_projects = ProjectFactory.create_batch(2)
+        featured_public_projects = ProjectFactory.create_batch(
+            2, organizations=[self.organization]
+        )
         featured_private_projects = ProjectFactory.create_batch(
-            2, publication_status=Project.PublicationStatus.PRIVATE
+            2,
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[self.organization],
         )
 
         member_projects = (
@@ -747,7 +778,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         assert all(nine_last_projects) is False
 
     def test_root_group_is_default_parent(self):
-        organization = OrganizationFactory()
+        organization = self.organization
         root_people_group = organization.get_or_create_root_people_group()
         payload = {
             "name": faker.name(),
@@ -766,7 +797,8 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
 
     def test_add_member_in_leaders_group(self):
         people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
@@ -786,7 +818,8 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
 
     def test_add_leader_in_members_group(self):
         people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
@@ -806,7 +839,8 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
 
     def test_add_member_in_managers_group(self):
         people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
@@ -827,22 +861,27 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
 
     def test_get_slug(self):
         name = "My AMazing TeST GroUP !"
-        people_group = PeopleGroupFactory(name=name)
+        people_group = PeopleGroupFactory(name=name, organization=self.organization)
         assert people_group.slug == "my-amazing-test-group"
-        people_group = PeopleGroupFactory(name=name)
+        people_group = PeopleGroupFactory(name=name, organization=self.organization)
         assert people_group.slug == "my-amazing-test-group-1"
-        people_group = PeopleGroupFactory(name=name)
+        people_group = PeopleGroupFactory(name=name, organization=self.organization)
         assert people_group.slug == "my-amazing-test-group-2"
-        people_group = PeopleGroupFactory(name="", type="group")
+        people_group = PeopleGroupFactory(
+            name="", type="group", organization=self.organization
+        )
         assert people_group.slug.startswith("group")
-        people_group = PeopleGroupFactory(name="", type="club")
+        people_group = PeopleGroupFactory(
+            name="", type="club", organization=self.organization
+        )
         assert people_group.slug.startswith("club")
 
     def test_multiple_lookups(self):
         user = UserFactory()
         self.client.force_authenticate(user)
         people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         response = self.client.get(
             reverse(

@@ -4,12 +4,14 @@ from parameterized import parameterized
 from apps.accounts.factories import PeopleGroupFactory
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 
 
 class PeopleGroupPublicationStatusTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         PeopleGroup.objects.all().delete()  # Delete people_groups created by the factories
         cls.groups = {
             "public": PeopleGroupFactory(

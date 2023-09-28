@@ -5,6 +5,7 @@ from parameterized import parameterized
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings, Skill
 from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
@@ -12,6 +13,11 @@ PrivacyChoices = PrivacySettings.PrivacyChoices
 
 
 class PrivacySettingsFieldsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @staticmethod
     def set_user_privacy_settings(user, privacy):
         # Publication status is tested in test_user_publication_status.py

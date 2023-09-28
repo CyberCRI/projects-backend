@@ -4,9 +4,15 @@ from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 
 
 class CreatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -40,6 +46,11 @@ class CreatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
 
 
 class UpdatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -88,6 +99,11 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
 
 
 class DeletePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),

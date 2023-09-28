@@ -7,6 +7,7 @@ from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
@@ -15,6 +16,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],

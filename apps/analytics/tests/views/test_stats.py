@@ -199,10 +199,6 @@ class StatsTestCaseCanSeeStats(JwtAPITestCase):
 
 
 class StatsTestCaseBasePermission(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        pass  # override to avoid creating organization
-
     def test_stats_base_permission(self):
         OrganizationFactory()
         user = UserFactory(permissions=[("analytics.view_stat", None)])

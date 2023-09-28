@@ -6,6 +6,7 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
 from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
@@ -14,6 +15,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         cls.public_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
@@ -134,6 +136,11 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
 
 
 class UpdateNotificationSettingsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
