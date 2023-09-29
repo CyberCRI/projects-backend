@@ -66,6 +66,10 @@ class Follow(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         """Whether the given user is the owner of the object."""
         return self.follower == user
 
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.follower
+
     def get_related_projects(self) -> List["Project"]:
         """Return the project related to this model."""
         return [self.project]
@@ -157,6 +161,10 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         """Whether the given user is the owner of the object."""
         return self.author == user
 
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.author
+
     def get_related_projects(self) -> List["Project"]:
         """Return the projects related to this model."""
         return [self.project]
@@ -207,6 +215,10 @@ class Review(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self.reviewer == user
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.reviewer
 
     def get_related_projects(self) -> List["Project"]:
         """Return the projects related to this model."""

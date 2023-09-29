@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 from django.test import TestCase
 
 from apps.misc.factories import WikipediaTagFactory
@@ -11,7 +10,6 @@ from services.recsys.tests.mocks import RecsysMockResponse
 from ..interface import RecsysService
 
 
-@pytest.mark.django_db
 class CommandsTestCase(TestCase):
     def test_get_text_query_from_project(self):
         project = ProjectFactory(language="fr", description="<p>description</p>")

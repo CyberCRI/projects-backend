@@ -71,10 +71,12 @@ class MixpanelService:
             headers={},
             raw_stream=False,
         )
-        events = cls.response_to_json(response)
-        formated_events = [
-            cls.format_event(event)
-            for event in events
-            if event.get("properties", {}).get("project", {}).get("id", None)
-        ]
-        return list(filter(lambda e: e["project"], formated_events))
+        if response is not None:
+            events = cls.response_to_json(response)
+            formated_events = [
+                cls.format_event(event)
+                for event in events
+                if event.get("properties", {}).get("project", {}).get("id", None)
+            ]
+            return list(filter(lambda e: e["project"], formated_events))
+        return []

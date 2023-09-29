@@ -175,7 +175,15 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
+        if self.user.exists():
+            return self.user.get() == user
         return self.owner == user
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        if self.user.exists():
+            return self.user.get()
+        return self.owner
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

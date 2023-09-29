@@ -13,6 +13,11 @@ from apps.organizations import factories
 
 
 class ProjectCategoryTagsTestCase(JwtAPITestCase, TagTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create(self, mocked):
         mocked.side_effect = self.side_effect

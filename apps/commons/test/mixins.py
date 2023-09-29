@@ -1,60 +1,16 @@
-import base64
 import os
-import uuid
 from typing import List, Tuple
 from unittest import skipUnless
 
-from django.conf import settings
-from django.core.files import File
 from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, ProjectUser
-from apps.files.models import Image
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-
-
-class GetImageTestCaseMixin:
-    @classmethod
-    def get_test_image_file(cls) -> File:
-        """Return a dummy test image file."""
-        return File(
-            open(f"{settings.BASE_DIR}/assets/test_image.png", "rb")  # noqa: SIM115
-        )
-
-    @classmethod
-    def get_oversized_test_image_file(cls) -> File:
-        """Return a dummy test image file."""
-        return File(
-            open(  # noqa: SIM115
-                f"{settings.BASE_DIR}/assets/oversized_test_image.jpg", "rb"
-            )
-        )
-
-    @classmethod
-    def get_test_image(cls, owner=None) -> Image:
-        """Return an Image instance."""
-        image = Image(name=str(uuid.uuid4()), file=cls.get_test_image_file())
-        image._upload_to = lambda instance, filename: f"test/{uuid.uuid4()}"
-        image.owner = owner if owner else UserFactory()
-        image.save()
-        return image
-
-    @classmethod
-    def get_base64_image(cls) -> str:
-        return f'<img src="data:image/png;base64,{base64.b64encode(cls.get_test_image_file().read()).decode()}" alt=""/>'
-
-    @classmethod
-    def get_oversized_test_image(cls) -> Image:
-        """Return an Image instance."""
-        image = Image(name=str(uuid.uuid4()), file=cls.get_oversized_test_image_file())
-        image._upload_to = lambda instance, filename: f"test/{uuid.uuid4()}"
-        image.save()
-        return image
 
 
 class ImageStorageTestCaseMixin:

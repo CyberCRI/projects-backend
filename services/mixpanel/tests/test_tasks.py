@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-import pytest
 from django.test import TestCase
 
 from apps.projects.factories import ProjectFactory
@@ -9,7 +8,6 @@ from services.mixpanel.models import MixpanelEvent
 from services.mixpanel.tasks import get_new_mixpanel_events
 
 
-@pytest.mark.django_db
 class MixpanelServiceTestCase(TestCase):
     def side_effect(self, projects_list):
         def inner(*args, **kwargs):

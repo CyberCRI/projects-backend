@@ -24,9 +24,12 @@ class JwtClient(APIClient):
         through_cookie=False,
     ):
         """Login the given user by creating a JWT token."""
-        if token is None:
-            token = BearerToken.for_user(user)
-        if through_cookie:
-            self.cookies[settings.JWT_ACCESS_TOKEN_COOKIE_NAME] = token
-        else:
+        if user:
+            if token is None:
+                token = BearerToken.for_user(user)
+            if through_cookie:
+                self.cookies[settings.JWT_ACCESS_TOKEN_COOKIE_NAME] = token
+            else:
+                self.credentials(HTTP_AUTHORIZATION=f"{token_type} {token}")
+        elif token:
             self.credentials(HTTP_AUTHORIZATION=f"{token_type} {token}")

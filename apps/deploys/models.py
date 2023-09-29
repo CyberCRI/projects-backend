@@ -2,6 +2,7 @@ import logging
 from datetime import datetime, timedelta
 
 from celery.result import AsyncResult
+from django.conf import settings
 from django.db import models
 from django.utils.timezone import make_aware
 
@@ -31,6 +32,11 @@ class PostDeployProcess(models.Model):
 
     @classmethod
     def recreate_processes(cls):
+        environment = settings.ENVIRONMENT
+        if environment == "test":
+            cls._tasks = {
+                key: value for key, value in cls._tasks.items() if value.run_in_tests
+            }
         for task in cls._tasks.values():
             cls.objects.update_or_create(
                 task_name=task.task_name,
@@ -45,12 +51,15 @@ class PostDeployProcess(models.Model):
             process
             for process in processes
             if (
-                (
-                    not process.last_run
-                    or process.last_run
-                    < make_aware(datetime.now() - timedelta(minutes=30))
+                process.status == "FAILURE"
+                or (
+                    (
+                        not process.last_run
+                        or process.last_run
+                        < make_aware(datetime.now() - timedelta(minutes=30))
+                    )
+                    and process.status in ["SUCCESS", "PENDING", "NONE"]
                 )
-                and process.status in ["SUCCESS", "FAILURE", "PENDING", "NONE"]
             )
         ]
 

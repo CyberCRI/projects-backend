@@ -12,6 +12,11 @@ from apps.projects.factories import BlogEntryFactory, ProjectFactory
 
 
 class TextProcessingTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.test_image = cls.get_test_image()
+
     def create_text_to_process(self):
         base_64 = self.get_base64_image()
         unlinked_image = self.get_test_image()

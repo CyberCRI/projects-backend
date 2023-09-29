@@ -8,16 +8,15 @@ from apps.accounts.utils import (
     get_superadmins_group_permissions,
 )
 from apps.commons.db.abc import PermissionsSetupModel
+from projects.celery import app
 
-from .utils import post_deploy_task
 
-
-@post_deploy_task
+@app.task
 def algolia_reindex_task():
     call_command("algolia_reindex")
 
 
-@post_deploy_task
+@app.task
 def base_groups_permissions():
     """
     Assign base groups permissions
@@ -35,7 +34,7 @@ def base_groups_permissions():
         assign_perm(permission, superadmins_group)
 
 
-@post_deploy_task
+@app.task
 def instance_groups_permissions():
     permissions_setup_models = PermissionsSetupModel.__subclasses__()
     for permissions_setup_model in permissions_setup_models:
@@ -47,7 +46,7 @@ def instance_groups_permissions():
             instance.setup_permissions()
 
 
-@post_deploy_task
+@app.task
 def remove_duplicated_roles():
     permissions_setup_models = PermissionsSetupModel.__subclasses__()
     for permissions_setup_model in permissions_setup_models:

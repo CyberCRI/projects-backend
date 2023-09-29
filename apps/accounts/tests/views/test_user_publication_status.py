@@ -1,9 +1,9 @@
 from django.urls import reverse
+from parameterized import parameterized
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
-from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
@@ -14,940 +14,320 @@ from apps.projects.models import Project
 
 class UserPublicationStatusTestCase(JwtAPITestCase):
     @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
+    def setUpTestData(cls):
+        super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
         cls.people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=cls.organization,
         )
         ProjectUser.objects.all().delete()  # Delete users created by the factories
-        cls.public_user = UserFactory(
-            publication_status=PrivacySettings.PrivacyChoices.PUBLIC
-        )
-        cls.private_user = UserFactory(
-            publication_status=PrivacySettings.PrivacyChoices.HIDE
-        )
-        cls.org_user = UserFactory(
-            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
-        )
-        cls.organization.users.add(cls.org_user, cls.public_user, cls.private_user)
-        cls.project.members.add(cls.public_user, cls.private_user, cls.org_user)
-        cls.people_group.members.add(cls.public_user, cls.private_user, cls.org_user)
+        cls.users = {
+            "public": UserFactory(
+                publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+                groups=[
+                    cls.organization.get_users(),
+                    cls.project.get_members(),
+                    cls.people_group.get_members(),
+                ],
+            ),
+            "private": UserFactory(
+                publication_status=PrivacySettings.PrivacyChoices.HIDE,
+                groups=[
+                    cls.organization.get_users(),
+                    cls.project.get_members(),
+                    cls.people_group.get_members(),
+                ],
+            ),
+            "org": UserFactory(
+                publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+                groups=[
+                    cls.organization.get_users(),
+                    cls.project.get_members(),
+                    cls.people_group.get_members(),
+                ],
+            ),
+        }
+        cls.comments = {
+            key: CommentFactory(author=value, project=cls.project)
+            for key, value in cls.users.items()
+        }
+        cls.reviews = {
+            key: ReviewFactory(reviewer=value, project=cls.project)
+            for key, value in cls.users.items()
+        }
+        cls.follows = {
+            key: FollowFactory(follower=value, project=cls.project)
+            for key, value in cls.users.items()
+        }
+        cls.invitations = {
+            key: InvitationFactory(owner=value, organization=cls.organization)
+            for key, value in cls.users.items()
+        }
 
-
-class AnonymousUserTestCase(UserPublicationStatusTestCase):
-    def test_retrieve_user_with_keycloak_import(self):
-        user = SeedUserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        response = self.client.get(
-            reverse("ProjectUser-detail", args=(user.keycloak_id,))
-        )
-        self.assertEqual(response.status_code, 404)
-        user.delete()
-
-    def test_retrieve_users(self):
-        for user in [self.public_user, self.private_user, self.org_user]:
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org")),
+        ]
+    )
+    def test_retrieve_users(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
+        for user_type, user in self.users.items():
             response = self.client.get(
                 reverse("ProjectUser-detail", args=(user.keycloak_id,))
             )
-            if user == self.public_user:
+            if user_type in expected_users:
                 self.assertEqual(response.status_code, 200)
             else:
                 self.assertEqual(response.status_code, 404)
 
-    def test_list_users(self):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org")),
+        ]
+    )
+    def test_list_users(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-list"))
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual({user["id"] for user in content}, {self.public_user.id})
+        if user:
+            self.assertEqual(len(content), len(expected_users) + 1)
+            self.assertEqual(
+                {user["id"] for user in content},
+                {user.id, *[self.users[user_type].id for user_type in expected_users]},
+            )
+        else:
+            self.assertEqual(len(content), len(expected_users))
+            self.assertEqual(
+                {user["id"] for user in content},
+                {self.users[user_type].id for user_type in expected_users},
+            )
 
-    def test_view_project_members(self):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public", None, None)),
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_project_members(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
         self.assertEqual(response.status_code, 200)
         content = response.json()
-        self.assertEqual(len(content["team"]["members"]), 3)
+        self.assertEqual(len(content["team"]["members"]), len(expected_users))
         self.assertEqual(
             {user["id"] for user in content["team"]["members"]},
-            {self.public_user.id, None, None},
+            {
+                self.users[user_type].id if user_type in expected_users else None
+                for user_type in self.users.keys()
+            },
         )
 
-    def test_view_people_group_members(self):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public", None, None)),
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_people_group_members(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
                 "PeopleGroup-member",
                 args=(
-                    self.people_group.organization.code,
+                    organization.code,
                     self.people_group.pk,
                 ),
             )
         )
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
-            {user["id"] for user in content}, {self.public_user.id, None, None}
+            {user["id"] for user in content},
+            {
+                self.users[user_type].id if user_type in expected_users else None
+                for user_type in self.users.keys()
+            },
         )
 
-    def test_view_users_in_comments(self):
-        public_comment = CommentFactory(author=self.public_user, project=self.project)
-        private_comment = CommentFactory(author=self.private_user, project=self.project)
-        org_comment = CommentFactory(author=self.org_user, project=self.project)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public", None, None)),
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_users_in_comments(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(reverse("Comment-list", args=[self.project.id]))
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
             {(comment["author"]["id"], comment["id"]) for comment in content},
             {
-                (self.public_user.id, public_comment.id),
-                (None, private_comment.id),
-                (None, org_comment.id),
+                (self.users[user_type].id, self.comments[user_type].id)
+                if user_type in expected_users
+                else (None, self.comments[user_type].id)
+                for user_type in self.users.keys()
             },
         )
 
-    def test_view_users_in_follows(self):
-        public_follow = FollowFactory(follower=self.public_user, project=self.project)
-        private_follow = FollowFactory(follower=self.private_user, project=self.project)
-        org_follow = FollowFactory(follower=self.org_user, project=self.project)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public", None, None)),
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_users_in_follows(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
             {(follow["follower"]["id"], follow["id"]) for follow in content},
             {
-                (self.public_user.id, public_follow.id),
-                (None, private_follow.id),
-                (None, org_follow.id),
+                (self.users[user_type].id, self.follows[user_type].id)
+                if user_type in expected_users
+                else (None, self.follows[user_type].id)
+                for user_type in self.users.keys()
             },
         )
 
-    def test_view_users_in_reviews(self):
-        public_review = ReviewFactory(reviewer=self.public_user, project=self.project)
-        private_review = ReviewFactory(reviewer=self.private_user, project=self.project)
-        org_review = ReviewFactory(reviewer=self.org_user, project=self.project)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public", None, None)),
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_users_in_reviews(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
             {(review["reviewer"]["id"], review["id"]) for review in content},
             {
-                (self.public_user.id, public_review.id),
-                (None, private_review.id),
-                (None, org_review.id),
+                (self.users[user_type].id, self.reviews[user_type].id)
+                if user_type in expected_users
+                else (None, self.reviews[user_type].id)
+                for user_type in self.users.keys()
             },
         )
 
-    def test_view_users_in_invitations(self):
-        public_invitation = InvitationFactory(
-            owner=self.public_user, organization=self.organization
-        )
-        private_invitation = InvitationFactory(
-            owner=self.private_user, organization=self.organization
-        )
-        org_invitation = InvitationFactory(
-            owner=self.org_user, organization=self.organization
-        )
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public", None, None)),
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_users_in_invitations(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Invitation-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
             {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
             {
-                (self.public_user.id, public_invitation.id),
-                (None, private_invitation.id),
-                (None, org_invitation.id),
+                (self.users[user_type].id, self.invitations[user_type].id)
+                if user_type in expected_users
+                else (None, self.invitations[user_type].id)
+                for user_type in self.users.keys()
             },
         )
 
-
-class AuthenticatedUserTestCase(UserPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-
-    def setUp(self):
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_users(self):
-        for user in [self.public_user, self.private_user, self.org_user, self.user]:
-            response = self.client.get(
-                reverse("ProjectUser-detail", args=(user.keycloak_id,))
+    @parameterized.expand(
+        [
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_view_users_in_notifications(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, organization=organization)
+        self.client.force_authenticate(user)
+        notifications = {
+            user_type: NotificationFactory(
+                receiver=user, sender=self.users[user_type], project=self.project
             )
-            if user == self.public_user or user == self.user:
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 404)
-
-    def test_list_users(self):
-        response = self.client.get(reverse("ProjectUser-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {user["id"] for user in content}, {self.public_user.id, self.user.id}
-        )
-
-    def test_view_project_members(self):
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()
-        self.assertEqual(len(content["team"]["members"]), 3)
-        self.assertEqual(
-            {user["id"] for user in content["team"]["members"]},
-            {self.public_user.id, None, None},
-        )
-
-    def test_view_people_group_members(self):
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-member",
-                args=(
-                    self.people_group.organization.code,
-                    self.people_group.pk,
-                ),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content}, {self.public_user.id, None, None}
-        )
-
-    def test_view_users_in_comments(self):
-        public_comment = CommentFactory(author=self.public_user, project=self.project)
-        private_comment = CommentFactory(author=self.private_user, project=self.project)
-        org_comment = CommentFactory(author=self.org_user, project=self.project)
-        response = self.client.get(reverse("Comment-list", args=[self.project.id]))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(comment["author"]["id"], comment["id"]) for comment in content},
-            {
-                (self.public_user.id, public_comment.id),
-                (None, private_comment.id),
-                (None, org_comment.id),
-            },
-        )
-
-    def test_view_users_in_follows(self):
-        public_follow = FollowFactory(follower=self.public_user, project=self.project)
-        private_follow = FollowFactory(follower=self.private_user, project=self.project)
-        org_follow = FollowFactory(follower=self.org_user, project=self.project)
-        response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(follow["follower"]["id"], follow["id"]) for follow in content},
-            {
-                (self.public_user.id, public_follow.id),
-                (None, private_follow.id),
-                (None, org_follow.id),
-            },
-        )
-
-    def test_view_users_in_reviews(self):
-        public_review = ReviewFactory(reviewer=self.public_user, project=self.project)
-        private_review = ReviewFactory(reviewer=self.private_user, project=self.project)
-        org_review = ReviewFactory(reviewer=self.org_user, project=self.project)
-        response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(review["reviewer"]["id"], review["id"]) for review in content},
-            {
-                (self.public_user.id, public_review.id),
-                (None, private_review.id),
-                (None, org_review.id),
-            },
-        )
-
-    def test_view_users_in_invitations(self):
-        public_invitation = InvitationFactory(
-            owner=self.public_user, organization=self.organization
-        )
-        private_invitation = InvitationFactory(
-            owner=self.private_user, organization=self.organization
-        )
-        org_invitation = InvitationFactory(
-            owner=self.org_user, organization=self.organization
-        )
-        response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,))
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
-            {
-                (self.public_user.id, public_invitation.id),
-                (None, private_invitation.id),
-                (None, org_invitation.id),
-            },
-        )
-
-    def test_view_users_in_notifications(self):
-        public_notification = NotificationFactory(
-            receiver=self.user, sender=self.public_user
-        )
-        private_notification = NotificationFactory(
-            receiver=self.user, sender=self.private_user
-        )
-        org_notification = NotificationFactory(receiver=self.user, sender=self.org_user)
+            for user_type in self.users.keys()
+        }
         response = self.client.get(reverse("Notification-list"))
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
-        self.assertEqual(len(content), 3)
+        self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
             {
                 (notification["sender"]["id"], notification["id"])
                 for notification in content
             },
             {
-                (self.public_user.id, public_notification.id),
-                (None, private_notification.id),
-                (None, org_notification.id),
-            },
-        )
-
-
-class OrganizationMemberTestCase(UserPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        cls.organization.users.add(cls.user)
-
-    def setUp(self):
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_users(self):
-        for user in [self.public_user, self.private_user, self.org_user, self.user]:
-            response = self.client.get(
-                reverse("ProjectUser-detail", args=(user.keycloak_id,))
-            )
-            if user != self.private_user:
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 404)
-
-    def test_list_users(self):
-        response = self.client.get(reverse("ProjectUser-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.user.id, self.org_user.id},
-        )
-
-    def test_view_project_members(self):
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()
-        self.assertEqual(len(content["team"]["members"]), 3)
-        self.assertEqual(
-            {user["id"] for user in content["team"]["members"]},
-            {self.public_user.id, self.org_user.id, None},
-        )
-
-    def test_view_people_group_members(self):
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-member",
-                args=(
-                    self.people_group.organization.code,
-                    self.people_group.pk,
-                ),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.org_user.id, None},
-        )
-
-    def test_view_users_in_comments(self):
-        public_comment = CommentFactory(author=self.public_user, project=self.project)
-        private_comment = CommentFactory(author=self.private_user, project=self.project)
-        org_comment = CommentFactory(author=self.org_user, project=self.project)
-        response = self.client.get(reverse("Comment-list", args=[self.project.id]))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(comment["author"]["id"], comment["id"]) for comment in content},
-            {
-                (self.public_user.id, public_comment.id),
-                (None, private_comment.id),
-                (self.org_user.id, org_comment.id),
-            },
-        )
-
-    def test_view_users_in_follows(self):
-        public_follow = FollowFactory(follower=self.public_user, project=self.project)
-        private_follow = FollowFactory(follower=self.private_user, project=self.project)
-        org_follow = FollowFactory(follower=self.org_user, project=self.project)
-        response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(follow["follower"]["id"], follow["id"]) for follow in content},
-            {
-                (self.public_user.id, public_follow.id),
-                (None, private_follow.id),
-                (self.org_user.id, org_follow.id),
-            },
-        )
-
-    def test_view_users_in_reviews(self):
-        public_review = ReviewFactory(reviewer=self.public_user, project=self.project)
-        private_review = ReviewFactory(reviewer=self.private_user, project=self.project)
-        org_review = ReviewFactory(reviewer=self.org_user, project=self.project)
-        response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(review["reviewer"]["id"], review["id"]) for review in content},
-            {
-                (self.public_user.id, public_review.id),
-                (None, private_review.id),
-                (self.org_user.id, org_review.id),
-            },
-        )
-
-    def test_view_users_in_invitations(self):
-        public_invitation = InvitationFactory(
-            owner=self.public_user, organization=self.organization
-        )
-        private_invitation = InvitationFactory(
-            owner=self.private_user, organization=self.organization
-        )
-        org_invitation = InvitationFactory(
-            owner=self.org_user, organization=self.organization
-        )
-        response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,))
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
-            {
-                (self.public_user.id, public_invitation.id),
-                (None, private_invitation.id),
-                (self.org_user.id, org_invitation.id),
-            },
-        )
-
-    def test_view_users_in_notifications(self):
-        public_notification = NotificationFactory(
-            receiver=self.user, sender=self.public_user
-        )
-        private_notification = NotificationFactory(
-            receiver=self.user, sender=self.private_user
-        )
-        org_notification = NotificationFactory(receiver=self.user, sender=self.org_user)
-        response = self.client.get(reverse("Notification-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {
-                (notification["sender"]["id"], notification["id"])
-                for notification in content
-            },
-            {
-                (self.public_user.id, public_notification.id),
-                (None, private_notification.id),
-                (self.org_user.id, org_notification.id),
-            },
-        )
-
-
-class OrganizationFacilitatorTestCase(UserPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        cls.organization.facilitators.add(cls.user)
-
-    def setUp(self):
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_users(self):
-        for user in [self.public_user, self.private_user, self.org_user, self.user]:
-            response = self.client.get(
-                reverse("ProjectUser-detail", args=(user.keycloak_id,))
-            )
-            self.assertEqual(response.status_code, 200)
-
-    def test_list_users(self):
-        response = self.client.get(reverse("ProjectUser-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_project_members(self):
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()
-        self.assertEqual(len(content["team"]["members"]), 3)
-        self.assertEqual(
-            {user["id"] for user in content["team"]["members"]},
-            {self.public_user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_people_group_members(self):
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-member",
-                args=(
-                    self.people_group.organization.code,
-                    self.people_group.pk,
-                ),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_users_in_comments(self):
-        public_comment = CommentFactory(author=self.public_user, project=self.project)
-        private_comment = CommentFactory(author=self.private_user, project=self.project)
-        org_comment = CommentFactory(author=self.org_user, project=self.project)
-        response = self.client.get(reverse("Comment-list", args=[self.project.id]))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(comment["author"]["id"], comment["id"]) for comment in content},
-            {
-                (self.public_user.id, public_comment.id),
-                (self.private_user.id, private_comment.id),
-                (self.org_user.id, org_comment.id),
-            },
-        )
-
-    def test_view_users_in_follows(self):
-        public_follow = FollowFactory(follower=self.public_user, project=self.project)
-        private_follow = FollowFactory(follower=self.private_user, project=self.project)
-        org_follow = FollowFactory(follower=self.org_user, project=self.project)
-        response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(follow["follower"]["id"], follow["id"]) for follow in content},
-            {
-                (self.public_user.id, public_follow.id),
-                (self.private_user.id, private_follow.id),
-                (self.org_user.id, org_follow.id),
-            },
-        )
-
-    def test_view_users_in_reviews(self):
-        public_review = ReviewFactory(reviewer=self.public_user, project=self.project)
-        private_review = ReviewFactory(reviewer=self.private_user, project=self.project)
-        org_review = ReviewFactory(reviewer=self.org_user, project=self.project)
-        response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(review["reviewer"]["id"], review["id"]) for review in content},
-            {
-                (self.public_user.id, public_review.id),
-                (self.private_user.id, private_review.id),
-                (self.org_user.id, org_review.id),
-            },
-        )
-
-    def test_view_users_in_invitations(self):
-        public_invitation = InvitationFactory(
-            owner=self.public_user, organization=self.organization
-        )
-        private_invitation = InvitationFactory(
-            owner=self.private_user, organization=self.organization
-        )
-        org_invitation = InvitationFactory(
-            owner=self.org_user, organization=self.organization
-        )
-        response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,))
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
-            {
-                (self.public_user.id, public_invitation.id),
-                (self.private_user.id, private_invitation.id),
-                (self.org_user.id, org_invitation.id),
-            },
-        )
-
-    def test_view_users_in_notifications(self):
-        public_notification = NotificationFactory(
-            receiver=self.user, sender=self.public_user
-        )
-        private_notification = NotificationFactory(
-            receiver=self.user, sender=self.private_user
-        )
-        org_notification = NotificationFactory(receiver=self.user, sender=self.org_user)
-        response = self.client.get(reverse("Notification-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {
-                (notification["sender"]["id"], notification["id"])
-                for notification in content
-            },
-            {
-                (self.public_user.id, public_notification.id),
-                (self.private_user.id, private_notification.id),
-                (self.org_user.id, org_notification.id),
-            },
-        )
-
-
-class OrganizationAdminTestCase(UserPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        cls.organization.admins.add(cls.user)
-
-    def setUp(self):
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_users(self):
-        for user in [self.public_user, self.private_user, self.org_user, self.user]:
-            response = self.client.get(
-                reverse("ProjectUser-detail", args=(user.keycloak_id,))
-            )
-            self.assertEqual(response.status_code, 200)
-
-    def test_list_users(self):
-        response = self.client.get(reverse("ProjectUser-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_project_members(self):
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()
-        self.assertEqual(len(content["team"]["members"]), 3)
-        self.assertEqual(
-            {user["id"] for user in content["team"]["members"]},
-            {self.public_user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_people_group_members(self):
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-member",
-                args=(
-                    self.people_group.organization.code,
-                    self.people_group.pk,
-                ),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_users_in_comments(self):
-        public_comment = CommentFactory(author=self.public_user, project=self.project)
-        private_comment = CommentFactory(author=self.private_user, project=self.project)
-        org_comment = CommentFactory(author=self.org_user, project=self.project)
-        response = self.client.get(reverse("Comment-list", args=[self.project.id]))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(comment["author"]["id"], comment["id"]) for comment in content},
-            {
-                (self.public_user.id, public_comment.id),
-                (self.private_user.id, private_comment.id),
-                (self.org_user.id, org_comment.id),
-            },
-        )
-
-    def test_view_users_in_follows(self):
-        public_follow = FollowFactory(follower=self.public_user, project=self.project)
-        private_follow = FollowFactory(follower=self.private_user, project=self.project)
-        org_follow = FollowFactory(follower=self.org_user, project=self.project)
-        response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(follow["follower"]["id"], follow["id"]) for follow in content},
-            {
-                (self.public_user.id, public_follow.id),
-                (self.private_user.id, private_follow.id),
-                (self.org_user.id, org_follow.id),
-            },
-        )
-
-    def test_view_users_in_reviews(self):
-        public_review = ReviewFactory(reviewer=self.public_user, project=self.project)
-        private_review = ReviewFactory(reviewer=self.private_user, project=self.project)
-        org_review = ReviewFactory(reviewer=self.org_user, project=self.project)
-        response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(review["reviewer"]["id"], review["id"]) for review in content},
-            {
-                (self.public_user.id, public_review.id),
-                (self.private_user.id, private_review.id),
-                (self.org_user.id, org_review.id),
-            },
-        )
-
-    def test_view_users_in_invitations(self):
-        public_invitation = InvitationFactory(
-            owner=self.public_user, organization=self.organization
-        )
-        private_invitation = InvitationFactory(
-            owner=self.private_user, organization=self.organization
-        )
-        org_invitation = InvitationFactory(
-            owner=self.org_user, organization=self.organization
-        )
-        response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,))
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
-            {
-                (self.public_user.id, public_invitation.id),
-                (self.private_user.id, private_invitation.id),
-                (self.org_user.id, org_invitation.id),
-            },
-        )
-
-    def test_view_users_in_notifications(self):
-        public_notification = NotificationFactory(
-            receiver=self.user, sender=self.public_user
-        )
-        private_notification = NotificationFactory(
-            receiver=self.user, sender=self.private_user
-        )
-        org_notification = NotificationFactory(receiver=self.user, sender=self.org_user)
-        response = self.client.get(reverse("Notification-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {
-                (notification["sender"]["id"], notification["id"])
-                for notification in content
-            },
-            {
-                (self.public_user.id, public_notification.id),
-                (self.private_user.id, private_notification.id),
-                (self.org_user.id, org_notification.id),
-            },
-        )
-
-
-class SuperAdminTestCase(UserPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory(
-            groups=[get_superadmins_group()],
-            publication_status=PrivacySettings.PrivacyChoices.HIDE,
-        )
-
-    def setUp(self):
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_users(self):
-        for user in [self.public_user, self.private_user, self.org_user, self.user]:
-            response = self.client.get(
-                reverse("ProjectUser-detail", args=(user.keycloak_id,))
-            )
-            self.assertEqual(response.status_code, 200)
-
-    def test_list_users(self):
-        response = self.client.get(reverse("ProjectUser-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_project_members(self):
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()
-        self.assertEqual(len(content["team"]["members"]), 3)
-        self.assertEqual(
-            {user["id"] for user in content["team"]["members"]},
-            {self.public_user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_people_group_members(self):
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-member",
-                args=(
-                    self.people_group.organization.code,
-                    self.people_group.pk,
-                ),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.org_user.id, self.private_user.id},
-        )
-
-    def test_view_users_in_comments(self):
-        public_comment = CommentFactory(author=self.public_user, project=self.project)
-        private_comment = CommentFactory(author=self.private_user, project=self.project)
-        org_comment = CommentFactory(author=self.org_user, project=self.project)
-        response = self.client.get(reverse("Comment-list", args=[self.project.id]))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(comment["author"]["id"], comment["id"]) for comment in content},
-            {
-                (self.public_user.id, public_comment.id),
-                (self.private_user.id, private_comment.id),
-                (self.org_user.id, org_comment.id),
-            },
-        )
-
-    def test_view_users_in_follows(self):
-        public_follow = FollowFactory(follower=self.public_user, project=self.project)
-        private_follow = FollowFactory(follower=self.private_user, project=self.project)
-        org_follow = FollowFactory(follower=self.org_user, project=self.project)
-        response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(follow["follower"]["id"], follow["id"]) for follow in content},
-            {
-                (self.public_user.id, public_follow.id),
-                (self.private_user.id, private_follow.id),
-                (self.org_user.id, org_follow.id),
-            },
-        )
-
-    def test_view_users_in_reviews(self):
-        public_review = ReviewFactory(reviewer=self.public_user, project=self.project)
-        private_review = ReviewFactory(reviewer=self.private_user, project=self.project)
-        org_review = ReviewFactory(reviewer=self.org_user, project=self.project)
-        response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(review["reviewer"]["id"], review["id"]) for review in content},
-            {
-                (self.public_user.id, public_review.id),
-                (self.private_user.id, private_review.id),
-                (self.org_user.id, org_review.id),
-            },
-        )
-
-    def test_view_users_in_invitations(self):
-        public_invitation = InvitationFactory(
-            owner=self.public_user, organization=self.organization
-        )
-        private_invitation = InvitationFactory(
-            owner=self.private_user, organization=self.organization
-        )
-        org_invitation = InvitationFactory(
-            owner=self.org_user, organization=self.organization
-        )
-        response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,))
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
-            {
-                (self.public_user.id, public_invitation.id),
-                (self.private_user.id, private_invitation.id),
-                (self.org_user.id, org_invitation.id),
-            },
-        )
-
-    def test_view_users_in_notifications(self):
-        public_notification = NotificationFactory(
-            receiver=self.user, sender=self.public_user
-        )
-        private_notification = NotificationFactory(
-            receiver=self.user, sender=self.private_user
-        )
-        org_notification = NotificationFactory(receiver=self.user, sender=self.org_user)
-        response = self.client.get(reverse("Notification-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {
-                (notification["sender"]["id"], notification["id"])
-                for notification in content
-            },
-            {
-                (self.public_user.id, public_notification.id),
-                (self.private_user.id, private_notification.id),
-                (self.org_user.id, org_notification.id),
+                (self.users[user_type].id, notifications[user_type].id)
+                if user_type in expected_users
+                else (None, notifications[user_type].id)
+                for user_type in self.users.keys()
             },
         )
