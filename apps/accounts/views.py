@@ -18,6 +18,7 @@ from googleapiclient.errors import HttpError
 from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.parsers import JSONParser, MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
@@ -25,6 +26,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.filters import PeopleGroupFilter, SkillFilter
 from apps.accounts.utils import get_permission_from_representation
+from .parsers import UserMultipartParser
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.files.models import Image
@@ -98,6 +100,7 @@ class UserViewSet(viewsets.ModelViewSet):
         "job",
         "groups__people_groups__name",
     ]
+    parser_classes = (JSONParser, UserMultipartParser)
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
     ordering_fields = ["given_name", "family_name", "job", "current_org_role"]
 

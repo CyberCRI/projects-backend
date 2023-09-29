@@ -3,6 +3,7 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
+from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from django.urls import reverse
 from django.utils.timezone import make_aware
 from faker import Faker
@@ -77,6 +78,47 @@ class CreateUserTestCase(JwtAPITestCase):
                 *[project.get_members().name for project in projects],
                 *[people_group.get_members().name for people_group in people_groups],
             }
+
+    def test_create_user_with_formdata(self):
+        organization = self.organization
+        projects = self.projects
+        people_groups = self.people_groups
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        payload = {
+            "people_id": faker.uuid4(),
+            "email": f"{faker.uuid4()}@yopmail.com",
+            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+            "sdgs": [1],
+            "profile_picture": self.get_test_image_file(),
+            "roles_to_add": [
+                organization.get_users().name,
+                *[project.get_members().name for project in projects],
+                *[people_group.get_members().name for people_group in people_groups],
+            ],
+        }
+        response = self.client.post(
+            reverse("ProjectUser-list"),
+            data=encode_multipart(data=payload, boundary=BOUNDARY),
+            content_type=MULTIPART_CONTENT,
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        content = response.json()
+        assert content["people_id"] == payload["people_id"]
+        assert content["email"] == payload["email"]
+        assert content["given_name"] == payload["given_name"]
+        assert content["family_name"] == payload["family_name"]
+        assert content["sdgs"] == payload["sdgs"]
+        assert content["profile_picture"] is not None
+        assert len(content["roles"]) == 8
+        assert {*content["roles"]} == {
+            get_default_group().name,
+            organization.get_users().name,
+            *[project.get_members().name for project in projects],
+            *[people_group.get_members().name for people_group in people_groups],
+        }
 
     def test_create_user_with_invitation(self):
         organization = self.organization
