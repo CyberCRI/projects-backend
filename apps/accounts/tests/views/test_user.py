@@ -29,6 +29,10 @@ class CreateUserTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.projects = ProjectFactory.create_batch(3, organizations=[cls.organization])
+        cls.people_groups = PeopleGroupFactory.create_batch(
+            3, organization=cls.organization
+        )
 
     @parameterized.expand(
         [
@@ -42,10 +46,10 @@ class CreateUserTestCase(JwtAPITestCase):
     )
     def test_create_user(self, role, expected_code):
         organization = self.organization
+        projects = self.projects
+        people_groups = self.people_groups
         user = self.get_parameterized_test_user(role, organization=organization)
         self.client.force_authenticate(user)
-        projects = ProjectFactory.create_batch(3, organizations=[organization])
-        people_groups = PeopleGroupFactory.create_batch(3, organization=organization)
         payload = {
             "people_id": faker.uuid4(),
             "email": f"{faker.uuid4()}@yopmail.com",
