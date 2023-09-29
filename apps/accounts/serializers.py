@@ -570,12 +570,12 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         profile_picture = {
-            "file": validated_data.pop("profile_picture_file"),
-            "scale_x": validated_data.pop("profile_picture_scale_x"),
-            "scale_y": validated_data.pop("profile_picture_scale_y"),
-            "left": validated_data.pop("profile_picture_left"),
-            "top": validated_data.pop("profile_picture_top"),
-            "natural_ratio": validated_data.pop("profile_picture_natural_ratio"),
+            "file": validated_data.pop("profile_picture_file", None),
+            "scale_x": validated_data.pop("profile_picture_scale_x", None),
+            "scale_y": validated_data.pop("profile_picture_scale_y", None),
+            "left": validated_data.pop("profile_picture_left", None),
+            "top": validated_data.pop("profile_picture_top", None),
+            "natural_ratio": validated_data.pop("profile_picture_natural_ratio", None),
         }
         instance = super(UserSerializer, self).create(validated_data)
         instance.groups.add(get_default_group())
