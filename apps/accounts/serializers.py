@@ -1,8 +1,10 @@
+import uuid
 from typing import Dict, List, Optional, Union
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 from rest_framework.exceptions import PermissionDenied
 
@@ -21,6 +23,7 @@ from apps.commons.serializers.fields import (
     PrivacySettingProtectedEmailField,
     PrivacySettingProtectedMethodField,
 )
+from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.misc.serializers import TagRelatedField
 from apps.notifications.models import Notification
@@ -330,6 +333,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
         ]
 
 
+@extend_schema_serializer(exclude_fields=("roles",))
 class UserSerializer(serializers.ModelSerializer):
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
@@ -403,6 +407,26 @@ class UserSerializer(serializers.ModelSerializer):
         privacy_field="socials", required=False, allow_blank=True
     )
 
+    # Write only profile picture fields
+    profile_picture_file = serializers.ImageField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_scale_x = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_scale_y = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_left = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_top = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+    profile_picture_natural_ratio = serializers.FloatField(
+        write_only=True, required=False, allow_null=True
+    )
+
     class Meta:
         model = ProjectUser
         read_only_fields = ["slug"]
@@ -442,6 +466,12 @@ class UserSerializer(serializers.ModelSerializer):
             "skype",
             "landline_phone",
             "twitter",
+            "profile_picture_file",
+            "profile_picture_scale_x",
+            "profile_picture_scale_y",
+            "profile_picture_left",
+            "profile_picture_top",
+            "profile_picture_natural_ratio",
         ]
 
     def to_representation(self, instance):
@@ -539,6 +569,14 @@ class UserSerializer(serializers.ModelSerializer):
         return Notification.objects.filter(is_viewed=False, receiver=user).count()
 
     def create(self, validated_data):
+        profile_picture = {
+            "file": validated_data.pop("profile_picture_file"),
+            "scale_x": validated_data.pop("profile_picture_scale_x"),
+            "scale_y": validated_data.pop("profile_picture_scale_y"),
+            "left": validated_data.pop("profile_picture_left"),
+            "top": validated_data.pop("profile_picture_top"),
+            "natural_ratio": validated_data.pop("profile_picture_natural_ratio"),
+        }
         instance = super(UserSerializer, self).create(validated_data)
         instance.groups.add(get_default_group())
         organization_groups = instance.groups.filter(organizations__isnull=False)
@@ -547,9 +585,28 @@ class UserSerializer(serializers.ModelSerializer):
             organization = group.organizations.first()
             instance.language = organization.language
             instance.save()
+        if profile_picture["file"]:
+            image = Image(
+                name=profile_picture["file"].name,
+                owner=instance,
+                **profile_picture,
+            )
+            upload_to = f"account/profile/{uuid.uuid4()}#{image.name}"
+            image._upload_to = lambda _, __: upload_to
+            image.save()
+            instance.profile_picture = image
+            instance.save()
         return instance
 
     def to_internal_value(self, data):
+        """
+        Overriding this method to handle roles_to_add and roles_to_remove.
+
+        Because UserViewSet needs to handle formdata and json, we use a custom parser
+        located in apps/accounts/parsers.py. Otherwise this method would cause an
+        error when trying to process data from a formdata.
+        """
+        data["profile_picture_file"] = data.pop("profile_picture_file", [None])[0]
         groups_to_add = data.pop("roles_to_add", [])
         groups_to_remove = data.pop("roles_to_remove", [])
         if self.instance:

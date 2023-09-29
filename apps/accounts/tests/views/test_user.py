@@ -92,7 +92,12 @@ class CreateUserTestCase(JwtAPITestCase):
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "sdgs": [1],
-            "profile_picture": self.get_test_image_file(),
+            "profile_picture_scale_x": 2.0,
+            "profile_picture_scale_y": 2.0,
+            "profile_picture_left": 1.0,
+            "profile_picture_top": 1.0,
+            "profile_picture_natural_ratio": 1.0,
+            "profile_picture_file": self.get_test_image_file(),
             "roles_to_add": [
                 organization.get_users().name,
                 *[project.get_members().name for project in projects],
@@ -112,6 +117,18 @@ class CreateUserTestCase(JwtAPITestCase):
         assert content["family_name"] == payload["family_name"]
         assert content["sdgs"] == payload["sdgs"]
         assert content["profile_picture"] is not None
+        assert (
+            content["profile_picture"]["scale_x"] == payload["profile_picture_scale_x"]
+        )
+        assert (
+            content["profile_picture"]["scale_y"] == payload["profile_picture_scale_y"]
+        )
+        assert content["profile_picture"]["left"] == payload["profile_picture_left"]
+        assert content["profile_picture"]["top"] == payload["profile_picture_top"]
+        assert (
+            content["profile_picture"]["natural_ratio"]
+            == payload["profile_picture_natural_ratio"]
+        )
         assert len(content["roles"]) == 8
         assert {*content["roles"]} == {
             get_default_group().name,

@@ -18,7 +18,7 @@ from googleapiclient.errors import HttpError
 from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
-from rest_framework.parsers import JSONParser, MultiPartParser
+from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
@@ -26,7 +26,6 @@ from rest_framework.views import APIView
 
 from apps.accounts.filters import PeopleGroupFilter, SkillFilter
 from apps.accounts.utils import get_permission_from_representation
-from .parsers import UserMultipartParser
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.files.models import Image
@@ -44,6 +43,7 @@ from services.google.utils import (
 from services.keycloak.interface import KeycloakService
 
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .parsers import UserMultipartParser
 from .permissions import HasBasePermission, HasPeopleGroupPermission, ReadOnly
 from .serializers import (
     AccessTokenSerializer,
