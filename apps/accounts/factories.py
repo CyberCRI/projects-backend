@@ -5,6 +5,7 @@ from factory.fuzzy import FuzzyInteger
 from faker import Faker
 from guardian.shortcuts import assign_perm
 
+from apps.accounts.utils import get_default_group
 from apps.commons.factories import sdg_factory
 from services.keycloak.interface import KeycloakService
 
@@ -48,7 +49,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     def groups(self, create, extracted, **kwargs):
         if not create:
             return
-        self.groups.add(*extracted if extracted else [])
+        self.groups.add(*[get_default_group(), *(extracted if extracted else [])])
 
     @factory.post_generation
     def permissions(self, create, extracted, **kwargs):

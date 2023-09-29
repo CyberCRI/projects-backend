@@ -13,7 +13,7 @@ from apps.accounts.models import (
     ProjectUser,
     Skill,
 )
-from apps.accounts.utils import get_instance_from_group
+from apps.accounts.utils import get_default_group, get_instance_from_group
 from apps.commons.serializers import KeycloakRelatedField
 from apps.commons.serializers.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -540,6 +540,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         instance = super(UserSerializer, self).create(validated_data)
+        instance.groups.add(get_default_group())
         organization_groups = instance.groups.filter(organizations__isnull=False)
         if organization_groups.exists():
             group = organization_groups.first()
