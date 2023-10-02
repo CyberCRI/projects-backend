@@ -278,6 +278,9 @@ class UserViewSet(viewsets.ModelViewSet):
                 KeycloakService.delete_user(instance)
             return response
         except KeycloakDeleteError as e:
+            if e.response_code == 404:
+                # Do not fail if user is already deleted in Keycloak
+                return Response(status=status.HTTP_204_NO_CONTENT)
             keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
             return Response(
                 {"error": f"An error occured in Keycloak : {keycloak_error}"},
