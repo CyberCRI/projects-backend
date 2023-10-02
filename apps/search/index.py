@@ -214,6 +214,7 @@ class UserIndex(AlgoliaSplittingIndex):
             "skills",
             "skills_filter",
             "permissions",
+            "people_groups",
         ),
         "multiple": (
             {
@@ -233,6 +234,7 @@ class UserIndex(AlgoliaSplittingIndex):
             "personal_email",
             "description",
             "skills",
+            "people_groups",
         ],
         "attributesForFaceting": [
             "filterOnly(organizations)",
@@ -283,6 +285,15 @@ class UserIndex(AlgoliaSplittingIndex):
         return [
             "accounts.view_projectuser",
             *[f"organizations.view_projectuser.{org.pk}" for org in organizations],
+        ]
+
+    def prepare_people_groups(self, user: ProjectUser) -> List[str]:
+        """Return the people groups' names for Algolia indexing."""
+        return [
+            people_group.name
+            for people_group in PeopleGroup.objects.filter(
+                groups__users=user
+            ).distinct()
         ]
 
     def split_description(self, user: ProjectUser) -> Collection[str]:
