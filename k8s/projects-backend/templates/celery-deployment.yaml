@@ -43,6 +43,28 @@ spec:
           - -B
           - -l
           - info
+        livenessProbe:
+          exec:
+            command:
+              - /bin/bash
+              - '-c'
+              - ./secrets-entrypoint.sh celery -A projects inspect ping
+          failureThreshold: 3
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+              - /bin/bash
+              - '-c'
+              - ./secrets-entrypoint.sh celery -A projects inspect ping
+          failureThreshold: 2
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 10
         envFrom:
           - configMapRef:
               name: {{ tpl $.Values.fullName $ }}
