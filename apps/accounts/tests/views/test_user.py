@@ -20,6 +20,7 @@ from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
+from keycloak import KeycloakDeleteError
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -274,6 +275,12 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
 
         return raise_error
 
+    @staticmethod
+    def mocked_keycloak_error(*args, **kwarg):
+        raise KeycloakDeleteError(
+            "error reason", 400, response_body=b'{"errorMessage": "error reason"}'
+        )
+
     def test_keycloak_error_create_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory()
@@ -311,15 +318,26 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             ProjectUser.objects.get(keycloak_id=user.keycloak_id).email != user_2.email
         )
 
-    def test_keycloak_error_delete_user(self):
+    @mock.patch("services.keycloak.interface.KeycloakService.delete_user")
+    def test_keycloak_error_delete_user(self, mocked):
+        mocked.side_effect = self.mocked_keycloak_error
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         response = self.client.delete(
             reverse("ProjectUser-detail", args=[user.keycloak_id])
         )
-        assert response.status_code == 404
-        assert response.json()["error"] == "An error occured in Keycloak : None"
+        assert response.status_code == 400
+        assert response.json()["error"] == "An error occured in Keycloak : error reason"
         assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+
+    def test_keycloak_404_delete_user(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        user = UserFactory()
+        response = self.client.delete(
+            reverse("ProjectUser-detail", args=[user.keycloak_id])
+        )
+        assert response.status_code == 204
+        assert not ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
 
     def test_google_error_create_user(self):
         organization = self.organization
