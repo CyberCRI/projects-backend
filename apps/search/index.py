@@ -39,8 +39,34 @@ class ProjectIndex(AlgoliaSplittingIndex):
             "permissions",
         ),
         "multiple": (
-            {"id_suffix": "desc", "commons": ("id",), "split": ("description",)},
-            {"id_suffix": "blog", "commons": ("id",), "split": ("blog_entries",)},
+            {
+                "id_suffix": "desc",
+                "commons": (  # IDs and attributes for faceting
+                    "id",
+                    "organizations",
+                    "language",
+                    "sdgs",
+                    "categories_filter",
+                    "members_filter",
+                    "wikipedia_tags_filter",
+                    "permissions",
+                ),
+                "split": ("description",),
+            },
+            {
+                "id_suffix": "blog",
+                "commons": (  # IDs and attributes for faceting
+                    "id",
+                    "organizations",
+                    "language",
+                    "sdgs",
+                    "categories_filter",
+                    "members_filter",
+                    "wikipedia_tags_filter",
+                    "permissions",
+                ),
+                "split": ("blog_entries",),
+            },
         ),
     }
     settings = {
@@ -218,7 +244,14 @@ class UserIndex(AlgoliaSplittingIndex):
         "multiple": (
             {
                 "id_suffix": "desc",
-                "commons": ("id", "keycloak_id"),
+                "commons": (  # IDs and attributes for faceting
+                    "id",
+                    "keycloak_id",
+                    "organizations",
+                    "sdgs",
+                    "skills_filter",
+                    "permissions",
+                ),
                 "split": ("description",),
             },
         ),
@@ -324,7 +357,13 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
         "multiple": (
             {
                 "id_suffix": "desc",
-                "commons": ("id",),
+                "commons": (  # IDs and attributes for faceting
+                    "id",
+                    "type",
+                    "organization",
+                    "permissions",
+                    "sdgs",
+                ),
                 "split": ("description",),
             },
         ),
