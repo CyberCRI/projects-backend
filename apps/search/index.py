@@ -335,7 +335,7 @@ class UserIndex(AlgoliaSplittingIndex):
         """Return the projects' names for Algolia indexing."""
         return [
             project.title
-            for project in Project.objects.filter(members__in=[user]).distinct()
+            for project in Project.objects.filter(groups__users=user).distinct()
         ]
 
     def split_description(self, user: ProjectUser) -> Collection[str]:
