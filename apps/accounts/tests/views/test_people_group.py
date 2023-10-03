@@ -73,6 +73,7 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             assert response.data["email"] == payload["email"]
             assert response.data["organization"] == organization.code
             assert response.data["hierarchy"][0]["id"] == parent.id
+            assert response.data["hierarchy"][0]["slug"] == parent.slug
             people_group = PeopleGroup.objects.get(id=response.json()["id"])
             assert all(member in people_group.members.all() for member in members)
             assert all(manager in people_group.managers.all() for manager in managers)
