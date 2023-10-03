@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, List, Union
 
 from django.conf import settings
@@ -9,6 +10,8 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.organizations.models import Organization
 from keycloak import KeycloakAdmin, exceptions
+
+logger = logging.getLogger(__name__)
 
 
 class KeycloakService:
@@ -196,4 +199,9 @@ class KeycloakService:
 
     @classmethod
     def delete_user(cls, user: ProjectUser):
-        cls.service().delete_user(user_id=user.keycloak_id)
+        keycloak_admin = cls.service()
+        try:
+            keycloak_admin.get_user(user.keycloak_id)
+            keycloak_admin.delete_user(user_id=user.keycloak_id)
+        except exceptions.KeycloakGetError:
+            logger.info(f"Deleted user {user.keycloak_id} does not exist in Keycloak")
