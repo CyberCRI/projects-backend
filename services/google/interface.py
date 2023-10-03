@@ -357,6 +357,7 @@ class GoogleService:
             groups__id__in=user.groups.values("id"),
         )
         google_groups = cls._get_user_groups(google_user)
+        # TODO : Change this when google is handled in db
         google_groups = [
             {
                 **google_group,
@@ -399,7 +400,7 @@ class GoogleService:
     @classmethod
     def _sync_group_members(cls, group: PeopleGroup, google_group: dict):
         google_users = cls._get_group_members(group.email)
-        # TODO : Remove this when google is handled in db
+        # TODO : Change this when google is handled in db
         google_users = [
             {
                 **google_user,
