@@ -360,10 +360,7 @@ class GoogleService:
         google_groups = [
             {
                 **google_group,
-                "emails": [
-                    google_group["email"],
-                    *google_group.get("aliases", [])
-                ]
+                "emails": [google_group["email"], *google_group.get("aliases", [])],
             }
             for google_group in google_groups
         ]
@@ -418,8 +415,8 @@ class GoogleService:
                             .execute()
                             .get("aliases", [])
                         )
-                    ]
-                ]
+                    ],
+                ],
             }
             for google_user in google_users
         ]
@@ -438,7 +435,7 @@ class GoogleService:
             cls._remove_user_from_group(google_user, google_group)
 
         google_users_emails = [
-            email 
+            email
             for sublist in [user["emails"] for user in google_users]
             for email in sublist
         ]
