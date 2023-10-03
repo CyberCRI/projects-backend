@@ -226,7 +226,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
         hierarchy = []
         while obj.parent:
             obj = obj.parent
-            hierarchy.append({"id": obj.id, "name": obj.name})
+            hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:

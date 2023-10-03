@@ -139,6 +139,7 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
 
         return {
             "id": groups[group_id].id,
+            "slug": groups[group_id].slug,
             "name": groups[group_id].name,
             "type": groups[group_id].type,
             "publication_status": groups[group_id].publication_status,
