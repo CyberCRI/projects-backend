@@ -357,7 +357,14 @@ class GoogleService:
             groups__id__in=user.groups.values("id"),
         )
         google_groups = cls._get_user_groups(google_user)
-        google_groups_emails = [group["email"] for group in google_groups]
+        # TODO : Change this when google is handled in db
+        google_groups = [
+            {
+                **google_group,
+                "emails": [google_group["email"], *google_group.get("aliases", [])],
+            }
+            for google_group in google_groups
+        ]
         people_groups_emails = list(
             filter(lambda x: x, [group.email for group in people_groups])
         )
@@ -366,12 +373,17 @@ class GoogleService:
             group
             for group in google_groups
             if (
-                group["email"] not in people_groups_emails
+                not any(email in people_groups_emails for email in group["emails"])
                 and PeopleGroup.objects.filter(email=group["email"]).exists()
             )
         ]:
             cls._remove_user_from_group(google_user, google_group)
 
+        google_groups_emails = [
+            email
+            for sublist in [group["emails"] for group in google_groups]
+            for email in sublist
+        ]
         for people_group in [
             group for group in people_groups if group.email not in google_groups_emails
         ]:
@@ -388,7 +400,27 @@ class GoogleService:
     @classmethod
     def _sync_group_members(cls, group: PeopleGroup, google_group: dict):
         google_users = cls._get_group_members(group.email)
-        google_users_emails = [user["email"] for user in google_users]
+        # TODO : Change this when google is handled in db
+        google_users = [
+            {
+                **google_user,
+                "emails": [
+                    google_user["email"],
+                    *[
+                        alias["alias"]
+                        for alias in (
+                            cls.service()
+                            .users()
+                            .aliases()
+                            .list(userKey=google_user["id"])
+                            .execute()
+                            .get("aliases", [])
+                        )
+                    ],
+                ],
+            }
+            for google_user in google_users
+        ]
         projects_users_emails = list(
             filter(lambda x: x, [user.email for user in group.get_all_members()])
         )
@@ -397,13 +429,18 @@ class GoogleService:
             user
             for user in google_users
             if (
-                user["email"] not in projects_users_emails
+                not any(email in projects_users_emails for email in user["emails"])
                 and ProjectUser.objects.filter(email=user["email"]).exists()
             )
         ]:
             cls._remove_user_from_group(google_user, google_group)
 
-        for people_user in [
+        google_users_emails = [
+            email
+            for sublist in [user["emails"] for user in google_users]
+            for email in sublist
+        ]
+        for projects_user in [
             user
             for user in group.get_all_members().filter()
             if (
@@ -413,7 +450,7 @@ class GoogleService:
                 ).exists()
             )
         ]:
-            google_user = cls.get_user(people_user.email)
+            google_user = cls.get_user(projects_user.email)
             if google_user:
                 cls._add_user_to_group(google_user, google_group)
 
