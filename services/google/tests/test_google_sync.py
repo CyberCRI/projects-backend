@@ -24,7 +24,7 @@ from services.google.tasks import (
 from services.keycloak.interface import KeycloakService
 
 
-@skipUnlessGoogle
+#@skipUnlessGoogle
 class GoogleServiceTestCase(JwtAPITestCase):
     @classmethod
     def setUpClass(cls):
