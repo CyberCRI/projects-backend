@@ -82,6 +82,8 @@ redis:
 
 instance: main # By default, the instance of the backend is the main one
 
-workflowRbac:
-  executorClusterRoleName: executor
-  serviceAccountName: workflow
+workflow:
+  rbac:
+    executorClusterRoleName: executor
+    serviceAccountName: workflow
+  enabled: false

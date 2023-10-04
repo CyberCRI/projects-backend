@@ -11,9 +11,11 @@ config:
     POSTGRES_DB: dev_projects
     ENVIRONMENT: dev
 
-workflowConfig:
-  nonSensitive:
-    ORIGIN_POSTGRES_DB: dev_projects
+workflow:
+  config:
+    nonSensitive:
+      ORIGIN_POSTGRES_DB: dev_projects
+  enabled: true
 
 hostname: api.projects.k8s.lp-i.dev
 

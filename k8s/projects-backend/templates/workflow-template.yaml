@@ -1,26 +1,27 @@
+{{- if .Values.workflow.enabled }}
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ printf "%s.service-account-token" .Values.workflowRbac.serviceAccountName }}
+  name: {{ printf "%s.service-account-token" .Values.workflow.rbac.serviceAccountName }}
   annotations:
-    kubernetes.io/service-account.name: {{ .Values.workflowRbac.serviceAccountName }}
+    kubernetes.io/service-account.name: {{ .Values.workflow.rbac.serviceAccountName }}
 type: kubernetes.io/service-account-token
 ---
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: {{ .Values.workflowRbac.serviceAccountName }}
+  name: {{ .Values.workflow.rbac.serviceAccountName }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.workflowRbac.serviceAccountName }}
+  name: {{ .Values.workflow.rbac.serviceAccountName }}
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.workflowRbac.serviceAccountName }}
+  name: {{ .Values.workflow.rbac.serviceAccountName }}
 roleRef:
   kind: ClusterRole
-  name: {{ .Values.workflowRbac.executorClusterRoleName}}
+  name: {{ .Values.workflow.rbac.executorClusterRoleName}}
   apiGroup: rbac.authorization.k8s.io
 ---
 apiVersion: argoproj.io/v1alpha1
@@ -29,7 +30,7 @@ metadata:
   name: {{ tpl $.Values.fullName $ }}
 spec:
   entrypoint: sort
-  serviceAccountName: {{ .Values.workflowRbac.serviceAccountName }}
+  serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
     runAsNonRoot: true
     runAsUser: 10000
@@ -102,3 +103,4 @@ spec:
         secret:
           secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
       {{- end }}
+{{- end }}

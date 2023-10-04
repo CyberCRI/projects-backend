@@ -11,6 +11,7 @@ data:
 {{- end }}
 {{- end }}
 ---
+{{- if .Values.workflow.enabled }}
 kind: ConfigMap
 apiVersion: v1
 metadata:
@@ -20,7 +21,8 @@ metadata:
 data:
 {{ $workflowConfig := dict }}
 {{ $workflowConfig = merge $workflowConfig .Values.config.nonSensitive}}
-{{ $workflowConfig = merge $workflowConfig .Values.workflowConfig.nonSensitive}}
+{{ $workflowConfig = merge $workflowConfig .Values.workflow.config.nonSensitive}}
 {{- range $key, $value := $workflowConfig }}
   {{ $key }}: {{ (tpl $value $) | quote }}
+{{- end }}
 {{- end }}
