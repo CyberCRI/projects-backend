@@ -484,7 +484,7 @@ if DEBUG:
 REQUESTS_DEFAULT_TIMEOUT = 10
 
 # Hard Delete Project Time in days
-DELETED_PROJECT_RETENTION_DAYS = 90
+DELETED_PROJECT_RETENTION_DAYS = 0
 
 # Authentication cookie name
 JWT_ACCESS_TOKEN_COOKIE_NAME = "jwt_access_token"  # nosec
