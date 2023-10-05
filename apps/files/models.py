@@ -11,6 +11,7 @@ from stdimage import StdImageField
 
 from apps.commons.db.abc import HasOwner, OrganizationRelated, ProjectRelated
 from apps.files.enums import AttachmentLinkCategory, AttachmentType
+from apps.files.utils import resize_and_autorotate
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -129,6 +130,7 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
         upload_to=dynamic_upload_to,
         height_field="height",
         width_field="width",
+        render_variations=resize_and_autorotate,
         variations={
             "full": (1920, MAX_IMAGE_HEIGHT),
             "large": (1024, MAX_IMAGE_HEIGHT),
