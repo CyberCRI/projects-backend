@@ -232,7 +232,10 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             data = request.data.copy()
-            data["keycloak_id"] = KeycloakService.create_user(data)
+            redirect_organization_code = request.query_params.get("organization", "")
+            data["keycloak_id"] = KeycloakService.create_user(
+                data, redirect_organization_code
+            )
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instance = self.perform_create(serializer)
@@ -327,7 +330,8 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def reset_password(self, request, *args, **kwargs):
         user = self.get_object()
-        KeycloakService.send_reset_password_email(user)
+        redirect_organization_code = request.query_params.get("organization", "")
+        KeycloakService.send_reset_password_email(user, redirect_organization_code)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

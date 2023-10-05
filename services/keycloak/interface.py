@@ -53,7 +53,11 @@ class KeycloakService:
         return cls.service().get_users({})
 
     @classmethod
-    def _create_user(cls, keycloak_data: Dict[str, Union[str, bool]]):
+    def _create_user(
+        cls,
+        keycloak_data: Dict[str, Union[str, bool]],
+        redirect_organization_code: str = "",
+    ):
         """
         keycloak_data should respect the following structure :
         keycloak_data = {
@@ -73,15 +77,24 @@ class KeycloakService:
             },
             exist_ok=False,
         )
-        keycloak_admin.send_update_account(
-            user_id=keycloak_id,
-            payload=["UPDATE_PASSWORD"],
-            client_id="admin-cli",
-        )
+        update_account_args = {
+            "user_id": keycloak_id,
+            "payload": ["UPDATE_PASSWORD"],
+            "client_id": "admin-cli",
+        }
+        if redirect_organization_code:
+            organization = Organization.objects.filter(code=redirect_organization_code)
+            if organization.exists():
+                update_account_args["redirect_uri"] = organization.get().website_url
+        keycloak_admin.send_update_account(**update_account_args)
         return keycloak_id
 
     @classmethod
-    def create_user(cls, request_data: Dict[str, Union[str, bool]]):
+    def create_user(
+        cls,
+        request_data: Dict[str, Union[str, bool]],
+        redirect_organization_code: str = "",
+    ):
         keycloak_data = {
             "email": request_data.get("personal_email", request_data["email"]),
             "username": request_data["email"],
@@ -91,16 +104,23 @@ class KeycloakService:
                 "pid": list(filter(lambda x: x, [request_data.get("people_id", None)])),
             },
         }
-        return cls._create_user(keycloak_data)
+        return cls._create_user(keycloak_data, redirect_organization_code)
 
     @classmethod
-    def send_reset_password_email(cls, user: ProjectUser):
+    def send_reset_password_email(
+        cls, user: ProjectUser, redirect_organization_code: str = ""
+    ):
         keycloak_admin = cls.service()
-        keycloak_admin.send_update_account(
-            user_id=user.keycloak_id,
-            payload=["UPDATE_PASSWORD"],
-            client_id="admin-cli",
-        )
+        update_account_args = {
+            "user_id": user.keycloak_id,
+            "payload": ["UPDATE_PASSWORD"],
+            "client_id": "admin-cli",
+        }
+        if redirect_organization_code:
+            organization = Organization.objects.filter(code=redirect_organization_code)
+            if organization.exists():
+                update_account_args["redirect_uri"] = organization.get().website_url
+        keycloak_admin.send_update_account(**update_account_args)
 
     @classmethod
     def import_user(cls, keycloak_id: str) -> ProjectUser:
