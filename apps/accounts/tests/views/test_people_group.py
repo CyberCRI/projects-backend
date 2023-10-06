@@ -2,6 +2,7 @@ import uuid
 from unittest import mock
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from faker import Faker
 from googleapiclient.errors import HttpError
@@ -592,14 +593,6 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, 204)
 
-    def test_root_group_creation(self):
-        organization = OrganizationFactory()
-        root_people_group = PeopleGroup.objects.filter(
-            organization=organization, is_root=True
-        )
-        assert root_people_group.exists()
-        assert root_people_group.count() == 1
-
     def test_give_root_group_a_parent(self):
         organization = self.organization
         root_people_group = PeopleGroup.objects.get(
@@ -778,6 +771,14 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         nine_last_projects = [project["is_featured"] is True for project in nine_last]
         assert all(nine_last_projects) is False
 
+    def test_root_group_creation(self):
+        organization = OrganizationFactory()
+        root_people_group = PeopleGroup.objects.filter(
+            organization=organization, is_root=True
+        )
+        assert root_people_group.exists()
+        assert root_people_group.count() == 1
+
     def test_root_group_is_default_parent(self):
         organization = self.organization
         root_people_group = organization.get_or_create_root_people_group()
@@ -900,3 +901,17 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         )
         assert response.status_code == 200
         assert response.data["id"] == people_group.id
+
+    def test_roles_are_deleted_on_group_delete(self):
+        people_group = PeopleGroupFactory(organization=self.organization)
+        roles_names = [r.name for r in people_group.groups.all()]
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse(
+                "PeopleGroup-detail",
+                args=(people_group.organization.code, people_group.pk),
+            )
+        )
+        assert response.status_code == 204
+        assert not Group.objects.filter(name__in=roles_names).exists()

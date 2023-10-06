@@ -7,6 +7,8 @@ ENVIRONMENT = "production"
 FRONTEND_URL = "https://projects.directory"
 PUBLIC_URL = "https://api.projects.lp-i.org"
 
+DELETED_PROJECT_RETENTION_DAYS = 90
+
 
 ##############
 #   GOOGLE   #

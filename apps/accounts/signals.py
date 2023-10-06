@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 
 from apps.accounts.models import PrivacySettings
@@ -15,3 +15,9 @@ def create_privacy_settings(sender, instance, created, **kwargs):
 def create_root_people_group(sender, instance, created, **kwargs):
     """Create the root people group at organization's creation."""
     instance.get_or_create_root_people_group()
+
+
+@receiver(pre_delete, sender="accounts.PeopleGroup")
+def delete_people_group_roles(sender, instance, **kwargs):
+    """Delete the associated roles."""
+    instance.groups.all().delete()

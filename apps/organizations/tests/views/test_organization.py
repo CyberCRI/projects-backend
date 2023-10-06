@@ -2,10 +2,12 @@ from unittest.mock import patch
 
 from dateutil.parser import parse as parse_date
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
 from apps.commons.test.testcases import TagTestCase
 from apps.organizations.factories import OrganizationFactory
@@ -544,3 +546,17 @@ class OrganizationTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["google_sync_enabled"] is True
+
+    def test_roles_are_deleted_on_organization_delete(self):
+        organization = OrganizationFactory()
+        roles_names = [r.name for r in organization.groups.all()]
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse(
+                "Organization-detail",
+                args=(organization.code,),
+            )
+        )
+        assert response.status_code == 204
+        assert not Group.objects.filter(name__in=roles_names).exists()
