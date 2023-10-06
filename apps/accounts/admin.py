@@ -86,6 +86,7 @@ class UserCSVImportMixin:
             ["skype", "foo.bar", False],
             ["landline_phone", "+33123456789", False],
             ["twitter", "https://twitter.com/foo_bar", False],
+            ["redirect_organization_code", "CRI", False],
         ]
         writer.writerows(rows)
         return response
