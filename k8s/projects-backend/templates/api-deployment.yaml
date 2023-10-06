@@ -4,6 +4,8 @@ metadata:
   labels:
     {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
   name: {{ tpl $.Values.fullName $ }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
 spec:
   replicas: {{ .Values.backend.replicaCount }}
   selector:

@@ -4,6 +4,8 @@ metadata:
   labels:
   {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 4 }}
   name: {{ tpl $.Values.fullName $ }}-celery
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   replicas: {{ $.Values.celery.replicaCount }}
   selector:
