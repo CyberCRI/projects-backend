@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-03 16:22+0000\n"
+"POT-Creation-Date: 2023-10-06 09:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,16 +46,16 @@ msgstr "Organisation"
 msgid "Public"
 msgstr "Publique"
 
-#: apps/commons/serializers/fields.py:18
+#: apps/commons/serializers/fields.py:19
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: apps/commons/serializers/fields.py:20
+#: apps/commons/serializers/fields.py:21
 #, python-brace-format
 msgid "Invalid keycloak_id \"{keycloak_id}\" - object does not exist."
 msgstr "Keycloak_id invalide \"{keycloak_id}\" - cet objet n'existe pas."
 
-#: apps/commons/serializers/fields.py:23
+#: apps/commons/serializers/fields.py:24
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."

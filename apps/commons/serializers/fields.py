@@ -1,5 +1,6 @@
 import inspect
 
+from django.contrib.auth.models import Group
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -178,6 +179,15 @@ class PrivacySettingFieldMixin:
                 return instance.groups.filter(
                     organizations__isnull=False,
                     organizations__in=request.user.get_related_organizations(),
+                ).exists()
+            case PrivacySettings.PrivacyChoices.HIDE:
+                if not request.user.is_authenticated:
+                    return False
+                return Group.objects.filter(
+                    organizations__isnull=False,
+                    organizations__in=instance.get_related_organizations(),
+                    name__contains="admins",
+                    users=request.user,
                 ).exists()
         return False
 
