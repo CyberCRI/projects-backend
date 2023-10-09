@@ -65,17 +65,8 @@ class GoogleGroup(models.Model):
 
     def __str__(self):
         return self.email
-    
-    def create_process(self):
-        self.create()
-        self.create_alias()
-        self.sync_members()
 
-    def update_process(self):
-        self.update()
-        self.sync_members()
-
-    def create(self):
+    def create(self) -> "GoogleGroup":
         try:
             google_group = GoogleService.create_group(self.people_group)
             self.email = google_group["email"]
@@ -89,6 +80,7 @@ class GoogleGroup(models.Model):
                 on_task=GoogleSyncErrors.OnTaskChoices.CREATE_GROUP,
                 error=e.__traceback__,
             )
+        return self
 
     def update(self):
         try:
@@ -171,20 +163,6 @@ class GoogleAccount(models.Model):
 
     def __str__(self):
         return self.email
-
-    def create_process(self):
-        self.create()
-        self.create_alias()
-        self.update_keycloak_username()
-        self.sync_groups()
-
-    def update_process(self):
-        self.update()
-        self.sync_groups()
-    
-    def delete_process(self):
-        self.suspend()
-        self.delete()
 
     def create(self) -> "GoogleAccount":
         try:
