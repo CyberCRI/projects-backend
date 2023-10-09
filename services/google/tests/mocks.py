@@ -42,12 +42,13 @@ class GoogleTestCase(JwtAPITestCase):
 
 
 def get_google_user(user: ProjectUser):
+    google_user = user.google_account.get()
     content = json.dumps(
         {
             "kind": "admin#directory#user",
-            "id": user.google_account.id,
+            "id": google_user.get().id,
             "etag": "etag",
-            "primaryEmail": user.google_account.email,
+            "primaryEmail": google_user.email,
             "name": {
                 "givenName": user.given_name,
                 "familyName": user.family_name,
@@ -63,15 +64,15 @@ def get_google_user(user: ProjectUser):
             "changePasswordAtNextLogin": False,
             "ipWhitelisted": False,
             "emails": [
-                {"address": user.google_account.email, "primary": True},
-                {"address": user.google_account.email.replace(settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN)},
-                {"address": f"{user.google_account.email}.test-google-a.com"},
+                {"address": google_user.email, "primary": True},
+                {"address": google_user.email.replace(settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN)},
+                {"address": f"{google_user.email}.test-google-a.com"},
             ],
             "languages": [{"languageCode": "en", "preference": "preferred"}],
-            "aliases": [user.google_account.email.replace(settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN)],
-            "nonEditableAliases": [f"{user.google_account.email}.test-google-a.com"],
+            "aliases": [google_user.email.replace(settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN)],
+            "nonEditableAliases": [f"{google_user.email}.test-google-a.com"],
             "customerId": settings.GOOGLE_CUSTOMER_ID,  # nosec
-            "orgUnitPath": user.google_account.organizational_unit,
+            "orgUnitPath": google_user.organizational_unit,
             "isMailboxSetup": True,
             "isEnrolledIn2Sv": False,
             "isEnforcedIn2Sv": False,
@@ -139,12 +140,13 @@ def list_google_groups(google_groups: List[Dict[str, str]], has_next_page: bool)
     return {"status": 200}, json.dumps(content)
 
 
-def add_user_to_group(user: ProjectUser, group: GoogleGroup):
+def add_user_to_group(user: ProjectUser):
+    google_user = user.google_account.get()
     content = json.dumps(
         {
             "kind": "admin#directory#group",
-            "id": user.google_account.google_id,
-            "email": user.google_account.email,
+            "id": google_user.google_id,
+            "email": google_user.email,
             "role": "MEMBER",
             "type": "USER",
             "status": "ACTIVE",

@@ -55,7 +55,7 @@ class GoogleSyncErrors(models.Model):
 
 
 class GoogleGroup(models.Model):
-    people_group = models.OneToOneField(
+    people_group = models.ForeignKey(
         PeopleGroup,
         on_delete=models.CASCADE,
         related_name="google_group",
@@ -119,7 +119,7 @@ class GoogleGroup(models.Model):
                 self.remove_member(user_to_remove)
             
             for user_to_add in users_to_add:
-                self.add_member(user_to_add)
+                self.add_member(user_to_add.google_account.get())
         
         except Exception as e:  # noqa
             GoogleSyncErrors.objects.create(
@@ -128,13 +128,13 @@ class GoogleGroup(models.Model):
                 error=e.__traceback__,
             )
 
-    def add_member(self, user: ProjectUser):
+    def add_member(self, google_user: "GoogleAccount"):
         try:
-            GoogleService.add_user_to_group(user.google_account, self)
+            GoogleService.add_user_to_group(google_user, self)
         except Exception as e:  # noqa
             GoogleSyncErrors.objects.create(
                 people_group=self.people_group,
-                user=user,
+                user=google_user.user,
                 on_task=GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
                 error=e.__traceback__,
             )
@@ -152,7 +152,7 @@ class GoogleGroup(models.Model):
 
 
 class GoogleAccount(models.Model):
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         ProjectUser,
         on_delete=models.CASCADE,
         related_name="google_account",
@@ -168,8 +168,9 @@ class GoogleAccount(models.Model):
         try:
             google_user = GoogleService.create_user(self.user, self.organizational_unit)
             self.email = google_user["primaryEmail"]
-            self.id = google_user["id"]
+            self.google_id = google_user["id"]
             self.save()
+            self.user.personal_email = self.user.email
             self.user.email = google_user["primaryEmail"]
             self.user.save()
         except Exception as e:  # noqa
@@ -225,10 +226,10 @@ class GoogleAccount(models.Model):
             remote_groups = GoogleService.get_user_groups(self.email)
             remote_groups_ids = [google_group["id"] for google_group in remote_groups]
             local_groups = self.user.groups.filter(google_group__isnull=False)
-            local_groups_ids = [projects_group.google_group.google_id for projects_group in local_groups]
+            local_groups_ids = [projects_group.google_group.get().google_id for projects_group in local_groups]
 
             groups_to_remove = [group for group in remote_groups if group["id"] not in local_groups_ids]
-            groups_to_add = [group for group in local_groups if group.google_group.google_id not in remote_groups_ids]
+            groups_to_add = [group for group in local_groups if group.google_group.get().google_id not in remote_groups_ids]
             
             for group_to_remove in groups_to_remove:
                 self.remove_group(group_to_remove)

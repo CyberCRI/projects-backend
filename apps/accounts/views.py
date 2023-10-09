@@ -225,9 +225,9 @@ class UserViewSet(viewsets.ModelViewSet):
         organizational_unit = data.get(
             "main_google_group", "CRI/Admin Staff" if created else None
         )
-        if create_in_google and instance.google_account is None:
+        if create_in_google and not instance.google_account.exists():
             create_google_account(instance, organizational_unit)
-        elif not create_in_google and instance.google_account is not None:
+        elif not create_in_google and instance.google_account.exists():
             update_google_account(instance, organizational_unit)
         instance.refresh_from_db()
 
@@ -432,9 +432,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
 
     def google_sync(self, instance, data):
         create_in_google = data.get("create_in_google", False)
-        if create_in_google and instance.google_group is None:
+        if create_in_google and not instance.google_group.exists():
             create_google_group(instance)
-        elif not create_in_google and instance.google_account is not None:
+        elif not create_in_google and instance.google_group.exists():
             update_google_group(instance)
         instance.refresh_from_db()
 

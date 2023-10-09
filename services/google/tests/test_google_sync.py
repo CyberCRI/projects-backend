@@ -25,7 +25,7 @@ from services.keycloak.interface import KeycloakService
 
 
 
-@skipUnlessGoogle
+# @skipUnlessGoogle
 class GoogleServiceTestCase(JwtAPITestCase):
     @classmethod
     def setUpClass(cls):
@@ -40,14 +40,16 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
     def tearDown(self):
         for user in ProjectUser.objects.filter(given_name="googlesync"):
-            GoogleService.delete_user(user)
+            if user.google_account.exists():
+                GoogleService.delete_user(user.google_account.get())
             try:
                 KeycloakService.get_user(user.keycloak_id)
                 KeycloakService.delete_user(user)
             except KeycloakGetError:
                 pass
-        for group in PeopleGroup.objects.filter(name__startswith="googlesync"):
-            GoogleService.delete_group(group)
+        for people_group in PeopleGroup.objects.filter(name__startswith="googlesync"):
+            if people_group.google_group:
+                GoogleService.delete_group(people_group.google_group)
         return super().tearDown()
 
     @classmethod
@@ -65,7 +67,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
                 "roles_to_add", [cls.organization.get_users().name]
             ),
             "create_in_google": kwargs.get("create_in_google", True),
-            "main_google_group": kwargs.get("google_main_group", "Test Google Sync"),
+            "main_google_group": kwargs.get("google_main_group", "/CRI/Test Google Sync"),
         }
 
     @classmethod
@@ -170,7 +172,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         projects_user.groups.add(
             self.organization.get_users(), people_group.get_members()
         )
-        payload = {"create_in_google": True, "main_google_group": "Test Google Sync"}
+        payload = {"create_in_google": True, "main_google_group": "/CRI/Test Google Sync"}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(projects_user.keycloak_id,)),
             data=payload,
@@ -433,7 +435,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         mocked.side_effect = update_google_user_task
         user = GoogleUserFactory(groups=[self.organization.get_users()])
         payload = {
-            "main_google_group": "Test Google Sync Update",
+            "main_google_group": "/CRI/Test Google Sync Update",
         }
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(user.keycloak_id,)),
