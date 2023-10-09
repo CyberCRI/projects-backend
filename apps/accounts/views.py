@@ -41,11 +41,11 @@ from keycloak import (
     KeycloakPostError,
     KeycloakPutError,
 )
-from services.google.utils import (
-    suspend_google_account,
-    update_or_create_google_account,
-    update_or_create_google_group,
-)
+# from services.google.utils import (
+#     suspend_google_account,
+#     update_or_create_google_account,
+#     update_or_create_google_group,
+# )
 from services.keycloak.interface import KeycloakService
 
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
@@ -230,9 +230,9 @@ class UserViewSet(viewsets.ModelViewSet):
             "main_google_group", "Admin Staff" if created else ""
         )
         notify = not created
-        update_or_create_google_account(
-            instance, create_in_google, main_google_group, notify
-        )
+        # update_or_create_google_account(
+        #     instance, create_in_google, main_google_group, notify
+        # )
         instance.refresh_from_db()
 
     def create(self, request, *args, **kwargs):
@@ -290,7 +290,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            suspend_google_account(instance)
+            # suspend_google_account(instance)
             with transaction.atomic():
                 response = super().destroy(request, *args, **kwargs)
                 KeycloakService.delete_user(instance)
@@ -436,7 +436,7 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
 
     def google_sync(self, instance, data):
         create_in_google = data.get("create_in_google", False)
-        update_or_create_google_group(instance, create_in_google)
+        # update_or_create_google_group(instance, create_in_google)
         instance.refresh_from_db()
 
     def create(self, request, *args, **kwargs):
