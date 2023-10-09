@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set
 
 from babel.dates import format_date
 from django.utils.translation import gettext_lazy as _
@@ -75,13 +75,13 @@ def notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
 
 
 @app.task
-def notify_group_member_deleted(project_pk: str, by_pk: int):
+def notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: int):
     """Notify that a group has been deleted from the members of a project.
 
     Deleted members are notified they have been deleted, while other members are
     notified of all the deleted members.
     """
-    return _notify_group_member_deleted(project_pk, by_pk)
+    return _notify_group_member_deleted(project_pk, people_group_pk, by_pk)
 
 
 @app.task
@@ -189,7 +189,7 @@ def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role:
         ).create_and_send_notifications()
 
 
-def _notify_member_deleted(project_pk: str, user_pk: List[int], by_pk: int):
+def _notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
     deleted_members = [
@@ -201,10 +201,13 @@ def _notify_member_deleted(project_pk: str, user_pk: List[int], by_pk: int):
     manager.create_and_send_notifications()
 
 
-def _notify_group_member_deleted(project_pk: str, by_pk: int):
+def _notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
-    manager = DeleteGroupMembersNotificationManager(sender, project)
+    deleted_people_groups = [{"id": PeopleGroup.objects.get(pk=people_group_pk).id}]
+    manager = DeleteGroupMembersNotificationManager(
+        sender, project, deleted_people_groups=deleted_people_groups
+    )
     manager.create_and_send_notifications()
 
 
