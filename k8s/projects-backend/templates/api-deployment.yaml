@@ -24,6 +24,16 @@ spec:
         checksum/secret: {{ include (print $.Template.BasePath "/environment-secret.yaml") . | sha256sum }}
       {{- end }}
     spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                - {{ index $.Values.backend.commonLabels "app.kubernetes.io/name" }}
+            topologyKey: "kubernetes.io/hostname"
       securityContext:
         runAsNonRoot: true
         runAsUser: 10000
