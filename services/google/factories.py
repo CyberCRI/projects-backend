@@ -17,7 +17,7 @@ class GoogleUserFactory(SeedUserFactory):
     @classmethod
     def create(cls, **kwargs):
         user = super().create(**kwargs)
-        google_user = GoogleService.create_user(user, "Test Google Sync")
+        google_user = GoogleService.create_user(user, "/CRI/Test Google Sync")
         user.personal_email = user.email
         user.email = google_user["primaryEmail"]
         user.save()
