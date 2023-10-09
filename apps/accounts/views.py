@@ -35,11 +35,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
-# from services.google.utils import (
-#     suspend_google_account,
-#     update_or_create_google_account,
-#     update_or_create_google_group,
-# )
+from services.google.tasks import create_google_account, create_google_group, suspend_google_account, update_google_account, update_google_group
 from services.keycloak.interface import KeycloakService
 
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
@@ -220,13 +216,13 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def google_sync(self, instance, data, created):
         create_in_google = data.get("create_in_google", False)
-        main_google_group = data.get(
-            "main_google_group", "Admin Staff" if created else ""
+        organizational_unit = data.get(
+            "main_google_group", "CRI/Admin Staff" if created else None
         )
-        notify = not created
-        # update_or_create_google_account(
-        #     instance, create_in_google, main_google_group, notify
-        # )
+        if create_in_google and instance.google_account is None:
+            create_google_account(instance, organizational_unit)
+        elif not create_in_google and instance.google_account is not None:
+            update_google_account(instance, organizational_unit)
         instance.refresh_from_db()
 
     def create(self, request, *args, **kwargs):
@@ -275,7 +271,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         try:
             instance = self.get_object()
-            # suspend_google_account(instance)
+            suspend_google_account(instance)
             with transaction.atomic():
                 response = super().destroy(request, *args, **kwargs)
                 KeycloakService.delete_user(instance)
@@ -388,7 +384,10 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
 
     def google_sync(self, instance, data):
         create_in_google = data.get("create_in_google", False)
-        # update_or_create_google_group(instance, create_in_google)
+        if create_in_google and instance.google_group is None:
+            create_google_group(instance)
+        elif not create_in_google and instance.google_account is not None:
+            update_google_group(instance)
         instance.refresh_from_db()
 
     def create(self, request, *args, **kwargs):

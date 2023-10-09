@@ -547,7 +547,6 @@ MIXPANEL_API_SECRET = os.getenv("MIXPANEL_API_SECRET", "NOT SET")
 #   GOOGLE   #
 ##############
 
-GOOGLE_SERVICE_ENABLED = True
 GOOGLE_SYNCED_ORGANIZATION = "CRI"
 GOOGLE_CREDENTIALS = {
     "type": "service_account",
