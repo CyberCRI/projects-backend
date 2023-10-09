@@ -27,13 +27,15 @@ spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - labelSelector:
-              matchExpressions:
-              - key: app.kubernetes.io/name
-                operator: In
-                values:
-                - {{ index $.Values.backend.commonLabels "app.kubernetes.io/name" }}
-            topologyKey: "kubernetes.io/hostname"
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                  - {{ index $.Values.backend.commonLabels "app.kubernetes.io/name" }}
+              topologyKey: "kubernetes.io/hostname"
       securityContext:
         runAsNonRoot: true
         runAsUser: 10000
