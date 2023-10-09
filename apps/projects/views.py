@@ -317,7 +317,9 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 instances["project"].pk, user.pk, self.request.user.pk
             )
         for people_group in instances["people_groups"]:
-            notify_group_member_deleted.delay(instances["project"].pk, people_group.pk)
+            notify_group_member_deleted.delay(
+                instances["project"].pk, people_group.pk, self.request.user.pk
+            )
 
     def _toggle_is_locked(self, value):
         project = self.get_object()

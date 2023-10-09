@@ -54,7 +54,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        notification_task.assert_called_once_with(project.pk, owner.pk)
+        notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)
 
     def test_notification_task(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
@@ -119,6 +119,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
 
         _notify_group_member_deleted(
             project.pk,
+            group.pk,
             sender.pk,
         )
 
