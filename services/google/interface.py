@@ -74,7 +74,7 @@ class GoogleService:
             raise e
 
     @classmethod
-    def get_user(cls, email: str, max_retries: int = 1):
+    def get_user_by_email(cls, email: str, max_retries: int = 1):
         """
         Get a Google user from an email address.
         This method uses a retry mechanism because Google returns 404 errors for a
@@ -100,6 +100,27 @@ class GoogleService:
         return None
 
     @classmethod
+    def get_user_by_id(cls, google_id: str, max_retries: int = 1):
+        """
+        Get a Google user from an id.
+        This method uses a retry mechanism because Google returns 404 errors for a
+        few seconds after a new account is created.
+
+        Args:
+            - google_id (str): The id of the user in Google.
+            - max_retries (int): The maximum number of retries.
+
+        Returns:
+            - A Google user.
+        """
+        for _ in range(max_retries):
+            user = cls.service().users().get(userKey=google_id).execute()
+            if user:
+                return user
+            time.sleep(2)
+        return None
+
+    @classmethod
     def create_user(cls, user: ProjectUser, organizational_unit: str):
         """
         Create a Google user.
@@ -115,14 +136,14 @@ class GoogleService:
         if settings.GOOGLE_EMAIL_PREFIX:
             username = f"{settings.GOOGLE_EMAIL_PREFIX}.{username}"
         email_address = f"{username}@{settings.GOOGLE_EMAIL_DOMAIN}"
-        google_user = cls.get_user(email_address)
+        google_user = cls.get_user_by_email(email_address)
         same_address_count = 0
         while google_user:
             same_address_count += 1
             email_address = (
                 f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
             )
-            google_user = cls.get_user(email_address)
+            google_user = cls.get_user_by_email(email_address)
 
         google_data = {
             "primaryEmail": email_address,
