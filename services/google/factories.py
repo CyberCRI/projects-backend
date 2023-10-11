@@ -21,7 +21,7 @@ class GoogleUserFactory(SeedUserFactory):
         user.personal_email = user.email
         user.email = google_user["primaryEmail"]
         user.save()
-        GoogleService.get_user(user.email, 5)
+        GoogleService.get_user_by_email(user.email, 5)
         KeycloakService.update_user(user)
         return user
 

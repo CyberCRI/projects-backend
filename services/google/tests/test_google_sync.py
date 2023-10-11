@@ -14,6 +14,7 @@ from apps.organizations.factories import OrganizationFactory
 from keycloak import KeycloakGetError
 from services.google.factories import GoogleGroupFactory, GoogleUserFactory
 from services.google.interface import GoogleService
+from services.google.models import GoogleSyncErrors
 from services.google.tasks import (
     create_google_group_task,
     create_google_user_task,
@@ -89,7 +90,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         content = response.json()
         assert response.status_code == 201
         content = response.json()
-        google_user = GoogleService.get_user(content["email"], 5)
+        google_user = GoogleService.get_user_by_email(content["email"], 5)
         projects_user = ProjectUser.objects.get(keycloak_id=content["keycloak_id"])
         keycloak_user = KeycloakService.get_user(content["keycloak_id"])
         assert google_user is not None
@@ -109,11 +110,17 @@ class GoogleServiceTestCase(JwtAPITestCase):
         alias = projects_user.email.replace(
             settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
         )
-        for _ in range(30):
-            google_user = GoogleService.get_user(projects_user.email, 5)
+        for _ in range(60):
+            print(GoogleSyncErrors.objects.all())
+            if GoogleSyncErrors.objects.count() > 0:
+                for error in GoogleSyncErrors.objects.all():
+                    print(str(error.error))
+                    print(error.on_task)
+                print("____________________________________________________________________")
+            google_user = GoogleService.get_user_by_email(projects_user.email, 5)
             emails = [email["address"] for email in google_user["emails"]]
             if alias not in emails:
-                time.sleep(2)
+                time.sleep(3)
             else:
                 break
         emails = [email["address"] for email in google_user["emails"]]
@@ -132,7 +139,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         response = self.client.post(reverse("ProjectUser-list"), data=payload)
         assert response.status_code == 201
         content = response.json()
-        google_user = GoogleService.get_user(content["email"], 5)
+        google_user = GoogleService.get_user_by_email(content["email"], 5)
         projects_user = ProjectUser.objects.get(keycloak_id=content["keycloak_id"])
         keycloak_user = KeycloakService.get_user(content["keycloak_id"])
         assert google_user is not None
@@ -179,7 +186,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         )
         assert response.status_code == 200
         content = response.json()
-        google_user = GoogleService.get_user(content["email"], 5)
+        google_user = GoogleService.get_user_by_email(content["email"], 5)
         keycloak_user = KeycloakService.get_user(content["keycloak_id"])
         projects_user.refresh_from_db()
         assert google_user is not None
@@ -226,8 +233,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
         content_1 = response_1.json()
         content_2 = response_2.json()
         for _ in range(30):
-            google_user_1 = GoogleService.get_user(content_1["email"], 5)
-            google_user_2 = GoogleService.get_user(content_2["email"], 5)
+            google_user_1 = GoogleService.get_user_by_email(content_1["email"], 5)
+            google_user_2 = GoogleService.get_user_by_email(content_2["email"], 5)
             if not google_user_1 or not google_user_2:
                 time.sleep(2)
             else:
@@ -416,7 +423,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert response.status_code == 200
         content = response.json()
         for _ in range(30):
-            google_user = GoogleService.get_user(user.email, 5)
+            google_user = GoogleService.get_user_by_email(user.email, 5)
             if not google_user or google_user["name"]["familyName"] != "test_update":
                 time.sleep(2)
             else:
@@ -443,7 +450,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         )
         assert response.status_code == 200
         for _ in range(30):
-            google_user = GoogleService.get_user(user.email, 5)
+            google_user = GoogleService.get_user_by_email(user.email, 5)
             if google_user["orgUnitPath"] != "/CRI/Test Google Sync Update":
                 time.sleep(2)
             else:
@@ -531,7 +538,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         )
         assert response.status_code == 204
         for _ in range(30):
-            google_user = GoogleService.get_user(user.email, 5)
+            google_user = GoogleService.get_user_by_email(user.email, 5)
             if not google_user["suspended"] is True:
                 time.sleep(2)
             else:

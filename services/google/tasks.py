@@ -1,6 +1,7 @@
 from django.conf import settings
 from apps.accounts.models import PeopleGroup, ProjectUser
 from projects.celery import app
+from services.google.interface import GoogleService
 
 from .models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
@@ -10,7 +11,7 @@ def create_google_account(user: ProjectUser, organizational_unit: str = "CRI/Adm
         google_account = GoogleAccount.objects.create(user=user, organizational_unit=organizational_unit)
         google_account.create()
         google_account.update_keycloak_username()
-        create_google_user_task.delay(user.keycloak_id, organizational_unit)
+        create_google_user_task.delay(user.keycloak_id)
 
 
 def update_google_account(user: ProjectUser, organizational_unit: str = None):
@@ -36,10 +37,11 @@ def update_google_group(people_group: PeopleGroup):
 
 
 @app.task
-def create_google_user_task(user_keycloal_id: str, organizational_unit: str = "CRI/Admin Staff"):
+def create_google_user_task(user_keycloal_id: str):
     user = ProjectUser.objects.get(keycloak_id=user_keycloal_id)
     if user.google_account.exists():
         google_account = user.google_account.get()
+        GoogleService.get_user_by_email(google_account.email, 10)
         google_account.create_alias()
         google_account.update_keycloak_username()
         google_account.sync_groups()
