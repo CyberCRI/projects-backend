@@ -10,7 +10,4 @@ access_log_format = (
     '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s" %(M)s ms'
 )
 max_requests = 1000
-max_worker_lifetime = 3600
-reload_on_rss = 512
-worker_reload_mercy = 60
 workers = multiprocessing.cpu_count() * 2 + 1
