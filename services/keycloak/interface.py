@@ -68,7 +68,7 @@ class KeycloakService:
         }
         """
         keycloak_admin = cls.service()
-        required_actions = ["VALIDATE_EMAIL"]
+        required_actions = ["VERIFY_EMAIL"]
         if "credentials" not in keycloak_data:
             required_actions.append("UPDATE_PASSWORD")
         keycloak_id = keycloak_admin.create_user(
