@@ -444,6 +444,7 @@ class UserSerializer(serializers.ModelSerializer):
             "profile_picture",
             "id",
             "language",
+            "show_welcome",
             "keycloak_id",
             "people_id",
             "email",
@@ -579,12 +580,6 @@ class UserSerializer(serializers.ModelSerializer):
         }
         instance = super(UserSerializer, self).create(validated_data)
         instance.groups.add(get_default_group())
-        organization_groups = instance.groups.filter(organizations__isnull=False)
-        if organization_groups.exists():
-            group = organization_groups.first()
-            organization = group.organizations.first()
-            instance.language = organization.language
-            instance.save()
         if profile_picture["file"]:
             image = Image(
                 name=profile_picture["file"].name,

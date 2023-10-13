@@ -2,6 +2,7 @@ import json
 import uuid
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from django.db.utils import IntegrityError
@@ -232,9 +233,18 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             data = request.data.copy()
-            redirect_organization_code = request.query_params.get("organization", "")
+            # If no language is provided, use the organization's language
+            organization_groups = Group.objects.filter(
+                organizations__isnull=False,
+                name__in=data.get("roles_to_add", []),
+            )
+            if organization_groups.exists() and "language" not in data.keys():
+                group = organization_groups.first()
+                organization = group.organizations.first()
+                data["language"] = organization.language
+            # Create user in keycloak and redirect to the organization portal
             data["keycloak_id"] = KeycloakService.create_user(
-                data, redirect_organization_code
+                data, request.query_params.get("organization", "")
             )
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
