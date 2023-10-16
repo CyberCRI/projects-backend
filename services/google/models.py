@@ -55,10 +55,11 @@ class GoogleSyncErrors(models.Model):
 
 
 class GoogleGroup(models.Model):
-    people_group = models.ForeignKey(
+    people_group = models.OneToOneField(
         PeopleGroup,
         on_delete=models.CASCADE,
         related_name="google_group",
+        to_field="id",
     )
     google_id = models.CharField(max_length=50, unique=True, null=True)
     email = models.EmailField(unique=True, null=True)
@@ -107,19 +108,14 @@ class GoogleGroup(models.Model):
             remote_users = [
                 google_user["id"] for google_user in GoogleService.get_group_members(self.email)
             ]
-            users_to_remove = ProjectUser.objects.filter(
-                google_account__isnull=False,
-                google_account__google_id__in=remote_users
-            ).exclude(groups__people_groups=self.people_group)
-            users_to_add = self.people_group.get_all_members().filter(google_account__isnull=False).exclude(
-                google_account__google_id__in=remote_users
-            )
+            users_to_remove = GoogleAccount.objects.filter(google_id__in=remote_users).exclude(user__groups__people_groups=self.people_group)
+            users_to_add = GoogleAccount.objects.filter(user__groups__people_groups=self.people_group).exclude(google_id__in=remote_users)
             
             for user_to_remove in users_to_remove:
                 self.remove_member(user_to_remove)
             
             for user_to_add in users_to_add:
-                self.add_member(user_to_add.google_account.get())
+                self.add_member(user_to_add)
         
         except Exception as e:  # noqa
             GoogleSyncErrors.objects.create(
@@ -152,10 +148,11 @@ class GoogleGroup(models.Model):
 
 
 class GoogleAccount(models.Model):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         ProjectUser,
         on_delete=models.CASCADE,
         related_name="google_account",
+        to_field="keycloak_id",
     )
     google_id = models.CharField(max_length=50, unique=True)
     email = models.EmailField(unique=True, null=True)
@@ -216,20 +213,19 @@ class GoogleAccount(models.Model):
             KeycloakService.update_user(self.user)
         except Exception as e:  # noqa
             GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
+                user=self.user,
                 on_task=GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
                 error=e.__traceback__,
             )
     
     def sync_groups(self):
-        try:
-            remote_groups = GoogleService.get_user_groups(self.email)
-            remote_groups_ids = [google_group["id"] for google_group in remote_groups]
-            local_groups = self.user.groups.filter(google_group__isnull=False)
-            local_groups_ids = [projects_group.google_group.get().google_id for projects_group in local_groups]
-
-            groups_to_remove = [group for group in remote_groups if group["id"] not in local_groups_ids]
-            groups_to_add = [group for group in local_groups if group.google_group.get().google_id not in remote_groups_ids]
+        try:        
+            remote_groups = [
+                google_group["id"] for google_group in GoogleService.get_user_groups(self)
+            ]
+            
+            groups_to_remove = GoogleGroup.objects.filter(google_id__in=remote_groups).exclude(people_group__groups__in=self.user.groups.all())
+            groups_to_add = GoogleGroup.objects.filter(people_group__groups__users=self.user).exclude(google_id__in=remote_groups)
             
             for group_to_remove in groups_to_remove:
                 self.remove_group(group_to_remove)
@@ -244,12 +240,12 @@ class GoogleAccount(models.Model):
                 error=e.__traceback__,
             )
 
-    def add_group(self, people_group: PeopleGroup):
+    def add_group(self, google_group: "GoogleGroup"):
         try:
-            GoogleService.add_user_to_group(people_group.google_group, self)
+            GoogleService.add_user_to_group(google_group, self)
         except Exception as e:  # noqa
             GoogleSyncErrors.objects.create(
-                people_group=people_group,
+                people_group=google_group.people_group,
                 user=self.user,
                 on_task=GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
                 error=e.__traceback__,

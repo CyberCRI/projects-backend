@@ -35,6 +35,8 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
+
+from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import create_google_account, create_google_group, suspend_google_account, update_google_account, update_google_group
 from services.keycloak.interface import KeycloakService
 
@@ -219,9 +221,10 @@ class UserViewSet(viewsets.ModelViewSet):
         organizational_unit = data.get(
             "main_google_group", "CRI/Admin Staff" if created else None
         )
-        if create_in_google and not instance.google_account.exists():
+        exists_in_google = GoogleAccount.objects.filter(user=instance).exists()
+        if create_in_google and not exists_in_google:
             create_google_account(instance, organizational_unit)
-        elif not create_in_google and instance.google_account.exists():
+        elif not create_in_google and exists_in_google:
             update_google_account(instance, organizational_unit)
         instance.refresh_from_db()
 
@@ -384,9 +387,10 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
 
     def google_sync(self, instance, data):
         create_in_google = data.get("create_in_google", False)
-        if create_in_google and not instance.google_group.exists():
+        exists_in_google = GoogleGroup.objects.filter(people_group=instance).exists()
+        if create_in_google and not exists_in_google:
             create_google_group(instance)
-        elif not create_in_google and instance.google_group.exists():
+        elif not create_in_google and exists_in_google:
             update_google_group(instance)
         instance.refresh_from_db()
 

@@ -37,10 +37,10 @@ def update_google_group(people_group: PeopleGroup):
 
 
 @app.task
-def create_google_user_task(user_keycloal_id: str):
-    user = ProjectUser.objects.get(keycloak_id=user_keycloal_id)
-    if user.google_account.exists():
-        google_account = user.google_account.get()
+def create_google_user_task(user_keycloak_id: str):
+    google_account = GoogleAccount.objects.filter(user__keycloak_id=user_keycloak_id)
+    if google_account.exists():
+        google_account = google_account.get()
         GoogleService.get_user_by_email(google_account.email, 10)
         google_account.create_alias()
         google_account.update_keycloak_username()
@@ -49,9 +49,9 @@ def create_google_user_task(user_keycloal_id: str):
 
 @app.task
 def update_google_user_task(user_keycloak_id: str, organizational_unit: str = None):
-    user = ProjectUser.objects.get(keycloak_id=user_keycloak_id)
-    if user.google_account.exists():
-        google_account = user.google_account.get()
+    google_account = GoogleAccount.objects.filter(user__keycloak_id=user_keycloak_id)
+    if google_account.exists():
+        google_account = google_account.get()
         if organizational_unit:
             google_account.organizational_unit = organizational_unit
             google_account.save()
@@ -61,25 +61,25 @@ def update_google_user_task(user_keycloak_id: str, organizational_unit: str = No
 
 @app.task
 def suspend_google_user_task(user_keycloak_id: str):
-    user = ProjectUser.objects.get(keycloak_id=user_keycloak_id)
-    if user.google_account.exists():
-        google_account = user.google_account.get()
+    google_account = GoogleAccount.objects.filter(user__keycloak_id=user_keycloak_id)
+    if google_account.exists():
+        google_account = google_account.get()
         google_account.suspend()
 
 
 @app.task
 def create_google_group_task(people_group_id: int):
-    people_group = PeopleGroup.objects.get(pk=people_group_id)
-    if people_group.google_group.exists():
-        google_group = people_group.google_group.get()
+    google_group = GoogleGroup.objects.filter(people_group__id=people_group_id)
+    if google_group.exists():
+        google_group = google_group.get()
         google_group.create_alias()
         google_group.sync_members()
 
 
 @app.task
 def update_google_group_task(people_group_id: int):
-    people_group = PeopleGroup.objects.get(pk=people_group_id)
-    if people_group.google_group.exists():
-        google_group = people_group.google_group.get()
+    google_group = GoogleGroup.objects.filter(people_group__id=people_group_id)
+    if google_group.exists():
+        google_group = google_group.get()
         google_group.update()
         google_group.sync_members()

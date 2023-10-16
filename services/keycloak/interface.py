@@ -123,11 +123,6 @@ class KeycloakService:
         keycloak_admin.send_update_account(**update_account_args)
 
     @classmethod
-    def get_reset_password_link(cls):
-        keycloak_admin = cls.service()
-        return keycloak_admin.get_reset_password_link()
-
-    @classmethod
     def import_user(cls, keycloak_id: str) -> ProjectUser:
         keycloak_admin = cls.service()
         try:
