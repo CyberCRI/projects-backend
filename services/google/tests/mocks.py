@@ -6,9 +6,9 @@ from django.conf import settings
 from googleapiclient.discovery import build
 from googleapiclient.http import HttpMockSequence
 
-from apps.accounts.models import ProjectUser, PeopleGroup
+from apps.accounts.models import ProjectUser
 from apps.commons.test.testcases import JwtAPITestCase
-from services.google.models import GoogleGroup
+from services.google.models import GoogleAccount
 
 
 class GoogleTestCase(JwtAPITestCase):
@@ -41,12 +41,12 @@ class GoogleTestCase(JwtAPITestCase):
         return mocked_google_service
 
 
-def get_google_user(user: ProjectUser):
-    google_user = user.google_account.get()
+def get_google_user(google_user: GoogleAccount):
+    user = google_user.user
     content = json.dumps(
         {
             "kind": "admin#directory#user",
-            "id": google_user.get().id,
+            "id": google_user.google_id,
             "etag": "etag",
             "primaryEmail": google_user.email,
             "name": {
@@ -140,8 +140,7 @@ def list_google_groups(google_groups: List[Dict[str, str]], has_next_page: bool)
     return {"status": 200}, json.dumps(content)
 
 
-def add_user_to_group(user: ProjectUser):
-    google_user = user.google_account.get()
+def add_user_to_group(google_user: GoogleAccount):
     content = json.dumps(
         {
             "kind": "admin#directory#group",

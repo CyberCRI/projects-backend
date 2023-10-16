@@ -14,7 +14,7 @@ from apps.organizations.factories import OrganizationFactory
 from keycloak import KeycloakGetError
 from services.google.factories import GoogleGroupFactory, GoogleUserFactory
 from services.google.interface import GoogleService
-from services.google.models import GoogleSyncErrors
+from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_group_task,
     create_google_user_task,
@@ -40,17 +40,16 @@ class GoogleServiceTestCase(JwtAPITestCase):
         self.client.force_authenticate(user=self.user)
 
     def tearDown(self):
-        for user in ProjectUser.objects.filter(given_name="googlesync"):
-            if user.google_account.exists():
-                GoogleService.delete_user(user.google_account.get())
+        for google_account in GoogleAccount.objects.filter(user__given_name="googlesync"):
+            user = google_account.user
+            GoogleService.delete_user(google_account)
             try:
                 KeycloakService.get_user(user.keycloak_id)
                 KeycloakService.delete_user(user)
             except KeycloakGetError:
                 pass
-        for people_group in PeopleGroup.objects.filter(name__startswith="googlesync"):
-            if people_group.google_group:
-                GoogleService.delete_group(people_group.google_group)
+        for google_group in GoogleGroup.objects.filter(name__startswith="googlesync"):
+            GoogleService.delete_group(google_group)
         return super().tearDown()
 
     @classmethod
@@ -110,17 +109,11 @@ class GoogleServiceTestCase(JwtAPITestCase):
         alias = projects_user.email.replace(
             settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
         )
-        for _ in range(60):
-            print(GoogleSyncErrors.objects.all())
-            if GoogleSyncErrors.objects.count() > 0:
-                for error in GoogleSyncErrors.objects.all():
-                    print(str(error.error))
-                    print(error.on_task)
-                print("____________________________________________________________________")
+        for _ in range(30):
             google_user = GoogleService.get_user_by_email(projects_user.email, 5)
             emails = [email["address"] for email in google_user["emails"]]
             if alias not in emails:
-                time.sleep(3)
+                time.sleep(2)
             else:
                 break
         emails = [email["address"] for email in google_user["emails"]]
