@@ -68,18 +68,21 @@ class KeycloakService:
         }
         """
         keycloak_admin = cls.service()
+        required_actions = ["VERIFY_EMAIL"]
+        if "credentials" not in keycloak_data:
+            required_actions.append("UPDATE_PASSWORD")
         keycloak_id = keycloak_admin.create_user(
             payload={
                 "enabled": True,
-                "emailVerified": True,
-                "requiredActions": ["UPDATE_PASSWORD"],
+                "emailVerified": False,
+                "requiredActions": required_actions,
                 **keycloak_data,
             },
             exist_ok=False,
         )
         update_account_args = {
             "user_id": keycloak_id,
-            "payload": ["UPDATE_PASSWORD"],
+            "payload": required_actions,
             "client_id": "admin-cli",
         }
         if redirect_organization_code:
@@ -101,9 +104,12 @@ class KeycloakService:
             "firstName": request_data["given_name"],
             "lastName": request_data["family_name"],
             "attributes": {
-                "pid": list(filter(lambda x: x, [request_data.get("people_id", None)])),
+                "locale": [request_data.get("language", "en")],
             },
         }
+        password = request_data.get("password", None)
+        if password:
+            keycloak_data["credentials"] = [{"type": "password", "value": password}]
         return cls._create_user(keycloak_data, redirect_organization_code)
 
     @classmethod
@@ -209,11 +215,16 @@ class KeycloakService:
 
     @classmethod
     def update_user(cls, user: ProjectUser):
+        keycloak_user = cls.get_user(user.keycloak_id)
         payload = {
             "email": user.personal_email if user.personal_email else user.email,
             "username": user.email,
             "firstName": user.given_name,
             "lastName": user.family_name,
+            "attributes": {
+                **keycloak_user.get("attributes", {}),
+                "locale": [user.language],
+            },
         }
         return cls._update_user(keycloak_id=user.keycloak_id, payload=payload)
 

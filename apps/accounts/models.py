@@ -317,6 +317,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
+    show_welcome = models.BooleanField(default=True)
 
     # Profile fields
     birthdate = models.DateField(
