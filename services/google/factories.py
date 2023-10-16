@@ -4,37 +4,34 @@ import factory
 from django.conf import settings
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory
-from services.google.interface import GoogleService
-from services.keycloak.interface import KeycloakService
+from services.google.models import GoogleAccount, GoogleGroup
+from services.google.tasks import create_google_group_task, create_google_user_task
 
 
 class GoogleUserFactory(SeedUserFactory):
     given_name = factory.LazyAttribute(lambda x: "googlesync")
-    email = factory.LazyAttribute(
-        lambda _: f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}"
-    )
 
-    @classmethod
-    def create(cls, **kwargs):
-        user = super().create(**kwargs)
-        google_user = GoogleService.create_user(user, "/CRI/Test Google Sync")
-        user.personal_email = user.email
-        user.email = google_user["primaryEmail"]
-        user.save()
-        GoogleService.get_user_by_email(user.email, 5)
-        KeycloakService.update_user(user)
-        return user
+    @factory.post_generation
+    def google_account(self, create, extracted, **kwargs):
+        if not create:
+            return
+        google_account = GoogleAccount.objects.create(user=self, organizational_unit="/CRI/Test Google Sync")
+        google_account = google_account.create()
+        google_account.update_keycloak_username()
+        create_google_user_task(self.keycloak_id)
+        return google_account
+
 
 
 class GoogleGroupFactory(PeopleGroupFactory):
     name = factory.LazyAttribute(lambda x: f"googlesync-{uuid.uuid4()}")
     email = ""
 
-    @classmethod
-    def create(cls, **kwargs):
-        group = super().create(**kwargs)
-        google_group = GoogleService.create_group(group)
-        group.email = google_group["email"]
-        group.save()
-        GoogleService.get_group(group.email, 5)
-        return group
+    @factory.post_generation
+    def google_group(self, create, extracted, **kwargs):
+        if not create:
+            return
+        google_group = GoogleGroup.objects.create(people_group=self)
+        google_group.create()
+        create_google_group_task(self.id)
+        return google_group

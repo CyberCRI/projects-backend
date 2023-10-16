@@ -71,7 +71,7 @@ class GoogleGroup(models.Model):
         try:
             google_group = GoogleService.create_group(self.people_group)
             self.email = google_group["email"]
-            self.id = google_group["id"]
+            self.google_id = google_group["id"]
             self.save()
             self.people_group.email = google_group["email"]
             self.people_group.save()
@@ -106,7 +106,7 @@ class GoogleGroup(models.Model):
     def sync_members(self):
         try:
             remote_users = [
-                google_user["id"] for google_user in GoogleService.get_group_members(self.email)
+                google_user["id"] for google_user in GoogleService.get_group_members(self)
             ]
             users_to_remove = GoogleAccount.objects.filter(google_id__in=remote_users).exclude(user__groups__people_groups=self.people_group)
             users_to_add = GoogleAccount.objects.filter(user__groups__people_groups=self.people_group).exclude(google_id__in=remote_users)
@@ -219,7 +219,7 @@ class GoogleAccount(models.Model):
             )
     
     def sync_groups(self):
-        try:        
+        try:
             remote_groups = [
                 google_group["id"] for google_group in GoogleService.get_user_groups(self)
             ]
@@ -242,7 +242,7 @@ class GoogleAccount(models.Model):
 
     def add_group(self, google_group: "GoogleGroup"):
         try:
-            GoogleService.add_user_to_group(google_group, self)
+            GoogleService.add_user_to_group(self, google_group)
         except Exception as e:  # noqa
             GoogleSyncErrors.objects.create(
                 people_group=google_group.people_group,
@@ -253,7 +253,7 @@ class GoogleAccount(models.Model):
 
     def remove_group(self, google_group: "GoogleGroup"):
         try:
-            GoogleService.remove_user_from_group(google_group, self)
+            GoogleService.remove_user_from_group(self, google_group)
         except Exception as e:
             GoogleSyncErrors.objects.create(
                 people_group=google_group.people_group,
