@@ -74,7 +74,7 @@ class KeycloakService:
         keycloak_id = keycloak_admin.create_user(
             payload={
                 "enabled": True,
-                "emailVerified": True,
+                "emailVerified": False,
                 "requiredActions": required_actions,
                 **keycloak_data,
             },

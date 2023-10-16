@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 def set_existing_users_show_message_to_false(apps, schema_editor):
     ProjectUser = apps.get_model("accounts", "ProjectUser")  # noqa
-    ProjectUser.objects.update(show_welcome=False)
+    ProjectUser.objects.filter(last_login__isnull=False).update(show_welcome=False)
 
 
 class Migration(migrations.Migration):
