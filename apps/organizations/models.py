@@ -220,7 +220,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             admins.users.add(user)
         self.groups.add(admins, facilitators, users)
         self.permissions_up_to_date = True
-        self.save()
+        self.save(update_fields=["permissions_up_to_date"])
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""
