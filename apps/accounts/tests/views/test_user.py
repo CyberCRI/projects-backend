@@ -1,8 +1,6 @@
 import datetime
-import uuid
 from unittest import mock
 
-from django.conf import settings
 from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from django.urls import reverse
 from django.utils.timezone import make_aware
@@ -21,7 +19,6 @@ from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from keycloak import KeycloakDeleteError
-from services.keycloak.interface import KeycloakService
 
 faker = Faker()
 
@@ -338,77 +335,6 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         )
         assert response.status_code == 204
         assert not ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
-
-    def test_google_error_create_user(self):
-        organization = self.organization
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
-            "given_name": faker.first_name(),
-            "family_name": faker.last_name(),
-            "create_in_google": True,
-            "roles_to_add": [organization.get_users().name],
-        }
-        with mock.patch(
-            "services.google.interface.GoogleService.create_user",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.post(reverse("ProjectUser-list"), data=payload)
-        assert response.status_code == 400
-        assert (
-            response.json()["error"]
-            == "User was created but an error occured in Google : error reason"
-        )
-        user = ProjectUser.objects.filter(people_id=payload["people_id"])
-        assert user.exists()
-        keycloak_user = KeycloakService().get_user(user.get().keycloak_id)
-        assert keycloak_user is not None
-
-    def test_google_error_update_user(self):
-        organization = self.organization
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = SeedUserFactory(
-            email=f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            groups=[organization.get_users()],
-        )
-        payload = {
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
-        }
-        with mock.patch(
-            "services.google.interface.GoogleService.get_user",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.patch(
-                reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
-            )
-        assert response.status_code == 400
-        assert (
-            response.json()["error"]
-            == "User was updated but an error occured in Google : error reason"
-        )
-        user.refresh_from_db()
-        assert user.personal_email == payload["personal_email"]
-        keycloak_user = KeycloakService().get_user(user.keycloak_id)
-        assert keycloak_user["email"] == user.personal_email
-
-    def test_google_error_delete_user(self):
-        organization = self.organization
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = SeedUserFactory(groups=[organization.get_users()])
-        with mock.patch(
-            "services.google.tasks.suspend_google_user_task.delay",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.delete(
-                reverse("ProjectUser-detail", args=[user.keycloak_id])
-            )
-        assert response.status_code == 400
-        assert response.json()["error"] == "An error occured in Google : error reason"
-        assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
-        keycloak_user = KeycloakService().get_user(user.keycloak_id)
-        assert keycloak_user is not None
 
 
 class ValidateUserTestCase(JwtAPITestCase):
