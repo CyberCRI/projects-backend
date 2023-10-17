@@ -167,13 +167,18 @@ class GoogleService:
             },
             "orgUnitPath": google_account.organizational_unit,
         }
-        return cls.service().users().update(
-            userKey=google_account.google_id,
-            body=body,
-        ).execute()
+        return (
+            cls.service()
+            .users()
+            .update(
+                userKey=google_account.google_id,
+                body=body,
+            )
+            .execute()
+        )
 
     @classmethod
-    def suspend_user(cls, google_account: "GoogleAccount"):        
+    def suspend_user(cls, google_account: "GoogleAccount"):
         cls.service().users().update(
             userKey=google_account.google_id,
             body={
@@ -199,7 +204,9 @@ class GoogleService:
 
     @classmethod
     def get_user_groups(cls, google_account: "GoogleAccount"):
-        response = cls.service().groups().list(userKey=google_account.google_id).execute()
+        response = (
+            cls.service().groups().list(userKey=google_account.google_id).execute()
+        )
         return response.get("groups", [])
 
     @classmethod
@@ -261,7 +268,7 @@ class GoogleService:
             "name": group.name,
         }
         return cls.service().groups().insert(body=body).execute()
-    
+
     @classmethod
     def add_group_alias(cls, google_group: "GoogleGroup", alias: str = ""):
         if not alias:
@@ -275,10 +282,13 @@ class GoogleService:
     @classmethod
     def update_group(cls, google_group: "GoogleGroup"):
         body = {"name": google_group.people_group.name}
-        return cls.service().groups().update(
-            groupKey=google_group.google_id, body=body
-        ).execute()
-    
+        return (
+            cls.service()
+            .groups()
+            .update(groupKey=google_group.google_id, body=body)
+            .execute()
+        )
+
     @classmethod
     def delete_group(cls, google_group: "GoogleGroup"):
         cls.service().groups().delete(groupKey=google_group.google_id).execute()
@@ -294,10 +304,11 @@ class GoogleService:
         return members
 
     @classmethod
-    def add_user_to_group(cls, google_account: "GoogleAccount", google_group: "GoogleGroup"):
+    def add_user_to_group(
+        cls, google_account: "GoogleAccount", google_group: "GoogleGroup"
+    ):
         body = {
             "email": google_account.email,
-            # "etag": google_group["etag"],
             "id": google_account.google_id,
             "delivery_settings": "ALL_MAIL",
             "role": "MEMBER",
@@ -305,19 +316,30 @@ class GoogleService:
             "status": "ACTIVE",
             "kind": "admin#directory#group",
         }
-        return cls.service().members().insert(
-            groupKey=google_group.google_id, body=body
-        ).execute()
+        return (
+            cls.service()
+            .members()
+            .insert(groupKey=google_group.google_id, body=body)
+            .execute()
+        )
 
     @classmethod
-    def remove_user_from_group(cls, google_account: "GoogleAccount", google_group: "GoogleGroup"):
-        return cls.service().members().delete(
-            groupKey=google_group.google_id, memberKey=google_account.google_id
-        ).execute()
+    def remove_user_from_group(
+        cls, google_account: "GoogleAccount", google_group: "GoogleGroup"
+    ):
+        return (
+            cls.service()
+            .members()
+            .delete(groupKey=google_group.google_id, memberKey=google_account.google_id)
+            .execute()
+        )
 
     @classmethod
     def get_org_units(cls):
-        org_units = cls.service().orgunits().list(
-            customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="CRI"
-        ).execute()
+        org_units = (
+            cls.service()
+            .orgunits()
+            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="CRI")
+            .execute()
+        )
         return [org_unit["name"] for org_unit in org_units["organizationUnits"]]

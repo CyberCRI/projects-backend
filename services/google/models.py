@@ -1,10 +1,11 @@
-from collections.abc import Iterable
 from typing import Optional
-from django.contrib.postgres.fields import ArrayField
+
 from django.db import models
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from services.google.exceptions import GoogleUserNotSynced
 from services.keycloak.interface import KeycloakService
+
 from .interface import GoogleService
 
 
@@ -21,15 +22,15 @@ class GoogleSyncErrors(models.Model):
         GROUP_ALIAS = "group_alias", "Create group alias"
         SYNC_MEMBERS = "sync_members", "Sync group members"
 
-    user = models.ForeignKey(
-        ProjectUser,
+    google_account = models.ForeignKey(
+        "google.GoogleAccount",
         on_delete=models.CASCADE,
         related_name="google_sync_errors",
         null=True,
         blank=True,
     )
-    people_group = models.ForeignKey(
-        PeopleGroup,
+    google_group = models.ForeignKey(
+        "google.GoogleGroup",
         on_delete=models.CASCADE,
         related_name="google_sync_errors",
         null=True,
@@ -39,8 +40,8 @@ class GoogleSyncErrors(models.Model):
     task_kwargs = models.JSONField(null=True, blank=True)
     error = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
-    retried_at = models.DateTimeField(auto_now=True)
     retries_count = models.PositiveIntegerField(default=0)
+    solved = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "google sync error"
@@ -49,9 +50,32 @@ class GoogleSyncErrors(models.Model):
 
     def __str__(self):
         return f"{self.user} - {self.error}"
-    
+
     def retry(self):
-        pass
+        match self.on_task:
+            case self.OnTaskChoices.CREATE_USER:
+                self.google_account.create(is_retry=True)
+            case self.OnTaskChoices.UPDATE_USER:
+                self.google_account.update(is_retry=True)
+            case self.OnTaskChoices.SUSPEND_USER:
+                self.google_account.suspend(is_retry=True)
+            case self.OnTaskChoices.USER_ALIAS:
+                self.google_account.create_alias(is_retry=True)
+            case self.OnTaskChoices.KEYCLOAK_USERNAME:
+                self.google_account.update_keycloak_username(is_retry=True)
+            case self.OnTaskChoices.SYNC_GROUPS:
+                self.google_account.sync_groups(is_retry=True)
+            case self.OnTaskChoices.CREATE_GROUP:
+                self.google_group.create(is_retry=True)
+            case self.OnTaskChoices.UPDATE_GROUP:
+                self.google_group.update(is_retry=True)
+            case self.OnTaskChoices.GROUP_ALIAS:
+                self.google_group.create_alias(is_retry=True)
+            case self.OnTaskChoices.SYNC_MEMBERS:
+                if self.google_account is not None:
+                    self.google_account.sync_groups(is_retry=True)
+                else:
+                    self.google_group.sync_members(is_retry=True)
 
 
 class GoogleGroup(models.Model):
@@ -61,13 +85,34 @@ class GoogleGroup(models.Model):
         related_name="google_group",
         to_field="id",
     )
-    google_id = models.CharField(max_length=50, unique=True, null=True)
-    email = models.EmailField(unique=True, null=True)
+    google_id = models.CharField(max_length=50, unique=True, blank=True, default="")
+    email = models.EmailField(unique=True, blank=True, default="")
 
     def __str__(self):
         return self.email
 
-    def create(self) -> "GoogleGroup":
+    def update_or_create_error(
+        self,
+        on_task: str,
+        error: Optional[Exception] = None,
+        google_account: Optional["GoogleAccount"] = None,
+    ):
+        if error is None:
+            defaults = {"error": error.__traceback__}
+        else:
+            defaults = {"solved": True}
+        error, created = GoogleSyncErrors.objects.update_or_create(
+            google_group=self,
+            google_account=google_account,
+            on_task=on_task,
+            solved=False,
+            defaults=defaults,
+        )
+        if not created:
+            error.retries_count += 1
+            error.save()
+
+    def create(self, is_retry: bool = False) -> "GoogleGroup":
         try:
             google_group = GoogleService.create_group(self.people_group)
             self.email = google_group["email"]
@@ -76,75 +121,84 @@ class GoogleGroup(models.Model):
             self.people_group.email = google_group["email"]
             self.people_group.save()
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
-                on_task=GoogleSyncErrors.OnTaskChoices.CREATE_GROUP,
-                error=e.__traceback__,
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_GROUP, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_GROUP)
         return self
 
-    def update(self):
+    def update(self, is_retry: bool = False):
         try:
             GoogleService.update_group(self)
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
-                on_task=GoogleSyncErrors.OnTaskChoices.UPDATE_GROUP,
-                error=e.__traceback__,
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.UPDATE_GROUP, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.UPDATE_GROUP)
 
-    def create_alias(self):
+    def create_alias(self, is_retry: bool = False):
         try:
             GoogleService.add_group_alias(self)
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
-                on_task=GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
-                error=e.__traceback__,
-            )
-    
-    def sync_members(self):
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS)
+
+    def sync_members(self, is_retry: bool = False):
         try:
             remote_users = [
-                google_user["id"] for google_user in GoogleService.get_group_members(self)
+                google_user["id"]
+                for google_user in GoogleService.get_group_members(self)
             ]
-            users_to_remove = GoogleAccount.objects.filter(google_id__in=remote_users).exclude(user__groups__people_groups=self.people_group)
-            users_to_add = GoogleAccount.objects.filter(user__groups__people_groups=self.people_group).exclude(google_id__in=remote_users)
-            
+            users_to_remove = GoogleAccount.objects.filter(
+                google_id__in=remote_users
+            ).exclude(user__groups__people_groups=self.people_group)
+            users_to_add = GoogleAccount.objects.filter(
+                user__groups__people_groups=self.people_group
+            ).exclude(google_id__in=remote_users)
+
             for user_to_remove in users_to_remove:
                 self.remove_member(user_to_remove)
-            
+
             for user_to_add in users_to_add:
                 self.add_member(user_to_add)
-        
-        except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
-                on_task=GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-                error=e.__traceback__,
-            )
 
-    def add_member(self, google_user: "GoogleAccount"):
+        except Exception as e:  # noqa
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
+
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
+
+    def add_member(self, google_user: "GoogleAccount", is_retry: bool = False):
+        GoogleService.add_user_to_group(google_user, self)
         try:
             GoogleService.add_user_to_group(google_user, self)
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
-                user=google_user.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-                error=e.__traceback__,
+            self.update_or_create_error(
+                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e, google_user
             )
+        else:
+            if is_retry:
+                self.update_or_create_error(
+                    GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
+                    google_account=google_user,
+                )
 
-    def remove_member(self, google_user: "GoogleAccount"):
+    def remove_member(self, google_user: "GoogleAccount", is_retry: bool = False):
         try:
             GoogleService.remove_user_from_group(google_user, self)
-        except Exception as e:
-            GoogleSyncErrors.objects.create(
-                people_group=self.people_group,
-                user=google_user.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-                error=e.__traceback__,
+        except Exception as e:  # noqa
+            self.update_or_create_error(
+                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e, google_user
             )
+        else:
+            if is_retry:
+                self.update_or_create_error(
+                    GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
+                    google_account=google_user,
+                )
 
 
 class GoogleAccount(models.Model):
@@ -154,14 +208,35 @@ class GoogleAccount(models.Model):
         related_name="google_account",
         to_field="keycloak_id",
     )
-    google_id = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(unique=True, null=True)
-    organizational_unit = models.CharField(max_length=50, null=True)
+    google_id = models.CharField(max_length=50, unique=True, blank=True, default="")
+    email = models.EmailField(unique=True, blank=True, default="")
+    organizational_unit = models.CharField(max_length=50, default="CRI/Admin Staff")
 
     def __str__(self):
         return self.email
 
-    def create(self) -> "GoogleAccount":
+    def update_or_create_error(
+        self,
+        on_task: str,
+        error: Optional[Exception] = None,
+        google_group: Optional["GoogleGroup"] = None,
+    ):
+        if error is None:
+            defaults = {"error": error.__traceback__}
+        else:
+            defaults = {"solved": True}
+        error, created = GoogleSyncErrors.objects.update_or_create(
+            google_group=google_group,
+            google_account=self,
+            on_task=on_task,
+            solved=False,
+            defaults=defaults,
+        )
+        if not created:
+            error.retries_count += 1
+            error.save()
+
+    def create(self, is_retry: bool = False) -> "GoogleAccount":
         try:
             google_user = GoogleService.create_user(self.user, self.organizational_unit)
             self.email = google_user["primaryEmail"]
@@ -171,93 +246,109 @@ class GoogleAccount(models.Model):
             self.user.email = google_user["primaryEmail"]
             self.user.save()
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.CREATE_USER,
-                error=e.__traceback__,
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_USER, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_USER)
         return self
-    
-    def update(self):
+
+    def update(self, is_retry: bool = False):
         try:
             GoogleService.update_user(self)
-        except Exception as e:
-            GoogleSyncErrors.objects.create(
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.UPDATE_USER,
-                error=e.__traceback__,
-            )
-    
-    def suspend(self):
+        except Exception as e:  # noqa
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.UPDATE_USER, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.UPDATE_USER)
+
+    def suspend(self, is_retry: bool = False):
         try:
             GoogleService.suspend_user(self)
-        except Exception as e:
-            GoogleSyncErrors.objects.create(
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.SUSPEND_USER,
-                error=e.__traceback__,
-            )
-    
-    def create_alias(self):
+        except Exception as e:  # noqa
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SUSPEND_USER, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SUSPEND_USER)
+
+    def create_alias(self, is_retry: bool = False):
         try:
             GoogleService.add_user_alias(self)
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
-                error=e.__traceback__,
-            )        
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.USER_ALIAS, e)
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.USER_ALIAS)
 
-    def update_keycloak_username(self):
+    def update_keycloak_username(self, is_retry: bool = False):
         try:
-            KeycloakService.update_user(self.user)
+            if self.user.email == self.email:
+                KeycloakService.update_user(self.user)
+            else:
+                self.update_or_create_error(
+                    GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
+                    GoogleUserNotSynced(self.user.email, self.email),
+                )
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-                error=e.__traceback__,
+            self.update_or_create_error(
+                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME, e
             )
-    
-    def sync_groups(self):
+        else:
+            if is_retry:
+                self.update_or_create_error(
+                    GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME
+                )
+
+    def sync_groups(self, is_retry: bool = False):
         try:
             remote_groups = [
-                google_group["id"] for google_group in GoogleService.get_user_groups(self)
+                google_group["id"]
+                for google_group in GoogleService.get_user_groups(self)
             ]
-            
-            groups_to_remove = GoogleGroup.objects.filter(google_id__in=remote_groups).exclude(people_group__groups__in=self.user.groups.all())
-            groups_to_add = GoogleGroup.objects.filter(people_group__groups__users=self.user).exclude(google_id__in=remote_groups)
-            
+
+            groups_to_remove = GoogleGroup.objects.filter(
+                google_id__in=remote_groups
+            ).exclude(people_group__groups__in=self.user.groups.all())
+            groups_to_add = GoogleGroup.objects.filter(
+                people_group__groups__users=self.user
+            ).exclude(google_id__in=remote_groups)
+
             for group_to_remove in groups_to_remove:
                 self.remove_group(group_to_remove)
-            
+
             for group_to_add in groups_to_add:
                 self.add_group(group_to_add)
-        
-        except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-                error=e.__traceback__,
-            )
 
-    def add_group(self, google_group: "GoogleGroup"):
+        except Exception as e:  # noqa
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
+
+        else:
+            if is_retry:
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
+
+    def add_group(self, google_group: "GoogleGroup", is_retry: bool = False):
         try:
             GoogleService.add_user_to_group(self, google_group)
         except Exception as e:  # noqa
-            GoogleSyncErrors.objects.create(
-                people_group=google_group.people_group,
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-                error=e.__traceback__,
+            self.update_or_create_error(
+                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e, google_group
             )
+        else:
+            if is_retry:
+                self.update_or_create_error(
+                    GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
+                    google_group=google_group,
+                )
 
-    def remove_group(self, google_group: "GoogleGroup"):
+    def remove_group(self, google_group: "GoogleGroup", is_retry: bool = False):
         try:
             GoogleService.remove_user_from_group(self, google_group)
-        except Exception as e:
-            GoogleSyncErrors.objects.create(
-                people_group=google_group.people_group,
-                user=self.user,
-                on_task=GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-                error=e.__traceback__,
+        except Exception as e:  # noqa
+            self.update_or_create_error(
+                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e, google_group
             )
+        else:
+            if is_retry:
+                self.update_or_create_error(
+                    GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
+                    google_group=google_group,
+                )

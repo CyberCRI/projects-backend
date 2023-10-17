@@ -1,7 +1,6 @@
 import uuid
 
 import factory
-from django.conf import settings
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory
 from services.google.models import GoogleAccount, GoogleGroup
@@ -15,12 +14,13 @@ class GoogleUserFactory(SeedUserFactory):
     def google_account(self, create, extracted, **kwargs):
         if not create:
             return
-        google_account = GoogleAccount.objects.create(user=self, organizational_unit="/CRI/Test Google Sync")
+        google_account = GoogleAccount.objects.create(
+            user=self, organizational_unit="/CRI/Test Google Sync"
+        )
         google_account = google_account.create()
         google_account.update_keycloak_username()
         create_google_user_task(self.keycloak_id)
-        return google_account
-
+        self.google_account = google_account
 
 
 class GoogleGroupFactory(PeopleGroupFactory):
@@ -34,4 +34,4 @@ class GoogleGroupFactory(PeopleGroupFactory):
         google_group = GoogleGroup.objects.create(people_group=self)
         google_group.create()
         create_google_group_task(self.id)
-        return google_group
+        self.google_group = google_group

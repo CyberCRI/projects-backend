@@ -35,9 +35,14 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
-
 from services.google.models import GoogleAccount, GoogleGroup
-from services.google.tasks import create_google_account, create_google_group, suspend_google_account, update_google_account, update_google_group
+from services.google.tasks import (
+    create_google_account,
+    create_google_group,
+    suspend_google_account,
+    update_google_account,
+    update_google_group,
+)
 from services.keycloak.interface import KeycloakService
 
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill

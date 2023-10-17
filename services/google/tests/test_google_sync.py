@@ -25,8 +25,7 @@ from services.google.tasks import (
 from services.keycloak.interface import KeycloakService
 
 
-
-# @skipUnlessGoogle
+@skipUnlessGoogle
 class GoogleServiceTestCase(JwtAPITestCase):
     @classmethod
     def setUpClass(cls):
@@ -40,7 +39,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         self.client.force_authenticate(user=self.user)
 
     def tearDown(self):
-        for google_account in GoogleAccount.objects.filter(user__given_name="googlesync"):
+        for google_account in GoogleAccount.objects.filter(
+            user__given_name="googlesync"
+        ):
             user = google_account.user
             GoogleService.delete_user(google_account)
             try:
@@ -48,7 +49,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
                 KeycloakService.delete_user(user)
             except KeycloakGetError:
                 pass
-        for google_group in GoogleGroup.objects.filter(people_group__name__startswith="googlesync"):
+        for google_group in GoogleGroup.objects.filter(
+            people_group__name__startswith="googlesync"
+        ):
             GoogleService.delete_group(google_group)
         return super().tearDown()
 
@@ -67,7 +70,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
                 "roles_to_add", [cls.organization.get_users().name]
             ),
             "create_in_google": kwargs.get("create_in_google", True),
-            "main_google_group": kwargs.get("google_main_group", "/CRI/Test Google Sync"),
+            "main_google_group": kwargs.get(
+                "google_main_group", "/CRI/Test Google Sync"
+            ),
         }
 
     @classmethod
@@ -174,7 +179,10 @@ class GoogleServiceTestCase(JwtAPITestCase):
         projects_user.groups.add(
             self.organization.get_users(), people_group.get_members()
         )
-        payload = {"create_in_google": True, "main_google_group": "/CRI/Test Google Sync"}
+        payload = {
+            "create_in_google": True,
+            "main_google_group": "/CRI/Test Google Sync",
+        }
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(projects_user.keycloak_id,)),
             data=payload,
@@ -276,7 +284,11 @@ class GoogleServiceTestCase(JwtAPITestCase):
                 break
         projects_group = PeopleGroup.objects.get(id=response.json()["id"])
         assert google_group is not None
-        assert projects_group.email == google_group["email"] == projects_group.google_group.email
+        assert (
+            projects_group.email
+            == google_group["email"]
+            == projects_group.google_group.email
+        )
 
     @patch("services.google.tasks.create_google_group_task.delay")
     def test_create_group_for_existing_group(self, mocked):
