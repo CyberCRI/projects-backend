@@ -1,4 +1,5 @@
 from django.conf import settings
+
 from apps.accounts.models import PeopleGroup, ProjectUser
 from projects.celery import app
 from services.google.interface import GoogleService
@@ -6,21 +7,31 @@ from services.google.interface import GoogleService
 from .models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
 
-def create_google_account(user: ProjectUser, organizational_unit: str = "CRI/Admin Staff"):
-    if user.groups.filter(organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION).exists():
-        google_account = GoogleAccount.objects.create(user=user, organizational_unit=organizational_unit)
+def create_google_account(
+    user: ProjectUser, organizational_unit: str = "CRI/Admin Staff"
+):
+    if user.groups.filter(
+        organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
+    ).exists():
+        google_account = GoogleAccount.objects.create(
+            user=user, organizational_unit=organizational_unit
+        )
         google_account.create()
         google_account.update_keycloak_username()
         create_google_user_task.delay(user.keycloak_id)
 
 
 def update_google_account(user: ProjectUser, organizational_unit: str = None):
-    if user.groups.filter(organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION).exists():
+    if user.groups.filter(
+        organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
+    ).exists():
         update_google_user_task.delay(user.keycloak_id, organizational_unit)
 
 
 def suspend_google_account(user: ProjectUser):
-    if user.groups.filter(organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION).exists():
+    if user.groups.filter(
+        organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
+    ).exists():
         suspend_google_user_task.delay(user.keycloak_id)
 
 
@@ -83,3 +94,10 @@ def update_google_group_task(people_group_id: int):
         google_group = google_group.get()
         google_group.update()
         google_group.sync_members()
+
+
+@app.task
+def retry_failed_tasks():
+    failed_tasks = GoogleSyncErrors.objects.filter(solved=False).order_by("created_at")
+    for failed_task in failed_tasks:
+        failed_task.retry()

@@ -1,8 +1,8 @@
 import json
 from random import randint
 from typing import Dict, List
-from django.conf import settings
 
+from django.conf import settings
 from googleapiclient.discovery import build
 from googleapiclient.http import HttpMockSequence
 
@@ -65,11 +65,19 @@ def get_google_user(google_user: GoogleAccount):
             "ipWhitelisted": False,
             "emails": [
                 {"address": google_user.email, "primary": True},
-                {"address": google_user.email.replace(settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN)},
+                {
+                    "address": google_user.email.replace(
+                        settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
+                    )
+                },
                 {"address": f"{google_user.email}.test-google-a.com"},
             ],
             "languages": [{"languageCode": "en", "preference": "preferred"}],
-            "aliases": [google_user.email.replace(settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN)],
+            "aliases": [
+                google_user.email.replace(
+                    settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
+                )
+            ],
             "nonEditableAliases": [f"{google_user.email}.test-google-a.com"],
             "customerId": settings.GOOGLE_CUSTOMER_ID,  # nosec
             "orgUnitPath": google_user.organizational_unit,

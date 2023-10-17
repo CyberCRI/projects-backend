@@ -15,17 +15,23 @@ from .tasks import (
 
 
 class GoogleSyncErrorsAdmin(admin.ModelAdmin):
-    list_display = ("user", "on_task", "error", "created_at")
+    list_display = ("google_account", "google_group", "on_task", "error", "created_at")
     search_fields = (
-        "user__email",
-        "user__keycloak_id",
-        "user__given_name",
-        "user__family_name",
+        "google_account__email",
+        "google_account__google_id",
+        "google_account__user__email",
+        "google_account__user__keycloak_id",
+        "google_account__user__given_name",
+        "google_account__user__family_name",
+        "google_group__email",
+        "google_group__google_id",
+        "google_group__people_group__name",
+        "google_group__people_group__email",
         "error",
     )
     ordering = ("-created_at",)
     list_filter = ("on_task",)
-    readonly_fields = ("user", "on_task", "error", "created_at")
+    readonly_fields = ("on_task", "error", "created_at")
     actions = ["retry_action"]
 
     def retry_action(self, request: HttpRequest, queryset: QuerySet[Any]):
