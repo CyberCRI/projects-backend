@@ -195,7 +195,7 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
         self.groups.add(managers, members, leaders)
         self.permissions_up_to_date = True
         # Saving is also mandatory to trigger indexing in Algolia
-        self.save()
+        self.save(update_fields=["permissions_up_to_date"])
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""
