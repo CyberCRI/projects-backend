@@ -3,7 +3,7 @@ from typing import Optional
 from django.db import models
 
 from apps.accounts.models import PeopleGroup, ProjectUser
-from services.google.exceptions import GoogleUserNotSynced
+from services.google.exceptions import GoogleGroupEmailUnavailable, GoogleUserNotSynced
 from services.keycloak.interface import KeycloakService
 
 from .interface import GoogleService
@@ -113,8 +113,15 @@ class GoogleGroup(models.Model):
             error.save()
 
     def create(self, is_retry: bool = False) -> "GoogleGroup":
+        google_group = GoogleService.get_group(self.people_group.email)
+        if (
+            google_group is not None
+            and GoogleGroup.objects.filter(email=self.people_group.email).exists()
+        ):
+            raise GoogleGroupEmailUnavailable()
         try:
-            google_group = GoogleService.create_group(self.people_group)
+            if google_group is None:
+                google_group = GoogleService.create_group(self.people_group)
             self.email = google_group["email"]
             self.google_id = google_group["id"]
             self.save()

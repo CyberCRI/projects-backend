@@ -268,6 +268,25 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert projects_group.email == google_group["email"] == payload["email"]
 
     @patch("services.google.tasks.create_google_group_task.delay")
+    def test_update_group_existing_email(self, mocked):
+        mocked.side_effect = create_google_group_task
+        group_1 = GoogleGroupFactory(organization=self.organization)
+        group_2 = PeopleGroupFactory(organization=self.organization)
+        payload = {"email": group_1.email, "create_in_google": True}
+        response = self.client.patch(
+            reverse("PeopleGroup-detail", args=(self.organization.code, group_2.id)),
+            data=payload,
+        )
+        group_2.refresh_from_db()
+        assert response.status_code == 409
+        assert response.json() == {
+            "detail": "This email is already used by another group"
+        }
+        group_1.refresh_from_db()
+        group_2.refresh_from_db()
+        assert group_1.email != group_2.email
+
+    @patch("services.google.tasks.create_google_group_task.delay")
     def test_create_group_without_email(self, mocked):
         mocked.side_effect = create_google_group_task
         payload = self.create_group_payload()
