@@ -113,7 +113,7 @@ class GoogleGroup(models.Model):
             error.save()
 
     def create(self, is_retry: bool = False) -> "GoogleGroup":
-        google_group = GoogleService.get_group(self.people_group.email)
+        google_group = GoogleService.get_group_by_email(self.people_group.email)
         if (
             google_group is not None
             and GoogleGroup.objects.filter(email=self.people_group.email).exists()

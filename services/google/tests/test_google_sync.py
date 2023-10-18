@@ -258,7 +258,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert response.status_code == 201
         content = response.json()
         for _ in range(30):
-            google_group = GoogleService.get_group(content["email"], 5)
+            google_group = GoogleService.get_group_by_email(content["email"], 5)
             if not google_group:
                 time.sleep(2)
             else:
@@ -296,7 +296,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert response.status_code == 201
         content = response.json()
         for _ in range(30):
-            google_group = GoogleService.get_group(content["email"], 5)
+            google_group = GoogleService.get_group_by_email(content["email"], 5)
             if not google_group:
                 time.sleep(2)
             else:
@@ -330,7 +330,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         assert response.status_code == 200
         content = response.json()
         for _ in range(30):
-            google_group = GoogleService.get_group(content["email"], 5)
+            google_group = GoogleService.get_group_by_email(content["email"], 5)
             if google_group["name"] != projects_group.name:
                 time.sleep(2)
             else:
@@ -460,7 +460,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
         )
         assert response.status_code == 200
         for _ in range(30):
-            google_group = GoogleService.get_group(group.email, 5)
+            google_group = GoogleService.get_group_by_email(group.email, 5)
             if google_group["name"] != "test_update":
                 time.sleep(2)
             else:
