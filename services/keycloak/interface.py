@@ -103,6 +103,9 @@ class KeycloakService:
     ):
         keycloak_admin = cls.service()
         keycloak_user = cls.get_user(keycloak_id)
+        required_actions = list(
+            set(required_actions + keycloak_user.get("requiredActions", []))
+        )
         update_account_args = {
             "user_id": keycloak_id,
             "payload": required_actions,
@@ -123,9 +126,7 @@ class KeycloakService:
             update_account_args["redirect_uri"] = organization.website_url
 
         payload = {
-            "requiredActions": list(
-                set(required_actions + keycloak_user.get("requiredActions", []))
-            ),
+            "requiredActions": required_actions,
             "attributes": keycloak_attributes,
         }
         cls._update_user(keycloak_id=keycloak_id, payload=payload)
