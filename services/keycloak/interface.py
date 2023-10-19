@@ -121,7 +121,7 @@ class KeycloakService:
                 "emailOrganizationCode": [organization.code],
                 "emailOrganizationName": [organization.name],
                 "emailOrganizationLogo": [
-                    f"{organization.website_url}/v1/organization/{organization.code}/logo-image/{organization.logo_image.id}/"
+                    f"{organization.website_url}/v1/organization/{organization.code}/logo/{organization.logo_image.id}/"
                 ],
             }
             update_account_args["redirect_uri"] = organization.website_url
