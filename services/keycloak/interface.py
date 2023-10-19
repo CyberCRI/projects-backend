@@ -117,6 +117,7 @@ class KeycloakService:
             organization = organization.get()
             keycloak_attributes = {
                 **keycloak_attributes,
+                "keycloakId": [keycloak_id],
                 "emailOrganizationCode": [organization.code],
                 "emailOrganizationName": [organization.name],
                 "emailOrganizationLogo": [
