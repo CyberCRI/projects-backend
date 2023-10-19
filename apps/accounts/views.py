@@ -244,7 +244,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 data["language"] = organization.language
             # Create user in keycloak and redirect to the organization portal
             data["keycloak_id"] = KeycloakService.create_user(
-                data, request.query_params.get("organization", "")
+                data, request.query_params.get("organization", "DEFAULT")
             )
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -326,7 +326,7 @@ class UserViewSet(viewsets.ModelViewSet):
             KeycloakService.update_user(instance)
         self.google_sync(instance, self.request.data, False)
 
-    @extend_schema(responses={204: OpenApiTypes.NONE})
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(
         detail=True,
         methods=["GET"],
@@ -340,9 +340,26 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def reset_password(self, request, *args, **kwargs):
         user = self.get_object()
-        redirect_organization_code = request.query_params.get("organization", "")
-        KeycloakService.send_reset_password_email(user, redirect_organization_code)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        redirect_organization_code = request.query_params.get("organization", "DEFAULT")
+        KeycloakService.send_required_actions_email(
+            user.keycloak_id, ["UPDATE_PASSWORD"], redirect_organization_code
+        )
+        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="refresh-keycloak-actions-link",
+        permission_classes=[ReadOnly],
+    )
+    def refresh_keycloak_actions_link(self, request, *args, **kwargs):
+        user = self.get_object()
+        redirect_organization_code = request.query_params.get("organization", "DEFAULT")
+        KeycloakService.send_required_actions_email(
+            user.keycloak_id, [], redirect_organization_code
+        )
+        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
 
 class PeopleGroupViewSet(viewsets.ModelViewSet):
