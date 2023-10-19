@@ -46,11 +46,11 @@ backend:
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
     app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
-    limits:
-      memory: 2Gi
     requests:
       cpu: 10m
-      memory: 1Gi
+      memory: 1103M
+    limits:
+      memory: 1347M
   port: 8000
 
 celery:
