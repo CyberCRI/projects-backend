@@ -331,6 +331,10 @@ class OrganizationLogoView(ImageStorageView):
             ).distinct()
         return Image.objects.none
 
+    def retrieve(self, request, *args, **kwargs):
+        image = self.get_object()
+        return redirect(image.file.url)
+
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"organization/logo/{uuid.uuid4()}#{instance.name}"
