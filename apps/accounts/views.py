@@ -35,7 +35,12 @@ from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
-from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
+from keycloak import (
+    KeycloakDeleteError,
+    KeycloakError,
+    KeycloakPostError,
+    KeycloakPutError,
+)
 from services.google.utils import (
     suspend_google_account,
     update_or_create_google_account,
@@ -342,7 +347,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         redirect_organization_code = request.query_params.get("organization", "DEFAULT")
         KeycloakService.send_required_actions_email(
-            user.keycloak_id, ["UPDATE_PASSWORD"], redirect_organization_code
+            str(user.keycloak_id), ["UPDATE_PASSWORD"], redirect_organization_code
         )
         return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
@@ -354,12 +359,28 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[ReadOnly],
     )
     def refresh_keycloak_actions_link(self, request, *args, **kwargs):
-        user = self.get_object()
-        redirect_organization_code = request.query_params.get("organization", "DEFAULT")
-        KeycloakService.send_required_actions_email(
-            user.keycloak_id, [], redirect_organization_code
-        )
-        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        try:
+            user = self.get_object()
+            redirect_organization_code = request.query_params.get(
+                "organization", "DEFAULT"
+            )
+            email_sent = KeycloakService.send_required_actions_email(
+                str(user.keycloak_id), [], redirect_organization_code
+            )
+            if not email_sent:
+                return Response(
+                    {"detail": "Email was not sent because no action is required"},
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {"detail": "Email sent successfully"}, status=status.HTTP_200_OK
+            )
+        except KeycloakError as e:
+            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
+            return Response(
+                {"error": f"An error occured in Keycloak : {keycloak_error}"},
+                status=e.response_code,
+            )
 
 
 class PeopleGroupViewSet(viewsets.ModelViewSet):

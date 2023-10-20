@@ -396,10 +396,6 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.invitations.tasks.send_invitations_reminder",
         "schedule": crontab(minute=0, hour=7),
     },
-    "import_users_from_keycloak": {
-        "task": "apps.accounts.tasks.import_users_from_keycloak",
-        "schedule": crontab(minute=0, hour=3),
-    },
     "get_new_mixpanel_events": {
         "task": "services.mixpanel.tasks.get_new_mixpanel_events",
         "schedule": crontab(minute="*/2", hour="*"),
