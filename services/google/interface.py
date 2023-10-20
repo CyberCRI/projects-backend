@@ -234,7 +234,7 @@ class GoogleService:
             if i < max_retries - 1:
                 time.sleep(2)
         return None
-    
+
     @classmethod
     def get_group_by_id(cls, google_id: str, max_retries: int = 1):
         for i in range(max_retries):
@@ -352,7 +352,7 @@ class GoogleService:
         org_units = (
             cls.service()
             .orgunits()
-            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="")
+            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="", type="all")
             .execute()
         )
-        return [org_unit["name"] for org_unit in org_units["organizationUnits"]]
+        return [org_unit["orgUnitPath"] for org_unit in org_units["organizationUnits"]]

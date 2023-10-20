@@ -217,7 +217,7 @@ class GoogleAccount(models.Model):
     )
     google_id = models.CharField(max_length=50, unique=True, blank=True, default="")
     email = models.EmailField(unique=True, blank=True, default="")
-    organizational_unit = models.CharField(max_length=50, default="CRI/Admin Staff")
+    organizational_unit = models.CharField(max_length=50, default="/CRI/Admin Staff")
 
     def __str__(self):
         return self.email

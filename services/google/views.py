@@ -11,7 +11,9 @@ class UserEmailAvailableView(APIView):
     def post(self, request):
         serializer = EmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        google_user = GoogleService.get_user_by_email(serializer.validated_data["email"])
+        google_user = GoogleService.get_user_by_email(
+            serializer.validated_data["email"]
+        )
         return Response(
             EmailAvailableSerializer({"available": google_user is None}).data
         )
@@ -22,7 +24,9 @@ class GroupEmailAvailableView(APIView):
     def post(self, request):
         serializer = EmailSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        google_group = GoogleService.get_group_by_email(serializer.validated_data["email"])
+        google_group = GoogleService.get_group_by_email(
+            serializer.validated_data["email"]
+        )
         return Response(
             EmailAvailableSerializer({"available": google_group is None}).data
         )

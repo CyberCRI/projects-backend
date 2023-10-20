@@ -3,8 +3,8 @@ import uuid
 import factory
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory
+from services.google.interface import GoogleService
 from services.google.models import GoogleAccount, GoogleGroup
-from services.google.tasks import create_google_group_task, create_google_user_task
 
 
 class GoogleUserFactory(SeedUserFactory):
@@ -19,7 +19,7 @@ class GoogleUserFactory(SeedUserFactory):
         )
         google_account = google_account.create()
         google_account.update_keycloak_username()
-        create_google_user_task(self.keycloak_id)
+        GoogleService.get_user_by_email(google_account.email, 10)
         self.google_account = google_account
 
 
@@ -33,5 +33,5 @@ class GoogleGroupFactory(PeopleGroupFactory):
             return
         google_group = GoogleGroup.objects.create(people_group=self)
         google_group.create()
-        create_google_group_task(self.id)
+        GoogleService.get_group_by_email(google_group.email, 10)
         self.google_group = google_group
