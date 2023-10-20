@@ -342,7 +342,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         redirect_organization_code = request.query_params.get("organization", "DEFAULT")
         KeycloakService.send_required_actions_email(
-            user.keycloak_id, ["UPDATE_PASSWORD"], redirect_organization_code
+            str(user.keycloak_id), ["UPDATE_PASSWORD"], redirect_organization_code
         )
         return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
@@ -357,7 +357,7 @@ class UserViewSet(viewsets.ModelViewSet):
         user = self.get_object()
         redirect_organization_code = request.query_params.get("organization", "DEFAULT")
         KeycloakService.send_required_actions_email(
-            user.keycloak_id, [], redirect_organization_code
+            str(user.keycloak_id), [], redirect_organization_code
         )
         return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
