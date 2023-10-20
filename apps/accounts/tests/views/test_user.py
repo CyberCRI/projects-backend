@@ -19,6 +19,7 @@ from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from keycloak import KeycloakDeleteError
+from services.keycloak.interface import KeycloakService
 
 faker = Faker()
 
@@ -76,7 +77,7 @@ class CreateUserTestCase(JwtAPITestCase):
                 *[project.get_members().name for project in projects],
                 *[people_group.get_members().name for people_group in people_groups],
             }
-            keycloak_user = KeycloakService().get_user(content["keycloak_id"])
+            keycloak_user = KeycloakService.get_user(content["keycloak_id"])
             assert keycloak_user is not None
             assert set(keycloak_user["requiredActions"]) == {
                 "VERIFY_EMAIL",
@@ -140,7 +141,7 @@ class CreateUserTestCase(JwtAPITestCase):
             *[project.get_members().name for project in projects],
             *[people_group.get_members().name for people_group in people_groups],
         }
-        keycloak_user = KeycloakService().get_user(content["keycloak_id"])
+        keycloak_user = KeycloakService.get_user(content["keycloak_id"])
         assert keycloak_user is not None
         assert set(keycloak_user["requiredActions"]) == {
             "VERIFY_EMAIL",
@@ -176,7 +177,7 @@ class CreateUserTestCase(JwtAPITestCase):
             organization.get_users().name,
             people_group.get_members().name,
         }
-        keycloak_user = KeycloakService().get_user(user.keycloak_id)
+        keycloak_user = KeycloakService.get_user(user.keycloak_id)
         assert keycloak_user is not None
         assert keycloak_user["requiredActions"] == ["VERIFY_EMAIL"]
 
@@ -541,7 +542,7 @@ class MiscUserTestCase(JwtAPITestCase):
         response = self.client.post(reverse("ProjectUser-list"), data=payload)
         assert response.status_code == 201
         assert response.data["language"] == "fr"
-        keycloak_user = KeycloakService().get_user(response.data["keycloak_id"])
+        keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
         assert keycloak_user["attributes"]["locale"] == ["fr"]
 
     def test_language_from_payload(self):
@@ -560,7 +561,7 @@ class MiscUserTestCase(JwtAPITestCase):
         response = self.client.post(reverse("ProjectUser-list"), data=payload)
         assert response.status_code == 201
         assert response.data["language"] == "fr"
-        keycloak_user = KeycloakService().get_user(response.data["keycloak_id"])
+        keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
         assert keycloak_user["attributes"]["locale"] == ["fr"]
 
     def test_keycloak_attributes_updated(self):
@@ -578,7 +579,7 @@ class MiscUserTestCase(JwtAPITestCase):
         )
         assert response.status_code == 200
         assert response.data["language"] == "fr"
-        keycloak_user = KeycloakService().get_user(user.keycloak_id)
+        keycloak_user = KeycloakService.get_user(user.keycloak_id)
         assert keycloak_user["attributes"]["attribute_1"] == ["value_1"]
         assert keycloak_user["attributes"]["locale"] == ["fr"]
 
