@@ -100,12 +100,14 @@ class KeycloakService:
         keycloak_id: str,
         required_actions: List[str],
         redirect_organization_code: str = "DEFAULT",
-    ):
+    ) -> bool:
         keycloak_admin = cls.service()
         keycloak_user = cls.get_user(keycloak_id)
         required_actions = list(
             set(required_actions + keycloak_user.get("requiredActions", []))
         )
+        if len(required_actions) == 0:
+            return False
         update_account_args = {
             "user_id": keycloak_id,
             "payload": required_actions,
@@ -132,6 +134,7 @@ class KeycloakService:
         }
         cls._update_user(keycloak_id=keycloak_id, payload=payload)
         keycloak_admin.send_update_account(**update_account_args)
+        return True
 
     @classmethod
     def import_user(cls, keycloak_id: str) -> ProjectUser:
