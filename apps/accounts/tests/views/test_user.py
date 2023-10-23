@@ -19,6 +19,7 @@ from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from keycloak import KeycloakDeleteError
+from services.keycloak.interface import KeycloakService
 
 faker = Faker()
 

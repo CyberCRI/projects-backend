@@ -1,6 +1,7 @@
 import uuid
 
 import factory
+from django.conf import settings
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory
 from apps.organizations.factories import OrganizationFactory
