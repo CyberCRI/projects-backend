@@ -8,7 +8,7 @@ from .models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
 
 def create_google_account(
-    user: ProjectUser, organizational_unit: str = "CRI/Admin Staff"
+    user: ProjectUser, organizational_unit: str = "/CRI/Admin Staff"
 ):
     if user.groups.filter(
         organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION

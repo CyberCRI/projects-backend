@@ -179,7 +179,6 @@ class GoogleGroup(models.Model):
                 self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
 
     def add_member(self, google_user: "GoogleAccount", is_retry: bool = False):
-        GoogleService.add_user_to_group(google_user, self)
         try:
             GoogleService.add_user_to_group(google_user, self)
         except Exception as e:  # noqa
