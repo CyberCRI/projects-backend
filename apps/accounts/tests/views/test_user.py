@@ -76,6 +76,12 @@ class CreateUserTestCase(JwtAPITestCase):
                 *[project.get_members().name for project in projects],
                 *[people_group.get_members().name for people_group in people_groups],
             }
+            keycloak_user = KeycloakService.get_user(content["keycloak_id"])
+            assert keycloak_user is not None
+            assert set(keycloak_user["requiredActions"]) == {
+                "VERIFY_EMAIL",
+                "UPDATE_PASSWORD",
+            }
 
     def test_create_user_with_formdata(self):
         organization = self.organization
@@ -134,6 +140,12 @@ class CreateUserTestCase(JwtAPITestCase):
             *[project.get_members().name for project in projects],
             *[people_group.get_members().name for people_group in people_groups],
         }
+        keycloak_user = KeycloakService.get_user(content["keycloak_id"])
+        assert keycloak_user is not None
+        assert set(keycloak_user["requiredActions"]) == {
+            "VERIFY_EMAIL",
+            "UPDATE_PASSWORD",
+        }
 
     def test_create_user_with_invitation(self):
         organization = self.organization
@@ -144,6 +156,7 @@ class CreateUserTestCase(JwtAPITestCase):
             "personal_email": faker.email(),
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
+            "password": faker.password(),
         }
         invitation = InvitationFactory(
             expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(1)),
@@ -163,6 +176,9 @@ class CreateUserTestCase(JwtAPITestCase):
             organization.get_users().name,
             people_group.get_members().name,
         }
+        keycloak_user = KeycloakService.get_user(user.keycloak_id)
+        assert keycloak_user is not None
+        assert keycloak_user["requiredActions"] == ["VERIFY_EMAIL"]
 
     def test_create_user_with_expired_invitation(self):
         organization = self.organization
@@ -525,6 +541,46 @@ class MiscUserTestCase(JwtAPITestCase):
         response = self.client.post(reverse("ProjectUser-list"), data=payload)
         assert response.status_code == 201
         assert response.data["language"] == "fr"
+        keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
+        assert keycloak_user["attributes"]["locale"] == ["fr"]
+
+    def test_language_from_payload(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        organization = OrganizationFactory(language="en")
+        payload = {
+            "people_id": faker.uuid4(),
+            "email": f"{faker.uuid4()}@yopmail.com",
+            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+            "roles_to_add": [organization.get_users().name],
+            "language": "fr",
+        }
+        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        assert response.status_code == 201
+        assert response.data["language"] == "fr"
+        keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
+        assert keycloak_user["attributes"]["locale"] == ["fr"]
+
+    def test_keycloak_attributes_updated(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        user = SeedUserFactory(language="en")
+        KeycloakService.service().update_user(
+            user.keycloak_id,
+            {"attributes": {"attribute_1": ["value_1"], "locale": ["en"]}},
+        )
+        payload = {
+            "language": "fr",
+        }
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
+        )
+        assert response.status_code == 200
+        assert response.data["language"] == "fr"
+        keycloak_user = KeycloakService.get_user(user.keycloak_id)
+        assert keycloak_user["attributes"]["attribute_1"] == ["value_1"]
+        assert keycloak_user["attributes"]["locale"] == ["fr"]
 
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)

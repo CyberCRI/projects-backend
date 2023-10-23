@@ -311,6 +311,26 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @action(
+        detail=True,
+        methods=["DELETE"],
+        url_path="quit",
+        permission_classes=[IsAuthenticated],
+    )
+    @transaction.atomic
+    def remove_self(self, request, *args, **kwargs):
+        """Remove users from the project's group of the given name."""
+        project = self.get_object()
+        # The following 3 lines are here for backward compatibility
+        serializer = ProjectRemoveTeamMembersSerializer(
+            data={"project": project.pk, "users": [request.user.keycloak_id]}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        project._change_reason = "Removed members"
+        project.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
     def notify_remove_members(self, instances):
         for user in instances["users"]:
             notify_member_deleted.delay(

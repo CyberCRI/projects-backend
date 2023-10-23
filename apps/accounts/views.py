@@ -2,6 +2,7 @@ import json
 import uuid
 
 from django.conf import settings
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from django.db.utils import IntegrityError
@@ -34,7 +35,12 @@ from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
-from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
+from keycloak import (
+    KeycloakDeleteError,
+    KeycloakError,
+    KeycloakPostError,
+    KeycloakPutError,
+)
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_account,
@@ -236,9 +242,18 @@ class UserViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             data = request.data.copy()
-            redirect_organization_code = request.query_params.get("organization", "")
+            # If no language is provided, use the organization's language
+            organization_groups = Group.objects.filter(
+                organizations__isnull=False,
+                name__in=data.get("roles_to_add", []),
+            )
+            if organization_groups.exists() and "language" not in data.keys():
+                group = organization_groups.first()
+                organization = group.organizations.first()
+                data["language"] = organization.language
+            # Create user in keycloak and redirect to the organization portal
             data["keycloak_id"] = KeycloakService.create_user(
-                data, redirect_organization_code
+                data, request.query_params.get("organization", "DEFAULT")
             )
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
@@ -320,7 +335,7 @@ class UserViewSet(viewsets.ModelViewSet):
             KeycloakService.update_user(instance)
         self.google_sync(instance, self.request.data, False)
 
-    @extend_schema(responses={204: OpenApiTypes.NONE})
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(
         detail=True,
         methods=["GET"],
@@ -334,9 +349,42 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def reset_password(self, request, *args, **kwargs):
         user = self.get_object()
-        redirect_organization_code = request.query_params.get("organization", "")
-        KeycloakService.send_reset_password_email(user, redirect_organization_code)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        redirect_organization_code = request.query_params.get("organization", "DEFAULT")
+        KeycloakService.send_required_actions_email(
+            str(user.keycloak_id), ["UPDATE_PASSWORD"], redirect_organization_code
+        )
+        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+
+    @extend_schema(responses={200: OpenApiTypes.OBJECT})
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="refresh-keycloak-actions-link",
+        permission_classes=[ReadOnly],
+    )
+    def refresh_keycloak_actions_link(self, request, *args, **kwargs):
+        try:
+            user = self.get_object()
+            redirect_organization_code = request.query_params.get(
+                "organization", "DEFAULT"
+            )
+            email_sent = KeycloakService.send_required_actions_email(
+                str(user.keycloak_id), [], redirect_organization_code
+            )
+            if not email_sent:
+                return Response(
+                    {"detail": "Email was not sent because no action is required"},
+                    status=status.HTTP_200_OK,
+                )
+            return Response(
+                {"detail": "Email sent successfully"}, status=status.HTTP_200_OK
+            )
+        except KeycloakError as e:
+            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
+            return Response(
+                {"error": f"An error occured in Keycloak : {keycloak_error}"},
+                status=e.response_code,
+            )
 
 
 class PeopleGroupViewSet(viewsets.ModelViewSet):

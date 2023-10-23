@@ -1,0 +1,7 @@
+# Provides default values for those that are set by argocd, or in the application
+# This file should only be used locally
+
+application:
+  revision: dummy-revision
+
+hostname: dummy-host

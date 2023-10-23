@@ -9,46 +9,10 @@ from requests import Request
 from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserSerializer
 from apps.emailing.utils import send_email_with_attached_file
-from apps.organizations.models import Organization
 from projects.celery import app
 from services.keycloak.interface import KeycloakService
 
 logger = logging.getLogger(__name__)
-
-
-@app.task
-def import_users_from_keycloak():
-    """Import users that are in keycloak but not in projects."""
-    _import_users_from_keycloak()
-
-
-def _import_users_from_keycloak():
-    for organization in Organization.objects.all():
-        for user in KeycloakService.get_members_from_organization(
-            organization.code, "users"
-        ):
-            try:
-                projects_user = ProjectUser.objects.filter(keycloak_id=user["id"])
-                if not projects_user.exists():
-                    KeycloakService.import_user(user["id"])
-                else:
-                    projects_user = projects_user.get()
-                    KeycloakService.sync_groups_from_keycloak(projects_user)
-            except Exception as e:  # noqa
-                logger.error(f"Error importing user {user['id']}: {e}")
-
-        for user in KeycloakService.get_members_from_organization(
-            organization.code, "administrators"
-        ):
-            try:
-                projects_user = ProjectUser.objects.filter(keycloak_id=user["id"])
-                if not projects_user.exists():
-                    KeycloakService.import_user(user["id"])
-                else:
-                    projects_user = projects_user.get()
-                    KeycloakService.sync_groups_from_keycloak(projects_user)
-            except Exception as e:  # noqa
-                logger.error(f"Error importing user {user['id']}: {e}")
 
 
 @app.task

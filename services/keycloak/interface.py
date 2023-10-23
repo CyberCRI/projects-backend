@@ -53,11 +53,7 @@ class KeycloakService:
         return cls.service().get_users({})
 
     @classmethod
-    def _create_user(
-        cls,
-        keycloak_data: Dict[str, Union[str, bool]],
-        redirect_organization_code: str = "",
-    ):
+    def _create_user(cls, keycloak_data: Dict[str, Union[str, bool]]):
         """
         keycloak_data should respect the following structure :
         keycloak_data = {
@@ -67,60 +63,78 @@ class KeycloakService:
             "lastName": "bar",
         }
         """
-        keycloak_admin = cls.service()
-        keycloak_id = keycloak_admin.create_user(
-            payload={
-                "enabled": True,
-                "emailVerified": True,
-                "requiredActions": ["UPDATE_PASSWORD"],
-                **keycloak_data,
-            },
-            exist_ok=False,
-        )
-        update_account_args = {
-            "user_id": keycloak_id,
-            "payload": ["UPDATE_PASSWORD"],
-            "client_id": "admin-cli",
-        }
-        if redirect_organization_code:
-            organization = Organization.objects.filter(code=redirect_organization_code)
-            if organization.exists():
-                update_account_args["redirect_uri"] = organization.get().website_url
-        keycloak_admin.send_update_account(**update_account_args)
-        return keycloak_id
+        return cls.service().create_user(payload=keycloak_data, exist_ok=False)
 
     @classmethod
     def create_user(
         cls,
         request_data: Dict[str, Union[str, bool]],
-        redirect_organization_code: str = "",
+        redirect_organization_code: str = "DEFAULT",
     ):
-        keycloak_data = {
+        payload = {
+            "enabled": True,
+            "emailVerified": False,
             "email": request_data.get("personal_email", request_data["email"]),
             "username": request_data["email"],
             "firstName": request_data["given_name"],
             "lastName": request_data["family_name"],
             "attributes": {
-                "pid": list(filter(lambda x: x, [request_data.get("people_id", None)])),
+                "locale": [request_data.get("language", "en")],
             },
         }
-        return cls._create_user(keycloak_data, redirect_organization_code)
+        password = request_data.get("password", None)
+        required_actions = ["VERIFY_EMAIL"]
+        if password:
+            payload["credentials"] = [{"type": "password", "value": password}]
+        else:
+            required_actions.append("UPDATE_PASSWORD")
+        keycloak_id = cls._create_user(payload)
+        cls.send_required_actions_email(
+            keycloak_id, required_actions, redirect_organization_code
+        )
+        return keycloak_id
 
     @classmethod
-    def send_reset_password_email(
-        cls, user: ProjectUser, redirect_organization_code: str = ""
-    ):
+    def send_required_actions_email(
+        cls,
+        keycloak_id: str,
+        required_actions: List[str],
+        redirect_organization_code: str = "DEFAULT",
+    ) -> bool:
         keycloak_admin = cls.service()
+        keycloak_user = cls.get_user(keycloak_id)
+        required_actions = list(
+            set(required_actions + keycloak_user.get("requiredActions", []))
+        )
+        if len(required_actions) == 0:
+            return False
         update_account_args = {
-            "user_id": user.keycloak_id,
-            "payload": ["UPDATE_PASSWORD"],
+            "user_id": keycloak_id,
+            "payload": required_actions,
             "client_id": "admin-cli",
         }
-        if redirect_organization_code:
-            organization = Organization.objects.filter(code=redirect_organization_code)
-            if organization.exists():
-                update_account_args["redirect_uri"] = organization.get().website_url
+        organization = Organization.objects.filter(code=redirect_organization_code)
+        keycloak_attributes = keycloak_user.get("attributes", {})
+        if organization.exists():
+            organization = organization.get()
+            keycloak_attributes = {
+                **keycloak_attributes,
+                "keycloakId": [keycloak_id],
+                "emailOrganizationCode": [organization.code],
+                "emailOrganizationName": [organization.name],
+                "emailOrganizationLogo": [
+                    f"{organization.website_url}/v1/organization/{organization.code}/logo/{organization.logo_image.id}/"
+                ],
+            }
+            update_account_args["redirect_uri"] = organization.website_url
+
+        payload = {
+            "requiredActions": required_actions,
+            "attributes": keycloak_attributes,
+        }
+        cls._update_user(keycloak_id=keycloak_id, payload=payload)
         keycloak_admin.send_update_account(**update_account_args)
+        return True
 
     @classmethod
     def import_user(cls, keycloak_id: str) -> ProjectUser:
@@ -209,11 +223,16 @@ class KeycloakService:
 
     @classmethod
     def update_user(cls, user: ProjectUser):
+        keycloak_user = cls.get_user(user.keycloak_id)
         payload = {
             "email": user.personal_email if user.personal_email else user.email,
             "username": user.email,
             "firstName": user.given_name,
             "lastName": user.family_name,
+            "attributes": {
+                **keycloak_user.get("attributes", {}),
+                "locale": [user.language],
+            },
         }
         return cls._update_user(keycloak_id=user.keycloak_id, payload=payload)
 

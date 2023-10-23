@@ -195,7 +195,7 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
         self.groups.add(managers, members, leaders)
         self.permissions_up_to_date = True
         # Saving is also mandatory to trigger indexing in Algolia
-        self.save()
+        self.save(update_fields=["permissions_up_to_date"])
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""
@@ -317,6 +317,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
+    show_welcome = models.BooleanField(default=True)
 
     # Profile fields
     birthdate = models.DateField(

@@ -11,8 +11,6 @@ config:
     CELERY_BROKER_URL: redis://projects-api-redis-master:6379/0
     CELERY_RESULT_BACKEND: redis://projects-api-redis-master:6379/0
     CACHE_REDIS_URL: redis://projects-api-redis-master:6379/1
-    # Gunicorn workers
-    WEB_CONCURRENCY: "9"
     ALGOLIA_AUTO_INDEXING: "1"
     EMAIL_HOST: projects-mailhog
     EMAIL_PORT: "1025"
@@ -20,6 +18,11 @@ config:
     DJANGO_CHECK_FAIL_LEVEL: ERROR
     INSTANCE: "{{ .Values.instance }}"
     PUBLIC_URL: "https://{{ .Values.hostname }}"
+    PORT: "{{ .Values.backend.port | toString }}"
+    GUNICORN_WORKERS_COUNT: "4"
+    GUNICORN_MAX_REQUESTS: "1000"
+    GUNICORN_MAX_REQUESTS_JITTER: "50"
+    GUNICORN_LOG_LEVEL: "info"
 
 fullName: projects-backend
 
@@ -30,11 +33,7 @@ image:
   path: projects-backend
   tag: "{{ .Values.application.revision }}"
 
-application:
-  revision: dummy-revision
 
-
-hostname: dummy-host
 ingressPath: /
 
 backend:
@@ -47,11 +46,12 @@ backend:
     app.kubernetes.io/version: "{{ .Chart.AppVersion }}"
     app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
-    limits:
-      memory: 2Gi
     requests:
       cpu: 10m
-      memory: 1Gi
+      memory: 1103M
+    limits:
+      memory: 1347M
+  port: 8000
 
 celery:
   replicaCount: 1

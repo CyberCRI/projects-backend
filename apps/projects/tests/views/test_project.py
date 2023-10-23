@@ -820,6 +820,17 @@ class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert to_delete not in project.owners.all()
 
+    def test_remove_members_self(self):
+        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        to_delete = UserFactory()
+        project.members.add(to_delete)
+        self.client.force_authenticate(to_delete)
+        response = self.client.delete(
+            reverse("Project-remove-self", args=(project.id,))
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert to_delete not in project.members.all()
+
     def test_remove_members_with_one_owner_base_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
         owner = UserFactory()
