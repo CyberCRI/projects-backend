@@ -40,7 +40,7 @@ class GoogleTestCase(JwtAPITestCase):
         return mocked_google_service
 
     @classmethod
-    def get_google_user_200(
+    def get_google_user_success(
         cls, google_user: Optional[GoogleAccount] = None, suspended: bool = False
     ):
         user = google_user.user if google_user else None
@@ -104,12 +104,12 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, content
 
     @classmethod
-    def get_google_user_404(cls):
+    def get_google_user_error(cls, status_code: int = 404):
         content = json.dumps({"error": {"message": "Resource Not Found: userKey"}})
-        return {"status": 404}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def create_google_user_201(
+    def create_google_user_success(
         cls,
         given_name: str,
         family_name: str,
@@ -139,23 +139,23 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 201}, content
 
     @classmethod
-    def create_google_user_409(cls):
+    def create_google_user_error(cls, status_code: int = 409):
         content = json.dumps({"error": {"message": "Entity already exists"}})
-        return {"status": 409}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def update_google_user_200(
+    def update_google_user_success(
         cls, google_user: Optional[GoogleAccount] = None, suspended: bool = False
     ):
-        return cls.get_google_user_200(google_user, suspended)
+        return cls.get_google_user_success(google_user, suspended)
 
     @classmethod
-    def update_google_user_404(cls):
+    def update_google_user_error(cls, status_code: int = 404):
         content = json.dumps({"error": {"message": "Resource Not Found: userKey"}})
-        return {"status": 404}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def add_user_alias_200(cls):
+    def add_user_alias_success(cls):
         content = {
             "kind": "admin#directory#alias",
             "id": "103807802848557555696",
@@ -165,12 +165,12 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, json.dumps(content)
 
     @classmethod
-    def add_user_alias_409(cls):
+    def add_user_alias_error(cls, status_code: int = 409):
         content = json.dumps({"error": {"message": "Entity already exists"}})
-        return {"status": 409}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def create_google_group_201(cls, email: str = "", name: str = ""):
+    def create_google_group_success(cls, email: str = "", name: str = ""):
         content = {
             "kind": "admin#directory#group",
             "id": randint(100000000000000000000, 999999999999999999999),  # nosec
@@ -188,12 +188,12 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 201}, json.dumps(content)
 
     @classmethod
-    def create_google_group_409(cls):
+    def create_google_group_error(cls, status_code: int = 409):
         content = json.dumps({"error": {"message": "Entity already exists"}})
-        return {"status": 409}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def get_google_group_200(cls, google_group: Optional[GoogleGroup] = None):
+    def get_google_group_success(cls, google_group: Optional[GoogleGroup] = None):
         content = {
             "kind": "admin#directory#group",
             "id": google_group.google_id if google_group else "",
@@ -217,19 +217,19 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, json.dumps(content)
 
     @classmethod
-    def get_google_group_404(cls):
+    def get_google_group_error(cls, status_code: int = 404):
         content = json.dumps({"error": {"message": "Resource Not Found: groupKey"}})
-        return {"status": 404}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def list_google_groups_200(
+    def list_google_groups_success(
         cls, google_groups: List[GoogleGroup], has_next_page: bool = False
     ):
         content = {
             "kind": "admin#directory#groups",
             "etag": "etag",
             "groups": [
-                json.loads(cls.get_google_group_200(google_group)[1])
+                json.loads(cls.get_google_group_success(google_group)[1])
                 for google_group in google_groups
             ],
         }
@@ -238,7 +238,12 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, json.dumps(content)
 
     @classmethod
-    def add_user_to_group_200(cls, google_user: Optional[GoogleAccount] = None):
+    def list_google_groups_error(cls, status_code: int = 404):
+        content = json.dumps({"error": {"message": "Resource Not Found: userKey"}})
+        return {"status": status_code}, content
+
+    @classmethod
+    def add_user_to_group_success(cls, google_user: Optional[GoogleAccount] = None):
         content = json.dumps(
             {
                 "kind": "admin#directory#group",
@@ -253,7 +258,7 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, content
 
     @classmethod
-    def list_group_members_200(
+    def list_group_members_success(
         cls, google_users: List[GoogleAccount], has_next_page: bool = False
     ):
         content = {
@@ -278,17 +283,22 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, json.dumps(content)
 
     @classmethod
-    def update_google_group_200(cls, google_group: Optional[GoogleGroup] = None):
-        content = json.loads(cls.get_google_group_200(google_group)[1])
+    def list_group_members_error(cls, status_code: int = 404):
+        content = json.dumps({"error": {"message": "Resource Not Found: groupKey"}})
+        return {"status": status_code}, content
+
+    @classmethod
+    def update_google_group_success(cls, google_group: Optional[GoogleGroup] = None):
+        content = json.loads(cls.get_google_group_success(google_group)[1])
         return {"status": 200}, json.dumps(content)
 
     @classmethod
-    def update_google_group_404(cls):
+    def update_google_group_error(cls, status_code: int = 404):
         content = json.dumps({"error": {"message": "Resource Not Found: groupKey"}})
-        return {"status": 404}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def add_group_alias_200(cls, google_group: Optional[GoogleGroup] = None):
+    def add_group_alias_success(cls, google_group: Optional[GoogleGroup] = None):
         content = {
             "kind": "admin#directory#alias",
             "id": google_group.google_id if google_group else "id",
@@ -298,20 +308,20 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": 200}, json.dumps(content)
 
     @classmethod
-    def add_group_alias_409(cls):
+    def add_group_alias_error(cls, status_code: int = 409):
         content = json.dumps({"error": {"message": "Entity already exists"}})
-        return {"status": 409}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def add_user_to_group_409(cls):
+    def add_user_to_group_error(cls, status_code: int = 409):
         content = json.dumps({"error": {"message": "Member already exists"}})
-        return {"status": 409}, content
+        return {"status": status_code}, content
 
     @classmethod
-    def remove_user_from_group_200(cls):
+    def remove_user_from_group_success(cls):
         return {"status": 200}, json.dumps("")
 
     @classmethod
-    def remove_user_from_group_404(cls):
+    def remove_user_from_group_error(cls, status_code: int = 404):
         content = json.dumps({"error": {"message": "Resource Not Found: memberKey"}})
-        return {"status": 404}, content
+        return {"status": status_code}, content

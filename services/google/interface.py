@@ -313,7 +313,7 @@ class GoogleService:
         while request is not None:
             response = request.execute()
             members += response.get("members", [])
-            request = cls.service().groups().list_next(request, response)
+            request = cls.service().members().list_next(request, response)
         return members
 
     @classmethod

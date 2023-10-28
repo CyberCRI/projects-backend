@@ -12,7 +12,6 @@ from apps.accounts.utils import get_superadmins_group
 from apps.organizations.factories import OrganizationFactory
 from services.google.factories import GoogleAccountFactory, GoogleGroupFactory
 from services.google.interface import GoogleService
-from services.google.mocks import GoogleTestCase
 from services.google.models import GoogleAccount, GoogleSyncErrors
 from services.google.tasks import (
     create_google_group_task,
@@ -21,6 +20,7 @@ from services.google.tasks import (
     update_google_group_task,
     update_google_user_task,
 )
+from services.google.testcases import GoogleTestCase
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -60,18 +60,20 @@ class GoogleTasksTestCase(GoogleTestCase):
         }
         mocked.side_effect = self.google_side_effect(
             [
-                self.get_google_user_200(existing_user),  # same username already exists
-                self.get_google_user_404(),  # username is available
-                self.create_google_user_201(
+                self.get_google_user_success(
+                    existing_user
+                ),  # same username already exists
+                self.get_google_user_error(),  # username is available
+                self.create_google_user_success(
                     payload["given_name"],
                     payload["family_name"],
                     payload["google_organizational_unit"],
                     email_count=1,
                 ),  # user is created
-                self.get_google_user_200(),  # user is fetched
-                self.add_user_alias_200(),  # alias is added
-                self.list_google_groups_200([]),  # user groups are fetched
-                self.add_user_to_group_200(),  # user is added to group
+                self.get_google_user_success(),  # user is fetched
+                self.add_user_alias_success(),  # alias is added
+                self.list_google_groups_success([]),  # user groups are fetched
+                self.add_user_to_group_success(),  # user is added to group
             ]
         )
         with (
@@ -140,10 +142,12 @@ class GoogleTasksTestCase(GoogleTestCase):
         }
         mocked.side_effect = self.google_side_effect(
             [
-                self.update_google_user_200(),  # user is updated
-                self.list_google_groups_200([group_1]),  # user groups are fetched
-                self.remove_user_from_group_200(),  # user is removed from group_1
-                self.add_user_to_group_200(google_account),  # user is added to group_2
+                self.update_google_user_success(),  # user is updated
+                self.list_google_groups_success([group_1]),  # user groups are fetched
+                self.remove_user_from_group_success(),  # user is removed from group_1
+                self.add_user_to_group_success(
+                    google_account
+                ),  # user is added to group_2
             ]
         )
         with (
@@ -190,7 +194,7 @@ class GoogleTasksTestCase(GoogleTestCase):
         google_id = google_account.google_id
         mocked.side_effect = self.google_side_effect(
             [
-                self.update_google_user_200(
+                self.update_google_user_success(
                     google_account, suspended=True
                 ),  # user is suspended
             ]
@@ -223,15 +227,15 @@ class GoogleTasksTestCase(GoogleTestCase):
         }
         mocked.side_effect = self.google_side_effect(
             [
-                self.get_google_group_404(),  # group email is available
-                self.create_google_group_201(
+                self.get_google_group_error(),  # group email is available
+                self.create_google_group_success(
                     email=payload["email"],
                     name=payload["name"],
                 ),  # group is created
-                self.get_google_group_200(),  # group is fetched
-                self.add_group_alias_200(),  # alias is added
-                self.list_group_members_200([]),  # group members are fetched
-                self.add_user_to_group_200(),  # user is added to group
+                self.get_google_group_success(),  # group is fetched
+                self.add_group_alias_success(),  # alias is added
+                self.list_group_members_success([]),  # group members are fetched
+                self.add_user_to_group_success(),  # user is added to group
             ]
         )
         with (
@@ -297,16 +301,16 @@ class GoogleTasksTestCase(GoogleTestCase):
         }
         mocked.side_effect = self.google_side_effect(
             [
-                self.get_google_group_200(),  # group email is taken
-                self.get_google_group_404(),  # group email is available
-                self.create_google_group_201(
+                self.get_google_group_success(),  # group email is taken
+                self.get_google_group_error(),  # group email is available
+                self.create_google_group_success(
                     email=f"{payload['name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}",
                     name=payload["name"],
                 ),  # group is created
-                self.get_google_group_200(),  # group is fetched
-                self.add_group_alias_200(),  # alias is added
-                self.list_group_members_200([]),  # group members are fetched
-                self.add_user_to_group_200(),  # user is added to group
+                self.get_google_group_success(),  # group is fetched
+                self.add_group_alias_success(),  # alias is added
+                self.list_group_members_success([]),  # group members are fetched
+                self.add_user_to_group_success(),  # user is added to group
             ]
         )
         with (
@@ -374,10 +378,10 @@ class GoogleTasksTestCase(GoogleTestCase):
         }
         mocked.side_effect = self.google_side_effect(
             [
-                self.update_google_group_200(),  # group is updated
-                self.list_group_members_200([user_1]),  # group members are fetched
-                self.remove_user_from_group_200(),  # user_2 is removed from group
-                self.add_user_to_group_200(user_2),  # user_1 is added to group
+                self.update_google_group_success(),  # group is updated
+                self.list_group_members_success([user_1]),  # group members are fetched
+                self.remove_user_from_group_success(),  # user_2 is removed from group
+                self.add_user_to_group_success(user_2),  # user_1 is added to group
             ]
         )
         with (

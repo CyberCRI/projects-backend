@@ -6,7 +6,7 @@ from django.conf import settings
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory
 from apps.organizations.factories import OrganizationFactory
 from services.google.interface import GoogleService
-from services.google.models import GoogleAccount, GoogleGroup
+from services.google.models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
 
 class RemoteGoogleAccountFactory(SeedUserFactory):
@@ -19,7 +19,7 @@ class RemoteGoogleAccountFactory(SeedUserFactory):
         google_account = GoogleAccount.objects.create(
             user=self, organizational_unit="/CRI/Test Google Sync"
         )
-        google_account = google_account.create()
+        google_account, _ = google_account.create()
         google_account.update_keycloak_username()
         GoogleService.get_user_by_email(google_account.email, 10)
         self.google_account = google_account
@@ -45,7 +45,7 @@ class GoogleAccountFactory(factory.django.DjangoModelFactory):
         lambda x: f"google.account.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}"
     )
     organizational_unit = "/CRI/Test Google Sync"
-    user = factory.SubFactory(SeedUserFactory, email=email)
+    user = factory.LazyAttribute(lambda x: SeedUserFactory(email=x.email))
 
     class Meta:
         model = GoogleAccount
@@ -76,3 +76,10 @@ class GoogleGroupFactory(factory.django.DjangoModelFactory):
         elif create:
             self.people_group.organization = OrganizationFactory()
             self.people_group.save()
+
+
+class GoogleSyncErrorFactory(factory.django.DjangoModelFactory):
+    error = factory.Faker("text", max_nb_chars=200)
+
+    class Meta:
+        model = GoogleSyncErrors

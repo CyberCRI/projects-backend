@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from django.db import models
 
@@ -38,7 +38,7 @@ class GoogleSyncErrors(models.Model):
     )
     on_task = models.CharField(max_length=50, choices=OnTaskChoices.choices)
     task_kwargs = models.JSONField(null=True, blank=True)
-    error = models.TextField()
+    error = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     retries_count = models.PositiveIntegerField(default=0)
     solved = models.BooleanField(default=False)
@@ -49,7 +49,7 @@ class GoogleSyncErrors(models.Model):
         ordering = ("-created_at",)
 
     def __str__(self):
-        return f"{self.user} - {self.error}"
+        return f"{self.on_task} google error"
 
     def retry(self):
         match self.on_task:
@@ -72,10 +72,7 @@ class GoogleSyncErrors(models.Model):
             case self.OnTaskChoices.GROUP_ALIAS:
                 self.google_group.create_alias(is_retry=True)
             case self.OnTaskChoices.SYNC_MEMBERS:
-                if self.google_account is not None:
-                    self.google_account.sync_groups(is_retry=True)
-                else:
-                    self.google_group.sync_members(is_retry=True)
+                self.google_group.sync_members(is_retry=True)
 
 
 class GoogleGroup(models.Model):
@@ -97,10 +94,9 @@ class GoogleGroup(models.Model):
         error: Optional[Exception] = None,
         google_account: Optional["GoogleAccount"] = None,
     ):
-        if error is None:
-            defaults = {"error": error.__traceback__}
-        else:
-            defaults = {"solved": True}
+        defaults = {"solved": error is None}
+        if error is not None:
+            defaults["error"] = str(error)
         error, created = GoogleSyncErrors.objects.update_or_create(
             google_group=self,
             google_account=google_account,
@@ -166,14 +162,13 @@ class GoogleGroup(models.Model):
             ).exclude(google_id__in=remote_users)
 
             for user_to_remove in users_to_remove:
-                self.remove_member(user_to_remove)
+                self.remove_member(user_to_remove, is_retry=is_retry)
 
             for user_to_add in users_to_add:
-                self.add_member(user_to_add)
+                self.add_member(user_to_add, is_retry=is_retry)
 
         except Exception as e:  # noqa
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
-
         else:
             if is_retry:
                 self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
@@ -227,10 +222,9 @@ class GoogleAccount(models.Model):
         error: Optional[Exception] = None,
         google_group: Optional["GoogleGroup"] = None,
     ):
-        if error is None:
-            defaults = {"error": error.__traceback__}
-        else:
-            defaults = {"solved": True}
+        defaults = {"solved": error is None}
+        if error is not None:
+            defaults["error"] = error
         error, created = GoogleSyncErrors.objects.update_or_create(
             google_group=google_group,
             google_account=self,
@@ -242,7 +236,9 @@ class GoogleAccount(models.Model):
             error.retries_count += 1
             error.save()
 
-    def create(self, is_retry: bool = False) -> "GoogleAccount":
+    def create(
+        self, is_retry: bool = False
+    ) -> Tuple["GoogleAccount", Optional[Exception]]:
         try:
             google_user = GoogleService.create_user(self.user, self.organizational_unit)
             self.email = google_user["primaryEmail"]
@@ -253,10 +249,10 @@ class GoogleAccount(models.Model):
             self.user.save()
         except Exception as e:  # noqa
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_USER, e)
-        else:
-            if is_retry:
-                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_USER)
-        return self
+            return self, e
+        if is_retry:
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_USER)
+        return self, None
 
     def update(self, is_retry: bool = False):
         try:
@@ -319,10 +315,10 @@ class GoogleAccount(models.Model):
             ).exclude(google_id__in=remote_groups)
 
             for group_to_remove in groups_to_remove:
-                self.remove_group(group_to_remove)
+                self.remove_group(group_to_remove, is_retry=is_retry)
 
             for group_to_add in groups_to_add:
-                self.add_group(group_to_add)
+                self.add_group(group_to_add, is_retry=is_retry)
 
         except Exception as e:  # noqa
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
