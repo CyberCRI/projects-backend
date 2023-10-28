@@ -50,8 +50,15 @@ def create_google_group(people_group: PeopleGroup):
         google_group, _ = GoogleGroup.objects.update_or_create(
             people_group=people_group
         )
-        google_group.create()
-        create_google_group_task.delay(people_group.pk)
+        google_group, error = google_group.create()
+        if not error:
+            create_google_group_task.delay(people_group.pk)
+        else:
+            for task in [
+                GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
+                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
+            ]:
+                google_group.update_or_create_error(task, "Error creating google group")
 
 
 def update_google_group(people_group: PeopleGroup):

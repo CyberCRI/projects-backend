@@ -108,7 +108,9 @@ class GoogleGroup(models.Model):
             error.retries_count += 1
             error.save()
 
-    def create(self, is_retry: bool = False) -> "GoogleGroup":
+    def create(
+        self, is_retry: bool = False
+    ) -> Tuple["GoogleGroup", Optional[Exception]]:
         google_group = GoogleService.get_group_by_email(self.people_group.email)
         if (
             google_group is not None
@@ -125,10 +127,11 @@ class GoogleGroup(models.Model):
             self.people_group.save()
         except Exception as e:  # noqa
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_GROUP, e)
+            return self, e
         else:
             if is_retry:
                 self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_GROUP)
-        return self
+        return self, None
 
     def update(self, is_retry: bool = False):
         try:

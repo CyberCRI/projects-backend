@@ -448,8 +448,6 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
             [
                 self.get_google_group_error(404),  # email available
                 self.create_google_group_error(),  # create group error
-                self.add_group_alias_error(),  # group alias error
-                self.list_group_members_error(),  # group members are fetched
             ]
         )
         create_google_group(people_group)

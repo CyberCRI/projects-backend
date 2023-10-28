@@ -34,7 +34,7 @@ class RemoteGoogleGroupFactory(PeopleGroupFactory):
         if not create:
             return
         google_group = GoogleGroup.objects.create(people_group=self)
-        google_group.create()
+        google_group, _ = google_group.create()
         GoogleService.get_group_by_email(google_group.email, 10)
         self.google_group = google_group
 
