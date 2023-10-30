@@ -38,7 +38,6 @@ class GoogleSyncErrors(models.Model):
         blank=True,
     )
     on_task = models.CharField(max_length=50, choices=OnTaskChoices.choices)
-    task_kwargs = models.JSONField(null=True, blank=True)
     error = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     retries_count = models.PositiveIntegerField(default=0)
