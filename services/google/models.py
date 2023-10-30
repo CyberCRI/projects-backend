@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.accounts.models import PeopleGroup, ProjectUser
@@ -82,11 +83,32 @@ class GoogleGroup(models.Model):
         related_name="google_group",
         to_field="id",
     )
-    google_id = models.CharField(max_length=50, unique=True, blank=True, default="")
-    email = models.EmailField(unique=True, blank=True, default="")
+    google_id = models.CharField(max_length=50, blank=True, default="")
+    email = models.EmailField(blank=True, default="")
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        if (
+            self.email != ""
+            and GoogleGroup.objects.filter(email=self.email)
+            .exclude(people_group=self.people_group)
+            .exists()
+        ):
+            raise ValidationError(
+                f"Google group with email {self.email} already exists."
+            )
+        if (
+            self.google_id != ""
+            and GoogleGroup.objects.filter(google_id=self.google_id)
+            .exclude(people_group=self.people_group)
+            .exists()
+        ):
+            raise ValidationError(
+                f"Google group with id {self.google_id} already exists."
+            )
+        return super().save(*args, **kwargs)
 
     def update_or_create_error(
         self,
@@ -207,12 +229,33 @@ class GoogleAccount(models.Model):
         related_name="google_account",
         to_field="keycloak_id",
     )
-    google_id = models.CharField(max_length=50, unique=True, blank=True, default="")
-    email = models.EmailField(unique=True, blank=True, default="")
+    google_id = models.CharField(max_length=50, blank=True, default="")
+    email = models.EmailField(blank=True, default="")
     organizational_unit = models.CharField(max_length=50, default="/CRI/Admin Staff")
 
     def __str__(self):
         return self.email
+
+    def save(self, *args, **kwargs):
+        if (
+            self.email != ""
+            and GoogleAccount.objects.filter(email=self.email)
+            .exclude(user=self.user)
+            .exists()
+        ):
+            raise ValidationError(
+                f"Google account with email {self.email} already exists."
+            )
+        if (
+            self.google_id != ""
+            and GoogleAccount.objects.filter(google_id=self.google_id)
+            .exclude(user=self.user)
+            .exists()
+        ):
+            raise ValidationError(
+                f"Google account with id {self.google_id} already exists."
+            )
+        return super().save(*args, **kwargs)
 
     def update_or_create_error(
         self,
