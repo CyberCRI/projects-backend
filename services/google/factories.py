@@ -1,13 +1,15 @@
 import uuid
 
 import factory
+from django.conf import settings
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory
-from services.google.models import GoogleAccount, GoogleGroup
-from services.google.tasks import create_google_group_task, create_google_user_task
+from apps.organizations.factories import OrganizationFactory
+from services.google.interface import GoogleService
+from services.google.models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
 
-class GoogleUserFactory(SeedUserFactory):
+class RemoteGoogleAccountFactory(SeedUserFactory):
     given_name = factory.LazyAttribute(lambda x: "googlesync")
 
     @factory.post_generation
@@ -17,13 +19,13 @@ class GoogleUserFactory(SeedUserFactory):
         google_account = GoogleAccount.objects.create(
             user=self, organizational_unit="/CRI/Test Google Sync"
         )
-        google_account = google_account.create()
+        google_account, _ = google_account.create()
         google_account.update_keycloak_username()
-        create_google_user_task(self.keycloak_id)
+        GoogleService.get_user_by_email(google_account.email, 10)
         self.google_account = google_account
 
 
-class GoogleGroupFactory(PeopleGroupFactory):
+class RemoteGoogleGroupFactory(PeopleGroupFactory):
     name = factory.LazyAttribute(lambda x: f"googlesync-{uuid.uuid4()}")
     email = ""
 
@@ -32,6 +34,50 @@ class GoogleGroupFactory(PeopleGroupFactory):
         if not create:
             return
         google_group = GoogleGroup.objects.create(people_group=self)
-        google_group.create()
-        create_google_group_task(self.id)
+        google_group, _ = google_group.create()
+        GoogleService.get_group_by_email(google_group.email, 10)
         self.google_group = google_group
+
+
+class GoogleAccountFactory(factory.django.DjangoModelFactory):
+    google_id = factory.Faker("pystr", min_chars=21, max_chars=21)
+    email = factory.LazyAttribute(
+        lambda x: f"google.account.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}"
+    )
+    organizational_unit = "/CRI/Test Google Sync"
+    user = factory.LazyAttribute(lambda x: SeedUserFactory(email=x.email))
+
+    class Meta:
+        model = GoogleAccount
+
+    @factory.post_generation
+    def groups(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.user.groups.add(*extracted)
+
+
+class GoogleGroupFactory(factory.django.DjangoModelFactory):
+    google_id = factory.Faker("pystr", min_chars=21, max_chars=21)
+    email = factory.LazyAttribute(
+        lambda x: f"google.group.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}"
+    )
+    people_group = factory.LazyAttribute(lambda x: PeopleGroupFactory(email=x.email))
+
+    class Meta:
+        model = GoogleGroup
+
+    @factory.post_generation
+    def organization(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.people_group.organization = extracted
+            self.people_group.save()
+        elif create:
+            self.people_group.organization = OrganizationFactory()
+            self.people_group.save()
+
+
+class GoogleSyncErrorFactory(factory.django.DjangoModelFactory):
+    error = factory.Faker("text", max_nb_chars=200)
+
+    class Meta:
+        model = GoogleSyncErrors

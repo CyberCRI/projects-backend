@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from services.google.exceptions import GoogleGroupEmailUnavailable
 
 if TYPE_CHECKING:
     from .models import GoogleAccount, GoogleGroup
@@ -56,7 +57,7 @@ class GoogleService:
         return re.sub(r"[ _'-]", "", text)
 
     @classmethod
-    def _get_user(cls, email: str):
+    def _get_user(cls, user_key: str):
         """
         Get a Google user from an email address.
 
@@ -67,7 +68,7 @@ class GoogleService:
             - A Google user.
         """
         try:
-            return cls.service().users().get(userKey=email).execute()
+            return cls.service().users().get(userKey=user_key).execute()
         except HttpError as e:
             if e.status_code == 404:
                 return None
@@ -92,11 +93,12 @@ class GoogleService:
             and settings.GOOGLE_EMAIL_ALIAS_DOMAIN not in email
         ):
             return None
-        for _ in range(max_retries):
+        for i in range(max_retries):
             user = cls._get_user(email)
             if user:
                 return user
-            time.sleep(2)
+            if i < max_retries - 1:
+                time.sleep(2)
         return None
 
     @classmethod
@@ -113,11 +115,12 @@ class GoogleService:
         Returns:
             - A Google user.
         """
-        for _ in range(max_retries):
-            user = cls.service().users().get(userKey=google_id).execute()
+        for i in range(max_retries):
+            user = cls._get_user(google_id)
             if user:
                 return user
-            time.sleep(2)
+            if i < max_retries - 1:
+                time.sleep(2)
         return None
 
     @classmethod
@@ -219,17 +222,28 @@ class GoogleService:
             raise e
 
     @classmethod
-    def get_group(cls, email: str, max_retries: int = 1):
+    def get_group_by_email(cls, email: str, max_retries: int = 1):
         if (
             settings.GOOGLE_EMAIL_DOMAIN not in email
             and settings.GOOGLE_EMAIL_ALIAS_DOMAIN not in email
         ):
             return None
-        for _ in range(max_retries):
+        for i in range(max_retries):
             group = cls._get_group(email)
             if group:
                 return group
-            time.sleep(2)
+            if i < max_retries - 1:
+                time.sleep(2)
+        return None
+
+    @classmethod
+    def get_group_by_id(cls, google_id: str, max_retries: int = 1):
+        for i in range(max_retries):
+            group = cls._get_group(google_id)
+            if group:
+                return group
+            if i < max_retries - 1:
+                time.sleep(2)
         return None
 
     @classmethod
@@ -245,20 +259,26 @@ class GoogleService:
     @classmethod
     def create_group(cls, group: PeopleGroup):
         if group.email:
+            google_group = cls.get_group_by_email(group.email)
+            if (
+                google_group is not None
+                and PeopleGroup.objects.filter(google_group__email=group.email).exists()
+            ):
+                raise GoogleGroupEmailUnavailable()
             email = group.email
         else:
             username = cls.text_to_ascii(f"team.{group.name}")
             if settings.GOOGLE_EMAIL_PREFIX:
                 username = f"{settings.GOOGLE_EMAIL_PREFIX}.{username}"
             email = f"{username}@{settings.GOOGLE_EMAIL_DOMAIN}"
-            google_group = cls.get_group(email)
+            google_group = cls.get_group_by_email(email)
             same_address_count = 0
             while google_group:
                 same_address_count += 1
                 email = (
                     f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
                 )
-                google_group = cls.get_group(email)
+                google_group = cls.get_group_by_email(email)
 
         body = {
             "adminCreated": True,
@@ -300,7 +320,7 @@ class GoogleService:
         while request is not None:
             response = request.execute()
             members += response.get("members", [])
-            request = cls.service().groups().list_next(request, response)
+            request = cls.service().members().list_next(request, response)
         return members
 
     @classmethod
@@ -339,7 +359,7 @@ class GoogleService:
         org_units = (
             cls.service()
             .orgunits()
-            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="CRI")
+            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="", type="all")
             .execute()
         )
-        return [org_unit["name"] for org_unit in org_units["organizationUnits"]]
+        return [org_unit["orgUnitPath"] for org_unit in org_units["organizationUnits"]]

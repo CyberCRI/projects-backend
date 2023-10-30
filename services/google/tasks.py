@@ -8,17 +8,27 @@ from .models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
 
 def create_google_account(
-    user: ProjectUser, organizational_unit: str = "CRI/Admin Staff"
+    user: ProjectUser, organizational_unit: str = "/CRI/Admin Staff"
 ):
     if user.groups.filter(
         organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
     ).exists():
-        google_account = GoogleAccount.objects.create(
-            user=user, organizational_unit=organizational_unit
+        google_account, _ = GoogleAccount.objects.update_or_create(
+            user=user, defaults={"organizational_unit": organizational_unit}
         )
-        google_account.create()
-        google_account.update_keycloak_username()
-        create_google_user_task.delay(user.keycloak_id)
+        google_account, error = google_account.create()
+        if not error:
+            google_account.update_keycloak_username()
+            create_google_user_task.delay(user.keycloak_id)
+        else:
+            for task in [
+                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
+                GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
+                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
+            ]:
+                google_account.update_or_create_error(
+                    task, "Error creating google account"
+                )
 
 
 def update_google_account(user: ProjectUser, organizational_unit: str = None):
@@ -37,9 +47,18 @@ def suspend_google_account(user: ProjectUser):
 
 def create_google_group(people_group: PeopleGroup):
     if people_group.organization.code == settings.GOOGLE_SYNCED_ORGANIZATION:
-        google_group = GoogleGroup.objects.create(people_group=people_group)
-        google_group.create()
-        create_google_group_task.delay(people_group.pk)
+        google_group, _ = GoogleGroup.objects.update_or_create(
+            people_group=people_group
+        )
+        google_group, error = google_group.create()
+        if not error:
+            create_google_group_task.delay(people_group.pk)
+        else:
+            for task in [
+                GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
+                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
+            ]:
+                google_group.update_or_create_error(task, "Error creating google group")
 
 
 def update_google_group(people_group: PeopleGroup):
@@ -54,7 +73,6 @@ def create_google_user_task(user_keycloak_id: str):
         google_account = google_account.get()
         GoogleService.get_user_by_email(google_account.email, 10)
         google_account.create_alias()
-        google_account.update_keycloak_username()
         google_account.sync_groups()
 
 
