@@ -111,20 +111,15 @@ class GoogleGroup(models.Model):
     def create(
         self, is_retry: bool = False
     ) -> Tuple["GoogleGroup", Optional[Exception]]:
-        google_group = GoogleService.get_group_by_email(self.people_group.email)
-        if (
-            google_group is not None
-            and GoogleGroup.objects.filter(email=self.people_group.email).exists()
-        ):
-            raise GoogleGroupEmailUnavailable()
         try:
-            if google_group is None:
-                google_group = GoogleService.create_group(self.people_group)
+            google_group = GoogleService.create_group(self.people_group)
             self.email = google_group["email"]
             self.google_id = google_group["id"]
             self.save()
             self.people_group.email = google_group["email"]
             self.people_group.save()
+        except GoogleGroupEmailUnavailable as e:
+            raise e
         except Exception as e:  # noqa
             self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.CREATE_GROUP, e)
             return self, e

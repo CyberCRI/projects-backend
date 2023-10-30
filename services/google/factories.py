@@ -61,9 +61,7 @@ class GoogleGroupFactory(factory.django.DjangoModelFactory):
     email = factory.LazyAttribute(
         lambda x: f"google.group.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}"
     )
-    people_group = factory.SubFactory(
-        PeopleGroupFactory, email=email, organization=None
-    )
+    people_group = factory.LazyAttribute(lambda x: PeopleGroupFactory(email=x.email))
 
     class Meta:
         model = GoogleGroup

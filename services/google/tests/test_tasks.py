@@ -286,6 +286,62 @@ class GoogleTasksTestCase(GoogleTestCase):
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
+    def test_create_google_group_with_existing_email(self, mocked, mocked_delay):
+        mocked_delay.side_effect = create_google_group_task
+        existing_user = GoogleAccountFactory(groups=[self.organization.get_users()])
+        existing_group = GoogleGroupFactory(organization=self.organization)
+        payload = {
+            "name": f"googlesync-{uuid.uuid4()}",
+            "organization": self.organization.code,
+            "create_in_google": True,
+            "email": existing_group.email,
+            "type": "group",
+            "description": "",
+            "team": {
+                "members": [existing_user.user.keycloak_id],
+            },
+        }
+        mocked.side_effect = self.google_side_effect(
+            [
+                self.get_google_group_success(
+                    existing_group
+                ),  # group email is not available
+            ]
+        )
+        with (
+            patch.object(
+                GoogleService, "create_group", wraps=GoogleService.create_group
+            ) as mocked_create_group,
+            patch.object(
+                GoogleService, "add_group_alias", wraps=GoogleService.add_group_alias
+            ) as mocked_add_group_alias,
+            patch.object(
+                GoogleService,
+                "get_group_members",
+                wraps=GoogleService.get_group_members,
+            ) as mocked_get_group_members,
+            patch.object(
+                GoogleService,
+                "add_user_to_group",
+                wraps=GoogleService.add_user_to_group,
+            ) as mocked_add_user_to_group,
+        ):
+            response = self.client.post(
+                reverse("PeopleGroup-list", args=(self.organization.code,)),
+                data=payload,
+            )
+            assert response.status_code == status.HTTP_409_CONFLICT
+            content = response.json()
+            assert content["detail"] == "This email is already used by another group"
+
+            mocked_create_group.assert_called_once()
+            mocked_add_group_alias.assert_not_called()
+            mocked_get_group_members.assert_not_called()
+            mocked_add_user_to_group.assert_not_called()
+            assert not PeopleGroup.objects.filter(name=payload["name"]).exists()
+
+    @patch("services.google.tasks.create_google_group_task.delay")
+    @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_without_email(self, mocked, mocked_delay):
         mocked_delay.side_effect = create_google_group_task
         google_user = GoogleAccountFactory(groups=[self.organization.get_users()])

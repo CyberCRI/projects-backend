@@ -122,13 +122,13 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
         )
 
     @staticmethod
-    def side_effect(*args, **kwargs):
+    def raise_error_side_effect(*args, **kwargs):
         raise Exception("Updated error")
 
     @staticmethod
-    def return_list_side_effect(items):
+    def return_object_side_effect(obj):
         def inner(*args, **kwargs):
-            return items
+            return obj
 
         return inner
 
@@ -169,7 +169,7 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             error="Initial error",
         )
         with patch(mocked_task) as mock:
-            mock.side_effect = self.side_effect
+            mock.side_effect = self.raise_error_side_effect
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
@@ -206,7 +206,7 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             error="Initial error",
         )
         with patch(mocked_task) as mock:
-            mock.side_effect = self.side_effect
+            mock.side_effect = self.raise_error_side_effect
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
@@ -243,8 +243,8 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
                 "services.google.interface.GoogleService.add_user_to_group"
             ) as mocked_add,
         ):
-            mocked_get.side_effect = self.return_list_side_effect([])
-            mocked_add.side_effect = self.side_effect
+            mocked_get.side_effect = self.return_object_side_effect([])
+            mocked_add.side_effect = self.raise_error_side_effect
             retry_failed_tasks()
             mocked_get.assert_called_once()
             mocked_add.assert_called_once()
@@ -264,16 +264,9 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
         )
 
     @staticmethod
-    def return_item_side_effect(item):
+    def return_object_side_effect(obj):
         def inner(*args, **kwargs):
-            return item
-
-        return inner
-
-    @staticmethod
-    def return_list_side_effect(items):
-        def inner(*args, **kwargs):
-            return items
+            return obj
 
         return inner
 
@@ -314,7 +307,7 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
             "id": self.google_account.google_id,
         }
         with patch(mocked_task) as mock:
-            mock.side_effect = self.return_item_side_effect(returned_value)
+            mock.side_effect = self.return_object_side_effect(returned_value)
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
@@ -351,7 +344,7 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
             "id": self.google_group.google_id,
         }
         with patch(mocked_task) as mock:
-            mock.side_effect = self.return_item_side_effect(returned_value)
+            mock.side_effect = self.return_object_side_effect(returned_value)
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
@@ -404,8 +397,8 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
                 "services.google.interface.GoogleService.add_user_to_group"
             ) as mocked_add,
         ):
-            mocked_get.side_effect = self.return_item_side_effect([])
-            mocked_add.side_effect = self.return_item_side_effect({})
+            mocked_get.side_effect = self.return_object_side_effect([])
+            mocked_add.side_effect = self.return_object_side_effect({})
             retry_failed_tasks()
             mocked_get.assert_called_once()
             error.refresh_from_db()

@@ -10,6 +10,7 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from services.google.exceptions import GoogleGroupEmailUnavailable
 
 if TYPE_CHECKING:
     from .models import GoogleAccount, GoogleGroup
@@ -258,6 +259,12 @@ class GoogleService:
     @classmethod
     def create_group(cls, group: PeopleGroup):
         if group.email:
+            google_group = cls.get_group_by_email(group.email)
+            if (
+                google_group is not None
+                and PeopleGroup.objects.filter(google_group__email=group.email).exists()
+            ):
+                raise GoogleGroupEmailUnavailable()
             email = group.email
         else:
             username = cls.text_to_ascii(f"team.{group.name}")
