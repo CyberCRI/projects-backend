@@ -1,760 +1,328 @@
 from django.urls import reverse
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
 
-class FollowTestCaseNoPermission(JwtAPITestCase):
-    def test_create_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        user.groups.clear()
-        payload = {"project_id": project.id}
+class CreateFollowTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.public_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.org_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations=[cls.organization],
+        )
+        cls.private_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
+        )
+        cls.projects = {
+            "public": cls.public_project,
+            "org": cls.org_project,
+            "private": cls.private_project,
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "public"),
+            (TestRoles.DEFAULT, status.HTTP_201_CREATED, "public"),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "org"),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "org"),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "private"),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "private"),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "private"),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "private"),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "private"),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN, "private"),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
+        ]
+    )
+    def test_create_followed_public_project(self, role, expected_code, project_status):
+        instance = self.projects[project_status]
+        user = self.get_parameterized_test_user(
+            role, project=instance, owned_instance=instance
+        )
         self.client.force_authenticate(user)
         project_response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Followed-list", args=(instance.id,)),
+            data={"project_id": instance.id},
         )
-        user_response = self.client.post(
-            reverse("Follower-list", kwargs={"user_keycloak_id": user.keycloak_id}),
-            data=payload,
-        )
-        self.assertEqual(
-            project_response.status_code,
-            status.HTTP_403_FORBIDDEN,
-            project_response.json(),
-        )
-        self.assertEqual(
-            user_response.status_code,
-            status.HTTP_403_FORBIDDEN,
-            user_response.json(),
-        )
+        assert project_response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            assert project_response.json()["project"]["id"] == instance.id
+            assert (
+                project_response.json()["follower"]["keycloak_id"] == user.keycloak_id
+            )
 
-    def test_create_many_no_permission(self):
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        user.groups.clear()
-        payload = {
-            "follows": [
-                {"project_id": project1.id},
-                {"project_id": project2.id},
-                {"project_id": project3.id},
-            ]
-        }
-
+    @parameterized.expand(
+        [
+            (TestRoles.DEFAULT, status.HTTP_201_CREATED, "public"),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "public"),
+            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "public"),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "org"),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "org"),
+            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "org"),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "private"),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "private"),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "private"),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "private"),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN, "private"),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
+        ]
+    )
+    def test_create_follower_public_project(self, role, expected_code, project_status):
+        instance = self.projects[project_status]
+        user = self.get_parameterized_test_user(
+            role, project=instance, owned_instance=instance
+        )
         self.client.force_authenticate(user)
         user_response = self.client.post(
-            reverse("Follower-list", kwargs={"user_keycloak_id": user.keycloak_id}),
+            reverse("Follower-list", args=(user.keycloak_id,)),
+            data={"project_id": instance.id},
+        )
+        assert user_response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            assert user_response.json()["project"]["id"] == instance.id
+            assert user_response.json()["follower"]["keycloak_id"] == user.keycloak_id
+
+    @parameterized.expand(
+        [
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+        ]
+    )
+    def test_create_many_follow(self, role, expected_code):
+        instances = self.projects.values()
+        user = self.get_parameterized_test_user(role, projects=instances)
+        payload = {"follows": [{"project_id": project.id} for project in instances]}
+        self.client.force_authenticate(user)
+        user_response = self.client.post(
+            reverse("Follower-follow-many", args=(user.keycloak_id,)),
             data=payload,
         )
-
-        self.assertEqual(
-            user_response.status_code,
-            status.HTTP_403_FORBIDDEN,
-            user_response.json(),
-        )
-
-    def test_list_base_permission(self):
-        organization = OrganizationFactory()
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1, project2, project3)
-        follower1 = UserFactory()
-        follower2 = UserFactory()
-        follower3 = UserFactory()
-        follower123 = UserFactory()
-        FollowFactory(follower=follower1, project=project1)
-        FollowFactory(follower=follower2, project=project2)
-        FollowFactory(follower=follower3, project=project3)
-        FollowFactory(follower=follower123, project=project1)
-        FollowFactory(follower=follower123, project=project2)
-        FollowFactory(follower=follower123, project=project3)
-
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project1.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-        self.assertEqual(content["results"][1]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][1]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project2.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower1.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower2.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse(
-                "Follower-list", kwargs={"user_keycloak_id": follower123.keycloak_id}
+        assert user_response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            assert len(user_response.json()) == len(instances)
+            assert all(
+                p.id in [f["project"]["id"] for f in user_response.json()]
+                for p in instances
             )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
+            assert all(
+                user.keycloak_id == f["follower"]["keycloak_id"]
+                for f in user_response.json()
+            )
 
-    def test_destroy_base_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
+
+class DestroyFollowTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_destroy_followed(self, role, expected_code):
         follower = UserFactory()
-        follow = FollowFactory(follower=follower, project=project)
-        self.client.force_authenticate(UserFactory())
-        project_response = self.client.delete(
-            reverse(
-                "Followed-detail", kwargs={"project_id": project.id, "id": follow.id}
-            )
+        instance = FollowFactory(follower=follower, project=self.project)
+        user = self.get_parameterized_test_user(
+            role, project=self.project, owned_instance=instance
         )
-        self.assertEqual(project_response.status_code, status.HTTP_403_FORBIDDEN)
-
-        follow = FollowFactory(follower=follower, project=project)
-        user_response = self.client.delete(
-            reverse(
-                "Follower-detail",
-                kwargs={"user_keycloak_id": follower.keycloak_id, "id": follow.id},
-            )
-        )
-        self.assertEqual(user_response.status_code, status.HTTP_403_FORBIDDEN)
-
-
-class FollowTestCaseOwner(JwtAPITestCase):
-    def test_list_owner(self):
-        organization = OrganizationFactory()
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1, project2, project3)
-        follower1 = UserFactory()
-        follower2 = UserFactory()
-        follower3 = UserFactory()
-        follower123 = UserFactory()
-        f1 = FollowFactory(follower=follower1, project=project1)
-        FollowFactory(follower=follower2, project=project2)
-        FollowFactory(follower=follower3, project=project3)
-        FollowFactory(follower=follower123, project=project1)
-        FollowFactory(follower=follower123, project=project2)
-        FollowFactory(follower=follower123, project=project3)
-
-        self.client.force_authenticate(f1.follower)
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project1.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-        self.assertEqual(content["results"][1]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][1]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project2.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower1.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower2.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse(
-                "Follower-list", kwargs={"user_keycloak_id": follower123.keycloak_id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-
-    def test_destroy_owner(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        follower = UserFactory()
-        follow = FollowFactory(follower=follower, project=project)
-        self.client.force_authenticate(follower)
-        project_response = self.client.delete(
-            reverse(
-                "Followed-detail", kwargs={"project_id": project.id, "id": follow.id}
-            )
-        )
-        self.assertEqual(project_response.status_code, status.HTTP_204_NO_CONTENT)
-
-        follow = FollowFactory(follower=follower, project=project)
-        user_response = self.client.delete(
-            reverse(
-                "Follower-detail",
-                kwargs={"user_keycloak_id": follower.keycloak_id, "id": follow.id},
-            )
-        )
-        self.assertEqual(user_response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-class FollowTestCaseBasePermission(JwtAPITestCase):
-    def test_create_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        payload = {"project_id": project.id}
-        self.client.force_authenticate(user)
-        project_response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        user_response = self.client.post(
-            reverse("Follower-list", kwargs={"user_keycloak_id": user.keycloak_id}),
-            data=payload,
-        )
-        self.assertEqual(
-            project_response.status_code,
-            status.HTTP_201_CREATED,
-            project_response.json(),
-        )
-        self.assertEqual(
-            user_response.status_code, status.HTTP_201_CREATED, user_response.json()
-        )
-
-    def test_create_many_base_permission(self):
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        user = UserFactory()
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        payload = {
-            "follows": [
-                {"project_id": project1.id},
-                {"project_id": project2.id},
-                {"project_id": project3.id},
-            ]
-        }
-        self.client.force_authenticate(user)
-        user_response = self.client.post(
-            reverse(
-                "Follower-follow-many", kwargs={"user_keycloak_id": user.keycloak_id}
-            ),
-            data=payload,
-        )
-        self.assertEqual(
-            user_response.status_code, status.HTTP_201_CREATED, user_response.json()
-        )
-
-    def test_list_base_permission(self):
-        organization = OrganizationFactory()
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1, project2, project3)
-        follower1 = UserFactory()
-        follower2 = UserFactory()
-        follower3 = UserFactory()
-        follower123 = UserFactory()
-        FollowFactory(follower=follower1, project=project1)
-        FollowFactory(follower=follower2, project=project2)
-        FollowFactory(follower=follower3, project=project3)
-        FollowFactory(follower=follower123, project=project1)
-        FollowFactory(follower=follower123, project=project2)
-        FollowFactory(follower=follower123, project=project3)
-
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project1.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-        self.assertEqual(content["results"][1]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][1]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project2.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower1.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower2.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse(
-                "Follower-list", kwargs={"user_keycloak_id": follower123.keycloak_id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-
-    def test_destroy_base_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        follower = UserFactory()
-        follow = FollowFactory(follower=follower, project=project)
-        user = UserFactory(permissions=[("feedbacks.delete_follow", None)])
         self.client.force_authenticate(user)
         project_response = self.client.delete(
             reverse(
-                "Followed-detail", kwargs={"project_id": project.id, "id": follow.id}
+                "Followed-detail",
+                args=(
+                    self.project.id,
+                    instance.id,
+                ),
             )
         )
-        self.assertEqual(project_response.status_code, status.HTTP_204_NO_CONTENT)
+        assert project_response.status_code == expected_code
 
-        follow = FollowFactory(follower=follower, project=project)
-        user_response = self.client.delete(
-            reverse(
-                "Follower-detail",
-                kwargs={"user_keycloak_id": follower.keycloak_id, "id": follow.id},
-            )
-        )
-        self.assertEqual(user_response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-class FollowTestCaseProjectPermission(JwtAPITestCase):
-    def test_create_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        payload = {"project_id": project.id}
-        self.client.force_authenticate(user)
-        project_response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        user_response = self.client.post(
-            reverse("Follower-list", kwargs={"user_keycloak_id": user.keycloak_id}),
-            data=payload,
-        )
-        self.assertEqual(
-            project_response.status_code,
-            status.HTTP_201_CREATED,
-            project_response.json(),
-        )
-        self.assertEqual(
-            user_response.status_code, status.HTTP_201_CREATED, user_response.json()
-        )
-
-    def test_create_many_project_permission(self):
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        user = UserFactory(
-            permissions=[
-                ("projects.view_project", project1),
-                ("projects.view_project", project2),
-                ("projects.view_project", project3),
-            ]
-        )
-        payload = {
-            "follows": [
-                {"project_id": project1.id},
-                {"project_id": project2.id},
-                {"project_id": project3.id},
-            ]
-        }
-        self.client.force_authenticate(user)
-        user_response = self.client.post(
-            reverse(
-                "Follower-follow-many", kwargs={"user_keycloak_id": user.keycloak_id}
-            ),
-            data=payload,
-        )
-        self.assertEqual(
-            user_response.status_code, status.HTTP_201_CREATED, user_response.json()
-        )
-
-    def test_list_project_permission(self):
-        organization = OrganizationFactory()
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1, project2, project3)
-        follower1 = UserFactory(permissions=[("projects.view_project", project1)])
-        follower2 = UserFactory(permissions=[("projects.view_project", project2)])
-        follower3 = UserFactory(permissions=[("projects.view_project", project3)])
-        follower123 = UserFactory(
-            permissions=[
-                ("projects.view_project", project1),
-                ("projects.view_project", project2),
-                ("projects.view_project", project3),
-            ]
-        )
-        FollowFactory(follower=follower1, project=project1)
-        FollowFactory(follower=follower2, project=project2)
-        FollowFactory(follower=follower3, project=project3)
-        FollowFactory(follower=follower123, project=project1)
-        FollowFactory(follower=follower123, project=project2)
-        FollowFactory(follower=follower123, project=project3)
-
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project1.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-        self.assertEqual(content["results"][1]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][1]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project2.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower1.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower2.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse(
-                "Follower-list", kwargs={"user_keycloak_id": follower123.keycloak_id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-
-    def test_destroy_project_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory(permissions=[("projects.delete_follow", project)])
-        organization.projects.add(project)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_destroy_follower(self, role, expected_code):
         follower = UserFactory()
-        follow = FollowFactory(follower=follower, project=project)
+        instance = FollowFactory(follower=follower, project=self.project)
+        user = self.get_parameterized_test_user(
+            role, project=self.project, owned_instance=instance
+        )
         self.client.force_authenticate(user)
         project_response = self.client.delete(
             reverse(
-                "Followed-detail", kwargs={"project_id": project.id, "id": follow.id}
-            )
-        )
-        self.assertEqual(project_response.status_code, status.HTTP_204_NO_CONTENT)
-
-        follow = FollowFactory(follower=follower, project=project)
-        user_response = self.client.delete(
-            reverse(
                 "Follower-detail",
-                kwargs={"user_keycloak_id": follower.keycloak_id, "id": follow.id},
+                args=(
+                    follower.keycloak_id,
+                    instance.id,
+                ),
             )
         )
-        self.assertEqual(user_response.status_code, status.HTTP_204_NO_CONTENT)
+        assert project_response.status_code == expected_code
 
 
-class FollowTestCaseOrganizationPermission(JwtAPITestCase):
-    def test_create_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organizations.view_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        organization.projects.add(project)
-        payload = {"project_id": project.id}
-        self.client.force_authenticate(user)
-        project_response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}), data=payload
+class ListFollowTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.public_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
-        user_response = self.client.post(
-            reverse("Follower-list", kwargs={"user_keycloak_id": user.keycloak_id}),
-            data=payload,
-        )
-        self.assertEqual(
-            project_response.status_code,
-            status.HTTP_201_CREATED,
-            project_response.json(),
-        )
-        self.assertEqual(
-            user_response.status_code, status.HTTP_201_CREATED, user_response.json()
-        )
-
-    def test_create_many_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organizations.view_project", organization)])
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1)
-        organization.projects.add(project2)
-        organization.projects.add(project3)
-        payload = {
-            "follows": [
-                {"project_id": project1.id},
-                {"project_id": project2.id},
-                {"project_id": project3.id},
-            ]
-        }
-        self.client.force_authenticate(user)
-
-        user_response = self.client.post(
-            reverse(
-                "Follower-follow-many", kwargs={"user_keycloak_id": user.keycloak_id}
-            ),
-            data=payload,
-        )
-
-        self.assertEqual(
-            user_response.status_code, status.HTTP_201_CREATED, user_response.json()
-        )
-
-    def test_list_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory()
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1, project2, project3)
-        follower1 = UserFactory()
-        follower2 = UserFactory()
-        follower3 = UserFactory()
-        follower123 = UserFactory()
-        FollowFactory(follower=follower1, project=project1)
-        FollowFactory(follower=follower2, project=project2)
-        FollowFactory(follower=follower3, project=project3)
-        FollowFactory(follower=follower123, project=project1)
-        FollowFactory(follower=follower123, project=project2)
-        FollowFactory(follower=follower123, project=project3)
-
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project1.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-        self.assertEqual(content["results"][1]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][1]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Followed-list", kwargs={"project_id": project2.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower1.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower1.id)
-
-        response = self.client.get(
-            reverse("Follower-list", kwargs={"user_keycloak_id": follower2.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse(
-                "Follower-list", kwargs={"user_keycloak_id": follower123.keycloak_id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["project"]["id"], project1.id)
-        self.assertEqual(content["results"][0]["follower"]["id"], follower123.id)
-
-    def test_destroy_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organizations.delete_follow", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        follower = UserFactory()
-        follow = FollowFactory(follower=follower, project=project)
-        self.client.force_authenticate(user)
-        project_response = self.client.delete(
-            reverse(
-                "Followed-detail", kwargs={"project_id": project.id, "id": follow.id}
-            )
-        )
-        self.assertEqual(project_response.status_code, status.HTTP_204_NO_CONTENT)
-
-        follow = FollowFactory(follower=follower, project=project)
-        user_response = self.client.delete(
-            reverse(
-                "Follower-detail",
-                kwargs={"user_keycloak_id": follower.keycloak_id, "id": follow.id},
-            )
-        )
-        self.assertEqual(user_response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-class FollowTestCaseProjectStatusPermission(JwtAPITestCase):
-    def test_create_public_project_status_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        payload = {
-            "project_id": project.id,
-        }
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}),
-            data=payload,
-        )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
-        )
-
-    def test_create_many_project_status_permission(self):
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        payload = {
-            "follows": [
-                {"project_id": project1.id},
-                {"project_id": project2.id},
-                {"project_id": project3.id},
-            ]
-        }
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse(
-                "Follower-follow-many",
-                kwargs={"user_keycloak_id": user.keycloak_id},
-            ),
-            data=payload,
-        )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
-        )
-
-    def test_create_org_project_status_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(
+        cls.org_project = ProjectFactory(
             publication_status=Project.PublicationStatus.ORG,
-            organizations=[organization],
+            organizations=[cls.organization],
         )
-        user = UserFactory(
-            permissions=[("organizations.view_org_project", organization)]
+        cls.private_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
         )
-        payload = {
-            "project_id": project.id,
+        cls.projects = {
+            "public": cls.public_project,
+            "org": cls.org_project,
+            "private": cls.private_project,
         }
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}),
-            data=payload,
-        )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
-        )
-
-    def test_create_many_org_status_permission(self):
-        organization = OrganizationFactory()
-        project1 = ProjectFactory(
-            publication_status=Project.PublicationStatus.ORG,
-            organizations=[organization],
-        )
-        project2 = ProjectFactory(
-            publication_status=Project.PublicationStatus.ORG,
-            organizations=[organization],
-        )
-        project3 = ProjectFactory(
-            publication_status=Project.PublicationStatus.ORG,
-            organizations=[organization],
-        )
-        user = UserFactory(
-            permissions=[("organizations.view_org_project", organization)]
-        )
-        payload = {
-            "follows": [
-                {"project_id": project1.id},
-                {"project_id": project2.id},
-                {"project_id": project3.id},
-            ]
-        }
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse(
-                "Follower-follow-many",
-                kwargs={"user_keycloak_id": user.keycloak_id},
+        cls.follower = UserFactory()
+        cls.follows = {
+            "public": FollowFactory(project=cls.public_project, follower=cls.follower),
+            "org": FollowFactory(project=cls.org_project, follower=cls.follower),
+            "private": FollowFactory(
+                project=cls.private_project, follower=cls.follower
             ),
-            data=payload,
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.OWNER, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_list_follower(self, role, retrieved_follows):
+        user = self.get_parameterized_test_user(
+            role, projects=self.projects.values(), owned_instance=self.follower
         )
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_201_CREATED,
+        self.client.force_authenticate(user)
+        user_response = self.client.get(
+            reverse(
+                "Follower-list", kwargs={"user_keycloak_id": self.follower.keycloak_id}
+            ),
         )
+        assert user_response.status_code == status.HTTP_200_OK
+        content = user_response.json()["results"]
+        assert len(content) == len(retrieved_follows)
+        assert {f["id"] for f in content} == {
+            self.follows[f].id for f in retrieved_follows
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.OWNER, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_list_followed(self, role, retrieved_follows):
+        user = self.get_parameterized_test_user(
+            role, projects=self.projects.values(), owned_instance=self.follower
+        )
+        self.client.force_authenticate(user)
+        for project_status, project in self.projects.items():
+            project_response = self.client.get(
+                reverse("Followed-list", kwargs={"project_id": project.id}),
+            )
+            assert project_response.status_code == status.HTTP_200_OK
+            content = project_response.json()["results"]
+            if project_status in retrieved_follows:
+                assert self.follower.keycloak_id in [
+                    f["follower"]["keycloak_id"] for f in content
+                ]
+            else:
+                assert len(content) == 0

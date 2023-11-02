@@ -65,14 +65,36 @@ class JwtAPITestCase(APITestCase):
         project: Optional[Project] = None,
         people_group: Optional[PeopleGroup] = None,
         organization: Optional[Organization] = None,
+        projects: Optional[list[Project]] = None,
+        people_groups: Optional[list[PeopleGroup]] = None,
+        organizations: Optional[list[Organization]] = None,
     ):
         if (
-            sum([1 for obj in [project, organization, people_group] if obj is not None])
+            sum(
+                [
+                    1
+                    for obj in [
+                        project,
+                        organization,
+                        people_group,
+                        projects,
+                        organizations,
+                        people_groups,
+                    ]
+                    if obj is not None
+                ]
+            )
             > 1
         ):
             raise ValueError(
                 "You can't give more than one project, organization or people group"
             )
+        if organization:
+            organizations = [organization]
+        if people_group:
+            people_groups = [people_group]
+        if project:
+            projects = [project]
         # base roles
         if role == TestRoles.ANONYMOUS:
             return None
@@ -84,43 +106,58 @@ class JwtAPITestCase(APITestCase):
         if owned_instance and role == TestRoles.OWNER:
             return owned_instance.get_owner()
         # organization roles
-        if organization and role == TestRoles.ORG_ADMIN:
-            return UserFactory(groups=[organization.get_admins()])
-        if organization and role == TestRoles.ORG_FACILITATOR:
-            return UserFactory(groups=[organization.get_facilitators()])
-        if organization and role == TestRoles.ORG_USER:
-            return UserFactory(groups=[organization.get_users()])
+        if organizations and role == TestRoles.ORG_ADMIN:
+            return UserFactory(groups=[o.get_admins() for o in organizations])
+        if organizations and role == TestRoles.ORG_FACILITATOR:
+            return UserFactory(groups=[o.get_facilitators() for o in organizations])
+        if organizations and role == TestRoles.ORG_USER:
+            return UserFactory(groups=[o.get_users() for o in organizations])
         # people group roles
-        if people_group and role == TestRoles.GROUP_LEADER:
-            return UserFactory(groups=[people_group.get_leaders()])
-        if people_group and role == TestRoles.GROUP_MANAGER:
-            return UserFactory(groups=[people_group.get_managers()])
-        if people_group and role == TestRoles.GROUP_MEMBER:
-            return UserFactory(groups=[people_group.get_members()])
-        if people_group and role == TestRoles.ORG_ADMIN:
-            return UserFactory(groups=[people_group.organization.get_admins()])
-        if people_group and role == TestRoles.ORG_FACILITATOR:
-            return UserFactory(groups=[people_group.organization.get_facilitators()])
-        if people_group and role == TestRoles.ORG_USER:
-            return UserFactory(groups=[people_group.organization.get_users()])
+        if people_groups and role == TestRoles.GROUP_LEADER:
+            return UserFactory(groups=[p.get_leaders() for p in people_groups])
+        if people_groups and role == TestRoles.GROUP_MANAGER:
+            return UserFactory(groups=[p.get_managers() for p in people_groups])
+        if people_groups and role == TestRoles.GROUP_MEMBER:
+            return UserFactory(groups=[p.get_members() for p in people_groups])
+        if people_groups and role == TestRoles.ORG_ADMIN:
+            return UserFactory(
+                groups=[p.organization.get_admins() for p in people_groups]
+            )
+        if people_groups and role == TestRoles.ORG_FACILITATOR:
+            return UserFactory(
+                groups=[p.organization.get_facilitators() for p in people_groups]
+            )
+        if people_groups and role == TestRoles.ORG_USER:
+            return UserFactory(
+                groups=[p.organization.get_users() for p in people_groups]
+            )
         # project roles
-        if project and role == TestRoles.PROJECT_OWNER:
-            return UserFactory(groups=[project.get_owners()])
-        if project and role == TestRoles.PROJECT_REVIEWER:
-            return UserFactory(groups=[project.get_reviewers()])
-        if project and role == TestRoles.PROJECT_MEMBER:
-            return UserFactory(groups=[project.get_members()])
-        if project and role == TestRoles.ORG_ADMIN:
+        if projects and role == TestRoles.PROJECT_OWNER:
+            return UserFactory(groups=[p.get_owners() for p in projects])
+        if projects and role == TestRoles.PROJECT_REVIEWER:
+            return UserFactory(groups=[p.get_reviewers() for p in projects])
+        if projects and role == TestRoles.PROJECT_MEMBER:
+            return UserFactory(groups=[p.get_members() for p in projects])
+        if projects and role == TestRoles.ORG_ADMIN:
             return UserFactory(
-                groups=[o.get_admins() for o in project.organizations.all()]
+                groups=[
+                    o.get_admins()
+                    for o in Organization.objects.filter(projects__in=projects)
+                ]
             )
-        if project and role == TestRoles.ORG_FACILITATOR:
+        if projects and role == TestRoles.ORG_FACILITATOR:
             return UserFactory(
-                groups=[o.get_facilitators() for o in project.organizations.all()]
+                groups=[
+                    o.get_facilitators()
+                    for o in Organization.objects.filter(projects__in=projects)
+                ]
             )
-        if project and role == TestRoles.ORG_USER:
+        if projects and role == TestRoles.ORG_USER:
             return UserFactory(
-                groups=[o.get_users() for o in project.organizations.all()]
+                groups=[
+                    o.get_users()
+                    for o in Organization.objects.filter(projects__in=projects)
+                ]
             )
         raise ValueError(f"Invalid role {role} for given object(s)")
 
