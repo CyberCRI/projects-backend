@@ -5,6 +5,7 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
+from apps.feedbacks.models import Follow
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
@@ -183,10 +184,9 @@ class DestroyFollowTestCase(JwtAPITestCase):
         ]
     )
     def test_destroy_followed(self, role, expected_code):
-        follower = UserFactory()
-        instance = FollowFactory(follower=follower, project=self.project)
+        follow = FollowFactory(project=self.project)
         user = self.get_parameterized_test_user(
-            role, project=self.project, owned_instance=instance
+            role, project=self.project, owned_instance=follow
         )
         self.client.force_authenticate(user)
         project_response = self.client.delete(
@@ -194,11 +194,13 @@ class DestroyFollowTestCase(JwtAPITestCase):
                 "Followed-detail",
                 args=(
                     self.project.id,
-                    instance.id,
+                    follow.id,
                 ),
             )
         )
         assert project_response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert Follow.objects.filter(id=follow.id).exists() is False
 
     @parameterized.expand(
         [
