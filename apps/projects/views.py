@@ -206,18 +206,25 @@ class ProjectViewSet(viewsets.ModelViewSet):
         links = list(project.links.all())
         files = list(project.files.all())
         announcements = list(project.announcements.all())
+        locations = list(project.locations.all())
         images = list(project.images.all())
         # saving a new project in db
         project.pk = None
         project.slug = ""
         project.save()
         # duplicating sub items
-        sub_items = blog_entries + goals + links + files + announcements + images
-        for item in sub_items:
+        foreign_keys = blog_entries + goals + links + files + announcements + locations
+        for item in foreign_keys:
+            created_at = getattr(item, "created_at", None)
             item.pk = None
             item.project = project
             item.save()
+            if created_at:
+                item.created_at = created_at
+                item.save(update_fields=["created_at"])
+
         # duplicating mtm items
+        project.images.add(*images)
         project.organizations.add(*organizations)
         project.categories.add(*categories)
         project.save()
