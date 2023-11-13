@@ -69,9 +69,6 @@ def _get_serializer_update_data(user, user_data, update_mode=""):
         user_data = {key: value for key, value in user_data.items() if value}
     else:
         raise ValueError("Invalid update mode")
-    user_data["roles_to_add"] = user_data.get("roles_to_add", []) + list(
-        user.groups.values_list("id", flat=True)
-    )
     user_data["sdgs"] = list(
         set([int(i) for i in user_data.get("sdgs", []) + user.sdgs])
     )
