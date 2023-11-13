@@ -86,15 +86,7 @@ def _update_user_from_csv_data(request, user, user_data, update_mode="no_update"
     )
     if serializer.is_valid():
         instance = serializer.save()
-        keycloak_data = {
-            "email": instance.personal_email
-            if instance.personal_email
-            else instance.email,
-            "username": instance.email,
-            "firstName": instance.given_name,
-            "lastName": instance.family_name,
-        }
-        KeycloakService.update_user(instance, keycloak_data)
+        KeycloakService.update_user(instance)
         return {"email": user_data["email"], "status": "updated", "error": ""}
     return {
         "email": user_data["email"],
