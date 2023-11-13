@@ -197,7 +197,7 @@ class ProjectEditedNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project)
+                | ProjectUser.objects.filter(follows__project=self.project).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -228,7 +228,7 @@ class BlogEntryNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project)
+                | ProjectUser.objects.filter(follows__project=self.project).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -245,7 +245,7 @@ class AnnouncementNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project)
+                | ProjectUser.objects.filter(follows__project=self.project).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -330,7 +330,7 @@ class ReviewNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project)
+                | ProjectUser.objects.filter(follows__project=self.project).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()

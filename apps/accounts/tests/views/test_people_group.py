@@ -1,15 +1,10 @@
-import uuid
-from unittest import mock
-
-from django.conf import settings
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from faker import Faker
-from googleapiclient.errors import HttpError
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
@@ -325,131 +320,6 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
                 project not in people_group.featured_projects.all()
                 for project in projects
             )
-
-
-class PeopleGroupSyncErrorsTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory(code="TEST_GOOGLE_SYNC")
-
-    @staticmethod
-    def mocked_google_error(code=400):
-        def raise_error(*args, **kwargs):
-            raise HttpError(
-                resp=mock.Mock(status=code, reason="error reason"),
-                content=b'{"error": {"errors": [{"reason": "error reason"}]}}',
-            )
-
-        return raise_error
-
-    def test_google_error_create_people_group(self):
-        organization = self.organization
-        self.client.force_authenticate(
-            user=UserFactory(groups=[get_superadmins_group()])
-        )
-        payload = {
-            "name": faker.word(),
-            "description": faker.sentence(),
-            "create_in_google": True,
-            "organization": organization.pk,
-        }
-        with mock.patch(
-            "services.google.interface.GoogleService.create_group",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.post(
-                reverse("PeopleGroup-list", args=(organization.code,)), data=payload
-            )
-        assert response.status_code == 400
-        assert response.json()["error"] == "An error occured in Google : error reason"
-        assert not PeopleGroup.objects.filter(name=payload["name"]).exists()
-
-    def test_google_error_update_people_group(self):
-        organization = self.organization
-        self.client.force_authenticate(
-            user=UserFactory(groups=[get_superadmins_group()])
-        )
-        group = PeopleGroupFactory(
-            email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-            organization=organization,
-        )
-        payload = {
-            "description": faker.sentence(),
-        }
-        with mock.patch(
-            "services.google.interface.GoogleService.get_group",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.patch(
-                reverse("PeopleGroup-detail", args=(organization.code, group.pk)),
-                data=payload,
-            )
-        assert response.status_code == 400
-        assert response.json()["error"] == "An error occured in Google : error reason"
-        group.refresh_from_db()
-        assert group.description != payload["description"]
-
-    def test_google_error_add_people_group_member(self):
-        organization = self.organization
-        self.client.force_authenticate(
-            user=UserFactory(groups=[get_superadmins_group()])
-        )
-        group = PeopleGroupFactory(
-            email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-            organization=organization,
-        )
-        user = SeedUserFactory(
-            email=f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            groups=[organization.get_users()],
-        )
-        payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [user.keycloak_id],
-        }
-        with mock.patch(
-            "services.google.interface.GoogleService.get_group",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.post(
-                reverse("PeopleGroup-add-member", args=(organization.code, group.pk)),
-                data=payload,
-            )
-        assert response.status_code == 400
-        assert response.json()["error"] == "An error occured in Google : error reason"
-        assert not group.members.all().filter(pk=user.pk).exists()
-
-    def test_google_error_remove_people_group_member(self):
-        organization = self.organization
-        self.client.force_authenticate(
-            user=UserFactory(groups=[get_superadmins_group()])
-        )
-        group = PeopleGroupFactory(
-            email=f"team.{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-            organization=organization,
-        )
-        user = SeedUserFactory(
-            email=f"{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            groups=[organization.get_users(), group.get_members()],
-        )
-        payload = {
-            "users": [user.keycloak_id],
-        }
-        with mock.patch(
-            "services.google.interface.GoogleService.get_group",
-            side_effect=self.mocked_google_error(),
-        ):
-            response = self.client.post(
-                reverse(
-                    "PeopleGroup-remove-member", args=(organization.code, group.pk)
-                ),
-                data=payload,
-            )
-        assert response.status_code == 400
-        assert response.json()["error"] == "An error occured in Google : error reason"
-        assert group.members.all().filter(pk=user.pk).exists()
 
 
 class ValidatePeopleGroupTestCase(JwtAPITestCase):

@@ -1,3 +1,6 @@
+import requests
+
+from projects.settings.base import REQUESTS_DEFAULT_TIMEOUT
 from projects.settings.develop import *  # noqa: F401, F403
 
 ENVIRONMENT = "fullstack"
@@ -10,3 +13,30 @@ PUBLIC_URL = "http://localhost:8000"
 ##############
 
 GOOGLE_EMAIL_PREFIX = "fullstack"
+
+##############
+#  KEYCLOAK  #
+##############
+
+KEYCLOAK_SERVER_URL = "http://keycloak:8080"
+KEYCLOAK_PUBLIC_KEY = requests.get(
+    f"{KEYCLOAK_SERVER_URL}/realms/lp", timeout=REQUESTS_DEFAULT_TIMEOUT
+).json()["public_key"]
+KEYCLOAK_PUBLIC_KEY = (
+    f"-----BEGIN PUBLIC KEY-----\n{KEYCLOAK_PUBLIC_KEY}\n-----END PUBLIC KEY-----"
+)
+
+##############
+# SIMPLE_JWT #
+##############
+
+# From https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
+SIMPLE_JWT = {
+    "AUTH_HEADER_TYPES": ("Bearer", "JWT", "Invite", "Service"),
+    "USER_ID_FIELD": "keycloak_id",
+    "USER_ID_CLAIM": "sub",
+    "TOKEN_TYPE_CLAIM": "typ",
+    "AUTH_TOKEN_CLASSES": ("apps.accounts.authentication.BearerToken",),
+    "ALGORITHM": "RS256",
+    "VERIFYING_KEY": KEYCLOAK_PUBLIC_KEY,
+}

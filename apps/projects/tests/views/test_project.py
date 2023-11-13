@@ -14,9 +14,12 @@ from apps.announcements.factories import AnnouncementFactory
 from apps.commons.test import JwtAPITestCase
 from apps.commons.test.testcases import TagTestCase
 from apps.feedbacks.factories import FollowFactory, ReviewFactory
+from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
+from apps.goals.factories import GoalFactory
 from apps.misc.factories import TagFactory, WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import (
+    BlogEntryFactory,
     LinkedProjectFactory,
     LocationFactory,
     ProjectFactory,
@@ -767,8 +770,13 @@ class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
             publication_status=Project.PublicationStatus.PRIVATE,
             categories=[pc],
         )
-        organization = OrganizationFactory()
-        project.organizations.add(organization)
+        BlogEntryFactory.create_batch(3, project=project)
+        GoalFactory.create_batch(3, project=project)
+        AttachmentLinkFactory.create_batch(3, project=project)
+        AttachmentFileFactory.create_batch(3, project=project)
+        AnnouncementFactory.create_batch(3, project=project)
+        images = [self.get_test_image() for _ in range(3)]
+        project.images.set(images)
         user = UserFactory(
             permissions=[
                 ("projects.view_project", None),
@@ -776,10 +784,79 @@ class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
             ]
         )
         self.client.force_authenticate(user)
-        response = self.client.post(reverse("Project-duplicate", args=(project.id,)))
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
+        duplicated_project_response = self.client.post(
+            reverse("Project-duplicate", args=(project.id,))
         )
+        initial_project_response = self.client.get(
+            reverse("Project-detail", args=(project.id,))
+        )
+        assert duplicated_project_response.status_code == status.HTTP_201_CREATED
+        assert initial_project_response.status_code == status.HTTP_200_OK
+        duplicated_project = duplicated_project_response.json()
+        initial_project = initial_project_response.json()
+
+        fields = [
+            "is_locked",
+            "title",
+            "description",
+            "is_shareable",
+            "purpose",
+            "language",
+            "publication_status",
+            "life_status",
+            "template",
+            "header_image",
+        ]
+        many_to_many_fields = [
+            "categories",
+            "wikipedia_tags",
+            "organization_tags",
+            "linked_projects",
+            "images",
+        ]
+        related_fields = [
+            "blog_entries",
+            "goals",
+            "links",
+            "files",
+            "announcements",
+            "locations",
+        ]
+        list_fields = ["sdgs"]
+
+        for field in fields:
+            assert duplicated_project[field] == initial_project[field]
+
+        for field in list_fields:
+            assert set(duplicated_project[field]) == set(initial_project[field])
+
+        for field in many_to_many_fields:
+            assert set([item["id"] for item in duplicated_project[field]]) == set(
+                [item["id"] for item in initial_project[field]]
+            )
+
+        for related_field in related_fields:
+            assert len(duplicated_project[related_field]) == len(
+                initial_project[related_field]
+            )
+            duplicated_field = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in ["id", "project", "updated_at"]
+                }
+                for item in duplicated_project[related_field]
+            ]
+            initial_field = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in ["id", "project", "updated_at"]
+                }
+                for item in initial_project[related_field]
+            ]
+            assert len(duplicated_field) == len(initial_field)
+            assert all(item in initial_field for item in duplicated_field)
 
     def test_add_members_base_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
@@ -1125,11 +1202,87 @@ class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
                 ("projects.view_project", project),
             ]
         )
+        BlogEntryFactory.create_batch(3, project=project)
+        GoalFactory.create_batch(3, project=project)
+        AttachmentLinkFactory.create_batch(3, project=project)
+        AttachmentFileFactory.create_batch(3, project=project)
+        AnnouncementFactory.create_batch(3, project=project)
+        images = [self.get_test_image() for _ in range(3)]
+        project.images.set(images)
         self.client.force_authenticate(user)
-        response = self.client.post(reverse("Project-duplicate", args=(project.id,)))
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
+        duplicated_project_response = self.client.post(
+            reverse("Project-duplicate", args=(project.id,))
         )
+        initial_project_response = self.client.get(
+            reverse("Project-detail", args=(project.id,))
+        )
+        assert duplicated_project_response.status_code == status.HTTP_201_CREATED
+        assert initial_project_response.status_code == status.HTTP_200_OK
+        duplicated_project = duplicated_project_response.json()
+        initial_project = initial_project_response.json()
+
+        fields = [
+            "is_locked",
+            "title",
+            "description",
+            "is_shareable",
+            "purpose",
+            "language",
+            "publication_status",
+            "life_status",
+            "template",
+            "header_image",
+        ]
+        many_to_many_fields = [
+            "categories",
+            "wikipedia_tags",
+            "organization_tags",
+            "linked_projects",
+            "images",
+        ]
+        related_fields = [
+            "blog_entries",
+            "goals",
+            "links",
+            "files",
+            "announcements",
+            "locations",
+        ]
+        list_fields = ["sdgs"]
+
+        for field in fields:
+            assert duplicated_project[field] == initial_project[field]
+
+        for field in list_fields:
+            assert set(duplicated_project[field]) == set(initial_project[field])
+
+        for field in many_to_many_fields:
+            assert set([item["id"] for item in duplicated_project[field]]) == set(
+                [item["id"] for item in initial_project[field]]
+            )
+
+        for related_field in related_fields:
+            assert len(duplicated_project[related_field]) == len(
+                initial_project[related_field]
+            )
+            duplicated_field = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in ["id", "project", "updated_at"]
+                }
+                for item in duplicated_project[related_field]
+            ]
+            initial_field = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in ["id", "project", "updated_at"]
+                }
+                for item in initial_project[related_field]
+            ]
+            assert len(duplicated_field) == len(initial_field)
+            assert all(item in initial_field for item in duplicated_field)
 
     def test_add_members_project_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
@@ -1457,6 +1610,13 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
             publication_status=Project.PublicationStatus.PRIVATE,
             categories=[pc],
         )
+        BlogEntryFactory.create_batch(3, project=project)
+        GoalFactory.create_batch(3, project=project)
+        AttachmentLinkFactory.create_batch(3, project=project)
+        AttachmentFileFactory.create_batch(3, project=project)
+        AnnouncementFactory.create_batch(3, project=project)
+        images = [self.get_test_image() for _ in range(3)]
+        project.images.set(images)
         organization = OrganizationFactory()
         project.organizations.add(organization)
         user = UserFactory(
@@ -1466,10 +1626,79 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
             ]
         )
         self.client.force_authenticate(user)
-        response = self.client.post(reverse("Project-duplicate", args=(project.id,)))
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
+        duplicated_project_response = self.client.post(
+            reverse("Project-duplicate", args=(project.id,))
         )
+        initial_project_response = self.client.get(
+            reverse("Project-detail", args=(project.id,))
+        )
+        assert duplicated_project_response.status_code == status.HTTP_201_CREATED
+        assert initial_project_response.status_code == status.HTTP_200_OK
+        duplicated_project = duplicated_project_response.json()
+        initial_project = initial_project_response.json()
+
+        fields = [
+            "is_locked",
+            "title",
+            "description",
+            "is_shareable",
+            "purpose",
+            "language",
+            "publication_status",
+            "life_status",
+            "template",
+            "header_image",
+        ]
+        many_to_many_fields = [
+            "categories",
+            "wikipedia_tags",
+            "organization_tags",
+            "linked_projects",
+            "images",
+        ]
+        related_fields = [
+            "blog_entries",
+            "goals",
+            "links",
+            "files",
+            "announcements",
+            "locations",
+        ]
+        list_fields = ["sdgs"]
+
+        for field in fields:
+            assert duplicated_project[field] == initial_project[field]
+
+        for field in list_fields:
+            assert set(duplicated_project[field]) == set(initial_project[field])
+
+        for field in many_to_many_fields:
+            assert set([item["id"] for item in duplicated_project[field]]) == set(
+                [item["id"] for item in initial_project[field]]
+            )
+
+        for related_field in related_fields:
+            assert len(duplicated_project[related_field]) == len(
+                initial_project[related_field]
+            )
+            duplicated_field = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in ["id", "project", "updated_at"]
+                }
+                for item in duplicated_project[related_field]
+            ]
+            initial_field = [
+                {
+                    key: value
+                    for key, value in item.items()
+                    if key not in ["id", "project", "updated_at"]
+                }
+                for item in initial_project[related_field]
+            ]
+            assert len(duplicated_field) == len(initial_field)
+            assert all(item in initial_field for item in duplicated_field)
 
     def test_add_members_org_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
