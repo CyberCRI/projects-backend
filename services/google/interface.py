@@ -2,6 +2,7 @@ import re
 import time
 import unicodedata
 import uuid
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from google.oauth2 import service_account
@@ -9,6 +10,10 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from services.google.exceptions import GoogleGroupEmailUnavailable
+
+if TYPE_CHECKING:
+    from .models import GoogleAccount, GoogleGroup
 
 
 class GoogleService:
@@ -52,7 +57,7 @@ class GoogleService:
         return re.sub(r"[ _'-]", "", text)
 
     @classmethod
-    def _get_user(cls, email: str):
+    def _get_user(cls, user_key: str):
         """
         Get a Google user from an email address.
 
@@ -63,14 +68,14 @@ class GoogleService:
             - A Google user.
         """
         try:
-            return cls.service().users().get(userKey=email).execute()
+            return cls.service().users().get(userKey=user_key).execute()
         except HttpError as e:
             if e.status_code == 404:
                 return None
             raise e
 
     @classmethod
-    def get_user(cls, email: str, max_retries: int = 1):
+    def get_user_by_email(cls, email: str, max_retries: int = 1):
         """
         Get a Google user from an email address.
         This method uses a retry mechanism because Google returns 404 errors for a
@@ -88,23 +93,44 @@ class GoogleService:
             and settings.GOOGLE_EMAIL_ALIAS_DOMAIN not in email
         ):
             return None
-        for _ in range(max_retries):
+        for i in range(max_retries):
             user = cls._get_user(email)
             if user:
                 return user
-            time.sleep(2)
+            if i < max_retries - 1:
+                time.sleep(2)
         return None
 
     @classmethod
-    def create_user(cls, user: ProjectUser, main_group: str):
+    def get_user_by_id(cls, google_id: str, max_retries: int = 1):
+        """
+        Get a Google user from an id.
+        This method uses a retry mechanism because Google returns 404 errors for a
+        few seconds after a new account is created.
+
+        Args:
+            - google_id (str): The id of the user in Google.
+            - max_retries (int): The maximum number of retries.
+
+        Returns:
+            - A Google user.
+        """
+        for i in range(max_retries):
+            user = cls._get_user(google_id)
+            if user:
+                return user
+            if i < max_retries - 1:
+                time.sleep(2)
+        return None
+
+    @classmethod
+    def create_user(cls, user: ProjectUser, organizational_unit: str):
         """
         Create a Google user.
 
         Args:
-            - firstname (str): The first name of the user.
-            - lastname (str): The last name of the user.
-            - main_group (str): The main group of the user.
-            - email_domain (str): The email domain of the user.
+            - user (ProjectUser): The user to create.
+            - organizational_unit (str): The main group of the user.
 
         Returns:
             - A Google user.
@@ -113,14 +139,14 @@ class GoogleService:
         if settings.GOOGLE_EMAIL_PREFIX:
             username = f"{settings.GOOGLE_EMAIL_PREFIX}.{username}"
         email_address = f"{username}@{settings.GOOGLE_EMAIL_DOMAIN}"
-        google_user = cls.get_user(email_address)
+        google_user = cls.get_user_by_email(email_address)
         same_address_count = 0
         while google_user:
             same_address_count += 1
             email_address = (
                 f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
             )
-            google_user = cls.get_user(email_address)
+            google_user = cls.get_user_by_email(email_address)
 
         google_data = {
             "primaryEmail": email_address,
@@ -130,79 +156,61 @@ class GoogleService:
             },
             "changePasswordAtNextLogin": True,
             "password": str(uuid.uuid4().hex + uuid.uuid4().hex),
-            "orgUnitPath": f"/CRI/{main_group}",
+            "orgUnitPath": organizational_unit,
         }
 
         return cls.service().users().insert(body=google_data).execute()
 
     @classmethod
-    def _update_user(cls, user: ProjectUser, google_user: dict, **kwargs):
+    def update_user(cls, google_account: "GoogleAccount"):
         body = {
-            **google_user,
-            **kwargs,
             "name": {
-                "givenName": user.given_name,
-                "familyName": user.family_name,
+                "givenName": google_account.user.given_name,
+                "familyName": google_account.user.family_name,
             },
+            "orgUnitPath": google_account.organizational_unit,
         }
+        return (
+            cls.service()
+            .users()
+            .update(
+                userKey=google_account.google_id,
+                body=body,
+            )
+            .execute()
+        )
+
+    @classmethod
+    def suspend_user(cls, google_account: "GoogleAccount"):
         cls.service().users().update(
-            userKey=google_user["id"],
-            body=body,
+            userKey=google_account.google_id,
+            body={
+                "suspended": True,
+                "suspensionReason": "Suspended by LPI Projects",
+                "includeInGlobalAddressList": False,
+            },
         ).execute()
 
     @classmethod
-    def update_user(cls, user: ProjectUser, **kwargs):
-        google_user = cls.get_user(user.email)
-        if google_user:
-            cls._update_user(user, google_user, **kwargs)
+    def delete_user(cls, google_account: "GoogleAccount"):
+        cls.service().users().delete(userKey=google_account.google_id).execute()
 
     @classmethod
-    def suspend_user(cls, user: ProjectUser):
-        google_user = cls.get_user(user.email)
-        if google_user:
-            cls.service().users().update(
-                userKey=google_user["id"],
-                body={
-                    "suspended": True,
-                    "suspensionReason": "Suspended by LPI Projects",
-                    "includeInGlobalAddressList": False,
-                },
-            ).execute()
-
-    @classmethod
-    def delete_user(cls, user: ProjectUser):
-        google_user = cls.get_user(user.email)
-        if google_user:
-            cls.service().users().delete(userKey=google_user["id"]).execute()
-
-    @classmethod
-    def _add_user_alias(cls, google_user: dict, alias: str = ""):
+    def add_user_alias(cls, google_account: "GoogleAccount", alias: str = ""):
         if not alias:
-            email = google_user["primaryEmail"]
-            alias = email.replace(
+            alias = google_account.email.replace(
                 settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
             )
         cls.service().users().aliases().insert(
-            userKey=google_user["id"], body={"alias": alias}
+            userKey=google_account.google_id, body={"alias": alias}
         ).execute()
 
     @classmethod
-    def add_user_alias(cls, user: ProjectUser, alias: str = ""):
-        google_user = cls.get_user(user.email)
-        if google_user:
-            cls._add_user_alias(google_user, alias)
-
-    @classmethod
-    def _get_user_groups(cls, google_user: dict):
-        response = cls.service().groups().list(userKey=google_user["id"]).execute()
+    def get_user_groups(cls, google_account: "GoogleAccount"):
+        response = (
+            cls.service().groups().list(userKey=google_account.google_id).execute()
+        )
         return response.get("groups", [])
-
-    @classmethod
-    def get_user_groups(cls, user: ProjectUser):
-        google_user = cls.get_user(user.email)
-        if google_user:
-            return cls._get_user_groups(google_user)
-        return []
 
     @classmethod
     def _get_group(cls, email: str):
@@ -214,17 +222,28 @@ class GoogleService:
             raise e
 
     @classmethod
-    def get_group(cls, email: str, max_retries: int = 1):
+    def get_group_by_email(cls, email: str, max_retries: int = 1):
         if (
             settings.GOOGLE_EMAIL_DOMAIN not in email
             and settings.GOOGLE_EMAIL_ALIAS_DOMAIN not in email
         ):
             return None
-        for _ in range(max_retries):
+        for i in range(max_retries):
             group = cls._get_group(email)
             if group:
                 return group
-            time.sleep(2)
+            if i < max_retries - 1:
+                time.sleep(2)
+        return None
+
+    @classmethod
+    def get_group_by_id(cls, google_id: str, max_retries: int = 1):
+        for i in range(max_retries):
+            group = cls._get_group(google_id)
+            if group:
+                return group
+            if i < max_retries - 1:
+                time.sleep(2)
         return None
 
     @classmethod
@@ -240,20 +259,26 @@ class GoogleService:
     @classmethod
     def create_group(cls, group: PeopleGroup):
         if group.email:
+            google_group = cls.get_group_by_email(group.email)
+            if (
+                google_group is not None
+                and PeopleGroup.objects.filter(google_group__email=group.email).exists()
+            ):
+                raise GoogleGroupEmailUnavailable()
             email = group.email
         else:
             username = cls.text_to_ascii(f"team.{group.name}")
             if settings.GOOGLE_EMAIL_PREFIX:
                 username = f"{settings.GOOGLE_EMAIL_PREFIX}.{username}"
             email = f"{username}@{settings.GOOGLE_EMAIL_DOMAIN}"
-            google_group = cls.get_group(email)
+            google_group = cls.get_group_by_email(email)
             same_address_count = 0
             while google_group:
                 same_address_count += 1
                 email = (
                     f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
                 )
-                google_group = cls.get_group(email)
+                google_group = cls.get_group_by_email(email)
 
         body = {
             "adminCreated": True,
@@ -265,207 +290,76 @@ class GoogleService:
         return cls.service().groups().insert(body=body).execute()
 
     @classmethod
-    def _update_group(cls, group: PeopleGroup, google_group: dict, **kwargs):
-        body = {"name": group.name, **kwargs}
+    def add_group_alias(cls, google_group: "GoogleGroup", alias: str = ""):
+        if not alias:
+            alias = google_group.email.replace(
+                settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
+            )
+        cls.service().groups().aliases().insert(
+            groupKey=google_group.google_id, body={"alias": alias}
+        ).execute()
+
+    @classmethod
+    def update_group(cls, google_group: "GoogleGroup"):
+        body = {"name": google_group.people_group.name}
         return (
             cls.service()
             .groups()
-            .update(groupKey=google_group["id"], body=body)
+            .update(groupKey=google_group.google_id, body=body)
             .execute()
         )
 
     @classmethod
-    def update_group(cls, group: PeopleGroup, **kwargs):
-        google_group = cls.get_group(group.email)
-        if google_group:
-            cls._update_group(group, google_group, **kwargs)
+    def delete_group(cls, google_group: "GoogleGroup"):
+        cls.service().groups().delete(groupKey=google_group.google_id).execute()
 
     @classmethod
-    def _delete_group(cls, email: str):
-        return cls.service().groups().delete(groupKey=email).execute()
-
-    @classmethod
-    def delete_group(cls, group: PeopleGroup):
-        google_group = cls.get_group(group.email)
-        if google_group:
-            cls._delete_group(group.email)
-
-    @classmethod
-    def _get_group_members(cls, email: str):
+    def get_group_members(cls, google_group: "GoogleGroup"):
         members = []
-        request = cls.service().members().list(groupKey=email)
+        request = cls.service().members().list(groupKey=google_group.google_id)
         while request is not None:
             response = request.execute()
             members += response.get("members", [])
-            request = cls.service().groups().list_next(request, response)
+            request = cls.service().members().list_next(request, response)
         return members
 
     @classmethod
-    def get_group_members(cls, group: PeopleGroup):
-        google_group = cls.get_group(group.email)
-        if google_group:
-            return cls._get_group_members(group.email)
-        return []
-
-    @classmethod
-    def _add_user_to_group(cls, google_user: dict, google_group: dict):
+    def add_user_to_group(
+        cls, google_account: "GoogleAccount", google_group: "GoogleGroup"
+    ):
         body = {
+            "email": google_account.email,
+            "id": google_account.google_id,
             "delivery_settings": "ALL_MAIL",
-            "email": google_user["primaryEmail"],
-            "etag": google_group["etag"],
-            "id": google_user["id"],
             "role": "MEMBER",
             "type": "USER",
             "status": "ACTIVE",
-            "kind": google_group["kind"],
+            "kind": "admin#directory#group",
         }
         return (
             cls.service()
             .members()
-            .insert(groupKey=google_group["id"], body=body)
+            .insert(groupKey=google_group.google_id, body=body)
             .execute()
         )
 
     @classmethod
-    def add_user_to_group(cls, user: ProjectUser, group: PeopleGroup):
-        google_user = cls.get_user(user.email)
-        google_group = cls.get_group(group.email)
-        if google_user and google_group:
-            cls._add_user_to_group(google_user, google_group)
-
-    @classmethod
-    def _remove_user_from_group(cls, google_user: dict, google_group: dict):
+    def remove_user_from_group(
+        cls, google_account: "GoogleAccount", google_group: "GoogleGroup"
+    ):
         return (
             cls.service()
             .members()
-            .delete(groupKey=google_group["id"], memberKey=google_user["id"])
+            .delete(groupKey=google_group.google_id, memberKey=google_account.google_id)
             .execute()
         )
-
-    @classmethod
-    def remove_user_from_group(cls, user: ProjectUser, group: PeopleGroup):
-        google_user = cls.get_user(user.email)
-        google_group = cls.get_group(group.email)
-
-        if google_user and google_group:
-            cls._remove_user_from_group(google_user, google_group)
-
-    @classmethod
-    def _sync_user_groups(cls, user: ProjectUser, google_user: dict):
-        people_groups = PeopleGroup.objects.filter(
-            organization__code=settings.GOOGLE_SYNCED_ORGANIZATION,
-            groups__id__in=user.groups.values("id"),
-        )
-        google_groups = cls._get_user_groups(google_user)
-        # TODO : Change this when google is handled in db
-        google_groups = [
-            {
-                **google_group,
-                "emails": [google_group["email"], *google_group.get("aliases", [])],
-            }
-            for google_group in google_groups
-        ]
-        people_groups_emails = list(
-            filter(lambda x: x, [group.email for group in people_groups])
-        )
-
-        for google_group in [
-            group
-            for group in google_groups
-            if (
-                not any(email in people_groups_emails for email in group["emails"])
-                and PeopleGroup.objects.filter(email=group["email"]).exists()
-            )
-        ]:
-            cls._remove_user_from_group(google_user, google_group)
-
-        google_groups_emails = [
-            email
-            for sublist in [group["emails"] for group in google_groups]
-            for email in sublist
-        ]
-        for people_group in [
-            group for group in people_groups if group.email not in google_groups_emails
-        ]:
-            google_group = cls.get_group(people_group.email)
-            if google_group:
-                cls._add_user_to_group(google_user, google_group)
-
-    @classmethod
-    def sync_user_groups(cls, user: ProjectUser):
-        google_user = cls.get_user(user.email)
-        if google_user:
-            cls._sync_user_groups(user, google_user)
-
-    @classmethod
-    def _sync_group_members(cls, group: PeopleGroup, google_group: dict):
-        google_users = cls._get_group_members(group.email)
-        # TODO : Change this when google is handled in db
-        google_users = [
-            {
-                **google_user,
-                "emails": [
-                    google_user["email"],
-                    *[
-                        alias["alias"]
-                        for alias in (
-                            cls.service()
-                            .users()
-                            .aliases()
-                            .list(userKey=google_user["id"])
-                            .execute()
-                            .get("aliases", [])
-                        )
-                    ],
-                ],
-            }
-            for google_user in google_users
-        ]
-        projects_users_emails = list(
-            filter(lambda x: x, [user.email for user in group.get_all_members()])
-        )
-
-        for google_user in [
-            user
-            for user in google_users
-            if (
-                not any(email in projects_users_emails for email in user["emails"])
-                and ProjectUser.objects.filter(email=user["email"]).exists()
-            )
-        ]:
-            cls._remove_user_from_group(google_user, google_group)
-
-        google_users_emails = [
-            email
-            for sublist in [user["emails"] for user in google_users]
-            for email in sublist
-        ]
-        for projects_user in [
-            user
-            for user in group.get_all_members().filter()
-            if (
-                user.email not in google_users_emails
-                and user.groups.filter(
-                    organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
-                ).exists()
-            )
-        ]:
-            google_user = cls.get_user(projects_user.email)
-            if google_user:
-                cls._add_user_to_group(google_user, google_group)
-
-    @classmethod
-    def sync_group_members(cls, group: PeopleGroup):
-        google_group = cls.get_group(group.email)
-        if google_group:
-            cls._sync_group_members(group, google_group)
 
     @classmethod
     def get_org_units(cls):
         org_units = (
             cls.service()
             .orgunits()
-            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="CRI")
+            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="", type="all")
             .execute()
         )
-        return [org_unit["name"] for org_unit in org_units["organizationUnits"]]
+        return [org_unit["orgUnitPath"] for org_unit in org_units["organizationUnits"]]
