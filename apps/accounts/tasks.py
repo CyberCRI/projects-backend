@@ -53,7 +53,7 @@ def _create_user_from_csv_data(request, user_data):
 
 
 def _get_serializer_update_data(user, user_data, update_mode=""):
-    user.data.pop("redirect_organization_code", "")
+    user_data.pop("redirect_organization_code", "")
     if update_mode == "no_update":
         return {"email": user.email}
     if update_mode == "soft":
@@ -69,9 +69,6 @@ def _get_serializer_update_data(user, user_data, update_mode=""):
         user_data = {key: value for key, value in user_data.items() if value}
     else:
         raise ValueError("Invalid update mode")
-    user_data["roles_to_add"] = user_data.get("roles_to_add", []) + list(
-        user.groups.values_list("id", flat=True)
-    )
     user_data["sdgs"] = list(
         set([int(i) for i in user_data.get("sdgs", []) + user.sdgs])
     )
@@ -89,15 +86,7 @@ def _update_user_from_csv_data(request, user, user_data, update_mode="no_update"
     )
     if serializer.is_valid():
         instance = serializer.save()
-        keycloak_data = {
-            "email": instance.personal_email
-            if instance.personal_email
-            else instance.email,
-            "username": instance.email,
-            "firstName": instance.given_name,
-            "lastName": instance.family_name,
-        }
-        KeycloakService.update_user(instance, keycloak_data)
+        KeycloakService.update_user(instance)
         return {"email": user_data["email"], "status": "updated", "error": ""}
     return {
         "email": user_data["email"],
