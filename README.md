@@ -30,6 +30,12 @@ make
 make bash
 python manage.py migrate
 ```
+
+### Default user
+A default superadmin is created in keycloak. To import it in Projects, you need to login at least once in the swagger using these credentials:
+- username: `admin@localhost.com`
+- password: `admin`
+
 ### Seed the database
 *The stack need to be running.*
 ```bash
