@@ -32,7 +32,6 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
 from services.google.models import GoogleAccount, GoogleGroup
@@ -421,9 +420,7 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
                 ).prefetch_related("wikipedia_tags"),
             )
             return self.request.user.get_people_group_queryset(organization).filter(
-                organization__code__in=get_hierarchy_codes(
-                    [self.kwargs["organization_code"]]
-                )
+                organization__code=self.kwargs["organization_code"]
             )
         return PeopleGroup.objects.none()
 

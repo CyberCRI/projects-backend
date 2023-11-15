@@ -2,7 +2,6 @@ from django_filters import rest_framework as filters
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.filters import MultiValueCharFilter
-from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.filters import ProjectFilterMixin
 from apps.projects.models import Project
 
@@ -47,9 +46,7 @@ class PeopleGroupSearchFilter(filters.FilterSet):
     types = MultiValueCharFilter(field_name="type", lookup_expr="in")
 
     def filter_organizations(self, queryset, name, value):
-        return queryset.filter(
-            organization__code__in=get_hierarchy_codes(value)
-        ).distinct()
+        return queryset.filter(organization__code__in=value).distinct()
 
     class Meta:
         model = PeopleGroup
