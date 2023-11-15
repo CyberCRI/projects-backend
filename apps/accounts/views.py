@@ -388,6 +388,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
     lookup_field = "id"
+    search_fields = [
+        "name",
+    ]
 
     def get_object(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
