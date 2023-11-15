@@ -202,6 +202,7 @@ class Project(PermissionsSetupModel, ProjectRelated, OrganizationRelated):
         permissions = (
             ("lock_project", "Can lock and unlock a project"),
             ("duplicate_project", "Can duplicate a project"),
+            ("change_locked_project", "Can update a locked project"),
             *get_write_permissions_from_subscopes(write_only_subscopes),
         )
 
@@ -346,7 +347,7 @@ class Project(PermissionsSetupModel, ProjectRelated, OrganizationRelated):
         excluded_permissions = [
             f"{action}_{subscope}"
             for action in ["change", "delete", "add"]
-            for subscope in ["review"]
+            for subscope in ["review", "locked_project"]
         ]
         return Permission.objects.filter(content_type=self.content_type).exclude(
             codename__in=excluded_permissions

@@ -146,6 +146,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("view_org_peoplegroup", "Can view community groups"),
             ("lock_project", "Can lock and unlock a project"),
             ("duplicate_project", "Can duplicate a project"),
+            ("change_locked_project", "Can update a locked project"),
             *get_permissions_from_subscopes(subscopes),
             *get_write_permissions_from_subscopes(write_only_subscopes),
         )
