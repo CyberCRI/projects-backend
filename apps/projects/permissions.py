@@ -81,5 +81,5 @@ class ProjectIsNotLocked(permissions.BasePermission):
         self, request: Request, view: GenericViewSet, obj: Project
     ) -> bool:
         if view.action in ["update", "partial_update"]:
-            return obj.is_locked is not True or request.user.is_superuser
+            return not obj.is_locked
         return True

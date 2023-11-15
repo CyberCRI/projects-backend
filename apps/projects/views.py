@@ -77,7 +77,10 @@ class ProjectViewSet(viewsets.ModelViewSet):
         if codename:
             self.permission_classes = [
                 IsAuthenticatedOrReadOnly,
-                ProjectIsNotLocked,
+                ProjectIsNotLocked
+                | HasBasePermission("change_locked_project", "projects")
+                | HasOrganizationPermission("change_locked_project")
+                | HasProjectPermission("change_locked_project"),
                 ReadOnly
                 | HasBasePermission(codename, "projects")
                 | HasOrganizationPermission(codename)
