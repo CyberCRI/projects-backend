@@ -2,7 +2,7 @@ from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter
 
-from .models import PeopleGroup, Skill
+from .models import PeopleGroup, ProjectUser, Skill
 
 
 class SkillFilter(filters.FilterSet):
@@ -22,3 +22,14 @@ class PeopleGroupFilter(filters.FilterSet):
     class Meta:
         model = PeopleGroup
         fields = ["organizations", "type", "is_root"]
+
+
+class UserFilter(filters.FilterSet):
+    organizations = MultiValueCharFilter(method="filter_organizations")
+
+    def filter_organizations(self, queryset, name, value):
+        return queryset.filter(groups__organizations__code__in=value).distinct()
+
+    class Meta:
+        model = ProjectUser
+        fields = ["organizations"]

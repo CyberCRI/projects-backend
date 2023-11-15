@@ -26,9 +26,7 @@ class UserSearchFilter(filters.FilterSet):
     sdgs = MultiValueCharFilter(field_name="sdgs", lookup_expr="overlap")
 
     def filter_organizations(self, queryset, name, value):
-        return queryset.filter(
-            groups__organizations__code__in=get_hierarchy_codes(value)
-        ).distinct()
+        return queryset.filter(groups__organizations__code__in=value).distinct()
 
     def filter_skills(self, queryset, name, value):
         return queryset.filter(

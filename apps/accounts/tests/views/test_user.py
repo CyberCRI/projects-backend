@@ -471,6 +471,20 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["keycloak_id"] == self.user_d.keycloak_id
 
+    def test_filter_by_organization(self):
+        other_organization = OrganizationFactory(parent=self.organization)
+        other_organization.admins.add(self.user_d)
+        response = self.client.get(
+            reverse("ProjectUser-list") + f"?organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 3
+        assert {u["keycloak_id"] for u in response.data["results"]} == {
+            self.user_a.keycloak_id,
+            self.user_b.keycloak_id,
+            self.user_c.keycloak_id,
+        }
+
     def test_search_by_job(self):
         response = self.client.get(reverse("ProjectUser-list") + "?search=ABC")
         assert response.status_code == 200
