@@ -97,5 +97,5 @@ class Migration(migrations.Migration):
             name='permissions',
             field=models.ManyToManyField(related_name='users', to='accounts.Permission'),
         ),
-        migrations.RunPython(init_groups_and_permissions, migrations.RunPython.noop)
+        # migrations.RunPython(init_groups_and_permissions, migrations.RunPython.noop)
     ]
