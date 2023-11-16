@@ -238,10 +238,8 @@ class InvitationTestCase(JwtAPITestCase):
         parent = OrganizationFactory()
         organization = OrganizationFactory(parent=parent)
         child = OrganizationFactory(parent=organization)
-        org_invitations = InvitationFactory.create_batch(
-            size=3, organization=organization
-        )
-        child_invitations = InvitationFactory.create_batch(size=3, organization=child)
+        invitations = InvitationFactory.create_batch(size=3, organization=organization)
+        InvitationFactory.create_batch(size=3, organization=child)
         InvitationFactory.create_batch(size=3, organization=parent)
         InvitationFactory.create_batch(size=3)
         user = UserFactory()
@@ -250,9 +248,9 @@ class InvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(organization.code,))
         )
         assert response.status_code == 200
-        assert response.data["count"] == 6
+        assert response.data["count"] == 3
         assert {i["id"] for i in response.data["results"]} == {
-            i.id for i in org_invitations + child_invitations
+            i.id for i in invitations
         }
 
     def test_create_people_group_in_other_organization(self):
