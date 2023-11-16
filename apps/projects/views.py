@@ -233,10 +233,11 @@ class ProjectViewSet(viewsets.ModelViewSet):
         project.organizations.add(*organizations)
         project.categories.add(*categories)
         # header image
-        header = project.header_image
-        header.pk = None
-        header.save()
-        header.project_header.set([project])
+        if project.header_image:
+            header = project.header_image
+            header.pk = None
+            header.save()
+            header.project_header.set([project])
         # images
         for image in images:
             initial_image_pk = str(image.pk)
