@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
+from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.files.models import Image
@@ -103,10 +104,10 @@ class UserViewSet(viewsets.ModelViewSet):
         "family_name",
         "email",
         "job",
-        "groups__people_groups__name",
+        # "groups__people_groups__name",
     ]
     parser_classes = (JSONParser, UserMultipartParser)
-    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
+    filter_backends = (DjangoFilterBackend, OrderingFilter, TrigramSearchFilter)
     filterset_class = UserFilter
     ordering_fields = ["given_name", "family_name", "job", "current_org_role"]
 
