@@ -211,12 +211,15 @@ class ProjectViewSet(viewsets.ModelViewSet):
         announcements = list(project.announcements.all())
         locations = list(project.locations.all())
         images = list(project.images.all())
+        # keep initial project pk to replace it in description and blog entries
+        initial_project_pk = str(project.pk)
+        initial_project_slug = project.slug
         # saving a new project in db
         project.pk = None
         project.slug = ""
         project.save()
         # duplicating sub items
-        foreign_keys = blog_entries + goals + links + files + announcements + locations
+        foreign_keys = goals + links + files + announcements + locations
         for item in foreign_keys:
             created_at = getattr(item, "created_at", None)
             item.pk = None
@@ -227,9 +230,44 @@ class ProjectViewSet(viewsets.ModelViewSet):
                 item.save(update_fields=["created_at"])
 
         # duplicating mtm items
-        project.images.add(*images)
         project.organizations.add(*organizations)
         project.categories.add(*categories)
+        # header image
+        header = project.header_image
+        header.pk = None
+        header.save()
+        header.project_header.set([project])
+        # images
+        for image in images:
+            initial_image_pk = str(image.pk)
+            image.pk = None
+            image.save()
+            image.projects.set([project])
+            for identifier in [initial_project_pk, initial_project_slug]:
+                project.description = project.description.replace(
+                    f"/v1/project/{identifier}/image/{initial_image_pk}/",
+                    f"/v1/project/{project.pk}/image/{image.pk}/",
+                )
+        for blog_entry in blog_entries:
+            created_at = getattr(blog_entry, "created_at", None)
+            images = list(blog_entry.images.all())
+            blog_entry.pk = None
+            blog_entry.project = project
+            blog_entry.save()
+            if created_at:
+                blog_entry.created_at = created_at
+                blog_entry.save(update_fields=["created_at"])
+            for image in images:
+                initial_image_pk = str(image.pk)
+                image.pk = None
+                image.save()
+                image.blog_entries.set([blog_entry])
+                for identifier in [initial_project_pk, initial_project_slug]:
+                    blog_entry.content = blog_entry.content.replace(
+                        f"/v1/project/{identifier}/blog-entry-image/{initial_image_pk}/",
+                        f"/v1/project/{project.pk}/blog-entry-image/{image.pk}/",
+                    )
+
         project.save()
         # set project owner
         project.setup_permissions(request.user)
