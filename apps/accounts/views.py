@@ -19,7 +19,7 @@ from drf_spectacular.utils import (
 from googleapiclient.errors import HttpError
 from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -104,10 +104,13 @@ class UserViewSet(viewsets.ModelViewSet):
         "family_name",
         "email",
         "job",
-        # "groups__people_groups__name",
     ]
     parser_classes = (JSONParser, UserMultipartParser)
-    filter_backends = (DjangoFilterBackend, OrderingFilter, TrigramSearchFilter)
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+        TrigramSearchFilter,
+    )
     filterset_class = UserFilter
     ordering_fields = ["given_name", "family_name", "job", "current_org_role"]
 
@@ -389,9 +392,12 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
     lookup_field = "id"
-    search_fields = [
-        "name",
-    ]
+    search_fields = ["name"]
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+        TrigramSearchFilter,
+    )
 
     def get_object(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field

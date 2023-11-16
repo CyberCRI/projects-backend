@@ -33,18 +33,18 @@ class TrigramSearchFilter(SearchFilter):
         """Convert a text to ASCII."""
         text = unicodedata.normalize("NFD", text.lower())
         return str(text.encode("ascii", "ignore").decode("utf-8"))
-    
+
     def get_search_similarity_threshold(self, view):
         return getattr(
-            view, 
+            view,
             "trigram_search_similarity_threshold",
-            settings.PG_TRGM_DEFAULT_SIMILARITY_THRESHOLD
+            settings.PG_TRGM_DEFAULT_SIMILARITY_THRESHOLD,
         )
 
     def filter_queryset(self, request, queryset, view):
         search_fields = self.get_search_fields(view, request)
         search_terms = self.get_search_terms(request)
-        if search_fields and search_terms:    
+        if search_fields and search_terms:
             query = self.text_to_ascii(search_terms[0])
             return (
                 queryset.annotate(
@@ -52,7 +52,7 @@ class TrigramSearchFilter(SearchFilter):
                         [
                             TrigramSimilarity(
                                 self.PostgresUnaccent(F(field)),
-                                self.text_to_ascii(query)
+                                self.text_to_ascii(query),
                             )
                             for field in search_fields
                         ]
