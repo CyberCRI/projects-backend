@@ -43,7 +43,7 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
         managers = self.managers
         leaders = self.leaders
         projects = self.projects
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
             "name": faker.name(),
@@ -103,7 +103,7 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(organization=organization)
         people_group.description = faker.text()
         people_group.save()
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         payload = {
             "description": faker.text(),
@@ -142,7 +142,7 @@ class DeletePeopleGroupTestCase(JwtAPITestCase):
     def test_delete_people_group(self, role, expected_code):
         organization = self.organization
         people_group = PeopleGroupFactory(organization=organization)
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
@@ -183,7 +183,7 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         managers = self.managers
         leaders = self.leaders
         people_group = PeopleGroupFactory(organization=organization)
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         payload = {
             "members": [m.keycloak_id for m in members],
@@ -222,7 +222,7 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         managers = self.managers
         leaders = self.leaders
         people_group = PeopleGroupFactory(organization=organization)
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         people_group.members.add(*members)
         people_group.managers.add(*managers)
@@ -270,7 +270,7 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         organization = self.organization
         projects = self.projects
         people_group = PeopleGroupFactory(organization=organization)
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         payload = {"featured_projects": [p.pk for p in projects]}
         response = self.client.post(
@@ -303,7 +303,7 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         organization = self.organization
         projects = self.projects
         people_group = PeopleGroupFactory(organization=organization)
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         people_group.featured_projects.add(*projects)
         payload = {"featured_projects": [p.pk for p in projects]}

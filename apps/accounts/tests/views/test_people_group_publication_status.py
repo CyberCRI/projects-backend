@@ -50,7 +50,7 @@ class PeopleGroupPublicationStatusTestCase(JwtAPITestCase):
     def test_retrieve_people_groups(self, role, expected_groups):
         organization = self.organization
         member_group = self.groups["member"]
-        user = self.get_parameterized_test_user(role, people_group=member_group)
+        user = self.get_parameterized_test_user(role, instances=[member_group])
         self.client.force_authenticate(user)
         for people_group_type, people_group in self.groups.items():
             response = self.client.get(
@@ -105,7 +105,7 @@ class PeopleGroupPublicationStatusTestCase(JwtAPITestCase):
     def test_list_people_groups(self, role, expected_groups):
         organization = self.organization
         member_group = self.groups["member"]
-        user = self.get_parameterized_test_user(role, people_group=member_group)
+        user = self.get_parameterized_test_user(role, instances=[member_group])
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("PeopleGroup-list", args=(organization.code,))

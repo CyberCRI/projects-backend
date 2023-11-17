@@ -12,7 +12,6 @@ from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
-
 faker = Faker()
 
 
@@ -37,12 +36,12 @@ class CreateReviewTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED)
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]
     )
     def test_create_review(self, role, expected_code):
         project = self.project
-        user = self.get_parameterized_test_user(role, project=project)
+        user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         payload = {
             "project_id": project.id,
@@ -71,7 +70,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
             organizations=[cls.organization],
         )
         cls.review = ReviewFactory(project=cls.project)
-    
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -83,13 +82,15 @@ class UpdateReviewTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK)
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
     )
     def test_update_review(self, role, expected_code):
         project = self.project
         review = self.review
-        user = self.get_parameterized_test_user(role, project=project, owned_instance=review)
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=review
+        )
         self.client.force_authenticate(user)
         payload = {
             "description": faker.text(),
@@ -100,6 +101,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
             assert response.json()["description"] == payload["description"]
+
 
 class ListReviewTestCase(JwtAPITestCase):
     @classmethod
@@ -127,7 +129,9 @@ class ListReviewTestCase(JwtAPITestCase):
         cls.reviews = {
             "public": ReviewFactory(project=cls.public_project, reviewer=cls.reviewer),
             "org": ReviewFactory(project=cls.org_project, reviewer=cls.reviewer),
-            "private": ReviewFactory(project=cls.private_project, reviewer=cls.reviewer)
+            "private": ReviewFactory(
+                project=cls.private_project, reviewer=cls.reviewer
+            ),
         }
 
     @parameterized.expand(
@@ -146,7 +150,7 @@ class ListReviewTestCase(JwtAPITestCase):
     )
     def test_list_review(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, projects=self.projects.values(), owned_instance=self.reviewer
+            role, instances=self.projects.values(), owned_instance=self.reviewer
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
@@ -158,9 +162,14 @@ class ListReviewTestCase(JwtAPITestCase):
             if project_status in retrieved_follows:
                 assert len(content) == 1
                 assert content[0]["project_id"] == project.id
-                assert content[0]["reviewer"]["keycloak_id"] == self.reviewer.keycloak_id
-                assert content[0]["description"] == self.reviews[project_status].description
-                
+                assert (
+                    content[0]["reviewer"]["keycloak_id"] == self.reviewer.keycloak_id
+                )
+                assert (
+                    content[0]["description"]
+                    == self.reviews[project_status].description
+                )
+
 
 class DestroyReviewTestCase(JwtAPITestCase):
     @classmethod
@@ -171,7 +180,7 @@ class DestroyReviewTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
-    
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -183,13 +192,15 @@ class DestroyReviewTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT)
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_delete_review(self, role, expected_code):
         project = self.project
         review = ReviewFactory(project=self.project)
-        user = self.get_parameterized_test_user(role, project=project, owned_instance=review)
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=review
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse("Reviewed-detail", args=(project.id, review.id))

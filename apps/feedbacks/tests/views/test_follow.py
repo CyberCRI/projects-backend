@@ -68,7 +68,7 @@ class CreateFollowTestCase(JwtAPITestCase):
     def test_create_followed_public_project(self, role, expected_code, project_status):
         instance = self.projects[project_status]
         user = self.get_parameterized_test_user(
-            role, project=instance, owned_instance=instance
+            role, instances=[instance], owned_instance=instance
         )
         self.client.force_authenticate(user)
         project_response = self.client.post(
@@ -113,7 +113,7 @@ class CreateFollowTestCase(JwtAPITestCase):
     def test_create_follower_public_project(self, role, expected_code, project_status):
         instance = self.projects[project_status]
         user = self.get_parameterized_test_user(
-            role, project=instance, owned_instance=instance
+            role, instances=[instance], owned_instance=instance
         )
         self.client.force_authenticate(user)
         user_response = self.client.post(
@@ -139,7 +139,7 @@ class CreateFollowTestCase(JwtAPITestCase):
     )
     def test_create_many_follow(self, role, expected_code):
         instances = self.projects.values()
-        user = self.get_parameterized_test_user(role, projects=instances)
+        user = self.get_parameterized_test_user(role, instances=instances)
         payload = {"follows": [{"project_id": project.id} for project in instances]}
         self.client.force_authenticate(user)
         user_response = self.client.post(
@@ -186,7 +186,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
     def test_destroy_followed(self, role, expected_code):
         follow = FollowFactory(project=self.project)
         user = self.get_parameterized_test_user(
-            role, project=self.project, owned_instance=follow
+            role, instances=[self.project], owned_instance=follow
         )
         self.client.force_authenticate(user)
         project_response = self.client.delete(
@@ -220,7 +220,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
         follower = UserFactory()
         instance = FollowFactory(follower=follower, project=self.project)
         user = self.get_parameterized_test_user(
-            role, project=self.project, owned_instance=instance
+            role, instances=[self.project], owned_instance=instance
         )
         self.client.force_authenticate(user)
         project_response = self.client.delete(
@@ -282,7 +282,7 @@ class ListFollowTestCase(JwtAPITestCase):
     )
     def test_list_follower(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, projects=self.projects.values(), owned_instance=self.follower
+            role, instances=self.projects.values(), owned_instance=self.follower
         )
         self.client.force_authenticate(user)
         user_response = self.client.get(
@@ -313,7 +313,7 @@ class ListFollowTestCase(JwtAPITestCase):
     )
     def test_list_followed(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, projects=self.projects.values(), owned_instance=self.follower
+            role, instances=self.projects.values(), owned_instance=self.follower
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():

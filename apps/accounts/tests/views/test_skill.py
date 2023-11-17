@@ -37,7 +37,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         payload = {
@@ -76,7 +76,7 @@ class UpdateSkillTestCase(JwtAPITestCase):
         organization = self.organization
         skill = SkillFactory(level=1)
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=skill
+            role, instances=[organization], owned_instance=skill
         )
         self.client.force_authenticate(user)
         payload = {
@@ -111,7 +111,7 @@ class DeleteSkillTestCase(JwtAPITestCase):
         organization = self.organization
         skill = SkillFactory()
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=skill
+            role, instances=[organization], owned_instance=skill
         )
         self.client.force_authenticate(user)
         response = self.client.delete(reverse("Skill-detail", args=(skill.id,)))
