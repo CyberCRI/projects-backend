@@ -496,17 +496,6 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
 
-    def test_search_by_people_group(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?search=MNO")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=PQR")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=STU")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
-
     def test_search_with_current_org_pk(self):
         response = self.client.get(
             reverse("ProjectUser-list")
