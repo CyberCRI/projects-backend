@@ -138,7 +138,7 @@ class CreateFollowTestCase(JwtAPITestCase):
         ]
     )
     def test_create_many_follow(self, role, expected_code):
-        instances = self.projects.values()
+        instances = list(self.projects.values())
         user = self.get_parameterized_test_user(role, instances=instances)
         payload = {"follows": [{"project_id": project.id} for project in instances]}
         self.client.force_authenticate(user)
@@ -282,7 +282,7 @@ class ListFollowTestCase(JwtAPITestCase):
     )
     def test_list_follower(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, instances=self.projects.values(), owned_instance=self.follower
+            role, instances=list(self.projects.values()), owned_instance=self.follower
         )
         self.client.force_authenticate(user)
         user_response = self.client.get(
@@ -313,7 +313,7 @@ class ListFollowTestCase(JwtAPITestCase):
     )
     def test_list_followed(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, instances=self.projects.values(), owned_instance=self.follower
+            role, instances=list(self.projects.values()), owned_instance=self.follower
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():

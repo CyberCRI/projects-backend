@@ -150,7 +150,7 @@ class ListReviewTestCase(JwtAPITestCase):
     )
     def test_list_review(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, instances=self.projects.values(), owned_instance=self.reviewer
+            role, instances=list(self.projects.values()), owned_instance=self.reviewer
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():

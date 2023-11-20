@@ -7,7 +7,7 @@ from apps.commons.factories import language_factory
 from apps.commons.utils.create_test_image import get_test_image
 from apps.organizations.models import Faq, Organization, ProjectCategory, Template
 
-FAKER = Faker()
+faker = Faker()
 
 
 class FaqFactory(factory.django.DjangoModelFactory):
@@ -30,7 +30,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     dashboard_title = factory.Faker("text", max_nb_chars=255)
     dashboard_subtitle = factory.Faker("text", max_nb_chars=255)
     language = language_factory()
-    code = factory.Sequence(lambda n: FAKER.word() + str(n))
+    code = factory.Sequence(lambda n: faker.word() + str(n))
     background_color = factory.Faker("color")
     banner_image = None
     contact_email = factory.Faker("email")
