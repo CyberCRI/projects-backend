@@ -8,7 +8,6 @@ from apps.commons.permissions import IsOwner
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.organizations.utils import get_hierarchy_codes
 
 from .models import Invitation
 from .serializers import InvitationSerializer
@@ -42,13 +41,15 @@ class InvitationViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        codes = [self.kwargs.get("organization_code")]
-        return self.queryset.filter(organization__code__in=get_hierarchy_codes(codes))
+        return self.queryset.filter(
+            organization__code=self.kwargs.get("organization_code")
+        )
 
     def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context["organization_code"] = self.kwargs.get("organization_code")
-        return context
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code"),
+        }
 
     def perform_create(self, serializer):
         code = self.kwargs.get("organization_code")
