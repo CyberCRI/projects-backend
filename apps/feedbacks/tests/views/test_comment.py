@@ -321,7 +321,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = response.json()
-        assert content["reply_on_id"] == "You cannot reply to a reply."
+        assert content["reply_on_id"] == ["You cannot reply to a reply."]
 
     def test_deleted_with_replies_returned(self):
         self.client.force_authenticate(self.user)
