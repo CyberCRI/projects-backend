@@ -27,7 +27,7 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
         organization = self.organization
         instance = UserFactory(groups=[self.organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         payload = {"file": self.get_test_image_file()}
@@ -67,7 +67,7 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
             groups=[organization.get_users()], profile_picture=self.get_test_image()
         )
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         payload = {
@@ -118,7 +118,7 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
             profile_picture=self.get_test_image(),
         )
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         response = self.client.delete(

@@ -2,7 +2,7 @@ import uuid
 
 from django.db import transaction
 from django.db.models import Q, QuerySet
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
@@ -20,7 +20,6 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import notify_new_comment, notify_new_review
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
 
 from .filters import ReviewFilter
@@ -57,6 +56,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Review.objects.all())
+        if self.request.user.is_authenticated:
+            qs = (qs | Review.objects.filter(reviewer=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         elif "user_keycloak_id" in self.kwargs:
@@ -89,6 +90,8 @@ class FollowViewSet(CreateListDestroyViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Follow.objects.all())
+        if self.request.user.is_authenticated:
+            qs = (qs | Follow.objects.filter(follower=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         elif "user_keycloak_id" in self.kwargs:
@@ -161,6 +164,8 @@ class CommentViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Comment.objects.all())
+        if self.request.user.is_authenticated:
+            qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
@@ -169,6 +174,12 @@ class CommentViewSet(viewsets.ModelViewSet):
                 | (Q(deleted_at__isnull=False) & Q(replies=None))
             )
         return qs.select_related("author").prefetch_related("replies")
+
+    def create(self, request, *args, **kwargs):
+        get_object_or_404(
+            self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+        )
+        return super().create(request, *args, **kwargs)
 
     @transaction.atomic
     def perform_create(self, serializer):
@@ -208,14 +219,25 @@ class CommentImagesView(ImageStorageView):
         return super().get_permissions()
 
     def get_queryset(self):
+        qs = self.request.user.get_project_related_queryset(
+            Image.objects.all(), project_related_name="comments__project"
+        )
+        if self.request.user.is_authenticated:
+            qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-            project = Project.objects.get(id=self.kwargs["project_id"])
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(comments__in=project.comments.all())
-            return Image.objects.filter(
-                Q(comments__in=project.comments.all()) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+            qs = qs.filter(comments__project=self.kwargs["project_id"])
+        if self.action in ["retrieve", "list"]:
+            qs = qs.exclude(
+                Q(comments__reply_on__isnull=False)
+                | (Q(comments__deleted_at__isnull=False) & Q(comments__replies=None))
+            )
+        return qs
+
+    def create(self, request, *args, **kwargs):
+        get_object_or_404(
+            self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+        )
+        return super().create(request, *args, **kwargs)
 
     @staticmethod
     def upload_to(instance, filename) -> str:

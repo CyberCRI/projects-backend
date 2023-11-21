@@ -1,7 +1,7 @@
 import base64
 import logging
 import uuid
-from typing import Optional
+from typing import List, Optional
 
 from django.conf import settings
 from django.core.files import File
@@ -61,19 +61,18 @@ class JwtAPITestCase(APITestCase):
     def get_parameterized_test_user(
         self,
         role,
+        instances: Optional[List[models.Model]] = None,
         owned_instance: Optional[models.Model] = None,
-        project: Optional[Project] = None,
-        people_group: Optional[PeopleGroup] = None,
-        organization: Optional[Organization] = None,
     ):
-        if (
-            sum([1 for obj in [project, organization, people_group] if obj is not None])
-            > 1
-        ):
-            raise ValueError(
-                "You can't give more than one project, organization or people group"
-            )
-        # base roles
+        if instances:
+            instances_type = set([type(instance) for instance in instances])
+            if len(instances_type) > 1:
+                instances_types = ", ".join([str(t) for t in instances_type])
+                raise ValueError(
+                    f"All instances must be of the same type. Got {instances_types}"
+                )
+        if not owned_instance and role == TestRoles.OWNER:
+            raise ValueError("Owned instance must be provided for OWNER role")
         if role == TestRoles.ANONYMOUS:
             return None
         if role == TestRoles.DEFAULT:
@@ -84,44 +83,62 @@ class JwtAPITestCase(APITestCase):
         if owned_instance and role == TestRoles.OWNER:
             return owned_instance.get_owner()
         # organization roles
-        if organization and role == TestRoles.ORG_ADMIN:
-            return UserFactory(groups=[organization.get_admins()])
-        if organization and role == TestRoles.ORG_FACILITATOR:
-            return UserFactory(groups=[organization.get_facilitators()])
-        if organization and role == TestRoles.ORG_USER:
-            return UserFactory(groups=[organization.get_users()])
+        if isinstance(instances[0], Organization):
+            if role == TestRoles.ORG_ADMIN:
+                return UserFactory(groups=[o.get_admins() for o in instances])
+            if role == TestRoles.ORG_FACILITATOR:
+                return UserFactory(groups=[o.get_facilitators() for o in instances])
+            if role == TestRoles.ORG_USER:
+                return UserFactory(groups=[o.get_users() for o in instances])
         # people group roles
-        if people_group and role == TestRoles.GROUP_LEADER:
-            return UserFactory(groups=[people_group.get_leaders()])
-        if people_group and role == TestRoles.GROUP_MANAGER:
-            return UserFactory(groups=[people_group.get_managers()])
-        if people_group and role == TestRoles.GROUP_MEMBER:
-            return UserFactory(groups=[people_group.get_members()])
-        if people_group and role == TestRoles.ORG_ADMIN:
-            return UserFactory(groups=[people_group.organization.get_admins()])
-        if people_group and role == TestRoles.ORG_FACILITATOR:
-            return UserFactory(groups=[people_group.organization.get_facilitators()])
-        if people_group and role == TestRoles.ORG_USER:
-            return UserFactory(groups=[people_group.organization.get_users()])
+        if isinstance(instances[0], PeopleGroup):
+            if role == TestRoles.GROUP_LEADER:
+                return UserFactory(groups=[p.get_leaders() for p in instances])
+            if role == TestRoles.GROUP_MANAGER:
+                return UserFactory(groups=[p.get_managers() for p in instances])
+            if role == TestRoles.GROUP_MEMBER:
+                return UserFactory(groups=[p.get_members() for p in instances])
+            if role == TestRoles.ORG_ADMIN:
+                return UserFactory(
+                    groups=[p.organization.get_admins() for p in instances]
+                )
+            if role == TestRoles.ORG_FACILITATOR:
+                return UserFactory(
+                    groups=[p.organization.get_facilitators() for p in instances]
+                )
+            if role == TestRoles.ORG_USER:
+                return UserFactory(
+                    groups=[p.organization.get_users() for p in instances]
+                )
         # project roles
-        if project and role == TestRoles.PROJECT_OWNER:
-            return UserFactory(groups=[project.get_owners()])
-        if project and role == TestRoles.PROJECT_REVIEWER:
-            return UserFactory(groups=[project.get_reviewers()])
-        if project and role == TestRoles.PROJECT_MEMBER:
-            return UserFactory(groups=[project.get_members()])
-        if project and role == TestRoles.ORG_ADMIN:
-            return UserFactory(
-                groups=[o.get_admins() for o in project.organizations.all()]
-            )
-        if project and role == TestRoles.ORG_FACILITATOR:
-            return UserFactory(
-                groups=[o.get_facilitators() for o in project.organizations.all()]
-            )
-        if project and role == TestRoles.ORG_USER:
-            return UserFactory(
-                groups=[o.get_users() for o in project.organizations.all()]
-            )
+        if isinstance(instances[0], Project):
+            if role == TestRoles.PROJECT_OWNER:
+                return UserFactory(groups=[p.get_owners() for p in instances])
+            if role == TestRoles.PROJECT_REVIEWER:
+                return UserFactory(groups=[p.get_reviewers() for p in instances])
+            if role == TestRoles.PROJECT_MEMBER:
+                return UserFactory(groups=[p.get_members() for p in instances])
+            if role == TestRoles.ORG_ADMIN:
+                return UserFactory(
+                    groups=[
+                        o.get_admins()
+                        for o in Organization.objects.filter(projects__in=instances)
+                    ]
+                )
+            if role == TestRoles.ORG_FACILITATOR:
+                return UserFactory(
+                    groups=[
+                        o.get_facilitators()
+                        for o in Organization.objects.filter(projects__in=instances)
+                    ]
+                )
+            if role == TestRoles.ORG_USER:
+                return UserFactory(
+                    groups=[
+                        o.get_users()
+                        for o in Organization.objects.filter(projects__in=instances)
+                    ]
+                )
         raise ValueError(f"Invalid role {role} for given object(s)")
 
     @classmethod

@@ -73,7 +73,7 @@ class ReviewSerializer(
 ):
     reviewer = UserLightSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
-        write_only=True, source="project", queryset=Project.objects.all()
+        source="project", queryset=Project.objects.all()
     )
 
     class Meta:
@@ -84,10 +84,9 @@ class ReviewSerializer(
             "title",
             "created_at",
             "updated_at",
+            "project_id",
             # read only
             "reviewer",
-            # write only
-            "project_id",
         ]
 
     def get_related_organizations(self) -> List[Organization]:

@@ -48,7 +48,7 @@ class CreateUserTestCase(JwtAPITestCase):
         organization = self.organization
         projects = self.projects
         people_groups = self.people_groups
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
             "people_id": faker.uuid4(),
@@ -224,7 +224,7 @@ class UpdateUserTestCase(JwtAPITestCase):
         organization = self.organization
         instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         payload = {
@@ -262,7 +262,7 @@ class DeleteUserTestCase(JwtAPITestCase):
         organization = self.organization
         instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         response = self.client.delete(

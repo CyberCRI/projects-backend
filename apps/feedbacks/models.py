@@ -80,6 +80,11 @@ class Follow(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["project", "follower"], name="unique_follow"
+            )
+        ]
 
 
 class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):

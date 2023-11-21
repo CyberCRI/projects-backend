@@ -1,225 +1,217 @@
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.commons.test import JwtAPITestCase
+from apps.accounts.utils import get_superadmins_group
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import ReviewFactory
+from apps.feedbacks.models import Review
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
+faker = Faker()
 
-class ReviewTestCaseNoPermission(JwtAPITestCase):
-    """Check that no permission can only read reviews"""
 
-    def test_create_no_permission(self):
-        project = ProjectFactory(
+class CreateReviewTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             life_status=Project.LifeStatus.TO_REVIEW,
+            organizations=[cls.organization],
         )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+        ]
+    )
+    def test_create_review(self, role, expected_code):
+        project = self.project
+        user = self.get_parameterized_test_user(role, instances=[project])
+        self.client.force_authenticate(user)
         payload = {
             "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
+            "title": faker.sentence(),
+            "description": faker.text(),
         }
-        self.client.force_authenticate(UserFactory())
         response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Reviewed-list", args=(project.id,)), data=payload
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            assert content["project_id"] == project.id
+            assert content["reviewer"]["keycloak_id"] == user.keycloak_id
+            assert content["title"] == payload["title"]
+            assert content["description"] == payload["description"]
 
-    def test_retrieve_no_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        review = ReviewFactory(reviewer=user, project=project)
-        response = self.client.get(
-            reverse(
-                "Reviewer-detail",
-                kwargs={"user_keycloak_id": user.keycloak_id, "id": review.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_list_no_permission(self):
-        organization = OrganizationFactory()
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        organization.projects.add(project1, project2, project3)
-        reviewer1 = UserFactory()
-        reviewer2 = UserFactory()
-        reviewer3 = UserFactory()
-        reviewer123 = UserFactory()
-        ReviewFactory(reviewer=reviewer1, project=project1)
-        ReviewFactory(reviewer=reviewer2, project=project2)
-        ReviewFactory(reviewer=reviewer3, project=project3)
-        ReviewFactory(reviewer=reviewer123, project=project1)
-        ReviewFactory(reviewer=reviewer123, project=project2)
-        ReviewFactory(reviewer=reviewer123, project=project3)
-
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse("Reviewed-list", kwargs={"project_id": project1.id})
+class UpdateReviewTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-        self.assertEqual(content["results"][0]["reviewer"]["id"], reviewer1.id)
-        self.assertEqual(content["results"][1]["reviewer"]["id"], reviewer123.id)
+        cls.review = ReviewFactory(project=cls.project)
 
-        response = self.client.get(
-            reverse("Reviewed-list", kwargs={"project_id": project2.id})
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+        ]
+    )
+    def test_update_review(self, role, expected_code):
+        project = self.project
+        review = self.review
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=review
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse("Reviewer-list", kwargs={"user_keycloak_id": reviewer1.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["reviewer"]["id"], reviewer1.id)
-
-        response = self.client.get(
-            reverse("Reviewer-list", kwargs={"user_keycloak_id": reviewer2.keycloak_id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 0)
-
-        response = self.client.get(
-            reverse(
-                "Reviewer-list", kwargs={"user_keycloak_id": reviewer123.keycloak_id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        content = response.json()
-        self.assertEqual(content["count"], 1)
-        self.assertEqual(content["results"][0]["reviewer"]["id"], reviewer123.id)
-
-    def test_update_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
+        self.client.force_authenticate(user)
         payload = {
-            "project_id": project.id,
-            "title": "NewTitle",
-            "description": review.description,
+            "description": faker.text(),
         }
-        self.client.force_authenticate(UserFactory())
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
+        response = self.client.patch(
+            reverse("Reviewed-detail", args=(project.id, review.id)), data=payload
         )
-        response = self.client.put(url, data=payload)
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
-        )
-
-    def test_partial_update_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {"title": "NewTitle"}
-        self.client.force_authenticate(UserFactory())
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.patch(url, data=payload)
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
-        )
-
-    def test_destroy_no_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.delete(
-            reverse(
-                "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        review = ReviewFactory(reviewer=user, project=project)
-        response = self.client.delete(
-            reverse(
-                "Reviewer-detail",
-                kwargs={"user_keycloak_id": user.keycloak_id, "id": review.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert response.json()["description"] == payload["description"]
 
 
-class ReviewTestCaseOwner(JwtAPITestCase):
-    def test_update_owner(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {
-            "project_id": project.id,
-            "title": "NewTitle",
-            "description": review.description,
+class ListReviewTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.public_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.org_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations=[cls.organization],
+        )
+        cls.private_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
+        )
+        cls.projects = {
+            "public": cls.public_project,
+            "org": cls.org_project,
+            "private": cls.private_project,
         }
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.put(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        cls.reviewer = UserFactory()
+        cls.reviews = {
+            "public": ReviewFactory(project=cls.public_project, reviewer=cls.reviewer),
+            "org": ReviewFactory(project=cls.org_project, reviewer=cls.reviewer),
+            "private": ReviewFactory(
+                project=cls.private_project, reviewer=cls.reviewer
+            ),
+        }
 
-    def test_partial_update_owner(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {"title": "NewTitle"}
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.OWNER, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_list_review(self, role, retrieved_follows):
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values()), owned_instance=self.reviewer
         )
-        response = self.client.patch(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        self.client.force_authenticate(user)
+        for project_status, project in self.projects.items():
+            project_response = self.client.get(
+                reverse("Reviewed-list", args=(project.id,))
+            )
+            assert project_response.status_code == status.HTTP_200_OK
+            content = project_response.json()["results"]
+            if project_status in retrieved_follows:
+                assert len(content) == 1
+                assert content[0]["project_id"] == project.id
+                assert (
+                    content[0]["reviewer"]["keycloak_id"] == self.reviewer.keycloak_id
+                )
+                assert (
+                    content[0]["description"]
+                    == self.reviews[project_status].description
+                )
 
-    def test_destroy_owner(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
+
+class DestroyReviewTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_delete_review(self, role, expected_code):
+        project = self.project
+        review = ReviewFactory(project=self.project)
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=review
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-            )
+            reverse("Reviewed-detail", args=(project.id, review.id))
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        review = ReviewFactory(reviewer=user, project=project)
-        response = self.client.delete(
-            reverse(
-                "Reviewer-detail",
-                kwargs={"user_keycloak_id": user.keycloak_id, "id": review.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert Review.objects.filter(id=review.id).exists() is False
 
 
-class ReviewTestCaseBasePermission(JwtAPITestCase):
-    def test_create_base_permission_wrong_status(self):
+class ValidateReviewTestCase(JwtAPITestCase):
+    def test_create_wrong_status(self):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             life_status=Project.LifeStatus.RUNNING,
@@ -229,277 +221,9 @@ class ReviewTestCaseBasePermission(JwtAPITestCase):
             "title": "Title",
             "description": "Description",
         }
-        user = UserFactory(permissions=[("feedbacks.add_review", None)])
+        user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Reviewed-list", args=(project.id,)), data=payload
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
-
-    def test_create_base_permission(self):
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            life_status=Project.LifeStatus.TO_REVIEW,
-        )
-        payload = {
-            "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
-        }
-        user = UserFactory(permissions=[("feedbacks.add_review", None)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_update_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {
-            "project_id": project.id,
-            "title": "NewTitle",
-            "description": review.description,
-        }
-        user = UserFactory(permissions=[("feedbacks.change_review", None)])
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.put(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_partial_update_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {"title": "NewTitle"}
-        user = UserFactory(permissions=[("feedbacks.change_review", None)])
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.patch(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_base_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        user = UserFactory(permissions=[("feedbacks.delete_review", None)])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        review = ReviewFactory(reviewer=user, project=project)
-        response = self.client.delete(
-            reverse(
-                "Reviewer-detail",
-                kwargs={"user_keycloak_id": user.keycloak_id, "id": review.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-class ReviewTestCaseProjectPermission(JwtAPITestCase):
-    def test_create_project_permission_wrong_status(self):
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            life_status=Project.LifeStatus.RUNNING,
-        )
-        payload = {
-            "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
-        }
-        user = UserFactory(permissions=[("projects.add_review", project)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
-
-    def test_create_project_permission(self):
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            life_status=Project.LifeStatus.TO_REVIEW,
-        )
-        payload = {
-            "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
-        }
-        user = UserFactory(permissions=[("projects.add_review", project)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_update_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {
-            "project_id": project.id,
-            "title": "NewTitle",
-            "description": review.description,
-        }
-        user = UserFactory(permissions=[("projects.change_review", project)])
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.put(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_partial_update_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {"title": "NewTitle"}
-        user = UserFactory(permissions=[("projects.change_review", project)])
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.patch(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_project_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        user = UserFactory(permissions=[("projects.delete_review", project)])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        review = ReviewFactory(reviewer=user, project=project)
-        response = self.client.delete(
-            reverse(
-                "Reviewer-detail",
-                kwargs={"user_keycloak_id": user.keycloak_id, "id": review.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-
-class ReviewTestCaseOrganizationPermission(JwtAPITestCase):
-    def test_create_org_permission_wrong_status(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            life_status=Project.LifeStatus.RUNNING,
-        )
-        organization.projects.add(project)
-        payload = {
-            "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
-        }
-        user = UserFactory(permissions=[("organizations.add_review", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
-
-    def test_create_org_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            life_status=Project.LifeStatus.TO_REVIEW,
-        )
-        organization.projects.add(project)
-        payload = {
-            "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
-        }
-        user = UserFactory(permissions=[("organizations.add_review", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_update_org_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {
-            "project_id": project.id,
-            "title": "NewTitle",
-            "description": review.description,
-        }
-        user = UserFactory(permissions=[("organizations.change_review", organization)])
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.put(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_partial_update_org_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        payload = {"title": "NewTitle"}
-        user = UserFactory(permissions=[("organizations.change_review", organization)])
-        self.client.force_authenticate(user)
-        url = reverse(
-            "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-        )
-        response = self.client.patch(url, data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_org_permission(self):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        organization.projects.add(project)
-        user = UserFactory()
-        review = ReviewFactory(reviewer=user, project=project)
-        user = UserFactory(permissions=[("organizations.delete_review", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                "Reviewed-detail", kwargs={"project_id": project.id, "id": review.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        review = ReviewFactory(reviewer=user, project=project)
-        response = self.client.delete(
-            reverse(
-                "Reviewer-detail",
-                kwargs={"user_keycloak_id": user.keycloak_id, "id": review.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == status.HTTP_403_FORBIDDEN
