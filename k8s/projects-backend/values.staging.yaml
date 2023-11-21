@@ -35,5 +35,4 @@ redis:
   - projects-api/stag-test/values.yaml
   - secrets://projects-api/stag-test/secrets.yaml
   argocdAppName: stag-test-projects-api-redis
-  argocdProject: stag-test
   helmReleaseName: projects-api-redis-stag-test
