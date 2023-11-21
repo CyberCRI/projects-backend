@@ -7,7 +7,7 @@ from django.db import models, transaction
 from django.db.models import ForeignObjectRel, Model, Q, QuerySet
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
-from stdimage import StdImageField
+from pictures.models import PictureField
 
 from apps.commons.db.abc import HasOwner, OrganizationRelated, ProjectRelated
 from apps.files.enums import AttachmentLinkCategory, AttachmentType
@@ -126,18 +126,10 @@ class AttachmentFile(models.Model, ProjectRelated, OrganizationRelated):
 
 class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
     name = models.CharField(max_length=255)
-    file = StdImageField(
+    file = PictureField(
         upload_to=dynamic_upload_to,
         height_field="height",
         width_field="width",
-        render_variations=resize_and_autorotate,
-        variations={
-            "full": (1920, MAX_IMAGE_HEIGHT),
-            "large": (1024, MAX_IMAGE_HEIGHT),
-            "medium": (768, MAX_IMAGE_HEIGHT),
-            "small": (500, MAX_IMAGE_HEIGHT),
-        },
-        delete_orphans=True,
     )
     height = models.IntegerField(blank=True, null=True)
     width = models.IntegerField(blank=True, null=True)

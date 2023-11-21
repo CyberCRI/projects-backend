@@ -116,6 +116,7 @@ INSTALLED_APPS = [
     "simple_history",
     "drf_recaptcha",
     "stdimage",
+    "pictures",
     "rest_framework_simplejwt",
     "guardian",
     # internal
@@ -563,3 +564,24 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL = "lpi.accounts@gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_PREFIX = ""
 GOOGLE_EMAIL_DOMAIN = "gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
+
+
+##############
+#  PICTURES  #
+##############
+
+PICTURES = {
+    "BREAKPOINTS": {
+        "full": 1920,
+        "large": 1024,
+        "medium": 768,
+        "small": 500,
+    },
+    "GRID_COLUMNS": 12,
+    "CONTAINER_WIDTH": 1200,
+    "FILE_TYPES": ["WEBP"],
+    "PIXEL_DENSITIES": [1, 2],
+    # "USE_PLACEHOLDERS": True,
+    "QUEUE_NAME": "celery",
+    "PROCESSOR": "pictures.tasks.process_picture",
+}
