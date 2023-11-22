@@ -488,6 +488,9 @@ JWT_ACCESS_TOKEN_COOKIE_NAME = "jwt_access_token"  # nosec
 # The maximum number of parameters that may be received via GET or POST
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
+# Minimum similarity threshold for trigram similarity search
+PG_TRGM_DEFAULT_SIMILARITY_THRESHOLD = 0.1
+
 # Django guardian custom setup
 # TODO : django-guardian rework : can't remove additional_actions for now
 options.DEFAULT_NAMES += ("subscopes", "write_only_subscopes", "additional_actions")

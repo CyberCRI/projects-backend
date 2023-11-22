@@ -4,10 +4,11 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.commons.filters import TrigramSearchFilter
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.misc import api, filters, models, serializers
 from apps.organizations.permissions import HasOrganizationPermission
@@ -15,9 +16,13 @@ from apps.organizations.permissions import HasOrganizationPermission
 
 class WikipediaTagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.WikipediaTagSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+        TrigramSearchFilter,
+    )
     filterset_class = filters.WikipediaTagFilter
-    search_fields = ["name"]
+    search_fields = ["name_fr", "name_en"]
     lookup_field = "wikipedia_qid"
 
     def get_permissions(self):
@@ -88,7 +93,11 @@ class WikipediaTagWikipediaViewSet(viewsets.ModelViewSet):
 
 class TagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TagSerializer
-    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filter_backends = (
+        DjangoFilterBackend,
+        OrderingFilter,
+        TrigramSearchFilter,
+    )
     filterset_class = filters.TagFilter
     search_fields = ["name"]
     queryset = models.Tag.objects.all()
