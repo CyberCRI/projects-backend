@@ -130,6 +130,7 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
         upload_to=dynamic_upload_to,
         height_field="height",
         width_field="width",
+        aspect_ratios=[None, "1/1", "4/3", "16/9"],
     )
     height = models.IntegerField(blank=True, null=True)
     width = models.IntegerField(blank=True, null=True)

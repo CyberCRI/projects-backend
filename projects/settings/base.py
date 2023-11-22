@@ -572,12 +572,11 @@ GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
 
 PICTURES = {
     "BREAKPOINTS": {
-        "full": 1920,
-        "large": 1024,
-        "medium": 768,
-        "small": 500,
+        "large": 1200,
+        "medium": 800,
+        "small": 400,
     },
-    "GRID_COLUMNS": 12,
+    "GRID_COLUMNS": 3,
     "CONTAINER_WIDTH": 1200,
     "FILE_TYPES": ["WEBP"],
     "PIXEL_DENSITIES": [1, 2],
