@@ -765,18 +765,32 @@ class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
         self.assertEqual(project.organizations.count(), 5)
 
     def test_duplicate_base_permission(self):
-        pc = ProjectCategoryFactory(background_image=self.test_image)
+        pc = ProjectCategoryFactory()
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PRIVATE,
             categories=[pc],
+            header_image=self.get_test_image(),
         )
-        BlogEntryFactory.create_batch(3, project=project)
+        blog_entries = BlogEntryFactory.create_batch(3, project=project)
         GoalFactory.create_batch(3, project=project)
         AttachmentLinkFactory.create_batch(3, project=project)
         AttachmentFileFactory.create_batch(3, project=project)
         AnnouncementFactory.create_batch(3, project=project)
         images = [self.get_test_image() for _ in range(3)]
         project.images.set(images)
+        project.description = "\n".join(
+            [f'<img src="/v1/project/{project.pk}/image/{i.pk}/" />' for i in images]
+        )
+        project.save()
+        blog_entries_images = [self.get_test_image() for _ in range(3)]
+        blog_entries[0].images.add(*blog_entries_images)
+        blog_entries[0].content = "\n".join(
+            [
+                f'<img src="/v1/project/{project.pk}/blog-entry-image/{i.pk}/" />'
+                for i in blog_entries_images
+            ]
+        )
+        blog_entries[0].save()
         user = UserFactory(
             permissions=[
                 ("projects.view_project", None),
@@ -798,24 +812,20 @@ class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
         fields = [
             "is_locked",
             "title",
-            "description",
             "is_shareable",
             "purpose",
             "language",
             "publication_status",
             "life_status",
             "template",
-            "header_image",
         ]
         many_to_many_fields = [
             "categories",
             "wikipedia_tags",
             "organization_tags",
             "linked_projects",
-            "images",
         ]
         related_fields = [
-            "blog_entries",
             "goals",
             "links",
             "files",
@@ -857,6 +867,40 @@ class ProjectTestCaseBasePermission(ProjectJwtAPITestCase, TagTestCase):
             ]
             assert len(duplicated_field) == len(initial_field)
             assert all(item in initial_field for item in duplicated_field)
+
+        assert len(duplicated_project["images"]) == len(initial_project["images"])
+        assert all(
+            di["id"] not in [ii["id"] for ii in initial_project["images"]]
+            for di in duplicated_project["images"]
+        )
+        assert all(
+            f"<img src=\"/v1/project/{duplicated_project['id']}/image/{i['id']}/\" />"
+            in duplicated_project["description"]
+            for i in duplicated_project["images"]
+        )
+
+        assert len(duplicated_project["blog_entries"]) == len(
+            initial_project["blog_entries"]
+        )
+        assert all(
+            dbe["id"] not in [ibe["id"] for ibe in initial_project["blog_entries"]]
+            for dbe in duplicated_project["blog_entries"]
+        )
+        initial_blog_entry = list(
+            filter(lambda x: len(x["images"]) > 0, initial_project["blog_entries"])
+        )[0]
+        duplicated_blog_entry = list(
+            filter(lambda x: len(x["images"]) > 0, duplicated_project["blog_entries"])
+        )[0]
+        assert all(
+            di not in initial_blog_entry["images"]
+            for di in duplicated_blog_entry["images"]
+        )
+        assert all(
+            f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{di}/\" />"
+            in duplicated_blog_entry["content"]
+            for di in duplicated_blog_entry["images"]
+        )
 
     def test_add_members_base_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
@@ -1191,10 +1235,11 @@ class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
         self.assertIn("organizations_codes", response.data)
 
     def test_duplicate_project_permission(self):
-        pc = ProjectCategoryFactory(background_image=self.test_image)
+        pc = ProjectCategoryFactory()
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PRIVATE,
             categories=[pc],
+            header_image=self.get_test_image(),
         )
         user = UserFactory(
             permissions=[
@@ -1202,13 +1247,26 @@ class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
                 ("projects.view_project", project),
             ]
         )
-        BlogEntryFactory.create_batch(3, project=project)
+        blog_entries = BlogEntryFactory.create_batch(3, project=project)
         GoalFactory.create_batch(3, project=project)
         AttachmentLinkFactory.create_batch(3, project=project)
         AttachmentFileFactory.create_batch(3, project=project)
         AnnouncementFactory.create_batch(3, project=project)
         images = [self.get_test_image() for _ in range(3)]
         project.images.set(images)
+        project.description = "\n".join(
+            [f'<img src="/v1/project/{project.pk}/image/{i.pk}/" />' for i in images]
+        )
+        project.save()
+        blog_entries_images = [self.get_test_image() for _ in range(3)]
+        blog_entries[0].images.add(*blog_entries_images)
+        blog_entries[0].content = "\n".join(
+            [
+                f'<img src="/v1/project/{project.pk}/blog-entry-image/{i.pk}/" />'
+                for i in blog_entries_images
+            ]
+        )
+        blog_entries[0].save()
         self.client.force_authenticate(user)
         duplicated_project_response = self.client.post(
             reverse("Project-duplicate", args=(project.id,))
@@ -1224,24 +1282,20 @@ class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
         fields = [
             "is_locked",
             "title",
-            "description",
             "is_shareable",
             "purpose",
             "language",
             "publication_status",
             "life_status",
             "template",
-            "header_image",
         ]
         many_to_many_fields = [
             "categories",
             "wikipedia_tags",
             "organization_tags",
             "linked_projects",
-            "images",
         ]
         related_fields = [
-            "blog_entries",
             "goals",
             "links",
             "files",
@@ -1283,6 +1337,40 @@ class ProjectTestCaseProjectPermission(ProjectJwtAPITestCase, TagTestCase):
             ]
             assert len(duplicated_field) == len(initial_field)
             assert all(item in initial_field for item in duplicated_field)
+
+        assert len(duplicated_project["images"]) == len(initial_project["images"])
+        assert all(
+            di["id"] not in [ii["id"] for ii in initial_project["images"]]
+            for di in duplicated_project["images"]
+        )
+        assert all(
+            f"<img src=\"/v1/project/{duplicated_project['id']}/image/{i['id']}/\" />"
+            in duplicated_project["description"]
+            for i in duplicated_project["images"]
+        )
+
+        assert len(duplicated_project["blog_entries"]) == len(
+            initial_project["blog_entries"]
+        )
+        assert all(
+            dbe["id"] not in [ibe["id"] for ibe in initial_project["blog_entries"]]
+            for dbe in duplicated_project["blog_entries"]
+        )
+        initial_blog_entry = list(
+            filter(lambda x: len(x["images"]) > 0, initial_project["blog_entries"])
+        )[0]
+        duplicated_blog_entry = list(
+            filter(lambda x: len(x["images"]) > 0, duplicated_project["blog_entries"])
+        )[0]
+        assert all(
+            di not in initial_blog_entry["images"]
+            for di in duplicated_blog_entry["images"]
+        )
+        assert all(
+            f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{di}/\" />"
+            in duplicated_blog_entry["content"]
+            for di in duplicated_blog_entry["images"]
+        )
 
     def test_add_members_project_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
@@ -1605,18 +1693,12 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
         self.assertEqual(len(response.json()["images"]), 1)
 
     def test_duplicate_org_permission(self):
-        pc = ProjectCategoryFactory(background_image=self.test_image)
+        pc = ProjectCategoryFactory()
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PRIVATE,
             categories=[pc],
+            header_image=self.get_test_image(),
         )
-        BlogEntryFactory.create_batch(3, project=project)
-        GoalFactory.create_batch(3, project=project)
-        AttachmentLinkFactory.create_batch(3, project=project)
-        AttachmentFileFactory.create_batch(3, project=project)
-        AnnouncementFactory.create_batch(3, project=project)
-        images = [self.get_test_image() for _ in range(3)]
-        project.images.set(images)
         organization = OrganizationFactory()
         project.organizations.add(organization)
         user = UserFactory(
@@ -1625,6 +1707,26 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
                 ("organizations.view_project", organization),
             ]
         )
+        blog_entries = BlogEntryFactory.create_batch(3, project=project)
+        GoalFactory.create_batch(3, project=project)
+        AttachmentLinkFactory.create_batch(3, project=project)
+        AttachmentFileFactory.create_batch(3, project=project)
+        AnnouncementFactory.create_batch(3, project=project)
+        images = [self.get_test_image() for _ in range(3)]
+        project.images.set(images)
+        project.description = "\n".join(
+            [f'<img src="/v1/project/{project.pk}/image/{i.pk}/" />' for i in images]
+        )
+        project.save()
+        blog_entries_images = [self.get_test_image() for _ in range(3)]
+        blog_entries[0].images.add(*blog_entries_images)
+        blog_entries[0].content = "\n".join(
+            [
+                f'<img src="/v1/project/{project.pk}/blog-entry-image/{i.pk}/" />'
+                for i in blog_entries_images
+            ]
+        )
+        blog_entries[0].save()
         self.client.force_authenticate(user)
         duplicated_project_response = self.client.post(
             reverse("Project-duplicate", args=(project.id,))
@@ -1640,24 +1742,20 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
         fields = [
             "is_locked",
             "title",
-            "description",
             "is_shareable",
             "purpose",
             "language",
             "publication_status",
             "life_status",
             "template",
-            "header_image",
         ]
         many_to_many_fields = [
             "categories",
             "wikipedia_tags",
             "organization_tags",
             "linked_projects",
-            "images",
         ]
         related_fields = [
-            "blog_entries",
             "goals",
             "links",
             "files",
@@ -1699,6 +1797,40 @@ class ProjectTestCaseOrgPermission(ProjectJwtAPITestCase, TagTestCase):
             ]
             assert len(duplicated_field) == len(initial_field)
             assert all(item in initial_field for item in duplicated_field)
+
+        assert len(duplicated_project["images"]) == len(initial_project["images"])
+        assert all(
+            di["id"] not in [ii["id"] for ii in initial_project["images"]]
+            for di in duplicated_project["images"]
+        )
+        assert all(
+            f"<img src=\"/v1/project/{duplicated_project['id']}/image/{i['id']}/\" />"
+            in duplicated_project["description"]
+            for i in duplicated_project["images"]
+        )
+
+        assert len(duplicated_project["blog_entries"]) == len(
+            initial_project["blog_entries"]
+        )
+        assert all(
+            dbe["id"] not in [ibe["id"] for ibe in initial_project["blog_entries"]]
+            for dbe in duplicated_project["blog_entries"]
+        )
+        initial_blog_entry = list(
+            filter(lambda x: len(x["images"]) > 0, initial_project["blog_entries"])
+        )[0]
+        duplicated_blog_entry = list(
+            filter(lambda x: len(x["images"]) > 0, duplicated_project["blog_entries"])
+        )[0]
+        assert all(
+            di not in initial_blog_entry["images"]
+            for di in duplicated_blog_entry["images"]
+        )
+        assert all(
+            f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{di}/\" />"
+            in duplicated_blog_entry["content"]
+            for di in duplicated_blog_entry["images"]
+        )
 
     def test_add_members_org_permission(self):
         project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
