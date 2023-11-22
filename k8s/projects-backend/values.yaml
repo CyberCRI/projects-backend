@@ -76,7 +76,6 @@ redis:
   autoSync: false
   valueFiles: []
   argocdAppName: projects-api-redis
-  argocdProject: default
   helmReleaseName: projects-api-redis
   targetRevision: main
 
