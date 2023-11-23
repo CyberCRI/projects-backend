@@ -29,6 +29,26 @@ class InvitationNoPermissionTestCase(JwtAPITestCase):
         )
         assert response.status_code == 403
 
+    def test_get_by_token(self):
+        invitation = InvitationFactory()
+        response = self.client.get(
+            reverse(
+                "Invitation-detail", args=(invitation.organization.code, invitation.id)
+            )
+        )
+        assert response.status_code == 200
+        assert response.data["id"] == invitation.id
+        assert response.data["token"] == str(invitation.token)
+        response = self.client.get(
+            reverse(
+                "Invitation-detail",
+                args=(invitation.organization.code, invitation.token),
+            )
+        )
+        assert response.status_code == 200
+        assert response.data["id"] == invitation.id
+        assert response.data["token"] == str(invitation.token)
+
     def test_list(self):
         organization = OrganizationFactory()
         InvitationFactory.create_batch(size=3, organization=organization)

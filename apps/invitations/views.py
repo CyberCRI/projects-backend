@@ -1,3 +1,5 @@
+import uuid
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
@@ -16,6 +18,7 @@ from .serializers import InvitationSerializer
 class InvitationViewSet(viewsets.ModelViewSet):
     queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
+    lookup_field = "id"
     filter_backends = (
         DjangoFilterBackend,
         OrderingFilter,
@@ -27,6 +30,16 @@ class InvitationViewSet(viewsets.ModelViewSet):
         "owner__family_name",
         "people_group__name",
     ]
+
+    def get_object(self):
+        try:
+            uuid_obj = uuid.UUID(self.kwargs["id"], version=4)
+            obj = Invitation.objects.filter(token=uuid_obj).first()
+            if obj:
+                self.kwargs["id"] = obj.id
+        except ValueError:
+            pass
+        return super().get_object()
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "invitation")
