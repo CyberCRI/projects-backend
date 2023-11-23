@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import multiprocessing
 import os
-from ipaddress import IPv4Network
-from pathlib import Path
 import re
+from pathlib import Path
 
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
@@ -171,12 +170,14 @@ if DEBUG and DEBUG_TOOLBAR_INSTALLED:
 
 # https://pypi.org/project/django-cors-headers/#cors-allowed-origins-sequence-str
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https?:\/\/localhost(:[0-9]+)?", # Is this really needed ?
-    r"^https?:\/\/127.0.0.1(:[0-9]+)?", # Is this really needed ?
+    r"^https?:\/\/localhost(:[0-9]+)?",  # Is this really needed ?
+    r"^https?:\/\/127.0.0.1(:[0-9]+)?",  # Is this really needed ?
 ]
 cors_allowed_domains = os.getenv("CORS_ALLOWED_DOMAINS")
 if cors_allowed_domains:
-    cors_allowed_domains_regex = r"^.*\.?(" + re.escape(cors_allowed_domains).replace(",", "|") + r")$"
+    cors_allowed_domains_regex = (
+        r"^.*\.?(" + re.escape(cors_allowed_domains).replace(",", "|") + r")$"
+    )
     CORS_ALLOWED_ORIGIN_REGEXES.append(cors_allowed_domains_regex)
 
 CORS_ALLOW_CREDENTIALS = True
