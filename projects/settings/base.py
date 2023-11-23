@@ -13,6 +13,7 @@ import multiprocessing
 import os
 import re
 from pathlib import Path
+from socket import gethostname, gethostbyname_ex
 
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
@@ -89,11 +90,14 @@ LOGGING = {
 
 # Urls allowed to serve this backend application
 # https://docs.djangoproject.com/en/4.2/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
-print(ALLOWED_HOSTS)
+# Trick to get current ip for kubernetes probes
+# https://stackoverflow.com/questions/37031749/django-allowed-hosts-ips-range
+ALLOWED_HOSTS = [
+    *os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(","),
+    gethostname(),
+] + list(set(gethostbyname_ex(gethostname())[2]))
 
 # Application definition
-
 INSTALLED_APPS = [
     # built-in
     "django.contrib.admin",
