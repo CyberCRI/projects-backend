@@ -4,7 +4,6 @@ corsAllowedDomains:
 config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.staging
-    ALLOWED_HOSTS: api.projects.k8s.lp-i.xyz,projects-backend,projects.k8s.lp-i.xyz,cri.projects.k8s.lp-i.xyz,profschercheurs.projects.k8s.lp-i.xyz,new-design-system.k8s.lp-i.xyz,www.new-design-system.k8s.lp-i.xyz,cri.new-design-system.k8s.lp-i.xyz,www.cri.new-design-system.k8s.lp-i.xyz,profschercheurs.new-design-system.k8s.lp-i.xyz,www.profschercheurs.new-design-system.k8s.lp-i.xyz,api.projects.k8s.lp-i.xyz,projects.k8s.lp-i.xyz,cri.projects.k8s.lp-i.xyz,profschercheurs.projects.k8s.lp-i.xyz,monespace.profschercheurs.org,www.monespace.profschercheurs.org
     AZURE_ACCOUNT_NAME: criparisdevlabprojects
     AZURE_CUSTOM_DOMAIN: assets.projects.k8s.lp-i.xyz
     AZURE_CONTAINER: staging-projects
