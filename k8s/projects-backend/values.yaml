@@ -6,7 +6,6 @@ servedUrls:
   - '127.0.0.1' # The localhost, test if this is required
   - '.localhost' # The localhost, test if this is required
   - '0.0.0.0' # The localhost, test if this is required
-  - '10.244.0.0/16' # Kubernetes pods CIDR, required for the probes
 
 additionnalServedUrls: [] # Use this if you want to add custom urls to the list above from the argocd application
 
