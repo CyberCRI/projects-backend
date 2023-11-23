@@ -1,3 +1,6 @@
+corsAllowedDomains:
+- projects.k8s.lp-i.xyz
+
 config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.staging

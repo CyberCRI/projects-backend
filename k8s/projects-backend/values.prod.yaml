@@ -1,3 +1,10 @@
+corsAllowedDomains:
+- projets.app
+- learningplanetinstitute.org
+- projects.directory
+- learning-planet.org
+- profschercheurs.org
+
 config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.production
