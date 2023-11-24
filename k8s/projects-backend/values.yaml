@@ -1,8 +1,21 @@
+servedUrls:
+  - '{{ printf ".%s" .Values.hostname }}' # .example.com will match both example.com and www.example.com
+  - '{{ tpl $.Values.fullName $ }}' # The full name of the k8s service, called from inside the namespace
+  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.projectsNamespace }}' # The full name of the k8s service, called from outside the namespace
+  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.projectsNamespace }}.svc.cluster.local' # Alternative to the full name of the k8s service, called from outside the namespace
+  - '127.0.0.1' # The localhost, test if this is required
+  - '.localhost' # The localhost, test if this is required
+  - '0.0.0.0' # The localhost, test if this is required
+
+additionnalServedUrls: [] # Use this if you want to add custom urls to the list above from the argocd application
+
+corsAllowedDomains: []
+
 config:
   nonSensitive:
-    ALLOWED_HOSTS: 127.0.0.1,localhost,127.0.0.1:8080,localhost:8080,{{ .Values.hostname }},{{ .Values.fullName }}
+    ALLOWED_HOSTS: '{{ tpl (join "," .Values.servedUrls) $ }}'
+    CORS_ALLOWED_DOMAINS: '{{ join "," .Values.corsAllowedDomains}}'
     # Kubernetes pods, required for the probes
-    ALLOWED_IP_CIDR: 10.244.0.0/16
     POSTGRES_DB: projects
     BEHIND_HTTPS_PROXY: "True"
     ANALYTICS_URL: http://projects-analytics
@@ -86,3 +99,4 @@ workflow:
     executorClusterRoleName: executor
     serviceAccountName: workflow
   enabled: false
+

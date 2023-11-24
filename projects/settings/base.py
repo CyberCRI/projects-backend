@@ -11,8 +11,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 import multiprocessing
 import os
-from ipaddress import IPv4Network
+import re
 from pathlib import Path
+from socket import gethostbyname_ex, gethostname
 
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
@@ -87,13 +88,16 @@ LOGGING = {
     },
 }
 
-ALLOWED_IP_CIDR = os.getenv("ALLOWED_IP_CIDR", None)
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(",")
-if ALLOWED_IP_CIDR is not None and len(ALLOWED_IP_CIDR) > 0:
-    ALLOWED_HOSTS += [str(ip) for ip in IPv4Network(ALLOWED_IP_CIDR)]
+# Urls allowed to serve this backend application
+# https://docs.djangoproject.com/en/4.2/ref/settings/#allowed-hosts
+# Trick to get current ip for kubernetes probes
+# https://stackoverflow.com/questions/37031749/django-allowed-hosts-ips-range
+ALLOWED_HOSTS = [
+    *os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0").split(","),
+    gethostname(),
+] + list(set(gethostbyname_ex(gethostname())[2]))
 
 # Application definition
-
 INSTALLED_APPS = [
     # built-in
     "django.contrib.admin",
@@ -169,14 +173,18 @@ if DEBUG and DEBUG_TOOLBAR_INSTALLED:
     # Insert dubug toolbar middleware after whitenoise middleware
     MIDDLEWARE.insert(2, "debug_toolbar.middleware.DebugToolbarMiddleware")
 
-CORS_ALLOWED_ORIGINS = list(
-    map(lambda h: f"https://{h}", os.getenv("ALLOWED_HOSTS", "127.0.0.1").split(","))
-)
+# https://pypi.org/project/django-cors-headers/#cors-allowed-origins-sequence-str
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https?://[a-zA-Z0-9-]+.vercel.app",
-    r"^https?://localhost(:[0-9]+)?",
-    r"^https?://127.0.0.1(:[0-9]+)?",
+    r"^https?:\/\/localhost(:[0-9]+)?",  # Is this really needed ?
+    r"^https?:\/\/127.0.0.1(:[0-9]+)?",  # Is this really needed ?
 ]
+cors_allowed_domains = os.getenv("CORS_ALLOWED_DOMAINS")
+if cors_allowed_domains:
+    cors_allowed_domains_regex = (
+        r"^.*\.?(" + re.escape(cors_allowed_domains).replace(",", "|") + r")$"
+    )
+    CORS_ALLOWED_ORIGIN_REGEXES.append(cors_allowed_domains_regex)
+
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "cache-control",  # Used by People frontend
