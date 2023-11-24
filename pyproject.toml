@@ -21,7 +21,7 @@ django-modeltranslation = "^0.17.3"
 django-redis = "^5.2.0"
 # See https://github.com/jazzband/django-simple-history/issues/399
 django-simple-history = { git = "https://github.com/thijskramer/django-simple-history.git", branch = "m2m-support" }
-django-stdimage = "^5.3.0"
+django-stdimage = "^6.0.2"
 django-storages = { extras = ["azure"], version = "^1.11.1" }
 djangorestframework = "^3.12.4"
 djangorestframework-simplejwt = "^5.2.0"
