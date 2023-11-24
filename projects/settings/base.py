@@ -13,13 +13,13 @@ import multiprocessing
 import os
 import re
 from pathlib import Path
+from socket import gethostbyname_ex, gethostname
 
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
 from django.db.models import options
 from django.utils.translation import gettext_lazy as _
 from single_source import get_version
-from socket import gethostname, gethostbyname_ex
 
 try:
     import debug_toolbar  # noqa: F401
