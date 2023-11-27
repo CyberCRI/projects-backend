@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  labels:
+    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
+  name: {{ tpl $.Values.fullName $ }}
+spec:
+  endpoints:
+
+  - path: /v1/metrics
+    port: http
+    scheme: http
+    interval: 60s
+  selector:
+    matchLabels:
+    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 6 }}
