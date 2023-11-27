@@ -58,6 +58,7 @@ urlpatterns_v1 = [
     path("", include("apps.emailing.urls")),
     path("healthz/", include(("apps.healthcheck.urls", "healthcheck"))),
     path("access-token/", AccessTokenView.as_view()),
+    path("", include("django_prometheus.urls")),
 ]
 
 if apps.is_installed("services.google"):
