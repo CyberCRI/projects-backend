@@ -122,6 +122,7 @@ INSTALLED_APPS = [
     "stdimage",
     "rest_framework_simplejwt",
     "guardian",
+    "django_prometheus",
     # internal
     "apps.accounts",
     "apps.analytics",
@@ -154,6 +155,7 @@ if DEBUG and DEBUG_TOOLBAR_INSTALLED:
             break
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -167,6 +169,7 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "apps.accounts.middlewares.CookieTokenMiddleware",
     "projects.middlewares.PerRequestClearMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:

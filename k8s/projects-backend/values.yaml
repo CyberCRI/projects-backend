@@ -40,6 +40,7 @@ config:
 fullName: projects-backend
 
 projectsNamespace: projects
+monitoringNamespace: monitoring
 
 image:
   repository: criprodprod.azurecr.io

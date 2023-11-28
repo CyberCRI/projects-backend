@@ -20,6 +20,10 @@ spec:
       - namespaceSelector:
           matchLabels:
             kubernetes.io/metadata.name: {{ .Values.projectsNamespace }}
+      # Incoming traffic from monitoring namespace
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: {{ .Values.monitoringNamespace }}
       ports:
         - protocol: TCP
           port: http
