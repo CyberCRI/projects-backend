@@ -22,8 +22,14 @@ class ProjectRelatedPermission(IgnoreCall):
                 view.lookup_field
             )
             if pk is not None:
+                queryset = Project.objects.filter(slug=pk)
+                if queryset.exists():
+                    return queryset
                 return Project.objects.filter(pk=pk)
         if obj is None and "project_id" in view.kwargs:
+            queryset = Project.objects.filter(slug=view.kwargs["project_id"])
+            if queryset.exists():
+                return queryset
             return Project.objects.filter(pk=view.kwargs["project_id"])
         if obj is None and (view.lookup_url_kwarg or view.lookup_field) in view.kwargs:
             lookup_url_kwarg = view.lookup_url_kwarg or view.lookup_field
