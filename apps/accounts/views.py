@@ -26,6 +26,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
+from apps.accounts.exceptions import EmailTypeMissingError
 from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.utils.permissions import map_action_to_permission
@@ -252,9 +253,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 organization = group.organizations.first()
                 data["language"] = organization.language
             # Create user in keycloak and redirect to the organization portal
-            data["keycloak_id"] = KeycloakService.create_user(
-                data, request.query_params.get("organization", "DEFAULT")
-            )
+            data["keycloak_id"] = KeycloakService.create_user(data)
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instance = self.perform_create(serializer)
@@ -288,8 +287,22 @@ class UserViewSet(viewsets.ModelViewSet):
                 if invitation.organization
                 else None,
             ]
-            return serializer.save(groups=list(filter(lambda x: x, groups)))
-        return serializer.save()
+            instance = serializer.save(groups=list(filter(lambda x: x, groups)))
+            KeycloakService.send_email(
+                user=instance,
+                email_type=KeycloakService.EmailType.INVITATION,
+                redirect_organization_code=invitation.organization.code,
+            )
+            return instance
+        instance = serializer.save()
+        KeycloakService.send_email(
+            user=instance,
+            email_type=KeycloakService.EmailType.ADMIN_CREATED,
+            redirect_organization_code=self.request.query_params.get(
+                "organization", "DEFAULT"
+            ),
+        )
+        return instance
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -350,8 +363,11 @@ class UserViewSet(viewsets.ModelViewSet):
     def reset_password(self, request, *args, **kwargs):
         user = self.get_object()
         redirect_organization_code = request.query_params.get("organization", "DEFAULT")
-        KeycloakService.send_required_actions_email(
-            str(user.keycloak_id), ["UPDATE_PASSWORD"], redirect_organization_code
+        KeycloakService.send_email(
+            user=user,
+            email_type=KeycloakService.EmailType.RESET_PASSWORD,
+            actions=["UPDATE_PASSWORD"],
+            redirect_organization_code=redirect_organization_code,
         )
         return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
@@ -368,8 +384,13 @@ class UserViewSet(viewsets.ModelViewSet):
             redirect_organization_code = request.query_params.get(
                 "organization", "DEFAULT"
             )
-            email_sent = KeycloakService.send_required_actions_email(
-                str(user.keycloak_id), [], redirect_organization_code
+            email_type = request.query_params.get("email_type", None)
+            if not email_type:
+                raise EmailTypeMissingError()
+            email_sent = KeycloakService.send_email(
+                user=user,
+                email_type=email_type,
+                redirect_organization_code=redirect_organization_code,
             )
             if email_sent:
                 template_path = "execute_actions_email_success.html"
