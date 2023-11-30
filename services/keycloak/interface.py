@@ -127,6 +127,8 @@ class KeycloakService:
             "client_id": "admin-cli"
         }
         """
+        if settings.ENVIRONMENT == "test":
+            return {}
         if email_type not in cls.EmailType.values:
             raise ValueError(f"Email type {email_type} is not valid")
         service = cls.service()

@@ -20,8 +20,7 @@ class PostDeployTask:
 
     @classmethod
     def run(cls):
-        environment = settings.ENVIRONMENT
-        if environment == "test":
+        if settings.ENVIRONMENT == "test":
             cls.task()
         return cls.task.delay()
 

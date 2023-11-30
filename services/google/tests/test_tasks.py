@@ -38,9 +38,11 @@ class GoogleTasksTestCase(GoogleTestCase):
         super().setUp()
         self.client.force_authenticate(user=self.user)
 
+    @patch("services.keycloak.interface.KeycloakService.send_email")
     @patch("services.google.tasks.create_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
-    def test_create_google_account(self, mocked, mocked_delay):
+    def test_create_google_account(self, mocked, mocked_delay, mocked_send_email):
+        mocked_send_email.return_value = {}
         mocked_delay.side_effect = create_google_user_task
 
         group = GoogleGroupFactory()
@@ -92,7 +94,10 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.post(reverse("ProjectUser-list"), data=payload)
+            response = self.client.post(
+                reverse("ProjectUser-list") + f"?organization={self.organization.code}",
+                data=payload,
+            )
             assert response.status_code == status.HTTP_201_CREATED
             content = response.json()
             keycloak_id = content["keycloak_id"]

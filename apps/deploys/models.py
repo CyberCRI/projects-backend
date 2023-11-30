@@ -32,8 +32,7 @@ class PostDeployProcess(models.Model):
 
     @classmethod
     def recreate_processes(cls):
-        environment = settings.ENVIRONMENT
-        if environment == "test":
+        if settings.ENVIRONMENT == "test":
             cls._tasks = {
                 key: value for key, value in cls._tasks.items() if value.run_in_tests
             }
