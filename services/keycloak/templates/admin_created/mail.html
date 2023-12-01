@@ -5,7 +5,7 @@
 
 {% block content %}
 <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
-    {% blocktranslate with given_name=user.given_name organization_name=organization.name %}
+    {% blocktranslate with given_name=user.given_name.capitalize organization_name=organization.name %}
     Welcome to the Projects portal of {{ organization_name }}, {{ given_name }}!
     {% endblocktranslate %}
 </mj-text>
