@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-01 12:29+0000\n"
+"POT-Creation-Date: 2023-12-01 12:50+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -152,7 +152,6 @@ msgstr[1] ""
 #: apps/emailing/templates/notifications/new_reply/mail.html:13
 #: apps/emailing/templates/notifications/new_review/mail.html:13
 #: apps/emailing/templates/notifications/project_ready_for_review/mail.html:13
-#: services/keycloak/templates/reset_password/mail.html:13
 #, python-format
 msgid ""
 "\n"
@@ -161,7 +160,6 @@ msgid ""
 msgstr ""
 
 #: apps/emailing/templates/notifications/group_member_added_self/mail.html:18
-#: services/keycloak/templates/reset_password/mail.html:18
 #, python-format
 msgid ""
 "\n"
@@ -177,12 +175,10 @@ msgstr ""
 #: apps/emailing/templates/notifications/new_review/mail.html:35
 #: apps/emailing/templates/notifications/project_ready_for_review/mail.html:28
 #: apps/emailing/templates/notifications/reminder/mail.html:42
-#: services/keycloak/templates/reset_password/mail.html:28
 msgid "Go to project"
 msgstr ""
 
 #: apps/emailing/templates/notifications/group_member_added_self/mail.txt:2
-#: services/keycloak/templates/reset_password/mail.txt:2
 #, python-format
 msgid ""
 "\n"
@@ -191,7 +187,6 @@ msgid ""
 msgstr ""
 
 #: apps/emailing/templates/notifications/group_member_added_self/object.txt:2
-#: services/keycloak/templates/reset_password/object.txt:2
 #, python-format, python-brace-format
 msgid ""
 "\n"
@@ -668,6 +663,7 @@ msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:23
 #: services/keycloak/templates/invitation/mail.html:23
+#: services/keycloak/templates/reset_password/mail.html:23
 msgid ""
 "\n"
 "    If you didn’t request this email, there is nothing to worry about, you "
@@ -677,6 +673,7 @@ msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:28
 #: services/keycloak/templates/invitation/mail.html:28
+#: services/keycloak/templates/reset_password/mail.html:28
 #, python-format
 msgid ""
 "\n"
@@ -794,4 +791,50 @@ msgstr ""
 msgid ""
 "\n"
 "Confirm your email address to get started on %(org_name)s Projects\n"
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:13
+msgid ""
+"\n"
+"    Someone requested that we change your password. If this was you, click "
+"on the link below to update your password.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:18
+msgid ""
+"\n"
+"    Update password\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"Someone requested that we change your password. If this was you, click on "
+"the link below to update your password.\n"
+"Update password : %(link.link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+
+#: services/keycloak/templates/reset_password/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Update your %(org_name)s Projects password\n"
 msgstr ""
