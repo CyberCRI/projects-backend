@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-01 11:13+0000\n"
+"POT-Creation-Date: 2023-12-01 12:29+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -152,7 +152,6 @@ msgstr[1] ""
 #: apps/emailing/templates/notifications/new_reply/mail.html:13
 #: apps/emailing/templates/notifications/new_review/mail.html:13
 #: apps/emailing/templates/notifications/project_ready_for_review/mail.html:13
-#: services/keycloak/templates/admin_created/mail.html:13
 #: services/keycloak/templates/reset_password/mail.html:13
 #, python-format
 msgid ""
@@ -162,7 +161,6 @@ msgid ""
 msgstr ""
 
 #: apps/emailing/templates/notifications/group_member_added_self/mail.html:18
-#: services/keycloak/templates/admin_created/mail.html:18
 #: services/keycloak/templates/reset_password/mail.html:18
 #, python-format
 msgid ""
@@ -179,13 +177,11 @@ msgstr ""
 #: apps/emailing/templates/notifications/new_review/mail.html:35
 #: apps/emailing/templates/notifications/project_ready_for_review/mail.html:28
 #: apps/emailing/templates/notifications/reminder/mail.html:42
-#: services/keycloak/templates/admin_created/mail.html:28
 #: services/keycloak/templates/reset_password/mail.html:28
 msgid "Go to project"
 msgstr ""
 
 #: apps/emailing/templates/notifications/group_member_added_self/mail.txt:2
-#: services/keycloak/templates/admin_created/mail.txt:2
 #: services/keycloak/templates/reset_password/mail.txt:2
 #, python-format
 msgid ""
@@ -195,7 +191,6 @@ msgid ""
 msgstr ""
 
 #: apps/emailing/templates/notifications/group_member_added_self/object.txt:2
-#: services/keycloak/templates/admin_created/object.txt:2
 #: services/keycloak/templates/reset_password/object.txt:2
 #, python-format, python-brace-format
 msgid ""
@@ -646,6 +641,73 @@ msgstr ""
 msgid "This email is already used by another user"
 msgstr ""
 
+#: services/keycloak/templates/admin_created/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Welcome to the Projects portal of %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:13
+msgid ""
+"\n"
+"    Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organisation and foster collaboration for the common good.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:18
+msgid ""
+"\n"
+"    Create my password\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:23
+#: services/keycloak/templates/invitation/mail.html:23
+msgid ""
+"\n"
+"    If you didn’t request this email, there is nothing to worry about, you "
+"can safely ignore it.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:28
+#: services/keycloak/templates/invitation/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Link expires on %(expiration_date)s at %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Click here</a> to request a new "
+"link.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
+"Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organisation and foster collaboration for the common good.\n"
+"Create my password : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+msgstr ""
+
+#: services/keycloak/templates/admin_created/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to your new %(org_name)s Projects platform\n"
+msgstr ""
+
 #: services/keycloak/templates/base.html:54
 msgid ""
 "\n"
@@ -712,24 +774,6 @@ msgid ""
 "    "
 msgstr ""
 
-#: services/keycloak/templates/invitation/mail.html:23
-msgid ""
-"\n"
-"    If you didn’t request this email, there is nothing to worry about, you "
-"can safely ignore it.\n"
-"    "
-msgstr ""
-
-#: services/keycloak/templates/invitation/mail.html:28
-#, python-format
-msgid ""
-"\n"
-"    Link expires on %(expiration_date)s at %(expiration_time)s. <a "
-"class=\"lpi-link\" href=\"%(refresh_link)s\">Click here</a> to request a new "
-"link.\n"
-"    "
-msgstr ""
-
 #: services/keycloak/templates/invitation/mail.txt:2
 #, python-format
 msgid ""
@@ -741,8 +785,8 @@ msgid ""
 "Confirm email address : %(link)s\n"
 "If you didn’t request this email, there is nothing to worry about, you can "
 "safely ignore it.\n"
-"Link expires on %(expiration_date)s at %(expiration_time)s. Demandez un "
-"nouveau lien en cliquant sur %(refresh_link)s.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
 msgstr ""
 
 #: services/keycloak/templates/invitation/object.txt:2

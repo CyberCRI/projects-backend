@@ -4,5 +4,5 @@ Confirm your email address to get started on the Projects portal of {{ organizat
 Once you have confirmed that <strong>{{ contact_email }}</strong> is your address, we'll help you get started on the platform.
 Confirm email address : {{ link }}
 If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
-Link expires on {{ expiration_date }} at {{ expiration_time }}. Demandez un nouveau lien en cliquant sur {{ refresh_link }}.
+Link expires on {{ expiration_date }} at {{ expiration_time }}. Click on {{ refresh_link }} to request a new link.
 {% endblocktranslate %}

@@ -1,4 +1,8 @@
 {% load i18n %}
-{% blocktranslate with project_title=project.title full_name=by.get_full_name %}
-Hello {{ recipient.given_name }}, {{ full_name }} added the group {{ group }} you are part of to the team of project "{{ project_title }}".
+{% blocktranslate with organization_name=organization.name given_name=user.given_name expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link link=link.link %}
+Welcome to the Projects portal of {{ organization_name }}, {{ given_name }}!
+Your Projects account has just been created. You just have to choose a password and you will be able to join Projects, a platform to share projects in your organisation and foster collaboration for the common good.
+Create my password : {{ link }}
+If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+Link expires on {{ expiration_date }} at {{ expiration_time }}. Demandez un nouveau lien en cliquant sur {{ refresh_link }}.
 {% endblocktranslate %}
