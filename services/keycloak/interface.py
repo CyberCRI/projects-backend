@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Dict, List, Optional, Union
 
 from django.conf import settings
@@ -192,21 +193,31 @@ class KeycloakService:
         if len(actions) == 0:
             return False
         organization = Organization.objects.get(code=redirect_organization_code)
-
+        contact_email = user.personal_email if user.personal_email else user.email
         link = cls.get_user_execute_actions_link(
             user, email_type, actions, organization.website_url, lifespan
+        )
+        link["expiration_date"] = (
+            datetime.fromtimestamp(link["expiration"])
+            .astimezone()
+            .strftime("%d/%m/%Y")
+        )
+        link["expiration_time"] = (
+            datetime.fromtimestamp(link["expiration"])
+            .astimezone()
+            .strftime("%H:%M %Z")
         )
         subject, _ = render_message(
             f"{email_type}/object", user.language, user=user, organization=organization
         )
         text, html = render_message(
-            f"{email_type}/message",
+            f"{email_type}/mail",
             user.language,
             user=user,
+            contact_email=contact_email,
             organization=organization,
             link=link,
         )
-        contact_email = user.personal_email if user.personal_email else user.email
         send_email(subject, text, [contact_email], html_content=html)
         return True
 

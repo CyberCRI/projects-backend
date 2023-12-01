@@ -12,7 +12,7 @@
         font-weight: 700;
       }
       .lpi-button {
-        padding: 0 !important;
+        padding: 10px !important;
       }
       .lpi-button td {
         border: 1px solid #1d727c !important;
@@ -30,22 +30,48 @@
         padding: 0px !important;
       }
     </mj-style>
+    <mj-attributes>
+      <mj-text font-family="Ubuntu, Arial" line-height="24px" font-size="16px"/>
+    </mj-attributes>
   </mj-head>
   <mj-body>
     <mj-section>
+      <mj-raw>
+        <div style="display: flex;">
+          <img src="{{ public_url }}/v1/organization/{{ organization.code }}/logo/{{ organization.logo_image.id }}" alt="organization logo" style="width: auto; height: 50px;"/>
+          <img src="{{ public_url }}{% static 'projects_logo.png' %}" alt="projects logo" style="width: auto; height: 50px; margin-left: auto"/>
+        </div>
+      </mj-raw>
+    </mj-section>
+    <mj-section>
       <mj-column>
-        <mj-image width="250px" src="{{ public_url }}{% static 'projects_logo.png' %}"></mj-image>
-        <mj-divider border-color="#888888" border-width="2px"></mj-divider>
-        <mj-text font-family="Ubuntu">
-          {% block content %}{% endblock %}
+        {% block content %}{% endblock %}
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="20px" font-weight="700" align="center" line-height="30px">
+          Need any help?
         </mj-text>
-        <mj-divider border-color="#888888" border-width="2px"></mj-divider>
-        <mj-text align="center" color="grey" font-family="Ubuntu">
-          <a class="lpi-link" href="https://projects.directory">Projects.directory</a>
+        <mj-text>
+          For questions or assistance, you can <a class="lpi-link" href="mailto:projects.platform@learningplanetinstitute.org">email us</a>. We will come back to you during business hours (mon-fri 9am-6pm) as fast as we can.
+        </mj-text>
+        <mj-text>
+          You can also visit our <a class="lpi-link" href="https://docs.projects.lp-i.org">help center</a>.
+        </mj-text>
+        <mj-text>
+          We hope you'll enjoy our new platform!
+          <br/>
+          The LPI team.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1">
+      <mj-column>
+        <mj-image width="100px" align="center" src="{{ public_url }}{% static 'LPI-sm.png' %}" alt="lpi logo"/>
+        <mj-text align="center">
           {% blocktranslate %}
-          the platform made to share your projects.<br/>
-          Created for you by the Learning Planet Institute<br/>
-          8bis, rue Charles V, 75004 Paris, France
+          Made with ❤️ by Learning Planet Institute.
           {% endblocktranslate %}
         </mj-text>
       </mj-column>

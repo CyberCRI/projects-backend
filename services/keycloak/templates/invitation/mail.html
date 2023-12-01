@@ -4,33 +4,19 @@
 {% load static %}
 
 {% block content %}
-{% mjml %}
-<mjml>
-  <mj-body>
-    <mj-section>
-      <mj-column>
-        <mj-text font-size="15px">
-          {% blocktranslate with given_name=recipient.given_name %}
-          Hello {{ given_name }},
-          {% endblocktranslate %}
-        </mj-text>
-        <mj-text font-size="15px" line-height="20px">
-          {% blocktranslate with project_title=project.title project_slug=project.slug full_name=by.get_full_name website_url=project.organizations.first.website_url group=group.title %}
-          {{ full_name }} added the group {{ group }} you are part of to the team of project <a class="lpi-link" href="{{ website_url }}/projects/{{ project_slug }}/summary?fromNotification">{{ project_title }}</a>.
-          {% endblocktranslate %}
-        </mj-text>
-      </mj-column>
-    </mj-section>
-    <mj-section>
-      <mj-column>
-        {% with project.organizations.all|first as organization %}
-        <mj-button css-class="lpi-button" href="{{ organization.website_url }}/projects/{{ project.slug }}/summary?fromNotification">
-          {% blocktranslate %}Go to project{% endblocktranslate %}
-        </mj-button>
-        {% endwith %}
-      </mj-column>
-    </mj-section>
-  </mj-body>
-</mjml>
-{% endmjml %}
+<mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+    Confirm your email address to get started on the Projects portal of {{ organization.name }}.
+</mj-text>
+<mj-text>
+    Once you have confirmed that <strong>{{ contact_email }}</strong> is your address, we'll help you get started on the platform.
+</mj-text>
+<mj-button css-class="lpi-button" href="{{ link.link }}">
+    Confirm email address
+</mj-button>
+<mj-text>
+    If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+</mj-text>
+<mj-text>
+    Link expires on the {{ link.expiration_date }} at {{ link.expiration_time }}. <a class="lpi-link" href="{{ public_url }}/v1/user/{{ user.keycloak_id }}/refresh-keycloak-actions-link/?organization={{ organization.code }}&email_type={{ link.email_type }}">Click here</a> to request a new link.
+</mj-text>
 {% endblock %}
