@@ -1,4 +1,8 @@
 {% load i18n %}
-{% blocktranslate with project_title=project.title full_name=by.get_full_name %}
-Hello {{ recipient.given_name }}, {{ full_name }} added the group {{ group }} you are part of to the team of project "{{ project_title }}".
+{% blocktranslate with organization_name=organization.name contact_email=contact_email expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link link=link.link %}
+Confirm your email address to get started on the Projects portal of {{ organization_name }}.
+Once you have confirmed that <strong>{{ contact_email }}</strong> is your address, we'll help you get started on the platform.
+Confirm email address : {{ link }}
+If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+Link expires on {{ expiration_date }} at {{ expiration_time }}. Demandez un nouveau lien en cliquant sur {{ refresh_link }}.
 {% endblocktranslate %}

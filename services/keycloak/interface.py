@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from typing import Dict, List, Optional, Union
 
+from babel.dates import format_date, format_time
 from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
@@ -143,6 +144,34 @@ class KeycloakService:
         return raise_error_from_response(data_raw, KeycloakGetError)
 
     @classmethod
+    def format_execute_action_link_for_template(
+        cls,
+        link: Dict[str, Union[int, str]],
+        user: ProjectUser,
+        organization: Organization,
+    ) -> Dict[str, Union[int, str]]:
+        """
+        Format the link response from Keycloak to be used in an email template.
+        """
+        link["expiration_date"] = format_date(
+            datetime.fromtimestamp(link["expiration"]).astimezone(),
+            format="full",
+            locale=user.language,
+        )
+        link["expiration_time"] = format_time(
+            datetime.fromtimestamp(link["expiration"]).astimezone(),
+            format="short",
+            locale=user.language,
+        )
+        link["refresh_link"] = (
+            f"{settings.PUBLIC_URL}"
+            + f"/v1/user/{user.keycloak_id}/refresh-keycloak-actions-link"
+            + f"/?organization={organization.code}"
+            + f"&email_type={link['email_type']}"
+        )
+        return link
+
+    @classmethod
     def send_email(
         cls,
         user: ProjectUser,
@@ -197,16 +226,7 @@ class KeycloakService:
         link = cls.get_user_execute_actions_link(
             user, email_type, actions, organization.website_url, lifespan
         )
-        link["expiration_date"] = (
-            datetime.fromtimestamp(link["expiration"])
-            .astimezone()
-            .strftime("%d/%m/%Y")
-        )
-        link["expiration_time"] = (
-            datetime.fromtimestamp(link["expiration"])
-            .astimezone()
-            .strftime("%H:%M %Z")
-        )
+        link = cls.format_execute_action_link_for_template(link, user, organization)
         subject, _ = render_message(
             f"{email_type}/object", user.language, user=user, organization=organization
         )

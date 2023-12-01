@@ -5,18 +5,28 @@
 
 {% block content %}
 <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
-    Confirm your email address to get started on the Projects portal of {{ organization.name }}.
+    {% blocktranslate with organization_name=organization.name%}
+    Confirm your email address to get started on the Projects portal of {{ organization_name }}.
+    {% endblocktranslate %}
 </mj-text>
 <mj-text>
+    {% blocktranslate %}
     Once you have confirmed that <strong>{{ contact_email }}</strong> is your address, we'll help you get started on the platform.
+    {% endblocktranslate %}
 </mj-text>
 <mj-button css-class="lpi-button" href="{{ link.link }}">
+    {% blocktranslate %}
     Confirm email address
+    {% endblocktranslate %}
 </mj-button>
 <mj-text>
+    {% blocktranslate %}
     If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+    {% endblocktranslate %}
 </mj-text>
 <mj-text>
-    Link expires on the {{ link.expiration_date }} at {{ link.expiration_time }}. <a class="lpi-link" href="{{ public_url }}/v1/user/{{ user.keycloak_id }}/refresh-keycloak-actions-link/?organization={{ organization.code }}&email_type={{ link.email_type }}">Click here</a> to request a new link.
+    {% blocktranslate with expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link %}
+    Link expires on {{ expiration_date }} at {{ expiration_time }}. <a class="lpi-link" href="{{ refresh_link }}">Click here</a> to request a new link.
+    {% endblocktranslate %}
 </mj-text>
 {% endblock %}
