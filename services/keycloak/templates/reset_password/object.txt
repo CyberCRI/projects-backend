@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with org_name=organization.name %}
+Update your {{ org_name }} Projects password
+{% endblocktranslate %}

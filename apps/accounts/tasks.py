@@ -35,15 +35,18 @@ def _clean_user_data_from_csv(user_data):
 
 def _create_user_from_csv_data(request, user_data):
     redirect_organization_code = user_data.pop("redirect_organization_code", "")
-    user_data["keycloak_id"] = KeycloakService.create_user(
-        user_data, redirect_organization_code
-    )
+    user_data["keycloak_id"] = KeycloakService.create_user(user_data)
     serializer = UserSerializer(
         data=user_data,
         context={"request": request},
     )
     if serializer.is_valid():
-        serializer.save()
+        instance = serializer.save()
+        KeycloakService.send_email(
+            user=instance,
+            email_type=KeycloakService.EmailType.ADMIN_CREATED,
+            redirect_organization_code=redirect_organization_code,
+        )
         return {"email": user_data["email"], "status": "created", "error": ""}
     return {
         "email": user_data["email"],

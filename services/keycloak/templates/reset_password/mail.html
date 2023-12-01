@@ -1,0 +1,32 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+    {% blocktranslate with organization_name=organization.name%}
+    A request to reset your password has been made for your {{organization_name}} Projects account.
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate %}
+    Someone requested that we change your password. If this was you, click on the link below to update your password.
+    {% endblocktranslate %}
+</mj-text>
+<mj-button css-class="lpi-button" href="{{ link.link }}">
+    {% blocktranslate %}
+    Update password
+    {% endblocktranslate %}
+</mj-button>
+<mj-text>
+    {% blocktranslate %}
+    If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate with expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link %}
+    Link expires on {{ expiration_date }} at {{ expiration_time }}. <a class="lpi-link" href="{{ refresh_link }}">Click here</a> to request a new link.
+    {% endblocktranslate %}
+</mj-text>
+{% endblock %}
