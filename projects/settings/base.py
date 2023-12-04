@@ -412,6 +412,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "services.mixpanel.tasks.get_new_mixpanel_events",
         "schedule": crontab(minute="*/2", hour="*"),
     },
+    "retry_google_failed_tasks": {
+        "task": "services.google.tasks.retry_failed_tasks",
+        "schedule": crontab(minute="*/10", hour="*"),
+    },
 }
 
 # Cache settings
