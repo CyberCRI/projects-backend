@@ -658,3 +658,16 @@ class AlgoliaSplittingIndex(AlgoliaIndex):
 
         logger.debug("BUILD %s FROM %s", [r["objectID"] for r in records], self.model)
         return records
+
+    def delete_record(self, instance):
+        """Delete the record."""
+        objects_ids = [
+            record["objectID"] for record in self.generate_raw_records(instance)
+        ]
+        for object_id in objects_ids:
+            try:
+                self._index.delete_object(object_id)
+            except AlgoliaException as e:
+                if DEBUG:
+                    raise e
+                logger.warning("%s FROM %s NOT DELETED: %s", object_id, self.model, e)
