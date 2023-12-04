@@ -698,23 +698,14 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
             "categories",
             queryset=ProjectCategory.objects.select_related("organization"),
         )
-        featured_projects_ids = [p.id for p in group.featured_projects.all()]
         queryset = (
-            self.request.user.get_project_queryset()
-            .filter(
-                Q(id__in=featured_projects_ids)
-                | Q(groups__users__in=group.get_all_members().all())
+            (
+                self.request.user.get_project_queryset()
+                & group.featured_projects.all().distinct()
             )
             .distinct()
             .prefetch_related(categories)
-            .annotate(
-                is_featured=Case(
-                    When(id__in=featured_projects_ids, then=True), default=Value(False)
-                )
-            )
-            .order_by("-is_featured")
         )
-
         page = self.paginate_queryset(queryset)
         if page is not None:
             project_serializer = ProjectLightSerializer(

@@ -170,7 +170,6 @@ class ProjectLightSerializer(serializers.ModelSerializer):
     header_image = ImageSerializer(read_only=True)
     views = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField(read_only=True)
-    is_featured = serializers.BooleanField(required=False, read_only=True)
 
     class Meta:
         model = Project
@@ -188,7 +187,6 @@ class ProjectLightSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "is_followed",
-            "is_featured",
         ]
 
     get_views = get_views_from_serializer
