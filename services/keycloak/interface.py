@@ -134,7 +134,7 @@ class KeycloakService:
         if email_type not in cls.EmailType.values:
             raise ValueError(f"Email type {email_type} is not valid")
         service = cls.service()
-        url = f"/realms/lp/custom/user/{user.keycloak_id}/execute-actions-token/"
+        url = f"realms/lp/custom/user/{user.keycloak_id}/execute-actions-token/"
         url += f"?client_id={cls.EMAIL_CLIENT_ID}"
         url += f"&email_type={email_type}"
         url += f"&actions={','.join(actions)}"
