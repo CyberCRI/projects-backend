@@ -54,10 +54,11 @@ class UserLightSerializer(serializers.ModelSerializer):
     is_leader = serializers.BooleanField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
     password_created = serializers.BooleanField(required=False, read_only=True)
+    people_groups = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjectUser
-        fields = [
+        read_only_fields = [
             "id",
             "slug",
             "keycloak_id",
@@ -74,7 +75,10 @@ class UserLightSerializer(serializers.ModelSerializer):
             "email_verified",
             "password_created",
             "last_login",
+            "people_groups",
+            "created_at",
         ]
+        fields = read_only_fields
 
     def to_representation(self, instance):
         request = self.context.get("request", None)
@@ -92,6 +96,19 @@ class UserLightSerializer(serializers.ModelSerializer):
             return None
         return ImageSerializer(user.profile_picture).data
 
+    def get_people_groups(self, user: ProjectUser) -> list:
+        request_user = getattr(
+            self.context.get("request", None), "user", AnonymousUser()
+        )
+        queryset = (
+            request_user.get_people_group_queryset()
+            .filter(groups__users=user)
+            .distinct()
+        )
+        return PeopleGroupLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
+
 
 class PeopleGroupLightSerializer(serializers.ModelSerializer):
     header_image = ImageSerializer(read_only=True)
@@ -102,13 +119,14 @@ class PeopleGroupLightSerializer(serializers.ModelSerializer):
         read_only=True,
         source="groups",
     )
+    organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
     def get_members_count(self, group: PeopleGroup) -> int:
         return group.get_all_members().count()
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root", "publication_status"]
+        read_only_fields = ["organization", "is_root", "publication_status"]
         fields = read_only_fields + [
             "id",
             "slug",
@@ -434,7 +452,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectUser
-        read_only_fields = ["slug"]
+        read_only_fields = ["slug", "created_at"]
         fields = read_only_fields + [
             "roles",
             "roles_to_add",
@@ -557,20 +575,14 @@ class UserSerializer(serializers.ModelSerializer):
         request_user = getattr(
             self.context.get("request", None), "user", AnonymousUser()
         )
-        queryset = request_user.get_people_group_queryset()
-        return [
-            {
-                "id": group.id,
-                "slug": group.slug,
-                "name": group.name,
-                "description": group.description,
-                "short_description": group.short_description,
-                "type": group.type,
-                "email": group.email,
-                "organization": group.organization.code if group.organization else None,
-            }
-            for group in queryset.filter(groups__users=user).distinct()
-        ]
+        queryset = (
+            request_user.get_people_group_queryset()
+            .filter(groups__users=user)
+            .distinct()
+        )
+        return PeopleGroupLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
 
     def get_notifications(self, user: ProjectUser) -> int:
         return Notification.objects.filter(is_viewed=False, receiver=user).count()
