@@ -414,9 +414,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
     search_fields = ["name"]
     filter_backends = (
+        TrigramSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
-        TrigramSearchFilter,
     )
 
     def get_object(self):
