@@ -561,6 +561,7 @@ class UserSerializer(serializers.ModelSerializer):
         return [
             {
                 "id": group.id,
+                "slug": group.slug,
                 "name": group.name,
                 "description": group.description,
                 "short_description": group.short_description,
