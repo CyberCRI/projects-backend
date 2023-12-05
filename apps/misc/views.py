@@ -17,9 +17,9 @@ from apps.organizations.permissions import HasOrganizationPermission
 class WikipediaTagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.WikipediaTagSerializer
     filter_backends = (
+        TrigramSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
-        TrigramSearchFilter,
     )
     filterset_class = filters.WikipediaTagFilter
     search_fields = ["name_fr", "name_en"]
@@ -94,9 +94,9 @@ class WikipediaTagWikipediaViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TagSerializer
     filter_backends = (
+        TrigramSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
-        TrigramSearchFilter,
     )
     filterset_class = filters.TagFilter
     search_fields = ["name"]

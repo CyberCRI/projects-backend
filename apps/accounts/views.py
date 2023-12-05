@@ -107,9 +107,9 @@ class UserViewSet(viewsets.ModelViewSet):
     ]
     parser_classes = (JSONParser, UserMultipartParser)
     filter_backends = (
+        TrigramSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
-        TrigramSearchFilter,
     )
     filterset_class = UserFilter
     ordering_fields = ["given_name", "family_name", "job", "current_org_role"]
@@ -414,9 +414,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
     search_fields = ["name"]
     filter_backends = (
+        TrigramSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
-        TrigramSearchFilter,
     )
 
     def get_object(self):
