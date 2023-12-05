@@ -1102,6 +1102,26 @@
       },
       "notBefore": 0,
       "groups": []
+    },
+    {
+      "id": "5a9ac670-59d4-4dd8-b90c-0455346befca",
+      "username": "admin@localhost.com",
+      "email": "admin@localhost.com",
+      "firstName": "admin",
+      "lastName": "local",
+      "createdTimestamp": 1698683833075,
+      "enabled": true,
+      "totp": false,
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "admin"
+        }
+      ],
+      "groups": [
+        "/projects/administrators"
+      ]
     }
   ],
   "scopeMappings": [

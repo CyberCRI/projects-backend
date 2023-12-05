@@ -1,0 +1,8 @@
+{% load i18n %}
+{% blocktranslate with organization_name=organization.name contact_email=contact_email expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link link=link.link %}
+A request to reset your password has been made for your {{organization_name}} Projects account.
+Someone requested that we change your password. If this was you, click on the link below to update your password.
+Update password : {{ link.link }}
+If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+Link expires on {{ expiration_date }} at {{ expiration_time }}. Click on {{ refresh_link }} to request a new link.
+{% endblocktranslate %}

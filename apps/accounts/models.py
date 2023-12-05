@@ -688,7 +688,7 @@ class AnonymousUser:
         if self._project_queryset is None:
             self._project_queryset = Project.objects.filter(
                 publication_status=Project.PublicationStatus.PUBLIC
-            )
+            ).distinct()
         return self._project_queryset.prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:

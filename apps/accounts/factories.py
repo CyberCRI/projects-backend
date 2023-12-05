@@ -126,7 +126,7 @@ class PeopleGroupFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("text")
     email = factory.Faker("email")
     name = factory.Faker("name")
-    publication_status = PeopleGroup.PublicationStatus.ORG
+    publication_status = PeopleGroup.PublicationStatus.PUBLIC
 
     class Meta:
         model = PeopleGroup

@@ -1,0 +1,8 @@
+{% load i18n %}
+{% blocktranslate with organization_name=organization.name contact_email=contact_email expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link link=link.link %}
+Confirm your email address to get started on the Projects portal of {{ organization_name }}.
+Once you have confirmed that <strong>{{ contact_email }}</strong> is your address, we'll help you get started on the platform.
+Confirm email address : {{ link }}
+If you didn’t request this email, there is nothing to worry about, you can safely ignore it.
+Link expires on {{ expiration_date }} at {{ expiration_time }}. Click on {{ refresh_link }} to request a new link.
+{% endblocktranslate %}

@@ -23,13 +23,23 @@ cd projects-back
 ```bash
 make
 ```
-
-### Migrate the database
+### Execute into the backend container
 *The stack need to be running.*
+Get a shell access to the backend container
 ```bash
 make bash
+```
+
+### Migrate the database
+```bash
 python manage.py migrate
 ```
+
+### Default user
+A default superadmin is created in keycloak. To import it in Projects, you need to login at least once in the [swagger](http://localhost:8000/api/schema/swagger-ui) using these credentials:
+- username: `admin@localhost.com`
+- password: `admin`
+
 ### Seed the database
 *The stack need to be running.*
 ```bash

@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with org_name=organization.name %}
+Confirm your email address to get started on {{ org_name }} Projects
+{% endblocktranslate %}

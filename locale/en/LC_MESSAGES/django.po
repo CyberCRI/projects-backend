@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 10:18+0000\n"
+"POT-Creation-Date: 2023-12-04 12:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -28,6 +28,12 @@ msgstr ""
 
 #: apps/accounts/authentication.py:117
 msgid "Invitation not found or expired"
+msgstr ""
+
+#: apps/accounts/exceptions.py:8
+msgid ""
+"email_type query parameter is missing. Choices are : admin_created, "
+"invitation, reset_password"
 msgstr ""
 
 #: apps/accounts/models.py:115 apps/projects/models.py:147
@@ -610,15 +616,15 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: apps/projects/serializers.py:597
+#: apps/projects/serializers.py:595
 msgid "Only a reviewer can change this project's status."
 msgstr ""
 
-#: projects/settings/base.py:245
+#: projects/settings/base.py:257
 msgid "English"
 msgstr ""
 
-#: projects/settings/base.py:246
+#: projects/settings/base.py:258
 msgid "French"
 msgstr ""
 
@@ -628,4 +634,207 @@ msgstr ""
 
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Welcome to the Projects portal of %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:13
+msgid ""
+"\n"
+"    Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organisation and foster collaboration for the common good.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:18
+msgid ""
+"\n"
+"    Create my password\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:23
+#: services/keycloak/templates/invitation/mail.html:23
+#: services/keycloak/templates/reset_password/mail.html:23
+msgid ""
+"\n"
+"    If you didn’t request this email, there is nothing to worry about, you "
+"can safely ignore it.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.html:28
+#: services/keycloak/templates/invitation/mail.html:28
+#: services/keycloak/templates/reset_password/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Link expires on %(expiration_date)s at %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Click here</a> to request a new "
+"link.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/admin_created/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
+"Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organisation and foster collaboration for the common good.\n"
+"Create my password : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+msgstr ""
+
+#: services/keycloak/templates/admin_created/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to your new %(org_name)s Projects platform\n"
+msgstr ""
+
+#: services/keycloak/templates/base.html:54
+msgid ""
+"\n"
+"          Need any help?\n"
+"          "
+msgstr ""
+
+#: services/keycloak/templates/base.html:59
+msgid ""
+"\n"
+"          For questions or assistance, you can <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">email us</a>. "
+"We will come back to you during business hours (mon-fri 9am-6pm) as fast as "
+"we can.\n"
+"          "
+msgstr ""
+
+#: services/keycloak/templates/base.html:64
+msgid ""
+"\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
+"projects.lp-i.org\">help center</a>.\n"
+"          "
+msgstr ""
+
+#: services/keycloak/templates/base.html:69
+msgid ""
+"\n"
+"          We hope you'll enjoy our new platform!\n"
+"          <br/>\n"
+"          The LPI team.\n"
+"          "
+msgstr ""
+
+#: services/keycloak/templates/base.html:81
+msgid ""
+"\n"
+"          Made with ❤️ by Learning Planet Institute.\n"
+"          "
+msgstr ""
+
+#: services/keycloak/templates/invitation/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Confirm your email address to get started on the Projects portal of "
+"%(organization_name)s.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/invitation/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"    Once you have confirmed that <strong>%(contact_email)s</strong> is your "
+"address, we'll help you get started on the platform.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/invitation/mail.html:18
+msgid ""
+"\n"
+"    Confirm email address\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/invitation/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Confirm your email address to get started on the Projects portal of "
+"%(organization_name)s.\n"
+"Once you have confirmed that <strong>%(contact_email)s</strong> is your "
+"address, we'll help you get started on the platform.\n"
+"Confirm email address : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+
+#: services/keycloak/templates/invitation/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Confirm your email address to get started on %(org_name)s Projects\n"
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:13
+msgid ""
+"\n"
+"    Someone requested that we change your password. If this was you, click "
+"on the link below to update your password.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:18
+msgid ""
+"\n"
+"    Update password\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"Someone requested that we change your password. If this was you, click on "
+"the link below to update your password.\n"
+"Update password : %(link.link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+
+#: services/keycloak/templates/reset_password/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Update your %(org_name)s Projects password\n"
 msgstr ""

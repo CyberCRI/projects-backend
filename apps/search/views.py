@@ -234,10 +234,7 @@ class UserSearchViewSet(AlgoliaSearchViewSetMixin):
 
     def get_facet_filters(self):
         facet_filters = [
-            [
-                f"organizations:{o}"
-                for o in get_hierarchy_codes(self.get_filter("organizations"))
-            ],
+            [f"organizations:{o}" for o in self.get_filter("organizations")],
             [f"skills_filter:{s}" for s in self.get_filter("skills")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
             [f"permissions:{p}" for p in self.get_user_users_permissions()],
@@ -299,10 +296,7 @@ class PeopleGroupSearchViewSet(AlgoliaSearchViewSetMixin):
 
     def get_facet_filters(self):
         facet_filters = [
-            [
-                f"organization:{o}"
-                for o in get_hierarchy_codes(self.get_filter("organizations"))
-            ],
+            [f"organization:{o}" for o in self.get_filter("organizations")],
             [f"type:{s}" for s in self.get_filter("types")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
             [f"permissions:{p}" for p in self.get_user_groups_permissions()],
@@ -377,9 +371,7 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
 
     def get_group_filters(self):
         filters = {
-            "organization__code__in": get_hierarchy_codes(
-                self.get_filter("organizations")
-            ),
+            "organization__code__in": self.get_filter("organizations"),
             "sdgs__overlap": self.get_filter("sdgs"),
             "type__in": self.get_filter("types"),
         }
@@ -387,9 +379,7 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
 
     def get_user_filters(self):
         filters = {
-            "groups__organizations__code__in": get_hierarchy_codes(
-                self.get_filter("organizations")
-            ),
+            "groups__organizations__code__in": self.get_filter("organizations"),
             "skills__wikipedia_tag__wikipedia_qid__in": self.get_filter("skills"),
             "sdgs__overlap": self.get_filter("sdgs"),
         }

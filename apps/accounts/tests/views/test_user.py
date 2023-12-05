@@ -1,5 +1,5 @@
 import datetime
-from unittest import mock
+from unittest.mock import Mock, patch
 
 from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from django.urls import reverse
@@ -44,11 +44,13 @@ class CreateUserTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_create_user(self, role, expected_code):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_create_user(self, role, expected_code, mocked):
+        mocked.return_value = {}
         organization = self.organization
         projects = self.projects
         people_groups = self.people_groups
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
             "people_id": faker.uuid4(),
@@ -62,7 +64,10 @@ class CreateUserTestCase(JwtAPITestCase):
                 *[people_group.get_members().name for people_group in people_groups],
             ],
         }
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
@@ -84,7 +89,9 @@ class CreateUserTestCase(JwtAPITestCase):
                 "UPDATE_PASSWORD",
             }
 
-    def test_create_user_with_formdata(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_create_user_with_formdata(self, mocked):
+        mocked.return_value = {}
         organization = self.organization
         projects = self.projects
         people_groups = self.people_groups
@@ -110,7 +117,7 @@ class CreateUserTestCase(JwtAPITestCase):
             ],
         }
         response = self.client.post(
-            reverse("ProjectUser-list"),
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
             data=encode_multipart(data=payload, boundary=BOUNDARY),
             content_type=MULTIPART_CONTENT,
         )
@@ -148,7 +155,9 @@ class CreateUserTestCase(JwtAPITestCase):
             "UPDATE_PASSWORD",
         }
 
-    def test_create_user_with_invitation(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_create_user_with_invitation(self, mocked):
+        mocked.return_value = {}
         organization = self.organization
         people_group = PeopleGroupFactory(organization=self.organization)
         payload = {
@@ -167,7 +176,10 @@ class CreateUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(  # nosec
             token=invitation.token, token_type="Invite"
         )
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
         assert response.status_code == 201
         user = ProjectUser.objects.filter(email=payload["email"])
         assert user.exists()
@@ -181,7 +193,9 @@ class CreateUserTestCase(JwtAPITestCase):
         assert keycloak_user is not None
         assert keycloak_user["requiredActions"] == ["VERIFY_EMAIL"]
 
-    def test_create_user_with_expired_invitation(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_create_user_with_expired_invitation(self, mocked):
+        mocked.return_value = {}
         organization = self.organization
         people_group = PeopleGroupFactory(organization=self.organization)
         payload = {
@@ -199,7 +213,10 @@ class CreateUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(  # nosec
             token=invitation.token, token_type="Invite"
         )
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
         assert response.status_code == 401
 
 
@@ -224,7 +241,7 @@ class UpdateUserTestCase(JwtAPITestCase):
         organization = self.organization
         instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         payload = {
@@ -262,7 +279,7 @@ class DeleteUserTestCase(JwtAPITestCase):
         organization = self.organization
         instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
@@ -283,7 +300,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     def mocked_google_error(code=400):
         def raise_error(*args, **kwargs):
             raise HttpError(
-                resp=mock.Mock(status=code, reason="error reason"),
+                resp=Mock(status=code, reason="error reason"),
                 content=b'{"error": {"errors": [{"reason": "error reason"}]}}',
             )
 
@@ -295,7 +312,9 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "error reason", 400, response_body=b'{"errorMessage": "error reason"}'
         )
 
-    def test_keycloak_error_create_user(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_keycloak_error_create_user(self, mocked):
+        mocked.return_value = {}
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory()
         payload = {
@@ -305,7 +324,10 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
         }
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
+            data=payload,
+        )
         assert response.status_code == 409
         assert (
             response.json()["error"]
@@ -332,7 +354,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             ProjectUser.objects.get(keycloak_id=user.keycloak_id).email != user_2.email
         )
 
-    @mock.patch("services.keycloak.interface.KeycloakService.delete_user")
+    @patch("services.keycloak.interface.KeycloakService.delete_user")
     def test_keycloak_error_delete_user(self, mocked):
         mocked.side_effect = self.mocked_keycloak_error
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
@@ -360,7 +382,9 @@ class ValidateUserTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    def test_create_user_group_validation_no_permission(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_create_user_group_validation_no_permission(self, mocked):
+        mocked.return_value = {}
         organization = self.organization
         organization_2 = OrganizationFactory()
         self.client.force_authenticate(UserFactory(groups=[organization.get_admins()]))
@@ -375,7 +399,10 @@ class ValidateUserTestCase(JwtAPITestCase):
                 organization_2.get_users().name,
             ],
         }
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
         assert response.status_code == 403
         assert f"organization:#{organization_2.pk}:users" in response.json()["detail"]
 
@@ -471,6 +498,20 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["keycloak_id"] == self.user_d.keycloak_id
 
+    def test_filter_by_organization(self):
+        other_organization = OrganizationFactory(parent=self.organization)
+        other_organization.admins.add(self.user_d)
+        response = self.client.get(
+            reverse("ProjectUser-list") + f"?organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 3
+        assert {u["keycloak_id"] for u in response.data["results"]} == {
+            self.user_a.keycloak_id,
+            self.user_b.keycloak_id,
+            self.user_c.keycloak_id,
+        }
+
     def test_search_by_job(self):
         response = self.client.get(reverse("ProjectUser-list") + "?search=ABC")
         assert response.status_code == 200
@@ -479,17 +520,6 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
         response = self.client.get(reverse("ProjectUser-list") + "?search=GHI")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
-
-    def test_search_by_people_group(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?search=MNO")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == self.user_a.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=PQR")
-        assert response.status_code == 200
-        assert response.data["results"][0]["keycloak_id"] == self.user_b.keycloak_id
-        response = self.client.get(reverse("ProjectUser-list") + "?search=STU")
         assert response.status_code == 200
         assert response.data["results"][0]["keycloak_id"] == self.user_c.keycloak_id
 
@@ -527,7 +557,9 @@ class MiscUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert response.data["notifications"] == 5
 
-    def test_language_from_organization(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_language_from_organization(self, mocked):
+        mocked.return_value = {}
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         organization = OrganizationFactory(language="fr")
@@ -539,13 +571,18 @@ class MiscUserTestCase(JwtAPITestCase):
             "family_name": faker.last_name(),
             "roles_to_add": [organization.get_users().name],
         }
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
         assert response.status_code == 201
         assert response.data["language"] == "fr"
         keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
         assert keycloak_user["attributes"]["locale"] == ["fr"]
 
-    def test_language_from_payload(self):
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_language_from_payload(self, mocked):
+        mocked.return_value = {}
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         organization = OrganizationFactory(language="en")
@@ -558,7 +595,10 @@ class MiscUserTestCase(JwtAPITestCase):
             "roles_to_add": [organization.get_users().name],
             "language": "fr",
         }
-        response = self.client.post(reverse("ProjectUser-list"), data=payload)
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
         assert response.status_code == 201
         assert response.data["language"] == "fr"
         keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])

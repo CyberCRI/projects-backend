@@ -1,5 +1,7 @@
 from typing import Callable
 
+from django.conf import settings
+
 from apps.commons.db.abc import PermissionsSetupModel
 
 from .tasks import (
@@ -18,6 +20,8 @@ class PostDeployTask:
 
     @classmethod
     def run(cls):
+        if settings.ENVIRONMENT == "test":
+            cls.task()
         return cls.task.delay()
 
     def get_progress(self):

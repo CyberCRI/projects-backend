@@ -51,8 +51,14 @@ class PeopleGroupRelatedPermission(IgnoreCall):
                 view.lookup_field
             )
             if pk is not None:
+                queryset = PeopleGroup.objects.filter(slug=pk)
+                if queryset.exists():
+                    return queryset
                 return PeopleGroup.objects.filter(pk=pk)
         if "people_group_id" in view.kwargs:
+            queryset = PeopleGroup.objects.filter(slug=view.kwargs["people_group_id"])
+            if queryset.exists():
+                return queryset
             return PeopleGroup.objects.filter(id=view.kwargs["people_group_id"])
         return []
 

@@ -81,7 +81,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_retrieve_users(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         for user_type, user in self.users.items():
             response = self.client.get(
@@ -104,7 +104,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_list_users(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-list"))
         self.assertEqual(response.status_code, 200)
@@ -134,7 +134,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_project_members(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
         self.assertEqual(response.status_code, 200)
@@ -160,7 +160,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_people_group_members(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -194,7 +194,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_users_in_comments(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Comment-list", args=[self.project.id]))
         self.assertEqual(response.status_code, 200)
@@ -222,7 +222,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_users_in_follows(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
         self.assertEqual(response.status_code, 200)
@@ -250,7 +250,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_users_in_reviews(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
         self.assertEqual(response.status_code, 200)
@@ -278,7 +278,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_users_in_invitations(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Invitation-list", args=(self.organization.code,))
@@ -307,7 +307,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
     )
     def test_view_users_in_notifications(self, role, expected_users):
         organization = self.organization
-        user = self.get_parameterized_test_user(role, organization=organization)
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         notifications = {
             user_type: NotificationFactory(

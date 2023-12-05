@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-10-31 10:20+0000\n"
+"POT-Creation-Date: 2023-12-04 12:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -29,6 +29,14 @@ msgstr "L'utilisateur.ice est inactif.ve"
 #: apps/accounts/authentication.py:117
 msgid "Invitation not found or expired"
 msgstr "Invitation invalide ou expirée"
+
+#: apps/accounts/exceptions.py:8
+msgid ""
+"email_type query parameter is missing. Choices are : admin_created, "
+"invitation, reset_password"
+msgstr ""
+"Le paramètre email_type est manquant. Les choix sont : admin_created, "
+"invitation, reset_password"
 
 #: apps/accounts/models.py:115 apps/projects/models.py:147
 msgid "visibility"
@@ -790,15 +798,15 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: apps/projects/serializers.py:597
+#: apps/projects/serializers.py:595
 msgid "Only a reviewer can change this project's status."
 msgstr "Seul un correcteur peut modifier le statut de ce projet."
 
-#: projects/settings/base.py:245
+#: projects/settings/base.py:257
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:246
+#: projects/settings/base.py:258
 msgid "French"
 msgstr "Français"
 
@@ -809,6 +817,312 @@ msgstr "Cet email est déjà utilisé par un autre groupe"
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
 msgstr "Cet email est déjà utilisé par un autre utilisateur"
+
+#: services/keycloak/templates/admin_created/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Welcome to the Projects portal of %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+msgstr ""
+"\n"
+"    Bienvenue sur le portail Projects de %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:13
+msgid ""
+"\n"
+"    Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organisation and foster collaboration for the common good.\n"
+"    "
+msgstr ""
+"\n"
+"    Votre compte Projects vient d'être créé. Il ne vous reste plus qu'à "
+"choisir un mot de passe et vous pourrez rejoindre Projects, une plateforme "
+"pour partager des projets au sein de votre organisation et favoriser la "
+"collaboration pour le bien commun.\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:18
+msgid ""
+"\n"
+"    Create my password\n"
+"    "
+msgstr ""
+"\n"
+"    Créer un mot de passe\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:23
+#: services/keycloak/templates/invitation/mail.html:23
+#: services/keycloak/templates/reset_password/mail.html:23
+msgid ""
+"\n"
+"    If you didn’t request this email, there is nothing to worry about, you "
+"can safely ignore it.\n"
+"    "
+msgstr ""
+"\n"
+"    Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
+"ignorer cet email.\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:28
+#: services/keycloak/templates/invitation/mail.html:28
+#: services/keycloak/templates/reset_password/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Link expires on %(expiration_date)s at %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Click here</a> to request a new "
+"link.\n"
+"    "
+msgstr ""
+"\n"
+"    Le lien expire le %(expiration_date)s à %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Cliquez ici</a> pour demander "
+"un nouveau lien.\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
+"Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organisation and foster collaboration for the common good.\n"
+"Create my password : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+msgstr ""
+"\n"
+"Bienvenue sur le portail Projects de %(organization_name)s, %(given_name)s!\n"
+"Votre compte Projects vient d'être créé. Il ne vous reste plus qu'à choisir "
+"un mot de passe et vous pourrez rejoindre Projects, une plateforme pour "
+"partager des projets au sein de votre organisation et favoriser la "
+"collaboration pour le bien commun.\n"
+"Créer un mot de passe : %(link)s\n"
+"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
+"ignorer cet email.\n"
+"Le lien expire le %(expiration_date)s à %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+
+#: services/keycloak/templates/admin_created/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to your new %(org_name)s Projects platform\n"
+msgstr ""
+"\n"
+"Bienvenue sur votre nouvelle plateforme %(org_name)s Projects\n"
+
+#: services/keycloak/templates/base.html:54
+msgid ""
+"\n"
+"          Need any help?\n"
+"          "
+msgstr ""
+"\n"
+"          Besoin d'aide?\n"
+"          "
+
+#: services/keycloak/templates/base.html:59
+msgid ""
+"\n"
+"          For questions or assistance, you can <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">email us</a>. "
+"We will come back to you during business hours (mon-fri 9am-6pm) as fast as "
+"we can.\n"
+"          "
+msgstr ""
+"\n"
+"          Pour toute question ou demande d'assistance, <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">vous pouvez "
+"nous contacter par email</a>. Nous reviendrons vers vous pendant les heures "
+"de travail (du lundi au vendredi, de 9h à 18h) aussi vite que possible.\n"
+"          "
+
+#: services/keycloak/templates/base.html:64
+msgid ""
+"\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
+"projects.lp-i.org\">help center</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          Vous pouvez aussi <a class=\"lpi-link\" href=\"https://docs."
+"projects.lp-i.org\">visiter notre centre d'aide</a>.\n"
+"          "
+
+#: services/keycloak/templates/base.html:69
+msgid ""
+"\n"
+"          We hope you'll enjoy our new platform!\n"
+"          <br/>\n"
+"          The LPI team.\n"
+"          "
+msgstr ""
+"\n"
+"          Nous espérons que vous apprécierez notre nouvelle plateforme!\n"
+"          <br/>\n"
+"          L'équipe du LPI.\n"
+"          "
+
+#: services/keycloak/templates/base.html:81
+msgid ""
+"\n"
+"          Made with ❤️ by Learning Planet Institute.\n"
+"          "
+msgstr ""
+"\n"
+"          Fait avec ♥ par le Learning Planet Institute.\n"
+"          "
+
+#: services/keycloak/templates/invitation/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Confirm your email address to get started on the Projects portal of "
+"%(organization_name)s.\n"
+"    "
+msgstr ""
+"\n"
+"    Confirmez votre adresse email pour commencer à utiliser le portail "
+"Projects de %(organization_name)s.\n"
+"    "
+
+#: services/keycloak/templates/invitation/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"    Once you have confirmed that <strong>%(contact_email)s</strong> is your "
+"address, we'll help you get started on the platform.\n"
+"    "
+msgstr ""
+"\n"
+"    Une fois que vous aurez confirmé que <strong>%(contact_email)s</strong> "
+"est bien votre adresse, nous vous aiderons à découvrir la plateforme.\n"
+"    "
+
+#: services/keycloak/templates/invitation/mail.html:18
+msgid ""
+"\n"
+"    Confirm email address\n"
+"    "
+msgstr ""
+"\n"
+"    Confirmer l'adresse email\n"
+"    "
+
+#: services/keycloak/templates/invitation/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Confirm your email address to get started on the Projects portal of "
+"%(organization_name)s.\n"
+"Once you have confirmed that <strong>%(contact_email)s</strong> is your "
+"address, we'll help you get started on the platform.\n"
+"Confirm email address : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+"\n"
+"Confirmez votre adresse email pour commencer à utiliser le portail Projects "
+"de %(organization_name)s.\n"
+"Une fois que vous aurez confirmé que <strong>%(contact_email)s</strong> est "
+"bien votre adresse, nous vous aiderons à découvrir la plateforme.\n"
+"Confirmer l'adresse email : %(link)s\n"
+"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
+"ignorer cet email.\n"
+"Le lien expire le %(expiration_date)s à %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+
+#: services/keycloak/templates/invitation/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Confirm your email address to get started on %(org_name)s Projects\n"
+msgstr ""
+"\n"
+"Confirmez votre adresse email pour commencer à utiliser %(org_name)s "
+"Projects\n"
+
+#: services/keycloak/templates/reset_password/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"    "
+msgstr ""
+"\n"
+"    Une demande de réinitialisation de votre mot de passe a été faite pour "
+"votre compte %(organization_name)s Projects.\n"
+"    "
+
+#: services/keycloak/templates/reset_password/mail.html:13
+msgid ""
+"\n"
+"    Someone requested that we change your password. If this was you, click "
+"on the link below to update your password.\n"
+"    "
+msgstr ""
+"\n"
+"    Quelqu'un a demandé à changer votre mot de passe. Si c'était vous, "
+"cliquez sur le lien ci-dessous pour mettre à jour votre mot de passe.\n"
+"    "
+
+#: services/keycloak/templates/reset_password/mail.html:18
+msgid ""
+"\n"
+"    Update password\n"
+"    "
+msgstr ""
+"\n"
+"    Mettre à jour le mot de passe\n"
+"    "
+
+#: services/keycloak/templates/reset_password/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"Someone requested that we change your password. If this was you, click on "
+"the link below to update your password.\n"
+"Update password : %(link.link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+"\n"
+"Une demande de réinitialisation de votre mot de passe a été faite pour votre "
+"compte %(organization_name)s Projects.\n"
+"Quelqu'un a demandé à changer votre mot de passe. Si c'était vous, cliquez "
+"sur le lien ci-dessous pour mettre à jour votre mot de passe.\n"
+"Mettre à jour le mot de passe : %(link.link)s\n"
+"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
+"ignorer cet email.\n"
+"Le lien expire le %(expiration_date)s à %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+
+#: services/keycloak/templates/reset_password/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Update your %(org_name)s Projects password\n"
+msgstr ""
+"\n"
+"Mettez à jour votre mot de passe %(org_name)s Projects\n"
 
 #~ msgid "Service account not found"
 #~ msgstr "Compte de service inconnu"
@@ -855,19 +1169,6 @@ msgstr "Cet email est déjà utilisé par un autre utilisateur"
 #~ "                    Si vous avez une question, vous pouvez joindre "
 #~ "l’équipe support à <a class=\"lpi-link\" href=\"mailto:projects."
 #~ "platform@cri-paris.org\">projects.platform@cri-paris.org</a>.\n"
-#~ "                    "
-
-#~ msgid ""
-#~ "\n"
-#~ "                    Have a nice day,\n"
-#~ "                    <br/>\n"
-#~ "                    The Projects team.\n"
-#~ "                    "
-#~ msgstr ""
-#~ "\n"
-#~ "                    Très bonne journée, \n"
-#~ "                    <br/>\n"
-#~ "                    L'équipe Projects.\n"
 #~ "                    "
 
 #, python-format

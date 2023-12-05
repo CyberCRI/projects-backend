@@ -10,7 +10,7 @@ case ${1} in
   sam )
     export PGHOST=dev-lab-projects-backend.postgres.database.azure.com;
     export PGPORT=5432;
-    export PGDATABASE=sam;
+    export PGDATABASE=dev_sam;
     export PGUSER=dev_tech;
     export PGPASSWORD=${PGPASSWORD:?"Specify PGPASSWORD to connect to db."};
     export AZURE_ACCOUNT_NAME=criparisdevlabprojects;

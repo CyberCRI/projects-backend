@@ -9,6 +9,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_PASSWORD=password
+      - POSTGRES_EXTENSIONS=pg_trgm, unaccent
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 10s

@@ -19,22 +19,21 @@ from drf_spectacular.utils import (
 from googleapiclient.errors import HttpError
 from rest_framework import mixins, status, views, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
-from apps.accounts.filters import PeopleGroupFilter, SkillFilter
-from apps.accounts.utils import get_permission_from_representation
+from apps.accounts.exceptions import EmailTypeMissingError
+from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
 from services.google.models import GoogleAccount, GoogleGroup
@@ -47,6 +46,7 @@ from services.google.tasks import (
 )
 from services.keycloak.interface import KeycloakService
 
+from .filters import PeopleGroupFilter, SkillFilter, UserFilter
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
 from .parsers import UserMultipartParser
 from .permissions import HasBasePermission, HasPeopleGroupPermission, ReadOnly
@@ -65,6 +65,7 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
+from .utils import get_permission_from_representation
 
 
 class RetrieveUpdateModelViewSet(
@@ -103,10 +104,14 @@ class UserViewSet(viewsets.ModelViewSet):
         "family_name",
         "email",
         "job",
-        "groups__people_groups__name",
     ]
     parser_classes = (JSONParser, UserMultipartParser)
-    filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
+    filter_backends = (
+        TrigramSearchFilter,
+        DjangoFilterBackend,
+        OrderingFilter,
+    )
+    filterset_class = UserFilter
     ordering_fields = ["given_name", "family_name", "job", "current_org_role"]
 
     def get_permissions(self):
@@ -248,9 +253,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 organization = group.organizations.first()
                 data["language"] = organization.language
             # Create user in keycloak and redirect to the organization portal
-            data["keycloak_id"] = KeycloakService.create_user(
-                data, request.query_params.get("organization", "DEFAULT")
-            )
+            data["keycloak_id"] = KeycloakService.create_user(data)
             serializer = self.get_serializer(data=data)
             serializer.is_valid(raise_exception=True)
             instance = self.perform_create(serializer)
@@ -284,8 +287,22 @@ class UserViewSet(viewsets.ModelViewSet):
                 if invitation.organization
                 else None,
             ]
-            return serializer.save(groups=list(filter(lambda x: x, groups)))
-        return serializer.save()
+            instance = serializer.save(groups=list(filter(lambda x: x, groups)))
+            KeycloakService.send_email(
+                user=instance,
+                email_type=KeycloakService.EmailType.INVITATION,
+                redirect_organization_code=invitation.organization.code,
+            )
+            return instance
+        instance = serializer.save()
+        KeycloakService.send_email(
+            user=instance,
+            email_type=KeycloakService.EmailType.ADMIN_CREATED,
+            redirect_organization_code=self.request.query_params.get(
+                "organization", "DEFAULT"
+            ),
+        )
+        return instance
 
     def destroy(self, request, *args, **kwargs):
         try:
@@ -346,8 +363,11 @@ class UserViewSet(viewsets.ModelViewSet):
     def reset_password(self, request, *args, **kwargs):
         user = self.get_object()
         redirect_organization_code = request.query_params.get("organization", "DEFAULT")
-        KeycloakService.send_required_actions_email(
-            str(user.keycloak_id), ["UPDATE_PASSWORD"], redirect_organization_code
+        KeycloakService.send_email(
+            user=user,
+            email_type=KeycloakService.EmailType.RESET_PASSWORD,
+            actions=["UPDATE_PASSWORD"],
+            redirect_organization_code=redirect_organization_code,
         )
         return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
@@ -364,8 +384,13 @@ class UserViewSet(viewsets.ModelViewSet):
             redirect_organization_code = request.query_params.get(
                 "organization", "DEFAULT"
             )
-            email_sent = KeycloakService.send_required_actions_email(
-                str(user.keycloak_id), [], redirect_organization_code
+            email_type = request.query_params.get("email_type", None)
+            if not email_type:
+                raise EmailTypeMissingError()
+            email_sent = KeycloakService.send_email(
+                user=user,
+                email_type=email_type,
+                redirect_organization_code=redirect_organization_code,
             )
             if email_sent:
                 template_path = "execute_actions_email_success.html"
@@ -387,6 +412,12 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
     lookup_field = "id"
+    search_fields = ["name"]
+    filter_backends = (
+        TrigramSearchFilter,
+        DjangoFilterBackend,
+        OrderingFilter,
+    )
 
     def get_object(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
@@ -417,9 +448,7 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
                 ).prefetch_related("wikipedia_tags"),
             )
             return self.request.user.get_people_group_queryset(organization).filter(
-                organization__code__in=get_hierarchy_codes(
-                    [self.kwargs["organization_code"]]
-                )
+                organization__code=self.kwargs["organization_code"]
             )
         return PeopleGroup.objects.none()
 
@@ -669,23 +698,14 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
             "categories",
             queryset=ProjectCategory.objects.select_related("organization"),
         )
-        featured_projects_ids = [p.id for p in group.featured_projects.all()]
         queryset = (
-            self.request.user.get_project_queryset()
-            .filter(
-                Q(id__in=featured_projects_ids)
-                | Q(groups__users__in=group.get_all_members().all())
+            (
+                self.request.user.get_project_queryset()
+                & group.featured_projects.all().distinct()
             )
             .distinct()
             .prefetch_related(categories)
-            .annotate(
-                is_featured=Case(
-                    When(id__in=featured_projects_ids, then=True), default=Value(False)
-                )
-            )
-            .order_by("-is_featured")
         )
-
         page = self.paginate_queryset(queryset)
         if page is not None:
             project_serializer = ProjectLightSerializer(

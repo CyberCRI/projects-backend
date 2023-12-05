@@ -36,9 +36,9 @@ RECSYS_API_URL = "https://recsys-api.k8s.lp-i.xyz"
 #  KEYCLOAK  #
 ##############
 
-KEYCLOAK_SERVER_URL = "http://keycloak:8080"
+KEYCLOAK_SERVER_URL = "http://keycloak:8080/"
 KEYCLOAK_PUBLIC_KEY = requests.get(
-    f"{KEYCLOAK_SERVER_URL}/realms/lp", timeout=REQUESTS_DEFAULT_TIMEOUT
+    f"{KEYCLOAK_SERVER_URL}realms/lp", timeout=REQUESTS_DEFAULT_TIMEOUT
 ).json()["public_key"]
 KEYCLOAK_PUBLIC_KEY = (
     f"-----BEGIN PUBLIC KEY-----\n{KEYCLOAK_PUBLIC_KEY}\n-----END PUBLIC KEY-----"

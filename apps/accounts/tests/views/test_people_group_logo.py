@@ -29,7 +29,7 @@ class CreatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     def test_create_people_group_logo(self, role, expected_code):
         organization = self.organization
         people_group = PeopleGroupFactory(organization=organization)
-        user = self.get_parameterized_test_user(role, people_group=people_group)
+        user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         payload = {"file": self.get_test_image_file()}
         response = self.client.post(
@@ -71,7 +71,7 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
             organization=organization, logo_image=self.get_test_image()
         )
         user = self.get_parameterized_test_user(
-            role, owned_instance=people_group.logo_image, people_group=people_group
+            role, owned_instance=people_group.logo_image, instances=[people_group]
         )
         self.client.force_authenticate(user)
         payload = {
@@ -124,7 +124,7 @@ class DeletePeopleGroupLogoTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
             organization=organization, logo_image=self.get_test_image()
         )
         user = self.get_parameterized_test_user(
-            role, owned_instance=people_group.logo_image, people_group=people_group
+            role, owned_instance=people_group.logo_image, instances=[people_group]
         )
         self.client.force_authenticate(user)
         response = self.client.delete(

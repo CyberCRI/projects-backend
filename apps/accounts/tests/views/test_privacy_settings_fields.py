@@ -94,7 +94,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         SkillFactory.create_batch(5, user=instance, type=Skill.SkillType.SKILL)
         SkillFactory.create_batch(5, user=instance, type=Skill.SkillType.HOBBY)
@@ -141,7 +141,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, organization=organization, owned_instance=instance
+            role, instances=[organization], owned_instance=instance
         )
         SkillFactory.create_batch(5, user=instance, type=Skill.SkillType.SKILL)
         SkillFactory.create_batch(5, user=instance, type=Skill.SkillType.HOBBY)
