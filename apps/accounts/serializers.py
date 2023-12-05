@@ -52,6 +52,8 @@ class UserLightSerializer(serializers.ModelSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
     is_manager = serializers.BooleanField(required=False, read_only=True)
     is_leader = serializers.BooleanField(required=False, read_only=True)
+    email_verified = serializers.BooleanField(required=False, read_only=True)
+    password_created = serializers.BooleanField(required=False, read_only=True)
 
     class Meta:
         model = ProjectUser
@@ -69,6 +71,9 @@ class UserLightSerializer(serializers.ModelSerializer):
             "current_org_role",
             "is_manager",
             "is_leader",
+            "email_verified",
+            "password_created",
+            "last_login",
         ]
 
     def to_representation(self, instance):

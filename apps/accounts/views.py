@@ -112,7 +112,15 @@ class UserViewSet(viewsets.ModelViewSet):
         OrderingFilter,
     )
     filterset_class = UserFilter
-    ordering_fields = ["given_name", "family_name", "job", "current_org_role"]
+    ordering_fields = [
+        "given_name",
+        "family_name",
+        "job",
+        "current_org_role",
+        "email_verified",
+        "password_created",
+        "last_login",
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectuser")
@@ -131,7 +139,7 @@ class UserViewSet(viewsets.ModelViewSet):
         organization_pk = self.request.query_params.get("current_org_pk", None)
         if organization_pk is not None:
             organization = Organization.objects.get(pk=organization_pk)
-            return queryset.annotate(
+            queryset = queryset.annotate(
                 current_org_role=Case(
                     When(
                         pk__in=organization.admins.values_list("pk", flat=True),
@@ -147,6 +155,29 @@ class UserViewSet(viewsets.ModelViewSet):
                     ),
                     default=Value(None),
                 )
+            )
+        if self.action == "admin_list":
+            keycloak_users = KeycloakService.get_users()
+            email_verified = [
+                user["id"]
+                for user in keycloak_users
+                if user["emailVerified"]
+                and "VERIFY_EMAIL" not in user["requiredActions"]
+            ]
+            password_created = [
+                user["id"]
+                for user in keycloak_users
+                if "UPDATE_PASSWORD" not in user["requiredActions"]
+            ]
+            queryset = queryset.annotate(
+                email_verified=Case(
+                    When(keycloak_id__in=email_verified, then=Value(True)),
+                    default=Value(False),
+                ),
+                password_created=Case(
+                    When(keycloak_id__in=password_created, then=Value(True)),
+                    default=Value(False),
+                ),
             )
         return queryset
 
@@ -165,7 +196,7 @@ class UserViewSet(viewsets.ModelViewSet):
             raise Http404()
 
     def get_serializer_class(self):
-        if self.action in ["list"]:
+        if self.action in ["list", "admin_list"]:
             return UserLightSerializer
         return self.serializer_class
 
@@ -191,6 +222,32 @@ class UserViewSet(viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="current_org_pk",
+                description="Organization id used to fetch the role of the users in the organization",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="current_org_role",
+                description="Used to filter the users by role in the organization",
+                required=False,
+                type=str,
+            ),
+        ]
+    )
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="admin-list",
+        url_name="admin-list",
+        permission_classes=[IsAuthenticated],
+    )
+    def admin_list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
     @extend_schema(

@@ -290,6 +290,148 @@ class DeleteUserTestCase(JwtAPITestCase):
             assert not ProjectUser.objects.filter(pk=instance.pk).exists()
 
 
+class AdminListUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.organization.admins.first().delete()  # created by factory
+        cls.user = UserFactory(groups=[get_superadmins_group()])
+        cls.user_1 = SeedUserFactory(groups=[cls.organization.get_users()])
+        KeycloakService._update_user(
+            str(cls.user_1.keycloak_id),
+            {
+                "emailVerified": True,
+                "requiredActions": [],
+            },
+        )
+        cls.user_2 = SeedUserFactory(groups=[cls.organization.get_users()])
+        KeycloakService._update_user(
+            str(cls.user_2.keycloak_id),
+            {
+                "emailVerified": False,
+                "requiredActions": [],
+            },
+        )
+        cls.user_3 = SeedUserFactory(groups=[cls.organization.get_users()])
+        KeycloakService._update_user(
+            str(cls.user_3.keycloak_id),
+            {
+                "emailVerified": True,
+                "requiredActions": ["VERIFY_EMAIL"],
+            },
+        )
+        cls.user_4 = SeedUserFactory(groups=[cls.organization.get_users()])
+        KeycloakService._update_user(
+            str(cls.user_4.keycloak_id),
+            {
+                "emailVerified": True,
+                "requiredActions": ["UPDATE_PASSWORD"],
+            },
+        )
+        cls.users = [
+            {
+                "user": cls.user_1,
+                "email_verified": True,
+                "password_created": True,
+            },
+            {
+                "user": cls.user_2,
+                "email_verified": False,
+                "password_created": True,
+            },
+            {
+                "user": cls.user_3,
+                "email_verified": False,
+                "password_created": True,
+            },
+            {
+                "user": cls.user_4,
+                "email_verified": True,
+                "password_created": False,
+            },
+        ]
+
+    def test_list_accounts_status(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert response.data["count"] == 4
+        content = {user["keycloak_id"]: user for user in response.data["results"]}
+        for user in self.users:
+            assert (
+                content[user["user"].keycloak_id]["password_created"]
+                == user["password_created"]
+            )
+            assert (
+                content[user["user"].keycloak_id]["email_verified"]
+                == user["email_verified"]
+            )
+
+    def test_order_by_password_created(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?ordering=password_created&organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["keycloak_id"] == self.user_4.keycloak_id
+        assert {u["keycloak_id"] for u in response.data["results"][1:]} == {
+            self.user_1.keycloak_id,
+            self.user_2.keycloak_id,
+            self.user_3.keycloak_id,
+        }
+
+    def test_order_by_password_created_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?ordering=-password_created&organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert {u["keycloak_id"] for u in response.data["results"][:3]} == {
+            self.user_1.keycloak_id,
+            self.user_2.keycloak_id,
+            self.user_3.keycloak_id,
+        }
+        assert response.data["results"][3]["keycloak_id"] == self.user_4.keycloak_id
+
+    def test_order_by_email_verified(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?ordering=email_verified&organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert {u["keycloak_id"] for u in response.data["results"][:2]} == {
+            self.user_2.keycloak_id,
+            self.user_3.keycloak_id,
+        }
+        assert {u["keycloak_id"] for u in response.data["results"][2:]} == {
+            self.user_1.keycloak_id,
+            self.user_4.keycloak_id,
+        }
+
+    def test_order_by_email_verified_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?ordering=-email_verified&organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert {u["keycloak_id"] for u in response.data["results"][:2]} == {
+            self.user_1.keycloak_id,
+            self.user_4.keycloak_id,
+        }
+        assert {u["keycloak_id"] for u in response.data["results"][2:]} == {
+            self.user_2.keycloak_id,
+            self.user_3.keycloak_id,
+        }
+
+
 class UserSyncErrorsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
