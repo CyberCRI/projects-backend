@@ -139,7 +139,7 @@ class UserViewSet(viewsets.ModelViewSet):
         organization_pk = self.request.query_params.get("current_org_pk", None)
         if organization_pk is not None:
             organization = Organization.objects.get(pk=organization_pk)
-            return queryset.annotate(
+            queryset = queryset.annotate(
                 current_org_role=Case(
                     When(
                         pk__in=organization.admins.values_list("pk", flat=True),
@@ -155,6 +155,29 @@ class UserViewSet(viewsets.ModelViewSet):
                     ),
                     default=Value(None),
                 )
+            )
+        if self.action == "admin_list":
+            keycloak_users = KeycloakService.get_users()
+            email_verified = [
+                user["id"]
+                for user in keycloak_users
+                if user["emailVerified"]
+                and "VERIFY_EMAIL" not in user["requiredActions"]
+            ]
+            password_created = [
+                user["id"]
+                for user in keycloak_users
+                if "UPDATE_PASSWORD" not in user["requiredActions"]
+            ]
+            queryset = queryset.annotate(
+                email_verified=Case(
+                    When(keycloak_id__in=email_verified, then=Value(True)),
+                    default=Value(False),
+                ),
+                password_created=Case(
+                    When(keycloak_id__in=password_created, then=Value(True)),
+                    default=Value(False),
+                ),
             )
         return queryset
 
@@ -225,37 +248,7 @@ class UserViewSet(viewsets.ModelViewSet):
         permission_classes=[IsAuthenticated],
     )
     def admin_list(self, request, *args, **kwargs):
-        keycloak_users = KeycloakService.get_users()
-        email_verified = [
-            user["id"]
-            for user in keycloak_users
-            if user["emailVerified"] and "VERIFY_EMAIL" not in user["requiredActions"]
-        ]
-        password_created = [
-            user["id"]
-            for user in keycloak_users
-            if "UPDATE_PASSWORD" not in user["requiredActions"]
-        ]
-        queryset = self.filter_queryset(
-            self.get_queryset().annotate(
-                email_verified=Case(
-                    When(keycloak_id__in=email_verified, then=Value(True)),
-                    default=Value(False),
-                ),
-                password_created=Case(
-                    When(keycloak_id__in=password_created, then=Value(True)),
-                    default=Value(False),
-                ),
-            )
-        )
-
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(
         responses={200: UserSerializer},
