@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-01 12:50+0000\n"
+"POT-Creation-Date: 2023-12-04 12:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -798,7 +798,7 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: apps/projects/serializers.py:597
+#: apps/projects/serializers.py:595
 msgid "Only a reviewer can change this project's status."
 msgstr "Seul un correcteur peut modifier le statut de ce projet."
 

@@ -252,6 +252,24 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.projects = ProjectFactory.create_batch(3, organizations=[cls.organization])
+        cls.retrieved_people_group_projects = {
+            "public": ProjectFactory(
+                publication_status=Project.PublicationStatus.PUBLIC,
+                organizations=[cls.organization],
+            ),
+            "private": ProjectFactory(
+                publication_status=Project.PublicationStatus.PRIVATE,
+                organizations=[cls.organization],
+            ),
+            "org": ProjectFactory(
+                publication_status=Project.PublicationStatus.ORG,
+                organizations=[cls.organization],
+            ),
+        }
+        cls.retrieved_people_group = PeopleGroupFactory(organization=cls.organization)
+        cls.retrieved_people_group.featured_projects.add(
+            *list(cls.retrieved_people_group_projects.values())
+        )
 
     @parameterized.expand(
         [
@@ -320,6 +338,62 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
                 project not in people_group.featured_projects.all()
                 for project in projects
             )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.GROUP_LEADER, ("public",)),
+            (TestRoles.GROUP_MANAGER, ("public",)),
+            (TestRoles.GROUP_MEMBER, ("public",)),
+        ]
+    )
+    def test_retrieve_featured_projects(self, role, retrieved_projects):
+        organization = self.organization
+        people_group = self.retrieved_people_group
+        projects = self.retrieved_people_group_projects
+        user = self.get_parameterized_test_user(role, instances=[people_group])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-project",
+                args=(organization.code, people_group.pk),
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()["results"]
+        assert {p["id"] for p in content} == {
+            projects[p].id for p in retrieved_projects
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.PROJECT_OWNER, ("public", "private", "org")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "private", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "private", "org")),
+        ]
+    )
+    def test_retrieve_featured_projects_project_roles(self, role, retrieved_projects):
+        organization = self.organization
+        people_group = self.retrieved_people_group
+        projects = self.retrieved_people_group_projects
+        user = self.get_parameterized_test_user(role, instances=list(projects.values()))
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-project",
+                args=(organization.code, people_group.pk),
+            ),
+        )
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()["results"]
+        assert {p["id"] for p in content} == {
+            projects[p].id for p in retrieved_projects
+        }
 
 
 class ValidatePeopleGroupTestCase(JwtAPITestCase):
@@ -569,77 +643,6 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         assert members_ids.sort() == batch_4_ids.sort()
         assert all(user["is_manager"] is False for user in batch_4)
         assert all(user["is_leader"] is False for user in batch_4)
-
-    def test_annotate_projects(self):
-        people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-            organization=self.organization,
-        )
-        member = UserFactory()
-        people_group.members.add(member)
-
-        members_public_projects = ProjectFactory.create_batch(
-            2, organizations=[self.organization]
-        )
-        members_private_projects = ProjectFactory.create_batch(
-            2,
-            publication_status=Project.PublicationStatus.PRIVATE,
-            organizations=[self.organization],
-        )
-        members_featured_public_projects = ProjectFactory.create_batch(
-            2, organizations=[self.organization]
-        )
-
-        featured_public_projects = ProjectFactory.create_batch(
-            2, organizations=[self.organization]
-        )
-        featured_private_projects = ProjectFactory.create_batch(
-            2,
-            publication_status=Project.PublicationStatus.PRIVATE,
-            organizations=[self.organization],
-        )
-
-        member_projects = (
-            members_public_projects
-            + members_private_projects
-            + members_featured_public_projects
-        )
-        featured_projects = (
-            featured_public_projects
-            + featured_private_projects
-            + members_featured_public_projects
-        )
-
-        for project in member_projects:
-            project.members.add(member)
-
-        people_group.featured_projects.add(*(featured_projects))
-
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-project",
-                args=(people_group.organization.code, people_group.pk),
-            )
-        )
-        self.assertEqual(response.status_code, 200)
-        content = response.json()
-
-        results = content["results"]
-        assert len(results) == 6
-
-        nine_first = results[:4]
-        featured_projects_ids = [project.id for project in featured_projects]
-        nine_first_ids = [project["id"] for project in nine_first]
-        assert featured_projects_ids.sort() == nine_first_ids.sort()
-        nine_first_projects = [project["is_featured"] is True for project in nine_first]
-        assert all(nine_first_projects) is True
-
-        nine_last = results[-2:]
-        member_projects_ids = [project.id for project in member_projects]
-        nine_last_ids = [project["id"] for project in nine_last]
-        assert member_projects_ids.sort() == nine_last_ids.sort()
-        nine_last_projects = [project["is_featured"] is True for project in nine_last]
-        assert all(nine_last_projects) is False
 
     def test_root_group_creation(self):
         organization = OrganizationFactory()
