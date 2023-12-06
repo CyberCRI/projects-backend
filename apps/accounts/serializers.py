@@ -467,7 +467,7 @@ class UserSerializer(serializers.ModelSerializer):
             "profile_picture",
             "id",
             "language",
-            "show_welcome",
+            "onboarding_status",
             "keycloak_id",
             "people_id",
             "email",
