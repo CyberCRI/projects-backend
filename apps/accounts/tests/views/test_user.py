@@ -431,6 +431,34 @@ class AdminListUserTestCase(JwtAPITestCase):
             self.user_3.keycloak_id,
         }
 
+    def test_order_by_created_at(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?ordering=created_at&organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert [u["keycloak_id"] for u in response.data["results"]] == [
+            self.user_1.keycloak_id,
+            self.user_2.keycloak_id,
+            self.user_3.keycloak_id,
+            self.user_4.keycloak_id,
+        ]
+
+    def test_order_by_created_at_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?ordering=-created_at&organizations={self.organization.code}"
+        )
+        assert response.status_code == 200
+        assert [u["keycloak_id"] for u in response.data["results"]] == [
+            self.user_4.keycloak_id,
+            self.user_3.keycloak_id,
+            self.user_2.keycloak_id,
+            self.user_1.keycloak_id,
+        ]
+
 
 class UserSyncErrorsTestCase(JwtAPITestCase):
     @classmethod
