@@ -298,7 +298,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
     last_name = None
     date_joined = None
     password = None
-    USERNAME_FIELD = "keycloak_id"
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
     # Functional fields
@@ -313,7 +313,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         blank=True,
         help_text="id of user in their organization",
     )
-    email = models.CharField(max_length=255)
+    email = models.CharField(max_length=255, unique=True)
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(unique=True)
