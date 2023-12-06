@@ -931,6 +931,18 @@ class MiscUserTestCase(JwtAPITestCase):
         user = UserFactory(given_name="", family_name="")
         slug_base = user.email.split("@")[0].lower()
         assert user.slug == slug_base
+    
+    def test_integer_slug(self):
+        given_name = str(faker.pyint())
+        family_name = ""
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"{given_name}-1"
+
+    def test_uuid_slug(self):
+        given_name = str(faker.uuid4())
+        family_name = ""
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"{given_name}-1"
 
     def test_integer_slug(self):
         given_name = str(faker.pyint())

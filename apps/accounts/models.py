@@ -1,6 +1,7 @@
 import uuid
 from datetime import date
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
+import uuid
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -590,6 +591,16 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             while ProjectUser.objects.filter(slug=slug).exists():
                 same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
+            try:
+                int(slug)
+                slug = f"{slug}-1"
+            except ValueError:
+                pass
+            try:
+                uuid.UUID(slug)
+                slug = f"{slug}-1"
+            except ValueError:
+                pass
             return slug
         return self.slug
 
