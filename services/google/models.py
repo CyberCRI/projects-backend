@@ -80,7 +80,6 @@ class GoogleGroup(models.Model):
         PeopleGroup,
         on_delete=models.CASCADE,
         related_name="google_group",
-        to_field="id",
     )
     google_id = models.CharField(max_length=50, blank=True, default="")
     email = models.EmailField(blank=True, default="")
@@ -226,7 +225,6 @@ class GoogleAccount(models.Model):
         ProjectUser,
         on_delete=models.CASCADE,
         related_name="google_account",
-        to_field="keycloak_id",
     )
     google_id = models.CharField(max_length=50, blank=True, default="")
     email = models.EmailField(blank=True, default="")

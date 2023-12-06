@@ -562,7 +562,6 @@ class PrivacySettings(models.Model, HasOwner):
     user = models.OneToOneField(
         ProjectUser,
         on_delete=models.CASCADE,
-        to_field="keycloak_id",
         related_name="privacy_settings",
     )
     publication_status = models.CharField(
