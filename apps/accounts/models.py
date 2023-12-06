@@ -1,5 +1,6 @@
 from datetime import date
 from typing import TYPE_CHECKING, Iterable, List, Optional
+import uuid
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -529,6 +530,12 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         return list(set(groups_permissions))
 
     def get_slug(self) -> str:
+        """
+        Generates a unique slug for the user based on their first and last names.
+        If the generated slug already exists, a numerical suffix is appended for uniqueness.
+        If the slug is purely numerical, "-1" is appended to prevent clashes with IDs.
+        If the slug is an uuid, "-1" is appended to prevent clashes with keycloak_ids.
+        """
         if self.slug == "":
             full_name = self.get_full_name()
             if full_name == "":
@@ -539,6 +546,16 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
             while ProjectUser.objects.filter(slug=slug).exists():
                 same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
+            try:
+                int(slug)
+                slug = f"{slug}-1"
+            except ValueError:
+                pass
+            try:
+                uuid.UUID(slug)
+                slug = f"{slug}-1"
+            except ValueError:
+                pass
             return slug
         return self.slug
 
