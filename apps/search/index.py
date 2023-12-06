@@ -208,7 +208,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
 
     def prepare_members_filter(self, project: Project) -> List[str]:
         """Return the members' names for Algolia indexing."""
-        return list(project.get_all_members().values_list("keycloak_id", flat=True))
+        return list(project.get_all_members().values_list("id", flat=True))
 
     def prepare_permissions(self, project: Project) -> List[str]:
         """Return all the permissions that give access to this project"""
@@ -237,7 +237,6 @@ class UserIndex(AlgoliaSplittingIndex):
     fields = {
         "unique": (
             "id",
-            "keycloak_id",
             "email",
             "given_name",
             "family_name",
@@ -256,7 +255,6 @@ class UserIndex(AlgoliaSplittingIndex):
                 "id_suffix": "desc",
                 "commons": (  # IDs and attributes for faceting
                     "id",
-                    "keycloak_id",
                     "organizations",
                     "sdgs",
                     "skills_filter",
@@ -286,8 +284,8 @@ class UserIndex(AlgoliaSplittingIndex):
             "filterOnly(permissions)",
         ],
         "hitsPerPage": 10,
-        "attributeForDistinct": "keycloak_id",
-        "attributesToRetrieve": ["objectID", "keycloak_id"],
+        "attributeForDistinct": "id",
+        "attributesToRetrieve": ["objectID", "id"],
         "attributesToHighlight": [],
         "separatorsToIndex": "#.%&~£¥$§€<>@-_*",
         # see https://www.algolia.com/doc/api-reference/api-parameters/separatorsToIndex/

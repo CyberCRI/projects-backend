@@ -302,10 +302,6 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    # Functional fields
-    keycloak_id = models.UUIDField(
-        auto_created=False, unique=True, help_text="id of user in keycloak"
-    )
     people_id = models.UUIDField(
         auto_created=False, unique=True, null=True, help_text="id of user in people"
     )

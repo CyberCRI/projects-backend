@@ -260,11 +260,11 @@ class UserSearchViewSet(AlgoliaSearchViewSetMixin):
         response = algolia_engine.raw_search(ProjectUser, query, params)
         if response is not None:
             self.pagination_class = AlgoliaPagination(response["nbHits"])
-            hits = [h["keycloak_id"] for h in response["hits"]]
+            hits = [h["id"] for h in response["hits"]]
             # Return a queryset of Project sorted with `hits`.
-            ordering = ArrayPosition(hits, F("keycloak_id"), base_field=UUIDField())
+            ordering = ArrayPosition(hits, F("id"), base_field=UUIDField())
             users = (
-                users.filter(keycloak_id__in=hits)
+                users.filter(id__in=hits)
                 .annotate(ordering=ordering)
                 .order_by("ordering")
             )
@@ -368,7 +368,7 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
             "categories__id__in": self.get_filter("categories"),
             "wikipedia_tags__wikipedia_qid__in": self.get_filter("wikipedia_tags"),
             "organization_tags__id__in": self.get_filter("organization_tags"),
-            "groups__users__keycloak_id__in": self.get_filter("members"),
+            "groups__users__id__in": self.get_filter("members"),
             "language__in": self.get_filter("languages"),
             "sdgs__overlap": self.get_filter("sdgs"),
         }
@@ -405,8 +405,8 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
                 "serializer_class": UserLightSerializer,
                 "filtering_method": self.get_user_filters,
                 "facet_filtering_method": self.get_user_facet_filters,
-                "lookup_field": "keycloak_id",
-                "base_field_type": UUIDField(),
+                "lookup_field": "id",
+                "base_field_type": BigIntegerField(),
             },
             f"{settings.ALGOLIA['INDEX_PREFIX']}_group_": {
                 "queryset": self.request.user.get_people_group_queryset(),
