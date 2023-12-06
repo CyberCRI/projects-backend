@@ -318,7 +318,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         max_length=2, choices=Language.choices, default=Language.default()
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    show_welcome = models.BooleanField(default=True)
+    onboarding_status = models.JSONField(default=dict)
 
     # Profile fields
     birthdate = models.DateField(
