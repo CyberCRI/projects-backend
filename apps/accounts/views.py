@@ -120,6 +120,7 @@ class UserViewSet(viewsets.ModelViewSet):
         "email_verified",
         "password_created",
         "last_login",
+        "created_at",
     ]
 
     def get_permissions(self):
