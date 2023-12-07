@@ -16,7 +16,6 @@ from apps.accounts.models import (
     Skill,
 )
 from apps.accounts.utils import get_default_group, get_instance_from_group
-from apps.commons.serializers import KeycloakRelatedField
 from apps.commons.serializers.fields import (
     HiddenPrimaryKeyRelatedField,
     PrivacySettingProtectedCharField,
@@ -152,13 +151,13 @@ class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
     people_group = HiddenPrimaryKeyRelatedField(
         required=False, write_only=True, queryset=PeopleGroup.objects.all()
     )
-    leaders = KeycloakRelatedField(
+    leaders = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
-    managers = KeycloakRelatedField(
+    managers = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
-    members = KeycloakRelatedField(
+    members = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
 
@@ -177,7 +176,7 @@ class PeopleGroupRemoveTeamMembersSerializer(serializers.Serializer):
     people_group = HiddenPrimaryKeyRelatedField(
         write_only=True, queryset=PeopleGroup.objects.all()
     )
-    users = KeycloakRelatedField(
+    users = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
 
@@ -459,7 +458,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectUser
-        read_only_fields = ["slug", "created_at"]
+        read_only_fields = ["id", "slug", "created_at"]
         fields = read_only_fields + [
             "roles",
             "roles_to_add",
@@ -664,7 +663,7 @@ class EmptyPayloadResponseSerializer(serializers.Serializer):
 
 
 class SkillSerializer(serializers.ModelSerializer):
-    user = KeycloakRelatedField(queryset=ProjectUser.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=ProjectUser.objects.all())
     wikipedia_tag = TagRelatedField()
 
     class Meta:

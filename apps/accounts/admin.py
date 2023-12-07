@@ -94,8 +94,15 @@ class UserCSVImportMixin:
 
 class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
     change_list_template = "admin/users_changelist.html"
-    list_display = ("id", "email", "given_name", "family_name", "last_login")
-    search_fields = ("people_id", "email", "given_name", "family_name")
+    list_display = (
+        "id",
+        "keycloak_account",
+        "email",
+        "given_name",
+        "family_name",
+        "last_login",
+    )
+    search_fields = ("email", "given_name", "family_name")
     exclude = ("user_permissions",)
     filter_horizontal = ("groups",)
     actions = ["create_email_for_users"]

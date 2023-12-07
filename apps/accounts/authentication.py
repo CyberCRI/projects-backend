@@ -28,11 +28,25 @@ logger = logging.getLogger(__name__)
 class BearerToken(AccessToken):
     token_type = "Bearer"  # nosec
 
+    @classmethod
+    def for_user(cls, user: "ProjectUser"):
+        """
+        Returns an authorization token for the given user that will be provided
+        after authenticating the user's credentials.
+        """
+        user_id = user.keycloak_account.keycloak_id
+        if not isinstance(user_id, int):
+            user_id = str(user_id)
+
+        token = cls()
+        token[api_settings.USER_ID_CLAIM] = user_id
+
+        return token
+
 
 class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
-        user = ProjectUser.objects.get(email=username)
-        code, token = KeycloakService.get_token_for_user(user.keycloak_id, password)
+        code, token = KeycloakService.get_token_for_user(username, password)
         if code != status.HTTP_200_OK:
             return None
         validated_token = BearerToken(token["access_token"])

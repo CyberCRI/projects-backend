@@ -1,3 +1,4 @@
+import uuid
 from base64 import b64decode
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -128,3 +129,22 @@ def get_permission_from_representation(
 
 def default_onboarding_status():
     return {"show_welcome": True}
+
+
+def get_user_id_field(user_id):
+    """
+    Return the query to use for the lookup of the user.
+    The query can be based on either the slug, the id or the keycloak_id.
+    Returns:
+        str: the query to use for the lookup of the user
+    """
+
+    try:
+        uuid.UUID(user_id)
+        return "keycloak_account__keycloak_id"
+    except ValueError:
+        try:
+            int(user_id)
+            return "id"
+        except ValueError:
+            return "slug"

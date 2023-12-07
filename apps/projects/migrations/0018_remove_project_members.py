@@ -7,6 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('projects', '0017_alter_historicalproject_language_and_more'),
+        ('notifications', '0012_remove_membernotificationsettings_member_and_more'),
     ]
 
     operations = [

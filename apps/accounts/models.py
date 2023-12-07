@@ -1,6 +1,6 @@
+import uuid
 from datetime import date
 from typing import TYPE_CHECKING, Iterable, List, Optional
-import uuid
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -361,6 +361,12 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
 
     def __str__(self):
         return self.get_full_name()
+
+    @property
+    def keycloak_id(self):
+        if self.keycloak_account:
+            return self.keycloak_account.keycloak_id
+        return None
 
     @property
     def is_superuser(self):

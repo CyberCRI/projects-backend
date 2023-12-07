@@ -7,9 +7,13 @@ import django.db.models.deletion
 
 def migrate_comments(apps, schema_editor):
     Comment = apps.get_model("feedbacks", "Comment")
+    HistoricalComment = apps.get_model("feedbacks", "HistoricalComment")
     for comment in Comment.objects.all():
         comment._author = comment.author
         comment.save()
+    for historical_comment in HistoricalComment.objects.all():
+        historical_comment._author = historical_comment.author
+        historical_comment.save()
 
 
 def migrate_comments_reverse(apps, schema_editor):

@@ -66,7 +66,7 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
-from .utils import get_permission_from_representation
+from .utils import get_permission_from_representation, get_user_id_field
 
 
 class RetrieveUpdateModelViewSet(
@@ -98,8 +98,8 @@ class ReadUpdateModelViewSet(
 
 class UserViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    lookup_field = "keycloak_id"
-    lookup_value_regex = "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_@.-]+)"
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
     search_fields = [
         "given_name",
         "family_name",
@@ -173,11 +173,17 @@ class UserViewSet(viewsets.ModelViewSet):
             ]
             queryset = queryset.annotate(
                 email_verified=Case(
-                    When(keycloak_id__in=email_verified, then=Value(True)),
+                    When(
+                        keycloak_account__keycloak_id__in=email_verified,
+                        then=Value(True),
+                    ),
                     default=Value(False),
                 ),
                 password_created=Case(
-                    When(keycloak_id__in=password_created, then=Value(True)),
+                    When(
+                        keycloak_account__keycloak_id__in=password_created,
+                        then=Value(True),
+                    ),
                     default=Value(False),
                 ),
             )
@@ -185,17 +191,12 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_object(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        try:
-            obj = ProjectUser.objects.filter(slug=self.kwargs[lookup_url_kwarg])
-            if obj.exists():
-                self.kwargs[lookup_url_kwarg] = obj.get().keycloak_id
-            return super().get_object()
-        except Http404:
-            if not ProjectUser.objects.filter(
-                **{self.lookup_field: self.kwargs[lookup_url_kwarg]}
-            ).exists():
-                return KeycloakService.import_user(self.kwargs[self.lookup_field])
-            raise Http404()
+        user_id = self.kwargs[lookup_url_kwarg]
+        id_field = get_user_id_field(user_id)
+        if id_field != "id":
+            user = get_object_or_404(ProjectUser.objects.all(), **{id_field: user_id})
+            self.kwargs[lookup_url_kwarg] = user.id
+        return super().get_object()
 
     def get_serializer_class(self):
         if self.action in ["list", "admin_list"]:
@@ -669,19 +670,19 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     )
     def member(self, request, *args, **kwargs):
         group = self.get_object()
-        managers_ids = group.managers.all().values_list("keycloak_id", flat=True)
-        leaders_ids = group.leaders.all().values_list("keycloak_id", flat=True)
+        managers_ids = group.managers.all().values_list("id", flat=True)
+        leaders_ids = group.leaders.all().values_list("id", flat=True)
         queryset = (
             group.get_all_members()
             .distinct()
             .annotate(
                 is_leader=Case(
-                    When(keycloak_id__in=leaders_ids, then=True), default=Value(False)
+                    When(id__in=leaders_ids, then=True), default=Value(False)
                 )
             )
             .annotate(
                 is_manager=Case(
-                    When(keycloak_id__in=managers_ids, then=True), default=Value(False)
+                    When(id__in=managers_ids, then=True), default=Value(False)
                 )
             )
             .order_by("-is_leader", "-is_manager")
@@ -979,18 +980,13 @@ class UserProfilePictureView(ImageStorageView):
     ]
 
     def get_queryset(self):
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            user = ProjectUser.objects.get(keycloak_id=self.kwargs["user_keycloak_id"])
+        if "user_id" in self.kwargs:
+            id_field = get_user_id_field(self.kwargs["user_id"])
+            query = {f"user__{id_field}": self.kwargs["user_id"]}
             if self.request.user.is_anonymous:
-                return Image.objects.filter(user=user)
+                return Image.objects.filter(**query)
             return Image.objects.filter(
-                Q(user=user) | Q(owner=self.request.user)
+                Q(**query) | Q(owner=self.request.user)
             ).distinct()
         return Image.objects.none
 
@@ -999,21 +995,15 @@ class UserProfilePictureView(ImageStorageView):
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            user = ProjectUser.objects.get(keycloak_id=self.kwargs["user_keycloak_id"])
+        if "user_id" in self.kwargs:
+            id_field = get_user_id_field(self.kwargs["user_id"])
+            query = {id_field: self.kwargs["user_id"]}
+            user = get_object_or_404(ProjectUser.objects.all(), **query)
             user.profile_picture = image
             user.save()
             image.owner = user
             image.save()
-            return (
-                f"/v1/user/{self.kwargs['user_keycloak_id']}/profile-picture/{image.id}"
-            )
+            return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
         return None
 
 
@@ -1029,18 +1019,14 @@ class PrivacySettingsViewSet(RetrieveUpdateModelViewSet):
     ]
     serializer_class = PrivacySettingsSerializer
     lookup_field = "user_id"
-    lookup_url_kwarg = "user_keycloak_id"
+    lookup_url_kwarg = "user_id"
 
     def get_queryset(self):
         qs = self.request.user.get_user_related_queryset(PrivacySettings.objects.all())
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            return qs.filter(user__keycloak_id=self.kwargs["user_keycloak_id"])
+        if "user_id" in self.kwargs:
+            id_field = get_user_id_field(self.kwargs["user_id"])
+            query = {f"user__{id_field}": self.kwargs["user_id"]}
+            return qs.filter(**query)
         return qs
 
 

@@ -326,7 +326,7 @@ KEYCLOAK_PUBLIC_KEY = (
 # From https://django-rest-framework-simplejwt.readthedocs.io/en/latest/settings.html
 SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer", "JWT", "Invite", "Service"),
-    "USER_ID_FIELD": "keycloak_id",
+    "USER_ID_FIELD": "keycloak_account__keycloak_id",
     "USER_ID_CLAIM": "sub",
     "TOKEN_TYPE_CLAIM": "typ",
     "AUTH_TOKEN_CLASSES": ("apps.accounts.authentication.BearerToken",),

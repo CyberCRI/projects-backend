@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.db import migrations, models
 import django.db.models.deletion
+from keycloak import KeycloakGetError
 
 from services.keycloak.interface import KeycloakService
 
@@ -11,14 +12,21 @@ def create_keycloak_accounts(apps, schema_editor):
     ProjectUser = apps.get_model("accounts", "ProjectUser")
     KeycloakAccount = apps.get_model("keycloak", "KeycloakAccount")
     for user in ProjectUser.objects.all():
-        keycloak_account = KeycloakAccount.objects.create(
+        try:
+            remote_keycloak_account = KeycloakService.get_user(user.keycloak_id)
+        except KeycloakGetError:
+            continue
+        KeycloakAccount.objects.update_or_create(
             user=user,
-            keycloak_id=user.keycloak_id,
+            keycloak_id=remote_keycloak_account["id"],
+            defaults={
+                "username": remote_keycloak_account["username"],
+                "email": remote_keycloak_account["email"],
+                "first_name": remote_keycloak_account["firstName"],
+                "last_name": remote_keycloak_account["lastName"],
+            },
         )
-        remote_keycloak_account = KeycloakService.get_user(user.keycloak_id)
-        keycloak_account.username = remote_keycloak_account["username"]
-        keycloak_account.email = remote_keycloak_account["email"]
-        keycloak_account.save()
+            
 
 
 class Migration(migrations.Migration):

@@ -51,9 +51,9 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             "email": faker.email(),
             "parent": parent.id,
             "team": {
-                "members": [m.keycloak_id for m in members],
-                "managers": [r.keycloak_id for r in managers],
-                "leaders": [r.keycloak_id for r in leaders],
+                "members": [m.id for m in members],
+                "managers": [r.id for r in managers],
+                "leaders": [r.id for r in leaders],
             },
             "featured_projects": [p.pk for p in projects],
         }

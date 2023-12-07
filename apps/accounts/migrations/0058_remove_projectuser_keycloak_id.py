@@ -7,7 +7,13 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("accounts", "0057_privacysettings__user"),
-        ("keycloak", "0001_initial")
+        ("keycloak", "0001_initial"),
+        ("feedbacks", "0008_comment__author_follow__follower_and_more"),
+        ("files", "0012_image__owner"),
+        ("notifications", "0027_notificationsettings__user"),
+        ("google", "0004_googleaccount__user"),
+        ("projects", "0028_alter_projectmember_unique_together_and_more"),
+
     ]
 
     operations = [
