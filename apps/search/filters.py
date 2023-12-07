@@ -17,6 +17,7 @@ class ProjectSearchFilter(ProjectFilterMixin):
             "members",
             "sdgs",
             "wikipedia_tags",
+            "organization_tags",
         ]
 
 

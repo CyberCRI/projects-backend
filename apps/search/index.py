@@ -34,6 +34,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
             "sdgs",
             "language",
             "wikipedia_tags_filter",
+            "organization_tags_filter",
             "members_filter",
             "categories_filter",
             "permissions",
@@ -49,6 +50,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
                     "categories_filter",
                     "members_filter",
                     "wikipedia_tags_filter",
+                    "organization_tags_filter",
                     "permissions",
                 ),
                 "split": ("description",),
@@ -63,6 +65,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
                     "categories_filter",
                     "members_filter",
                     "wikipedia_tags_filter",
+                    "organization_tags_filter",
                     "permissions",
                 ),
                 "split": ("blog_entries",),
@@ -89,6 +92,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
             "filterOnly(categories_filter)",
             "filterOnly(members_filter)",
             "filterOnly(wikipedia_tags_filter)",
+            "filterOnly(organization_tags_filter)",
             "filterOnly(permissions)",
         ],
         "hitsPerPage": 10,
@@ -197,6 +201,10 @@ class ProjectIndex(AlgoliaSplittingIndex):
         return list(
             project.wikipedia_tags.all().values_list("wikipedia_qid", flat=True)
         )
+
+    def prepare_organization_tags_filter(self, project: Project) -> List[str]:
+        """Return the organization tags' names for Algolia indexing."""
+        return list(project.organization_tags.all().values_list("id", flat=True))
 
     def prepare_members_filter(self, project: Project) -> List[str]:
         """Return the members' names for Algolia indexing."""
