@@ -14,7 +14,11 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
-from apps.accounts.utils import get_group_permissions, get_superadmins_group
+from apps.accounts.utils import (
+    default_onboarding_status,
+    get_group_permissions,
+    get_superadmins_group,
+)
 from apps.commons.db.abc import HasOwner, OrganizationRelated, PermissionsSetupModel
 from apps.misc.models import SDG, Language, WikipediaTag
 from apps.projects.models import Project
@@ -318,7 +322,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         max_length=2, choices=Language.choices, default=Language.default()
     )
     created_at = models.DateTimeField(auto_now_add=True)
-    onboarding_status = models.JSONField(default=dict)
+    onboarding_status = models.JSONField(default=default_onboarding_status)
 
     # Profile fields
     birthdate = models.DateField(
