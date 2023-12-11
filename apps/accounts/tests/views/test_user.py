@@ -71,6 +71,7 @@ class CreateUserTestCase(JwtAPITestCase):
         assert response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
+            assert content["onboarding_status"]["show_welcome"] is True
             assert content["people_id"] == payload["people_id"]
             assert content["email"] == payload["email"]
             assert content["given_name"] == payload["given_name"]
@@ -123,6 +124,7 @@ class CreateUserTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_201_CREATED
         content = response.json()
+        assert content["onboarding_status"]["show_welcome"] is True
         assert content["people_id"] == payload["people_id"]
         assert content["email"] == payload["email"]
         assert content["given_name"] == payload["given_name"]
@@ -184,6 +186,7 @@ class CreateUserTestCase(JwtAPITestCase):
         user = ProjectUser.objects.filter(email=payload["email"])
         assert user.exists()
         user = user.get()
+        assert user.onboarding_status["show_welcome"] is True
         assert {g.name for g in user.groups.all()} == {
             get_default_group().name,
             organization.get_users().name,

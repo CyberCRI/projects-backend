@@ -124,3 +124,7 @@ def get_permission_from_representation(
             instance = model.objects.get(pk=object_pk)
             return f"{app_label}.{codename}", instance
     return None, None
+
+
+def default_onboarding_status():
+    return {"show_welcome": True}
