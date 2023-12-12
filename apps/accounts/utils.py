@@ -148,3 +148,22 @@ def get_user_id_field(user_id):
             return "id"
         except ValueError:
             return "slug"
+
+
+def process_multiple_users_ids_list(
+    users_ids: List, returned_type: str = "id"
+) -> List[int]:
+    """
+    Return the users primary keys from a list of different types of ids.
+
+    TODO: Delete this function and rework where it is used when API users fully switch to id
+    """
+    from apps.accounts.models import ProjectUser
+
+    ids_types = [(get_user_id_field(user_id), user_id) for user_id in users_ids]
+    return [
+        user_id
+        if id_field == returned_type
+        else getattr(ProjectUser.objects.get(**{id_field: user_id}), returned_type)
+        for id_field, user_id in ids_types
+    ]

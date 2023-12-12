@@ -12,6 +12,7 @@ from rest_framework.settings import api_settings
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
+from apps.accounts.utils import process_multiple_users_ids_list
 from apps.commons.db.functions import ArrayPosition
 from apps.commons.views import ListViewSet
 from apps.organizations.models import Organization
@@ -63,7 +64,7 @@ class AlgoliaSearchViewSetMixin(ListViewSet):
             ),
             OpenApiParameter(
                 name="members",
-                description="Members keycloak_ids to filter on, separated by a comma. Works on projects.",
+                description="Members ids to filter on, separated by a comma. Works on projects.",
                 required=False,
                 type=str,
             ),
@@ -162,13 +163,16 @@ class ProjectSearchViewSet(AlgoliaSearchViewSetMixin):
                 f"organizations:{o}"
                 for o in get_hierarchy_codes(self.get_filter("organizations"))
             ],
-            [f"categories_filter:{c}" for c in self.get_filter("categories")],
-            [f"wikipedia_tags_filter:{t}" for t in self.get_filter("wikipedia_tags")],
             [
                 f"organization_tags_filter:{t}"
                 for t in self.get_filter("organization_tags")
             ],
-            [f"members_filter:{m}" for m in self.get_filter("members")],
+            [
+                f"members_filter:{m}"
+                for m in process_multiple_users_ids_list(self.get_filter("members"))
+            ],
+            [f"categories_filter:{c}" for c in self.get_filter("categories")],
+            [f"wikipedia_tags_filter:{t}" for t in self.get_filter("wikipedia_tags")],
             [f"language:{ln}" for ln in self.get_filter("languages")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
             [f"permissions:{p}" for p in self.get_user_projects_permissions()],
@@ -368,7 +372,9 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
             "categories__id__in": self.get_filter("categories"),
             "wikipedia_tags__wikipedia_qid__in": self.get_filter("wikipedia_tags"),
             "organization_tags__id__in": self.get_filter("organization_tags"),
-            "groups__users__id__in": self.get_filter("members"),
+            "groups__users__id__in": process_multiple_users_ids_list(
+                self.get_filter("members")
+            ),
             "language__in": self.get_filter("languages"),
             "sdgs__overlap": self.get_filter("sdgs"),
         }

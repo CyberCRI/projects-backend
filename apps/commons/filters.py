@@ -6,6 +6,8 @@ from django.db.models import F, Func, QuerySet
 from django_filters import filters
 from rest_framework.filters import SearchFilter
 
+from apps.accounts.utils import process_multiple_users_ids_list
+
 
 # Filter separating value by comma
 class MultiValueCharFilter(filters.BaseCSVFilter, filters.CharFilter):
@@ -16,12 +18,16 @@ class MultiValueCharFilter(filters.BaseCSVFilter, filters.CharFilter):
         return query_set
 
 
-class UUIDFilter(filters.BaseCSVFilter, filters.UUIDFilter):
-    def filter(self, query_set: QuerySet, value: str) -> QuerySet:  # noqa: A003
-        # value is either a list or an 'empty' value
+class UserMultipleIDFilter(MultiValueCharFilter):
+    def __init__(self, user_id_field: str = "id", *args, **kwargs):
+        self.user_id_field = user_id_field
+        super().__init__(*args, **kwargs)
+
+    def filter(self, queryset: QuerySet, value: str) -> QuerySet:  # noqa: A003
         if value:
-            return super(UUIDFilter, self).filter(query_set, value)
-        return query_set
+            value = process_multiple_users_ids_list(value, self.user_id_field)
+            return super().filter(queryset, value)
+        return queryset
 
 
 class TrigramSearchFilter(SearchFilter):
