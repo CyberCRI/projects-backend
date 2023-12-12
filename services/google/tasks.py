@@ -19,7 +19,7 @@ def create_google_account(
         google_account, error = google_account.create()
         if not error:
             google_account.update_keycloak_username()
-            create_google_user_task.delay(user.keycloak_id)
+            create_google_user_task.delay(user.id)
         else:
             for task in [
                 GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
@@ -35,14 +35,14 @@ def update_google_account(user: ProjectUser, organizational_unit: str = None):
     if user.groups.filter(
         organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
     ).exists():
-        update_google_user_task.delay(user.keycloak_id, organizational_unit)
+        update_google_user_task.delay(user.id, organizational_unit)
 
 
 def suspend_google_account(user: ProjectUser):
     if user.groups.filter(
         organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
     ).exists():
-        suspend_google_user_task.delay(user.keycloak_id)
+        suspend_google_user_task.delay(user.id)
 
 
 def create_google_group(people_group: PeopleGroup):
@@ -67,8 +67,8 @@ def update_google_group(people_group: PeopleGroup):
 
 
 @app.task
-def create_google_user_task(user_keycloak_id: str):
-    google_account = GoogleAccount.objects.filter(user__keycloak_id=user_keycloak_id)
+def create_google_user_task(user_id: str):
+    google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
         google_account = google_account.get()
         GoogleService.get_user_by_email(google_account.email, 10)
@@ -77,8 +77,8 @@ def create_google_user_task(user_keycloak_id: str):
 
 
 @app.task
-def update_google_user_task(user_keycloak_id: str, organizational_unit: str = None):
-    google_account = GoogleAccount.objects.filter(user__keycloak_id=user_keycloak_id)
+def update_google_user_task(user_id: str, organizational_unit: str = None):
+    google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
         google_account = google_account.get()
         if organizational_unit:
@@ -89,8 +89,8 @@ def update_google_user_task(user_keycloak_id: str, organizational_unit: str = No
 
 
 @app.task
-def suspend_google_user_task(user_keycloak_id: str):
-    google_account = GoogleAccount.objects.filter(user__keycloak_id=user_keycloak_id)
+def suspend_google_user_task(user_id: str):
+    google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
         google_account = google_account.get()
         google_account.suspend()

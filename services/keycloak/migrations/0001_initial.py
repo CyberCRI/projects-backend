@@ -22,8 +22,6 @@ def create_keycloak_accounts(apps, schema_editor):
             defaults={
                 "username": remote_keycloak_account["username"],
                 "email": remote_keycloak_account["email"],
-                "first_name": remote_keycloak_account["firstName"],
-                "last_name": remote_keycloak_account["lastName"],
             },
         )
             
@@ -64,8 +62,6 @@ class Migration(migrations.Migration):
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
-                ("first_name", models.CharField(blank=True, default="", max_length=255)),
-                ("last_name", models.CharField(blank=True, default="", max_length=255)),
             ],
         ),
         migrations.RunPython(create_keycloak_accounts, migrations.RunPython.noop),

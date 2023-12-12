@@ -14,8 +14,6 @@ class KeycloakAccount(models.Model):
     )
     username = models.CharField(max_length=255, unique=True)
     email = models.EmailField(blank=True, default="")
-    first_name = models.CharField(max_length=255, blank=True, default="")
-    last_name = models.CharField(max_length=255, blank=True, default="")
 
     def __str__(self):
         return self.keycloak_id

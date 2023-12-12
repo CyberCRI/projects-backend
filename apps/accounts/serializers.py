@@ -16,6 +16,7 @@ from apps.accounts.models import (
     Skill,
 )
 from apps.accounts.utils import get_default_group, get_instance_from_group
+from apps.commons.serializers import UserMultipleIdRelatedField
 from apps.commons.serializers.fields import (
     HiddenPrimaryKeyRelatedField,
     PrivacySettingProtectedCharField,
@@ -151,13 +152,13 @@ class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
     people_group = HiddenPrimaryKeyRelatedField(
         required=False, write_only=True, queryset=PeopleGroup.objects.all()
     )
-    leaders = serializers.PrimaryKeyRelatedField(
+    leaders = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
-    managers = serializers.PrimaryKeyRelatedField(
+    managers = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
-    members = serializers.PrimaryKeyRelatedField(
+    members = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
 
@@ -176,7 +177,7 @@ class PeopleGroupRemoveTeamMembersSerializer(serializers.Serializer):
     people_group = HiddenPrimaryKeyRelatedField(
         write_only=True, queryset=PeopleGroup.objects.all()
     )
-    users = serializers.PrimaryKeyRelatedField(
+    users = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
 
@@ -625,7 +626,11 @@ class UserSerializer(serializers.ModelSerializer):
         located in apps/accounts/parsers.py. Otherwise this method would cause an
         error when trying to process data from a formdata.
         """
+
+        # Put the profile_picture_file in the data dict
         data["profile_picture_file"] = data.pop("profile_picture_file", [None])[0]
+
+        # Handle roles_to_add and roles_to_remove
         groups_to_add = data.pop("roles_to_add", [])
         groups_to_remove = data.pop("roles_to_remove", [])
         if self.instance:
@@ -649,6 +654,17 @@ class UserSerializer(serializers.ModelSerializer):
             data["roles"] = groups
         else:
             data["roles"] = Group.objects.filter(name__in=groups_to_add)
+
+        # Get default language from organization if not provided
+        organization_groups = Group.objects.filter(
+            organizations__isnull=False,
+            name__in=groups_to_add,
+        )
+        if organization_groups.exists() and "language" not in data.keys():
+            group = organization_groups.first()
+            organization = group.organizations.first()
+            data["language"] = organization.language
+
         return super().to_internal_value(data)
 
 
@@ -663,7 +679,7 @@ class EmptyPayloadResponseSerializer(serializers.Serializer):
 
 
 class SkillSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=ProjectUser.objects.all())
+    user = UserMultipleIdRelatedField(queryset=ProjectUser.objects.all())
     wikipedia_tag = TagRelatedField()
 
     class Meta:

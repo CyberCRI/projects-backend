@@ -17,7 +17,7 @@ from apps.commons.serializers import (
 )
 from apps.commons.serializers.fields import (
     HiddenPrimaryKeyRelatedField,
-    KeycloakRelatedField,
+    UserMultipleIdRelatedField,
 )
 from apps.commons.utils.process_text import process_text
 from apps.feedbacks.models import Comment, Follow
@@ -249,13 +249,13 @@ class ProjectIdSerializer(serializers.Serializer):
 
 
 class UserLightSerializerKeycloakRelatedField(
-    UserLightSerializer, KeycloakRelatedField
+    UserLightSerializer, UserMultipleIdRelatedField
 ):
     def to_representation(self, instance):
         return UserLightSerializer.to_representation(self, instance)
 
     def to_internal_value(self, data):
-        return KeycloakRelatedField.to_internal_value(self, data)
+        return UserMultipleIdRelatedField.to_internal_value(self, data)
 
 
 class PeopleGroupLightSerializerPrimaryKeyRelatedField(
@@ -342,7 +342,7 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
     project = HiddenPrimaryKeyRelatedField(
         write_only=True, queryset=Project.objects.all()
     )
-    users = KeycloakRelatedField(
+    users = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
     people_groups = serializers.PrimaryKeyRelatedField(

@@ -18,7 +18,7 @@ faker = Faker()
 class UserFactory(factory.django.DjangoModelFactory):
     id = factory.sequence(lambda n: n)
     people_id = factory.Faker("uuid4")
-    email = factory.Faker("email")
+    email = factory.Sequence(lambda n: f"seed_user_{n}@{faker.domain_name()}".lower())
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")
 
@@ -77,23 +77,17 @@ class UserFactory(factory.django.DjangoModelFactory):
             KeycloakAccountFactory(
                 user=self,
                 username=self.email,
-                first_name=self.given_name,
-                last_name=self.family_name,
                 email=self.email,
             )
 
 
 class SeedUserFactory(UserFactory):
-    email = factory.Faker("email", unique=True)
-
     @factory.post_generation
     def keycloak_account(self, create, extracted, **kwargs):
         if create:
             RemoteKeycloakAccountFactory(
                 user=self,
                 username=self.email,
-                first_name=self.given_name,
-                last_name=self.family_name,
                 email=self.email,
             )
 

@@ -2,7 +2,6 @@ import json
 import uuid
 
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.db import transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from django.db.utils import IntegrityError
@@ -31,6 +30,7 @@ from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.serializers.serializers import EmailSerializer
 from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
@@ -96,10 +96,12 @@ class ReadUpdateModelViewSet(
     """
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = "id"
-    lookup_value_regex = "[0-9]+"
+    lookup_value_regex = (
+        "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9-]{1,}"
+    )
     search_fields = [
         "given_name",
         "family_name",
@@ -123,6 +125,16 @@ class UserViewSet(viewsets.ModelViewSet):
         "last_login",
         "created_at",
     ]
+    multiple_lookup_fields = ["id"]
+
+    def get_id_from_lookup_value(self, lookup_value):
+        lookup_field = get_user_id_field(lookup_value)
+        if lookup_field != "id":
+            user = get_object_or_404(
+                ProjectUser.objects.all(), **{lookup_field: lookup_value}
+            )
+            return user.id
+        return lookup_value
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectuser")
@@ -299,29 +311,11 @@ class UserViewSet(viewsets.ModelViewSet):
         elif not create_in_google and exists_in_google:
             update_google_account(instance, organizational_unit)
         instance.refresh_from_db()
+        return instance
 
     def create(self, request, *args, **kwargs):
         try:
-            data = request.data.copy()
-            # If no language is provided, use the organization's language
-            organization_groups = Group.objects.filter(
-                organizations__isnull=False,
-                name__in=data.get("roles_to_add", []),
-            )
-            if organization_groups.exists() and "language" not in data.keys():
-                group = organization_groups.first()
-                organization = group.organizations.first()
-                data["language"] = organization.language
-            # Create user in keycloak and redirect to the organization portal
-            data["keycloak_id"] = KeycloakService.create_user(data)
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            instance = self.perform_create(serializer)
-            self.google_sync(instance, self.request.data, True)
-            headers = self.get_success_headers(serializer.data)
-            return Response(
-                serializer.data, status=status.HTTP_201_CREATED, headers=headers
-            )
+            return super().create(request, *args, **kwargs)
         except (KeycloakPostError, KeycloakPutError) as e:
             keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
             return Response(
@@ -348,19 +342,23 @@ class UserViewSet(viewsets.ModelViewSet):
                 else None,
             ]
             instance = serializer.save(groups=list(filter(lambda x: x, groups)))
-            KeycloakService.send_email(
-                user=instance,
-                email_type=KeycloakService.EmailType.INVITATION,
-                redirect_organization_code=invitation.organization.code,
+            email_type = KeycloakService.EmailType.INVITATION
+            redirect_organization_code = invitation.organization.code
+        else:
+            instance = serializer.save()
+            email_type = KeycloakService.EmailType.ADMIN_CREATED
+            redirect_organization_code = self.request.query_params.get(
+                "organization", "DEFAULT"
             )
-            return instance
-        instance = serializer.save()
+
+        instance = self.google_sync(instance, self.request.data, True)
+        keycloak_account = KeycloakService.create_user(
+            instance, self.request.data.get("password", None)
+        )
         KeycloakService.send_email(
             user=instance,
-            email_type=KeycloakService.EmailType.ADMIN_CREATED,
-            redirect_organization_code=self.request.query_params.get(
-                "organization", "DEFAULT"
-            ),
+            email_type=email_type,
+            redirect_organization_code=redirect_organization_code,
         )
         return instance
 
@@ -969,7 +967,7 @@ class DeleteCookieView(views.APIView):
         return response
 
 
-class UserProfilePictureView(ImageStorageView):
+class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -978,15 +976,23 @@ class UserProfilePictureView(ImageStorageView):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
+    multiple_lookup_fields = ["user_id"]
+
+    def get_user_id_from_lookup_value(self, lookup_value):
+        lookup_field = get_user_id_field(lookup_value)
+        if lookup_field != "id":
+            user = get_object_or_404(
+                ProjectUser.objects.all(), **{lookup_field: lookup_value}
+            )
+            return user.id
+        return lookup_value
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
-            id_field = get_user_id_field(self.kwargs["user_id"])
-            query = {f"user__{id_field}": self.kwargs["user_id"]}
             if self.request.user.is_anonymous:
-                return Image.objects.filter(**query)
+                return Image.objects.filter(user_id=self.kwargs["user_id"])
             return Image.objects.filter(
-                Q(**query) | Q(owner=self.request.user)
+                Q(user__id=self.kwargs["user_id"]) | Q(owner=self.request.user)
             ).distinct()
         return Image.objects.none
 
@@ -996,9 +1002,9 @@ class UserProfilePictureView(ImageStorageView):
 
     def add_image_to_model(self, image):
         if "user_id" in self.kwargs:
-            id_field = get_user_id_field(self.kwargs["user_id"])
-            query = {id_field: self.kwargs["user_id"]}
-            user = get_object_or_404(ProjectUser.objects.all(), **query)
+            user = get_object_or_404(
+                ProjectUser.objects.all(), id=self.kwargs["user_id"]
+            )
             user.profile_picture = image
             user.save()
             image.owner = user
@@ -1007,7 +1013,7 @@ class UserProfilePictureView(ImageStorageView):
         return None
 
 
-class PrivacySettingsViewSet(RetrieveUpdateModelViewSet):
+class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's privacy settings."""
 
     permission_classes = [
@@ -1020,13 +1026,21 @@ class PrivacySettingsViewSet(RetrieveUpdateModelViewSet):
     serializer_class = PrivacySettingsSerializer
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
+    multiple_lookup_fields = ["user_id"]
+
+    def get_user_id_from_lookup_value(self, lookup_value):
+        lookup_field = get_user_id_field(lookup_value)
+        if lookup_field != "id":
+            user = get_object_or_404(
+                ProjectUser.objects.all(), **{lookup_field: lookup_value}
+            )
+            return user.id
+        return lookup_value
 
     def get_queryset(self):
         qs = self.request.user.get_user_related_queryset(PrivacySettings.objects.all())
         if "user_id" in self.kwargs:
-            id_field = get_user_id_field(self.kwargs["user_id"])
-            query = {f"user__{id_field}": self.kwargs["user_id"]}
-            return qs.filter(**query)
+            return qs.filter(user__id=self.kwargs["user_id"])
         return qs
 
 

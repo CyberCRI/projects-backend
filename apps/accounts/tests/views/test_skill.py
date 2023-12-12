@@ -49,7 +49,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
         response = self.client.post(reverse("Skill-list"), data=payload)
         assert response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["user"] == instance.keycloak_id
+            assert response.json()["user"]["id"] == instance.id
             assert response.json()["wikipedia_tag"]["wikipedia_qid"] == "Q1735684"
             assert response.json()["level"] == 1
             assert response.json()["level_to_reach"] == 2

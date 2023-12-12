@@ -20,6 +20,8 @@ from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from keycloak import KeycloakAdmin
 
+from .models import KeycloakAccount
+
 logger = logging.getLogger(__name__)
 
 
@@ -87,25 +89,31 @@ class KeycloakService:
         return cls.service().create_user(payload=keycloak_data, exist_ok=False)
 
     @classmethod
-    def create_user(cls, request_data: Dict[str, Union[str, bool]]):
+    def create_user(cls, user: ProjectUser, password: Optional[str] = None):
+        email = user.personal_email if hasattr(user, "google_account") else user.email
         payload = {
             "enabled": True,
             "emailVerified": False,
-            "email": request_data.get("personal_email", request_data["email"]),
-            "username": request_data["email"],
-            "firstName": request_data["given_name"],
-            "lastName": request_data["family_name"],
+            "email": email,
+            "username": user.email,
+            "firstName": user.given_name,
+            "lastName": user.family_name,
             "attributes": {
-                "locale": [request_data.get("language", "en")],
+                "locale": [user.language],
             },
         }
-        password = request_data.get("password", None)
         if password:
             payload["credentials"] = [{"type": "password", "value": password}]
             payload["requiredActions"] = ["VERIFY_EMAIL"]
         else:
             payload["requiredActions"] = ["UPDATE_PASSWORD", "VERIFY_EMAIL"]
-        return cls._create_user(payload)
+        keycloak_id = cls._create_user(payload)
+        return KeycloakAccount.objects.create(
+            keycloak_id=keycloak_id,
+            username=payload["username"],
+            email=payload["email"],
+            user=user,
+        )
 
     @classmethod
     def get_user_execute_actions_link(

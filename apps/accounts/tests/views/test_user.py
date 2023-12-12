@@ -537,7 +537,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         )
         assert response.status_code == 400
         assert response.json()["error"] == "An error occured in Keycloak : error reason"
-        assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+        assert ProjectUser.objects.filter(id=user.id).exists()
 
     def test_keycloak_404_delete_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
@@ -546,7 +546,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             reverse("ProjectUser-detail", args=[user.keycloak_id])
         )
         assert response.status_code == 204
-        assert not ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+        assert not ProjectUser.objects.filter(id=user.id).exists()
 
 
 class ValidateUserTestCase(JwtAPITestCase):
@@ -589,7 +589,6 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         params = {
             "given_name": "test",
             "family_name": "test",
-            "email": "test@test.com",
         }
         cls.user_a = UserFactory(job="ABC", **params)
         cls.user_b = UserFactory(job="DEF", **params)

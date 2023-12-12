@@ -34,11 +34,11 @@ class IsOwner(permissions.BasePermission):
 class WillBeOwner(permissions.BasePermission):
     def has_permission(self, request: Request, view: GenericViewSet) -> bool:
         if view.action == "create":
-            if "keycloak_id" in view.kwargs:
-                return str(request.user.keycloak_id) == view.kwargs["keycloak_id"]
-            if "user_keycloak_id" in view.kwargs:
-                return str(request.user.keycloak_id) == view.kwargs["user_keycloak_id"]
-            return str(request.user.keycloak_id) == str(request.data.get("user"))
+            if "id" in view.kwargs:
+                return str(request.user.id) == view.kwargs["id"]
+            if "user_id" in view.kwargs:
+                return str(request.user.id) == view.kwargs["user_id"]
+            return str(request.user.id) == str(request.data.get("user"))
         return False
 
     def has_object_permission(

@@ -364,8 +364,8 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
 
     @property
     def keycloak_id(self):
-        if self.keycloak_account:
-            return self.keycloak_account.keycloak_id
+        if hasattr(self, "keycloak_account"):
+            return str(self.keycloak_account.keycloak_id)
         return None
 
     @property

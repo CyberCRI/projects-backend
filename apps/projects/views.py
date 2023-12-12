@@ -370,9 +370,8 @@ class ProjectViewSet(viewsets.ModelViewSet):
     def remove_self(self, request, *args, **kwargs):
         """Remove users from the project's group of the given name."""
         project = self.get_object()
-        # The following 3 lines are here for backward compatibility
         serializer = ProjectRemoveTeamMembersSerializer(
-            data={"project": project.pk, "users": [request.user.keycloak_id]}
+            data={"project": project.pk, "users": [request.user.id]}
         )
         serializer.is_valid(raise_exception=True)
         serializer.save()

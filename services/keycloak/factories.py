@@ -9,8 +9,6 @@ class KeycloakAccountFactory(factory.django.DjangoModelFactory):
     keycloak_id = factory.Faker("uuid4")
     username = factory.Faker("email")
     email = factory.Faker("email")
-    first_name = factory.Faker("first_name")
-    last_name = factory.Faker("last_name")
 
     class Meta:
         model = KeycloakAccount
@@ -23,8 +21,8 @@ class RemoteKeycloakAccountFactory(KeycloakAccountFactory):
                 "email": x.email,
                 "username": x.username,
                 "enabled": True,
-                "firstName": x.first_name,
-                "lastName": x.last_name,
+                "firstName": x.user.given_name,
+                "lastName": x.user.family_name,
             }
         )
     )

@@ -37,15 +37,13 @@ class OrganizationRelatedPermission(IgnoreCall):
             if pk is not None:
                 return get_object_or_404(Project, pk=pk).get_related_organizations()
         if model in [ProjectUser, PrivacySettings]:
-            keycloak_id = view.kwargs.get(view.lookup_url_kwarg) or view.kwargs.get(
+            user_id = view.kwargs.get(view.lookup_url_kwarg) or view.kwargs.get(
                 view.lookup_field
             )
-            if keycloak_id is not None:
-                return get_object_or_404(
-                    ProjectUser, keycloak_id=keycloak_id
-                ).get_related_organizations()
-        if obj is None and "user_keycloak_id" in view.kwargs and model == Image:
-            obj = ProjectUser.objects.get(keycloak_id=view.kwargs["user_keycloak_id"])
+            if user_id is not None:
+                obj = get_object_or_404(ProjectUser, id=user_id)
+        if obj is None and "user_id" in view.kwargs and model == Image:
+            obj = get_object_or_404(ProjectUser, id=view.kwargs["user_id"])
         if obj is None and "organization_code" in view.kwargs:
             return Organization.objects.filter(code=view.kwargs["organization_code"])
         if obj is None and "project_id" in view.kwargs:

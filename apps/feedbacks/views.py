@@ -13,9 +13,10 @@ from simple_history.utils import update_change_reason
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.accounts.utils import get_user_id_field
 from apps.commons.permissions import IsOwner
 from apps.commons.utils.permissions import map_action_to_permission
-from apps.commons.views import CreateListDestroyViewSet
+from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import notify_new_comment, notify_new_review
@@ -34,12 +35,22 @@ from .serializers import (
 )
 
 
-class ReviewViewSet(viewsets.ModelViewSet):
+class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ReviewFilter
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
+    multiple_lookup_fields = ["user_id"]
+
+    def get_user_id_from_lookup_value(self, lookup_value):
+        lookup_field = get_user_id_field(lookup_value)
+        if lookup_field != "id":
+            user = get_object_or_404(
+                ProjectUser.objects.all(), **{lookup_field: lookup_value}
+            )
+            return user.id
+        return lookup_value
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "review")
@@ -67,14 +78,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
                 self.kwargs["project_id"] = project.get().id
 
             qs = qs.filter(project=self.kwargs["project_id"])
-        elif "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            qs = qs.filter(reviewer__keycloak_id=self.kwargs["user_keycloak_id"])
+        elif "user_id" in self.kwargs:
+            qs = qs.filter(reviewer__id=self.kwargs["user_id"])
         return qs.select_related("reviewer")
 
     def perform_create(self, serializer):
@@ -82,11 +87,21 @@ class ReviewViewSet(viewsets.ModelViewSet):
         notify_new_review.delay(review.id)
 
 
-class FollowViewSet(CreateListDestroyViewSet):
+class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     serializer_class = FollowSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
+    multiple_lookup_fields = ["user_id"]
+
+    def get_user_id_from_lookup_value(self, lookup_value):
+        lookup_field = get_user_id_field(lookup_value)
+        if lookup_field != "id":
+            user = get_object_or_404(
+                ProjectUser.objects.all(), **{lookup_field: lookup_value}
+            )
+            return user.id
+        return lookup_value
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "follow")
@@ -113,14 +128,8 @@ class FollowViewSet(CreateListDestroyViewSet):
                 self.kwargs["project_id"] = project.get().id
 
             qs = qs.filter(project=self.kwargs["project_id"])
-        elif "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            qs = qs.filter(follower__keycloak_id=self.kwargs["user_keycloak_id"])
+        elif "user_id" in self.kwargs:
+            qs = qs.filter(follower__id=self.kwargs["user_id"])
         return qs.select_related("follower")
 
     def check_linked_project_permission(self, project):
@@ -148,7 +157,7 @@ class UserFollowViewSet(FollowViewSet):
         serializer = UserFollowManySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         # TODO do we have to check the permission of the user making the request or the user following the projects? probably the same anyway
-        user = ProjectUser.objects.get(keycloak_id=kwargs["user_keycloak_id"])
+        user = ProjectUser.objects.get(id=kwargs["user_id"])
         with transaction.atomic():
             for follow in serializer.validated_data["follows"]:
                 self.check_linked_project_permission(follow["project"])

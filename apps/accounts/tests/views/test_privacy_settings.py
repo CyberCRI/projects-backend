@@ -11,7 +11,7 @@ from apps.organizations.factories import OrganizationFactory
 faker = Faker()
 
 
-class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
+class RetrievePrivacySettingsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -40,7 +40,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_200_OK),
         ]
     )
-    def test_retrieve_public_notification_settings(self, role, expected_code):
+    def test_retrieve_public_privacy_settings(self, role, expected_code):
         organization = self.organization
         instance = self.public_user
         user = self.get_parameterized_test_user(
@@ -75,7 +75,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_200_OK),
         ]
     )
-    def test_retrieve_org_notification_settings(self, role, expected_code):
+    def test_retrieve_org_privacy_settings(self, role, expected_code):
         organization = self.organization
         instance = self.org_user
         user = self.get_parameterized_test_user(
@@ -110,7 +110,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_404_NOT_FOUND),
         ]
     )
-    def test_retrieve_private_notification_settings(self, role, expected_code):
+    def test_retrieve_private_privacy_settings(self, role, expected_code):
         organization = self.organization
         instance = self.private_user
         user = self.get_parameterized_test_user(
@@ -135,7 +135,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             )
 
 
-class UpdateNotificationSettingsTestCase(JwtAPITestCase):
+class UpdatePrivacySettingsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -152,7 +152,7 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_update_notification_settings(self, role, expected_code):
+    def test_update_privacy_settings(self, role, expected_code):
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(

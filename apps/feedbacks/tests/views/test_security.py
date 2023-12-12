@@ -26,16 +26,16 @@ class FeedbacksSecurityTestCase(JwtAPITestCase):
         }
         self.client.force_authenticate(user)
         response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Reviewed-list", args=(project.id,)), data=payload
         )
         assert response.data["reviewer"]["id"] == user.id
 
         response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Followed-list", args=(project.id,)), data=payload
         )
         assert response.data["follower"]["id"] == user.id
 
         response = self.client.post(
-            reverse("Comment-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Comment-list", args=(project.id,)), data=payload
         )
         assert response.data["author"]["id"] == user.id

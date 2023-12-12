@@ -8,8 +8,12 @@ from apps.misc.factories import TagFactory, WikipediaTagFactory
 
 class PostgresTrigramTestCase(JwtAPITestCase):
     def test_user_search_pg_trgm(self):
-        user = UserFactory(given_name="ééé", family_name="abcdef", email="", job="")
-        UserFactory(given_name="aee", family_name="abcxyz", email="", job="")
+        user = UserFactory(
+            given_name="ééé", family_name="abcdef", email="abcdef@abcdef.com", job=""
+        )
+        UserFactory(
+            given_name="aee", family_name="abcxyz", email="abcxyz@abcxyz.com", job=""
+        )
         for query in ["abcdef", "abcdea", "ééé", "èèè", "eee"]:
             response = self.client.get(
                 reverse("ProjectUser-list") + f"?search={query}",

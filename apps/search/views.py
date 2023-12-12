@@ -3,7 +3,7 @@ from typing import Any, Dict, List
 from algoliasearch.search_client import SearchClient
 from algoliasearch_django import algolia_engine
 from django.conf import settings
-from django.db.models import BigIntegerField, CharField, F, Prefetch, UUIDField
+from django.db.models import BigIntegerField, CharField, F, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
@@ -262,7 +262,7 @@ class UserSearchViewSet(AlgoliaSearchViewSetMixin):
             self.pagination_class = AlgoliaPagination(response["nbHits"])
             hits = [h["id"] for h in response["hits"]]
             # Return a queryset of Project sorted with `hits`.
-            ordering = ArrayPosition(hits, F("id"), base_field=UUIDField())
+            ordering = ArrayPosition(hits, F("id"), base_field=BigIntegerField())
             users = (
                 users.filter(id__in=hits)
                 .annotate(ordering=ordering)

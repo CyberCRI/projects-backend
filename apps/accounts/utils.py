@@ -142,7 +142,7 @@ def get_user_id_field(user_id):
     try:
         uuid.UUID(user_id)
         return "keycloak_account__keycloak_id"
-    except ValueError:
+    except (ValueError, AttributeError):
         try:
             int(user_id)
             return "id"

@@ -3,6 +3,7 @@ from urllib.request import Request
 
 from django.conf import settings
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -11,9 +12,10 @@ from rest_framework.response import Response
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.accounts.utils import get_user_id_field
 from apps.accounts.views import RetrieveUpdateModelViewSet
 from apps.commons.permissions import IsOwner
-from apps.commons.views import ListViewSet
+from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
 from apps.emailing.tasks import send_email_task
 from apps.emailing.utils import render_message
 from apps.organizations.permissions import HasOrganizationPermission
@@ -49,12 +51,12 @@ class NotificationsViewSet(ListViewSet):
         return response
 
 
-class NotificationSettingsViewSet(RetrieveUpdateModelViewSet):
+class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's notification settings."""
 
     serializer_class = NotificationSettingsSerializer
     lookup_field = "user_id"
-    lookup_url_kwarg = "user_keycloak_id"
+    lookup_url_kwarg = "user_id"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -62,19 +64,23 @@ class NotificationSettingsViewSet(RetrieveUpdateModelViewSet):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
+    multiple_lookup_fields = ["user_id"]
+
+    def get_user_id_from_lookup_value(self, lookup_value):
+        lookup_field = get_user_id_field(lookup_value)
+        if lookup_field != "id":
+            user = get_object_or_404(
+                ProjectUser.objects.all(), **{lookup_field: lookup_value}
+            )
+            return user.id
+        return lookup_value
 
     def get_queryset(self):
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            queryset = self.request.user.get_user_related_queryset(
+        if "user_id" in self.kwargs:
+            qs = self.request.user.get_user_related_queryset(
                 NotificationSettings.objects.all()
             )
-            return queryset.filter(user__keycloak_id=self.kwargs["user_keycloak_id"])
+            return qs.filter(user__id=self.kwargs["user_id"])
         return NotificationSettings.objects.none
 
 

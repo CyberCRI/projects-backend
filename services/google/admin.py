@@ -21,7 +21,7 @@ class GoogleSyncErrorsAdmin(admin.ModelAdmin):
         "google_account__email",
         "google_account__google_id",
         "google_account__user__email",
-        "google_account__user__keycloak_id",
+        "google_account__user__keycloak_account__keycloak_id",
         "google_account__user__given_name",
         "google_account__user__family_name",
         "google_group__email",
