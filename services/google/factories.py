@@ -20,7 +20,6 @@ class RemoteGoogleAccountFactory(SeedUserFactory):
             user=self, organizational_unit="/CRI/Test Google Sync"
         )
         google_account, _ = google_account.create()
-        google_account.update_keycloak_username()
         GoogleService.get_user_by_email(google_account.email, 10)
         self.google_account = google_account
 

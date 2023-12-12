@@ -100,23 +100,24 @@ class GoogleTasksTestCase(GoogleTestCase):
             )
             assert response.status_code == status.HTTP_201_CREATED
             content = response.json()
-            keycloak_id = content["keycloak_id"]
-            user = ProjectUser.objects.get(keycloak_id=keycloak_id)
+            user = ProjectUser.objects.get(id=content["id"])
             assert user.google_account is not None
             mocked_create_user.assert_called_once_with(user, "/CRI/Test")
             mocked_add_user_alias.assert_called_once_with(user.google_account)
             mocked_get_user_groups.assert_called_once_with(user.google_account)
             mocked_add_user_to_group.assert_called_once_with(user.google_account, group)
-            keycloak_user = KeycloakService.get_user(keycloak_id)
+            keycloak_user = KeycloakService.get_user(user.keycloak_id)
             assert (
                 user.google_account.email.lower()
                 == user.email.lower()
+                == user.keycloak_account.username.lower()
                 == content["email"].lower()
                 == keycloak_user["username"].lower()
                 == f"{payload['given_name']}.{payload['family_name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower()
             )
             assert (
                 user.personal_email.lower()
+                == user.keycloak_account.email.lower()
                 == content["personal_email"].lower()
                 == keycloak_user["email"].lower()
                 == payload["email"].lower()

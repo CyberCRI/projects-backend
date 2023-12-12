@@ -4,8 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.accounts.models import PeopleGroup, ProjectUser
-from services.google.exceptions import GoogleGroupEmailUnavailable, GoogleUserNotSynced
-from services.keycloak.interface import KeycloakService
+from services.google.exceptions import GoogleGroupEmailUnavailable
 
 from .interface import GoogleService
 
@@ -16,7 +15,6 @@ class GoogleSyncErrors(models.Model):
         UPDATE_USER = "update_user", "Update user"
         SUSPEND_USER = "suspend_user", "Suspend user"
         USER_ALIAS = "user_alias", "Create user alias"
-        KEYCLOAK_USERNAME = "keycloak_username", "Update keycloak username"
         SYNC_GROUPS = "sync_groups", "Sync user groups"
         CREATE_GROUP = "create_group", "Create group"
         UPDATE_GROUP = "update_group", "Update group"
@@ -61,8 +59,6 @@ class GoogleSyncErrors(models.Model):
                 self.google_account.suspend(is_retry=True)
             case self.OnTaskChoices.USER_ALIAS:
                 self.google_account.create_alias(is_retry=True)
-            case self.OnTaskChoices.KEYCLOAK_USERNAME:
-                self.google_account.update_keycloak_username(is_retry=True)
             case self.OnTaskChoices.SYNC_GROUPS:
                 self.google_account.sync_groups(is_retry=True)
             case self.OnTaskChoices.CREATE_GROUP:
@@ -73,6 +69,8 @@ class GoogleSyncErrors(models.Model):
                 self.google_group.create_alias(is_retry=True)
             case self.OnTaskChoices.SYNC_MEMBERS:
                 self.google_group.sync_members(is_retry=True)
+            case _:
+                pass
 
 
 class GoogleGroup(models.Model):
@@ -318,25 +316,6 @@ class GoogleAccount(models.Model):
         else:
             if is_retry:
                 self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.USER_ALIAS)
-
-    def update_keycloak_username(self, is_retry: bool = False):
-        try:
-            if self.user.email == self.email:
-                KeycloakService.update_user(self.user)
-            else:
-                self.update_or_create_error(
-                    GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-                    GoogleUserNotSynced(self.user.email, self.email),
-                )
-        except Exception as e:  # noqa
-            self.update_or_create_error(
-                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME, e
-            )
-        else:
-            if is_retry:
-                self.update_or_create_error(
-                    GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME
-                )
 
     def sync_groups(self, is_retry: bool = False):
         try:

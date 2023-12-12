@@ -86,10 +86,6 @@ class GoogleAccountAdmin(admin.ModelAdmin):
         for account in queryset:
             account.sync_groups()
 
-    def sync_keycloak(self, request: HttpRequest, queryset: QuerySet[Any]):
-        for account in queryset:
-            account.update_keycloak_username()
-
     def suspend(self, request: HttpRequest, queryset: QuerySet[Any]):
         for account in queryset:
             account.suspend()

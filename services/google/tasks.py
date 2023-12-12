@@ -18,11 +18,9 @@ def create_google_account(
         )
         google_account, error = google_account.create()
         if not error:
-            google_account.update_keycloak_username()
             create_google_user_task.delay(user.id)
         else:
             for task in [
-                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
                 GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
                 GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
             ]:

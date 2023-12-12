@@ -52,11 +52,6 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         )
         GoogleSyncErrorFactory(
             google_account=google_account,
-            on_task=GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-            solved=True,
-        )
-        GoogleSyncErrorFactory(
-            google_account=google_account,
             on_task=GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
             solved=True,
         )
@@ -78,11 +73,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=False
         )
-        assert previous_errors.count() == 4
-        assert errors.count() == 4
+        assert previous_errors.count() == 3
+        assert errors.count() == 3
         assert [e.on_task for e in errors.order_by("created_at")] == [
             GoogleSyncErrors.OnTaskChoices.CREATE_USER,
-            GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
             GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
             GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
         ]
@@ -206,46 +200,6 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         assert errors.count() == 1
         assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS
         assert errors[0].google_group == group
-        assert errors[0].google_account == user.google_account
-        assert errors[0].retries_count == 0
-
-    @patch("services.google.tasks.create_google_user_task.delay")
-    @patch("services.google.interface.GoogleService.service")
-    def test_create_google_account_sync_keycloak_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_user_task
-        group = GoogleGroupFactory(organization=self.organization)
-        user = UserFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
-        )
-        google_account = GoogleAccount.objects.create(user=user)
-        GoogleSyncErrorFactory(
-            google_account=google_account,
-            on_task=GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-            solved=True,
-        )
-        mocked.side_effect = self.google_side_effect(
-            [
-                self.get_google_user_error(),  # username is available
-                self.create_google_user_success(
-                    user.given_name, user.family_name, "/CRI/Test"
-                ),  # user created
-                self.get_google_user_success(),  # user exists
-                self.add_user_alias_success(),  # user alias created
-                self.list_google_groups_success([]),  # user groups are fetched
-                self.add_user_to_group_success(),  # user is added to group
-            ]
-        )
-        create_google_account(user, "/CRI/Test")
-        previous_errors = GoogleSyncErrors.objects.filter(
-            google_account__user=user, solved=True
-        )
-        errors = GoogleSyncErrors.objects.filter(
-            google_account__user=user, solved=False
-        )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME
-        assert errors[0].google_group is None
         assert errors[0].google_account == user.google_account
         assert errors[0].retries_count == 0
 
