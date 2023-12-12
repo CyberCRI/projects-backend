@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/authentication.py:98
+#: apps/accounts/authentication.py:113
 msgid "Token contained no recognizable user identification"
 msgstr "Le token n'a pas permis de retrouver un utilisateur"
 
-#: apps/accounts/authentication.py:105
+#: apps/accounts/authentication.py:120
 msgid "User is inactive"
 msgstr "L'utilisateur.ice est inactif.ve"
 
-#: apps/accounts/authentication.py:117
+#: apps/accounts/authentication.py:132
 msgid "Invitation not found or expired"
 msgstr "Invitation invalide ou expirée"
 
@@ -38,19 +38,19 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/models.py:119 apps/projects/models.py:147
+#: apps/accounts/models.py:120 apps/projects/models.py:147
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:553
+#: apps/accounts/models.py:572
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:554
+#: apps/accounts/models.py:573
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:555
+#: apps/accounts/models.py:574
 msgid "Public"
 msgstr "Publique"
 
@@ -107,16 +107,16 @@ msgstr ""
 "trouver 😊</p>\n"
 "</div>\n"
 
-#: apps/commons/serializers/fields.py:19
+#: apps/commons/serializers/fields.py:23
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: apps/commons/serializers/fields.py:21
-#, python-brace-format
-msgid "Invalid keycloak_id \"{keycloak_id}\" - object does not exist."
-msgstr "Keycloak_id invalide \"{keycloak_id}\" - cet objet n'existe pas."
-
 #: apps/commons/serializers/fields.py:24
+#, python-brace-format
+msgid "Invalid id \"{user_id}\" - object does not exist."
+msgstr "identifiant invalide \"{keycloak_id}\" - cet objet n'existe pas."
+
+#: apps/commons/serializers/fields.py:26
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
@@ -750,19 +750,19 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr "Résumé de l'activité sur Projects"
 
-#: apps/notifications/tasks.py:174
+#: apps/notifications/tasks.py:172
 msgid "editor"
 msgstr "éditeur"
 
-#: apps/notifications/tasks.py:175
+#: apps/notifications/tasks.py:173
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:176
+#: apps/notifications/tasks.py:174
 msgid "reviewer"
 msgstr "correcteur"
 
-#: apps/notifications/utils.py:209
+#: apps/notifications/utils.py:201
 msgid " and "
 msgstr " et "
 
@@ -817,6 +817,10 @@ msgstr "Cet email est déjà utilisé par un autre groupe"
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
 msgstr "Cet email est déjà utilisé par un autre utilisateur"
+
+#: services/keycloak/exceptions.py:7
+msgid "Given user does not have a keycloak account."
+msgstr "L'utilisateur.ice n'a pas de compte keycloak."
 
 #: services/keycloak/templates/admin_created/mail.html:8
 #, python-format
