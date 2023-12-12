@@ -114,7 +114,7 @@ msgstr "Ce champ est obligatoire."
 #: apps/commons/serializers/fields.py:24
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
-msgstr "identifiant invalide \"{keycloak_id}\" - cet objet n'existe pas."
+msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 
 #: apps/commons/serializers/fields.py:26
 #, python-brace-format
