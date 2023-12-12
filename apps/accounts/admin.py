@@ -123,11 +123,13 @@ class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
     @transaction.atomic
     def save_model(self, request, obj, form, change) -> None:
         super().save_model(request, obj, form, change)
-        KeycloakService.update_user(obj)
+        if hasattr(obj, "keycloak_account"):
+            KeycloakService.update_user(obj.keycloak_account)
 
     @transaction.atomic
     def delete_model(self, request, obj) -> None:
-        KeycloakService.delete_user(obj)
+        if hasattr(obj, "keycloak_account"):
+            KeycloakService.delete_user(obj.keycloak_account)
         return super().delete_model(request, obj)
 
     def get_urls(self):

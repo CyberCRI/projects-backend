@@ -45,6 +45,7 @@ from services.google.tasks import (
     update_google_account,
     update_google_group,
 )
+from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
@@ -356,7 +357,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             instance, self.request.data.get("password", None)
         )
         KeycloakService.send_email(
-            user=instance,
+            keycloak_account=keycloak_account,
             email_type=email_type,
             redirect_organization_code=redirect_organization_code,
         )
@@ -368,7 +369,8 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             suspend_google_account(instance)
             with transaction.atomic():
                 response = super().destroy(request, *args, **kwargs)
-                KeycloakService.delete_user(instance)
+                if hasattr(instance, "keycloak_account"):
+                    KeycloakService.delete_user(instance.keycloak_account)
             return response
         except KeycloakDeleteError as e:
             keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
@@ -403,7 +405,8 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer):
         with transaction.atomic():
             instance = serializer.save()
-            KeycloakService.update_user(instance)
+            if hasattr(instance, "keycloak_account"):
+                KeycloakService.update_user(instance.keycloak_account)
         self.google_sync(instance, self.request.data, False)
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
@@ -420,14 +423,18 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def force_reset_password(self, request, *args, **kwargs):
         user = self.get_object()
-        redirect_organization_code = request.query_params.get("organization", "DEFAULT")
-        KeycloakService.send_email(
-            user=user,
-            email_type=KeycloakService.EmailType.FORCE_RESET_PASSWORD,
-            actions=["UPDATE_PASSWORD"],
-            redirect_organization_code=redirect_organization_code,
-        )
-        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        if hasattr(user, "keycloak_account"):
+            redirect_organization_code = request.query_params.get(
+                "organization", "DEFAULT"
+            )
+            KeycloakService.send_email(
+                keycloak_account=user.keycloak_account,
+                email_type=KeycloakService.EmailType.FORCE_RESET_PASSWORD,
+                actions=["UPDATE_PASSWORD"],
+                redirect_organization_code=redirect_organization_code,
+            )
+            return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        raise KeycloakAccountNotFound()
 
     @extend_schema(request=EmailSerializer, responses={200: OpenApiTypes.OBJECT})
     @action(
@@ -465,8 +472,10 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             email_type = request.query_params.get("email_type", None)
             if not email_type:
                 raise EmailTypeMissingError()
+            if not hasattr(user, "keycloak_account"):
+                raise KeycloakAccountNotFound()
             email_sent = KeycloakService.send_email(
-                user=user,
+                keycloak_account=user.keycloak_account,
                 email_type=email_type,
                 redirect_organization_code=redirect_organization_code,
             )
