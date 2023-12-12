@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from django.conf import settings
@@ -8,6 +7,7 @@ from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import translation
+from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiParameter,
@@ -67,7 +67,11 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
-from .utils import get_permission_from_representation, get_user_id_field
+from .utils import (
+    account_sync_errors_handler,
+    get_permission_from_representation,
+    get_user_id_field,
+)
 
 
 class RetrieveUpdateModelViewSet(
@@ -314,23 +318,15 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         instance.refresh_from_db()
         return instance
 
+    @method_decorator(
+        account_sync_errors_handler(
+            keycloak_error=(KeycloakPostError, KeycloakPutError)
+        )
+    )
     def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except (KeycloakPostError, KeycloakPutError) as e:
-            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
-            return Response(
-                {"error": f"An error occured in Keycloak : {keycloak_error}"},
-                status=e.response_code,
-            )
-        except HttpError as e:
-            return Response(
-                {
-                    "error": f"User was created but an error occured in Google : {e.reason}"
-                },
-                status=e.status_code,
-            )
+        return super().create(request, *args, **kwargs)
 
+    @transaction.atomic
     def perform_create(self, serializer):
         if hasattr(self.request.user, "invitation"):
             invitation = self.request.user.invitation
@@ -363,50 +359,26 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         return instance
 
+    @method_decorator(account_sync_errors_handler(keycloak_error=KeycloakDeleteError))
     def destroy(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            suspend_google_account(instance)
-            with transaction.atomic():
-                response = super().destroy(request, *args, **kwargs)
-                if hasattr(instance, "keycloak_account"):
-                    KeycloakService.delete_user(instance.keycloak_account)
-            return response
-        except KeycloakDeleteError as e:
-            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
-            return Response(
-                {"error": f"An error occured in Keycloak : {keycloak_error}"},
-                status=e.response_code,
-            )
-        except HttpError as e:
-            google_error = e.reason
-            return Response(
-                {"error": f"An error occured in Google : {google_error}"},
-                status=e.status_code,
-            )
+        return super().destroy(request, *args, **kwargs)
 
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        suspend_google_account(instance)
+        if hasattr(instance, "keycloak_account"):
+            KeycloakService.delete_user(instance.keycloak_account)
+        instance.delete()
+
+    @method_decorator(account_sync_errors_handler(keycloak_error=KeycloakPutError))
     def update(self, request, *args, **kwargs):
-        try:
-            return super().update(request, *args, **kwargs)
-        except KeycloakPutError as e:
-            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
-            return Response(
-                {"error": f"An error occured in Keycloak : {keycloak_error}"},
-                status=e.response_code,
-            )
-        except HttpError as e:
-            return Response(
-                {
-                    "error": f"User was updated but an error occured in Google : {e.reason}"
-                },
-                status=e.status_code,
-            )
+        return super().update(request, *args, **kwargs)
 
+    @transaction.atomic
     def perform_update(self, serializer):
-        with transaction.atomic():
-            instance = serializer.save()
-            if hasattr(instance, "keycloak_account"):
-                KeycloakService.update_user(instance.keycloak_account)
+        instance = serializer.save()
+        if hasattr(instance, "keycloak_account"):
+            KeycloakService.update_user(instance.keycloak_account)
         self.google_sync(instance, self.request.data, False)
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})

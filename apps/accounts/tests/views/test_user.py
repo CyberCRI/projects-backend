@@ -489,11 +489,19 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     def test_keycloak_error_create_user(self, mocked):
         mocked.return_value = {}
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = SeedUserFactory()
+        existing_username = faker.email()
+        KeycloakService._create_user(
+            {
+                "username": existing_username,
+                "email": existing_username,
+                "firstName": faker.first_name(),
+                "lastName": faker.last_name(),
+            }
+        )
         payload = {
             "people_id": faker.uuid4(),
-            "email": user.email,
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": existing_username,
+            "personal_email": faker.email(),
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
         }
@@ -510,10 +518,18 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
 
     def test_keycloak_error_update_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        existing_username = faker.email()
+        KeycloakService._create_user(
+            {
+                "username": existing_username,
+                "email": existing_username,
+                "firstName": faker.first_name(),
+                "lastName": faker.last_name(),
+            }
+        )
         user = SeedUserFactory()
-        user_2 = SeedUserFactory()
         payload = {
-            "email": user_2.email,
+            "email": existing_username,
         }
         response = self.client.patch(
             reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
@@ -523,9 +539,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             response.json()["error"]
             == "An error occured in Keycloak : User exists with same username or email"
         )
-        assert (
-            ProjectUser.objects.get(keycloak_id=user.keycloak_id).email != user_2.email
-        )
+        assert ProjectUser.objects.get(id=user.id).email != existing_username
 
     @patch("services.keycloak.interface.KeycloakService.delete_user")
     def test_keycloak_error_delete_user(self, mocked):

@@ -3,6 +3,9 @@ from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from apps.accounts.models import ProjectUser
+from apps.accounts.utils import get_user_id_field
+
 from .db.abc import HasOwner
 
 
@@ -38,7 +41,11 @@ class WillBeOwner(permissions.BasePermission):
                 return str(request.user.id) == view.kwargs["id"]
             if "user_id" in view.kwargs:
                 return str(request.user.id) == view.kwargs["user_id"]
-            return str(request.user.id) == str(request.data.get("user"))
+            user_id = request.data.get("user")
+            id_field = get_user_id_field(user_id)
+            owner = ProjectUser.objects.filter(**{id_field: user_id})
+            if owner.exists():
+                return str(request.user.id) == str(owner.get().id)
         return False
 
     def has_object_permission(
