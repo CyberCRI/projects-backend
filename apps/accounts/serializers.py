@@ -105,9 +105,16 @@ class UserLightSerializer(serializers.ModelSerializer):
             .filter(groups__users=user)
             .distinct()
         )
-        return PeopleGroupLightSerializer(
+        return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
+
+
+class PeopleGroupSuperLightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PeopleGroup
+        read_only_fields = ["id", "slug", "name"]
+        fields = read_only_fields
 
 
 class PeopleGroupLightSerializer(serializers.ModelSerializer):
@@ -580,7 +587,7 @@ class UserSerializer(serializers.ModelSerializer):
             .filter(groups__users=user)
             .distinct()
         )
-        return PeopleGroupLightSerializer(
+        return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
 
