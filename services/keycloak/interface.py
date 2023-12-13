@@ -285,17 +285,11 @@ class KeycloakService:
 
     @classmethod
     def import_user(cls, keycloak_id: str) -> ProjectUser:
-        keycloak_admin = cls.service()
         try:
-            keycloak_user = keycloak_admin.get_user(keycloak_id)
+            keycloak_user = cls.get_user(keycloak_id)
         except KeycloakGetError:
             raise Http404()
-        people_id = keycloak_user.get("attributes", {}).get("pid", [None])[0]
-        if people_id and ProjectUser.objects.filter(people_id=people_id).exists():
-            people_id = None
         user = ProjectUser.objects.create(
-            keycloak_id=keycloak_user.get("id", ""),
-            people_id=people_id,
             email=keycloak_user.get("username", ""),
             personal_email=keycloak_user.get("email", ""),
             given_name=keycloak_user.get("firstName", ""),

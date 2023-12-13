@@ -16,4 +16,4 @@ class KeycloakAccount(models.Model):
     email = models.EmailField(blank=True, default="")
 
     def __str__(self):
-        return self.keycloak_id
+        return str(self.keycloak_id)
