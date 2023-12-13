@@ -20,6 +20,9 @@ class ProjectFilterMixin(filters.FilterSet):
     wikipedia_tags = MultiValueCharFilter(
         field_name="wikipedia_tags__wikipedia_qid", lookup_expr="in"
     )
+    organization_tags = MultiValueCharFilter(
+        field_name="organization_tags__id", lookup_expr="in"
+    )
     sdgs = MultiValueCharFilter(field_name="sdgs", lookup_expr="overlap")
 
     def filter_organizations(self, queryset, name, value):
@@ -29,10 +32,6 @@ class ProjectFilterMixin(filters.FilterSet):
 
 
 class ProjectFilter(ProjectFilterMixin):
-    # filter by organization_tags with query ?organization_tags=X,Y,Z
-    organization_tags = MultiValueCharFilter(
-        field_name="organization_tags__id", lookup_expr="in"
-    )
     # filter by member roles with query ?member_role=X,Y,Z
     member_role = MultiValueCharFilter(method="filter_member_role")
     # filter by life_status with query ?life_status=running,completed
@@ -53,6 +52,7 @@ class ProjectFilter(ProjectFilterMixin):
             "members",
             "sdgs",
             "wikipedia_tags",
+            "organization_tags",
             "member_role",
             "life_status",
             "created_at",

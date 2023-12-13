@@ -164,6 +164,10 @@ class ProjectSearchViewSet(AlgoliaSearchViewSetMixin):
             ],
             [f"categories_filter:{c}" for c in self.get_filter("categories")],
             [f"wikipedia_tags_filter:{t}" for t in self.get_filter("wikipedia_tags")],
+            [
+                f"organization_tags_filter:{t}"
+                for t in self.get_filter("organization_tags")
+            ],
             [f"members_filter:{m}" for m in self.get_filter("members")],
             [f"language:{ln}" for ln in self.get_filter("languages")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
@@ -363,6 +367,7 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
             ),
             "categories__id__in": self.get_filter("categories"),
             "wikipedia_tags__wikipedia_qid__in": self.get_filter("wikipedia_tags"),
+            "organization_tags__id__in": self.get_filter("organization_tags"),
             "groups__users__keycloak_id__in": self.get_filter("members"),
             "language__in": self.get_filter("languages"),
             "sdgs__overlap": self.get_filter("sdgs"),
