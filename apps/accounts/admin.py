@@ -103,6 +103,7 @@ class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
         "family_name",
         "last_login",
     )
+
     search_fields = ("email", "given_name", "family_name")
     exclude = ("user_permissions",)
     filter_horizontal = ("groups",)
