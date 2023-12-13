@@ -20,6 +20,7 @@ RUN groupadd -g 10000 app && \
   useradd -g app -d /app -u 10000 app && \
   chown app:app /app && \
   apt-get update && \
+  apt-get install nano && \
   apt install -y gcc libpq-dev git gettext make postgresql && \
   pip install --upgrade pip
 
