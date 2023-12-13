@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Union
 from babel.dates import format_date, format_time
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.db import models
+from django.db import models, transaction
 from django.http import Http404
 from keycloak.exceptions import (
     KeycloakAuthenticationError,
@@ -233,7 +233,6 @@ class KeycloakService:
             return False
         user = keycloak_account.user
         organization = Organization.objects.get(code=redirect_organization_code)
-        contact_email = keycloak_account.email
         link = cls.get_user_execute_actions_link(
             keycloak_account, email_type, actions, organization.website_url, lifespan
         )
@@ -247,11 +246,11 @@ class KeycloakService:
             f"{email_type}/mail",
             user.language,
             user=user,
-            contact_email=contact_email,
+            contact_email=keycloak_account.email,
             organization=organization,
             link=link,
         )
-        send_email(subject, text, [contact_email], html_content=html)
+        send_email(subject, text, [keycloak_account.email], html_content=html)
         return True
 
     @classmethod
@@ -284,6 +283,7 @@ class KeycloakService:
         return True
 
     @classmethod
+    @transaction.atomic
     def import_user(cls, keycloak_id: str) -> ProjectUser:
         try:
             keycloak_user = cls.get_user(keycloak_id)
