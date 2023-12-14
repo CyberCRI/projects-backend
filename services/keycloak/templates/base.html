@@ -38,7 +38,9 @@
     <mj-section>
       <mj-raw>
         <div style="display: flex;">
-          <img src="{{ public_url }}/v1/organization/{{ organization.code }}/logo/{{ organization.logo_image.id }}" alt="organization logo" style="width: auto; height: 50px;"/>
+          {% if organization %}
+            <img src="{{ public_url }}/v1/organization/{{ organization.code }}/logo/{{ organization.logo_image.id }}" alt="organization logo" style="width: auto; height: 50px;"/>
+          {% endif %}
           <img src="{{ public_url }}{% static 'projects_logo.png' %}" alt="projects logo" style="width: auto; height: 50px; margin-left: auto"/>
         </div>
       </mj-raw>

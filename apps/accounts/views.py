@@ -29,6 +29,7 @@ from rest_framework.views import APIView
 from apps.accounts.exceptions import EmailTypeMissingError
 from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
+from apps.commons.serializers.serializers import EmailSerializer
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -418,15 +419,35 @@ class UserViewSet(viewsets.ModelViewSet):
             | HasOrganizationPermission("change_projectuser"),
         ],
     )
-    def reset_password(self, request, *args, **kwargs):
+    def force_reset_password(self, request, *args, **kwargs):
         user = self.get_object()
         redirect_organization_code = request.query_params.get("organization", "DEFAULT")
         KeycloakService.send_email(
             user=user,
-            email_type=KeycloakService.EmailType.RESET_PASSWORD,
+            email_type=KeycloakService.EmailType.FORCE_RESET_PASSWORD,
             actions=["UPDATE_PASSWORD"],
             redirect_organization_code=redirect_organization_code,
         )
+        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+
+    @extend_schema(request=EmailSerializer, responses={200: OpenApiTypes.OBJECT})
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="reset-password",
+        permission_classes=[],
+    )
+    def reset_password(self, request, *args, **kwargs):
+        serializer = EmailSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        user = ProjectUser.objects.filter(email=email)
+        if not user.exists():
+            user = get_object_or_404(ProjectUser, email=email)
+        else:
+            user = user.get()
+        redirect_uri = request.query_params.get("redirect_uri", "")
+        KeycloakService.send_reset_password_email(user=user, redirect_uri=redirect_uri)
         return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
