@@ -443,7 +443,7 @@ class UserViewSet(viewsets.ModelViewSet):
         email = serializer.validated_data["email"]
         user = ProjectUser.objects.filter(email=email)
         if not user.exists():
-            user = get_object_or_404(ProjectUser, email=email)
+            user = get_object_or_404(ProjectUser, personal_email=email)
         else:
             user = user.get()
         redirect_uri = request.query_params.get("redirect_uri", "")
