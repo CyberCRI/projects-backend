@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-11 15:31+0000\n"
+"POT-Creation-Date: 2023-12-14 10:56+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -662,6 +662,7 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:23
+#: services/keycloak/templates/force_reset_password/mail.html:23
 #: services/keycloak/templates/invitation/mail.html:23
 #: services/keycloak/templates/reset_password/mail.html:23
 msgid ""
@@ -672,8 +673,8 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:28
+#: services/keycloak/templates/force_reset_password/mail.html:28
 #: services/keycloak/templates/invitation/mail.html:28
-#: services/keycloak/templates/reset_password/mail.html:28
 #, python-format
 msgid ""
 "\n"
@@ -705,14 +706,14 @@ msgid ""
 "Welcome to your new %(org_name)s Projects platform\n"
 msgstr ""
 
-#: services/keycloak/templates/base.html:54
+#: services/keycloak/templates/base.html:56
 msgid ""
 "\n"
 "          Need any help?\n"
 "          "
 msgstr ""
 
-#: services/keycloak/templates/base.html:59
+#: services/keycloak/templates/base.html:61
 msgid ""
 "\n"
 "          For questions or assistance, you can <a class=\"lpi-link\" "
@@ -722,7 +723,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: services/keycloak/templates/base.html:64
+#: services/keycloak/templates/base.html:66
 msgid ""
 "\n"
 "          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
@@ -730,7 +731,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: services/keycloak/templates/base.html:69
+#: services/keycloak/templates/base.html:71
 msgid ""
 "\n"
 "          We hope you'll enjoy our new platform!\n"
@@ -739,11 +740,59 @@ msgid ""
 "          "
 msgstr ""
 
-#: services/keycloak/templates/base.html:81
+#: services/keycloak/templates/base.html:83
 msgid ""
 "\n"
 "          Made with ❤️ by Learning Planet Institute.\n"
 "          "
+msgstr ""
+
+#: services/keycloak/templates/force_reset_password/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/force_reset_password/mail.html:13
+#: services/keycloak/templates/reset_password/mail.html:13
+msgid ""
+"\n"
+"    Someone requested that we change your password. If this was you, click "
+"on the link below to update your password.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/force_reset_password/mail.html:18
+#: services/keycloak/templates/reset_password/mail.html:18
+msgid ""
+"\n"
+"    Update password\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/force_reset_password/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"Someone requested that we change your password. If this was you, click on "
+"the link below to update your password.\n"
+"Update password : %(link.link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+
+#: services/keycloak/templates/force_reset_password/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Update your %(org_name)s Projects password\n"
 msgstr ""
 
 #: services/keycloak/templates/invitation/mail.html:8
@@ -794,26 +843,18 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/reset_password/mail.html:8
+msgid ""
+"\n"
+"    A request to reset your password has been made for your Projects "
+"account.\n"
+"    "
+msgstr ""
+
+#: services/keycloak/templates/reset_password/mail.html:28
 #, python-format
 msgid ""
 "\n"
-"    A request to reset your password has been made for your "
-"%(organization_name)s Projects account.\n"
-"    "
-msgstr ""
-
-#: services/keycloak/templates/reset_password/mail.html:13
-msgid ""
-"\n"
-"    Someone requested that we change your password. If this was you, click "
-"on the link below to update your password.\n"
-"    "
-msgstr ""
-
-#: services/keycloak/templates/reset_password/mail.html:18
-msgid ""
-"\n"
-"    Update password\n"
+"    Link expires on %(expiration_date)s at %(expiration_time)s.\n"
 "    "
 msgstr ""
 
@@ -821,20 +862,17 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"A request to reset your password has been made for your "
-"%(organization_name)s Projects account.\n"
+"A request to reset your password has been made for your Projects account.\n"
 "Someone requested that we change your password. If this was you, click on "
 "the link below to update your password.\n"
 "Update password : %(link.link)s\n"
 "If you didn’t request this email, there is nothing to worry about, you can "
 "safely ignore it.\n"
-"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
-"%(refresh_link)s to request a new link.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s.\n"
 msgstr ""
 
 #: services/keycloak/templates/reset_password/object.txt:2
-#, python-format
 msgid ""
 "\n"
-"Update your %(org_name)s Projects password\n"
+"Update your Projects password\n"
 msgstr ""

@@ -37,6 +37,7 @@ class KeycloakService:
 
         INVITATION = "invitation"
         ADMIN_CREATED = "admin_created"
+        FORCE_RESET_PASSWORD = "force_reset_password"
         RESET_PASSWORD = "reset_password"
 
     @classmethod
@@ -148,7 +149,7 @@ class KeycloakService:
         cls,
         link: Dict[str, Union[int, str]],
         user: ProjectUser,
-        organization: Organization,
+        organization: Optional[Organization] = None,
     ) -> Dict[str, Union[int, str]]:
         """
         Format the link response from Keycloak to be used in an email template.
@@ -163,12 +164,13 @@ class KeycloakService:
             format="short",
             locale=user.language,
         )
-        link["refresh_link"] = (
-            f"{settings.PUBLIC_URL}"
-            + f"/v1/user/{user.keycloak_id}/refresh-keycloak-actions-link"
-            + f"/?organization={organization.code}"
-            + f"&email_type={link['email_type']}"
-        )
+        if organization:
+            link["refresh_link"] = (
+                f"{settings.PUBLIC_URL}"
+                + f"/v1/user/{user.keycloak_id}/refresh-keycloak-actions-link"
+                + f"/?organization={organization.code}"
+                + f"&email_type={link['email_type']}"
+            )
         return link
 
     @classmethod
@@ -236,6 +238,35 @@ class KeycloakService:
             user=user,
             contact_email=contact_email,
             organization=organization,
+            link=link,
+        )
+        send_email(subject, text, [contact_email], html_content=html)
+        return True
+
+    @classmethod
+    def send_reset_password_email(cls, user: ProjectUser, redirect_uri: str):
+        if not redirect_uri:
+            raise ValueError("redirect_uri is required")
+        try:
+            keycloak_user = cls.get_user(user.keycloak_id)
+        except KeycloakGetError:
+            raise Http404()
+        actions = list(
+            set(["UPDATE_PASSWORD"] + keycloak_user.get("requiredActions", []))
+        )
+        contact_email = user.personal_email if user.personal_email else user.email
+        link = cls.get_user_execute_actions_link(
+            user, cls.EmailType.RESET_PASSWORD, actions, redirect_uri
+        )
+        link = cls.format_execute_action_link_for_template(link, user)
+        subject, _ = render_message(
+            f"{cls.EmailType.RESET_PASSWORD}/object", user.language, user=user
+        )
+        text, html = render_message(
+            f"{cls.EmailType.RESET_PASSWORD}/mail",
+            user.language,
+            user=user,
+            contact_email=contact_email,
             link=link,
         )
         send_email(subject, text, [contact_email], html_content=html)

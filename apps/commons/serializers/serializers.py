@@ -7,6 +7,10 @@ from rest_framework import serializers
 from rest_framework.settings import import_from_string
 
 
+class EmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
 class FilteredListSerializer(serializers.ListSerializer):
     """`ListSerializer` which accepts a list of Q objects to filter the data."""
 

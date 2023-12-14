@@ -2,8 +2,10 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.commons.serializers import EmailSerializer
+
 from .interface import GoogleService
-from .serializers import EmailAvailableSerializer, EmailSerializer
+from .serializers import EmailAvailableSerializer
 
 
 class UserEmailAvailableView(APIView):
