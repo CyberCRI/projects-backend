@@ -2,6 +2,7 @@ from django.urls import include, path
 from rest_framework_nested import routers
 
 from apps.accounts.views import (
+    AccessRequestViewSet,
     PeopleGroupHeaderView,
     PeopleGroupLogoView,
     PeopleGroupViewSet,
@@ -50,6 +51,9 @@ organizations_nested_router.register(
 )
 organizations_nested_router.register(
     r"invitation", InvitationViewSet, basename="Invitation"
+)
+organizations_nested_router.register(
+    r"access-request", AccessRequestViewSet, basename="AccessRequest"
 )
 
 details_only_organizations_nested_router = DetailOnlyNestedRouter(

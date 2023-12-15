@@ -1,3 +1,4 @@
+import json
 import uuid
 
 from django.conf import settings
@@ -16,7 +17,8 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from googleapiclient.errors import HttpError
-from rest_framework import mixins, status, views, viewsets
+from rest_framework import status, views, viewsets
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
@@ -27,8 +29,8 @@ from rest_framework.views import APIView
 
 from apps.accounts.exceptions import EmailTypeMissingError
 from apps.commons.filters import TrigramSearchFilter
-from apps.commons.permissions import IsOwner, WillBeOwner
-from apps.commons.serializers.serializers import EmailSerializer
+from apps.commons.permissions import CreateOnly, IsAuthenticatedOrCreateOnly, IsOwner, ReadOnly, WillBeOwner
+from apps.commons.serializers.serializers import CreateListModelViewSet, EmailSerializer, RetrieveUpdateModelViewSet
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
@@ -36,7 +38,7 @@ from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import ProjectLightSerializer
-from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
+from keycloak import KeycloakDeleteError, KeycloakGetError, KeycloakPostError, KeycloakPutError
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_account,
@@ -49,10 +51,12 @@ from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .models import AccessRequest, AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
 from .parsers import UserMultipartParser
-from .permissions import HasBasePermission, HasPeopleGroupPermission, ReadOnly
+from .permissions import HasBasePermission, HasPeopleGroupPermission
 from .serializers import (
+    AccessRequestManySerializer,
+    AccessRequestSerializer,
     AccessTokenSerializer,
     CredentialsSerializer,
     EmptyPayloadResponseSerializer,
@@ -68,33 +72,6 @@ from .serializers import (
     UserSerializer,
 )
 from .utils import account_sync_errors_handler, get_permission_from_representation
-
-
-class RetrieveUpdateModelViewSet(
-    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
-    """
-    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
-    actions.
-
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
-
-
-class ReadUpdateModelViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet,
-):
-    """
-    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
-    actions.
-
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
 
 
 class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -306,32 +283,32 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    @transaction.atomic
     def perform_create(self, serializer):
-        if hasattr(self.request.user, "invitation"):
-            invitation = self.request.user.invitation
-            groups = [
-                invitation.people_group.get_members()
-                if invitation.people_group
-                else None,
-                invitation.organization.get_users()
-                if invitation.organization
-                else None,
-            ]
-            instance = serializer.save(groups=list(filter(lambda x: x, groups)))
-            email_type = KeycloakService.EmailType.INVITATION
-            redirect_organization_code = invitation.organization.code
-        else:
-            instance = serializer.save()
-            email_type = KeycloakService.EmailType.ADMIN_CREATED
-            redirect_organization_code = self.request.query_params.get(
-                "organization", "DEFAULT"
-            )
+        with transaction.atomic():
+            if hasattr(self.request.user, "invitation"):
+                invitation = self.request.user.invitation
+                groups = [
+                    invitation.people_group.get_members()
+                    if invitation.people_group
+                    else None,
+                    invitation.organization.get_users()
+                    if invitation.organization
+                    else None,
+                ]
+                instance = serializer.save(groups=list(filter(lambda x: x, groups)))
+                email_type = KeycloakService.EmailType.INVITATION
+                redirect_organization_code = invitation.organization.code
+            else:
+                instance = serializer.save()
+                email_type = KeycloakService.EmailType.ADMIN_CREATED
+                redirect_organization_code = self.request.query_params.get(
+                    "organization", "DEFAULT"
+                )
 
-        instance = self.google_sync(instance, self.request.data, True)
-        keycloak_account = KeycloakService.create_user(
-            instance, self.request.data.get("password", None)
-        )
+            instance = self.google_sync(instance, self.request.data, True)
+            keycloak_account = KeycloakService.create_user(
+                instance, self.request.data.get("password", None)
+            )
         KeycloakService.send_email(
             keycloak_account=keycloak_account,
             email_type=email_type,
@@ -956,3 +933,124 @@ class AccessTokenView(APIView):
             request.data["username"], request.data["password"]
         )
         return Response(AccessTokenSerializer(token).data, status=code)
+
+
+class AccessRequestViewSet(CreateListModelViewSet):
+    serializer_class = AccessRequestSerializer
+    permission_classes = [
+        IsAuthenticatedOrCreateOnly,
+        CreateOnly
+        | HasBasePermission("view_accessrequest", "accounts")
+        | HasOrganizationPermission("view_accessrequest"),
+    ]
+
+    def get_queryset(self):
+        if "organization_code" in self.kwargs:
+            return AccessRequest.objects.filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return AccessRequest.objects.none()
+    
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
+    
+    def create(self, request, *args, **kwargs):
+        request.data.update(
+            {
+                "organization": self.kwargs["organization_code"],
+                "user": request.user.id if request.user.is_authenticated else None,
+            }
+        )
+        return super().create(request, *args, **kwargs)
+    
+    def perform_accept(self, access_request: AccessRequest):
+        try:
+            if access_request.user is not None:
+                # TODO : send request accepted email
+                access_request.user.groups.add(access_request.organization.get_users())
+                access_request.status = AccessRequest.Status.ACCEPTED
+                access_request.save()
+                return {"id": access_request.id, "status": "success", "message": "Request accepted"}
+
+            with transaction.atomic():
+                data = {
+                    "email": access_request.email,
+                    "given_name": access_request.given_name,
+                    "family_name": access_request.family_name,
+                    "job": access_request.job,
+                    "roles_to_add": [access_request.organization.get_users()],
+                }
+                serializer = UserSerializer(data=data)
+                serializer.is_valid(raise_exception=True)
+                instance = serializer.save()
+                keycloak_account = KeycloakService.create_user(instance)
+                access_request.status = AccessRequest.Status.ACCEPTED
+                access_request.save()
+            KeycloakService.send_email(
+                keycloak_account=keycloak_account,
+                email_type=KeycloakService.EmailType.REQUEST_ACCEPTED,
+                redirect_organization_code=access_request.organization.code,
+            )
+        except ValidationError as e:
+            return {"id": access_request.id, "status": "error", "message": f"Invalid data : {e.detail}"}
+        except (KeycloakPostError, KeycloakPutError) as e:
+            message = json.loads(e.response_body.decode()).get("errorMessage")
+            return {"id": access_request.id, "status": "error", "message": f"Keycloak error : {message}"}
+        except KeycloakGetError as e:
+            message = json.loads(e.response_body.decode()).get("errorMessage")
+            return {"id": access_request.id, "status": "warning", "message": f"Email not sent : {message}"}
+        return {"id": access_request.id, "status": "success", "message": "Request accepted"}
+    
+    def perform_decline(self, access_request: AccessRequest):
+        # TODO : send request declined email
+        access_request.status = AccessRequest.Status.DECLINED
+        access_request.save()
+
+    @extend_schema(
+        request=AccessRequestManySerializer,
+        responses=inline_serializer(
+            name="results",
+            fields={
+                "id": OpenApiTypes.STR,
+                "status": OpenApiTypes.STR(choices=["success", "warning", "error"]),
+                "message": OpenApiTypes.STR,
+            },
+            many=True,
+        ),
+    )
+    @action(detail=False, methods=["POST"])
+    def accept(self, request, *args, **kwargs):
+        serializer = AccessRequestManySerializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        access_requests = self.get_queryset().filter(id__in=serializer.data["access_requests"])
+        results = []
+        for access_request in access_requests:
+            result = self.perform_accept(access_request)
+            results.append(result)
+        return Response({"results": results}, status=status.HTTP_200_OK)
+    
+    @extend_schema(
+        request=AccessRequestManySerializer,
+        responses=inline_serializer(
+            name="results",
+            fields={
+                "id": OpenApiTypes.STR,
+                "status": OpenApiTypes.STR(choices=["success", "warning", "error"]),
+                "message": OpenApiTypes.STR,
+            },
+            many=True,
+        ),
+    )
+    @action(detail=False, methods=["POST"])
+    def decline(self, request, *args, **kwargs):
+        serializer = AccessRequestManySerializer(data=request.data, context=self.get_serializer_context())
+        serializer.is_valid(raise_exception=True)
+        access_requests = self.get_queryset().filter(id__in=serializer.data["access_requests"])
+        results = []
+        for access_request in access_requests:
+            result = self.perform_decline(access_request)
+            results.append(result)
+        return Response({"results": results}, status=status.HTTP_200_OK)

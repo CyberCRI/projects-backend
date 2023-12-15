@@ -41,6 +41,7 @@ class KeycloakService:
         ADMIN_CREATED = "admin_created"
         FORCE_RESET_PASSWORD = "force_reset_password"
         RESET_PASSWORD = "reset_password"
+        REQUEST_ACCEPTED = "request_accepted"
 
     @classmethod
     def service(cls):
