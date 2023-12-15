@@ -9,18 +9,6 @@ from apps.accounts.models import PeopleGroup
 from apps.commons.permissions import IgnoreCall
 
 
-class ReadOnly(permissions.BasePermission):
-    """Allows safe methods."""
-
-    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
-        return request.method in permissions.SAFE_METHODS
-
-    def has_object_permission(
-        self, request: Request, view: GenericViewSet, obj: Model
-    ) -> bool:
-        return self.has_permission(request, view)
-
-
 def HasBasePermission(  # noqa : N802
     codename: str, app: str = ""
 ) -> permissions.BasePermission:

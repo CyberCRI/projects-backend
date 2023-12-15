@@ -7,8 +7,9 @@ from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.accounts.permissions import HasBasePermission
 from apps.commons.filters import TrigramSearchFilter
+from apps.commons.permissions import ReadOnly
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.misc import api, filters, models, serializers
 from apps.organizations.permissions import HasOrganizationPermission

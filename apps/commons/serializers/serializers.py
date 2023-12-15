@@ -3,7 +3,7 @@ from typing import Collection
 from django.conf import settings
 from django.db.models import Q
 from modeltranslation.manager import get_translatable_fields_for_model
-from rest_framework import serializers
+from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
 
 
@@ -88,3 +88,43 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = None
+
+
+class RetrieveUpdateModelViewSet(
+    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
+    """
+    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
+    actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+
+class ReadUpdateModelViewSet(
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
+    actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+
+class CreateListModelViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    A viewset that provides `list` and `create` actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """

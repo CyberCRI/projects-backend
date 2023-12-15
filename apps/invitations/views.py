@@ -5,8 +5,8 @@ from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
-from apps.accounts.permissions import HasBasePermission, ReadOnly
-from apps.commons.permissions import IsOwner
+from apps.accounts.permissions import HasBasePermission
+from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission

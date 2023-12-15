@@ -10,7 +10,7 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
-from apps.accounts.permissions import ReadOnly
+from apps.commons.permissions import ReadOnly
 from apps.misc.models import SDG, WikipediaTag
 from apps.organizations.models import Organization
 from apps.projects.models import Project

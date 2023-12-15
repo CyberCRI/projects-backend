@@ -11,10 +11,10 @@ from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from apps.accounts.models import ProjectUser
-from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.accounts.permissions import HasBasePermission
 from apps.accounts.utils import get_user_id_field
-from apps.accounts.views import RetrieveUpdateModelViewSet
-from apps.commons.permissions import IsOwner
+from apps.commons.serializers.serializers import RetrieveUpdateModelViewSet
+from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
 from apps.emailing.tasks import send_email_task
 from apps.emailing.utils import render_message
