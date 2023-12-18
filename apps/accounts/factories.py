@@ -10,13 +10,12 @@ from services.keycloak.factories import (
     RemoteKeycloakAccountFactory,
 )
 
-from .models import PeopleGroup, PrivacySettings, ProjectUser, Skill, AccessRequest
+from .models import AccessRequest, PeopleGroup, PrivacySettings, ProjectUser, Skill
 
 faker = Faker()
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    id = factory.sequence(lambda n: n)
     people_id = factory.Faker("uuid4")
     email = factory.Sequence(lambda n: f"seed_user_{n}@{faker.domain_name()}".lower())
     given_name = factory.Faker("first_name")
@@ -43,7 +42,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = ProjectUser
-        django_get_or_create = ("email", "id")
+        django_get_or_create = ("email",)
 
     # https://factoryboy.readthedocs.io/en/stable/recipes.html#simple-many-to-many-relationship
     @factory.post_generation
@@ -127,7 +126,9 @@ class AccessRequestFactory(factory.django.DjangoModelFactory):
         "apps.organizations.factories.OrganizationFactory",
         access_request_enabled=True,
     )
-    email = factory.Sequence(lambda n: f"access_request_{n}@{faker.domain_name()}".lower())
+    email = factory.Sequence(
+        lambda n: f"access_request_{n}@{faker.domain_name()}".lower()
+    )
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")
     job = factory.Faker("sentence")

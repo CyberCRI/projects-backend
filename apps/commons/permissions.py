@@ -47,7 +47,9 @@ class IsAuthenticatedOrCreateOnly(permissions.BasePermission):
     """Allows authenticated users to create."""
 
     def has_permission(self, request: Request, view: GenericViewSet) -> bool:
-        return view.action == "create" or (request.user and request.user.is_authenticated)
+        return view.action == "create" or (
+            request.user and request.user.is_authenticated
+        )
 
     def has_object_permission(
         self, request: Request, view: GenericViewSet, obj: Model

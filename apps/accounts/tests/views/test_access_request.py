@@ -1,25 +1,17 @@
-import datetime
-from unittest.mock import Mock, patch
+import json
+from unittest.mock import patch
 
-from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
 from django.urls import reverse
-from django.utils.timezone import make_aware
 from faker import Faker
-from googleapiclient.errors import HttpError
-from guardian.shortcuts import assign_perm
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import AccessRequestFactory, PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import AccessRequestFactory, UserFactory
 from apps.accounts.models import AccessRequest, ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.invitations.factories import InvitationFactory
-from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
-from apps.projects.factories import ProjectFactory
-from keycloak import KeycloakDeleteError, KeycloakGetError
-from services.keycloak.factories import RemoteKeycloakAccountFactory
+from keycloak import KeycloakError, KeycloakGetError, KeycloakPostError
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -76,6 +68,38 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         assert response.data["message"] == payload["message"]
 
 
+class ListAccessRequestTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory(access_request_enabled=True)
+        cls.access_requests = AccessRequestFactory.create_batch(
+            3, organization=cls.organization
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_list_access_requests(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,)),
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()["results"]
+            assert len(content) == len(self.access_requests)
+            assert {r.id for r in self.access_requests} == {r["id"] for r in content}
+
+
 class AcceptAccessRequestTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -86,8 +110,8 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
@@ -95,16 +119,22 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_accept_access_requests(self, role, expected_code, mocked):
         mocked.return_value = {}
-        organization = OrganizationFactory()
+        organization = self.organization
         request_access_user = UserFactory()
-        authentified_access_request = AccessRequestFactory(user=request_access_user, organization=organization)
-        anonymous_access_request = AccessRequestFactory.create_batch(3, organization=organization)
+        authentified_access_request = AccessRequestFactory(
+            user=request_access_user, organization=organization
+        )
+        anonymous_access_request = AccessRequestFactory.create_batch(
+            3, organization=organization
+        )
         access_requests = [authentified_access_request, *anonymous_access_request]
 
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "access_requests": [access_request.id for access_request in access_requests],
+            "access_requests": [
+                access_request.id for access_request in access_requests
+            ],
         }
         response = self.client.post(
             reverse("AccessRequest-accept", args=(organization.code,)),
@@ -114,10 +144,10 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert all(result["status"] == "success" for result in content["results"])
-            
+
             authentified_access_request.refresh_from_db()
             assert authentified_access_request.status == AccessRequest.Status.ACCEPTED
-            assert request_access_user in organization.users
+            assert request_access_user in organization.users.all()
 
             for access_request in anonymous_access_request:
                 access_request.refresh_from_db()
@@ -144,7 +174,6 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
                 }
 
 
-
 class DeclineAccessRequestTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -155,8 +184,8 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
@@ -166,13 +195,19 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
         mocked.return_value = {}
         organization = OrganizationFactory()
         request_access_user = UserFactory()
-        authentified_access_request = AccessRequestFactory(user=request_access_user, organization=organization)
-        anonymous_access_request = AccessRequestFactory.create_batch(3, organization=organization)
+        authentified_access_request = AccessRequestFactory(
+            user=request_access_user, organization=organization
+        )
+        anonymous_access_request = AccessRequestFactory.create_batch(
+            3, organization=organization
+        )
         access_requests = [authentified_access_request, *anonymous_access_request]
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "access_requests": [access_request.id for access_request in access_requests],
+            "access_requests": [
+                access_request.id for access_request in access_requests
+            ],
         }
         response = self.client.post(
             reverse("AccessRequest-decline", args=(organization.code,)),
@@ -200,6 +235,16 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory(access_request_enabled=True)
 
+    @staticmethod
+    def mocked_keycloak_error(
+        keycloak_error: KeycloakError, response_code: int = 400, error_message: str = ""
+    ):
+        def inner(*args, **kwargs):
+            response_body = json.dumps({"errorMessage": error_message}).encode()
+            raise keycloak_error(error_message, response_code, response_body)
+
+        return inner
+
     def test_create_request_access_in_unauthorized_organization(self):
         organization = OrganizationFactory()
         payload = {
@@ -215,7 +260,9 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = response.json()
-        assert content["detail"] == "This organization does not accept access requests."
+        assert content["organization"] == [
+            "This organization does not accept access requests."
+        ]
 
     def test_create_access_user_in_organization(self):
         user = UserFactory(groups=[self.organization.get_users()])
@@ -233,7 +280,9 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = response.json()
-        assert content["detail"] == ""
+        assert content["user"] == [
+            "This user is already a member of this organization."
+        ]
 
     def test_create_request_access_existing_user(self):
         user = UserFactory()
@@ -250,7 +299,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = response.json()
-        assert content["detail"] == ""
+        assert content["email"] == ["A user with this email already exists."]
 
     def test_accept_access_requests_from_different_organizations(self):
         user = UserFactory(groups=[get_superadmins_group()])
@@ -266,12 +315,16 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = response.json()
-        assert content["detail"] == ""
+        assert content["access_requests"] == [
+            f"Some access requests are not for the organization {self.organization.code}."
+        ]
 
     def test_accept_accepted_access_request(self):
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
-        access_request = AccessRequestFactory(organization=self.organization, status=AccessRequest.Status.ACCEPTED)
+        access_request = AccessRequestFactory(
+            organization=self.organization, status=AccessRequest.Status.ACCEPTED
+        )
         payload = {
             "access_requests": [access_request.id],
         }
@@ -281,36 +334,15 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         content = response.json()
-        assert content["detail"] == "You can only accept or decline pending access requests."
+        assert content["access_requests"] == [
+            "You can only accept or decline pending access requests."
+        ]
 
-    def test_accept_access_request_keycloak_post_error(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        existing_username = faker.email()
-        KeycloakService._create_user(
-            {
-                "email": existing_username,
-                "username": existing_username,
-                "enabled": True,
-                "firstName": faker.first_name(),
-                "lastName": faker.last_name(),
-            }
+    @patch("services.keycloak.interface.KeycloakService.create_user")
+    def test_accept_access_request_keycloak_post_error(self, mocked):
+        mocked.side_effect = self.mocked_keycloak_error(
+            KeycloakPostError, 409, "User exists with same username"
         )
-        access_request = AccessRequestFactory(organization=self.organization, email=existing_username)
-        payload = {
-            "access_requests": [access_request.id],
-        }
-        response = self.client.post(
-            reverse("AccessRequest-accept", args=(self.organization.code,)),
-            data=payload,
-        )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
-        content = response.json()
-        assert content["detail"] == ""
-
-    @patch("services.keycloak.interface.KeycloakService.send_email")
-    def test_accept_access_request_keycloak_email_error(self, mocked):
-        mocked.side_effect = KeycloakGetError("email error")
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         access_request = AccessRequestFactory(organization=self.organization)
@@ -321,6 +353,32 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_200_OK
         content = response.json()
-        assert content["detail"] == ""
+        assert content["results"][0]["id"] == access_request.id
+        assert content["results"][0]["status"] == "error"
+        assert (
+            content["results"][0]["message"]
+            == "Keycloak error : User exists with same username"
+        )
+
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_accept_access_request_keycloak_email_error(self, mocked):
+        mocked.side_effect = self.mocked_keycloak_error(
+            KeycloakGetError, 404, "User not found"
+        )
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        access_request = AccessRequestFactory(organization=self.organization)
+        payload = {
+            "access_requests": [access_request.id],
+        }
+        response = self.client.post(
+            reverse("AccessRequest-accept", args=(self.organization.code,)),
+            data=payload,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        assert content["results"][0]["id"] == access_request.id
+        assert content["results"][0]["status"] == "warning"
+        assert content["results"][0]["message"] == "Email not sent : User not found"

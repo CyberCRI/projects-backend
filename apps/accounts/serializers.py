@@ -1,7 +1,6 @@
 import uuid
 from typing import Dict, List, Optional, Union
 
-from django.db.models import Q
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
@@ -31,7 +30,6 @@ from apps.misc.serializers import TagRelatedField
 from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.keycloak.models import KeycloakAccount
 
 
 class PrivacySettingsSerializer(serializers.ModelSerializer):
@@ -717,12 +715,14 @@ class AccessRequestSerializer(serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
-    user = UserMultipleIdRelatedField(queryset=ProjectUser.objects.all())
+    user = UserMultipleIdRelatedField(
+        queryset=ProjectUser.objects.all(), allow_null=True
+    )
 
     class Meta:
         model = AccessRequest
         read_only_fields = ["id", "created_at", "status"]
-        fields = [
+        fields = read_only_fields + [
             "organization",
             "user",
             "email",
@@ -736,32 +736,33 @@ class AccessRequestSerializer(serializers.ModelSerializer):
         if self.initial_data.get("user"):
             return ""
         if ProjectUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError(
-                "A user with this email already exists."
-            )
+            raise serializers.ValidationError("A user with this email already exists.")
         return value
-    
+
     def validate_given_name(self, value: str) -> str:
         if self.initial_data.get("user"):
             return ""
         return value
-    
+
     def validate_family_name(self, value: str) -> str:
         if self.initial_data.get("user"):
             return ""
         return value
-    
+
     def validate_job(self, value: str) -> str:
         if self.initial_data.get("user"):
             return ""
         return value
-    
+
     def validate_user(self, value: ProjectUser) -> ProjectUser:
-        organization = self.initial_data.get("organization")
-        if Organization.objects.filter(code=organization, groups__users=value).exists():
-            raise serializers.ValidationError(
-                "This user is already a member of this organization."
-            )
+        if value:
+            organization = self.initial_data.get("organization")
+            if Organization.objects.filter(
+                code=organization, groups__users=value
+            ).exists():
+                raise serializers.ValidationError(
+                    "This user is already a member of this organization."
+                )
         return value
 
     def validate_organization(self, value: Organization) -> Organization:
@@ -770,7 +771,7 @@ class AccessRequestSerializer(serializers.ModelSerializer):
                 "This organization does not accept access requests."
             )
         return value
-    
+
     def to_representation(self, instance):
         if instance.user:
             return {
@@ -782,24 +783,37 @@ class AccessRequestSerializer(serializers.ModelSerializer):
             }
         return super().to_representation(instance)
 
-    
+
 class AccessRequestManySerializer(serializers.Serializer):
     """Used to accept or decline several access requests at once."""
+
     access_requests = serializers.PrimaryKeyRelatedField(
         many=True, queryset=AccessRequest.objects.all()
     )
 
-    def validate_access_requests(self, access_requests: List[AccessRequest]) -> List[AccessRequest]:
+    def validate_access_requests(
+        self, access_requests: List[AccessRequest]
+    ) -> List[AccessRequest]:
         """
         Validate that all access requests are pending.
         Validate that all access requests are for the same organization.
         Validate that all the access requests are from the request's organization.
         """
-        if not all(access_request.status == AccessRequest.Status.PENDING for access_request in access_requests):
-            raise serializers.ValidationError("You can only accept or decline pending access requests.")
+        if not all(
+            access_request.status == AccessRequest.Status.PENDING
+            for access_request in access_requests
+        ):
+            raise serializers.ValidationError(
+                "You can only accept or decline pending access requests."
+            )
         organization_code = self.context.get("organization_code")
-        if not all(access_request.organization.code == organization_code for access_request in access_requests):
-            raise serializers.ValidationError(f"Some access requests are not for the organization {organization_code}.")
+        if not all(
+            access_request.organization.code == organization_code
+            for access_request in access_requests
+        ):
+            raise serializers.ValidationError(
+                f"Some access requests are not for the organization {organization_code}."
+            )
         return access_requests
 
     def update(self, instance, validated_data):

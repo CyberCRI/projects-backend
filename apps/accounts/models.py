@@ -813,26 +813,37 @@ class InvitationUser(AnonymousUser):
 
 
 class AccessRequest(models.Model):
-    """
-    """
+    """ """
+
     class Status(models.TextChoices):
         PENDING = "pending"
         ACCEPTED = "accepted"
         DECLINED = "declined"
-    
-    organization = models.ForeignKey("organizations.Organization", on_delete=models.CASCADE, related_name="access_requests")
-    user = models.ForeignKey(ProjectUser, on_delete=models.CASCADE, related_name="access_requests", null=True)
+
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="access_requests",
+    )
+    user = models.ForeignKey(
+        ProjectUser, on_delete=models.CASCADE, related_name="access_requests", null=True
+    )
     email = models.CharField(max_length=255, blank=True)
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
     job = models.CharField(max_length=255, blank=True)
     message = models.TextField(blank=True)
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.given_name} {self.family_name} ({self.email})"
-    
+
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
+
+    class Meta:
+        permissions = (("manage_accessrequest", "Can manage access requests"),)

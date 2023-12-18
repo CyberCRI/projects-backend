@@ -641,6 +641,7 @@ msgid "Given user does not have a keycloak account."
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:8
+#: services/keycloak/templates/request_accepted/mail.html:8
 #, python-format
 msgid ""
 "\n"
@@ -650,6 +651,7 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:13
+#: services/keycloak/templates/request_accepted/mail.html:13
 msgid ""
 "\n"
 "    Your Projects account has just been created. You just have to choose a "
@@ -659,6 +661,7 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:18
+#: services/keycloak/templates/request_accepted/mail.html:18
 msgid ""
 "\n"
 "    Create my password\n"
@@ -668,6 +671,7 @@ msgstr ""
 #: services/keycloak/templates/admin_created/mail.html:23
 #: services/keycloak/templates/force_reset_password/mail.html:23
 #: services/keycloak/templates/invitation/mail.html:23
+#: services/keycloak/templates/request_accepted/mail.html:23
 #: services/keycloak/templates/reset_password/mail.html:23
 msgid ""
 "\n"
@@ -679,6 +683,8 @@ msgstr ""
 #: services/keycloak/templates/admin_created/mail.html:28
 #: services/keycloak/templates/force_reset_password/mail.html:28
 #: services/keycloak/templates/invitation/mail.html:28
+#: services/keycloak/templates/request_accepted/mail.html:28
+#: services/keycloak/templates/reset_password/mail.html:28
 #, python-format
 msgid ""
 "\n"
@@ -689,6 +695,7 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.txt:2
+#: services/keycloak/templates/request_accepted/mail.txt:2
 #, python-format
 msgid ""
 "\n"
@@ -704,6 +711,7 @@ msgid ""
 msgstr ""
 
 #: services/keycloak/templates/admin_created/object.txt:2
+#: services/keycloak/templates/request_accepted/object.txt:2
 #, python-format
 msgid ""
 "\n"

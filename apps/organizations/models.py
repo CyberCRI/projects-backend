@@ -148,6 +148,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("lock_project", "Can lock and unlock a project"),
             ("duplicate_project", "Can duplicate a project"),
             ("change_locked_project", "Can update a locked project"),
+            ("manage_accessrequest", "Can manage access requests"),
             *get_permissions_from_subscopes(subscopes),
             *get_write_permissions_from_subscopes(write_only_subscopes),
         )
@@ -176,9 +177,12 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
 
     def get_default_facilitators_permissions(self) -> Iterable[Permission]:
         excluded_permissions = [
-            f"{action}_{subscope}"
-            for action in ["change", "delete", "add"]
-            for subscope in ["tag", "review", "faq", "projectcategory"]
+            "manage_accessrequest",
+            *[
+                f"{action}_{subscope}"
+                for action in ["change", "delete", "add"]
+                for subscope in ["tag", "review", "faq", "projectcategory"]
+            ],
         ]
         return Permission.objects.filter(content_type=self.content_type).exclude(
             codename__in=excluded_permissions

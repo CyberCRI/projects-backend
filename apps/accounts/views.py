@@ -18,8 +18,8 @@ from drf_spectacular.utils import (
 )
 from googleapiclient.errors import HttpError
 from rest_framework import status, views, viewsets
-from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -29,8 +29,18 @@ from rest_framework.views import APIView
 
 from apps.accounts.exceptions import EmailTypeMissingError
 from apps.commons.filters import TrigramSearchFilter
-from apps.commons.permissions import CreateOnly, IsAuthenticatedOrCreateOnly, IsOwner, ReadOnly, WillBeOwner
-from apps.commons.serializers.serializers import CreateListModelViewSet, EmailSerializer, RetrieveUpdateModelViewSet
+from apps.commons.permissions import (
+    CreateOnly,
+    IsAuthenticatedOrCreateOnly,
+    IsOwner,
+    ReadOnly,
+    WillBeOwner,
+)
+from apps.commons.serializers.serializers import (
+    CreateListModelViewSet,
+    EmailSerializer,
+    RetrieveUpdateModelViewSet,
+)
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
@@ -38,7 +48,13 @@ from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import ProjectLightSerializer
-from keycloak import KeycloakDeleteError, KeycloakGetError, KeycloakPostError, KeycloakPutError
+from keycloak import (
+    KeycloakDeleteError,
+    KeycloakError,
+    KeycloakGetError,
+    KeycloakPostError,
+    KeycloakPutError,
+)
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_account,
@@ -51,7 +67,14 @@ from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
-from .models import AccessRequest, AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .models import (
+    AccessRequest,
+    AnonymousUser,
+    PeopleGroup,
+    PrivacySettings,
+    ProjectUser,
+    Skill,
+)
 from .parsers import UserMultipartParser
 from .permissions import HasBasePermission, HasPeopleGroupPermission
 from .serializers import (
@@ -277,7 +300,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @method_decorator(
         account_sync_errors_handler(
-            keycloak_error=(KeycloakPostError, KeycloakPutError)
+            keycloak_error=(KeycloakPostError, KeycloakPutError, KeycloakGetError)
         )
     )
     def create(self, request, *args, **kwargs):
@@ -940,8 +963,8 @@ class AccessRequestViewSet(CreateListModelViewSet):
     permission_classes = [
         IsAuthenticatedOrCreateOnly,
         CreateOnly
-        | HasBasePermission("view_accessrequest", "accounts")
-        | HasOrganizationPermission("view_accessrequest"),
+        | HasBasePermission("manage_accessrequest", "accounts")
+        | HasOrganizationPermission("manage_accessrequest"),
     ]
 
     def get_queryset(self):
@@ -950,13 +973,13 @@ class AccessRequestViewSet(CreateListModelViewSet):
                 organization__code=self.kwargs["organization_code"]
             )
         return AccessRequest.objects.none()
-    
+
     def get_serializer_context(self):
         return {
             **super().get_serializer_context(),
             "organization_code": self.kwargs.get("organization_code", None),
         }
-    
+
     def create(self, request, *args, **kwargs):
         request.data.update(
             {
@@ -965,16 +988,19 @@ class AccessRequestViewSet(CreateListModelViewSet):
             }
         )
         return super().create(request, *args, **kwargs)
-    
-    def perform_accept(self, access_request: AccessRequest):
-        try:
-            if access_request.user is not None:
-                # TODO : send request accepted email
-                access_request.user.groups.add(access_request.organization.get_users())
-                access_request.status = AccessRequest.Status.ACCEPTED
-                access_request.save()
-                return {"id": access_request.id, "status": "success", "message": "Request accepted"}
 
+    def perform_accept(self, access_request: AccessRequest):
+        if access_request.user is not None:
+            # TODO : send request accepted email
+            access_request.user.groups.add(access_request.organization.get_users())
+            access_request.status = AccessRequest.Status.ACCEPTED
+            access_request.save()
+            return {
+                "id": access_request.id,
+                "status": "success",
+                "message": "Request accepted",
+            }
+        try:
             with transaction.atomic():
                 data = {
                     "email": access_request.email,
@@ -983,31 +1009,55 @@ class AccessRequestViewSet(CreateListModelViewSet):
                     "job": access_request.job,
                     "roles_to_add": [access_request.organization.get_users()],
                 }
-                serializer = UserSerializer(data=data, context=self.get_serializer_context())
+                serializer = UserSerializer(
+                    data=data, context=self.get_serializer_context()
+                )
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save()
                 keycloak_account = KeycloakService.create_user(instance)
                 access_request.status = AccessRequest.Status.ACCEPTED
                 access_request.save()
+        except ValidationError as e:
+            return {
+                "id": access_request.id,
+                "status": "error",
+                "message": f"Invalid data : {e.detail}",
+            }
+        except KeycloakError as e:
+            message = json.loads(e.response_body.decode()).get("errorMessage")
+            return {
+                "id": access_request.id,
+                "status": "error",
+                "message": f"Keycloak error : {message}",
+            }
+        try:
             KeycloakService.send_email(
                 keycloak_account=keycloak_account,
                 email_type=KeycloakService.EmailType.REQUEST_ACCEPTED,
                 redirect_organization_code=access_request.organization.code,
             )
-        except ValidationError as e:
-            return {"id": access_request.id, "status": "error", "message": f"Invalid data : {e.detail}"}
-        except (KeycloakPostError, KeycloakPutError) as e:
+        except KeycloakError as e:
             message = json.loads(e.response_body.decode()).get("errorMessage")
-            return {"id": access_request.id, "status": "error", "message": f"Keycloak error : {message}"}
-        except KeycloakGetError as e:
-            message = json.loads(e.response_body.decode()).get("errorMessage")
-            return {"id": access_request.id, "status": "warning", "message": f"Email not sent : {message}"}
-        return {"id": access_request.id, "status": "success", "message": "Request accepted"}
-    
+            return {
+                "id": access_request.id,
+                "status": "warning",
+                "message": f"Email not sent : {message}",
+            }
+        return {
+            "id": access_request.id,
+            "status": "success",
+            "message": "Request accepted",
+        }
+
     def perform_decline(self, access_request: AccessRequest):
         # TODO : send request declined email
         access_request.status = AccessRequest.Status.DECLINED
         access_request.save()
+        return {
+            "id": access_request.id,
+            "status": "success",
+            "message": "Request declined",
+        }
 
     @extend_schema(
         request=AccessRequestManySerializer,
@@ -1023,15 +1073,19 @@ class AccessRequestViewSet(CreateListModelViewSet):
     )
     @action(detail=False, methods=["POST"])
     def accept(self, request, *args, **kwargs):
-        serializer = AccessRequestManySerializer(data=request.data, context=self.get_serializer_context())
+        serializer = AccessRequestManySerializer(
+            data=request.data, context=self.get_serializer_context()
+        )
         serializer.is_valid(raise_exception=True)
-        access_requests = self.get_queryset().filter(id__in=serializer.data["access_requests"])
+        access_requests = self.get_queryset().filter(
+            id__in=serializer.data["access_requests"]
+        )
         results = []
         for access_request in access_requests:
             result = self.perform_accept(access_request)
             results.append(result)
         return Response({"results": results}, status=status.HTTP_200_OK)
-    
+
     @extend_schema(
         request=AccessRequestManySerializer,
         responses=inline_serializer(
@@ -1046,9 +1100,13 @@ class AccessRequestViewSet(CreateListModelViewSet):
     )
     @action(detail=False, methods=["POST"])
     def decline(self, request, *args, **kwargs):
-        serializer = AccessRequestManySerializer(data=request.data, context=self.get_serializer_context())
+        serializer = AccessRequestManySerializer(
+            data=request.data, context=self.get_serializer_context()
+        )
         serializer.is_valid(raise_exception=True)
-        access_requests = self.get_queryset().filter(id__in=serializer.data["access_requests"])
+        access_requests = self.get_queryset().filter(
+            id__in=serializer.data["access_requests"]
+        )
         results = []
         for access_request in access_requests:
             result = self.perform_decline(access_request)
