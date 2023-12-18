@@ -713,7 +713,7 @@ class AccessTokenSerializer(serializers.Serializer):
     scope = serializers.CharField(max_length=255)
 
 
-class AccessRequestSerializer(serializers.Serializer):
+class AccessRequestSerializer(serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -770,6 +770,17 @@ class AccessRequestSerializer(serializers.Serializer):
                 "This organization does not accept access requests."
             )
         return value
+    
+    def to_representation(self, instance):
+        if instance.user:
+            return {
+                **super().to_representation(instance),
+                "email": instance.user.email,
+                "given_name": instance.user.given_name,
+                "family_name": instance.user.family_name,
+                "job": instance.user.job,
+            }
+        return super().to_representation(instance)
 
     
 class AccessRequestManySerializer(serializers.Serializer):

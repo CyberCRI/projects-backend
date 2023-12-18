@@ -822,10 +822,10 @@ class AccessRequest(models.Model):
     
     organization = models.ForeignKey("organizations.Organization", on_delete=models.CASCADE, related_name="access_requests")
     user = models.ForeignKey(ProjectUser, on_delete=models.CASCADE, related_name="access_requests", null=True)
-    _email = models.CharField(max_length=255, blank=True)
-    _given_name = models.CharField(max_length=255, blank=True)
-    _family_name = models.CharField(max_length=255, blank=True)
-    _job = models.CharField(max_length=255, blank=True)
+    email = models.CharField(max_length=255, blank=True)
+    given_name = models.CharField(max_length=255, blank=True)
+    family_name = models.CharField(max_length=255, blank=True)
+    job = models.CharField(max_length=255, blank=True)
     message = models.TextField(blank=True)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -836,27 +836,3 @@ class AccessRequest(models.Model):
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
-    
-    @property
-    def email(self):
-        if self.user:
-            return self.user.email
-        return self._email
-    
-    @property
-    def given_name(self):
-        if self.user:
-            return self.user.given_name
-        return self._given_name
-    
-    @property
-    def family_name(self):
-        if self.user:
-            return self.user.family_name
-        return self._family_name
-    
-    @property
-    def job(self):
-        if self.user:
-            return self.user.job
-        return self._job

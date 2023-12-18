@@ -983,7 +983,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
                     "job": access_request.job,
                     "roles_to_add": [access_request.organization.get_users()],
                 }
-                serializer = UserSerializer(data=data)
+                serializer = UserSerializer(data=data, context=self.get_serializer_context())
                 serializer.is_valid(raise_exception=True)
                 instance = serializer.save()
                 keycloak_account = KeycloakService.create_user(instance)
@@ -1015,7 +1015,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
             name="results",
             fields={
                 "id": OpenApiTypes.STR,
-                "status": OpenApiTypes.STR(choices=["success", "warning", "error"]),
+                "status": OpenApiTypes.STR,
                 "message": OpenApiTypes.STR,
             },
             many=True,
@@ -1038,7 +1038,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
             name="results",
             fields={
                 "id": OpenApiTypes.STR,
-                "status": OpenApiTypes.STR(choices=["success", "warning", "error"]),
+                "status": OpenApiTypes.STR,
                 "message": OpenApiTypes.STR,
             },
             many=True,
