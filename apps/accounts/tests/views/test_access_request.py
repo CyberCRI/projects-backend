@@ -143,7 +143,9 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert all(result["status"] == "success" for result in content["results"])
+            assert len(content["success"]) == 4
+            assert len(content["error"]) == 0
+            assert len(content["warning"]) == 0
 
             authentified_access_request.refresh_from_db()
             assert authentified_access_request.status == AccessRequest.Status.ACCEPTED
@@ -214,13 +216,15 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
             data=payload,
         )
         assert response.status_code == expected_code
-        if expected_code == status.HTTP_204_NO_CONTENT:
+        if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert all(result["status"] == "success" for result in content["results"])
+            assert len(content["success"]) == 4
+            assert len(content["error"]) == 0
+            assert len(content["warning"]) == 0
 
             authentified_access_request.refresh_from_db()
             assert authentified_access_request.status == AccessRequest.Status.DECLINED
-            assert request_access_user not in organization.users
+            assert request_access_user not in organization.users.all()
 
             for access_request in anonymous_access_request:
                 access_request.refresh_from_db()
@@ -245,7 +249,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
 
         return inner
 
-    def test_create_request_access_in_unauthorized_organization(self):
+    def test_create_access_request_in_unauthorized_organization(self):
         organization = OrganizationFactory()
         payload = {
             "email": faker.email(),
@@ -264,7 +268,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             "This organization does not accept access requests."
         ]
 
-    def test_create_access_user_in_organization(self):
+    def test_create_access_request_user_in_organization(self):
         user = UserFactory(groups=[self.organization.get_users()])
         self.client.force_authenticate(user)
         payload = {
@@ -284,7 +288,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             "This user is already a member of this organization."
         ]
 
-    def test_create_request_access_existing_user(self):
+    def test_create_access_request_existing_user(self):
         user = UserFactory()
         payload = {
             "email": user.email,
@@ -301,23 +305,27 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         content = response.json()
         assert content["email"] == ["A user with this email already exists."]
 
-    def test_accept_access_requests_from_different_organizations(self):
+    def test_accept_access_requests_from_different_organization(self):
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
-        access_request_1 = AccessRequestFactory(organization=self.organization)
-        access_request_2 = AccessRequestFactory()
+        access_request = AccessRequestFactory()
         payload = {
-            "access_requests": [access_request_1.id, access_request_2.id],
+            "access_requests": [access_request.id],
         }
         response = self.client.post(
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_200_OK
         content = response.json()
-        assert content["access_requests"] == [
-            f"Some access requests are not for the organization {self.organization.code}."
-        ]
+        assert len(content["error"]) == 1
+        assert len(content["success"]) == 0
+        assert len(content["warning"]) == 0
+        assert content["error"][0]["id"] == access_request.id
+        assert (
+            content["error"][0]["message"]
+            == "This access request is not for the current organization."
+        )
 
     def test_accept_accepted_access_request(self):
         user = UserFactory(groups=[get_superadmins_group()])
@@ -332,11 +340,62 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.status_code == status.HTTP_200_OK
         content = response.json()
-        assert content["access_requests"] == [
-            "You can only accept or decline pending access requests."
-        ]
+        assert len(content["error"]) == 1
+        assert len(content["success"]) == 0
+        assert len(content["warning"]) == 0
+        assert content["error"][0]["id"] == access_request.id
+        assert (
+            content["error"][0]["message"]
+            == "This access request has already been processed."
+        )
+
+    def test_decline_access_requests_from_different_organization(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        access_request = AccessRequestFactory()
+        payload = {
+            "access_requests": [access_request.id],
+        }
+        response = self.client.post(
+            reverse("AccessRequest-decline", args=(self.organization.code,)),
+            data=payload,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        assert len(content["error"]) == 1
+        assert len(content["success"]) == 0
+        assert len(content["warning"]) == 0
+        assert content["error"][0]["id"] == access_request.id
+        assert (
+            content["error"][0]["message"]
+            == "This access request is not for the current organization."
+        )
+
+    def test_decline_accepted_access_request(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        access_request = AccessRequestFactory(
+            organization=self.organization, status=AccessRequest.Status.ACCEPTED
+        )
+        payload = {
+            "access_requests": [access_request.id],
+        }
+        response = self.client.post(
+            reverse("AccessRequest-decline", args=(self.organization.code,)),
+            data=payload,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        assert len(content["error"]) == 1
+        assert len(content["success"]) == 0
+        assert len(content["warning"]) == 0
+        assert content["error"][0]["id"] == access_request.id
+        assert (
+            content["error"][0]["message"]
+            == "This access request has already been processed."
+        )
 
     @patch("services.keycloak.interface.KeycloakService.create_user")
     def test_accept_access_request_keycloak_post_error(self, mocked):
@@ -355,10 +414,12 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         content = response.json()
-        assert content["results"][0]["id"] == access_request.id
-        assert content["results"][0]["status"] == "error"
+        assert len(content["error"]) == 1
+        assert len(content["success"]) == 0
+        assert len(content["warning"]) == 0
+        assert content["error"][0]["id"] == access_request.id
         assert (
-            content["results"][0]["message"]
+            content["error"][0]["message"]
             == "Keycloak error : User exists with same username"
         )
 
@@ -379,6 +440,8 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         content = response.json()
-        assert content["results"][0]["id"] == access_request.id
-        assert content["results"][0]["status"] == "warning"
-        assert content["results"][0]["message"] == "Email not sent : User not found"
+        assert len(content["error"]) == 0
+        assert len(content["success"]) == 0
+        assert len(content["warning"]) == 1
+        assert content["warning"][0]["id"] == access_request.id
+        assert content["warning"][0]["message"] == "Email not sent : User not found"

@@ -791,30 +791,27 @@ class AccessRequestManySerializer(serializers.Serializer):
         many=True, queryset=AccessRequest.objects.all()
     )
 
-    def validate_access_requests(
-        self, access_requests: List[AccessRequest]
-    ) -> List[AccessRequest]:
-        """
-        Validate that all access requests are pending.
-        Validate that all access requests are for the same organization.
-        Validate that all the access requests are from the request's organization.
-        """
-        if not all(
-            access_request.status == AccessRequest.Status.PENDING
-            for access_request in access_requests
-        ):
-            raise serializers.ValidationError(
-                "You can only accept or decline pending access requests."
-            )
-        organization_code = self.context.get("organization_code")
-        if not all(
-            access_request.organization.code == organization_code
-            for access_request in access_requests
-        ):
-            raise serializers.ValidationError(
-                f"Some access requests are not for the organization {organization_code}."
-            )
-        return access_requests
+    def update(self, instance, validated_data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+
+class AccessRequestResultSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    email = serializers.EmailField()
+    message = serializers.CharField(allow_blank=True)
+
+
+class ProcessAccessRequestSerializer(serializers.Serializer):
+    success = serializers.ListField(
+        child=AccessRequestResultSerializer(), required=False
+    )
+    error = serializers.ListField(child=AccessRequestResultSerializer(), required=False)
+    warning = serializers.ListField(
+        child=AccessRequestResultSerializer(), required=False
+    )
 
     def update(self, instance, validated_data):
         pass
