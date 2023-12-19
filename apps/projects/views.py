@@ -546,6 +546,12 @@ class ProjectHeaderView(ImageStorageView):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             project = Project.objects.get(id=self.kwargs["project_id"])
             if self.request.user.is_anonymous:
                 return Image.objects.filter(project_header=project)
@@ -560,6 +566,12 @@ class ProjectHeaderView(ImageStorageView):
 
     def add_image_to_model(self, image):
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             project = Project.objects.get(id=self.kwargs["project_id"])
             project.header_image = image
             project.save()
@@ -579,6 +591,12 @@ class ProjectImagesView(ImageStorageView):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             project = Project.objects.get(id=self.kwargs["project_id"])
             if self.request.user.is_anonymous:
                 return Image.objects.filter(projects=project)
@@ -597,6 +615,12 @@ class ProjectImagesView(ImageStorageView):
 
     def add_image_to_model(self, image, *args, **kwargs):
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             project = Project.objects.get(id=self.kwargs["project_id"])
             project.images.add(image)
             project.save()
@@ -620,6 +644,12 @@ class BlogEntryViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(BlogEntry.objects)
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             qs = qs.filter(project=self.kwargs["project_id"])
         return qs.prefetch_related("images")
 
@@ -640,6 +670,12 @@ class BlogEntryImagesView(ImageStorageView):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             project = Project.objects.get(id=self.kwargs["project_id"])
             if self.request.user.is_anonymous:
                 return Image.objects.filter(blog_entries__in=project.blog_entries.all())
@@ -681,6 +717,12 @@ class LocationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = self.request.user.get_project_related_queryset(Location.objects)
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             qs = qs.filter(project=self.kwargs["project_id"])
         return qs.select_related("project")
 
@@ -745,6 +787,12 @@ class LinkedProjectViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
+
+        # TODO : handle with MultipleIDViewsetMixin
+        project = Project.objects.filter(slug=self.kwargs["project_id"])
+        if project.exists():
+            self.kwargs["project_id"] = project.get().id
+
         project = Project.objects.get(id=self.kwargs["project_id"])
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_create(serializer)
@@ -760,6 +808,12 @@ class LinkedProjectViewSet(viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
+
+        # TODO : handle with MultipleIDViewsetMixin
+        project = Project.objects.filter(slug=self.kwargs["project_id"])
+        if project.exists():
+            self.kwargs["project_id"] = project.get().id
+
         project = Project.objects.get(id=self.kwargs["project_id"])
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
