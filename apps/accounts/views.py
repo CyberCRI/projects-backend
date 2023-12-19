@@ -839,6 +839,14 @@ class PeopleGroupHeaderView(ImageStorageView):
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
+
+            # TODO : handle with MultipleIDViewsetMixin
+            people_group = PeopleGroup.objects.filter(
+                slug=self.kwargs["people_group_id"]
+            )
+            if people_group.exists():
+                self.kwargs["people_group_id"] = people_group.get().id
+
             people_group = PeopleGroup.objects.get(
                 organization__code=self.kwargs["organization_code"],
                 id=self.kwargs["people_group_id"],
@@ -852,6 +860,14 @@ class PeopleGroupHeaderView(ImageStorageView):
 
     def add_image_to_model(self, image):
         if "people_group_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            people_group = PeopleGroup.objects.filter(
+                slug=self.kwargs["people_group_id"]
+            )
+            if people_group.exists():
+                self.kwargs["people_group_id"] = people_group.get().id
+
             people_group = PeopleGroup.objects.get(id=self.kwargs["people_group_id"])
             people_group.header_image = image
             people_group.save()
@@ -883,6 +899,14 @@ class PeopleGroupLogoView(ImageStorageView):
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
+
+            # TODO : handle with MultipleIDViewsetMixin
+            people_group = PeopleGroup.objects.filter(
+                slug=self.kwargs["people_group_id"]
+            )
+            if people_group.exists():
+                self.kwargs["people_group_id"] = people_group.get().id
+
             people_group = PeopleGroup.objects.get(
                 organization__code=self.kwargs["organization_code"],
                 id=self.kwargs["people_group_id"],
@@ -896,6 +920,14 @@ class PeopleGroupLogoView(ImageStorageView):
 
     def add_image_to_model(self, image):
         if "people_group_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            people_group = PeopleGroup.objects.filter(
+                slug=self.kwargs["people_group_id"]
+            )
+            if people_group.exists():
+                self.kwargs["people_group_id"] = people_group.get().id
+
             people_group = PeopleGroup.objects.get(id=self.kwargs["people_group_id"])
             people_group.logo_image = image
             people_group.save()
@@ -948,6 +980,12 @@ class UserProfilePictureView(ImageStorageView):
 
     def get_queryset(self):
         if "user_keycloak_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
+            if user.exists():
+                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
+
             user = ProjectUser.objects.get(keycloak_id=self.kwargs["user_keycloak_id"])
             if self.request.user.is_anonymous:
                 return Image.objects.filter(user=user)
@@ -962,6 +1000,12 @@ class UserProfilePictureView(ImageStorageView):
 
     def add_image_to_model(self, image):
         if "user_keycloak_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
+            if user.exists():
+                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
+
             user = ProjectUser.objects.get(keycloak_id=self.kwargs["user_keycloak_id"])
             user.profile_picture = image
             user.save()
@@ -990,6 +1034,12 @@ class PrivacySettingsViewSet(RetrieveUpdateModelViewSet):
     def get_queryset(self):
         qs = self.request.user.get_user_related_queryset(PrivacySettings.objects.all())
         if "user_keycloak_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
+            if user.exists():
+                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
+
             return qs.filter(user__keycloak_id=self.kwargs["user_keycloak_id"])
         return qs
 

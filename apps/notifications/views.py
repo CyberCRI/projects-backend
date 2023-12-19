@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission, ReadOnly
 from apps.accounts.views import RetrieveUpdateModelViewSet
 from apps.commons.permissions import IsOwner
@@ -64,6 +65,12 @@ class NotificationSettingsViewSet(RetrieveUpdateModelViewSet):
 
     def get_queryset(self):
         if "user_keycloak_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
+            if user.exists():
+                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
+
             queryset = self.request.user.get_user_related_queryset(
                 NotificationSettings.objects.all()
             )

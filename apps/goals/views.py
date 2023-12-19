@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
 
 from .models import Goal
@@ -27,5 +28,11 @@ class GoalViewSet(viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Goal.objects.all())
         if "project_id" in self.kwargs:
+
+            # TODO : handle with MultipleIDViewsetMixin
+            project = Project.objects.filter(slug=self.kwargs["project_id"])
+            if project.exists():
+                self.kwargs["project_id"] = project.get().id
+
             return qs.filter(project=self.kwargs["project_id"])
         return qs
