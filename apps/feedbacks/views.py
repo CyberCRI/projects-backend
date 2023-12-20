@@ -40,10 +40,9 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filterset_class = ReviewFilter
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = ["user_id"]
-
-    def get_user_id_from_lookup_value(self, lookup_value):
-        return ProjectUser.get_main_id(lookup_value)
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id",)
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "review")
@@ -85,10 +84,9 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = ["user_id"]
-
-    def get_user_id_from_lookup_value(self, lookup_value):
-        return ProjectUser.get_main_id(lookup_value)
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id",)
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "follow")
@@ -164,7 +162,7 @@ class ProjectFollowViewSet(FollowViewSet):
     pass
 
 
-class CommentViewSet(viewsets.ModelViewSet):
+class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
@@ -232,7 +230,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         update_change_reason(comment.project, "Updated comment")
 
 
-class CommentImagesView(ImageStorageView):
+class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_permissions(self):
         """
         Permissions are handled differently here because contrary to other

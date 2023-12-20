@@ -63,10 +63,9 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = ["user_id"]
-
-    def get_user_id_from_lookup_value(self, lookup_value):
-        return ProjectUser.get_main_id(lookup_value)
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id",)
+    ]
 
     def get_queryset(self):
         if "user_id" in self.kwargs:

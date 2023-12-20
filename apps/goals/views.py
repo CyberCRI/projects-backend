@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
@@ -12,7 +13,7 @@ from .models import Goal
 from .serializers import GoalSerializer
 
 
-class GoalViewSet(viewsets.ModelViewSet):
+class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = GoalSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"

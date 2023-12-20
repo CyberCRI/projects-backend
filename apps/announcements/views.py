@@ -20,7 +20,7 @@ from .models import Announcement
 from .serializers import AnnouncementSerializer, ApplyToAnnouncementSerializer
 
 
-class AnnouncementViewSet(viewsets.ModelViewSet):
+class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
     filterset_class = AnnouncementFilter
     lookup_field = "id"

@@ -16,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
@@ -28,7 +29,7 @@ from .serializers import (
 )
 
 
-class AttachmentLinkViewSet(viewsets.ModelViewSet):
+class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = AttachmentLinkSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -53,7 +54,7 @@ class AttachmentLinkViewSet(viewsets.ModelViewSet):
         return qs
 
 
-class AttachmentFileViewSet(viewsets.ModelViewSet):
+class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     parser_classes = [MultiPartParser]
     serializer_class = AttachmentFileSerializer
     filter_backends = [DjangoFilterBackend]

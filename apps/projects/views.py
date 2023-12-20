@@ -23,7 +23,7 @@ from apps.analytics.models import Stat
 from apps.commons.permissions import IsOwner
 from apps.commons.utils.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.utils.permissions import map_action_to_permission
-from apps.commons.views import ListViewSet
+from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -59,7 +59,7 @@ from .serializers import (
 )
 
 
-class ProjectViewSet(viewsets.ModelViewSet):
+class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     """Main endpoints for projects."""
 
     class InfoDetails(enum.Enum):
@@ -533,7 +533,7 @@ class RandomProjectViewSet(ListViewSet):
         return qs.order_by("?")
 
 
-class ProjectHeaderView(ImageStorageView):
+class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -578,7 +578,7 @@ class ProjectHeaderView(ImageStorageView):
         return None
 
 
-class ProjectImagesView(ImageStorageView):
+class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -627,7 +627,7 @@ class ProjectImagesView(ImageStorageView):
         return None
 
 
-class BlogEntryViewSet(viewsets.ModelViewSet):
+class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = BlogEntrySerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
@@ -657,7 +657,7 @@ class BlogEntryViewSet(viewsets.ModelViewSet):
         notify_new_blogentry.delay(instance.pk, self.request.user.pk)
 
 
-class BlogEntryImagesView(ImageStorageView):
+class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -700,7 +700,7 @@ class BlogEntryImagesView(ImageStorageView):
         return None
 
 
-class LocationViewSet(viewsets.ModelViewSet):
+class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = LocationSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -741,7 +741,7 @@ class ReadLocationViewSet(LocationViewSet):
     filterset_class = LocationFilter
 
 
-class HistoricalProjectViewSet(viewsets.ReadOnlyModelViewSet):
+class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
 
@@ -761,7 +761,7 @@ class HistoricalProjectViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class LinkedProjectViewSet(viewsets.ModelViewSet):
+class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = LinkedProjectSerializer
     http_method_names = ["post", "patch", "delete"]
     lookup_field = "id"
