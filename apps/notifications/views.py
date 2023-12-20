@@ -12,7 +12,6 @@ from rest_framework.response import Response
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission, ReadOnly
-from apps.accounts.utils import get_user_id_field
 from apps.accounts.views import RetrieveUpdateModelViewSet
 from apps.commons.permissions import IsOwner
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
@@ -67,13 +66,7 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
     multiple_lookup_fields = ["user_id"]
 
     def get_user_id_from_lookup_value(self, lookup_value):
-        lookup_field = get_user_id_field(lookup_value)
-        if lookup_field != "id":
-            user = get_object_or_404(
-                ProjectUser.objects.all(), **{lookup_field: lookup_value}
-            )
-            return user.id
-        return lookup_value
+        return ProjectUser.get_main_id(lookup_value)
 
     def get_queryset(self):
         if "user_id" in self.kwargs:

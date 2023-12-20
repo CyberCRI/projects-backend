@@ -3,8 +3,8 @@ from functools import reduce
 
 from django.db.models import Q
 from django_filters import rest_framework as filters
+from apps.accounts.models import ProjectUser
 
-from apps.accounts.utils import process_multiple_users_ids_list
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
 from apps.organizations.utils import get_hierarchy_codes
 
@@ -65,7 +65,7 @@ class ProjectFilter(ProjectFilterMixin):
         if "members" not in self.data:
             return queryset
         members = self.data["members"].split(",")
-        members = process_multiple_users_ids_list(members)
+        members = ProjectUser.get_main_ids(members)
         return queryset.filter(
             Q(groups__users__id__in=members)
             & reduce(operator.or_, (Q(groups__name__contains=role) for role in value))

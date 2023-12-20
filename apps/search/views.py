@@ -12,7 +12,6 @@ from rest_framework.settings import api_settings
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
-from apps.accounts.utils import process_multiple_users_ids_list
 from apps.commons.db.functions import ArrayPosition
 from apps.commons.views import ListViewSet
 from apps.organizations.models import Organization
@@ -169,7 +168,7 @@ class ProjectSearchViewSet(AlgoliaSearchViewSetMixin):
             ],
             [
                 f"members_filter:{m}"
-                for m in process_multiple_users_ids_list(self.get_filter("members"))
+                for m in ProjectUser.get_main_ids(self.get_filter("members"))
             ],
             [f"categories_filter:{c}" for c in self.get_filter("categories")],
             [f"wikipedia_tags_filter:{t}" for t in self.get_filter("wikipedia_tags")],
@@ -372,7 +371,7 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
             "categories__id__in": self.get_filter("categories"),
             "wikipedia_tags__wikipedia_qid__in": self.get_filter("wikipedia_tags"),
             "organization_tags__id__in": self.get_filter("organization_tags"),
-            "groups__users__id__in": process_multiple_users_ids_list(
+            "groups__users__id__in": ProjectUser.get_main_ids(
                 self.get_filter("members")
             ),
             "language__in": self.get_filter("languages"),

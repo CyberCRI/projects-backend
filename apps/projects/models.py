@@ -1,7 +1,7 @@
 import logging
 import os
 from functools import reduce
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 
 import shortuuid as shortuuid
 from django.conf import settings
@@ -17,6 +17,7 @@ from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.commons.db.abc import (
+    HasMultipleIDs,
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
@@ -57,7 +58,7 @@ class SoftDeleteManager(models.Manager):
         return super().get_queryset().exclude(deleted_at=None)
 
 
-class Project(PermissionsSetupModel, ProjectRelated, OrganizationRelated):
+class Project(HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated):
     """Main model of the app, represent a user project
 
     Attributes
@@ -220,9 +221,18 @@ class Project(PermissionsSetupModel, ProjectRelated, OrganizationRelated):
         super(Project, self).__init__(*args, **kwargs)
         self._original_description = self.description
 
+    @classmethod
+    def get_id_field_name(cls, object_id: Any) -> str:
+        """Get the name of the field which contains the given ID."""
+        if len(object_id) == 8:
+            return "id"
+        return "slug"
+
     def get_slug(self) -> str:
         if self.slug == "":
             raw_slug = slugify(self.title[0:46])
+            if len(raw_slug) <= 8:
+                raw_slug = f"project-{raw_slug}"  # Prevent clashes with ids
             slug = raw_slug
             same_slug_count = 0
             while Project.objects.all_with_delete().filter(slug=slug).exists():

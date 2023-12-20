@@ -10,7 +10,7 @@ from rest_framework.fields import Field
 from rest_framework.serializers import BaseSerializer
 
 from apps.accounts.models import PrivacySettings, ProjectUser
-from apps.accounts.utils import get_superadmins_group, get_user_id_field
+from apps.accounts.utils import get_superadmins_group
 
 
 @extend_schema_field(OpenApiTypes.UUID)
@@ -34,7 +34,7 @@ class UserMultipleIdRelatedField(serializers.RelatedField):
     def to_internal_value(self, data):
         queryset = self.get_queryset()
         try:
-            lookup_field = get_user_id_field(data)
+            lookup_field = ProjectUser.get_id_field_name(data)
             if self.user_lookup:
                 lookup_field = f"{self.user_lookup}__{lookup_field}"
             return get_object_or_404(queryset, **{lookup_field: data})

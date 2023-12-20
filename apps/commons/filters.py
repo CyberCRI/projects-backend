@@ -5,8 +5,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import F, Func, QuerySet
 from django_filters import filters
 from rest_framework.filters import SearchFilter
-
-from apps.accounts.utils import process_multiple_users_ids_list
+from apps.accounts.models import ProjectUser
 
 
 # Filter separating value by comma
@@ -25,8 +24,7 @@ class UserMultipleIDFilter(MultiValueCharFilter):
 
     def filter(self, queryset: QuerySet, value: str) -> QuerySet:  # noqa: A003
         if value:
-            value = process_multiple_users_ids_list(value, self.user_id_field)
-            return super().filter(queryset, value)
+            return super().filter(queryset, ProjectUser.get_main_ids(value))
         return queryset
 
 

@@ -13,7 +13,6 @@ from simple_history.utils import update_change_reason
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission, ReadOnly
-from apps.accounts.utils import get_user_id_field
 from apps.commons.permissions import IsOwner
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
@@ -44,13 +43,7 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     multiple_lookup_fields = ["user_id"]
 
     def get_user_id_from_lookup_value(self, lookup_value):
-        lookup_field = get_user_id_field(lookup_value)
-        if lookup_field != "id":
-            user = get_object_or_404(
-                ProjectUser.objects.all(), **{lookup_field: lookup_value}
-            )
-            return user.id
-        return lookup_value
+        return ProjectUser.get_main_id(lookup_value)
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "review")
@@ -95,13 +88,7 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     multiple_lookup_fields = ["user_id"]
 
     def get_user_id_from_lookup_value(self, lookup_value):
-        lookup_field = get_user_id_field(lookup_value)
-        if lookup_field != "id":
-            user = get_object_or_404(
-                ProjectUser.objects.all(), **{lookup_field: lookup_value}
-            )
-            return user.id
-        return lookup_value
+        return ProjectUser.get_main_id(lookup_value)
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "follow")

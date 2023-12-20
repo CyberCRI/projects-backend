@@ -70,7 +70,6 @@ from .serializers import (
 from .utils import (
     account_sync_errors_handler,
     get_permission_from_representation,
-    get_user_id_field,
 )
 
 
@@ -133,13 +132,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     multiple_lookup_fields = ["id"]
 
     def get_id_from_lookup_value(self, lookup_value):
-        lookup_field = get_user_id_field(lookup_value)
-        if lookup_field != "id":
-            user = get_object_or_404(
-                ProjectUser.objects.all(), **{lookup_field: lookup_value}
-            )
-            return user.id
-        return lookup_value
+        return ProjectUser.get_main_id(lookup_value)
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectuser")
@@ -208,11 +201,9 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_object(self):
         lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        user_id = self.kwargs[lookup_url_kwarg]
-        id_field = get_user_id_field(user_id)
-        if id_field != "id":
-            user = get_object_or_404(ProjectUser.objects.all(), **{id_field: user_id})
-            self.kwargs[lookup_url_kwarg] = user.id
+        self.kwargs[lookup_url_kwarg] = ProjectUser.get_main_id(
+            self.kwargs[lookup_url_kwarg]
+        )
         return super().get_object()
 
     def get_serializer_class(self):
@@ -960,13 +951,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
     multiple_lookup_fields = ["user_id"]
 
     def get_user_id_from_lookup_value(self, lookup_value):
-        lookup_field = get_user_id_field(lookup_value)
-        if lookup_field != "id":
-            user = get_object_or_404(
-                ProjectUser.objects.all(), **{lookup_field: lookup_value}
-            )
-            return user.id
-        return lookup_value
+        return ProjectUser.get_main_id(lookup_value)
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
@@ -1010,13 +995,7 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     multiple_lookup_fields = ["user_id"]
 
     def get_user_id_from_lookup_value(self, lookup_value):
-        lookup_field = get_user_id_field(lookup_value)
-        if lookup_field != "id":
-            user = get_object_or_404(
-                ProjectUser.objects.all(), **{lookup_field: lookup_value}
-            )
-            return user.id
-        return lookup_value
+        return ProjectUser.get_main_id(lookup_value)
 
     def get_queryset(self):
         qs = self.request.user.get_user_related_queryset(PrivacySettings.objects.all())
