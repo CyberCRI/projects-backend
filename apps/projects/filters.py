@@ -3,8 +3,8 @@ from functools import reduce
 
 from django.db.models import Q
 from django_filters import rest_framework as filters
-from apps.accounts.models import ProjectUser
 
+from apps.accounts.models import ProjectUser
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
 from apps.organizations.utils import get_hierarchy_codes
 

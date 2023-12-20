@@ -61,7 +61,7 @@ class HasMultipleIDs:
     def get_id_field_name(cls, object_id: Any) -> str:
         """Get the name of the field which contains the given ID."""
         raise NotImplementedError()
-    
+
     @classmethod
     def get_main_id(cls, object_id: Any, returned_field: str = "id") -> Any:
         """Get the main ID from a secondary ID."""
@@ -70,11 +70,10 @@ class HasMultipleIDs:
             return object_id
         obj = get_object_or_404(cls, **{field_name: object_id})
         return getattr(obj, returned_field)
-    
+
     @classmethod
-    def get_main_ids(cls, objects_ids: List[Any], returned_field: str = "id") -> List[Any]:
+    def get_main_ids(
+        cls, objects_ids: List[Any], returned_field: str = "id"
+    ) -> List[Any]:
         """Get the main IDs from a list of secondary IDs."""
-        return [
-            cls.get_main_id(object_id, returned_field)
-            for object_id in objects_ids
-        ]
+        return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]

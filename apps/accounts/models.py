@@ -20,7 +20,12 @@ from apps.accounts.utils import (
     get_group_permissions,
     get_superadmins_group,
 )
-from apps.commons.db.abc import HasMultipleIDs, HasOwner, OrganizationRelated, PermissionsSetupModel
+from apps.commons.db.abc import (
+    HasMultipleIDs,
+    HasOwner,
+    OrganizationRelated,
+    PermissionsSetupModel,
+)
 from apps.misc.models import SDG, Language, WikipediaTag
 from apps.projects.models import Project
 
@@ -128,7 +133,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
 
     def __str__(self) -> str:
         return str(self.name)
-    
+
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
         """Get the name of the field which contains the given ID."""

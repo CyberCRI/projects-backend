@@ -3,7 +3,6 @@ from urllib.request import Request
 
 from django.conf import settings
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -64,7 +63,10 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         | HasOrganizationPermission("change_projectuser"),
     ]
     multiple_lookup_fields = [
-        (ProjectUser, "user_id",)
+        (
+            ProjectUser,
+            "user_id",
+        )
     ]
 
     def get_queryset(self):

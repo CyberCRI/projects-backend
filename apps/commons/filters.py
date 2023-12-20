@@ -5,6 +5,7 @@ from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import F, Func, QuerySet
 from django_filters import filters
 from rest_framework.filters import SearchFilter
+
 from apps.accounts.models import ProjectUser
 
 

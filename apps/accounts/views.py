@@ -67,10 +67,7 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
-from .utils import (
-    account_sync_errors_handler,
-    get_permission_from_representation,
-)
+from .utils import account_sync_errors_handler, get_permission_from_representation
 
 
 class RetrieveUpdateModelViewSet(
@@ -130,7 +127,10 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         "created_at",
     ]
     multiple_lookup_fields = [
-        (ProjectUser, "id",)
+        (
+            ProjectUser,
+            "id",
+        )
     ]
 
     def get_permissions(self):
@@ -948,7 +948,10 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_projectuser"),
     ]
     multiple_lookup_fields = [
-        (ProjectUser, "user_id",)
+        (
+            ProjectUser,
+            "user_id",
+        )
     ]
 
     def get_queryset(self):
@@ -991,7 +994,10 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
     multiple_lookup_fields = [
-        (ProjectUser, "user_id",)
+        (
+            ProjectUser,
+            "user_id",
+        )
     ]
 
     def get_queryset(self):

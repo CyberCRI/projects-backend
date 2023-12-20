@@ -58,7 +58,9 @@ class SoftDeleteManager(models.Manager):
         return super().get_queryset().exclude(deleted_at=None)
 
 
-class Project(HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated):
+class Project(
+    HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated
+):
     """Main model of the app, represent a user project
 
     Attributes

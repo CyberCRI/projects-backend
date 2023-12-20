@@ -41,7 +41,10 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [
-        (ProjectUser, "user_id",)
+        (
+            ProjectUser,
+            "user_id",
+        )
     ]
 
     def get_permissions(self):
@@ -85,7 +88,10 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [
-        (ProjectUser, "user_id",)
+        (
+            ProjectUser,
+            "user_id",
+        )
     ]
 
     def get_permissions(self):

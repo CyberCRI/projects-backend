@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
 from apps.commons.utils.cache import clear_cache_with_key, redis_cache_view
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.notifications.tasks import notify_new_announcement, notify_new_application
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
