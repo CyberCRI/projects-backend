@@ -30,7 +30,7 @@ class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(Goal.objects.all())
         if "project_id" in self.kwargs:
+            qs = self.request.user.get_project_related_queryset(Goal.objects.all())
             return qs.filter(project=self.kwargs["project_id"])
-        return qs
+        return Goal.objects.none()

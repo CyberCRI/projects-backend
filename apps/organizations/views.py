@@ -1,7 +1,6 @@
 import uuid
 
 from django.conf import settings
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -74,13 +73,8 @@ class ProjectCategoryBackgroundView(ImageStorageView):
 
     def get_queryset(self):
         if "category_id" in self.kwargs:
-            category = ProjectCategory.objects.get(id=self.kwargs["category_id"])
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(project_category=category)
-            return Image.objects.filter(
-                Q(project_category=category) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+            return Image.objects.filter(project_category__id=self.kwargs["category_id"])
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -105,15 +99,17 @@ class FaqImagesView(ImageStorageView):
 
     def get_queryset(self):
         if "organization_code" in self.kwargs:
-            organization = Organization.objects.get(
-                code=self.kwargs["organization_code"]
+            qs = Image.objects.filter(
+                faqs__organization__code=self.kwargs["organization_code"]
             )
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(faqs=organization.faq)
-            return Image.objects.filter(
-                Q(faqs=organization.faq) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+            # Retrieve images before the faq is posted
+            if self.request.user.is_authenticated and self.action in [
+                "retrieve",
+                "list",
+            ]:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -283,15 +279,10 @@ class OrganizationBannerView(ImageStorageView):
 
     def get_queryset(self):
         if "organization_code" in self.kwargs:
-            organization = Organization.objects.get(
-                code=self.kwargs["organization_code"]
-            )
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(organization_banner=organization)
             return Image.objects.filter(
-                Q(organization_banner=organization) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+                organization_banner__code=self.kwargs["organization_code"]
+            )
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -321,15 +312,10 @@ class OrganizationLogoView(ImageStorageView):
 
     def get_queryset(self):
         if "organization_code" in self.kwargs:
-            organization = Organization.objects.get(
-                code=self.kwargs["organization_code"]
-            )
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(organization_logo=organization)
             return Image.objects.filter(
-                Q(organization_logo=organization) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+                organization_logo__code=self.kwargs["organization_code"]
+            )
+        return Image.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
         image = self.get_object()
@@ -363,15 +349,17 @@ class OrganizationImagesView(ImageStorageView):
 
     def get_queryset(self):
         if "organization_code" in self.kwargs:
-            organization = Organization.objects.get(
-                code=self.kwargs["organization_code"]
+            qs = Image.objects.filter(
+                organizations__code=self.kwargs["organization_code"]
             )
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(organizations=organization)
-            return Image.objects.filter(
-                Q(organizations=organization) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+            # Retrieve images before the organization is posted
+            if self.request.user.is_authenticated and self.action in [
+                "retrieve",
+                "list",
+            ]:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
+        return Image.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
         image = self.get_object()
@@ -405,13 +393,17 @@ class TemplateImagesView(ImageStorageView):
 
     def get_queryset(self):
         if "category_id" in self.kwargs:
-            category = ProjectCategory.objects.get(id=self.kwargs["category_id"])
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(templates=category.template)
-            return Image.objects.filter(
-                Q(templates=category.template) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+            qs = Image.objects.filter(
+                templates__project_category__id=self.kwargs["category_id"]
+            )
+            # Retrieve images before the template is posted
+            if self.request.user.is_authenticated and self.action in [
+                "retrieve",
+                "list",
+            ]:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:

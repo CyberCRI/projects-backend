@@ -545,7 +545,7 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             return Image.objects.filter(project_header__id=self.kwargs["project_id"])
-        return Image.objects.none
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -575,13 +575,18 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-            queryset = Image.objects.filter(
-                projects__id=self.kwargs["project_id"],
+            qs = self.request.user.get_project_related_queryset(
+                Image.objects.filter(projects__id=self.kwargs["project_id"]),
+                project_related_name="projects",
             )
-            if self.request.user.is_anonymous:
-                return queryset
-            return (queryset | Image.objects.filter(owner=self.request.user)).distinct()
-        return Image.objects.none
+            # Retrieve images before project is posted
+            if self.request.user.is_authenticated and self.action in [
+                "retrieve",
+                "list",
+            ]:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -617,10 +622,12 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(BlogEntry.objects.all())
         if "project_id" in self.kwargs:
-            qs = qs.filter(project=self.kwargs["project_id"])
-        return qs.prefetch_related("images")
+            qs = self.request.user.get_project_related_queryset(BlogEntry.objects.all())
+            return qs.filter(project=self.kwargs["project_id"]).prefetch_related(
+                "images"
+            )
+        return BlogEntry.objects.none()
 
     def perform_create(self, serializer):
         instance = serializer.save()
@@ -642,13 +649,20 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-            queryset = Image.objects.filter(
-                blog_entries__project__id=self.kwargs["project_id"],
+            qs = self.request.user.get_project_related_queryset(
+                Image.objects.filter(
+                    blog_entries__project__id=self.kwargs["project_id"]
+                ),
+                project_related_name="blog_entries",
             )
-            if self.request.user.is_anonymous:
-                return queryset
-            return (queryset | Image.objects.filter(owner=self.request.user)).distinct()
-        return Image.objects.none
+            # Retrieve images before blog entry is posted
+            if self.request.user.is_authenticated and self.action in [
+                "retrieve",
+                "list",
+            ]:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -717,13 +731,15 @@ class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelVie
         return ProjectVersionSerializer
 
     def get_queryset(self) -> QuerySet:
-        projects = self.request.user.get_project_queryset()
         if "project_id" in self.kwargs:
-            project = get_object_or_404(projects, id=self.kwargs["project_id"])
-        return apps.get_model("projects", "HistoricalProject").objects.filter(
-            history_relation=project,
-            history_change_reason__isnull=False,
-        )
+            project = get_object_or_404(
+                self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+            )
+            return apps.get_model("projects", "HistoricalProject").objects.filter(
+                history_relation=project,
+                history_change_reason__isnull=False,
+            )
+        return apps.get_model("projects", "HistoricalProject").objects.none()
 
 
 class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -743,12 +759,12 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        queryset = self.request.user.get_project_related_queryset(
-            LinkedProject.objects.all(), project_related_name="target"
-        )
         if "project_id" in self.kwargs:
-            queryset = queryset.filter(target__id=self.kwargs["project_id"])
-        return queryset
+            qs = self.request.user.get_project_related_queryset(
+                LinkedProject.objects.all(), project_related_name="target"
+            )
+            return qs.filter(target__id=self.kwargs["project_id"])
+        return LinkedProject.objects.none()
 
     def check_linked_project_permission(self, project):
         if not self.request.user.can_see_project(project):

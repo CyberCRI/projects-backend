@@ -2,7 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
+from django.db.models import Case, Prefetch, QuerySet, Value, When
 from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -796,7 +796,7 @@ class PeopleGroupHeaderView(
                     "organization_code"
                 ],
             )
-        return Image.objects.none
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -837,7 +837,7 @@ class PeopleGroupLogoView(
                 people_group_logo__id=self.kwargs["people_group_id"],
                 people_group_logo__organization__code=self.kwargs["organization_code"],
             )
-        return Image.objects.none
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -903,12 +903,8 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(user_id=self.kwargs["user_id"])
-            return Image.objects.filter(
-                Q(user__id=self.kwargs["user_id"]) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+            return Image.objects.filter(user_id=self.kwargs["user_id"])
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -943,10 +939,12 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     ]
 
     def get_queryset(self):
-        qs = self.request.user.get_user_related_queryset(PrivacySettings.objects.all())
         if "user_id" in self.kwargs:
+            qs = self.request.user.get_user_related_queryset(
+                PrivacySettings.objects.all()
+            )
             return qs.filter(user__id=self.kwargs["user_id"])
-        return qs
+        return PrivacySettings.objects.none()
 
 
 class AccessTokenView(APIView):

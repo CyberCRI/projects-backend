@@ -45,10 +45,12 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(AttachmentLink.objects)
         if "project_id" in self.kwargs:
+            qs = self.request.user.get_project_related_queryset(
+                AttachmentLink.objects.all()
+            )
             return qs.filter(project=self.kwargs["project_id"])
-        return qs
+        return AttachmentLink.objects.none()
 
 
 class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -69,10 +71,12 @@ class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(AttachmentFile.objects)
         if "project_id" in self.kwargs:
+            qs = self.request.user.get_project_related_queryset(
+                AttachmentFile.objects.all()
+            )
             return qs.filter(project=self.kwargs["project_id"])
-        return qs
+        return AttachmentFile.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

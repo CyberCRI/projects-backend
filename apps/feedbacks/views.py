@@ -61,13 +61,15 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Review.objects.all())
-        if self.request.user.is_authenticated:
-            qs = (qs | Review.objects.filter(reviewer=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-            qs = qs.filter(project=self.kwargs["project_id"])
-        elif "user_id" in self.kwargs:
-            qs = qs.filter(reviewer__id=self.kwargs["user_id"])
-        return qs.select_related("reviewer")
+            return qs.filter(project=self.kwargs["project_id"]).select_related(
+                "reviewer"
+            )
+        if "user_id" in self.kwargs:
+            return qs.filter(reviewer__id=self.kwargs["user_id"]).select_related(
+                "reviewer"
+            )
+        return Review.objects.none()
 
     def perform_create(self, serializer):
         review = serializer.save(reviewer=self.request.user)
@@ -99,13 +101,15 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Follow.objects.all())
-        if self.request.user.is_authenticated:
-            qs = (qs | Follow.objects.filter(follower=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-            qs = qs.filter(project=self.kwargs["project_id"])
-        elif "user_id" in self.kwargs:
-            qs = qs.filter(follower__id=self.kwargs["user_id"])
-        return qs.select_related("follower")
+            return qs.filter(project=self.kwargs["project_id"]).select_related(
+                "follower"
+            )
+        if "user_id" in self.kwargs:
+            return qs.filter(follower__id=self.kwargs["user_id"]).select_related(
+                "follower"
+            )
+        return Follow.objects.none()
 
     def check_linked_project_permission(self, project):
         # TODO : django-guardian rework this is weird
@@ -176,8 +180,6 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Comment.objects.all())
-        if self.request.user.is_authenticated:
-            qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
@@ -235,19 +237,19 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return super().get_permissions()
 
     def get_queryset(self):
-        qs = self.request.user.get_project_related_queryset(
-            Image.objects.all(), project_related_name="comments__project"
-        )
-        if self.request.user.is_authenticated:
-            qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-            qs = qs.filter(comments__project=self.kwargs["project_id"])
-        if self.action in ["retrieve", "list"]:
-            qs = qs.exclude(
-                Q(comments__reply_on__isnull=False)
-                | (Q(comments__deleted_at__isnull=False) & Q(comments__replies=None))
+            qs = self.request.user.get_project_related_queryset(
+                Image.objects.filter(comments__project=self.kwargs["project_id"]),
+                project_related_name="comments__project",
             )
-        return qs
+            # Retrieve images before comment is posted
+            if self.request.user.is_authenticated and self.action in [
+                "retrieve",
+                "list",
+            ]:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
+        return Image.objects.none()
 
     def create(self, request, *args, **kwargs):
         get_object_or_404(

@@ -72,7 +72,7 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
                 NotificationSettings.objects.all()
             )
             return qs.filter(user__id=self.kwargs["user_id"])
-        return NotificationSettings.objects.none
+        return NotificationSettings.objects.none()
 
 
 class ReportViewSet(viewsets.GenericViewSet):
