@@ -44,7 +44,8 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         (
             ProjectUser,
             "user_id",
-        )
+        ),
+        (Project, "project_id"),
     ]
 
     def get_permissions(self):
@@ -66,12 +67,6 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             qs = (qs | Review.objects.filter(reviewer=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(project=self.kwargs["project_id"])
         elif "user_id" in self.kwargs:
             qs = qs.filter(reviewer__id=self.kwargs["user_id"])
@@ -91,7 +86,8 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         (
             ProjectUser,
             "user_id",
-        )
+        ),
+        (Project, "project_id"),
     ]
 
     def get_permissions(self):
@@ -112,12 +108,6 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         if self.request.user.is_authenticated:
             qs = (qs | Follow.objects.filter(follower=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(project=self.kwargs["project_id"])
         elif "user_id" in self.kwargs:
             qs = qs.filter(follower__id=self.kwargs["user_id"])
@@ -173,6 +163,9 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "comment")
@@ -192,12 +185,6 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
             qs = qs.exclude(
@@ -207,12 +194,6 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return qs.select_related("author").prefetch_related("replies")
 
     def create(self, request, *args, **kwargs):
-
-        # TODO : handle with MultipleIDViewsetMixin
-        project = Project.objects.filter(slug=self.kwargs["project_id"])
-        if project.exists():
-            self.kwargs["project_id"] = project.get().id
-
         get_object_or_404(
             self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
         )
@@ -237,6 +218,10 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
+
     def get_permissions(self):
         """
         Permissions are handled differently here because contrary to other
@@ -262,12 +247,6 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
         if self.request.user.is_authenticated:
             qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(comments__project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
             qs = qs.exclude(
@@ -277,12 +256,6 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return qs
 
     def create(self, request, *args, **kwargs):
-
-        # TODO : handle with MultipleIDViewsetMixin
-        project = Project.objects.filter(slug=self.kwargs["project_id"])
-        if project.exists():
-            self.kwargs["project_id"] = project.get().id
-
         get_object_or_404(
             self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
         )

@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 
 from apps.commons.db.abc import HasMultipleIDs
@@ -44,3 +45,15 @@ class MultipleIDViewsetMixin:
                 else:
                     kwargs[field] = model.get_main_id(lookup_value)
         return super().dispatch(request, *args, **kwargs)
+
+
+class DetailOnlyViewsetMixin:
+    def get_object(self):
+        """
+        Retrieve the object within the QuerySet.
+        There should be only one object in the QuerySet.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        obj = get_object_or_404(queryset)
+        self.check_object_permissions(self.request, obj)
+        return obj

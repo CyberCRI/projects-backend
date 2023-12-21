@@ -66,7 +66,7 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         (
             ProjectUser,
             "user_id",
-        )
+        ),
     ]
 
     def get_queryset(self):

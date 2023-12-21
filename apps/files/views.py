@@ -40,16 +40,11 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(AttachmentLink.objects)
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             return qs.filter(project=self.kwargs["project_id"])
         return qs
 
@@ -67,16 +62,11 @@ class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(AttachmentFile.objects)
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             return qs.filter(project=self.kwargs["project_id"])
         return qs
 

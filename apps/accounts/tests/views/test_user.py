@@ -936,13 +936,13 @@ class MiscUserTestCase(JwtAPITestCase):
         given_name = str(faker.pyint())
         family_name = ""
         user = UserFactory(given_name=given_name, family_name=family_name)
-        assert user.slug == f"{given_name}-1"
+        assert user.slug == f"user-{given_name}"
 
     def test_uuid_slug(self):
         given_name = str(faker.uuid4())
         family_name = ""
         user = UserFactory(given_name=given_name, family_name=family_name)
-        assert user.slug == f"{given_name}-1"
+        assert user.slug == f"user-{given_name}"
 
     def test_multiple_lookups(self):
         user = UserFactory()

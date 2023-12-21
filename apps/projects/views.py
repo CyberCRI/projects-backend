@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, When
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -71,6 +71,12 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ordering_fields = ["created_at", "updated_at"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    multiple_lookup_fields = [
+        (
+            Project,
+            "id",
+        ),
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "project")
@@ -112,13 +118,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             "categories",
             organizations,
         )
-
-    def get_object(self):
-        # Allow retrieval of project using slug
-        obj = Project.objects.filter(slug=self.kwargs["id"]).first()
-        if obj:
-            self.kwargs["id"] = obj.id
-        return super().get_object()
 
     def get_serializer_class(self):
         is_summary = (
@@ -542,21 +541,11 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
-            project = Project.objects.get(id=self.kwargs["project_id"])
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(project_header=project)
-            return Image.objects.filter(
-                Q(project_header=project) | Q(owner=self.request.user)
-            ).distinct()
+            return Image.objects.filter(project_header__id=self.kwargs["project_id"])
         return Image.objects.none
 
     @staticmethod
@@ -565,12 +554,6 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
 
     def add_image_to_model(self, image):
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             project = Project.objects.get(id=self.kwargs["project_id"])
             project.header_image = image
             project.save()
@@ -587,21 +570,16 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
-            project = Project.objects.get(id=self.kwargs["project_id"])
+            queryset = Image.objects.filter(
+                projects__id=self.kwargs["project_id"],
+            )
             if self.request.user.is_anonymous:
-                return Image.objects.filter(projects=project)
-            return Image.objects.filter(
-                Q(projects=project) | Q(owner=self.request.user)
-            ).distinct()
+                return queryset
+            return (queryset | Image.objects.filter(owner=self.request.user)).distinct()
         return Image.objects.none
 
     @staticmethod
@@ -614,12 +592,6 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def add_image_to_model(self, image, *args, **kwargs):
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             project = Project.objects.get(id=self.kwargs["project_id"])
             project.images.add(image)
             project.save()
@@ -639,16 +611,11 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(BlogEntry.objects)
+        qs = self.request.user.get_project_related_queryset(BlogEntry.objects.all())
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(project=self.kwargs["project_id"])
         return qs.prefetch_related("images")
 
@@ -666,22 +633,16 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
-            project = Project.objects.get(id=self.kwargs["project_id"])
+            queryset = Image.objects.filter(
+                blog_entries__project__id=self.kwargs["project_id"],
+            )
             if self.request.user.is_anonymous:
-                return Image.objects.filter(blog_entries__in=project.blog_entries.all())
-            return Image.objects.filter(
-                Q(blog_entries__in=project.blog_entries.all())
-                | Q(owner=self.request.user)
-            ).distinct()
+                return queryset
+            return (queryset | Image.objects.filter(owner=self.request.user)).distinct()
         return Image.objects.none
 
     @staticmethod
@@ -712,16 +673,11 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         qs = self.request.user.get_project_related_queryset(Location.objects)
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(project=self.kwargs["project_id"])
         return qs.select_related("project")
 
@@ -744,6 +700,7 @@ class ReadLocationViewSet(LocationViewSet):
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -751,11 +708,10 @@ class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelVie
         return ProjectVersionSerializer
 
     def get_queryset(self) -> QuerySet:
-        project = Project.objects.get(
-            Q(slug=self.kwargs["project_id"]) | Q(id=self.kwargs["project_id"])
-        )
+        projects = self.request.user.get_project_queryset()
+        if "project_id" in self.kwargs:
+            project = get_object_or_404(projects, id=self.kwargs["project_id"])
         return apps.get_model("projects", "HistoricalProject").objects.filter(
-            history_relation__in=self.request.user.get_project_queryset(),
             history_relation=project,
             history_change_reason__isnull=False,
         )
@@ -773,12 +729,15 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        queryset = LinkedProject.objects.all()
-        return self.request.user.get_project_related_queryset(
-            queryset, project_related_name="target"
+        queryset = self.request.user.get_project_related_queryset(
+            LinkedProject.objects.all(), project_related_name="target"
         )
+        if "project_id" in self.kwargs:
+            queryset = queryset.filter(target__id=self.kwargs["project_id"])
+        return queryset
 
     def check_linked_project_permission(self, project):
         if not self.request.user.can_see_project(project):
@@ -786,12 +745,6 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
-
-        # TODO : handle with MultipleIDViewsetMixin
-        project = Project.objects.filter(slug=self.kwargs["project_id"])
-        if project.exists():
-            self.kwargs["project_id"] = project.get().id
-
         project = Project.objects.get(id=self.kwargs["project_id"])
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_create(serializer)
@@ -807,12 +760,6 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
-
-        # TODO : handle with MultipleIDViewsetMixin
-        project = Project.objects.filter(slug=self.kwargs["project_id"])
-        if project.exists():
-            self.kwargs["project_id"] = project.get().id
-
         project = Project.objects.get(id=self.kwargs["project_id"])
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
@@ -837,9 +784,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def add_many(self, request, *args, **kwargs):
         """Link projects to a given project."""
-        project = Project.objects.get(
-            Q(id=self.kwargs["project_id"]) | Q(slug=self.kwargs["project_id"])
-        )
+        project = Project.objects.get(id=self.kwargs["project_id"])
         serializer = ProjectAddLinkedProjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         with transaction.atomic():
@@ -884,9 +829,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def delete_many(self, request, *args, **kwargs):
         """Unlink projects from another projects."""
-        project = Project.objects.get(
-            Q(id=self.kwargs["project_id"]) | Q(slug=self.kwargs["project_id"])
-        )
+        project = Project.objects.get(id=self.kwargs["project_id"])
         serializer = ProjectRemoveLinkedProjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

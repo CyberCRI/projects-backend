@@ -30,7 +30,7 @@ from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.serializers.serializers import EmailSerializer
 from apps.commons.utils.permissions import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
@@ -130,7 +130,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         (
             ProjectUser,
             "id",
-        )
+        ),
     ]
 
     def get_permissions(self):
@@ -197,13 +197,6 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 ),
             )
         return queryset
-
-    def get_object(self):
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        self.kwargs[lookup_url_kwarg] = ProjectUser.get_main_id(
-            self.kwargs[lookup_url_kwarg]
-        )
-        return super().get_object()
 
     def get_serializer_class(self):
         if self.action in ["list", "admin_list"]:
@@ -467,13 +460,12 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         DjangoFilterBackend,
         OrderingFilter,
     )
-
-    def get_object(self):
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        obj = PeopleGroup.objects.filter(slug=self.kwargs[lookup_url_kwarg])
-        if obj.exists():
-            self.kwargs[lookup_url_kwarg] = obj.get().id
-        return super().get_object()
+    multiple_lookup_fields = [
+        (
+            PeopleGroup,
+            "id",
+        ),
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "peoplegroup")
@@ -785,7 +777,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
 
 
-class PeopleGroupHeaderView(MultipleIDViewsetMixin, ImageStorageView):
+class PeopleGroupHeaderView(
+    MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -796,32 +790,21 @@ class PeopleGroupHeaderView(MultipleIDViewsetMixin, ImageStorageView):
     ]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-
-    def get_object(self):
-        """
-        Retrieve the object within the QuerySet.
-        There should be only one Image in the QuerySet.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset)
-        self.check_object_permissions(self.request, obj)
-        return obj
+    multiple_lookup_fields = [
+        (
+            PeopleGroup,
+            "people_group_id",
+        ),
+    ]
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+            return Image.objects.filter(
+                people_group_header__id=self.kwargs["people_group_id"],
+                people_group_header__organization__code=self.kwargs[
+                    "organization_code"
+                ],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(
-                organization__code=self.kwargs["organization_code"],
-                id=self.kwargs["people_group_id"],
-            )
-            return Image.objects.filter(people_group_header=people_group)
         return Image.objects.none
 
     @staticmethod
@@ -829,23 +812,20 @@ class PeopleGroupHeaderView(MultipleIDViewsetMixin, ImageStorageView):
         return f"people_group/header/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "people_group_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
+            people_group = PeopleGroup.objects.get(
+                organization__code=self.kwargs["organization_code"],
+                id=self.kwargs["people_group_id"],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(id=self.kwargs["people_group_id"])
             people_group.header_image = image
             people_group.save()
-            return f"/v1/people-group/{self.kwargs['people_group_id']}/header"
+            return f"/v1/people-group/{people_group.id}/header"
         return None
 
 
-class PeopleGroupLogoView(MultipleIDViewsetMixin, ImageStorageView):
+class PeopleGroupLogoView(
+    MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -856,32 +836,19 @@ class PeopleGroupLogoView(MultipleIDViewsetMixin, ImageStorageView):
     ]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-
-    def get_object(self):
-        """
-        Retrieve the object within the QuerySet.
-        There should be only one Image in the QuerySet.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset)
-        self.check_object_permissions(self.request, obj)
-        return obj
+    multiple_lookup_fields = [
+        (
+            PeopleGroup,
+            "people_group_id",
+        ),
+    ]
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+            return Image.objects.filter(
+                people_group_logo__id=self.kwargs["people_group_id"],
+                people_group_logo__organization__code=self.kwargs["organization_code"],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(
-                organization__code=self.kwargs["organization_code"],
-                id=self.kwargs["people_group_id"],
-            )
-            return Image.objects.filter(people_group_logo=people_group)
         return Image.objects.none
 
     @staticmethod
@@ -889,19 +856,14 @@ class PeopleGroupLogoView(MultipleIDViewsetMixin, ImageStorageView):
         return f"people_group/logo/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "people_group_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
+            people_group = PeopleGroup.objects.get(
+                organization__code=self.kwargs["organization_code"],
+                id=self.kwargs["people_group_id"],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(id=self.kwargs["people_group_id"])
             people_group.logo_image = image
             people_group.save()
-            return f"/v1/people_group/{self.kwargs['people_group_id']}/logo"
+            return f"/v1/people-group/{people_group.id}/logo"
         return None
 
 
@@ -951,7 +913,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         (
             ProjectUser,
             "user_id",
-        )
+        ),
     ]
 
     def get_queryset(self):
@@ -969,9 +931,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
 
     def add_image_to_model(self, image):
         if "user_id" in self.kwargs:
-            user = get_object_or_404(
-                ProjectUser.objects.all(), id=self.kwargs["user_id"]
-            )
+            user = ProjectUser.objects.get(id=self.kwargs["user_id"])
             user.profile_picture = image
             user.save()
             image.owner = user
@@ -997,7 +957,7 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
         (
             ProjectUser,
             "user_id",
-        )
+        ),
     ]
 
     def get_queryset(self):
