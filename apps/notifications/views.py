@@ -63,10 +63,7 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         | HasOrganizationPermission("change_projectuser"),
     ]
     multiple_lookup_fields = [
-        (
-            ProjectUser,
-            "user_id",
-        ),
+        (ProjectUser, "user_id"),
     ]
 
     def get_queryset(self):

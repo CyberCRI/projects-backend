@@ -40,7 +40,9 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(AttachmentLink.objects)
@@ -62,7 +64,9 @@ class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(AttachmentFile.objects)

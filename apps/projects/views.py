@@ -72,10 +72,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [
-        (
-            Project,
-            "id",
-        ),
+        (Project, "project_id"),
     ]
 
     def get_permissions(self):
@@ -541,7 +538,9 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -570,7 +569,9 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -611,7 +612,9 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(BlogEntry.objects.all())
@@ -633,7 +636,9 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -673,7 +678,9 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
         qs = self.request.user.get_project_related_queryset(Location.objects)
@@ -700,7 +707,9 @@ class ReadLocationViewSet(LocationViewSet):
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -729,7 +738,9 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
         queryset = self.request.user.get_project_related_queryset(

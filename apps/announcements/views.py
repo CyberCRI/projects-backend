@@ -36,7 +36,9 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [(Project, "project_id")]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
         qs = Announcement.objects.filter(project__deleted_at__isnull=True)

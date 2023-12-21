@@ -127,10 +127,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         "created_at",
     ]
     multiple_lookup_fields = [
-        (
-            ProjectUser,
-            "id",
-        ),
+        (ProjectUser, "id"),
     ]
 
     def get_permissions(self):
@@ -461,10 +458,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         OrderingFilter,
     )
     multiple_lookup_fields = [
-        (
-            PeopleGroup,
-            "id",
-        ),
+        (PeopleGroup, "id"),
     ]
 
     def get_permissions(self):
@@ -791,10 +785,7 @@ class PeopleGroupHeaderView(
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [
-        (
-            PeopleGroup,
-            "people_group_id",
-        ),
+        (PeopleGroup, "people_group_id"),
     ]
 
     def get_queryset(self):
@@ -837,10 +828,7 @@ class PeopleGroupLogoView(
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [
-        (
-            PeopleGroup,
-            "people_group_id",
-        ),
+        (PeopleGroup, "people_group_id"),
     ]
 
     def get_queryset(self):
@@ -910,10 +898,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_projectuser"),
     ]
     multiple_lookup_fields = [
-        (
-            ProjectUser,
-            "user_id",
-        ),
+        (ProjectUser, "user_id"),
     ]
 
     def get_queryset(self):
@@ -954,10 +939,7 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
     multiple_lookup_fields = [
-        (
-            ProjectUser,
-            "user_id",
-        ),
+        (ProjectUser, "user_id"),
     ]
 
     def get_queryset(self):
