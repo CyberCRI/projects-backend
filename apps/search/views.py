@@ -12,7 +12,6 @@ from rest_framework.settings import api_settings
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
-from apps.accounts.utils import process_multiple_users_ids_list
 from apps.commons.db.functions import ArrayPosition
 from apps.commons.views import ListViewSet
 from apps.organizations.models import Organization

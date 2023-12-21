@@ -4,9 +4,8 @@ from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.views import MultipleIDViewsetMixin
-from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission

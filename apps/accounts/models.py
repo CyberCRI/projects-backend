@@ -1,7 +1,6 @@
 import uuid
 from datetime import date
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
-import uuid
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission

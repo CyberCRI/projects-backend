@@ -3,7 +3,6 @@ from urllib.request import Request
 
 from django.conf import settings
 from django.db import transaction
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -12,7 +11,6 @@ from rest_framework.response import Response
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.utils import get_user_id_field
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.serializers.serializers import RetrieveUpdateModelViewSet
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
