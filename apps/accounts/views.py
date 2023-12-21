@@ -903,7 +903,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
-            return Image.objects.filter(user_id=self.kwargs["user_id"])
+            return Image.objects.filter(user=self.kwargs["user_id"])
         return Image.objects.none()
 
     @staticmethod

@@ -55,7 +55,7 @@ class InvitationViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         if "organization_code" in self.kwargs:
             return Invitation.objects.filter(
-                organization__code=self.kwargs("organization_code")
+                organization__code=self.kwargs["organization_code"]
             )
         return Invitation.objects.none()
 

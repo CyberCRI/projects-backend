@@ -14,7 +14,7 @@ from apps.projects.models import Project
 faker = Faker()
 
 
-class RetrieveCommentTestCase(JwtAPITestCase):
+class ListCommentTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

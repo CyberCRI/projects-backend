@@ -72,7 +72,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [
-        (Project, "project_id"),
+        (Project, "id"),
     ]
 
     def get_permissions(self):
@@ -576,14 +576,11 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(projects__id=self.kwargs["project_id"]),
+                Image.objects.filter(projects=self.kwargs["project_id"]),
                 project_related_name="projects",
             )
             # Retrieve images before project is posted
-            if self.request.user.is_authenticated and self.action in [
-                "retrieve",
-                "list",
-            ]:
+            if self.request.user.is_authenticated:
                 qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
             return qs
         return Image.objects.none()
@@ -653,13 +650,10 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 Image.objects.filter(
                     blog_entries__project__id=self.kwargs["project_id"]
                 ),
-                project_related_name="blog_entries",
+                project_related_name="blog_entries__project",
             )
             # Retrieve images before blog entry is posted
-            if self.request.user.is_authenticated and self.action in [
-                "retrieve",
-                "list",
-            ]:
+            if self.request.user.is_authenticated:
                 qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
             return qs
         return Image.objects.none()

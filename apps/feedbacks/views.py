@@ -61,6 +61,8 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Review.objects.all())
+        if self.request.user.is_authenticated:
+            qs = (qs | Review.objects.filter(reviewer=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             return qs.filter(project=self.kwargs["project_id"]).select_related(
                 "reviewer"
@@ -101,6 +103,8 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Follow.objects.all())
+        if self.request.user.is_authenticated:
+            qs = (qs | Follow.objects.filter(follower=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             return qs.filter(project=self.kwargs["project_id"]).select_related(
                 "follower"
@@ -180,6 +184,8 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         qs = self.request.user.get_project_related_queryset(Comment.objects.all())
+        if self.request.user.is_authenticated:
+            qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
@@ -243,10 +249,7 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 project_related_name="comments__project",
             )
             # Retrieve images before comment is posted
-            if self.request.user.is_authenticated and self.action in [
-                "retrieve",
-                "list",
-            ]:
+            if self.request.user.is_authenticated:
                 qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
             return qs
         return Image.objects.none()
