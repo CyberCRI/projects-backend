@@ -38,7 +38,6 @@ class Follow(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
     follower = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        to_field="keycloak_id",
         related_name="follows",
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -120,8 +119,7 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
     author = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        to_field="keycloak_id",
-        related_name="+",
+        related_name="comments",
     )
     reply_on = models.ForeignKey(
         "self",
@@ -209,7 +207,7 @@ class Review(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         "projects.Project", on_delete=models.CASCADE, related_name="reviews"
     )
     reviewer = models.ForeignKey(
-        "accounts.ProjectUser", on_delete=models.CASCADE, to_field="keycloak_id"
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="reviews"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

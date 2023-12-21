@@ -7,8 +7,9 @@ from django.db import transaction
 from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.urls import path
+from django.urls import path, reverse
 from django.utils.html import format_html
+from django.utils.safestring import mark_safe
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.tasks import batch_create_users
@@ -94,15 +95,36 @@ class UserCSVImportMixin:
 
 class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
     change_list_template = "admin/users_changelist.html"
-    list_display = ("keycloak_id", "email", "given_name", "family_name", "last_login")
-    search_fields = ("keycloak_id", "people_id", "email", "given_name", "family_name")
+    list_display = (
+        "id",
+        "keycloak_account_link",
+        "email",
+        "given_name",
+        "family_name",
+        "last_login",
+    )
+
+    search_fields = ("email", "given_name", "family_name")
     exclude = ("user_permissions",)
     filter_horizontal = ("groups",)
     actions = ["create_email_for_users"]
     list_filter = (
         "type",
         "last_login",
+        ("keycloak_account", admin.EmptyFieldListFilter),
     )
+
+    def keycloak_account_link(self, obj):
+        if hasattr(obj, "keycloak_account"):
+            admin_page = reverse(
+                "admin:keycloak_keycloakaccount_change", args=(obj.keycloak_account.pk,)
+            )
+            return mark_safe(
+                f'<a href="{admin_page}">{obj.keycloak_account}</a>'
+            )  # nosec
+        return None
+
+    keycloak_account_link.short_description = "Keycloak account"
 
     def get_actions(self, request):
         actions = super().get_actions(request)
@@ -116,11 +138,13 @@ class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
     @transaction.atomic
     def save_model(self, request, obj, form, change) -> None:
         super().save_model(request, obj, form, change)
-        KeycloakService.update_user(obj)
+        if hasattr(obj, "keycloak_account"):
+            KeycloakService.update_user(obj.keycloak_account)
 
     @transaction.atomic
     def delete_model(self, request, obj) -> None:
-        KeycloakService.delete_user(obj)
+        if hasattr(obj, "keycloak_account"):
+            KeycloakService.delete_user(obj.keycloak_account)
         return super().delete_model(request, obj)
 
     def get_urls(self):

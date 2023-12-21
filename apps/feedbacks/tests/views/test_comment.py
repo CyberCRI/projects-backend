@@ -14,7 +14,7 @@ from apps.projects.models import Project
 faker = Faker()
 
 
-class RetrieveCommentTestCase(JwtAPITestCase):
+class ListCommentTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -253,7 +253,7 @@ class DeleteCommentTestCase(JwtAPITestCase):
         assert response.status_code == expected_code
         if expected_code == status.HTTP_204_NO_CONTENT:
             response = self.client.get(
-                reverse("Comment-list", kwargs={"project_id": self.project.id})
+                reverse("Comment-list", args=(self.project.id,)),
             )
             assert response.status_code == status.HTTP_200_OK
             content = response.json()["results"]

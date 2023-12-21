@@ -1,14 +1,13 @@
-import json
 import uuid
 
 from django.conf import settings
-from django.contrib.auth.models import Group
 from django.db import transaction
-from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
+from django.db.models import Case, Prefetch, QuerySet, Value, When
 from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import translation
+from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiParameter,
@@ -31,6 +30,7 @@ from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, WillBeOwner
 from apps.commons.serializers.serializers import EmailSerializer
 from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
@@ -45,6 +45,7 @@ from services.google.tasks import (
     update_google_account,
     update_google_group,
 )
+from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
@@ -66,7 +67,7 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
-from .utils import get_permission_from_representation
+from .utils import account_sync_errors_handler, get_permission_from_representation
 
 
 class RetrieveUpdateModelViewSet(
@@ -96,10 +97,12 @@ class ReadUpdateModelViewSet(
     """
 
 
-class UserViewSet(viewsets.ModelViewSet):
+class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = UserSerializer
-    lookup_field = "keycloak_id"
-    lookup_value_regex = "([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_@.-]+)"
+    lookup_field = "id"
+    lookup_value_regex = (
+        "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9-]{1,}"
+    )
     search_fields = [
         "given_name",
         "family_name",
@@ -122,6 +125,9 @@ class UserViewSet(viewsets.ModelViewSet):
         "password_created",
         "last_login",
         "created_at",
+    ]
+    multiple_lookup_fields = [
+        (ProjectUser, "id"),
     ]
 
     def get_permissions(self):
@@ -173,29 +179,21 @@ class UserViewSet(viewsets.ModelViewSet):
             ]
             queryset = queryset.annotate(
                 email_verified=Case(
-                    When(keycloak_id__in=email_verified, then=Value(True)),
+                    When(
+                        keycloak_account__keycloak_id__in=email_verified,
+                        then=Value(True),
+                    ),
                     default=Value(False),
                 ),
                 password_created=Case(
-                    When(keycloak_id__in=password_created, then=Value(True)),
+                    When(
+                        keycloak_account__keycloak_id__in=password_created,
+                        then=Value(True),
+                    ),
                     default=Value(False),
                 ),
             )
         return queryset
-
-    def get_object(self):
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        try:
-            obj = ProjectUser.objects.filter(slug=self.kwargs[lookup_url_kwarg])
-            if obj.exists():
-                self.kwargs[lookup_url_kwarg] = obj.get().keycloak_id
-            return super().get_object()
-        except Http404:
-            if not ProjectUser.objects.filter(
-                **{self.lookup_field: self.kwargs[lookup_url_kwarg]}
-            ).exists():
-                return KeycloakService.import_user(self.kwargs[self.lookup_field])
-            raise Http404()
 
     def get_serializer_class(self):
         if self.action in ["list", "admin_list"]:
@@ -298,43 +296,17 @@ class UserViewSet(viewsets.ModelViewSet):
         elif not create_in_google and exists_in_google:
             update_google_account(instance, organizational_unit)
         instance.refresh_from_db()
+        return instance
 
+    @method_decorator(
+        account_sync_errors_handler(
+            keycloak_error=(KeycloakPostError, KeycloakPutError)
+        )
+    )
     def create(self, request, *args, **kwargs):
-        try:
-            data = request.data.copy()
-            # If no language is provided, use the organization's language
-            organization_groups = Group.objects.filter(
-                organizations__isnull=False,
-                name__in=data.get("roles_to_add", []),
-            )
-            if organization_groups.exists() and "language" not in data.keys():
-                group = organization_groups.first()
-                organization = group.organizations.first()
-                data["language"] = organization.language
-            # Create user in keycloak and redirect to the organization portal
-            data["keycloak_id"] = KeycloakService.create_user(data)
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            instance = self.perform_create(serializer)
-            self.google_sync(instance, self.request.data, True)
-            headers = self.get_success_headers(serializer.data)
-            return Response(
-                serializer.data, status=status.HTTP_201_CREATED, headers=headers
-            )
-        except (KeycloakPostError, KeycloakPutError) as e:
-            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
-            return Response(
-                {"error": f"An error occured in Keycloak : {keycloak_error}"},
-                status=e.response_code,
-            )
-        except HttpError as e:
-            return Response(
-                {
-                    "error": f"User was created but an error occured in Google : {e.reason}"
-                },
-                status=e.status_code,
-            )
+        return super().create(request, *args, **kwargs)
 
+    @transaction.atomic
     def perform_create(self, serializer):
         if hasattr(self.request.user, "invitation"):
             invitation = self.request.user.invitation
@@ -347,64 +319,46 @@ class UserViewSet(viewsets.ModelViewSet):
                 else None,
             ]
             instance = serializer.save(groups=list(filter(lambda x: x, groups)))
-            KeycloakService.send_email(
-                user=instance,
-                email_type=KeycloakService.EmailType.INVITATION,
-                redirect_organization_code=invitation.organization.code,
-            )
-            return instance
-        instance = serializer.save()
-        KeycloakService.send_email(
-            user=instance,
-            email_type=KeycloakService.EmailType.ADMIN_CREATED,
-            redirect_organization_code=self.request.query_params.get(
+            email_type = KeycloakService.EmailType.INVITATION
+            redirect_organization_code = invitation.organization.code
+        else:
+            instance = serializer.save()
+            email_type = KeycloakService.EmailType.ADMIN_CREATED
+            redirect_organization_code = self.request.query_params.get(
                 "organization", "DEFAULT"
-            ),
+            )
+
+        instance = self.google_sync(instance, self.request.data, True)
+        keycloak_account = KeycloakService.create_user(
+            instance, self.request.data.get("password", None)
+        )
+        KeycloakService.send_email(
+            keycloak_account=keycloak_account,
+            email_type=email_type,
+            redirect_organization_code=redirect_organization_code,
         )
         return instance
 
+    @method_decorator(account_sync_errors_handler(keycloak_error=KeycloakDeleteError))
     def destroy(self, request, *args, **kwargs):
-        try:
-            instance = self.get_object()
-            suspend_google_account(instance)
-            with transaction.atomic():
-                response = super().destroy(request, *args, **kwargs)
-                KeycloakService.delete_user(instance)
-            return response
-        except KeycloakDeleteError as e:
-            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
-            return Response(
-                {"error": f"An error occured in Keycloak : {keycloak_error}"},
-                status=e.response_code,
-            )
-        except HttpError as e:
-            google_error = e.reason
-            return Response(
-                {"error": f"An error occured in Google : {google_error}"},
-                status=e.status_code,
-            )
+        return super().destroy(request, *args, **kwargs)
 
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        suspend_google_account(instance)
+        if hasattr(instance, "keycloak_account"):
+            KeycloakService.delete_user(instance.keycloak_account)
+        instance.delete()
+
+    @method_decorator(account_sync_errors_handler(keycloak_error=KeycloakPutError))
     def update(self, request, *args, **kwargs):
-        try:
-            return super().update(request, *args, **kwargs)
-        except KeycloakPutError as e:
-            keycloak_error = json.loads(e.response_body.decode()).get("errorMessage")
-            return Response(
-                {"error": f"An error occured in Keycloak : {keycloak_error}"},
-                status=e.response_code,
-            )
-        except HttpError as e:
-            return Response(
-                {
-                    "error": f"User was updated but an error occured in Google : {e.reason}"
-                },
-                status=e.status_code,
-            )
+        return super().update(request, *args, **kwargs)
 
+    @transaction.atomic
     def perform_update(self, serializer):
-        with transaction.atomic():
-            instance = serializer.save()
-            KeycloakService.update_user(instance)
+        instance = serializer.save()
+        if hasattr(instance, "keycloak_account"):
+            KeycloakService.update_user(instance.keycloak_account)
         self.google_sync(instance, self.request.data, False)
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
@@ -421,14 +375,18 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def force_reset_password(self, request, *args, **kwargs):
         user = self.get_object()
-        redirect_organization_code = request.query_params.get("organization", "DEFAULT")
-        KeycloakService.send_email(
-            user=user,
-            email_type=KeycloakService.EmailType.FORCE_RESET_PASSWORD,
-            actions=["UPDATE_PASSWORD"],
-            redirect_organization_code=redirect_organization_code,
-        )
-        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        if hasattr(user, "keycloak_account"):
+            redirect_organization_code = request.query_params.get(
+                "organization", "DEFAULT"
+            )
+            KeycloakService.send_email(
+                keycloak_account=user.keycloak_account,
+                email_type=KeycloakService.EmailType.FORCE_RESET_PASSWORD,
+                actions=["UPDATE_PASSWORD"],
+                redirect_organization_code=redirect_organization_code,
+            )
+            return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        raise KeycloakAccountNotFound()
 
     @extend_schema(request=EmailSerializer, responses={200: OpenApiTypes.OBJECT})
     @action(
@@ -466,8 +424,10 @@ class UserViewSet(viewsets.ModelViewSet):
             email_type = request.query_params.get("email_type", None)
             if not email_type:
                 raise EmailTypeMissingError()
+            if not hasattr(user, "keycloak_account"):
+                raise KeycloakAccountNotFound()
             email_sent = KeycloakService.send_email(
-                user=user,
+                keycloak_account=user.keycloak_account,
                 email_type=email_type,
                 redirect_organization_code=redirect_organization_code,
             )
@@ -486,7 +446,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 )
 
 
-class PeopleGroupViewSet(viewsets.ModelViewSet):
+class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     queryset = PeopleGroup.objects.all()
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
@@ -497,13 +457,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
         DjangoFilterBackend,
         OrderingFilter,
     )
-
-    def get_object(self):
-        lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
-        obj = PeopleGroup.objects.filter(slug=self.kwargs[lookup_url_kwarg])
-        if obj.exists():
-            self.kwargs[lookup_url_kwarg] = obj.get().id
-        return super().get_object()
+    multiple_lookup_fields = [
+        (PeopleGroup, "id"),
+    ]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "peoplegroup")
@@ -669,19 +625,19 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
     )
     def member(self, request, *args, **kwargs):
         group = self.get_object()
-        managers_ids = group.managers.all().values_list("keycloak_id", flat=True)
-        leaders_ids = group.leaders.all().values_list("keycloak_id", flat=True)
+        managers_ids = group.managers.all().values_list("id", flat=True)
+        leaders_ids = group.leaders.all().values_list("id", flat=True)
         queryset = (
             group.get_all_members()
             .distinct()
             .annotate(
                 is_leader=Case(
-                    When(keycloak_id__in=leaders_ids, then=True), default=Value(False)
+                    When(id__in=leaders_ids, then=True), default=Value(False)
                 )
             )
             .annotate(
                 is_manager=Case(
-                    When(keycloak_id__in=managers_ids, then=True), default=Value(False)
+                    When(id__in=managers_ids, then=True), default=Value(False)
                 )
             )
             .order_by("-is_leader", "-is_manager")
@@ -815,7 +771,9 @@ class PeopleGroupViewSet(viewsets.ModelViewSet):
         return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
 
 
-class PeopleGroupHeaderView(ImageStorageView):
+class PeopleGroupHeaderView(
+    MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -826,56 +784,39 @@ class PeopleGroupHeaderView(ImageStorageView):
     ]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-
-    def get_object(self):
-        """
-        Retrieve the object within the QuerySet.
-        There should be only one Image in the QuerySet.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset)
-        self.check_object_permissions(self.request, obj)
-        return obj
+    multiple_lookup_fields = [
+        (PeopleGroup, "people_group_id"),
+    ]
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+            return Image.objects.filter(
+                people_group_header__id=self.kwargs["people_group_id"],
+                people_group_header__organization__code=self.kwargs[
+                    "organization_code"
+                ],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(
-                organization__code=self.kwargs["organization_code"],
-                id=self.kwargs["people_group_id"],
-            )
-            return Image.objects.filter(people_group_header=people_group)
-        return Image.objects.none
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"people_group/header/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "people_group_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
+            people_group = PeopleGroup.objects.get(
+                organization__code=self.kwargs["organization_code"],
+                id=self.kwargs["people_group_id"],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(id=self.kwargs["people_group_id"])
             people_group.header_image = image
             people_group.save()
-            return f"/v1/people-group/{self.kwargs['people_group_id']}/header"
+            return f"/v1/people-group/{people_group.id}/header"
         return None
 
 
-class PeopleGroupLogoView(ImageStorageView):
+class PeopleGroupLogoView(
+    MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -886,52 +827,31 @@ class PeopleGroupLogoView(ImageStorageView):
     ]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-
-    def get_object(self):
-        """
-        Retrieve the object within the QuerySet.
-        There should be only one Image in the QuerySet.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        obj = get_object_or_404(queryset)
-        self.check_object_permissions(self.request, obj)
-        return obj
+    multiple_lookup_fields = [
+        (PeopleGroup, "people_group_id"),
+    ]
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+            return Image.objects.filter(
+                people_group_logo__id=self.kwargs["people_group_id"],
+                people_group_logo__organization__code=self.kwargs["organization_code"],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(
-                organization__code=self.kwargs["organization_code"],
-                id=self.kwargs["people_group_id"],
-            )
-            return Image.objects.filter(people_group_logo=people_group)
-        return Image.objects.none
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"people_group/logo/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "people_group_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            people_group = PeopleGroup.objects.filter(
-                slug=self.kwargs["people_group_id"]
+        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
+            people_group = PeopleGroup.objects.get(
+                organization__code=self.kwargs["organization_code"],
+                id=self.kwargs["people_group_id"],
             )
-            if people_group.exists():
-                self.kwargs["people_group_id"] = people_group.get().id
-
-            people_group = PeopleGroup.objects.get(id=self.kwargs["people_group_id"])
             people_group.logo_image = image
             people_group.save()
-            return f"/v1/people_group/{self.kwargs['people_group_id']}/logo"
+            return f"/v1/people-group/{people_group.id}/logo"
         return None
 
 
@@ -968,7 +888,7 @@ class DeleteCookieView(views.APIView):
         return response
 
 
-class UserProfilePictureView(ImageStorageView):
+class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -977,47 +897,31 @@ class UserProfilePictureView(ImageStorageView):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id"),
+    ]
 
     def get_queryset(self):
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            user = ProjectUser.objects.get(keycloak_id=self.kwargs["user_keycloak_id"])
-            if self.request.user.is_anonymous:
-                return Image.objects.filter(user=user)
-            return Image.objects.filter(
-                Q(user=user) | Q(owner=self.request.user)
-            ).distinct()
-        return Image.objects.none
+        if "user_id" in self.kwargs:
+            return Image.objects.filter(user=self.kwargs["user_id"])
+        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            user = ProjectUser.objects.get(keycloak_id=self.kwargs["user_keycloak_id"])
+        if "user_id" in self.kwargs:
+            user = ProjectUser.objects.get(id=self.kwargs["user_id"])
             user.profile_picture = image
             user.save()
             image.owner = user
             image.save()
-            return (
-                f"/v1/user/{self.kwargs['user_keycloak_id']}/profile-picture/{image.id}"
-            )
+            return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
         return None
 
 
-class PrivacySettingsViewSet(RetrieveUpdateModelViewSet):
+class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's privacy settings."""
 
     permission_classes = [
@@ -1029,19 +933,18 @@ class PrivacySettingsViewSet(RetrieveUpdateModelViewSet):
     ]
     serializer_class = PrivacySettingsSerializer
     lookup_field = "user_id"
-    lookup_url_kwarg = "user_keycloak_id"
+    lookup_url_kwarg = "user_id"
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id"),
+    ]
 
     def get_queryset(self):
-        qs = self.request.user.get_user_related_queryset(PrivacySettings.objects.all())
-        if "user_keycloak_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            user = ProjectUser.objects.filter(slug=self.kwargs["user_keycloak_id"])
-            if user.exists():
-                self.kwargs["user_keycloak_id"] = user.get().keycloak_id
-
-            return qs.filter(user__keycloak_id=self.kwargs["user_keycloak_id"])
-        return qs
+        if "user_id" in self.kwargs:
+            qs = self.request.user.get_user_related_queryset(
+                PrivacySettings.objects.all()
+            )
+            return qs.filter(user__id=self.kwargs["user_id"])
+        return PrivacySettings.objects.none()
 
 
 class AccessTokenView(APIView):

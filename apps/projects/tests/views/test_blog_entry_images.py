@@ -7,9 +7,9 @@ class ProjectBlogEntryImagesTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     list_view = "BlogEntry-images-list"
     detail_view = "BlogEntry-images-detail"
     field_name = "images"
-    base_permissions = ["projects.change_project"]
-    org_permissions = ["organizations.change_project"]
-    project_permissions = ["projects.change_project"]
+    base_permissions = ["projects.change_project", "projects.view_project"]
+    org_permissions = ["organizations.change_project", "organizations.view_project"]
+    project_permissions = ["projects.change_project", "projects.view_project"]
 
     # Tests for GET calls that should pass
     def test_get_public_project_images(self):
@@ -38,29 +38,33 @@ class ProjectBlogEntryImagesTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         self.assert_get_image(self.detail_view, self.field_name, blog_entry, **kwargs)
 
     def test_get_org_project_images_project_member(self):
-        _, user = self.create_project_member(self.project_permissions)
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
+        project, user = self.create_project_member(self.project_permissions)
+        project.publication_status = Project.PublicationStatus.ORG
+        project.save()
         blog_entry = BlogEntryFactory(project=project)
         kwargs = {"project_id": project.id}
         self.assert_get_image(self.detail_view, self.field_name, blog_entry, **kwargs)
 
     def test_get_private_project_images_project_member(self):
         project, _ = self.create_project_member(self.project_permissions)
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
+        project.publication_status = Project.PublicationStatus.PRIVATE
+        project.save()
         blog_entry = BlogEntryFactory(project=project)
         kwargs = {"project_id": project.id}
         self.assert_get_image(self.detail_view, self.field_name, blog_entry, **kwargs)
 
     def test_get_private_project_images_project_permission(self):
-        self.create_project_member(self.project_permissions)
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
+        project, _ = self.create_project_member(self.project_permissions)
+        project.publication_status = Project.PublicationStatus.PRIVATE
+        project.save()
         blog_entry = BlogEntryFactory(project=project)
         kwargs = {"project_id": project.id}
         self.assert_get_image(self.detail_view, self.field_name, blog_entry, **kwargs)
 
     def test_get_private_project_images_org_permission(self):
-        self.create_org_user(self.org_permissions)
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
+        project, _, _ = self.create_org_user(self.org_permissions)
+        project.publication_status = Project.PublicationStatus.PRIVATE
+        project.save()
         blog_entry = BlogEntryFactory(project=project)
         kwargs = {"project_id": project.id}
         self.assert_get_image(self.detail_view, self.field_name, blog_entry, **kwargs)

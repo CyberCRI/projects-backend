@@ -41,7 +41,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
             GoogleService.delete_user(google_account)
             try:
                 KeycloakService.get_user(user.keycloak_id)
-                KeycloakService.delete_user(user)
+                KeycloakService.delete_user(user.keycloak_account)
             except KeycloakGetError:
                 pass
         for google_group in GoogleGroup.objects.filter(

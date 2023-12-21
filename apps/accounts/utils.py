@@ -1,3 +1,4 @@
+import json
 from base64 import b64decode
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -7,11 +8,14 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm, get_group_perms
 from rest_framework import exceptions
 from rest_framework.request import Request
+from rest_framework.response import Response
 
 from apps.commons.db.abc import PermissionsSetupModel
+from keycloak import KeycloakError
 
 
 def decode_token(request: Request) -> Optional[Dict[str, Any]]:
@@ -128,3 +132,28 @@ def get_permission_from_representation(
 
 def default_onboarding_status():
     return {"show_welcome": True}
+
+
+def account_sync_errors_handler(
+    keycloak_error: Union[KeycloakError, Tuple[KeycloakError]] = KeycloakError,
+    google_error: HttpError = HttpError,
+):
+    def decorator(func):
+        def wrapper(request, *args, **kwargs):
+            try:
+                return func(request, *args, **kwargs)
+            except keycloak_error as e:
+                message = json.loads(e.response_body.decode()).get("errorMessage")
+                return Response(
+                    {"error": f"An error occured in Keycloak : {message}"},
+                    status=e.response_code,
+                )
+            except google_error as e:
+                return Response(
+                    {"error": f"An error occured in Google : {e.reason}"},
+                    status=e.status_code,
+                )
+
+        return wrapper
+
+    return decorator

@@ -89,14 +89,6 @@ class NotificationTaskManager:
         if (
             len(new_value) > 0
             and all(isinstance(d, dict) for d in new_value)
-            and all("keycloak_id" in d for d in new_value)
-        ):
-            return list(
-                {v["keycloak_id"]: v for v in current_value + new_value}.values()
-            )
-        if (
-            len(new_value) > 0
-            and all(isinstance(d, dict) for d in new_value)
             and all("id" in d for d in new_value)
         ):
             return list({v["id"]: v for v in current_value + new_value}.values())
@@ -361,15 +353,11 @@ class UpdateMembersNotificationManager(NotificationTaskManager):
     template_dir = "notifications/member_updated_other"
 
     def get_recipients(self) -> List[ProjectUser]:
-        keycloak_ids = [
-            self.sender.keycloak_id,
-            *[m["keycloak_id"] for m in self.base_context["modified_members"]],
+        ids = [
+            self.sender.id,
+            *[m["id"] for m in self.base_context["modified_members"]],
         ]
-        return (
-            self.project.get_all_members()
-            .exclude(keycloak_id__in=keycloak_ids)
-            .distinct()
-        )
+        return self.project.get_all_members().exclude(id__in=ids).distinct()
 
     def format_context_for_template(
         self, context: Dict[str, Any], language: str
@@ -391,10 +379,8 @@ class UpdatedMemberNotificationManager(NotificationTaskManager):
     send_immediately = (True,)
 
     def get_recipients(self) -> List[ProjectUser]:
-        keycloak_ids = [m["keycloak_id"] for m in self.base_context["modified_members"]]
-        return ProjectUser.objects.filter(keycloak_id__in=keycloak_ids).exclude(
-            id=self.sender.id
-        )
+        ids = [m["id"] for m in self.base_context["modified_members"]]
+        return ProjectUser.objects.filter(id__in=ids).exclude(id=self.sender.id)
 
     def format_context_for_template(
         self, context: Dict[str, Any], language: str
@@ -411,15 +397,11 @@ class AddMembersNotificationManager(NotificationTaskManager):
     template_dir = "notifications/member_added_other"
 
     def get_recipients(self) -> List[ProjectUser]:
-        keycloak_ids = [
-            self.sender.keycloak_id,
-            *[m["keycloak_id"] for m in self.base_context["new_members"]],
+        ids = [
+            self.sender.id,
+            *[m["id"] for m in self.base_context["new_members"]],
         ]
-        return (
-            self.project.get_all_members()
-            .exclude(keycloak_id__in=keycloak_ids)
-            .distinct()
-        )
+        return self.project.get_all_members().exclude(id__in=ids).distinct()
 
 
 class AddMemberNotificationManager(NotificationTaskManager):
@@ -429,10 +411,8 @@ class AddMemberNotificationManager(NotificationTaskManager):
     send_immediately = (True,)
 
     def get_recipients(self) -> List[ProjectUser]:
-        keycloak_ids = [m["keycloak_id"] for m in self.base_context["new_members"]]
-        return ProjectUser.objects.filter(keycloak_id__in=keycloak_ids).exclude(
-            id=self.sender.id
-        )
+        ids = [m["id"] for m in self.base_context["new_members"]]
+        return ProjectUser.objects.filter(id__in=ids).exclude(id=self.sender.id)
 
 
 class AddGroupMembersNotificationManager(NotificationTaskManager):
@@ -441,15 +421,10 @@ class AddGroupMembersNotificationManager(NotificationTaskManager):
     template_dir = "notifications/group_member_added_other"
 
     def get_recipients(self) -> List[ProjectUser]:
-        keycloak_ids = self.base_context["new_members"] + [
-            self.sender.keycloak_id,
+        ids = self.base_context["new_members"] + [
+            self.sender.id,
         ]
-
-        return (
-            self.project.get_all_members()
-            .exclude(keycloak_id__in=keycloak_ids)
-            .distinct()
-        )
+        return self.project.get_all_members().exclude(id__in=ids).distinct()
 
 
 class AddGroupMemberNotificationManager(NotificationTaskManager):
@@ -460,5 +435,5 @@ class AddGroupMemberNotificationManager(NotificationTaskManager):
 
     def get_recipients(self) -> List[ProjectUser]:
         return ProjectUser.objects.filter(
-            keycloak_id__in=self.base_context["new_members"]
+            id__in=self.base_context["new_members"]
         ).exclude(id=self.sender.id)

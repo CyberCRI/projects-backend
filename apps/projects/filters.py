@@ -4,7 +4,8 @@ from functools import reduce
 from django.db.models import Q
 from django_filters import rest_framework as filters
 
-from apps.commons.filters import MultiValueCharFilter, UUIDFilter
+from apps.accounts.models import ProjectUser
+from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
 from apps.organizations.utils import get_hierarchy_codes
 
 from .models import Location, Project
@@ -14,8 +15,8 @@ class ProjectFilterMixin(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
     languages = MultiValueCharFilter(field_name="language", lookup_expr="in")
     categories = MultiValueCharFilter(field_name="categories__id", lookup_expr="in")
-    members = UUIDFilter(
-        field_name="groups__users__keycloak_id", lookup_expr="in", distinct=True
+    members = UserMultipleIDFilter(
+        field_name="groups__users__id", lookup_expr="in", distinct=True
     )
     wikipedia_tags = MultiValueCharFilter(
         field_name="wikipedia_tags__wikipedia_qid", lookup_expr="in"
@@ -64,8 +65,9 @@ class ProjectFilter(ProjectFilterMixin):
         if "members" not in self.data:
             return queryset
         members = self.data["members"].split(",")
+        members = ProjectUser.get_main_ids(members)
         return queryset.filter(
-            Q(groups__users__keycloak_id__in=members)
+            Q(groups__users__id__in=members)
             & reduce(operator.or_, (Q(groups__name__contains=role) for role in value))
         ).distinct()
 

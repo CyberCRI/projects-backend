@@ -1,5 +1,3 @@
-import uuid
-
 import factory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
@@ -7,7 +5,10 @@ from guardian.shortcuts import assign_perm
 
 from apps.accounts.utils import get_default_group
 from apps.commons.factories import sdg_factory
-from services.keycloak.interface import KeycloakService
+from services.keycloak.factories import (
+    KeycloakAccountFactory,
+    RemoteKeycloakAccountFactory,
+)
 
 from .models import PeopleGroup, PrivacySettings, ProjectUser, Skill
 
@@ -15,9 +16,9 @@ faker = Faker()
 
 
 class UserFactory(factory.django.DjangoModelFactory):
-    keycloak_id = factory.Faker("uuid4")
+    id = factory.sequence(lambda n: n)
     people_id = factory.Faker("uuid4")
-    email = factory.Faker("email")
+    email = factory.Sequence(lambda n: f"seed_user_{n}@{faker.domain_name()}".lower())
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")
 
@@ -42,7 +43,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = ProjectUser
-        django_get_or_create = ("email", "keycloak_id")
+        django_get_or_create = ("email", "id")
 
     # https://factoryboy.readthedocs.io/en/stable/recipes.html#simple-many-to-many-relationship
     @factory.post_generation
@@ -70,53 +71,25 @@ class UserFactory(factory.django.DjangoModelFactory):
         self.privacy_settings.publication_status = publication_status
         self.privacy_settings.save()
 
+    @factory.post_generation
+    def keycloak_account(self, create, extracted, **kwargs):
+        if create:
+            KeycloakAccountFactory(
+                user=self,
+                username=self.email,
+                email=self.email,
+            )
+
 
 class SeedUserFactory(UserFactory):
-    email = factory.LazyAttribute(lambda x: f"{uuid.uuid4()}@example.org")
-
-    @factory.lazy_attribute
-    def keycloak_id(self):
-        keycloak_data = {
-            "email": self.email,
-            "username": self.email,
-            "enabled": True,
-            "firstName": self.given_name,
-            "lastName": self.family_name,
-            "attributes": {
-                "pid": [self.people_id],
-            },
-            "credentials": [
-                {
-                    "value": "password",
-                    "type": "password",
-                }
-            ],
-        }
-        return KeycloakService._create_user(keycloak_data)
-
-
-class KeycloakAccountFactory:
-    def __init__(self, groups=None):
-        self.pid = faker.uuid4()
-        self.username = f"{uuid.uuid4()}@example.org"
-        self.email = f"{uuid.uuid4()}@example.org"
-        self.first_name = faker.first_name()
-        self.last_name = faker.last_name()
-
-        keycloak_data = {
-            "email": self.email,
-            "username": self.username,
-            "enabled": True,
-            "firstName": self.first_name,
-            "lastName": self.last_name,
-            "attributes": {
-                "pid": [self.pid],
-            },
-        }
-        self.keycloak_id = KeycloakService._create_user(keycloak_data)
-        groups = groups if groups else []
-        for group in groups:
-            KeycloakService.add_user_to_keycloak_group(self.keycloak_id, group)
+    @factory.post_generation
+    def keycloak_account(self, create, extracted, **kwargs):
+        if create:
+            RemoteKeycloakAccountFactory(
+                user=self,
+                username=self.email,
+                email=self.email,
+            )
 
 
 class PeopleGroupFactory(factory.django.DjangoModelFactory):

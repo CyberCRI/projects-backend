@@ -150,7 +150,7 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
     owner = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        to_field="keycloak_id",
+        related_name="images",
         null=True,
     )
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-14 10:56+0000\n"
+"POT-Creation-Date: 2023-12-20 13:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/authentication.py:98
+#: apps/accounts/authentication.py:113
 msgid "Token contained no recognizable user identification"
 msgstr ""
 
-#: apps/accounts/authentication.py:105
+#: apps/accounts/authentication.py:120
 msgid "User is inactive"
 msgstr ""
 
-#: apps/accounts/authentication.py:117
+#: apps/accounts/authentication.py:132
 msgid "Invitation not found or expired"
 msgstr ""
 
@@ -36,19 +36,19 @@ msgid ""
 "invitation, reset_password"
 msgstr ""
 
-#: apps/accounts/models.py:119 apps/projects/models.py:147
+#: apps/accounts/models.py:125 apps/projects/models.py:150
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:553
+#: apps/accounts/models.py:604
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:554
+#: apps/accounts/models.py:605
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:555
+#: apps/accounts/models.py:606
 msgid "Public"
 msgstr ""
 
@@ -85,16 +85,16 @@ msgid ""
 "</div>\n"
 msgstr ""
 
-#: apps/commons/serializers/fields.py:19
+#: apps/commons/serializers/fields.py:23
 msgid "This field is required."
 msgstr ""
 
-#: apps/commons/serializers/fields.py:21
+#: apps/commons/serializers/fields.py:24
 #, python-brace-format
-msgid "Invalid keycloak_id \"{keycloak_id}\" - object does not exist."
+msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr ""
 
-#: apps/commons/serializers/fields.py:24
+#: apps/commons/serializers/fields.py:26
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
@@ -568,51 +568,51 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr ""
 
-#: apps/notifications/tasks.py:174
+#: apps/notifications/tasks.py:172
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:175
+#: apps/notifications/tasks.py:173
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:176
+#: apps/notifications/tasks.py:174
 msgid "reviewer"
 msgstr ""
 
-#: apps/notifications/utils.py:209
+#: apps/notifications/utils.py:201
 msgid " and "
 msgstr ""
 
-#: apps/projects/models.py:131
+#: apps/projects/models.py:134
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:140
+#: apps/projects/models.py:143
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:153
+#: apps/projects/models.py:156
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:164
+#: apps/projects/models.py:167
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:171
+#: apps/projects/models.py:174
 msgid "wikipedia tags"
 msgstr ""
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:177
 msgid "organizational tags"
 msgstr ""
 
-#: apps/projects/models.py:181
+#: apps/projects/models.py:184
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:187
+#: apps/projects/models.py:190
 msgid "main category"
 msgstr ""
 
@@ -634,6 +634,10 @@ msgstr ""
 
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
+msgstr ""
+
+#: services/keycloak/exceptions.py:7
+msgid "Given user does not have a keycloak account."
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:8

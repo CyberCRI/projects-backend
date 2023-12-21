@@ -40,10 +40,6 @@ class GoogleRetryErrorsTestCase(GoogleTestCase):
                 "services.google.models.GoogleAccount.create_alias",
             ),
             (
-                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-                "services.google.models.GoogleAccount.update_keycloak_username",
-            ),
-            (
                 GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
                 "services.google.models.GoogleAccount.sync_groups",
             ),
@@ -149,10 +145,6 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             (
                 GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
                 "services.google.interface.GoogleService.add_user_alias",
-            ),
-            (
-                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-                "services.keycloak.interface.KeycloakService.update_user",
             ),
             (
                 GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
@@ -287,10 +279,6 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
             (
                 GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
                 "services.google.interface.GoogleService.add_user_alias",
-            ),
-            (
-                GoogleSyncErrors.OnTaskChoices.KEYCLOAK_USERNAME,
-                "services.keycloak.interface.KeycloakService.update_user",
             ),
         ]
     )

@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
 from apps.commons.utils.cache import clear_cache_with_key, redis_cache_view
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.notifications.tasks import notify_new_announcement, notify_new_application
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
@@ -20,7 +21,7 @@ from .models import Announcement
 from .serializers import AnnouncementSerializer, ApplyToAnnouncementSerializer
 
 
-class AnnouncementViewSet(viewsets.ModelViewSet):
+class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
     filterset_class = AnnouncementFilter
     lookup_field = "id"
@@ -28,7 +29,6 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["updated_at"]
     ordering = ["updated_at"]
-    queryset = Announcement.objects.filter(project__deleted_at__isnull=True)
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -36,16 +36,13 @@ class AnnouncementViewSet(viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self):
-        qs = self.queryset
+        qs = Announcement.objects.filter(project__deleted_at__isnull=True)
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
             qs = qs.filter(project=self.kwargs["project_id"])
         return qs.select_related("project")
 

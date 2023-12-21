@@ -145,9 +145,7 @@ def send_notifications_reminder():
 def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
-    new_members = [
-        {"keycloak_id": str(ProjectUser.objects.get(pk=user_pk).keycloak_id)}
-    ]
+    new_members = [{"id": user_pk}]
     for manager in [AddMembersNotificationManager, AddMemberNotificationManager]:
         manager(
             sender, project, new_members=new_members
@@ -159,7 +157,7 @@ def _notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int):
     sender = ProjectUser.objects.get(pk=by_pk)
     people_group = PeopleGroup.objects.get(pk=group_id)
     people_group_data = PeopleGroupLightSerializer(people_group).data
-    new_members = [str(user.keycloak_id) for user in people_group.get_all_members()]
+    new_members = [user.id for user in people_group.get_all_members()]
     for manager in [
         AddGroupMembersNotificationManager,
         AddGroupMemberNotificationManager,
@@ -192,9 +190,7 @@ def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role:
 def _notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
-    deleted_members = [
-        {"keycloak_id": str(ProjectUser.objects.get(pk=user_pk).keycloak_id)}
-    ]
+    deleted_members = [{"id": user_pk}]
     manager = DeleteMembersNotificationManager(
         sender, project, deleted_members=deleted_members
     )

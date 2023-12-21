@@ -13,7 +13,7 @@ from apps.accounts.models import ProjectUser
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.commons.serializers.fields import (
     HiddenPrimaryKeyRelatedField,
-    KeycloakRelatedField,
+    UserMultipleIdRelatedField,
 )
 from apps.commons.utils.process_text import process_text
 from apps.files.models import Image
@@ -85,13 +85,13 @@ class OrganizationAddTeamMembersSerializer(serializers.Serializer):
     organization = HiddenPrimaryKeyRelatedField(
         required=False, write_only=True, queryset=Organization.objects.all()
     )
-    admins = KeycloakRelatedField(
+    admins = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
-    facilitators = KeycloakRelatedField(
+    facilitators = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
-    users = KeycloakRelatedField(
+    users = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
 
@@ -110,7 +110,7 @@ class OrganizationRemoveTeamMembersSerializer(serializers.Serializer):
     organization = HiddenPrimaryKeyRelatedField(
         required=False, write_only=True, queryset=Organization.objects.all()
     )
-    users = KeycloakRelatedField(
+    users = UserMultipleIdRelatedField(
         many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
     )
 

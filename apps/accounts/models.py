@@ -1,5 +1,6 @@
+import uuid
 from datetime import date
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -19,7 +20,12 @@ from apps.accounts.utils import (
     get_group_permissions,
     get_superadmins_group,
 )
-from apps.commons.db.abc import HasOwner, OrganizationRelated, PermissionsSetupModel
+from apps.commons.db.abc import (
+    HasMultipleIDs,
+    HasOwner,
+    OrganizationRelated,
+    PermissionsSetupModel,
+)
 from apps.misc.models import SDG, Language, WikipediaTag
 from apps.projects.models import Project
 
@@ -27,7 +33,7 @@ if TYPE_CHECKING:
     from apps.organizations.models import Organization
 
 
-class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
+class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     """
     A group of users.
     This model is used to group people together, for example to display them on a page.
@@ -127,6 +133,15 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
 
     def __str__(self) -> str:
         return str(self.name)
+
+    @classmethod
+    def get_id_field_name(cls, object_id: Any) -> str:
+        """Get the name of the field which contains the given ID."""
+        try:
+            int(object_id)
+            return "id"
+        except ValueError:
+            return "slug"
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
@@ -257,6 +272,11 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
             if name == "":
                 name = self.type or "group"
             raw_slug = slugify(name[0:46])
+            try:
+                int(raw_slug)
+                raw_slug = f"group-{raw_slug}"  # Prevent clashes with IDs
+            except ValueError:
+                pass
             slug = raw_slug
             same_slug_count = 0
             while PeopleGroup.objects.filter(slug=slug).exists():
@@ -280,7 +300,7 @@ class PeopleGroup(PermissionsSetupModel, OrganizationRelated):
         ]
 
 
-class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
+class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     """
     Override Django base user by a user of projects app
     """
@@ -298,13 +318,9 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
     last_name = None
     date_joined = None
     password = None
-    USERNAME_FIELD = "keycloak_id"
+    USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    # Functional fields
-    keycloak_id = models.UUIDField(
-        auto_created=False, unique=True, help_text="id of user in keycloak"
-    )
     people_id = models.UUIDField(
         auto_created=False, unique=True, null=True, help_text="id of user in people"
     )
@@ -313,7 +329,7 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         blank=True,
         help_text="id of user in their organization",
     )
-    email = models.CharField(max_length=255)
+    email = models.CharField(max_length=255, unique=True)
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(unique=True)
@@ -366,6 +382,12 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         return self.get_full_name()
 
     @property
+    def keycloak_id(self):
+        if hasattr(self, "keycloak_account"):
+            return str(self.keycloak_account.keycloak_id)
+        return None
+
+    @property
     def is_superuser(self):
         """
         Return True if user is in the superadmins group
@@ -378,6 +400,19 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         Needs to return True if user can access admin site
         """
         return self.is_superuser
+
+    @classmethod
+    def get_id_field_name(cls, object_id: Any) -> str:
+        """Get the name of the field which contains the given ID."""
+        try:
+            uuid.UUID(object_id)
+            return "keycloak_account__keycloak_id"
+        except (ValueError, AttributeError):
+            try:
+                int(object_id)
+                return "id"
+            except ValueError:
+                return "slug"
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
@@ -529,11 +564,27 @@ class ProjectUser(AbstractUser, HasOwner, OrganizationRelated):
         return list(set(groups_permissions))
 
     def get_slug(self) -> str:
+        """
+        Generates a unique slug for the user based on their first and last names.
+        If the generated slug already exists, a numerical suffix is appended for uniqueness.
+        If the slug is purely numerical, "-1" is appended to prevent clashes with IDs.
+        If the slug is an uuid, "-1" is appended to prevent clashes with keycloak_ids.
+        """
         if self.slug == "":
             full_name = self.get_full_name()
             if full_name == "":
                 full_name = self.email.split("@")[0] or "user"
             raw_slug = slugify(full_name[0:46])
+            try:
+                int(raw_slug)
+                raw_slug = f"user-{raw_slug}"  # Prevent clashes with IDs
+            except ValueError:
+                pass
+            try:
+                uuid.UUID(raw_slug)
+                raw_slug = f"user-{raw_slug}"  # Prevent clashes with keycloak_ids
+            except ValueError:
+                pass
             slug = raw_slug
             same_slug_count = 0
             while ProjectUser.objects.filter(slug=slug).exists():
@@ -562,7 +613,6 @@ class PrivacySettings(models.Model, HasOwner):
     user = models.OneToOneField(
         ProjectUser,
         on_delete=models.CASCADE,
-        to_field="keycloak_id",
         related_name="privacy_settings",
     )
     publication_status = models.CharField(

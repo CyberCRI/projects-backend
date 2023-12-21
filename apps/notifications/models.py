@@ -75,7 +75,6 @@ class NotificationSettings(models.Model, HasOwner):
     user = models.OneToOneField(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        to_field="keycloak_id",
         related_name="notification_settings",
     )
     notify_added_to_project = models.BooleanField(default=True)

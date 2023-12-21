@@ -16,6 +16,7 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
@@ -28,7 +29,7 @@ from .serializers import (
 )
 
 
-class AttachmentLinkViewSet(viewsets.ModelViewSet):
+class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = AttachmentLinkSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -39,21 +40,20 @@ class AttachmentLinkViewSet(viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(AttachmentLink.objects)
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
+            qs = self.request.user.get_project_related_queryset(
+                AttachmentLink.objects.all()
+            )
             return qs.filter(project=self.kwargs["project_id"])
-        return qs
+        return AttachmentLink.objects.none()
 
 
-class AttachmentFileViewSet(viewsets.ModelViewSet):
+class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     parser_classes = [MultiPartParser]
     serializer_class = AttachmentFileSerializer
     filter_backends = [DjangoFilterBackend]
@@ -66,18 +66,17 @@ class AttachmentFileViewSet(viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(AttachmentFile.objects)
         if "project_id" in self.kwargs:
-
-            # TODO : handle with MultipleIDViewsetMixin
-            project = Project.objects.filter(slug=self.kwargs["project_id"])
-            if project.exists():
-                self.kwargs["project_id"] = project.get().id
-
+            qs = self.request.user.get_project_related_queryset(
+                AttachmentFile.objects.all()
+            )
             return qs.filter(project=self.kwargs["project_id"])
-        return qs
+        return AttachmentFile.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()

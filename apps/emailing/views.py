@@ -16,9 +16,8 @@ class EmailImagesViewSet(ImageStorageView, mixins.RetrieveModelMixin):
 
     def get_queryset(self):
         if "email_id" in self.kwargs:
-            email = Email.objects.get(id=self.kwargs["email_id"])
-            return Image.objects.filter(emails=email)
-        return Image.objects.none
+            return Image.objects.filter(emails__id=self.kwargs["email_id"])
+        return Image.objects.none()
 
     def retrieve(self, request, *args, **kwargs):
         image = self.get_object()

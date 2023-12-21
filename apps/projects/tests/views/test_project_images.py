@@ -7,9 +7,9 @@ class ProjectImagesTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
     list_view = "Project-images-list"
     detail_view = "Project-images-detail"
     field_name = "images"
-    base_permissions = ["projects.change_project"]
-    org_permissions = ["organizations.change_project"]
-    project_permissions = ["projects.change_project"]
+    base_permissions = ["projects.change_project", "projects.view_project"]
+    org_permissions = ["organizations.change_project", "organizations.view_project"]
+    project_permissions = ["projects.change_project", "projects.view_project"]
 
     # Tests for GET calls that should pass
     def test_get_public_project_images(self):
@@ -34,8 +34,9 @@ class ProjectImagesTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         self.assert_get_image(self.detail_view, self.field_name, project, **kwargs)
 
     def test_get_private_project_images_project_permission(self):
-        self.create_project_member(self.project_permissions)
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
+        project, _ = self.create_project_member(self.project_permissions)
+        project.publication_status = Project.PublicationStatus.PRIVATE
+        project.save()
         kwargs = {"project_id": project.id}
         self.assert_get_image(self.detail_view, self.field_name, project, **kwargs)
 
@@ -43,15 +44,6 @@ class ProjectImagesTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         project, user, _ = self.create_org_user(self.org_permissions)
         project.publication_status = Project.PublicationStatus.PRIVATE
         project.save()
-        kwargs = {"project_id": project.id}
-        self.assert_get_image(self.detail_view, self.field_name, project, **kwargs)
-
-    def test_get_project_images_user(self):
-        self.create_user()
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        kwargs = {"project_id": project.id}
-        self.assert_get_image(self.detail_view, self.field_name, project, **kwargs)
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
         kwargs = {"project_id": project.id}
         self.assert_get_image(self.detail_view, self.field_name, project, **kwargs)
 

@@ -4,8 +4,8 @@ from typing import Dict, List, Optional, Union
 
 from babel.dates import format_date, format_time
 from django.conf import settings
-from django.db import models
-from django.db.models import QuerySet
+from django.contrib.auth.models import Group
+from django.db import models, transaction
 from django.http import Http404
 from keycloak.exceptions import (
     KeycloakAuthenticationError,
@@ -19,6 +19,8 @@ from apps.accounts.utils import get_superadmins_group
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from keycloak import KeycloakAdmin
+
+from .models import KeycloakAccount
 
 logger = logging.getLogger(__name__)
 
@@ -87,30 +89,36 @@ class KeycloakService:
         return cls.service().create_user(payload=keycloak_data, exist_ok=False)
 
     @classmethod
-    def create_user(cls, request_data: Dict[str, Union[str, bool]]):
+    def create_user(cls, user: ProjectUser, password: Optional[str] = None):
+        email = user.personal_email if hasattr(user, "google_account") else user.email
         payload = {
             "enabled": True,
             "emailVerified": False,
-            "email": request_data.get("personal_email", request_data["email"]),
-            "username": request_data["email"],
-            "firstName": request_data["given_name"],
-            "lastName": request_data["family_name"],
+            "email": email,
+            "username": user.email,
+            "firstName": user.given_name,
+            "lastName": user.family_name,
             "attributes": {
-                "locale": [request_data.get("language", "en")],
+                "locale": [user.language],
             },
         }
-        password = request_data.get("password", None)
         if password:
             payload["credentials"] = [{"type": "password", "value": password}]
             payload["requiredActions"] = ["VERIFY_EMAIL"]
         else:
             payload["requiredActions"] = ["UPDATE_PASSWORD", "VERIFY_EMAIL"]
-        return cls._create_user(payload)
+        keycloak_id = cls._create_user(payload)
+        return KeycloakAccount.objects.create(
+            keycloak_id=keycloak_id,
+            username=payload["username"],
+            email=payload["email"],
+            user=user,
+        )
 
     @classmethod
     def get_user_execute_actions_link(
         cls,
-        user: ProjectUser,
+        keycloak_account: KeycloakAccount,
         email_type: str,
         actions: List[str],
         redirect_uri: str,
@@ -135,7 +143,7 @@ class KeycloakService:
         if email_type not in cls.EmailType.values:
             raise ValueError(f"Email type {email_type} is not valid")
         service = cls.service()
-        url = f"realms/lp/custom/user/{user.keycloak_id}/execute-actions-token/"
+        url = f"realms/lp/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
         url += f"?client_id={cls.EMAIL_CLIENT_ID}"
         url += f"&email_type={email_type}"
         url += f"&actions={','.join(actions)}"
@@ -148,7 +156,7 @@ class KeycloakService:
     def format_execute_action_link_for_template(
         cls,
         link: Dict[str, Union[int, str]],
-        user: ProjectUser,
+        keycloak_account: KeycloakAccount,
         organization: Optional[Organization] = None,
     ) -> Dict[str, Union[int, str]]:
         """
@@ -157,17 +165,17 @@ class KeycloakService:
         link["expiration_date"] = format_date(
             datetime.fromtimestamp(link["expiration"]).astimezone(),
             format="full",
-            locale=user.language,
+            locale=keycloak_account.user.language,
         )
         link["expiration_time"] = format_time(
             datetime.fromtimestamp(link["expiration"]).astimezone(),
             format="short",
-            locale=user.language,
+            locale=keycloak_account.user.language,
         )
         if organization:
             link["refresh_link"] = (
                 f"{settings.PUBLIC_URL}"
-                + f"/v1/user/{user.keycloak_id}/refresh-keycloak-actions-link"
+                + f"/v1/user/{keycloak_account.keycloak_id}/refresh-keycloak-actions-link"
                 + f"/?organization={organization.code}"
                 + f"&email_type={link['email_type']}"
             )
@@ -176,12 +184,12 @@ class KeycloakService:
     @classmethod
     def send_email(
         cls,
-        user: ProjectUser,
+        keycloak_account: KeycloakAccount,
         email_type: str,
         actions: Optional[List[str]] = None,
         redirect_organization_code: str = "DEFAULT",
         lifespan: Optional[int] = None,
-    ):
+    ) -> bool:
         """
         Send an email to a user to execute actions on his account.
 
@@ -212,23 +220,25 @@ class KeycloakService:
         """
         if email_type not in cls.EmailType.values:
             raise ValueError(f"Email type {email_type} is not valid")
-        keycloak_user = cls.get_user(user.keycloak_id)
+        keycloak_user = cls.get_user(keycloak_account.keycloak_id)
         if not actions:
             actions = keycloak_user.get("requiredActions", [])
         else:
             actions = list(set(actions + keycloak_user.get("requiredActions", [])))
             cls._update_user(
-                keycloak_id=user.keycloak_id,
+                keycloak_id=keycloak_account.keycloak_id,
                 payload={"requiredActions": actions},
             )
         if len(actions) == 0:
             return False
+        user = keycloak_account.user
         organization = Organization.objects.get(code=redirect_organization_code)
-        contact_email = user.personal_email if user.personal_email else user.email
         link = cls.get_user_execute_actions_link(
-            user, email_type, actions, organization.website_url, lifespan
+            keycloak_account, email_type, actions, organization.website_url, lifespan
         )
-        link = cls.format_execute_action_link_for_template(link, user, organization)
+        link = cls.format_execute_action_link_for_template(
+            link, keycloak_account, organization
+        )
         subject, _ = render_message(
             f"{email_type}/object", user.language, user=user, organization=organization
         )
@@ -236,11 +246,11 @@ class KeycloakService:
             f"{email_type}/mail",
             user.language,
             user=user,
-            contact_email=contact_email,
+            contact_email=keycloak_account.email,
             organization=organization,
             link=link,
         )
-        send_email(subject, text, [contact_email], html_content=html)
+        send_email(subject, text, [keycloak_account.email], html_content=html)
         return True
 
     @classmethod
@@ -273,41 +283,36 @@ class KeycloakService:
         return True
 
     @classmethod
+    @transaction.atomic
     def import_user(cls, keycloak_id: str) -> ProjectUser:
-        keycloak_admin = cls.service()
         try:
-            keycloak_user = keycloak_admin.get_user(keycloak_id)
+            keycloak_user = cls.get_user(keycloak_id)
         except KeycloakGetError:
             raise Http404()
-        people_id = keycloak_user.get("attributes", {}).get("pid", [None])[0]
-        if people_id and ProjectUser.objects.filter(people_id=people_id).exists():
-            people_id = None
         user = ProjectUser.objects.create(
-            keycloak_id=keycloak_user.get("id", ""),
-            people_id=people_id,
             email=keycloak_user.get("username", ""),
             personal_email=keycloak_user.get("email", ""),
             given_name=keycloak_user.get("firstName", ""),
             family_name=keycloak_user.get("lastName", ""),
         )
-        return cls.sync_groups_from_keycloak(user)
+        keycloak_account = KeycloakAccount.objects.create(
+            keycloak_id=keycloak_id,
+            username=keycloak_user.get("username", ""),
+            email=keycloak_user.get("email", ""),
+            user=user,
+        )
+        groups = cls.get_groups_from_keycloak(keycloak_account)
+        user.groups.add(*groups)
+        return user
 
     @classmethod
-    def get_or_import_user(
-        cls, keycloak_id: str, queryset: QuerySet[ProjectUser]
-    ) -> ProjectUser:
-        user = queryset.filter(keycloak_id=keycloak_id)
-        if user.exists():
-            return user.get()
-        return cls.import_user(keycloak_id)
-
-    @classmethod
-    def sync_groups_from_keycloak(cls, user: ProjectUser) -> ProjectUser:
-        keycloak_groups = cls.get_user_groups(user.keycloak_id)
+    def get_groups_from_keycloak(cls, keycloak_account: KeycloakAccount) -> List[Group]:
+        keycloak_groups = cls.get_user_groups(keycloak_account)
+        groups = []
         for keycloak_group in keycloak_groups:
             path = keycloak_group.get("path")
             if path == "/projects/administrators":
-                user.groups.add(get_superadmins_group())
+                groups.append(get_superadmins_group())
             else:
                 split_path = path.split("/")
                 name = {
@@ -318,19 +323,15 @@ class KeycloakService:
                     continue
                 organization = Organization.objects.get(code=split_path[-2])
                 organizations_group = organization.get_or_create_group(name)
-                user.groups.add(organizations_group)
-        return user
+                groups.append(organizations_group)
+        return groups
 
     @classmethod
-    def get_user_groups(cls, keycloak_id: str) -> List[Dict[str, str]]:
-        return cls.service().get_user_groups(keycloak_id)
+    def get_user_groups(cls, keycloak_account: KeycloakAccount) -> List[Dict[str, str]]:
+        return cls.service().get_user_groups(keycloak_account.keycloak_id)
 
     @classmethod
-    def add_user_to_keycloak_group(cls, keycloak_id: str, group_id: str):
-        return cls.service().group_user_add(keycloak_id, group_id)
-
-    @classmethod
-    def get_superadmins(cls) -> list:
+    def get_superadmins(cls) -> List[Dict]:
         keycloak_admin = cls.service()
         group = keycloak_admin.get_group_by_path(
             path="/projects/administrators", search_in_subgroups=True
@@ -358,25 +359,40 @@ class KeycloakService:
         cls.service().update_user(user_id=keycloak_id, payload=payload)
 
     @classmethod
-    def update_user(cls, user: ProjectUser):
-        keycloak_user = cls.get_user(user.keycloak_id)
+    def update_user(cls, keycloak_account: KeycloakAccount):
+        keycloak_user = cls.get_user(keycloak_account.keycloak_id)
+        user = keycloak_account.user
+        if (
+            hasattr(user, "google_account")
+            or keycloak_account.username != keycloak_account.email
+        ):
+            username = user.email
+            email = user.personal_email
+        else:
+            username = user.email
+            email = user.email
+
         payload = {
-            "email": user.personal_email if user.personal_email else user.email,
-            "username": user.email,
-            "firstName": user.given_name,
-            "lastName": user.family_name,
+            "username": username,
+            "email": email,
+            "firstName": keycloak_account.user.given_name,
+            "lastName": keycloak_account.user.family_name,
             "attributes": {
                 **keycloak_user.get("attributes", {}),
-                "locale": [user.language],
+                "locale": [keycloak_account.user.language],
             },
         }
-        return cls._update_user(keycloak_id=user.keycloak_id, payload=payload)
+        return cls._update_user(
+            keycloak_id=keycloak_account.keycloak_id, payload=payload
+        )
 
     @classmethod
-    def delete_user(cls, user: ProjectUser):
+    def delete_user(cls, keycloak_account: KeycloakAccount):
         keycloak_admin = cls.service()
         try:
-            keycloak_admin.get_user(user.keycloak_id)
-            keycloak_admin.delete_user(user_id=user.keycloak_id)
+            keycloak_admin.get_user(keycloak_account.keycloak_id)
+            keycloak_admin.delete_user(user_id=keycloak_account.keycloak_id)
         except KeycloakGetError:
-            logger.info(f"Deleted user {user.keycloak_id} does not exist in Keycloak")
+            logger.info(
+                f"Deleted user {keycloak_account.keycloak_id} does not exist in Keycloak"
+            )

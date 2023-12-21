@@ -489,11 +489,19 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     def test_keycloak_error_create_user(self, mocked):
         mocked.return_value = {}
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = SeedUserFactory()
+        existing_username = faker.email()
+        KeycloakService._create_user(
+            {
+                "username": existing_username,
+                "email": existing_username,
+                "firstName": faker.first_name(),
+                "lastName": faker.last_name(),
+            }
+        )
         payload = {
             "people_id": faker.uuid4(),
-            "email": user.email,
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": existing_username,
+            "personal_email": faker.email(),
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
         }
@@ -510,10 +518,18 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
 
     def test_keycloak_error_update_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        existing_username = faker.email()
+        KeycloakService._create_user(
+            {
+                "username": existing_username,
+                "email": existing_username,
+                "firstName": faker.first_name(),
+                "lastName": faker.last_name(),
+            }
+        )
         user = SeedUserFactory()
-        user_2 = SeedUserFactory()
         payload = {
-            "email": user_2.email,
+            "email": existing_username,
         }
         response = self.client.patch(
             reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
@@ -523,9 +539,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             response.json()["error"]
             == "An error occured in Keycloak : User exists with same username or email"
         )
-        assert (
-            ProjectUser.objects.get(keycloak_id=user.keycloak_id).email != user_2.email
-        )
+        assert ProjectUser.objects.get(id=user.id).email != existing_username
 
     @patch("services.keycloak.interface.KeycloakService.delete_user")
     def test_keycloak_error_delete_user(self, mocked):
@@ -537,7 +551,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         )
         assert response.status_code == 400
         assert response.json()["error"] == "An error occured in Keycloak : error reason"
-        assert ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+        assert ProjectUser.objects.filter(id=user.id).exists()
 
     def test_keycloak_404_delete_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
@@ -546,7 +560,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             reverse("ProjectUser-detail", args=[user.keycloak_id])
         )
         assert response.status_code == 204
-        assert not ProjectUser.objects.filter(keycloak_id=user.keycloak_id).exists()
+        assert not ProjectUser.objects.filter(id=user.id).exists()
 
 
 class ValidateUserTestCase(JwtAPITestCase):
@@ -589,7 +603,6 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         params = {
             "given_name": "test",
             "family_name": "test",
-            "email": "test@test.com",
         }
         cls.user_a = UserFactory(job="ABC", **params)
         cls.user_b = UserFactory(job="DEF", **params)
@@ -918,6 +931,18 @@ class MiscUserTestCase(JwtAPITestCase):
         user = UserFactory(given_name="", family_name="")
         slug_base = user.email.split("@")[0].lower()
         assert user.slug == slug_base
+
+    def test_integer_slug(self):
+        given_name = str(faker.pyint())
+        family_name = ""
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"user-{given_name}"
+
+    def test_uuid_slug(self):
+        given_name = str(faker.uuid4())
+        family_name = ""
+        user = UserFactory(given_name=given_name, family_name=family_name)
+        assert user.slug == f"user-{given_name}"
 
     def test_multiple_lookups(self):
         user = UserFactory()

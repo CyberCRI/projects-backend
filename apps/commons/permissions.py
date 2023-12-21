@@ -3,6 +3,8 @@ from rest_framework import permissions
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from apps.accounts.models import ProjectUser
+
 from .db.abc import HasOwner
 
 
@@ -34,11 +36,15 @@ class IsOwner(permissions.BasePermission):
 class WillBeOwner(permissions.BasePermission):
     def has_permission(self, request: Request, view: GenericViewSet) -> bool:
         if view.action == "create":
-            if "keycloak_id" in view.kwargs:
-                return str(request.user.keycloak_id) == view.kwargs["keycloak_id"]
-            if "user_keycloak_id" in view.kwargs:
-                return str(request.user.keycloak_id) == view.kwargs["user_keycloak_id"]
-            return str(request.user.keycloak_id) == str(request.data.get("user"))
+            user_id = None
+            if not user_id and "id" in view.kwargs:
+                user_id = ProjectUser.get_main_id(view.kwargs["id"])
+            if not user_id and "user_id" in view.kwargs:
+                user_id = ProjectUser.get_main_id(view.kwargs["user_id"])
+            if not user_id and "user" in request.data:
+                user_id = ProjectUser.get_main_id(request.data["user"])
+            if user_id:
+                return request.user.id == user_id
         return False
 
     def has_object_permission(

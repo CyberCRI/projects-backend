@@ -1,6 +1,7 @@
 import inspect
 
 from django.contrib.auth.models import Group
+from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -10,36 +11,42 @@ from rest_framework.serializers import BaseSerializer
 
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from services.keycloak.interface import KeycloakService
 
 
 @extend_schema_field(OpenApiTypes.UUID)
-class KeycloakRelatedField(serializers.RelatedField):
+class UserMultipleIdRelatedField(serializers.RelatedField):
+    """
+    TODO: Replace with PrimaryKeyRelatedField when API users fully switch to id
+    """
+
     default_error_messages = {
         "required": _("This field is required."),
-        "does_not_exist": _(
-            'Invalid keycloak_id "{keycloak_id}" - object does not exist.'
-        ),
+        "does_not_exist": _('Invalid id "{user_id}" - object does not exist.'),
         "incorrect_type": _(
             "Incorrect type. Expected str value, received {data_type}."
         ),
     }
 
     def __init__(self, **kwargs):
-        self.keycloak_field = kwargs.pop("keycloak_field", "keycloak_id")
+        self.user_lookup = kwargs.pop("user_lookup", "")
         super().__init__(**kwargs)
 
     def to_internal_value(self, data):
         queryset = self.get_queryset()
         try:
-            return KeycloakService.get_or_import_user(
-                keycloak_id=data, queryset=queryset
-            )
+            lookup_field = ProjectUser.get_id_field_name(data)
+            if self.user_lookup:
+                lookup_field = f"{self.user_lookup}__{lookup_field}"
+            return get_object_or_404(queryset, **{lookup_field: data})
         except (TypeError, ValueError):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
     def to_representation(self, value):
-        return getattr(value, self.keycloak_field)
+        return {
+            "id": value.id,
+            "slug": value.slug,
+            "keycloak_id": value.keycloak_id,
+        }
 
 
 @extend_schema_field(OpenApiTypes.NONE)

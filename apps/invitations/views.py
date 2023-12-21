@@ -16,7 +16,6 @@ from .serializers import InvitationSerializer
 
 
 class InvitationViewSet(viewsets.ModelViewSet):
-    queryset = Invitation.objects.all()
     serializer_class = InvitationSerializer
     lookup_field = "id"
     filter_backends = (
@@ -54,9 +53,11 @@ class InvitationViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        return self.queryset.filter(
-            organization__code=self.kwargs.get("organization_code")
-        )
+        if "organization_code" in self.kwargs:
+            return Invitation.objects.filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return Invitation.objects.none()
 
     def get_serializer_context(self):
         return {

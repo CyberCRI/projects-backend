@@ -287,7 +287,8 @@ class ListFollowTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         user_response = self.client.get(
             reverse(
-                "Follower-list", kwargs={"user_keycloak_id": self.follower.keycloak_id}
+                "Follower-list",
+                args=(self.follower.keycloak_id,),
             ),
         )
         assert user_response.status_code == status.HTTP_200_OK
@@ -318,7 +319,7 @@ class ListFollowTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
             project_response = self.client.get(
-                reverse("Followed-list", kwargs={"project_id": project.id}),
+                reverse("Followed-list", args=(project.id,)),
             )
             assert project_response.status_code == status.HTTP_200_OK
             content = project_response.json()["results"]

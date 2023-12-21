@@ -13,23 +13,23 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--old", type=str, help="Use a keycloak-id to identify the old account."
+            "--old", type=str, help="Use id to identify the old account."
         )
         parser.add_argument(
-            "--new", type=str, help="Use a keycloak-id to identify the new account."
+            "--new", type=str, help="Use id to identify the new account."
         )
 
     def handle(self, *args, **options):
         old_user_id = options.get("old")
         new_user_id = options.get("new")
         try:
-            old_user = ProjectUser.objects.get(keycloak_id=old_user_id)
+            old_user = ProjectUser.objects.get(id=old_user_id)
         except (ProjectUser.DoesNotExist, ValidationError):
-            raise CommandError(f"No user found with keycloak_id={old_user_id}.")
+            raise CommandError(f"No user found with id={old_user_id}.")
         try:
-            new_user = ProjectUser.objects.get(keycloak_id=new_user_id)
+            new_user = ProjectUser.objects.get(id=new_user_id)
         except (ProjectUser.DoesNotExist, ValidationError):
-            raise CommandError(f"No user found with keycloak_id={new_user_id}.")
+            raise CommandError(f"No user found with id={new_user_id}.")
 
         with transaction.atomic():
             new_user.people_id = old_user.people_id
