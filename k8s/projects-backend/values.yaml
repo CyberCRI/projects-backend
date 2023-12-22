@@ -92,6 +92,7 @@ redis:
   argocdAppName: projects-api-redis
   helmReleaseName: projects-api-redis
   targetRevision: main
+  cascadeDelete: true
 
 instance: main # By default, the instance of the backend is the main one
 

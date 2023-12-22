@@ -31,4 +31,4 @@ redis:
   - values.yaml
   - projects-api/values.yaml
   - projects-api/prod-prod/values.yaml
-  - secrets://projects-api/prod-prod/secrets.yaml
+  cascadeDelete: false
