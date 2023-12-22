@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from django.conf import settings
@@ -19,7 +18,6 @@ from drf_spectacular.utils import (
 from googleapiclient.errors import HttpError
 from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -50,7 +48,6 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import (
     KeycloakDeleteError,
-    KeycloakError,
     KeycloakGetError,
     KeycloakPostError,
     KeycloakPutError,
@@ -406,8 +403,12 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         else:
             user = user.get()
         redirect_uri = request.query_params.get("redirect_uri", "")
-        KeycloakService.send_reset_password_email(user=user, redirect_uri=redirect_uri)
-        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        if hasattr(user, "keycloak_account"):
+            KeycloakService.send_reset_password_email(
+                user=user.keycloak_account, redirect_uri=redirect_uri
+            )
+            return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        raise KeycloakAccountNotFound()
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(
@@ -1001,62 +1002,21 @@ class AccessRequestViewSet(CreateListModelViewSet):
                 "status": "error",
                 "message": "This access request has already been processed.",
             }
-        if access_request.user is not None:
-            # TODO : send request accepted email
-            access_request.user.groups.add(access_request.organization.get_users())
-            access_request.status = AccessRequest.Status.ACCEPTED
-            access_request.save()
-            return {
-                "status": "success",
-                "message": "",
-            }
         try:
-            with transaction.atomic():
-                data = {
-                    "email": access_request.email,
-                    "given_name": access_request.given_name,
-                    "family_name": access_request.family_name,
-                    "job": access_request.job,
-                    "roles_to_add": [access_request.organization.get_users()],
-                }
-                serializer = UserSerializer(
-                    data=data, context=self.get_serializer_context()
-                )
-                serializer.is_valid(raise_exception=True)
-                instance = serializer.save()
-                keycloak_account = KeycloakService.create_user(instance)
-                access_request.status = AccessRequest.Status.ACCEPTED
-                access_request.save()
-        except ValidationError as e:
-            return {
-                "status": "error",
-                "message": e.detail,
-            }
-        except KeycloakError as e:
-            message = json.loads(e.response_body.decode()).get("errorMessage")
-            return {
-                "status": "error",
-                "message": f"Keycloak error : {message}",
-            }
-        try:
-            KeycloakService.send_email(
-                keycloak_account=keycloak_account,
-                email_type=KeycloakService.EmailType.REQUEST_ACCEPTED,
-                redirect_organization_code=access_request.organization.code,
-            )
-        except KeycloakError as e:
-            message = json.loads(e.response_body.decode()).get("errorMessage")
+            if access_request.user is not None:
+                access_request.accept()
+            else:
+                access_request.accept_and_create()
+        except KeycloakGetError:
             return {
                 "status": "warning",
-                "message": f"Email not sent : {message}",
+                "message": "Confirmation email not sent to user",
             }
-        return {
-            "status": "success",
-            "message": "",
-        }
+        except Exception as e:  # noqa
+            return {"status": "error", "message": str(e)}
+        return {"status": "success", "message": ""}
 
     def perform_decline(self, access_request: AccessRequest):
-        # TODO : send request declined email
         if access_request.organization.code != self.kwargs["organization_code"]:
             return {
                 "status": "error",
@@ -1067,12 +1027,11 @@ class AccessRequestViewSet(CreateListModelViewSet):
                 "status": "error",
                 "message": "This access request has already been processed.",
             }
-        access_request.status = AccessRequest.Status.DECLINED
-        access_request.save()
-        return {
-            "status": "success",
-            "message": "",
-        }
+        try:
+            access_request.decline()
+        except Exception as e:  # noqa
+            return {"status": "error", "message": str(e)}
+        return {"status": "success", "message": ""}
 
     @extend_schema(
         request=AccessRequestManySerializer, responses=ProcessAccessRequestSerializer

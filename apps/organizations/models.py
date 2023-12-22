@@ -9,7 +9,6 @@ from guardian.shortcuts import assign_perm
 from rest_framework.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
-from apps.accounts.models import PeopleGroup
 from apps.commons.db.abc import OrganizationRelated, PermissionsSetupModel
 from apps.commons.utils.permissions import (
     get_permissions_from_subscopes,
@@ -238,19 +237,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         self.facilitators.set(
             self.facilitators.exclude(pk__in=self.admins.values_list("pk", flat=True))
         )
-
-    def get_or_create_root_people_group(self) -> "PeopleGroup":
-        people_group, _ = PeopleGroup.objects.get_or_create(
-            organization=self,
-            is_root=True,
-            defaults={
-                "name": self.name,
-                "type": "group",
-            },
-        )
-        people_group.members.set([*self.facilitators.all(), *self.users.all()])
-        people_group.managers.set(self.admins.all())
-        return people_group
 
     def get_or_create_group(self, name: str) -> Group:
         """Return the group with the given name."""

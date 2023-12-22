@@ -1,11 +1,11 @@
 import logging
 from datetime import datetime
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from babel.dates import format_date, format_time
 from django.conf import settings
 from django.contrib.auth.models import Group
-from django.db import models, transaction
+from django.db import models
 from django.http import Http404
 from keycloak.exceptions import (
     KeycloakAuthenticationError,
@@ -14,13 +14,15 @@ from keycloak.exceptions import (
 )
 from rest_framework import status
 
-from apps.accounts.models import ProjectUser
-from apps.accounts.utils import get_superadmins_group
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from keycloak import KeycloakAdmin
 
 from .models import KeycloakAccount
+
+if TYPE_CHECKING:
+    from apps.accounts.models import ProjectUser
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +43,6 @@ class KeycloakService:
         ADMIN_CREATED = "admin_created"
         FORCE_RESET_PASSWORD = "force_reset_password"
         RESET_PASSWORD = "reset_password"
-        REQUEST_ACCEPTED = "request_accepted"
 
     @classmethod
     def service(cls):
@@ -90,7 +91,7 @@ class KeycloakService:
         return cls.service().create_user(payload=keycloak_data, exist_ok=False)
 
     @classmethod
-    def create_user(cls, user: ProjectUser, password: Optional[str] = None):
+    def create_user(cls, user: "ProjectUser", password: Optional[str] = None):
         email = user.personal_email if hasattr(user, "google_account") else user.email
         payload = {
             "enabled": True,
@@ -158,7 +159,7 @@ class KeycloakService:
         cls,
         link: Dict[str, Union[int, str]],
         keycloak_account: KeycloakAccount,
-        organization: Optional[Organization] = None,
+        organization: Optional["Organization"] = None,
     ) -> Dict[str, Union[int, str]]:
         """
         Format the link response from Keycloak to be used in an email template.
@@ -198,6 +199,7 @@ class KeycloakService:
             - INVITATION: sent when a user creates an account on the platform using an invitation link
             - ADMIN_CREATED: sent when an administrator creates an account for a user
             - RESET_PASSWORD: sent when a user wants to reset his password
+            - FORCE_RESET_PASSWORD: sent when an administrator wants to force a user to reset his password
 
         The email contains a link to execute actions on the user account.
 
@@ -255,21 +257,23 @@ class KeycloakService:
         return True
 
     @classmethod
-    def send_reset_password_email(cls, user: ProjectUser, redirect_uri: str):
+    def send_reset_password_email(
+        cls, keycloak_account: KeycloakAccount, redirect_uri: str
+    ):
         if not redirect_uri:
             raise ValueError("redirect_uri is required")
         try:
-            keycloak_user = cls.get_user(user.keycloak_id)
+            keycloak_user = cls.get_user(keycloak_account.keycloak_id)
         except KeycloakGetError:
             raise Http404()
         actions = list(
             set(["UPDATE_PASSWORD"] + keycloak_user.get("requiredActions", []))
         )
-        contact_email = user.personal_email if user.personal_email else user.email
+        user = keycloak_account.user
         link = cls.get_user_execute_actions_link(
-            user, cls.EmailType.RESET_PASSWORD, actions, redirect_uri
+            keycloak_account, cls.EmailType.RESET_PASSWORD, actions, redirect_uri
         )
-        link = cls.format_execute_action_link_for_template(link, user)
+        link = cls.format_execute_action_link_for_template(link, keycloak_account)
         subject, _ = render_message(
             f"{cls.EmailType.RESET_PASSWORD}/object", user.language, user=user
         )
@@ -277,55 +281,16 @@ class KeycloakService:
             f"{cls.EmailType.RESET_PASSWORD}/mail",
             user.language,
             user=user,
-            contact_email=contact_email,
             link=link,
         )
-        send_email(subject, text, [contact_email], html_content=html)
+        send_email(subject, text, [keycloak_account.email], html_content=html)
         return True
 
     @classmethod
-    @transaction.atomic
-    def import_user(cls, keycloak_id: str) -> ProjectUser:
-        try:
-            keycloak_user = cls.get_user(keycloak_id)
-        except KeycloakGetError:
-            raise Http404()
-        user = ProjectUser.objects.create(
-            email=keycloak_user.get("username", ""),
-            personal_email=keycloak_user.get("email", ""),
-            given_name=keycloak_user.get("firstName", ""),
-            family_name=keycloak_user.get("lastName", ""),
-        )
-        keycloak_account = KeycloakAccount.objects.create(
-            keycloak_id=keycloak_id,
-            username=keycloak_user.get("username", ""),
-            email=keycloak_user.get("email", ""),
-            user=user,
-        )
-        groups = cls.get_groups_from_keycloak(keycloak_account)
-        user.groups.add(*groups)
-        return user
-
-    @classmethod
-    def get_groups_from_keycloak(cls, keycloak_account: KeycloakAccount) -> List[Group]:
+    def is_superuser(cls, keycloak_account: KeycloakAccount) -> List[Group]:
         keycloak_groups = cls.get_user_groups(keycloak_account)
-        groups = []
-        for keycloak_group in keycloak_groups:
-            path = keycloak_group.get("path")
-            if path == "/projects/administrators":
-                groups.append(get_superadmins_group())
-            else:
-                split_path = path.split("/")
-                name = {
-                    "users": Organization.DefaultGroup.USERS,
-                    "administrators": Organization.DefaultGroup.ADMINS,
-                }.get(split_path[-1])
-                if not name:
-                    continue
-                organization = Organization.objects.get(code=split_path[-2])
-                organizations_group = organization.get_or_create_group(name)
-                groups.append(organizations_group)
-        return groups
+        keycloak_groups = [group.get("path") for group in keycloak_groups]
+        return "/projects/administrators" in keycloak_groups
 
     @classmethod
     def get_user_groups(cls, keycloak_account: KeycloakAccount) -> List[Dict[str, str]]:

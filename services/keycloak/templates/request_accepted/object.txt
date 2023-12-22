@@ -1,4 +1,0 @@
-{% load i18n %}
-{% blocktranslate with org_name=organization.name %}
-Welcome to your new {{ org_name }} Projects platform
-{% endblocktranslate %}

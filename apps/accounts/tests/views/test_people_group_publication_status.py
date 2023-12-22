@@ -30,7 +30,7 @@ class PeopleGroupPublicationStatusTestCase(JwtAPITestCase):
                 publication_status=PeopleGroup.PublicationStatus.PRIVATE,
                 organization=cls.organization,
             ),
-            "root": cls.organization.get_or_create_root_people_group(),
+            "root": PeopleGroup.update_or_create_root(cls.organization),
         }
         ProjectUser.objects.all().delete()  # Delete users created by the factories
 

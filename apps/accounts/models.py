@@ -26,8 +26,10 @@ from apps.commons.db.abc import (
     OrganizationRelated,
     PermissionsSetupModel,
 )
+from apps.emailing.utils import render_message, send_email
 from apps.misc.models import SDG, Language, WikipediaTag
 from apps.projects.models import Project
+from services.keycloak.interface import KeycloakService
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization
@@ -151,6 +153,22 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     def content_type(self) -> ContentType:
         """Return the content type of the model."""
         return ContentType.objects.get_for_model(PeopleGroup)
+
+    @classmethod
+    def update_or_create_root(cls, organization: "Organization"):
+        root_group, _ = cls.objects.get_or_create(
+            organization=organization,
+            is_root=True,
+            defaults={
+                "name": organization.name,
+                "type": "group",
+            },
+        )
+        root_group.members.set(
+            [*organization.facilitators.all(), *organization.users.all()]
+        )
+        root_group.managers.set(organization.admins.all())
+        return root_group
 
     @classmethod
     def _get_hierarchy(cls, groups: dict[int, dict], group_id: int):
@@ -819,6 +837,10 @@ class AccessRequest(models.Model):
         ACCEPTED = "accepted"
         DECLINED = "declined"
 
+    class EmailType(models.TextChoices):
+        REQUEST_ACCEPTED = "request_accepted"
+        REQUEST_DECLINED = "request_declined"
+
     organization = models.ForeignKey(
         "organizations.Organization",
         on_delete=models.CASCADE,
@@ -839,6 +861,67 @@ class AccessRequest(models.Model):
 
     def __str__(self):
         return f"{self.given_name} {self.family_name} ({self.email})"
+
+    @property
+    def contact_email(self):
+        if self.user:
+            if hasattr(self.user, "keycloak_account"):
+                return self.user.keycloak_account.email
+            return self.user.email
+        return self.email
+
+    @property
+    def contact_language(self):
+        if self.user:
+            return self.user.language
+        return self.organization.language
+
+    def send_email(self, email_type: str):
+        if email_type not in self.EmailType.values:
+            raise ValueError(f"Email type {email_type} is not valid")
+        subject, _ = render_message(
+            f"access_requests/{email_type}/object",
+            self.contact_language,
+            organization=self.organization,
+        )
+        text, html = render_message(
+            f"access_requests/{email_type}/mail",
+            self.contact_language,
+            organization=self.organization,
+        )
+        send_email(subject, text, [self.contact_email], html_content=html)
+
+    @transaction.atomic
+    def accept(self):
+        self.user.groups.add(self.organization.get_users())
+        self.status = AccessRequest.Status.ACCEPTED
+        self.save()
+        self.send_email(AccessRequest.EmailType.REQUEST_ACCEPTED)
+
+    def accept_and_create(self):
+        with transaction.atomic():
+            self.user = ProjectUser.objects.create(
+                email=self.email,
+                given_name=self.given_name,
+                family_name=self.family_name,
+                job=self.job,
+                language=self.organization.language,
+            )
+            self.user.groups.add(self.organization.get_users())
+            keycloak_account = KeycloakService.create_user(self.user)
+            self.status = AccessRequest.Status.ACCEPTED
+            self.save()
+        KeycloakService.send_email(
+            keycloak_account=keycloak_account,
+            email_type=KeycloakService.EmailType.ADMIN_CREATED,
+            redirect_organization_code=self.organization.code,
+        )
+
+    @transaction.atomic
+    def decline(self):
+        self.status = AccessRequest.Status.DECLINED
+        self.save()
+        self.send_email(AccessRequest.EmailType.REQUEST_DECLINED)
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

@@ -1,11 +1,9 @@
 from django.db import models
 
-from apps.accounts.models import ProjectUser
-
 
 class KeycloakAccount(models.Model):
     user = models.OneToOneField(
-        ProjectUser,
+        "accounts.ProjectUser",
         on_delete=models.CASCADE,
         related_name="keycloak_account",
     )

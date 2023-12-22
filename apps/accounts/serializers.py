@@ -299,7 +299,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
             not value and self.instance and not self.instance.is_root
         ):
             organization = get_object_or_404(Organization, code=organization_code)
-            value = organization.get_or_create_root_people_group()
+            value = PeopleGroup.update_or_create_root(organization)
         if value and self.instance and self.instance.is_root is True:
             raise serializers.ValidationError(
                 "The root group cannot have a parent group"
