@@ -21,7 +21,7 @@ def create_keycloak_accounts(apps, schema_editor):
             keycloak_id=remote_keycloak_account["id"],
             defaults={
                 "username": remote_keycloak_account["username"],
-                "email": remote_keycloak_account["email"],
+                "email": remote_keycloak_account.get("email", ""),
             },
         )
             
