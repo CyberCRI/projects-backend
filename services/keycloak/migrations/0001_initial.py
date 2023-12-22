@@ -14,7 +14,7 @@ def create_keycloak_accounts(apps, schema_editor):
     keycloak_users = KeycloakService.get_users()
     keycloak_users = {user["id"]: user for user in keycloak_users}
     for user in ProjectUser.objects.all():
-        if user.keycloak_id in keycloak_users.keys():
+        if str(user.keycloak_id) in keycloak_users.keys():
             keycloak_user = keycloak_users[user.keycloak_id]
             KeycloakAccount.objects.update_or_create(
                 user=user,
