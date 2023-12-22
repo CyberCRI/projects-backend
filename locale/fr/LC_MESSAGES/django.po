@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-22 17:26+0000\n"
+"POT-Creation-Date: 2023-12-22 17:32+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -42,15 +42,15 @@ msgstr ""
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:632
+#: apps/accounts/models.py:622
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:633
+#: apps/accounts/models.py:623
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:634
+#: apps/accounts/models.py:624
 msgid "Public"
 msgstr "Publique"
 

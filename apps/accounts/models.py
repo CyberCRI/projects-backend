@@ -608,16 +608,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             while ProjectUser.objects.filter(slug=slug).exists():
                 same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
-            try:
-                int(slug)
-                slug = f"{slug}-1"
-            except ValueError:
-                pass
-            try:
-                uuid.UUID(slug)
-                slug = f"{slug}-1"
-            except ValueError:
-                pass
             return slug
         return self.slug
 
