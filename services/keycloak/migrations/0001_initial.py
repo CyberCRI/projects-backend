@@ -11,19 +11,19 @@ from services.keycloak.interface import KeycloakService
 def create_keycloak_accounts(apps, schema_editor):
     ProjectUser = apps.get_model("accounts", "ProjectUser")
     KeycloakAccount = apps.get_model("keycloak", "KeycloakAccount")
+    keycloak_users = KeycloakService.get_users()
+    keycloak_users = {user["id"]: user for user in keycloak_users}
     for user in ProjectUser.objects.all():
-        try:
-            remote_keycloak_account = KeycloakService.get_user(user.keycloak_id)
-        except KeycloakGetError:
-            continue
-        KeycloakAccount.objects.update_or_create(
-            user=user,
-            keycloak_id=remote_keycloak_account["id"],
-            defaults={
-                "username": remote_keycloak_account["username"],
-                "email": remote_keycloak_account.get("email", ""),
-            },
-        )
+        if user.keycloak_id in keycloak_users.keys():
+            keycloak_user = keycloak_users[user.keycloak_id]
+            KeycloakAccount.objects.update_or_create(
+                user=user,
+                keycloak_id=keycloak_user["id"],
+                defaults={
+                    "username": keycloak_user["username"],
+                    "email": keycloak_user.get("email", "")
+                },
+            )
             
 
 
