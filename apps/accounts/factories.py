@@ -1,3 +1,5 @@
+import uuid
+
 import factory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
@@ -17,7 +19,9 @@ faker = Faker()
 
 class UserFactory(factory.django.DjangoModelFactory):
     people_id = factory.Faker("uuid4")
-    email = factory.Sequence(lambda n: f"seed_user_{n}@{faker.domain_name()}".lower())
+    email = factory.LazyAttribute(
+        lambda _: f"{uuid.uuid4()}@{faker.domain_name()}".lower()
+    )
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")
 
@@ -126,8 +130,8 @@ class AccessRequestFactory(factory.django.DjangoModelFactory):
         "apps.organizations.factories.OrganizationFactory",
         access_request_enabled=True,
     )
-    email = factory.Sequence(
-        lambda n: f"access_request_{n}@{faker.domain_name()}".lower()
+    email = factory.LazyAttribute(
+        lambda _: f"{uuid.uuid4()}@{faker.domain_name()}".lower()
     )
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")

@@ -140,6 +140,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(organization.code,)),
             data=payload,
         )
+        print(response.json())
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
             content = response.json()
@@ -444,4 +445,4 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         assert len(content["success"]) == 0
         assert len(content["warning"]) == 1
         assert content["warning"][0]["id"] == access_request.id
-        assert content["warning"][0]["message"] == "Email not sent : User not found"
+        assert content["warning"][0]["message"] == "Confirmation email not sent to user"

@@ -17,6 +17,7 @@ from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from apps.accounts.utils import (
     default_onboarding_status,
+    get_default_group,
     get_group_permissions,
     get_superadmins_group,
 )
@@ -897,7 +898,10 @@ class AccessRequest(models.Model):
                 job=self.job,
                 language=self.organization.language,
             )
-            self.user.groups.add(self.organization.get_users())
+            self.user.groups.add(
+                self.organization.get_users(),
+                get_default_group(),
+            )
             keycloak_account = KeycloakService.create_user(self.user)
             self.status = AccessRequest.Status.ACCEPTED
             self.save()

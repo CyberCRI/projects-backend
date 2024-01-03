@@ -1,3 +1,4 @@
+import json
 import uuid
 
 from django.conf import settings
@@ -1012,6 +1013,9 @@ class AccessRequestViewSet(CreateListModelViewSet):
                 "status": "warning",
                 "message": "Confirmation email not sent to user",
             }
+        except (KeycloakPostError, KeycloakPutError) as e:
+            message = json.loads(e.response_body.decode()).get("errorMessage")
+            return {"status": "error", "message": f"Keycloak error : {message}"}
         except Exception as e:  # noqa
             return {"status": "error", "message": str(e)}
         return {"status": "success", "message": ""}

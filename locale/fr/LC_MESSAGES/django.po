@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-12-22 17:32+0000\n"
+"POT-Creation-Date: 2024-01-03 15:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,19 +38,19 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/models.py:127 apps/projects/models.py:150
+#: apps/accounts/models.py:128 apps/projects/models.py:150
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:622
+#: apps/accounts/models.py:623
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:623
+#: apps/accounts/models.py:624
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:624
+#: apps/accounts/models.py:625
 msgid "Public"
 msgstr "Publique"
 
