@@ -140,7 +140,6 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(organization.code,)),
             data=payload,
         )
-        print(response.json())
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
             content = response.json()
