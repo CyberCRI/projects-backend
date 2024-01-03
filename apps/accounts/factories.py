@@ -20,7 +20,7 @@ faker = Faker()
 class UserFactory(factory.django.DjangoModelFactory):
     people_id = factory.Faker("uuid4")
     email = factory.LazyAttribute(
-        lambda _: f"{uuid.uuid4()}@{faker.domain_name()}".lower()
+        lambda _: f"user-{uuid.uuid4()}@{faker.domain_name()}".lower()
     )
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")
@@ -131,7 +131,7 @@ class AccessRequestFactory(factory.django.DjangoModelFactory):
         access_request_enabled=True,
     )
     email = factory.LazyAttribute(
-        lambda _: f"{uuid.uuid4()}@{faker.domain_name()}".lower()
+        lambda _: f"request-{uuid.uuid4()}@{faker.domain_name()}".lower()
     )
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")

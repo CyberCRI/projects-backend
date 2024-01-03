@@ -930,6 +930,8 @@ class MiscUserTestCase(JwtAPITestCase):
         assert user.slug == f"{slug_base}-2"
         user = UserFactory(given_name="", family_name="")
         slug_base = user.email.split("@")[0].lower()
+        print(slug_base)
+        print(user.slug)
         assert user.slug == slug_base
 
     def test_integer_slug(self):
