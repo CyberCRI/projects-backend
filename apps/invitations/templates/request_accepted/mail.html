@@ -1,0 +1,32 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+    {% blocktranslate with given_name=user.given_name.capitalize organization_name=organization.name %}
+    Welcome to the Projects portal of {{ organization_name }}, {{ given_name }}!
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate with given_name=user.given_name.capitalize %}
+    Dear {{ given_name }},
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate with organization_name=organization.name %}
+    You can now access the {{ organization_name }} portal on Projects platform.
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate %}
+    We hope you'll enjoy this new portal!
+    {% endblocktranslate %}
+</mj-text>
+<mj-button css-class="lpi-button" href="{{ organization.website_url }}">
+    {% blocktranslate with organization_name=organization.name %}
+    Login to {{ organization_name }} portal
+    {% endblocktranslate %}
+</mj-button>
+{% endblock %}

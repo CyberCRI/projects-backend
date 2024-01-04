@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-04 10:37+0000\n"
+"POT-Creation-Date: 2024-01-04 14:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -568,6 +568,162 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr ""
 
+#: apps/invitations/templates/base.html:56
+#: services/keycloak/templates/base.html:56
+msgid ""
+"\n"
+"          Need any help?\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/base.html:61
+#: services/keycloak/templates/base.html:61
+msgid ""
+"\n"
+"          For questions or assistance, you can <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">email us</a>. "
+"We will come back to you during business hours (mon-fri 9am-6pm) as fast as "
+"we can.\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/base.html:66
+#: services/keycloak/templates/base.html:66
+msgid ""
+"\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
+"projects.lp-i.org\">help center</a>.\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/base.html:71
+#: services/keycloak/templates/base.html:71
+msgid ""
+"\n"
+"          We hope you'll enjoy our new platform!\n"
+"          <br/>\n"
+"          The LPI team.\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/base.html:83
+#: services/keycloak/templates/base.html:83
+msgid ""
+"\n"
+"          Made with ❤️ by Learning Planet Institute.\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/mail.html:8
+#: services/keycloak/templates/admin_created/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Welcome to the Projects portal of %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/mail.html:13
+#: apps/invitations/templates/request_declined/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"    Dear %(given_name)s,\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"    You can now access the %(organization_name)s portal on Projects "
+"platform.\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/mail.html:23
+msgid ""
+"\n"
+"    We hope you'll enjoy this new portal!\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Login to %(organization_name)s portal\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
+"Dear %(given_name)s, You can now access the %(organization_name)s portal on "
+"Projects platform.\n"
+"We hope you'll enjoy this new portal!\n"
+"Login to %(organization_name)s portal : %(website_url)s\n"
+msgstr ""
+
+#: apps/invitations/templates/request_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the %(org_name)s Projects platform\n"
+msgstr ""
+
+#: apps/invitations/templates/request_declined/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Your request to join the %(organization_name)s Projects portal has been "
+"declined\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_declined/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"    Thank you for requesting access to the %(organization_name)s Projects "
+"portal. Unfortunately, we are unable to grant your request at this time.\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_declined/mail.html:23
+#, python-format
+msgid ""
+"\n"
+"    If you think this is a mistake, please contact the <a class=\"lpi-link\" "
+"href=\"mailto:%(contact_email)s\">%(organization_name)s Projects portal "
+"administrator</a>.\n"
+"    "
+msgstr ""
+
+#: apps/invitations/templates/request_declined/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Your request to join the %(organization_name)s Projects portal has been "
+"declined\n"
+"Dear %(given_name)s,\n"
+"Thank you for requesting access to the %(organization_name)s Projects "
+"portal. Unfortunately, we are unable to grant your request at this time.\n"
+"If you think this is a mistake, please contact the %(organization_name)s : "
+"%(contact_email)s.\n"
+msgstr ""
+
+#: apps/invitations/templates/request_declined/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Your access request for the %(org_name)s Projects platform has been "
+"declined\n"
+msgstr ""
+
 #: apps/notifications/tasks.py:172
 msgid "editor"
 msgstr ""
@@ -640,21 +796,12 @@ msgstr ""
 msgid "Given user does not have a keycloak account."
 msgstr ""
 
-#: services/keycloak/templates/admin_created/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"    Welcome to the Projects portal of %(organization_name)s, "
-"%(given_name)s!\n"
-"    "
-msgstr ""
-
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
 "\n"
 "    Your Projects account has just been created. You just have to choose a "
 "password and you will be able to join Projects, a platform to share projects "
-"in your organisation and foster collaboration for the common good.\n"
+"in your organization and foster collaboration for the common good.\n"
 "    "
 msgstr ""
 
@@ -695,7 +842,7 @@ msgid ""
 "Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
 "Your Projects account has just been created. You just have to choose a "
 "password and you will be able to join Projects, a platform to share projects "
-"in your organisation and foster collaboration for the common good.\n"
+"in your organization and foster collaboration for the common good.\n"
 "Create my password : %(link)s\n"
 "If you didn’t request this email, there is nothing to worry about, you can "
 "safely ignore it.\n"
@@ -708,47 +855,6 @@ msgstr ""
 msgid ""
 "\n"
 "Welcome to your new %(org_name)s Projects platform\n"
-msgstr ""
-
-#: services/keycloak/templates/base.html:56
-msgid ""
-"\n"
-"          Need any help?\n"
-"          "
-msgstr ""
-
-#: services/keycloak/templates/base.html:61
-msgid ""
-"\n"
-"          For questions or assistance, you can <a class=\"lpi-link\" "
-"href=\"mailto:projects.platform@learningplanetinstitute.org\">email us</a>. "
-"We will come back to you during business hours (mon-fri 9am-6pm) as fast as "
-"we can.\n"
-"          "
-msgstr ""
-
-#: services/keycloak/templates/base.html:66
-msgid ""
-"\n"
-"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">help center</a>.\n"
-"          "
-msgstr ""
-
-#: services/keycloak/templates/base.html:71
-msgid ""
-"\n"
-"          We hope you'll enjoy our new platform!\n"
-"          <br/>\n"
-"          The LPI team.\n"
-"          "
-msgstr ""
-
-#: services/keycloak/templates/base.html:83
-msgid ""
-"\n"
-"          Made with ❤️ by Learning Planet Institute.\n"
-"          "
 msgstr ""
 
 #: services/keycloak/templates/force_reset_password/mail.html:8

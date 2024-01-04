@@ -12,7 +12,7 @@ from apps.misc.models import WikipediaTag
 from apps.organizations import factories
 
 
-class OrganisationTagsTestCase(JwtAPITestCase, TagTestCase):
+class OrganizationTagsTestCase(JwtAPITestCase, TagTestCase):
     @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create(self, mocked):
         mocked.side_effect = self.side_effect
