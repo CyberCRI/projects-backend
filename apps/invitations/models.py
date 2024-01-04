@@ -88,18 +88,31 @@ class AccessRequest(models.Model):
             return self.user.language
         return self.organization.language
 
+    @property
+    def template_user(self):
+        if self.user:
+            return self.user
+        return {
+            "given_name": self.given_name,
+            "family_name": self.family_name,
+            "email": self.email,
+            "job": self.job,
+        }
+
     def send_email(self, email_type: str):
         if email_type not in self.EmailType.values:
             raise ValueError(f"Email type {email_type} is not valid")
         subject, _ = render_message(
-            f"access_requests/{email_type}/object",
+            f"{email_type}/object",
             self.contact_language,
             organization=self.organization,
+            user=self.template_user,
         )
         text, html = render_message(
-            f"access_requests/{email_type}/mail",
+            f"{email_type}/mail",
             self.contact_language,
             organization=self.organization,
+            user=self.template_user,
         )
         send_email(subject, text, [self.contact_email], html_content=html)
 

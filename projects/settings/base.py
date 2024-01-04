@@ -199,8 +199,9 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / "templates",
-            BASE_DIR / "apps/emailing/templates",
             BASE_DIR / "apps/accounts/templates",
+            BASE_DIR / "apps/emailing/templates",
+            BASE_DIR / "apps/invitations/templates",
             BASE_DIR / "services/keycloak/templates",
         ],
         "APP_DIRS": True,

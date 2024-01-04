@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-04 14:00+0000\n"
+"POT-Creation-Date: 2024-01-04 16:13+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -776,11 +776,11 @@ msgstr ""
 msgid "Only a reviewer can change this project's status."
 msgstr ""
 
-#: projects/settings/base.py:257
+#: projects/settings/base.py:258
 msgid "English"
 msgstr ""
 
-#: projects/settings/base.py:258
+#: projects/settings/base.py:259
 msgid "French"
 msgstr ""
 
