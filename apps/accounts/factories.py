@@ -12,7 +12,7 @@ from services.keycloak.factories import (
     RemoteKeycloakAccountFactory,
 )
 
-from .models import AccessRequest, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .models import PeopleGroup, PrivacySettings, ProjectUser, Skill
 
 faker = Faker()
 
@@ -123,26 +123,3 @@ class SkillFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Skill
-
-
-class AccessRequestFactory(factory.django.DjangoModelFactory):
-    organization = factory.SubFactory(
-        "apps.organizations.factories.OrganizationFactory",
-        access_request_enabled=True,
-    )
-    email = factory.LazyAttribute(
-        lambda _: f"request-{uuid.uuid4()}@{faker.domain_name()}".lower()
-    )
-    given_name = factory.Faker("first_name")
-    family_name = factory.Faker("last_name")
-    job = factory.Faker("sentence")
-    message = factory.Faker("text")
-
-    class Meta:
-        model = AccessRequest
-
-    @classmethod
-    def create(cls, **kwargs):
-        instance = super().create(**kwargs)
-        instance.organization.setup_permissions()
-        return instance

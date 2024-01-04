@@ -6,10 +6,12 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import AccessRequestFactory, UserFactory
-from apps.accounts.models import AccessRequest, ProjectUser
+from apps.accounts.factories import UserFactory
+from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.invitations.factories import AccessRequestFactory
+from apps.invitations.models import AccessRequest
 from apps.organizations.factories import OrganizationFactory
 from keycloak import KeycloakError, KeycloakGetError, KeycloakPostError
 from services.keycloak.interface import KeycloakService

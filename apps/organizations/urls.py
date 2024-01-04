@@ -2,13 +2,12 @@ from django.urls import include, path
 from rest_framework_nested import routers
 
 from apps.accounts.views import (
-    AccessRequestViewSet,
     PeopleGroupHeaderView,
     PeopleGroupLogoView,
     PeopleGroupViewSet,
 )
 from apps.commons.routers import DetailOnlyNestedRouter
-from apps.invitations.views import InvitationViewSet
+from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 from apps.organizations import views
 
 categories_router = routers.DefaultRouter()

@@ -64,20 +64,17 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
-from .filters import PeopleGroupFilter, SkillFilter, UserFilter
-from .models import (
-    AccessRequest,
-    AnonymousUser,
-    PeopleGroup,
-    PrivacySettings,
-    ProjectUser,
-    Skill,
+from ..invitations.models import AccessRequest
+from ..invitations.serializers import (
+    AccessRequestManySerializer,
+    AccessRequestSerializer,
+    ProcessAccessRequestSerializer,
 )
+from .filters import PeopleGroupFilter, SkillFilter, UserFilter
+from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
 from .parsers import UserMultipartParser
 from .permissions import HasBasePermission, HasPeopleGroupPermission
 from .serializers import (
-    AccessRequestManySerializer,
-    AccessRequestSerializer,
     AccessTokenSerializer,
     CredentialsSerializer,
     EmptyPayloadResponseSerializer,
@@ -88,7 +85,6 @@ from .serializers import (
     PeopleGroupRemoveTeamMembersSerializer,
     PeopleGroupSerializer,
     PrivacySettingsSerializer,
-    ProcessAccessRequestSerializer,
     SkillSerializer,
     UserLightSerializer,
     UserSerializer,
@@ -966,7 +962,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
     permission_classes = [
         IsAuthenticatedOrCreateOnly,
         CreateOnly
-        | HasBasePermission("manage_accessrequest", "accounts")
+        | HasBasePermission("manage_accessrequest", "invitations")
         | HasOrganizationPermission("manage_accessrequest"),
     ]
 
