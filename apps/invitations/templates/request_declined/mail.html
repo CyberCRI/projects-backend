@@ -1,0 +1,27 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+    {% blocktranslate with organization_name=organization.name %}
+    Your request to join the {{ organization_name }} Projects portal has been declined
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate with given_name=user.given_name.capitalize %}
+    Dear {{ given_name }},
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate with organization_name=organization.name %}
+    Thank you for requesting access to the {{ organization_name }} Projects portal. Unfortunately, we are unable to grant your request at this time.
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate with contact_email=organization.contact_email organization_name=organization.name%}
+    If you think this is a mistake, please contact the <a class="lpi-link" href="mailto:{{ contact_email }}">{{ organization_name }} Projects portal administrator</a>.
+    {% endblocktranslate %}
+</mj-text>
+{% endblock %}

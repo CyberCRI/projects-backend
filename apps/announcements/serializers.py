@@ -23,7 +23,7 @@ from .models import Announcement
 class ProjectAnnouncementSerializer(serializers.ModelSerializer):
     categories = ProjectCategorySerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
-    organisations = OrganizationSerializer(many=True, read_only=True)
+    organizations = OrganizationSerializer(many=True, read_only=True)
     views = serializers.SerializerMethodField()
 
     class Meta:
@@ -37,7 +37,7 @@ class ProjectAnnouncementSerializer(serializers.ModelSerializer):
             "categories",
             "header_image",
             "language",
-            "organisations",
+            "organizations",
             "views",
         ]
 

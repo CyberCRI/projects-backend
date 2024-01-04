@@ -7,7 +7,7 @@ from apps.accounts.views import (
     PeopleGroupViewSet,
 )
 from apps.commons.routers import DetailOnlyNestedRouter
-from apps.invitations.views import InvitationViewSet
+from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 from apps.organizations import views
 
 categories_router = routers.DefaultRouter()
@@ -50,6 +50,9 @@ organizations_nested_router.register(
 )
 organizations_nested_router.register(
     r"invitation", InvitationViewSet, basename="Invitation"
+)
+organizations_nested_router.register(
+    r"access-request", AccessRequestViewSet, basename="AccessRequest"
 )
 
 details_only_organizations_nested_router = DetailOnlyNestedRouter(

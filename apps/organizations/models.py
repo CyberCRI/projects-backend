@@ -9,7 +9,6 @@ from guardian.shortcuts import assign_perm
 from rest_framework.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
-from apps.accounts.models import PeopleGroup
 from apps.commons.db.abc import OrganizationRelated, PermissionsSetupModel
 from apps.commons.utils.permissions import (
     get_permissions_from_subscopes,
@@ -123,6 +122,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         "self", null=True, on_delete=models.SET_NULL, related_name="children"
     )
     groups = models.ManyToManyField(Group, related_name="organizations")
+    access_request_enabled = models.BooleanField(default=False)
 
     class Meta:
         subscopes = (
@@ -147,6 +147,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("lock_project", "Can lock and unlock a project"),
             ("duplicate_project", "Can duplicate a project"),
             ("change_locked_project", "Can update a locked project"),
+            ("manage_accessrequest", "Can manage access requests"),
             *get_permissions_from_subscopes(subscopes),
             *get_write_permissions_from_subscopes(write_only_subscopes),
         )
@@ -175,9 +176,12 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
 
     def get_default_facilitators_permissions(self) -> Iterable[Permission]:
         excluded_permissions = [
-            f"{action}_{subscope}"
-            for action in ["change", "delete", "add"]
-            for subscope in ["tag", "review", "faq", "projectcategory"]
+            "manage_accessrequest",
+            *[
+                f"{action}_{subscope}"
+                for action in ["change", "delete", "add"]
+                for subscope in ["tag", "review", "faq", "projectcategory"]
+            ],
         ]
         return Permission.objects.filter(content_type=self.content_type).exclude(
             codename__in=excluded_permissions
@@ -233,19 +237,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         self.facilitators.set(
             self.facilitators.exclude(pk__in=self.admins.values_list("pk", flat=True))
         )
-
-    def get_or_create_root_people_group(self) -> "PeopleGroup":
-        people_group, _ = PeopleGroup.objects.get_or_create(
-            organization=self,
-            is_root=True,
-            defaults={
-                "name": self.name,
-                "type": "group",
-            },
-        )
-        people_group.members.set([*self.facilitators.all(), *self.users.all()])
-        people_group.managers.set(self.admins.all())
-        return people_group
 
     def get_or_create_group(self, name: str) -> Group:
         """Return the group with the given name."""

@@ -1,0 +1,9 @@
+{% load i18n %}
+{% blocktranslate with organization_name=organization.name given_name=user.given_name.capitalize contact_email=organization.contact_email %}
+Your request to join the {{ organization_name }} Projects portal has been declined
+Dear {{ given_name }},
+Thank you for requesting access to the {{ organization_name }} Projects portal. Unfortunately, we are unable to grant your request at this time.
+If you think this is a mistake, please contact the {{ organization_name }} : {{ contact_email }}.
+{% endblocktranslate %}
+
+

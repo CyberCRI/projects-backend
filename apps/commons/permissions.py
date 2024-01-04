@@ -19,6 +19,44 @@ class IgnoreCall:
         return self
 
 
+class ReadOnly(permissions.BasePermission):
+    """Allows safe methods."""
+
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        return request.method in permissions.SAFE_METHODS
+
+    def has_object_permission(
+        self, request: Request, view: GenericViewSet, obj: Model
+    ) -> bool:
+        return self.has_permission(request, view)
+
+
+class CreateOnly(permissions.BasePermission):
+    """Allows create method."""
+
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        return view.action == "create"
+
+    def has_object_permission(
+        self, request: Request, view: GenericViewSet, obj: Model
+    ) -> bool:
+        return self.has_permission(request, view)
+
+
+class IsAuthenticatedOrCreateOnly(permissions.BasePermission):
+    """Allows authenticated users to create."""
+
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        return view.action == "create" or (
+            request.user and request.user.is_authenticated
+        )
+
+    def has_object_permission(
+        self, request: Request, view: GenericViewSet, obj: Model
+    ) -> bool:
+        return self.has_permission(request, view)
+
+
 class IsOwner(permissions.BasePermission):
     """Allows the creator of an object."""
 
@@ -51,16 +89,3 @@ class WillBeOwner(permissions.BasePermission):
         self, request: Request, view: GenericViewSet, obj
     ) -> bool:
         return self.has_permission(request, view)
-
-
-def IsAction(action: str):  # noqa : N802
-    class _IsAction(permissions.BasePermission):
-        def has_permission(self, request: Request, view: GenericViewSet) -> bool:
-            return view.action == action
-
-        def has_object_permission(
-            self, request: Request, view: GenericViewSet, obj: Model
-        ) -> bool:
-            return self.has_permission(request, view)
-
-    return _IsAction

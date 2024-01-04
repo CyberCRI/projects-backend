@@ -18,9 +18,9 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from simple_history.utils import update_change_reason
 
-from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.accounts.permissions import HasBasePermission
 from apps.analytics.models import Stat
-from apps.commons.permissions import IsOwner
+from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin

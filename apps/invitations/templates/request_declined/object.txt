@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with org_name=organization.name %}
+Your access request for the {{ org_name }} Projects platform has been declined
+{% endblocktranslate %}

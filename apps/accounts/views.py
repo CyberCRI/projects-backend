@@ -16,7 +16,7 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from googleapiclient.errors import HttpError
-from rest_framework import mixins, status, views, viewsets
+from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
@@ -25,10 +25,12 @@ from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
-from apps.accounts.exceptions import EmailTypeMissingError
 from apps.commons.filters import TrigramSearchFilter
-from apps.commons.permissions import IsOwner, WillBeOwner
-from apps.commons.serializers.serializers import EmailSerializer
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
+from apps.commons.serializers.serializers import (
+    EmailSerializer,
+    RetrieveUpdateModelViewSet,
+)
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
@@ -36,7 +38,12 @@ from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import ProjectLightSerializer
-from keycloak import KeycloakDeleteError, KeycloakPostError, KeycloakPutError
+from keycloak import (
+    KeycloakDeleteError,
+    KeycloakGetError,
+    KeycloakPostError,
+    KeycloakPutError,
+)
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_account,
@@ -48,10 +55,11 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
+from .exceptions import EmailTypeMissingError
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
 from .parsers import UserMultipartParser
-from .permissions import HasBasePermission, HasPeopleGroupPermission, ReadOnly
+from .permissions import HasBasePermission, HasPeopleGroupPermission
 from .serializers import (
     AccessTokenSerializer,
     CredentialsSerializer,
@@ -68,33 +76,6 @@ from .serializers import (
     UserSerializer,
 )
 from .utils import account_sync_errors_handler, get_permission_from_representation
-
-
-class RetrieveUpdateModelViewSet(
-    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
-    """
-    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
-    actions.
-
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
-
-
-class ReadUpdateModelViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet,
-):
-    """
-    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
-    actions.
-
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
 
 
 class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -300,38 +281,38 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @method_decorator(
         account_sync_errors_handler(
-            keycloak_error=(KeycloakPostError, KeycloakPutError)
+            keycloak_error=(KeycloakPostError, KeycloakPutError, KeycloakGetError)
         )
     )
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
 
-    @transaction.atomic
     def perform_create(self, serializer):
-        if hasattr(self.request.user, "invitation"):
-            invitation = self.request.user.invitation
-            groups = [
-                invitation.people_group.get_members()
-                if invitation.people_group
-                else None,
-                invitation.organization.get_users()
-                if invitation.organization
-                else None,
-            ]
-            instance = serializer.save(groups=list(filter(lambda x: x, groups)))
-            email_type = KeycloakService.EmailType.INVITATION
-            redirect_organization_code = invitation.organization.code
-        else:
-            instance = serializer.save()
-            email_type = KeycloakService.EmailType.ADMIN_CREATED
-            redirect_organization_code = self.request.query_params.get(
-                "organization", "DEFAULT"
-            )
+        with transaction.atomic():
+            if hasattr(self.request.user, "invitation"):
+                invitation = self.request.user.invitation
+                groups = [
+                    invitation.people_group.get_members()
+                    if invitation.people_group
+                    else None,
+                    invitation.organization.get_users()
+                    if invitation.organization
+                    else None,
+                ]
+                instance = serializer.save(groups=list(filter(lambda x: x, groups)))
+                email_type = KeycloakService.EmailType.INVITATION
+                redirect_organization_code = invitation.organization.code
+            else:
+                instance = serializer.save()
+                email_type = KeycloakService.EmailType.ADMIN_CREATED
+                redirect_organization_code = self.request.query_params.get(
+                    "organization", "DEFAULT"
+                )
 
-        instance = self.google_sync(instance, self.request.data, True)
-        keycloak_account = KeycloakService.create_user(
-            instance, self.request.data.get("password", None)
-        )
+            instance = self.google_sync(instance, self.request.data, True)
+            keycloak_account = KeycloakService.create_user(
+                instance, self.request.data.get("password", None)
+            )
         KeycloakService.send_email(
             keycloak_account=keycloak_account,
             email_type=email_type,
@@ -405,8 +386,12 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         else:
             user = user.get()
         redirect_uri = request.query_params.get("redirect_uri", "")
-        KeycloakService.send_reset_password_email(user=user, redirect_uri=redirect_uri)
-        return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        if hasattr(user, "keycloak_account"):
+            KeycloakService.send_reset_password_email(
+                user=user.keycloak_account, redirect_uri=redirect_uri
+            )
+            return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
+        raise KeycloakAccountNotFound()
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(

@@ -654,7 +654,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
 
     def test_root_group_is_default_parent(self):
         organization = self.organization
-        root_people_group = organization.get_or_create_root_people_group()
+        root_people_group = PeopleGroup.update_or_create_root(organization)
         payload = {
             "name": faker.name(),
             "description": faker.text(),

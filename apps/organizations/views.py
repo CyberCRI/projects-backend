@@ -10,9 +10,10 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from apps.accounts.permissions import HasBasePermission, ReadOnly
+from apps.accounts.models import PeopleGroup
+from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import UserSerializer
-from apps.commons.permissions import IsOwner
+from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.utils.permissions import map_action_to_permission
 from apps.files.models import Image
@@ -214,7 +215,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def get_people_groups_hierarchy(self, request, *args, **kwargs):
         """Get the people groups hierarchy of the organization."""
         organization = self.get_object()
-        root_group = organization.get_or_create_root_people_group()
+        root_group = PeopleGroup.update_or_create_root(organization)
         return Response(root_group.get_hierarchy(), status=status.HTTP_200_OK)
 
 

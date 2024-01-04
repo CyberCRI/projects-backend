@@ -153,6 +153,22 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         return ContentType.objects.get_for_model(PeopleGroup)
 
     @classmethod
+    def update_or_create_root(cls, organization: "Organization"):
+        root_group, _ = cls.objects.get_or_create(
+            organization=organization,
+            is_root=True,
+            defaults={
+                "name": organization.name,
+                "type": "group",
+            },
+        )
+        root_group.members.set(
+            [*organization.facilitators.all(), *organization.users.all()]
+        )
+        root_group.managers.set(organization.admins.all())
+        return root_group
+
+    @classmethod
     def _get_hierarchy(cls, groups: dict[int, dict], group_id: int):
         from apps.files.serializers import ImageSerializer
 
