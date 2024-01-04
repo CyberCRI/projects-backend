@@ -1,4 +1,3 @@
-import json
 import uuid
 
 from django.conf import settings
@@ -26,17 +25,9 @@ from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
-from apps.accounts.exceptions import EmailTypeMissingError
 from apps.commons.filters import TrigramSearchFilter
-from apps.commons.permissions import (
-    CreateOnly,
-    IsAuthenticatedOrCreateOnly,
-    IsOwner,
-    ReadOnly,
-    WillBeOwner,
-)
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.serializers.serializers import (
-    CreateListModelViewSet,
     EmailSerializer,
     RetrieveUpdateModelViewSet,
 )
@@ -64,12 +55,7 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
-from ..invitations.models import AccessRequest
-from ..invitations.serializers import (
-    AccessRequestManySerializer,
-    AccessRequestSerializer,
-    ProcessAccessRequestSerializer,
-)
+from .exceptions import EmailTypeMissingError
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
 from .parsers import UserMultipartParser
@@ -955,142 +941,3 @@ class AccessTokenView(APIView):
             request.data["username"], request.data["password"]
         )
         return Response(AccessTokenSerializer(token).data, status=code)
-
-
-class AccessRequestViewSet(CreateListModelViewSet):
-    serializer_class = AccessRequestSerializer
-    permission_classes = [
-        IsAuthenticatedOrCreateOnly,
-        CreateOnly
-        | HasBasePermission("manage_accessrequest", "invitations")
-        | HasOrganizationPermission("manage_accessrequest"),
-    ]
-
-    def get_queryset(self):
-        if "organization_code" in self.kwargs:
-            return AccessRequest.objects.filter(
-                organization__code=self.kwargs["organization_code"]
-            )
-        return AccessRequest.objects.none()
-
-    def get_serializer_context(self):
-        return {
-            **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code", None),
-        }
-
-    def create(self, request, *args, **kwargs):
-        request.data.update(
-            {
-                "organization": self.kwargs["organization_code"],
-                "user": request.user.id if request.user.is_authenticated else None,
-            }
-        )
-        return super().create(request, *args, **kwargs)
-
-    def perform_accept(self, access_request: AccessRequest):
-        if access_request.organization.code != self.kwargs["organization_code"]:
-            return {
-                "status": "error",
-                "message": "This access request is not for the current organization.",
-            }
-        if access_request.status != AccessRequest.Status.PENDING:
-            return {
-                "status": "error",
-                "message": "This access request has already been processed.",
-            }
-        try:
-            if access_request.user is not None:
-                access_request.accept()
-            else:
-                access_request.accept_and_create()
-        except KeycloakGetError:
-            return {
-                "status": "warning",
-                "message": "Confirmation email not sent to user",
-            }
-        except (KeycloakPostError, KeycloakPutError) as e:
-            message = json.loads(e.response_body.decode()).get("errorMessage")
-            return {"status": "error", "message": f"Keycloak error : {message}"}
-        except Exception as e:  # noqa
-            return {"status": "error", "message": str(e)}
-        return {"status": "success", "message": ""}
-
-    def perform_decline(self, access_request: AccessRequest):
-        if access_request.organization.code != self.kwargs["organization_code"]:
-            return {
-                "status": "error",
-                "message": "This access request is not for the current organization.",
-            }
-        if access_request.status != AccessRequest.Status.PENDING:
-            return {
-                "status": "error",
-                "message": "This access request has already been processed.",
-            }
-        try:
-            access_request.decline()
-        except Exception as e:  # noqa
-            return {"status": "error", "message": str(e)}
-        return {"status": "success", "message": ""}
-
-    @extend_schema(
-        request=AccessRequestManySerializer, responses=ProcessAccessRequestSerializer
-    )
-    @action(detail=False, methods=["POST"])
-    def accept(self, request, *args, **kwargs):
-        serializer = AccessRequestManySerializer(
-            data=request.data, context=self.get_serializer_context()
-        )
-        serializer.is_valid(raise_exception=True)
-        results = {
-            "success": [],
-            "error": [],
-            "warning": [],
-        }
-        for access_request in serializer.validated_data["access_requests"]:
-            result = self.perform_accept(access_request)
-            results[result["status"]].append(
-                {
-                    "id": access_request.id,
-                    "email": (
-                        access_request.email
-                        if not access_request.user
-                        else access_request.user.email
-                    ),
-                    "message": result["message"],
-                }
-            )
-        serializer = ProcessAccessRequestSerializer(data=results)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @extend_schema(
-        request=AccessRequestManySerializer, responses=ProcessAccessRequestSerializer
-    )
-    @action(detail=False, methods=["POST"])
-    def decline(self, request, *args, **kwargs):
-        serializer = AccessRequestManySerializer(
-            data=request.data, context=self.get_serializer_context()
-        )
-        serializer.is_valid(raise_exception=True)
-        results = {
-            "success": [],
-            "error": [],
-            "warning": [],
-        }
-        for access_request in serializer.validated_data["access_requests"]:
-            result = self.perform_decline(access_request)
-            results[result["status"]].append(
-                {
-                    "id": access_request.id,
-                    "email": (
-                        access_request.email
-                        if not access_request.user
-                        else access_request.user.email
-                    ),
-                    "message": result["message"],
-                }
-            )
-        serializer = ProcessAccessRequestSerializer(data=results)
-        serializer.is_valid(raise_exception=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)

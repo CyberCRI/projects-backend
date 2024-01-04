@@ -18,18 +18,17 @@ from apps.commons.permissions import (
 )
 from apps.commons.serializers.serializers import CreateListModelViewSet
 from apps.commons.utils.permissions import map_action_to_permission
-from apps.invitations.models import AccessRequest
-from apps.invitations.serializers import (
-    AccessRequestManySerializer,
-    AccessRequestSerializer,
-    ProcessAccessRequestSerializer,
-)
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from keycloak import KeycloakGetError, KeycloakPostError, KeycloakPutError
 
-from .models import Invitation
-from .serializers import InvitationSerializer
+from .models import AccessRequest, Invitation
+from .serializers import (
+    AccessRequestManySerializer,
+    AccessRequestSerializer,
+    InvitationSerializer,
+    ProcessAccessRequestSerializer,
+)
 
 
 class InvitationViewSet(viewsets.ModelViewSet):
