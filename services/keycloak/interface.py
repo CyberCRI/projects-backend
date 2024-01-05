@@ -328,9 +328,9 @@ class KeycloakService:
     def update_user(cls, keycloak_account: KeycloakAccount):
         keycloak_user = cls.get_user(keycloak_account.keycloak_id)
         user = keycloak_account.user
-        if (
-            hasattr(user, "google_account")
-            or keycloak_account.username != keycloak_account.email
+        if hasattr(user, "google_account") or (
+            keycloak_account.email
+            and keycloak_account.username != keycloak_account.email
         ):
             username = user.email
             email = user.personal_email
