@@ -2,7 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Case, Prefetch, QuerySet, Value, When
+from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
@@ -37,6 +37,7 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 from keycloak import (
     KeycloakDeleteError,
@@ -718,13 +719,24 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             "categories",
             queryset=ProjectCategory.objects.select_related("organization"),
         )
+        group_projects_ids = (
+            Project.objects.filter(groups__people_groups=group)
+            .distinct()
+            .values_list("id", flat=True)
+        )
         queryset = (
-            (
-                self.request.user.get_project_queryset()
-                & group.featured_projects.all().distinct()
+            self.request.user.get_project_queryset(categories)
+            .filter(Q(groups__people_groups=group) | Q(people_groups=group))
+            .annotate(
+                is_group_project=Case(
+                    When(id__in=group_projects_ids, then=True), default=Value(False)
+                ),
+                is_featured=Case(
+                    When(people_groups=group, then=True), default=Value(False)
+                ),
             )
             .distinct()
-            .prefetch_related(categories)
+            .order_by("-is_featured", "-is_group_project")
         )
         page = self.paginate_queryset(queryset)
         if page is not None:
