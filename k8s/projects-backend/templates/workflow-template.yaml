@@ -121,6 +121,7 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   templates:
+  - name: check-presence
     steps:
     - - name: check-presence
         templateRef:
