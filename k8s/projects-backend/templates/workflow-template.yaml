@@ -122,7 +122,7 @@ spec:
         parameters:
         - name: message
           value: Backup check failed !
-        - message: slackChannel
+        - name: slackChannel
           value: {{ .Values.workflow.backups.slackChannel }}
   entrypoint: check-presence
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
