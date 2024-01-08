@@ -252,7 +252,8 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.projects = ProjectFactory.create_batch(3, organizations=[cls.organization])
-        cls.retrieved_people_group_projects = {
+        cls.retrieved_people_group = PeopleGroupFactory(organization=cls.organization)
+        cls.retrieved_featured_projects = {
             "public": ProjectFactory(
                 publication_status=Project.PublicationStatus.PUBLIC,
                 organizations=[cls.organization],
@@ -266,10 +267,33 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
                 organizations=[cls.organization],
             ),
         }
-        cls.retrieved_people_group = PeopleGroupFactory(organization=cls.organization)
-        cls.retrieved_people_group.featured_projects.add(
-            *list(cls.retrieved_people_group_projects.values())
+        cls.retrieved_group_projects = {
+            "public": ProjectFactory(
+                publication_status=Project.PublicationStatus.PUBLIC,
+                organizations=[cls.organization],
+            ),
+            "private": ProjectFactory(
+                publication_status=Project.PublicationStatus.PRIVATE,
+                organizations=[cls.organization],
+            ),
+            "org": ProjectFactory(
+                publication_status=Project.PublicationStatus.ORG,
+                organizations=[cls.organization],
+            ),
+        }
+        cls.retrieved_featured_group_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
+        cls.retrieved_people_group.featured_projects.add(
+            cls.retrieved_featured_group_project,
+            *list(cls.retrieved_featured_projects.values())
+        )
+        cls.retrieved_featured_group_project.member_people_groups.add(
+            cls.retrieved_people_group
+        )
+        for project in cls.retrieved_group_projects.values():
+            project.member_people_groups.add(cls.retrieved_people_group)
 
     @parameterized.expand(
         [
@@ -355,7 +379,8 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
     def test_retrieve_featured_projects(self, role, retrieved_projects):
         organization = self.organization
         people_group = self.retrieved_people_group
-        projects = self.retrieved_people_group_projects
+        featured_projects = self.retrieved_featured_projects
+        group_projects = self.retrieved_group_projects
         user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         response = self.client.get(
@@ -366,9 +391,23 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         content = response.json()["results"]
-        assert {p["id"] for p in content} == {
-            projects[p].id for p in retrieved_projects
+        assert content[0]["id"] == self.retrieved_featured_group_project.id
+        assert {p["id"] for p in content[1 : len(retrieved_projects) + 1]} == {
+            featured_projects[p].id for p in retrieved_projects
         }
+        assert {p["id"] for p in content[len(retrieved_projects) + 1 :]} == {
+            group_projects[p].id for p in retrieved_projects
+        }
+        for project in content:
+            if project["id"] == self.retrieved_featured_group_project.id:
+                assert project["is_featured"] is True
+                assert project["is_group_project"] is True
+            elif project["id"] in [p.id for p in featured_projects.values()]:
+                assert project["is_featured"] is True
+                assert project["is_group_project"] is False
+            elif project["id"] in [p.id for p in group_projects.values()]:
+                assert project["is_featured"] is False
+                assert project["is_group_project"] is True
 
     @parameterized.expand(
         [
@@ -380,8 +419,14 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
     def test_retrieve_featured_projects_project_roles(self, role, retrieved_projects):
         organization = self.organization
         people_group = self.retrieved_people_group
-        projects = self.retrieved_people_group_projects
-        user = self.get_parameterized_test_user(role, instances=list(projects.values()))
+        featured_projects = self.retrieved_featured_projects
+        group_projects = self.retrieved_group_projects
+        instances = [
+            self.retrieved_featured_group_project,
+            *list(featured_projects.values()),
+            *list(group_projects.values()),
+        ]
+        user = self.get_parameterized_test_user(role, instances=instances)
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -391,9 +436,23 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         )
         assert response.status_code == status.HTTP_200_OK
         content = response.json()["results"]
-        assert {p["id"] for p in content} == {
-            projects[p].id for p in retrieved_projects
+        assert content[0]["id"] == self.retrieved_featured_group_project.id
+        assert {p["id"] for p in content[1 : len(featured_projects) + 1]} == {
+            featured_projects[p].id for p in retrieved_projects
         }
+        assert {p["id"] for p in content[len(featured_projects) + 1 :]} == {
+            group_projects[p].id for p in retrieved_projects
+        }
+        for project in content:
+            if project["id"] == self.retrieved_featured_group_project.id:
+                assert project["is_featured"] is True
+                assert project["is_group_project"] is True
+            elif project["id"] in [p.id for p in featured_projects.values()]:
+                assert project["is_featured"] is True
+                assert project["is_group_project"] is False
+            elif project["id"] in [p.id for p in group_projects.values()]:
+                assert project["is_featured"] is False
+                assert project["is_group_project"] is True
 
 
 class ValidatePeopleGroupTestCase(JwtAPITestCase):
