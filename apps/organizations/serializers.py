@@ -170,6 +170,8 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "dashboard_subtitle",
             "language",
             "is_logo_visible_on_parent_dashboard",
+            "access_request_enabled",
+            "onboarding_enabled",
             "name",
             "website_url",
             "parent_code",

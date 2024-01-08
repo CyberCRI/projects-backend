@@ -123,6 +123,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     )
     groups = models.ManyToManyField(Group, related_name="organizations")
     access_request_enabled = models.BooleanField(default=False)
+    onboarding_enabled = models.BooleanField(default=True)
 
     class Meta:
         subscopes = (
