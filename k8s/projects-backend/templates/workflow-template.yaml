@@ -24,12 +24,13 @@ roleRef:
   name: {{ .Values.workflow.rbac.executorClusterRoleName}}
   apiGroup: rbac.authorization.k8s.io
 ---
+{{- if .Values.workflow.lifecycle.enabled}}
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ tpl $.Values.fullName $ }}
+  name: {{ tpl .Values.workflow.lifecycle.resourceName $ }}
 spec:
-  entrypoint: sort
+  entrypoint: create-db
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
     runAsNonRoot: true
@@ -103,4 +104,32 @@ spec:
         secret:
           secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
       {{- end }}
+{{- end }}
+{{- if .Values.workflow.backups.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}
+spec:
+  entrypoint: check-presence
+  serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+    seccompProfile:
+      type: RuntimeDefault
+  templates:
+    steps:
+    - - name: check-presence
+        templateRef:
+          name: postgres-backuper
+          template: check-presence
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: storage_container_name
+            value: {{ .Values.workflow.backups.storageContainerName }}
+{{- end }}
 {{- end }}

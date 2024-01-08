@@ -101,4 +101,10 @@ workflow:
     executorClusterRoleName: executor
     serviceAccountName: workflow
   enabled: false
-
+  lifecycle:
+    enabled: false
+    resourceName: '{{ printf "%s-lifecycle" .Values.fullname }}'
+  backups:
+    enabled: false
+    resourceName: '{{ printf "%s-backups" .Values.fullname }}'
+    storageContainerName: projects-backups
