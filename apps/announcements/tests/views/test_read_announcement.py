@@ -1,55 +1,94 @@
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.announcements.factories import AnnouncementFactory
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
+faker = Faker()
+
 
 class ReadAnnouncementTestCase(JwtAPITestCase):
-    list_route = "Read-announcement-list"
-    detail_route = "Read-announcement-detail"
-    factory = AnnouncementFactory
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        projects = {
+            "public": ProjectFactory(
+                organizations=[cls.organization],
+                publication_status=Project.PublicationStatus.PUBLIC,
+            ),
+            "org": ProjectFactory(
+                organizations=[cls.organization],
+                publication_status=Project.PublicationStatus.ORG,
+            ),
+            "private": ProjectFactory(
+                organizations=[cls.organization],
+                publication_status=Project.PublicationStatus.PRIVATE,
+            ),
+        }
+        cls.announcements = {
+            "public": AnnouncementFactory(project=projects["public"]),
+            "org": AnnouncementFactory(project=projects["org"]),
+            "private": AnnouncementFactory(project=projects["private"]),
+        }
 
-    def test_list_anonymous(self):
-        project1 = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project2 = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project3 = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        item1 = self.factory(project=project1)
-        item2 = self.factory(project=project2)
-        item3 = self.factory(project=project3)
-        response = self.client.get(reverse(self.list_route))
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        self.assertEqual(response.json()["count"], 3)
-        self.assertEqual(
-            sorted([item1.id, item2.id, item3.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_retrieve_public_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
+    @parameterized.expand(
+        [
+            (
+                TestRoles.ANONYMOUS,
+                "public",
+            ),
+            (
+                TestRoles.ANONYMOUS,
+                "org",
+            ),
+            (
+                TestRoles.ANONYMOUS,
+                "private",
+            ),
+            (
+                TestRoles.DEFAULT,
+                "public",
+            ),
+            (
+                TestRoles.DEFAULT,
+                "org",
+            ),
+            (
+                TestRoles.DEFAULT,
+                "private",
+            ),
+        ]
+    )
+    def test_retrieve_announcement(self, role, publication_status):
+        user = self.get_parameterized_test_user(role)
+        announcement = self.announcements[publication_status]
+        self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(self.detail_route, kwargs={"id": instance.id})
+            reverse("Read-announcement-detail", args=(announcement.id,)),
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        self.assertEqual(instance.id, response.json()["id"])
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        assert content["id"] == announcement.id
 
-    def test_retrieve_private_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_list_announcement(self, role):
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(self.detail_route, kwargs={"id": instance.id})
+            reverse("Read-announcement-list"),
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        self.assertEqual(instance.id, response.json()["id"])
-
-    def test_retrieve_org_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(self.detail_route, kwargs={"id": instance.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        self.assertEqual(instance.id, response.json()["id"])
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()["results"]
+        assert len(content) == 3
+        assert {a["id"] for a in content} == {a.id for a in self.announcements.values()}
