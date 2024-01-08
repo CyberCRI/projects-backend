@@ -103,8 +103,8 @@ workflow:
   enabled: false
   lifecycle:
     enabled: false
-    resourceName: '{{ $.Values.fullname }}-lifecycle'
+    resourceName: '{{ $.Values.fullName }}-lifecycle'
   backups:
     enabled: false
-    resourceName: '{{ $.Values.fullname }}-backups'
+    resourceName: '{{ $.Values.fullName }}-backups'
     storageContainerName: projects-backups
