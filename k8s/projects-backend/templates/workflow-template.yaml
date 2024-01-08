@@ -113,7 +113,7 @@ metadata:
 spec:
   hooks:
     failure:
-      expression: steps["step-1"].status != "Succeeded"
+      expression: steps["check-presence"].status != "Succeeded"
       templateRef:
         name: notify-slack
         template: send-request
