@@ -103,8 +103,8 @@ workflow:
   enabled: false
   lifecycle:
     enabled: false
-    resourceName: '{{ printf "%s-lifecycle" .Values.fullname }}'
+    resourceName: '{{ $.Values.fullname }}-lifecycle'
   backups:
     enabled: false
-    resourceName: '{{ printf "%s-backups" .Values.fullname }}'
+    resourceName: '{{ $.Values.fullname }}-backups'
     storageContainerName: projects-backups
