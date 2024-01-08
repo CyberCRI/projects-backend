@@ -71,6 +71,9 @@ migrate:
 .PHONY: prestart
 prestart: check collectstatic migrate
 
+.PHONY: prestart-no-migrate
+prestart: check collectstatic
+
 .PHONY: start
 start:
 	gunicorn --config ./gunicorn.conf.py projects.wsgi:application
