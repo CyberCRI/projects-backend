@@ -75,6 +75,7 @@ class Migration(migrations.Migration):
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
                 ("access_request_enabled", models.BooleanField(default=False)),
+                ("onboarding_enabled", models.BooleanField(default=True)),
                 (
                     "banner_image",
                     models.ForeignKey(
