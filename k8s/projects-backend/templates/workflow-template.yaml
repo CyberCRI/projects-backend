@@ -111,6 +111,19 @@ kind: WorkflowTemplate
 metadata:
   name: {{ tpl .Values.workflow.backups.resourceName $ }}
 spec:
+  hooks:
+    failure:
+      expression: steps["step-1"].status != "Succeeded"
+      templateRef:
+        name: notify-slack
+        template: send-request
+        clusterScope: true
+      arguments:
+        parameters:
+        - name: message
+          value: Backup check failed !
+        - message: slackChannel
+          value: {{ .Values.workflow.backups.slackChannel }}
   entrypoint: check-presence
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:

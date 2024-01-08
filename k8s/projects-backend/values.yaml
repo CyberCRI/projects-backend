@@ -108,3 +108,4 @@ workflow:
     enabled: false
     resourceName: '{{ $.Values.fullName }}-backups'
     storageContainerName: projects-backups
+    slackChannel: '#alerts-prod-error'
