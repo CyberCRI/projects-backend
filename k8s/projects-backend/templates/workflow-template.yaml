@@ -112,7 +112,7 @@ metadata:
   name: {{ tpl .Values.workflow.backups.resourceName $ }}
 spec:
   hooks:
-    exit:
+    failed:
       expression: workflow.status != "Succeeded"
       templateRef:
         name: notify-slack
