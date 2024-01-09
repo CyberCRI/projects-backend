@@ -101,4 +101,14 @@ workflow:
     executorClusterRoleName: executor
     serviceAccountName: workflow
   enabled: false
-
+  lifecycle:
+    enabled: false
+    resourceName: '{{ $.Values.fullName }}-lifecycle'
+  backups:
+    enabled: false
+    resourceName: '{{ $.Values.fullName }}-backups'
+    storageContainerName: projects-backups
+    slackChannel: '#alerts-prod-error'
+    cron:
+      enabled: true
+      schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
