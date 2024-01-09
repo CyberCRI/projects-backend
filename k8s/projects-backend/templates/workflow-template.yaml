@@ -113,7 +113,7 @@ metadata:
 spec:
   hooks:
     failed:
-      expression: workflow.status != "Succeeded"
+      expression: {{ print "{{workflow.status}} != \"Succeeded\"" | squote}}
       templateRef:
         name: notify-slack
         template: send-request
