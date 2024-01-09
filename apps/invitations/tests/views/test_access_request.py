@@ -102,6 +102,126 @@ class ListAccessRequestTestCase(JwtAPITestCase):
             assert {r.id for r in self.access_requests} == {r["id"] for r in content}
 
 
+class FilterOrderUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.access_requests_a = AccessRequestFactory(
+            organization=cls.organization, status=AccessRequest.Status.ACCEPTED
+        )
+        cls.access_requests_b = AccessRequestFactory(
+            organization=cls.organization, status=AccessRequest.Status.DECLINED
+        )
+        cls.access_requests_c = AccessRequestFactory(
+            organization=cls.organization, status=AccessRequest.Status.PENDING
+        )
+        cls.access_requests_d = AccessRequestFactory(
+            organization=cls.organization, status=AccessRequest.Status.PENDING
+        )
+
+    def test_order_by_status(self):
+        self.client.force_authenticate(
+            UserFactory(groups=[self.organization.get_admins()])
+        )
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + "?ordering=status"
+        )
+        assert response.status_code == 200
+        assert response.data["results"][0]["status"] == self.access_requests_a.status
+        assert response.data["results"][1]["status"] == self.access_requests_b.status
+        assert (
+            response.data["results"][2]["status"] == self.access_requests_c.status
+            or self.access_requests_d.status
+        )
+        assert (
+            response.data["results"][3]["status"] == self.access_requests_c.status
+            or self.access_requests_d.status
+        )
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + "?ordering=-status"
+        )
+        assert response.status_code == 200
+        assert (
+            response.data["results"][0]["status"] == self.access_requests_c.status
+            or self.access_requests_d.status
+        )
+        assert (
+            response.data["results"][1]["status"] == self.access_requests_c.status
+            or self.access_requests_d.status
+        )
+        assert response.data["results"][2]["status"] == self.access_requests_b.status
+        assert response.data["results"][3]["status"] == self.access_requests_a.status
+
+    def test_order_by_creation_date(self):
+        self.client.force_authenticate(
+            UserFactory(groups=[self.organization.get_admins()])
+        )
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + "?ordering=created_at"
+        )
+        assert response.status_code == 200
+        self.assertLess(
+            response.data["results"][0]["created_at"],
+            response.data["results"][1]["created_at"],
+        )
+        self.assertLess(
+            response.data["results"][1]["created_at"],
+            response.data["results"][2]["created_at"],
+        )
+        self.assertLess(
+            response.data["results"][2]["created_at"],
+            response.data["results"][3]["created_at"],
+        )
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + "?ordering=-created_at"
+        )
+        assert response.status_code == 200
+        self.assertLess(
+            response.data["results"][3]["created_at"],
+            response.data["results"][2]["created_at"],
+        )
+        self.assertLess(
+            response.data["results"][2]["created_at"],
+            response.data["results"][1]["created_at"],
+        )
+        self.assertLess(
+            response.data["results"][1]["created_at"],
+            response.data["results"][0]["created_at"],
+        )
+
+    def filter_by_status(self):
+        self.client.force_authenticate(
+            UserFactory(groups=[self.organization.get_admins()])
+        )
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + f"?status={AccessRequest.Status.PENDING.value}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 2
+        assert response.data["results"][0]["id"] == self.access_requests_c.id
+        assert response.data["results"][1]["id"] == self.access_requests_d.id
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + f"?status={AccessRequest.Status.ACCEPTED.value}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["id"] == self.access_requests_a.id
+        response = self.client.get(
+            reverse("AccessRequest-list", args=(self.organization.code,))
+            + f"?status={AccessRequest.Status.DECLINED.value}"
+        )
+        assert response.status_code == 200
+        assert len(response.data["results"]) == 1
+        assert response.data["results"][0]["id"] == self.access_requests_b.id
+
+
 class AcceptAccessRequestTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:

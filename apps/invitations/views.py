@@ -89,6 +89,9 @@ class InvitationViewSet(viewsets.ModelViewSet):
 
 class AccessRequestViewSet(CreateListModelViewSet):
     serializer_class = AccessRequestSerializer
+
+    ordering_fields = ["status", "created_at"]
+
     permission_classes = [
         IsAuthenticatedOrCreateOnly,
         CreateOnly
