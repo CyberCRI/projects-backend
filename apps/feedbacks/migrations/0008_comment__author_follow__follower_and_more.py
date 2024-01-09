@@ -10,12 +10,12 @@ def migrate_comments(apps, schema_editor):
     Comment = apps.get_model("feedbacks", "Comment")
     HistoricalComment = apps.get_model("feedbacks", "HistoricalComment")
     for comment in Comment.objects.all():
-        comment._author = comment.author
-        comment.save()
+        Comment.objects.filter(pk=comment.pk).update(_author=comment.author)
     for historical_comment in HistoricalComment.objects.all():
         try:
-            historical_comment._author = historical_comment.author
-            historical_comment.save()
+            HistoricalComment.objects.filter(
+                pk=historical_comment.pk
+            ).update(_author=historical_comment.author)
         except ObjectDoesNotExist:
             historical_comment.delete()
 
@@ -24,12 +24,12 @@ def migrate_comments_reverse(apps, schema_editor):
     Comment = apps.get_model("feedbacks", "Comment")
     HistoricalComment = apps.get_model("feedbacks", "HistoricalComment")
     for comment in Comment.objects.all():
-        comment.author = comment._author
-        comment.save()
+        Comment.objects.filter(pk=comment.pk).update(author=comment._author)
     for historical_comment in HistoricalComment.objects.all():
         try:
-            historical_comment.author = historical_comment._author
-            historical_comment.save()
+            HistoricalComment.objects.filter(
+                pk=historical_comment.pk
+            ).update(author=historical_comment._author)
         except ObjectDoesNotExist:
             historical_comment.delete()
 
@@ -37,27 +37,25 @@ def migrate_comments_reverse(apps, schema_editor):
 def migrate_reviews(apps, schema_editor):
     Review = apps.get_model("feedbacks", "Review")
     for review in Review.objects.all():
-        review._reviewer = review.reviewer
-        review.save()
+        Review.objects.filter(pk=review.pk).update(_reviewer=review.reviewer)
 
 
 def migrate_reviews_reverse(apps, schema_editor):
     Review = apps.get_model("feedbacks", "Review")
     for review in Review.objects.all():
-        review.reviewer = review._reviewer
-        review.save()
+        Review.objects.filter(pk=review.pk).update(reviewer=review._reviewer)
 
 
 def migrate_follows(apps, schema_editor):
     Follow = apps.get_model("feedbacks", "Follow")
     HistoricalFollow = apps.get_model("feedbacks", "HistoricalFollow")
     for follow in Follow.objects.all():
-        follow._follower = follow.follower
-        follow.save()
+        Follow.objects.filter(pk=follow.pk).update(_follower=follow.follower)
     for historical_follow in HistoricalFollow.objects.all():
         try:
-            historical_follow._follower = historical_follow.follower
-            historical_follow.save()
+            HistoricalFollow.objects.filter(
+                pk=historical_follow.pk
+            ).update(_follower=historical_follow.follower)
         except ObjectDoesNotExist:
             historical_follow.delete()
 
@@ -66,12 +64,12 @@ def migrate_follows_reverse(apps, schema_editor):
     Follow = apps.get_model("feedbacks", "Follow")
     HistoricalFollow = apps.get_model("feedbacks", "HistoricalFollow")
     for follow in Follow.objects.all():
-        follow.follower = follow._follower
-        follow.save()
+        Follow.objects.filter(pk=follow.pk).update(follower=follow._follower)
     for historical_follow in HistoricalFollow.objects.all():
         try:
-            historical_follow.follower = historical_follow._follower
-            historical_follow.save()
+            HistoricalFollow.objects.filter(
+                pk=historical_follow.pk
+            ).update(follower=historical_follow._follower)
         except ObjectDoesNotExist:
             historical_follow.delete()
 
