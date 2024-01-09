@@ -1,10 +1,8 @@
-import hashlib
 from parameterized import parameterized
 from faker import Faker
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
-from factory.django import FileField
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
