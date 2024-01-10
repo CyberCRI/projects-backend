@@ -25,8 +25,8 @@ jobs:
         id: githubAppAuth
         with:
           app-id: ${{ inputs.submodules-app-id }}
-          installation-id: ${{ inputs.submodules-app-installation-id }}
-          private-key: ${{ secrets.submodules-app-private-key }}
+          app-installation-id: ${{ inputs.submodules-app-installation-id }}
+          app-private-key: ${{ secrets.submodules-app-private-key }}
       - name: "[SUBMODULES] Checkout with submodules"
         uses: actions/checkout@v3
         with:
