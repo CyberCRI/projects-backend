@@ -21,27 +21,17 @@ jobs:
   tests:
     runs-on: [self-hosted, default-runner]
     steps:
-      # https://dev.to/dtinth/authenticating-as-a-github-app-in-a-github-actions-workflow-27co
-      # The following steps are only needed for recursive submodules checkout
-      - name: "[SUBMODULES] Setup Node.js for npx"
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-      - name: "[SUBMODULES] Obtain GitHub App Installation Access Token"
+      - uses: Nastaliss/obtain-github-app-installation-access-token@v0.1
         id: githubAppAuth
-        run: |
-          echo "${{ secrets.submodules-app-private-key }}" > /tmp/submodules-app-private-key.pem
-          TOKEN="$(npx obtain-github-app-installation-access-token \
-          -a ${{ inputs.submodules-app-id }} \
-          -i ${{ inputs.submodules-app-installation-id }} \
-          -k /tmp/submodules-app-private-key.pem)"
-          echo "::add-mask::$TOKEN"
-          echo "::set-output name=token::$TOKEN"
+        with:
+          app-id: ${{ inputs.submodules-app-id }}
+          installation-id: ${{ inputs.submodules-app-installation-id }}
+          private-key: ${{ secrets.submodules-app-private-key }}
       - name: "[SUBMODULES] Checkout with submodules"
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
-          token: ${{ steps.githubAppAuth.outputs.token }}
+          token: ${{ steps.githubAppAuth.outputs.access-token }}
       # The previous steps are only needed for recursive submodules checkout
       - name: Check the code formatting
         run: docker compose -f docker-compose-tests.yml run projects "make format-check"
