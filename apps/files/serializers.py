@@ -109,15 +109,20 @@ class AttachmentLinkSerializer(
         self.validate_url(instance)
         return instance
 
-    def validate_url(self, instance):
-        # Get metadata if website is reachable
+    def get_url_response(self, instance):
         try:
             response = requests.get(
                 instance.get("site_url", ""), timeout=settings.REQUESTS_DEFAULT_TIMEOUT
             )
         except (requests.exceptions.MissingSchema, requests.exceptions.ConnectionError):
-            return
+            return None
+        return response
 
+    def validate_url(self, instance):
+        # Get metadata if website is reachable
+        response = self.get_url_response(instance)
+        if not response:
+            return
         soup = BeautifulSoup(response.text, "html.parser")
         instance["site_name"] = self.find_site_name(soup, instance.get("site_url"))
         instance["preview_image_url"] = self.find_preview_image_url(

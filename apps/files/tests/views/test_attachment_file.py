@@ -1,8 +1,7 @@
-from parameterized import parameterized
-from faker import Faker
-
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
@@ -23,7 +22,7 @@ class CreateAttachmentFileTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
-    
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -91,9 +90,7 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         attachment_file = AttachmentFileFactory(project=project)
-        payload = {
-            "title": faker.text(max_nb_chars=50)
-        }
+        payload = {"title": faker.text(max_nb_chars=50)}
         response = self.client.patch(
             reverse("AttachmentFile-detail", args=(project.id, attachment_file.id)),
             data=payload,

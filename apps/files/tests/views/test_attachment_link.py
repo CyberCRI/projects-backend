@@ -1,594 +1,259 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.files.enums import AttachmentLinkCategory
 from apps.files.factories import AttachmentLinkFactory
-from apps.files.tests.views.mock_response import MockResponse
+from apps.files.models import AttachmentLink
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
+from .mock_response import MockResponse
 
-class AttachmentLinkJwtAPITestCase(JwtAPITestCase):
-    list_route = "AttachmentLink-list"
-    detail_route = "AttachmentLink-detail"
-    factory = AttachmentLinkFactory
+faker = Faker()
 
-    @staticmethod
-    def create_partial_payload():
-        return {"site_name": "site name"}
 
-    @staticmethod
-    def create_payload(project):
-        return {
-            "site_url": "google.com",
+class CreateAttachmentLinkTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+        ]
+    )
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_create_attachment_link(self, role, expected_code, mocked):
+        mocked_response = MockResponse()
+        mocked.return_value = mocked_response
+        project = self.project
+        user = self.get_parameterized_test_user(role, instances=[project])
+        self.client.force_authenticate(user)
+        payload = {
+            "site_url": faker.url(),
             "project_id": project.id,
         }
-
-    def assert_url_processing_correct(self, response):
-        content = response.json()
-        mocked_response = MockResponse()
-        self.assertEqual(content["attachment_type"], "link", content)
-        self.assertEqual(content["site_url"], "https://google.com", content)
-        self.assertEqual(content["preview_image_url"], mocked_response.image, content)
-        self.assertEqual(content["site_name"], mocked_response.site_name, content)
-
-
-class AttachmentLinkTestCaseNoPermission(AttachmentLinkJwtAPITestCase):
-    def test_create_no_permission(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        url = reverse(self.list_route, kwargs={"project_id": project.id})
-        self.client.force_authenticate(UserFactory())
-        response = self.client.post(url, data=payload, format="multipart")
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
+        response = self.client.post(
+            reverse("AttachmentLink-list", args=(project.id,)), data=payload
         )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            assert content["attachment_type"] == "link"
+            assert content["site_url"] == payload["site_url"]
+            assert content["preview_image_url"] == mocked_response.image
+            assert content["site_name"] == mocked_response.site_name
 
-    def test_retrieve_public_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        assert response.data["title"] == instance.title
-        assert response.data["description"] == instance.description
 
-    def test_retrieve_private_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.content
-        )
+class UpdateAttachmentLinkTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
 
-    def test_retrieve_org_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+        ]
+    )
+    def test_update_attachment_link(self, role, expected_code):
+        project = self.project
+        user = self.get_parameterized_test_user(role, instances=[project])
+        self.client.force_authenticate(user)
+        attachment_link = AttachmentLinkFactory(
+            project=project, category=AttachmentLinkCategory.OTHER
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.content
-        )
-
-    def test_list_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(UserFactory())
+        payload = {"category": AttachmentLinkCategory.TOOL}
         response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload, format="multipart"
+            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+            data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            assert content["category"] == payload["category"]
 
-    def test_put_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(UserFactory())
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload, format="multipart"
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
 
-    def test_destroy_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
+class DeleteAttachmentLinkTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_delete_attachment_link(self, role, expected_code):
+        project = self.project
+        user = self.get_parameterized_test_user(role, instances=[project])
+        self.client.force_authenticate(user)
+        attachment_link = AttachmentLinkFactory(project=project)
         response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
+            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert not AttachmentLink.objects.filter(id=attachment_link.id).exists()
+
+
+class ListAttachmentLinkTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.projects = {
+            "public": ProjectFactory(
+                publication_status=Project.PublicationStatus.PUBLIC,
+                organizations=[cls.organization],
+            ),
+            "org": ProjectFactory(
+                publication_status=Project.PublicationStatus.ORG,
+                organizations=[cls.organization],
+            ),
+            "private": ProjectFactory(
+                publication_status=Project.PublicationStatus.PRIVATE,
+                organizations=[cls.organization],
+            ),
+        }
+        cls.attachment_links = {
+            "public": AttachmentLinkFactory(project=cls.projects["public"]),
+            "org": AttachmentLinkFactory(project=cls.projects["org"]),
+            "private": AttachmentLinkFactory(project=cls.projects["private"]),
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_list_attachment_links(self, role, retrieved_attachment_links):
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values())
+        )
+        self.client.force_authenticate(user)
+        for publication_status, project in self.projects.items():
+            response = self.client.get(
+                reverse(
+                    "AttachmentLink-list",
+                    args=(project.id,),
+                ),
             )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
-        )
+            assert response.status_code == status.HTTP_200_OK
+            content = response.json()["results"]
+            if publication_status in retrieved_attachment_links:
+                assert len(content) == 1
+                assert content[0]["id"] == self.attachment_links[publication_status].id
+            else:
+                assert len(content) == 0
 
 
-class AttachmentLinkTestCaseBasePermission(AttachmentLinkJwtAPITestCase):
-    def test_create_base_permission(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        url = reverse(self.list_route, kwargs={"project_id": project.id})
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.post(url, data=payload, format="multipart")
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
+class ValidateAttachmentLinkTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.domain = faker.domain_name()
+        cls.url = f"https://{cls.domain}"
+        cls.link = AttachmentLinkFactory(site_url=cls.url, project=cls.project)
 
-    def test_retrieve_public_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_org_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload, format="multipart"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload, format="multipart"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
-
-
-class AttachmentLinkTestCaseProjectPermission(AttachmentLinkJwtAPITestCase):
-    def test_create_project_permission(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        url = reverse(self.list_route, kwargs={"project_id": project.id})
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.post(url, data=payload, format="multipart")
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_retrieve_public_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-
-    def test_retrieve_private_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-
-    def test_retrieve_org_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-
-    def test_list_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        self.client.force_authenticate(user)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
-
-
-class AttachmentLinkTestCaseOrgPermission(AttachmentLinkJwtAPITestCase):
-    def test_create_org_permission(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        url = reverse(self.list_route, kwargs={"project_id": project.id})
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(permissions=[("organizations.change_project", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.post(url, data=payload, format="multipart")
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_retrieve_public_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(
-            permissions=[("organizations.view_org_project", organization)]
-        )
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        user = UserFactory()
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(
-            permissions=[("organizations.view_org_project", organization)]
-        )
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.content
-        )
-
-    def test_retrieve_org_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(
-            permissions=[("organizations.view_org_project", organization)]
-        )
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(
-            permissions=[("organizations.view_org_project", organization)]
-        )
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(permissions=[("organizations.change_project", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload, format="multipart"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(permissions=[("organizations.change_project", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload, format="multipart"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_org_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        organization = OrganizationFactory()
-        organization.projects.add(project)
-        user = UserFactory(permissions=[("organizations.change_project", organization)])
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
-
-
-class AttachmentLinkTestCaseDuplicate(AttachmentLinkJwtAPITestCase):
     def test_create_duplicate_domain(self):
-        link = AttachmentLinkFactory(site_url="https://google.com")
-        payload = {"site_url": "https://google.com", "project_id": link.project.id}
-        user = UserFactory()
-        user.groups.add(get_superadmins_group())
+        user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
+        payload = {"site_url": self.url, "project_id": self.project.id}
         response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": link.project.id}),
+            reverse("AttachmentLink-list", args=(self.project.id,)),
             data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_400_BAD_REQUEST, response.json()
-        )
-        self.assertEqual(
-            response.json(),
-            {"non_field_errors": ["This url is already attached to this project."]},
-        )
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        content = response.json()
+        assert content == {
+            "non_field_errors": ["This url is already attached to this project."]
+        }
 
-    @patch(target="requests.get", return_value=MockResponse())
+    @patch(target="apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_www_domain(self, mocked):
-        link = AttachmentLinkFactory(site_url="https://google.com")
-        payload = {"site_url": "https://www.google.com", "project_id": link.project.id}
-        user = UserFactory()
-        user.groups.add(get_superadmins_group())
+        mocked.return_value = MockResponse()
+        user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
+        www_url = f"https://www.{self.domain}"
+        payload = {"site_url": www_url, "project_id": self.project.id}
         response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": link.project.id}),
+            reverse("AttachmentLink-list", args=(self.project.id,)),
             data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_create_duplicate_https_domain(self):
-        link = AttachmentLinkFactory(site_url="https://google.com")
-        payload = {"site_url": "https://google.com", "project_id": link.project.id}
-        user = UserFactory()
-        user.groups.add(get_superadmins_group())
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": link.project.id}),
-            data=payload,
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_400_BAD_REQUEST, response.json()
-        )
-        self.assertEqual(
-            response.json(),
-            {"non_field_errors": ["This url is already attached to this project."]},
-        )
+        assert response.status_code == status.HTTP_201_CREATED
 
     def test_patch_duplicate_link(self):
-        link = AttachmentLinkFactory(site_url="https://google.com")
-        link2 = AttachmentLinkFactory(
-            site_url="https://other_google.com", project=link.project
-        )
-        payload = {"site_url": "https://google.com", "project_id": link.project.id}
-        user = UserFactory()
-        user.groups.add(get_superadmins_group())
+        user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
-        kwargs = {"project_id": link.project.id, "id": link2.id}
+        link = AttachmentLinkFactory(project=self.project)
+        payload = {"site_url": self.url, "project_id": self.project.id}
         response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_400_BAD_REQUEST, response.json()
-        )
-        self.assertEqual(
-            response.json(),
-            {"non_field_errors": ["This url is already attached to this project."]},
-        )
-
-    def test_put_duplicate_link(self):
-        link = AttachmentLinkFactory(site_url="https://google.com")
-        link2 = AttachmentLinkFactory(
-            site_url="https://other_google.com", project=link.project
-        )
-        payload = {"site_url": "https://google.com", "project_id": link.project.id}
-        user = UserFactory()
-        user.groups.add(get_superadmins_group())
-        self.client.force_authenticate(user)
-        kwargs = {"project_id": link.project.id, "id": link2.id}
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_400_BAD_REQUEST, response.json()
-        )
-        self.assertEqual(
-            response.json(),
-            {"non_field_errors": ["This url is already attached to this project."]},
-        )
-
-    @patch(target="requests.get", return_value=MockResponse())
-    def test_create_duplicate_other_project(self, mocked):
-        link = AttachmentLinkFactory(site_url="https://google.com")
-        user = UserFactory()
-        user.groups.add(get_superadmins_group())
-        self.client.force_authenticate(user)
-        project = ProjectFactory()
-        payload = {"site_url": "https://google.com", "project_id": project.id}
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": link.project.id}),
+            reverse("AttachmentLink-detail", args=(self.project.id, link.id)),
             data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        content = response.json()
+        assert content == {
+            "non_field_errors": ["This url is already attached to this project."]
+        }
+
+    @patch(target="apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_create_duplicate_other_project(self, mocked):
+        mocked.return_value = MockResponse()
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        project = ProjectFactory(organizations=[self.organization])
+        payload = {"site_url": self.url, "project_id": project.id}
+        response = self.client.post(
+            reverse("AttachmentLink-list", args=(project.id,)),
+            data=payload,
         )
+        assert response.status_code == status.HTTP_201_CREATED
