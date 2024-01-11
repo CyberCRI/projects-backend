@@ -72,7 +72,7 @@ migrate:
 prestart: check collectstatic migrate
 
 .PHONY: prestart-no-migrate
-prestart: check collectstatic
+prestart-no-migrate: check collectstatic
 
 .PHONY: start
 start:
