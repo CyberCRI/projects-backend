@@ -112,3 +112,5 @@ workflow:
     cron:
       enabled: true
       schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
+
+runMigrations: true
