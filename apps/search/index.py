@@ -325,6 +325,7 @@ class UserIndex(AlgoliaSplittingIndex):
             ]
         return [
             "accounts.view_projectuser",
+            f"accounts.view_projectuser.{user.pk}",
             *[f"organizations.view_projectuser.{org.pk}" for org in organizations],
         ]
 
