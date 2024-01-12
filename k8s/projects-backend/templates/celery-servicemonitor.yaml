@@ -9,7 +9,6 @@ metadata:
 spec:
   endpoints:
     - port: http
-      interval: {{ .scrapeInterval }}
   selector:
     matchLabels:
     {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 6 }}
