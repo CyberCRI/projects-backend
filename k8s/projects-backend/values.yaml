@@ -101,6 +101,7 @@ celery:
       failureThreshold: 5
       successThreshold: 1
     service:
+      enabled: true
       port: 9808
 
 redisAllowedLabel: projects-api-redis-client # Required for network policy
