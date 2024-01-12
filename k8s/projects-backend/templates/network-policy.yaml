@@ -42,14 +42,10 @@ spec:
     - Ingress
   ingress:
     - from:
-      # Incoming http traffic from nginx-ingress
+      # Metrics
       - namespaceSelector:
           matchLabels:
-            kubernetes.io/metadata.name: ingress-nginx
-      # Incoming traffic from projects namespace
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: {{ .Values.projectsNamespace }}
+            kubernetes.io/metadata.name: monitoring
       ports:
         - protocol: TCP
           port: http
