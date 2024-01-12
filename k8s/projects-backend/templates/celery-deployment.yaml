@@ -123,6 +123,10 @@ spec:
         {{- else }}
           value: {{ $.Values.config.nonSensitive.CELERY_BROKER_URL }}
         {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: [ALL]
       {{- end }}
       {{- end }}
       {{- if .Values.config.sensitive }}
