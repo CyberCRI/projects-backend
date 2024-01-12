@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ tpl $.Values.fullName $ }}-celery-metrics
+  labels:
+  {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 4 }}
+spec:
+  selector:
+  {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
+  ports:
+    - protocol: TCP
+      port: {{ $.Values.celery.metrics.service.port }}
+      targetPort: http
+      name: http
