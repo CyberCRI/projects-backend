@@ -51,7 +51,11 @@ spec:
         name: projects-backend-prestart
         args:
           - make
+        {{- if .Values.runMigrations }}
           - prestart
+        {{- else }}
+          - prestart-no-migrate
+        {{- end }}
         envFrom:
           - configMapRef:
               name: {{ tpl $.Values.fullName $ }}
