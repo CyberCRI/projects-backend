@@ -103,6 +103,10 @@ celery:
     service:
       enabled: true
       port: 9808
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      scrapeTimeout: 10s
 
 redisAllowedLabel: projects-api-redis-client # Required for network policy
 
