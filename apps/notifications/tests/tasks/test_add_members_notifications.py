@@ -15,9 +15,17 @@ from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
 class AddedMemberTestCase(ProjectJwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.projects.views.notify_member_added.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
@@ -37,15 +45,15 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
 
     @patch("apps.projects.views.notify_group_as_member_added.delay")
     def test_group_notification_task_called(self, notification_task):
-        org = OrganizationFactory()
         project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC, organizations=[org]
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
         )
         owner = UserFactory(groups=[project.get_owners()])
         project.owners.add(owner)
         self.client.force_authenticate(owner)
 
-        group = PeopleGroupFactory(organization=org)
+        group = PeopleGroupFactory(organization=self.organization)
         payload = {
             "people_groups": [group.id],
         }
@@ -60,7 +68,10 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         )
 
     def test_user_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -113,9 +124,9 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         assert member.email == mail.outbox[0].to[0]
 
     def test_group_notification_task(self):
-        org = OrganizationFactory()
         project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC, organizations=[org]
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
         )
         sender = UserFactory()
         notified = UserFactory()
@@ -128,7 +139,7 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         not_notified.notification_settings.project_has_been_edited = False
         not_notified.notification_settings.save()
 
-        group = PeopleGroupFactory(organization=org)
+        group = PeopleGroupFactory(organization=self.organization)
         leader = UserFactory()
         manager = UserFactory()
         group.leaders.add(leader)
@@ -173,7 +184,10 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         assert emails_members == emails_outbox
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
