@@ -82,6 +82,24 @@ celery:
       memory: 700Mi
     limits:
       memory: 1Gi
+  metrics:
+    enabled: true
+    portNumber: 9808
+    image:
+      repository: danihodovic
+      path: celery-exporter
+      tag: "0.10.2"
+    brokerUrlIsSecret: false
+    livenessProbe:
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 5
+      successThreshold: 1
+    readinessProbe:
+      periodSeconds: 10
+      timeoutSeconds: 15
+      failureThreshold: 5
+      successThreshold: 1
 
 redisAllowedLabel: projects-api-redis-client # Required for network policy
 

@@ -81,6 +81,51 @@ spec:
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
+      {{- end }}
+      {{- with .Values.celery.metrics}}
+      {{- if .enabled }}
+      - name: metrics
+        imagePullPolicy: IfNotPresent
+        {{- with .image }}
+        image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+        {{- end }}
+        ports:
+        - name: http
+          containerPort: 9808
+          protocol: TCP
+        {{- with .readinessProbe }}
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          timeoutSeconds: {{ .timeoutSeconds }}
+          failureThreshold: {{ .failureThreshold }}
+          periodSeconds: {{ .periodSeconds }}
+          successThreshold: {{ .successThreshold }}
+        {{- end }}
+        {{- with .livenessProbe }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: http
+          timeoutSeconds: {{ .timeoutSeconds }}
+          failureThreshold: {{ .failureThreshold }}
+          periodSeconds: {{ .periodSeconds }}
+          successThreshold: {{ .successThreshold }}
+        env:
+        - name: CE_BROKER_URL
+        {{- end }}
+        {{- if .brokerUrlIsSecret }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ tpl $.Values.fullName $ }}
+              key: CELERY_BROKER_URL
+        {{- else }}
+          value: {{ $.Values.config.nonSensitive.CELERY_BROKER_URL }}
+        {{- end }}
+      {{- end }}
+      {{- end }}
+      {{- if .Values.config.sensitive }}
       volumes:
       - name: secrets
         secret:
