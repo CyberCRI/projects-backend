@@ -1,195 +1,103 @@
 from django.urls import reverse
 from faker import Faker
+from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
-from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 
-fake = Faker()
+faker = Faker()
 
 
-class NotificationSettingsViewSetTestCaseAnonymous(JwtAPITestCase):
-    def test_retrieve_anonymous(self):
-        user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        response = self.client.get(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,))
+class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.public_user = UserFactory(
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+            groups=[cls.organization.get_users()]
         )
-        self.assertEqual(response.status_code, 404, response.content)
-
-    def test_update_anonymous(self):
-        user = UserFactory()
-        payload = {"notify_added_to_project": True}
-        response = self.client.put(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,)),
-            data=payload,
+        cls.org_user = UserFactory(
+            publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+            groups=[cls.organization.get_users()]
         )
-        self.assertEqual(response.status_code, 401, response.content)
-
-    def test_partial_update_anonymous(self):
-        user = UserFactory()
-        payload = {"notify_added_to_project": True}
-        response = self.client.patch(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,)),
-            data=payload,
+        cls.private_user = UserFactory(
+            publication_status=PrivacySettings.PrivacyChoices.HIDE,
+            groups=[cls.organization.get_users()]
         )
-        self.assertEqual(response.status_code, 401, response.content)
-
-
-class NotificationSettingsViewSetTestCaseUser(JwtAPITestCase):
-    def test_retrieve_self(self):
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("NotificationSettings-detail", args=[user.keycloak_id])
-        )
-        assert response.status_code == 200
-
-    def test_retrieve_other(self):
-        user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse("NotificationSettings-detail", args=[user.keycloak_id])
-        )
-        assert response.status_code == 404
-
-    def test_update_self(self):
-        user = UserFactory()
-        data = {
-            "notify_added_to_project": fake.boolean(),
-            "announcement_published": fake.boolean(),
-            "followed_project_has_been_edited": fake.boolean(),
-            "project_has_been_commented": fake.boolean(),
-            "project_has_been_edited": fake.boolean(),
-            "project_ready_for_review": fake.boolean(),
-            "project_has_been_reviewed": fake.boolean(),
+        cls.users = {
+            "public": cls.public_user,
+            "org": cls.org_user,
+            "private": cls.private_user
         }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.OWNER, ("public", "org", "private")),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+        ]
+    )
+    def test_retrieve_notification_settings(self, role, retrieved_notification_settings):
+        user = self.get_parameterized_test_user(role, instances=[self.organization], owned_instance=self.private_user)
         self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse("NotificationSettings-detail", args=[user.keycloak_id]),
-            data=data,
-        )
-        assert response.status_code == 200
-        user.notification_settings.refresh_from_db()
-        assert (
-            user.notification_settings.notify_added_to_project
-            == data["notify_added_to_project"]
-        )
-        assert (
-            user.notification_settings.announcement_published
-            == data["announcement_published"]
-        )
-        assert (
-            user.notification_settings.followed_project_has_been_edited
-            == data["followed_project_has_been_edited"]
-        )
-        assert (
-            user.notification_settings.project_has_been_commented
-            == data["project_has_been_commented"]
-        )
-        assert (
-            user.notification_settings.project_has_been_edited
-            == data["project_has_been_edited"]
-        )
-        assert (
-            user.notification_settings.project_ready_for_review
-            == data["project_ready_for_review"]
-        )
-        assert (
-            user.notification_settings.project_has_been_reviewed
-            == data["project_has_been_reviewed"]
-        )
+        for publication_status, user in self.users.items():
+            response = self.client.get(reverse("NotificationSettings-detail", args=(user.keycloak_id,)))
+            if publication_status in retrieved_notification_settings:
+                assert response.status_code == status.HTTP_200_OK
+            else:
+                assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_update_other(self):
-        user = UserFactory()
-        payload = {"notify_added_to_project": True}
-        self.client.force_authenticate(UserFactory())
-        response = self.client.put(
-            reverse("NotificationSettings-detail", args=[user.keycloak_id]),
-            data=payload,
-        )
-        assert response.status_code == 403
 
-    def test_partial_update_self(self):
-        user = UserFactory()
-        payload = {"notify_added_to_project": True}
+class UpdateNotificationSettingsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory(
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+            groups=[cls.organization.get_users()]
+        )
+    
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_notification_settings(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization], owned_instance=self.user)
         self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse("NotificationSettings-detail", args=[user.keycloak_id]),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-        user.notification_settings.refresh_from_db()
-        self.assertTrue(user.notification_settings.notify_added_to_project)
-
-
-class NotificationSettingsViewSetTestCaseSuperAdmin(JwtAPITestCase):
-    def test_retrieve_superadmin_self(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,))
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-
-    def test_retrieve_superadmin_other(self):
-        user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        response = self.client.get(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,))
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-
-    def test_update_superadmin_self(self):
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        payload = {"notify_added_to_project": False}
-        self.assertTrue(admin.notification_settings.notify_added_to_project)
-        response = self.client.put(
-            reverse("NotificationSettings-detail", args=(admin.keycloak_id,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-        admin.notification_settings.refresh_from_db()
-        self.assertFalse(admin.notification_settings.notify_added_to_project)
-
-    def test_update_superadmin_other(self):
-        user = UserFactory()
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        payload = {"notify_added_to_project": False}
-        self.assertTrue(user.notification_settings.notify_added_to_project)
-        response = self.client.put(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-        user.notification_settings.refresh_from_db()
-        self.assertFalse(user.notification_settings.notify_added_to_project)
-
-    def test_partial_update_superadmin_self(self):
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        payload = {"notify_added_to_project": False}
-        self.assertTrue(admin.notification_settings.notify_added_to_project)
-        response = self.client.patch(
-            reverse("NotificationSettings-detail", args=(admin.keycloak_id,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-        admin.notification_settings.refresh_from_db()
-        self.assertFalse(admin.notification_settings.notify_added_to_project)
-
-    def test_partial_update_superadmin_other(self):
-        user = UserFactory()
-        admin = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(admin)
-        payload = {"notify_added_to_project": False}
-        self.assertTrue(user.notification_settings.notify_added_to_project)
-        response = self.client.patch(
-            reverse("NotificationSettings-detail", args=(user.keycloak_id,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, 200, response.content)
-        user.notification_settings.refresh_from_db()
-        self.assertFalse(user.notification_settings.notify_added_to_project)
+        payload = {
+            "notify_added_to_project": faker.boolean(),
+            "announcement_published": faker.boolean(),
+            "followed_project_has_been_edited": faker.boolean(),
+            "project_has_been_commented": faker.boolean(),
+            "project_has_been_edited": faker.boolean(),
+            "project_ready_for_review": faker.boolean(),
+            "project_has_been_reviewed": faker.boolean(),
+        }
+        response = self.client.patch(reverse("NotificationSettings-detail", args=(self.user.keycloak_id,)), data=payload)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            notification_settings = self.user.notification_settings
+            notification_settings.refresh_from_db()
+            assert notification_settings.notify_added_to_project == payload["notify_added_to_project"]
+            assert notification_settings.announcement_published == payload["announcement_published"]
+            assert notification_settings.followed_project_has_been_edited == payload["followed_project_has_been_edited"]
+            assert notification_settings.project_has_been_commented == payload["project_has_been_commented"]
+            assert notification_settings.project_has_been_edited == payload["project_has_been_edited"]
+            assert notification_settings.project_ready_for_review == payload["project_ready_for_review"]
+            assert notification_settings.project_has_been_reviewed == payload["project_has_been_reviewed"]
