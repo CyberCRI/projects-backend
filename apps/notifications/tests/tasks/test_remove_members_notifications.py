@@ -32,7 +32,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(project.pk, member.pk, owner.pk)
 
     @patch("apps.projects.views.notify_group_member_deleted.delay")
@@ -48,12 +48,12 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
         group = PeopleGroupFactory(organization=org)
         project.member_people_groups.add(group)
         payload = {
-            "member_people_group": group.id,
+            "people_groups": [group.id],
         }
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)
 
     def test_notification_task(self):
@@ -83,7 +83,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 1
             deleted_members = notification.context["deleted_members"]
-            assert {m["keycloak_id"] for m in deleted_members} == {member.keycloak_id}
+            assert {m["id"] for m in deleted_members} == {member.id}
             assert (
                 notification.reminder_message_fr
                 == f"{sender.get_full_name()} a retiré un membre."
@@ -171,10 +171,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 2
             deleted_members = notification.context["deleted_members"]
-            assert {m["keycloak_id"] for m in deleted_members} == {
-                member_1.keycloak_id,
-                member_2.keycloak_id,
-            }
+            assert {m["id"] for m in deleted_members} == {member_1.id, member_2.id}
             assert (
                 notification.reminder_message_fr
                 == f"{sender.get_full_name()} a retiré 2 membres."

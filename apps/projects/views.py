@@ -314,7 +314,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                     instance["project"].pk,
                     instance["user"].pk,
                     self.request.user.pk,
-                    instance["group"].name,
+                    instance["role"],
                 )
             if instance["type"] == "peoplegroup" and instance["created"]:
                 notify_group_as_member_added.delay(

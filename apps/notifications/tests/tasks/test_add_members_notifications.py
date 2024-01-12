@@ -27,7 +27,7 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(
             project.pk,
             member.pk,
@@ -41,29 +41,18 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC, organizations=[org]
         )
-        owner = UserFactory(
-            permissions=[
-                "people-group:list",
-                "people-group:retrieve",
-                "people-group:create",
-                "people-group:update",
-                "people-group:partial_update",
-                "people-group:destroy",
-                "people-group:member",
-                "people-group:featured-project",
-            ]
-        )
+        owner = UserFactory(groups=[project.get_owners()])
         project.owners.add(owner)
         self.client.force_authenticate(owner)
 
         group = PeopleGroupFactory(organization=org)
         payload = {
-            "member_people_groups": [group.id],
+            "people_groups": [group.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(
             project.pk,
             group.id,
@@ -103,7 +92,7 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 1
             new_members = notification.context["new_members"]
-            assert {m["keycloak_id"] for m in new_members} == {member.keycloak_id}
+            assert {m["id"] for m in new_members} == {member.id}
             assert (
                 notification.reminder_message_fr
                 == f"{sender.get_full_name()} a ajouté un membre."
@@ -223,10 +212,7 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 2
             new_members = notification.context["new_members"]
-            assert {m["keycloak_id"] for m in new_members} == {
-                member_1.keycloak_id,
-                member_2.keycloak_id,
-            }
+            assert {m["id"] for m in new_members} == {member_1.id, member_2.id}
             assert (
                 notification.reminder_message_fr
                 == f"{sender.get_full_name()} a ajouté 2 membres."
@@ -255,7 +241,7 @@ class AddedMemberTestCase(ProjectJwtAPITestCase):
         assert not notification.is_viewed
         assert notification.count == 1
         new_members = notification.context["new_members"]
-        assert {m["keycloak_id"] for m in new_members} == {member_2.keycloak_id}
+        assert {m["id"] for m in new_members} == {member_2.id}
         assert (
             notification.reminder_message_fr
             == f"{sender.get_full_name()} a ajouté un membre."

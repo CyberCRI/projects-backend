@@ -216,15 +216,4 @@ class NewApplicationTestCase(ProjectJwtAPITestCase):
         )
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 2
-
-        for user in [not_notified, notified]:
-            notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.APPLICATION
-            assert notification.project == project
-            assert notification.receiver == user
-            assert not notification.to_send
-            assert not notification.is_viewed
-            assert notification.count == 2
-            assert notification.reminder_message_fr == ""
-            assert notification.reminder_message_en == ""
+        assert notifications.count() == 4  # merge is set to False

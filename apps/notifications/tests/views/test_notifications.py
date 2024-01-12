@@ -24,9 +24,7 @@ class NotificationsTestCase(JwtAPITestCase):
         notifications = NotificationFactory.create_batch(
             5, receiver=user, project=self.project, is_viewed=False
         )
-        unchanged = NotificationFactory(
-            project=self.project, is_viewed=False
-        )
+        unchanged = NotificationFactory(project=self.project, is_viewed=False)
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Notification-list"))
         assert response.status_code == status.HTTP_200_OK

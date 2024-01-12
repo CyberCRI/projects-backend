@@ -18,20 +18,20 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.public_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
-            groups=[cls.organization.get_users()]
+            groups=[cls.organization.get_users()],
         )
         cls.org_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
-            groups=[cls.organization.get_users()]
+            groups=[cls.organization.get_users()],
         )
         cls.private_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
-            groups=[cls.organization.get_users()]
+            groups=[cls.organization.get_users()],
         )
         cls.users = {
             "public": cls.public_user,
             "org": cls.org_user,
-            "private": cls.private_user
+            "private": cls.private_user,
         }
 
     @parameterized.expand(
@@ -45,11 +45,17 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, ("public", "org")),
         ]
     )
-    def test_retrieve_notification_settings(self, role, retrieved_notification_settings):
-        user = self.get_parameterized_test_user(role, instances=[self.organization], owned_instance=self.private_user)
+    def test_retrieve_notification_settings(
+        self, role, retrieved_notification_settings
+    ):
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization], owned_instance=self.private_user
+        )
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
-            response = self.client.get(reverse("NotificationSettings-detail", args=(user.keycloak_id,)))
+            response = self.client.get(
+                reverse("NotificationSettings-detail", args=(user.keycloak_id,))
+            )
             if publication_status in retrieved_notification_settings:
                 assert response.status_code == status.HTTP_200_OK
             else:
@@ -63,9 +69,9 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
-            groups=[cls.organization.get_users()]
+            groups=[cls.organization.get_users()],
         )
-    
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -78,7 +84,9 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_update_notification_settings(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization], owned_instance=self.user)
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization], owned_instance=self.user
+        )
         self.client.force_authenticate(user)
         payload = {
             "notify_added_to_project": faker.boolean(),
@@ -89,15 +97,39 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             "project_ready_for_review": faker.boolean(),
             "project_has_been_reviewed": faker.boolean(),
         }
-        response = self.client.patch(reverse("NotificationSettings-detail", args=(self.user.keycloak_id,)), data=payload)
+        response = self.client.patch(
+            reverse("NotificationSettings-detail", args=(self.user.keycloak_id,)),
+            data=payload,
+        )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
             notification_settings = self.user.notification_settings
             notification_settings.refresh_from_db()
-            assert notification_settings.notify_added_to_project == payload["notify_added_to_project"]
-            assert notification_settings.announcement_published == payload["announcement_published"]
-            assert notification_settings.followed_project_has_been_edited == payload["followed_project_has_been_edited"]
-            assert notification_settings.project_has_been_commented == payload["project_has_been_commented"]
-            assert notification_settings.project_has_been_edited == payload["project_has_been_edited"]
-            assert notification_settings.project_ready_for_review == payload["project_ready_for_review"]
-            assert notification_settings.project_has_been_reviewed == payload["project_has_been_reviewed"]
+            assert (
+                notification_settings.notify_added_to_project
+                == payload["notify_added_to_project"]
+            )
+            assert (
+                notification_settings.announcement_published
+                == payload["announcement_published"]
+            )
+            assert (
+                notification_settings.followed_project_has_been_edited
+                == payload["followed_project_has_been_edited"]
+            )
+            assert (
+                notification_settings.project_has_been_commented
+                == payload["project_has_been_commented"]
+            )
+            assert (
+                notification_settings.project_has_been_edited
+                == payload["project_has_been_edited"]
+            )
+            assert (
+                notification_settings.project_ready_for_review
+                == payload["project_ready_for_review"]
+            )
+            assert (
+                notification_settings.project_has_been_reviewed
+                == payload["project_has_been_reviewed"]
+            )

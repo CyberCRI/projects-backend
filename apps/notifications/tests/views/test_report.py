@@ -1,9 +1,9 @@
 from unittest.mock import patch
 
 from django.urls import reverse
-from rest_framework import status
-from parameterized import parameterized
 from faker import Faker
+from parameterized import parameterized
+from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase, TestRoles
 
