@@ -6,12 +6,12 @@ on:
         type: string
         required: false
         description: 'The id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
-        default: "213843"
+        default: '213843'
       submodules-app-installation-id:
         type: string
         required: false
         description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
-        default: "26790862"
+        default: '26790862'
     secrets:
       submodules-app-private-key:
         required: false
@@ -21,13 +21,13 @@ jobs:
   tests:
     runs-on: [self-hosted, default-runner]
     steps:
-      - uses: Nastaliss/obtain-github-app-installation-access-token@v0.1
+      - uses: Nastaliss/get-github-app-pat@v1
         id: githubAppAuth
         with:
           app-id: ${{ inputs.submodules-app-id }}
           app-installation-id: ${{ inputs.submodules-app-installation-id }}
           app-private-key: ${{ secrets.submodules-app-private-key }}
-      - name: "[SUBMODULES] Checkout with submodules"
+      - name: '[SUBMODULES] Checkout with submodules'
         uses: actions/checkout@v3
         with:
           submodules: 'recursive'
