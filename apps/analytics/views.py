@@ -75,6 +75,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         projects = Project.objects.filter(organizations__in=organizations)
         if publication_status != "all":
             projects = projects.filter(publication_status=publication_status)
+        projects = projects.distinct()
 
         # Number of project per SDG
         project_per_sdg = {sdg: 0 for sdg in SDG}
