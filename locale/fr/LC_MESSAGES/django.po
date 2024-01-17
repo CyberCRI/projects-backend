@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-12 15:36+0000\n"
+"POT-Creation-Date: 2024-01-17 14:18+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -994,6 +994,10 @@ msgstr "correcteur"
 msgid " and "
 msgstr " et "
 
+#: apps/projects/exceptions.py:7
+msgid "Organizations parameter is mandatory."
+msgstr ""
+
 #: apps/projects/models.py:134
 msgid "title"
 msgstr "titre"
@@ -1030,11 +1034,11 @@ msgstr "objectif principal"
 msgid "Only a reviewer can change this project's status."
 msgstr "Seul un correcteur peut modifier le statut de ce projet."
 
-#: projects/settings/base.py:258
+#: projects/settings/base.py:257
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:259
+#: projects/settings/base.py:258
 msgid "French"
 msgstr "Français"
 

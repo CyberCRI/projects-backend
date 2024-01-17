@@ -1,12 +1,12 @@
 import enum
 import uuid
-from typing import Dict
+from typing import Dict, List
 
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
-from django.db import models, transaction
-from django.db.models import Case, Prefetch, Q, QuerySet, When
+from django.db import transaction
+from django.db.models import Prefetch, Q, QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -37,7 +37,8 @@ from apps.notifications.tasks import (
 )
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from services.recsys.interface import RecsysService
+from apps.projects.exceptions import OrganizationsParameterMissing
+from apps.search.recommend import AlgoliaRecommendService
 
 from .filters import LocationFilter, ProjectFilter
 from .models import BlogEntry, LinkedProject, Location, Project
@@ -428,11 +429,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 default=5,
             ),
             OpenApiParameter(
-                name="results_languages",
-                description="Possible languages for the results, separated by a comma.",
+                name="organizations",
+                description="Comma-separated list of organization codes.",
                 required=False,
-                type=str,
-                default="en,fr",
+                type=List[str],
             ),
         ],
     )
@@ -442,28 +442,16 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         permission_classes=[ReadOnly],
     )
     def similar(self, request, *args, **kwargs):
-        results_languages = request.GET.get("results_languages", "en,fr").split(",")
-        threshold = int(request.GET.get("threshold", 5))
         project = self.get_object()
-
-        similar_projects = RecsysService.get_similar_projects(
-            project, threshold, results_languages
-        )
-        similarities = [
-            When(id=key, then=value) for key, value in similar_projects.items()
+        organizations = [
+            o for o in request.GET.get("organizations", None).split(",") if o
         ]
-        queryset = (
-            self.get_queryset()
-            .filter(id__in=similar_projects.keys())
-            .exclude(id=project.id)
-            .annotate(
-                similarity=Case(
-                    *similarities, default=0, output_field=models.FloatField()
-                )
-            )
-            .order_by("-similarity")
+        threshold = int(request.GET.get("threshold", 5))
+        if not organizations:
+            raise OrganizationsParameterMissing()
+        queryset = AlgoliaRecommendService.get_related_projects(
+            project, organizations, threshold
         )
-
         return Response(ProjectLightSerializer(queryset, many=True).data)
 
 

@@ -142,7 +142,6 @@ INSTALLED_APPS = [
     "apps.emailing",
     # services
     "services.keycloak",
-    "services.recsys",
     "services.mixpanel",
     "services.google",
 ]
