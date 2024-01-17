@@ -447,10 +447,11 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             o for o in request.GET.get("organizations", None).split(",") if o
         ]
         threshold = int(request.GET.get("threshold", 5))
+        user = request.user
         if not organizations:
             raise OrganizationsParameterMissing()
         queryset = AlgoliaRecommendService.get_related_projects(
-            project, organizations, threshold
+            project, organizations, threshold, user
         )
         return Response(ProjectLightSerializer(queryset, many=True).data)
 
