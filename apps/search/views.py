@@ -1,5 +1,6 @@
 from typing import Any, Dict, List
 
+from algoliasearch.recommend_client import RecommendClient
 from algoliasearch.search_client import SearchClient
 from algoliasearch_django import algolia_engine
 from django.conf import settings
@@ -21,6 +22,29 @@ from apps.projects.models import Project
 from .filters import PeopleGroupSearchFilter, ProjectSearchFilter, UserSearchFilter
 from .pagination import AlgoliaPagination
 from .serializers import ProjectSearchSerializer
+
+
+class AlgoliaRecommendViewSetMixin(ListViewSet):
+    client = RecommendClient.create(
+        settings.ALGOLIA["APPLICATION_ID"], settings.ALGOLIA["API_KEY"]
+    )
+
+    def get_related_projects(self, project: Project):
+        related_products = self.client.get_related_products(
+            [
+                {
+                    "indexName": "sam_project_",
+                    "objectID": project.id,
+                    "queryParameters": {
+                        "facetFilters": ["organizations:CRI"]
+                    }
+                },
+            ]
+        )
+        return [
+            (Project.objects.get(id=p["id"]), p["_score"],)
+            for p in related_products["results"][0]["hits"]
+        ]
 
 
 class AlgoliaSearchViewSetMixin(ListViewSet):
