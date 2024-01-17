@@ -10,19 +10,3 @@ data:
   {{ $key }}: {{ (tpl $value $) | quote }}
 {{- end }}
 {{- end }}
----
-{{- if .Values.workflow.enabled }}
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
-  labels:
-    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
-data:
-{{ $workflowConfig := dict }}
-{{ $workflowConfig = merge $workflowConfig .Values.config.nonSensitive}}
-{{ $workflowConfig = merge $workflowConfig .Values.workflow.config.nonSensitive}}
-{{- range $key, $value := $workflowConfig }}
-  {{ $key }}: {{ (tpl $value $) | quote }}
-{{- end }}
-{{- end }}

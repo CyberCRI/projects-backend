@@ -125,7 +125,6 @@ workflow:
   rbac:
     executorClusterRoleName: executor
     serviceAccountName: workflow
-  enabled: false
   lifecycle:
     enabled: false
     resourceName: '{{ $.Values.fullName }}-lifecycle'

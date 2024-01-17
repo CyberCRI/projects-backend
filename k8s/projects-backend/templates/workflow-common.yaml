@@ -1,0 +1,26 @@
+{{- if or .Values.workflow.backups.enabled .Values.workflow.lifecycle.enabled }}
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%s.service-account-token" .Values.workflow.rbac.serviceAccountName }}
+  annotations:
+    kubernetes.io/service-account.name: {{ .Values.workflow.rbac.serviceAccountName }}
+type: kubernetes.io/service-account-token
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.workflow.rbac.serviceAccountName }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.workflow.rbac.serviceAccountName }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.workflow.rbac.serviceAccountName }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .Values.workflow.rbac.executorClusterRoleName}}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

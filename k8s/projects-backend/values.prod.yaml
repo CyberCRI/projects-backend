@@ -26,6 +26,10 @@ hostname: api.projects.lp-i.org
 backend:
   replicaCount: 9
 
+workflow:
+  backups:
+    enabled: false # Todo: Enable me after testing
+
 redis:
   valueFiles:
   - values.yaml

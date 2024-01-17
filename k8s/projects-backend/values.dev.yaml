@@ -14,10 +14,12 @@ config:
     ENVIRONMENT: dev
 
 workflow:
-  config:
-    nonSensitive:
-      ORIGIN_POSTGRES_DB: dev_projects
-  enabled: true
+  lifecycle:
+    enabled: true
+    config:
+      nonSensitive:
+        ORIGIN_POSTGRES_DB: dev_projects
+
 celery:
   metrics:
       enabled: true
