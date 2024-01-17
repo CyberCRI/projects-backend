@@ -73,7 +73,6 @@ services:
       - keycloak
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
-      PROJECTS_PEOPLE_TOKEN: 4DygAbNci0RyFu6CdwgOpOuAhD8rOFu1
     volumes:
       - .:/app
 
@@ -88,7 +87,6 @@ services:
       - redis
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
-      PROJECTS_PEOPLE_TOKEN: 4DygAbNci0RyFu6CdwgOpOuAhD8rOFu1
 
   mailhog:
     image: mailhog/mailhog

@@ -526,19 +526,6 @@ ALGOLIA = {
     "INDEX_SUFFIX": os.getenv("ALGOLIA_SUFFIX", ""),
 }
 
-##############
-#   PEOPLE   #
-##############
-
-PEOPLE_API_ROOT = "https://api.people.cri-paris.org"
-PROJECTS_PEOPLE_TOKEN = os.getenv("PROJECTS_PEOPLE_TOKEN")
-
-##############
-#   RECSYS   #
-##############
-
-RECSYS_API_URL = "https://recsys-api.k8s.lp-i.xyz"
-
 #####################
 #   Static files    #
 #####################
