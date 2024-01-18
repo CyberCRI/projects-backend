@@ -995,8 +995,8 @@ msgid " and "
 msgstr " et "
 
 #: apps/projects/exceptions.py:7
-msgid "Organizations parameter is mandatory."
-msgstr ""
+msgid "The organizations parameter is mandatory."
+msgstr "Le paramètre organizations est obligatoire."
 
 #: apps/projects/models.py:134
 msgid "title"

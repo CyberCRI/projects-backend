@@ -741,7 +741,7 @@ msgid " and "
 msgstr ""
 
 #: apps/projects/exceptions.py:7
-msgid "Organizations parameter is mandatory."
+msgid "The organizations parameter is mandatory."
 msgstr ""
 
 #: apps/projects/models.py:134

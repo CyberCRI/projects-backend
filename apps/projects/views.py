@@ -450,7 +450,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         user = request.user
         if not organizations:
             raise OrganizationsParameterMissing()
-        queryset = AlgoliaRecommendService.get_related_projects(
+        queryset = AlgoliaRecommendService.get_similar_projects(
             project, organizations, threshold, user
         )
         return Response(ProjectLightSerializer(queryset, many=True).data)

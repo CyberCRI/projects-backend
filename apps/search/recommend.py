@@ -2,6 +2,7 @@ from typing import List, Optional
 
 from algoliasearch.recommend_client import RecommendClient
 from django.conf import settings
+from django.core.cache import cache
 from django.db.models import CharField, F
 from pyparsing import Union
 
@@ -42,16 +43,9 @@ class AlgoliaRecommendService:
         return [p.replace(":", "-") for p in public_permission + user_permissions]
 
     @classmethod
-    def get_related_projects(
-        cls,
-        project: Project,
-        organizations_codes: List[str],
-        limit: int,
-        user: Optional[ProjectUser] = None,
-    ):
-        user = user or AnonymousUser()
+    def _get_similar_projects(cls, project, organizations_codes, limit, user):
         organizations = get_hierarchy_codes(organizations_codes)
-        related_projects = cls.client.get_related_products(
+        return cls.client.get_related_products(
             [
                 {
                     "indexName": cls.project_index,
@@ -68,6 +62,33 @@ class AlgoliaRecommendService:
                     },
                 },
             ]
+        )
+
+    @classmethod
+    def get_cached_similar_projects(cls, project, organizations_codes, limit, user):
+        if settings.ENABLE_CACHE:
+            key = f"{project.id}.{organizations_codes}.{limit}.{str(user.id)}"
+            key = f"algolia_recommend.{key}"
+            if key in cache.keys("*"):  # noqa: SIM118
+                return cache.get(key)
+            response = cls._get_similar_projects(
+                project, organizations_codes, limit, user
+            )
+            cache.set(key, response, settings.CACHE_ALGOLIA_RECOMMEND_TTL)
+            return response
+        return cls._get_similar_projects(project, organizations_codes, limit, user)
+
+    @classmethod
+    def get_similar_projects(
+        cls,
+        project: Project,
+        organizations_codes: List[str],
+        limit: int,
+        user: Optional[ProjectUser] = None,
+    ):
+        user = user or AnonymousUser()
+        related_projects = cls.get_cached_similar_projects(
+            project, organizations_codes, limit, user
         )
         hits = related_projects["results"][0]["hits"]
         return (
