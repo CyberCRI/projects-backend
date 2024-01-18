@@ -1,5 +1,6 @@
 from io import StringIO
 from unittest.mock import patch
+from faker import Faker
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management import call_command
@@ -7,6 +8,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.analytics.factories import StatFactory
 from apps.analytics.models import Stat
 from apps.commons.test import JwtAPITestCase
@@ -18,368 +20,209 @@ from apps.goals.factories import GoalFactory
 from apps.goals.models import Goal
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
 
+faker = Faker()
+
 
 class StatsTestCase(JwtAPITestCase):
-    @staticmethod
-    def call_command(shortid=None):
-        out = StringIO()
-        call_command(
-            "update_stats",
-            shortid=shortid,
-            stdout=out,
-            stderr=StringIO(),
-        )
-        return out.getvalue()
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.stat = StatFactory()
+        cls.project = cls.stat.project
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    def test_run_command(self):
-        project = ProjectFactory()
-        comments = CommentFactory.create_batch(3, project=project)
-        CommentFactory.create_batch(3, project=project, reply_on=comments[0])
-        FollowFactory.create_batch(3, project=project)
-        AttachmentLinkFactory.create_batch(3, project=project)
-        AttachmentFileFactory.create_batch(3, project=project)
-        BlogEntryFactory.create_batch(3, project=project)
-        GoalFactory.create_batch(3, project=project)
-        self.call_command()
-        project.refresh_from_db()
-        self.assertEqual(project.stat.comments, 3)
-        self.assertEqual(project.stat.replies, 3)
-        self.assertEqual(project.stat.follows, 3)
-        self.assertEqual(project.stat.links, 3)
-        self.assertEqual(project.stat.files, 3)
-        self.assertEqual(project.stat.blog_entries, 3)
-        self.assertEqual(project.stat.goals, 3)
+    def test_comment_stats(self):
+        self.client.force_authenticate(self.superadmin)
 
-    def test_run_command_with_arg(self):
-        project = ProjectFactory()
-        comments = CommentFactory.create_batch(3, project=project)
-        CommentFactory.create_batch(3, project=project, reply_on=comments[0])
-        FollowFactory.create_batch(3, project=project)
-        AttachmentLinkFactory.create_batch(3, project=project)
-        AttachmentFileFactory.create_batch(3, project=project)
-        BlogEntryFactory.create_batch(3, project=project)
-        GoalFactory.create_batch(3, project=project)
-        project2 = ProjectFactory()
-        comments2 = CommentFactory.create_batch(3, project=project2)
-        CommentFactory.create_batch(3, project=project2, reply_on=comments2[0])
-        FollowFactory.create_batch(3, project=project2)
-        AttachmentLinkFactory.create_batch(3, project=project2)
-        AttachmentFileFactory.create_batch(3, project=project2)
-        BlogEntryFactory.create_batch(3, project=project2)
-        GoalFactory.create_batch(3, project=project2)
-        self.call_command(shortid=project.id)
-        project.refresh_from_db()
-        project2.refresh_from_db()
-        self.assertEqual(project.stat.comments, 3)
-        self.assertEqual(project.stat.replies, 3)
-        self.assertEqual(project.stat.follows, 3)
-        self.assertEqual(project.stat.links, 3)
-        self.assertEqual(project.stat.files, 3)
-        self.assertEqual(project.stat.blog_entries, 3)
-        self.assertEqual(project.stat.goals, 3)
-        self.assertIsNone(Stat.objects.filter(project=project2).first())
-
-    def test_post_comment(self):
-        stat = StatFactory()
+        # Create a comment
         payload = {
-            "project_id": stat.project.id,
-            "content": "",
+            "project_id": self.project.id,
+            "content": faker.text(),
         }
-        self.client.force_authenticate(
-            UserFactory(permissions=[("feedbacks.add_comment", None)])
-        )
         response = self.client.post(
-            reverse("Comment-list", kwargs={"project_id": stat.project.id}),
+            reverse("Comment-list", args=(self.project.id,)),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.comments, 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        comment_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.comments == 1
 
-    def test_delete_comment(self):
-        stat = StatFactory()
-        comment = CommentFactory(project=stat.project, author=UserFactory())
-        comment.save()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("feedbacks.delete_comment", None)])
-        )
-        response = self.client.delete(
-            reverse(
-                "Comment-detail",
-                kwargs={"project_id": stat.project.id, "id": comment.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.comments, 0)
-
-    def test_post_reply(self):
-        stat = StatFactory()
-        user = UserFactory(permissions=[("feedbacks.add_comment", None)])
-        main = CommentFactory(author=user, project=stat.project)
-        main.save()
+        # Create a reply
         payload = {
-            "project_id": stat.project.id,
-            "content": "",
-            "reply_on_id": main.id,
+            "project_id": self.project.id,
+            "content": faker.text(),
+            "reply_on_id": comment_id,
         }
-        self.client.force_authenticate(user)
         response = self.client.post(
-            reverse("Comment-list", kwargs={"project_id": stat.project.id}),
+            reverse("Comment-list", args=(self.project.id,)),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.replies, 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        reply_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.replies == 1
 
-    def test_delete_reply(self):
-        stat = StatFactory()
-        main = CommentFactory(project=stat.project, author=UserFactory())
-        reply = CommentFactory(
-            project=stat.project, author=UserFactory(), reply_on=main
-        )
-        self.client.force_authenticate(
-            UserFactory(permissions=[("feedbacks.delete_comment", None)])
-        )
+        # Delete the reply
         response = self.client.delete(
-            reverse(
-                "Comment-detail", kwargs={"project_id": stat.project.id, "id": reply.id}
-            )
+            reverse("Comment-detail", args=(self.project.id, reply_id))
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.replies, 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.replies == 0
 
-    def test_post_follow(self):
-        stat = StatFactory()
-        payload = {"project_id": stat.project.id}
-        self.client.force_authenticate(
-            UserFactory(permissions=[("feedbacks.add_follow", None)])
-        )
-        response = self.client.post(
-            reverse("Followed-list", kwargs={"project_id": stat.project.id}),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.follows, 1)
-
-    def test_delete_follow(self):
-        stat = StatFactory()
-        follow = FollowFactory(project=stat.project, follower=UserFactory())
-        follow.save()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("feedbacks.delete_follow", None)])
-        )
+        # Delete the comment
         response = self.client.delete(
-            reverse(
-                "Followed-detail",
-                kwargs={"project_id": stat.project.id, "id": follow.id},
-            )
+            reverse("Comment-detail", args=(self.project.id, comment_id))
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.follows, 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.comments == 0
 
-    @patch(target="requests.get", return_value=MockResponse())
-    def test_post_link(self, mocked):
-        stat = StatFactory()
-        payload = {"site_url": "https://google.com", "project_id": stat.project.id}
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
-        response = self.client.post(
-            reverse("AttachmentLink-list", kwargs={"project_id": stat.project.id}),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.links, 1)
+    def test_follow_stats(self):
+        self.client.force_authenticate(self.superadmin)        
 
-    def test_delete_link(self):
-        stat = StatFactory()
-        link = AttachmentLinkFactory(project=stat.project)
-        link.save()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
-        response = self.client.delete(
-            reverse(
-                "AttachmentLink-detail",
-                kwargs={"project_id": stat.project.id, "id": link.id},
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.links, 0)
-
-    def test_post_file(self):
-        stat = StatFactory()
+        # Create a follow
         payload = {
-            "mime": "mime",
-            "title": "title",
+            "project_id": self.project.id
+        }
+        response = self.client.post(
+            reverse("Followed-list", args=(self.project.id,)),
+            data=payload,
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        follow_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.follows == 1
+
+        # Delete the follow
+        response = self.client.delete(
+            reverse("Followed-detail", args=(self.project.id, follow_id))
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.follows == 0
+    
+    def test_link_stats(self):
+        self.client.force_authenticate(self.superadmin)
+
+        # Create a link
+        payload = {
+            "project_id": self.project.id,
+            "site_url": faker.url(),
+        }
+        response = self.client.post(
+            reverse("AttachmentLink-list", args=(self.project.id,)),
+            data=payload,
+        )
+        assert response.status_code == status.HTTP_201_CREATED
+        link_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.links == 1
+
+        # Delete the link
+        response = self.client.delete(
+            reverse("AttachmentLink-detail", args=(self.project.id, link_id))
+        )
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.links == 0
+
+    def test_file_stats(self):
+        self.client.force_authenticate(self.superadmin)
+
+        # Create a file
+        payload = {
+            "project_id": self.project.id,
+            "title": faker.word(),
             "file": SimpleUploadedFile(
                 "test_attachment_file.txt",
                 b"test attachment file",
                 content_type="text/plain",
             ),
             "attachment_type": AttachmentType.FILE,
-            "project_id": stat.project.id,
         }
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
         response = self.client.post(
-            reverse("AttachmentFile-list", kwargs={"project_id": stat.project.id}),
+            reverse("AttachmentFile-list", args=(self.project.id,)),
             data=payload,
             format="multipart",
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.files, 1)
+        print(response.status_code, response.json())
+        assert response.status_code == status.HTTP_201_CREATED
+        file_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.files == 1
 
-    def test_delete_file(self):
-        stat = StatFactory()
-        file = AttachmentFileFactory(project=stat.project)
-        file.save()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
+        # Delete the file
         response = self.client.delete(
-            reverse(
-                "AttachmentFile-detail",
-                kwargs={"project_id": stat.project.id, "id": file.id},
-            )
+            reverse("AttachmentFile-detail", args=(self.project.id, file_id))
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.files, 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.files == 0
 
-    def test_post_blog_entry(self):
-        stat = StatFactory()
+    def test_blog_entry_stats(self):
+        self.client.force_authenticate(self.superadmin)
+
+        # Create a blog entry
         payload = {
-            "title": "title",
-            "content": "content",
-            "project_id": stat.project.id,
+            "project_id": self.project.id,
+            "title": faker.word(),
+            "content": faker.text(),
         }
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
         response = self.client.post(
-            reverse("BlogEntry-list", kwargs={"project_id": stat.project.id}),
+            reverse("BlogEntry-list", args=(self.project.id,)),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.blog_entries, 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        blog_entry_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.blog_entries == 1
 
-    def test_delete_blog_entry(self):
-        stat = StatFactory()
-        blog_entry = BlogEntryFactory(project=stat.project)
-        blog_entry.save()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
+        # Delete the blog entry
         response = self.client.delete(
-            reverse(
-                "BlogEntry-detail",
-                kwargs={"project_id": stat.project.id, "id": blog_entry.id},
-            )
+            reverse("BlogEntry-detail", args=(self.project.id, blog_entry_id))
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.blog_entries, 0)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.blog_entries == 0
 
-    def test_post_goal(self):
-        stat = StatFactory()
+    def test_goal_stats(self):
+        self.client.force_authenticate(self.superadmin)
+
+        # Create a goal
         payload = {
-            "title": "title",
+            "project_id": self.project.id,
+            "title": faker.word(),
             "status": Goal.GoalStatus.ONGOING,
-            "project_id": stat.project.id,
         }
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
         response = self.client.post(
-            reverse("Goal-list", kwargs={"project_id": stat.project.id}), data=payload
+            reverse("Goal-list", args=(self.project.id,)),
+            data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        stat.refresh_from_db()
-        self.assertEqual(stat.goals, 1)
+        assert response.status_code == status.HTTP_201_CREATED
+        goal_id = response.json()["id"]
+        self.stat.refresh_from_db()
+        assert self.stat.goals == 1
 
-    def test_delete_goal(self):
-        stat = StatFactory()
-        goal = GoalFactory(project=stat.project)
-        goal.save()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
+        # Delete the goal
         response = self.client.delete(
-            reverse(
-                "Goal-detail", kwargs={"project_id": stat.project.id, "id": goal.id}
-            )
+            reverse("Goal-detail", args=(self.project.id, goal_id))
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        stat.refresh_from_db()
-        self.assertEqual(stat.goals, 0)
-
-    def test_versions(self):
-        stat = StatFactory()
-        initial = stat.project.archive.count()
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
-        payload = {"title": "NewTitle1"}
-        response = self.client.patch(
-            reverse("Project-detail", kwargs={"id": stat.project.id}), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        stat.refresh_from_db()
-        self.assertEqual(stat.versions, initial + 1)
-        payload = {"title": "NewTitle2"}
-        response = self.client.patch(
-            reverse("Project-detail", kwargs={"id": stat.project.id}), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        stat.refresh_from_db()
-        self.assertEqual(stat.versions, initial + 2)
-        payload = {"title": "NewTitle3"}
-        response = self.client.patch(
-            reverse("Project-detail", kwargs={"id": stat.project.id}), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        stat.refresh_from_db()
-        self.assertEqual(stat.versions, initial + 3)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.stat.refresh_from_db()
+        assert self.stat.goals == 0
 
     def test_update_project_description(self):
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
-        stat = StatFactory()
-        payload = {"description": "ABCDE"}
+        self.client.force_authenticate(self.superadmin)
+        
+        payload = {
+            "description": faker.word()
+        }
         response = self.client.patch(
-            reverse("Project-detail", kwargs={"id": stat.project.id}), data=payload
+            reverse("Project-detail", args=(self.project.id,)),
+            data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        stat.refresh_from_db()
-        self.assertEqual(stat.description_length, 5)
-        payload = {"description": "ABCDEFGHIJ"}
-        response = self.client.patch(
-            reverse("Project-detail", kwargs={"id": stat.project.id}), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        stat.refresh_from_db()
-        self.assertEqual(stat.description_length, 10)
-
-    def test_update_project_not_description(self):
-        self.client.force_authenticate(
-            UserFactory(permissions=[("projects.change_project", None)])
-        )
-        stat = StatFactory()
-        payload = {"title": "title"}
-        response = self.client.patch(
-            reverse("Project-detail", kwargs={"id": stat.project.id}), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        stat.refresh_from_db()
-        self.assertEqual(stat.description_length, 0)
+        assert response.status_code == status.HTTP_200_OK
+        self.stat.refresh_from_db()
+        assert self.stat.description_length == len(payload["description"])

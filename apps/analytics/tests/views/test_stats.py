@@ -1,5 +1,4 @@
 import datetime
-from unittest import skip
 
 from django.urls import reverse
 from django.utils.timezone import make_aware
@@ -13,14 +12,12 @@ from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
 
-@skip("This view makes no sense and I doubt anyone uses it.")
 class RetrieveStatsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization_1 = OrganizationFactory()
         cls.organization_2 = OrganizationFactory()
-        cls.organization_3 = OrganizationFactory()
         cls.project_1 = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization_1],
@@ -62,6 +59,7 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         cls.project_1.wikipedia_tags.add(cls.tag_1)
         cls.project_2.wikipedia_tags.add(cls.tag_1, cls.tag_2)
         cls.project_3.wikipedia_tags.add(cls.tag_3)
+        cls.project_4.wikipedia_tags.add(cls.tag_1)
 
     @parameterized.expand(
         [
@@ -80,60 +78,64 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
+            by_organization = content["by_organization"]
+            by_organization_1 = [
+                o for o in by_organization if o["id"] == self.organization_1.id
+            ]
+            by_organization_2 = [
+                o for o in by_organization if o["id"] == self.organization_2.id
+            ]
+            by_month = content["by_month"]
+            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())]
+            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())]
+            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())]
+            by_sdg = [s for s in content["by_sdg"] if s["project_count"] > 0]
+            by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
+            by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
+            by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
+            top_tags = content["top_tags"]
             if role == TestRoles.SUPERADMIN:
-                by_organization = content["by_organization"]
-                assert len(by_organization) == 3
-                assert {o["id"] for o in by_organization} == {
-                    self.organization_1.pk,
-                    self.organization_2.pk,
-                    self.organization_3.pk,
-                }
-                assert [
-                    o["project_count"]
-                    for o in by_organization
-                    if o["id"] == self.organization_1.id
-                ][0] == 3
-                assert [
-                    o["project_count"]
-                    for o in by_organization
-                    if o["id"] == self.organization_2.id
-                ][0] == 2
-                by_month = content["by_month"]
+                assert len(by_organization) == 2
+                assert by_organization_1[0]["project_count"] == 3
+                assert by_organization_2[0]["project_count"] == 2
+
                 assert len(by_month) == 3
-                assert [
-                    m["created_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_1.date())
-                ][0] == 2
-                assert [
-                    m["updated_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_1.date())
-                ][0] == 1
-                assert [
-                    m["created_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_2.date())
-                ][0] == 1
-                assert [
-                    m["updated_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_2.date())
-                ][0] == 0
-                assert [
-                    m["created_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_3.date())
-                ][0] == 1
-                assert [
-                    m["updated_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_3.date())
-                ][0] == 3
-                by_sdg = content["by_sdg"]
-                assert [s["project_count"] for s in by_sdg if s["sdg"] == 1][0] == 1
-                assert [s["project_count"] for s in by_sdg if s["sdg"] == 2][0] == 3
-                assert [s["project_count"] for s in by_sdg if s["sdg"] == 3][0] == 1
+                assert by_month_1[0]["created_count"] == 2
+                assert by_month_1[0]["updated_count"] == 1
+                assert by_month_2[0]["created_count"] == 1
+                assert by_month_2[0]["updated_count"] == 0
+                assert by_month_3[0]["created_count"] == 1
+                assert by_month_3[0]["updated_count"] == 3
+
+                assert len(by_sdg) == 3
+                assert by_sdg_1[0]["project_count"] == 1
+                assert by_sdg_2[0]["project_count"] == 3
+                assert by_sdg_3[0]["project_count"] == 1
+
+                assert len(top_tags) == 3
+                assert content["top_tags"][0]["id"] == self.tag_1.pk
+                assert content["top_tags"][0]["project_count"] == 3
+                assert content["top_tags"][1]["id"] in [self.tag_2.pk, self.tag_3.pk]
+                assert content["top_tags"][1]["project_count"] == 1
+                assert content["top_tags"][2]["id"] in [self.tag_2.pk, self.tag_3.pk]
+                assert content["top_tags"][2]["project_count"] == 1
+            else:
+                assert len(by_organization) == 1
+                assert by_organization_1[0]["project_count"] == 3
+
+                assert len(by_month) == 3
+                assert by_month_1[0]["created_count"] == 2
+                assert by_month_1[0]["updated_count"] == 1
+                assert by_month_2[0]["created_count"] == 1
+                assert by_month_2[0]["updated_count"] == 0
+                assert by_month_3[0]["created_count"] == 0
+                assert by_month_3[0]["updated_count"] == 2
+
+                assert len(by_sdg) == 3
+                assert by_sdg_1[0]["project_count"] == 1
+                assert by_sdg_2[0]["project_count"] == 2
+                assert by_sdg_3[0]["project_count"] == 1
+
                 assert len(content["top_tags"]) == 3
                 assert content["top_tags"][0]["id"] == self.tag_1.pk
                 assert content["top_tags"][0]["project_count"] == 2
@@ -141,49 +143,3 @@ class RetrieveStatsTestCase(JwtAPITestCase):
                 assert content["top_tags"][1]["project_count"] == 1
                 assert content["top_tags"][2]["id"] in [self.tag_2.pk, self.tag_3.pk]
                 assert content["top_tags"][2]["project_count"] == 1
-            else:
-                by_organization = content["by_organization"]
-                assert len(by_organization) == 1
-                assert by_organization[0]["id"] == self.organization_1.pk
-                assert by_organization[0]["project_count"] == 3
-                by_month = content["by_month"]
-                assert len(by_month) == 3
-                assert [
-                    m["created_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_1.date())
-                ][0] == 2
-                assert [
-                    m["updated_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_1.date())
-                ][0] == 1
-                assert [
-                    m["created_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_2.date())
-                ][0] == 1
-                assert [
-                    m["updated_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_2.date())
-                ][0] == 0
-                assert [
-                    m["created_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_3.date())
-                ][0] == 0
-                assert [
-                    m["updated_count"]
-                    for m in by_month
-                    if m["month"] == str(self.date_3.date())
-                ][0] == 2
-                by_sdg = content["by_sdg"]
-                assert [s["project_count"] for s in by_sdg if s["sdg"] == 1][0] == 1
-                assert [s["project_count"] for s in by_sdg if s["sdg"] == 2][0] == 2
-                assert [s["project_count"] for s in by_sdg if s["sdg"] == 3][0] == 1
-                assert len(content["top_tags"]) == 2
-                assert content["top_tags"][0]["id"] == self.tag_1.pk
-                assert content["top_tags"][0]["project_count"] == 2
-                assert content["top_tags"][1]["id"] == self.tag_2.pk
-                assert content["top_tags"][1]["project_count"] == 1
