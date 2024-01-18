@@ -1,24 +1,14 @@
-from io import StringIO
-from unittest.mock import patch
-from faker import Faker
-
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.core.management import call_command
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.analytics.factories import StatFactory
-from apps.analytics.models import Stat
 from apps.commons.test import JwtAPITestCase
-from apps.feedbacks.factories import CommentFactory, FollowFactory
-from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
 from apps.files.models import AttachmentType
-from apps.files.tests.views.mock_response import MockResponse
-from apps.goals.factories import GoalFactory
 from apps.goals.models import Goal
-from apps.projects.factories import BlogEntryFactory, ProjectFactory
 
 faker = Faker()
 
@@ -80,12 +70,10 @@ class StatsTestCase(JwtAPITestCase):
         assert self.stat.comments == 0
 
     def test_follow_stats(self):
-        self.client.force_authenticate(self.superadmin)        
+        self.client.force_authenticate(self.superadmin)
 
         # Create a follow
-        payload = {
-            "project_id": self.project.id
-        }
+        payload = {"project_id": self.project.id}
         response = self.client.post(
             reverse("Followed-list", args=(self.project.id,)),
             data=payload,
@@ -102,7 +90,7 @@ class StatsTestCase(JwtAPITestCase):
         assert response.status_code == status.HTTP_204_NO_CONTENT
         self.stat.refresh_from_db()
         assert self.stat.follows == 0
-    
+
     def test_link_stats(self):
         self.client.force_authenticate(self.superadmin)
 
@@ -140,6 +128,7 @@ class StatsTestCase(JwtAPITestCase):
                 b"test attachment file",
                 content_type="text/plain",
             ),
+            "mime": "text/plain",
             "attachment_type": AttachmentType.FILE,
         }
         response = self.client.post(
@@ -147,7 +136,6 @@ class StatsTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        print(response.status_code, response.json())
         assert response.status_code == status.HTTP_201_CREATED
         file_id = response.json()["id"]
         self.stat.refresh_from_db()
@@ -215,10 +203,8 @@ class StatsTestCase(JwtAPITestCase):
 
     def test_update_project_description(self):
         self.client.force_authenticate(self.superadmin)
-        
-        payload = {
-            "description": faker.word()
-        }
+
+        payload = {"description": faker.word()}
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.id,)),
             data=payload,
