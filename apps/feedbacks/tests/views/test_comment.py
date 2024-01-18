@@ -56,54 +56,35 @@ class ListCommentTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, "public", True),
-            (TestRoles.DEFAULT, "public", True),
-            (TestRoles.SUPERADMIN, "public", True),
-            (TestRoles.OWNER, "public", True),
-            (TestRoles.ORG_ADMIN, "public", True),
-            (TestRoles.ORG_FACILITATOR, "public", True),
-            (TestRoles.ORG_USER, "public", True),
-            (TestRoles.PROJECT_MEMBER, "public", True),
-            (TestRoles.PROJECT_OWNER, "public", True),
-            (TestRoles.PROJECT_REVIEWER, "public", True),
-            (TestRoles.ANONYMOUS, "org", False),
-            (TestRoles.DEFAULT, "org", False),
-            (TestRoles.SUPERADMIN, "org", True),
-            (TestRoles.OWNER, "org", True),
-            (TestRoles.ORG_ADMIN, "org", True),
-            (TestRoles.ORG_FACILITATOR, "org", True),
-            (TestRoles.ORG_USER, "org", True),
-            (TestRoles.PROJECT_MEMBER, "org", True),
-            (TestRoles.PROJECT_OWNER, "org", True),
-            (TestRoles.PROJECT_REVIEWER, "org", True),
-            (TestRoles.ANONYMOUS, "private", False),
-            (TestRoles.DEFAULT, "private", False),
-            (TestRoles.SUPERADMIN, "private", True),
-            (TestRoles.OWNER, "private", True),
-            (TestRoles.ORG_ADMIN, "private", True),
-            (TestRoles.ORG_FACILITATOR, "private", True),
-            (TestRoles.ORG_USER, "private", False),
-            (TestRoles.PROJECT_MEMBER, "private", True),
-            (TestRoles.PROJECT_OWNER, "private", True),
-            (TestRoles.PROJECT_REVIEWER, "private", True),
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.OWNER, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_list_comments(self, role, project_status, comment_retrieved):
-        project = self.projects[project_status]
-        comment = self.comments[project_status]
-        user = self.get_parameterized_test_user(
-            role, instances=[project], owned_instance=comment
-        )
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Comment-list", args=(project.id,)),
-        )
-        assert response.status_code == status.HTTP_200_OK
-        if comment_retrieved:
+    def test_list_comments(self, role, retrieved_comments):
+        for project_status, project in self.projects.items():
+            user = self.get_parameterized_test_user(
+                role, instances=[project], owned_instance=self.comments[project_status]
+            )
+            self.client.force_authenticate(user)
+            response = self.client.get(
+                reverse("Comment-list", args=(project.id,)),
+            )
+            assert response.status_code == status.HTTP_200_OK
             content = response.json()["results"]
-            assert len(content) == 1
-            assert content[0]["id"] == comment.id
-            assert content[0]["replies"][0]["id"] == self.replies[project_status].id
+            if project_status in retrieved_comments:
+                assert len(content) == 1
+                assert content[0]["id"] == self.comments[project_status].id
+                assert content[0]["replies"][0]["id"] == self.replies[project_status].id
+            else:
+                assert len(content) == 0
 
 
 class CreateCommentTestCase(JwtAPITestCase):
