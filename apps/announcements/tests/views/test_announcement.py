@@ -1,468 +1,129 @@
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
 from apps.announcements.factories import AnnouncementFactory
 from apps.announcements.models import Announcement
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
-from apps.projects.models import Project
+
+faker = Faker()
 
 
-class TestParams:
-    list_route = "Announcement-list"
-    detail_route = "Announcement-detail"
-    factory = AnnouncementFactory
+class CreateAnnouncementTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
 
-    @staticmethod
-    def create_payload(project):
-        return {
-            "title": "title",
-            "description": "description",
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+        ]
+    )
+    def test_create_announcement(self, role, expected_status_code):
+        user = self.get_parameterized_test_user(role, instances=[self.project])
+        self.client.force_authenticate(user)
+        payload = {
+            "title": faker.sentence(nb_words=4),
+            "description": faker.text(),
             "type": Announcement.AnnouncementType.JOB,
-            "is_remunerated": True,
-            "project_id": project.id,
+            "is_remunerated": faker.boolean(),
+            "project_id": self.project.id,
         }
-
-    @staticmethod
-    def create_partial_payload():
-        return {"description": "new description"}
-
-
-class AnnouncementTestCaseNoPermission(JwtAPITestCase, TestParams):
-    def test_create_no_permission(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        self.client.force_authenticate(UserFactory())
         response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
+            reverse("Announcement-list", args=(self.project.id,)),
+            data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
+        assert response.status_code == expected_status_code
+        if expected_status_code == status.HTTP_201_CREATED:
+            content = response.json()
+            assert content["title"] == payload["title"]
+            assert content["description"] == payload["description"]
+            assert content["type"] == payload["type"]
+            assert content["is_remunerated"] == payload["is_remunerated"]
+            assert content["project"]["id"] == payload["project_id"]
 
-    def test_retrieve_public_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
 
-    def test_retrieve_private_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+class UpdateAnnouncementTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
 
-    def test_retrieve_org_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(UserFactory())
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+        ]
+    )
+    def test_update_announcement(self, role, expected_status_code):
+        announcement = AnnouncementFactory(project=self.project)
+        user = self.get_parameterized_test_user(role, instances=[self.project])
+        self.client.force_authenticate(user)
+        payload = {"description": faker.text()}
         response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
-
-    def test_put_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(UserFactory())
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
-
-    def test_destroy_no_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.delete(
             reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
+                "Announcement-detail",
+                args=(self.project.id, announcement.id),
+            ),
+            data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.json()
-        )
+        assert response.status_code == expected_status_code
+        if expected_status_code == status.HTTP_200_OK:
+            content = response.json()
+            assert content["description"] == payload["description"]
 
 
-class AnnouncementTestCaseBasePermission(JwtAPITestCase, TestParams):
-    def test_create_base_permission(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
+class DeleteAnnouncementTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
 
-    def test_retrieve_public_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_org_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        user = UserFactory(permissions=[("projects.view_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        user = UserFactory(permissions=[("projects.change_project", None)])
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_base_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        user = UserFactory(permissions=[("projects.change_project", None)])
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_delete_announcement(self, role, expected_status_code):
+        announcement = AnnouncementFactory(project=self.project)
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
+                "Announcement-detail",
+                args=(self.project.id, announcement.id),
+            ),
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
-
-
-class AnnouncementTestCaseProjectPermission(JwtAPITestCase, TestParams):
-    def test_create_project_permission(self):
-        project = ProjectFactory()
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        payload = self.create_payload(project)
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_retrieve_public_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        instance = self.factory(project=project)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        instance = self.factory(project=project)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_org_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        instance = self.factory(project=project)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory(permissions=[("projects.view_project", project)])
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_project_permission(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        user = UserFactory(permissions=[("projects.change_project", project)])
-        instance = self.factory(project=project)
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
-
-
-class AnnouncementTestCaseOrganizationPermission(JwtAPITestCase, TestParams):
-    def test_create_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.change_project", organization)])
-        project = ProjectFactory()
-        project.organizations.add(organization)
-        payload = self.create_payload(project)
-        self.client.force_authenticate(user)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_retrieve_public_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.view_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project.organizations.add(organization)
-        instance = self.factory(project=project)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.view_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        project.organizations.add(organization)
-        instance = self.factory(project=project)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_org_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.view_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        project.organizations.add(organization)
-        instance = self.factory(project=project)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.view_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project.organizations.add(organization)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(response.json()["count"], 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()["results"]]),
-        )
-
-    def test_patch_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.change_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project.organizations.add(organization)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.change_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project.organizations.add(organization)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_org_permission(self):
-        organization = OrganizationFactory()
-        user = UserFactory(permissions=[("organization.change_project", organization)])
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        project.organizations.add(organization)
-        instance = self.factory(project=project)
-        self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
+        assert response.status_code == expected_status_code
+        if expected_status_code == status.HTTP_204_NO_CONTENT:
+            assert not Announcement.objects.filter(id=announcement.id).exists()

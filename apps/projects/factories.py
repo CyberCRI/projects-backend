@@ -56,7 +56,7 @@ class ProjectFactory(SeedProjectFactory):
             for category in extracted:
                 self.categories.add(category)
         else:
-            category = ProjectCategoryFactory()
+            category = ProjectCategoryFactory(organization=self.organizations.first())
             self.main_category = category
             self.categories.add(category)
 

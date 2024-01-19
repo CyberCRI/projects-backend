@@ -8,15 +8,24 @@ from apps.accounts.factories import UserFactory
 from apps.feedbacks.factories import CommentFactory, FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_comment
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
 class NewCommentTestCase(ProjectJwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.feedbacks.views.notify_new_comment.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
 
@@ -29,12 +38,15 @@ class NewCommentTestCase(ProjectJwtAPITestCase):
             reverse("Comment-list", kwargs={"project_id": project.id}), data=payload
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         comment_pk = response.json()["id"]
         notification_task.assert_called_once_with(comment_pk)
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -72,7 +84,10 @@ class NewCommentTestCase(ProjectJwtAPITestCase):
         assert notified.email == mail.outbox[0].to[0]
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -112,9 +127,17 @@ class NewCommentTestCase(ProjectJwtAPITestCase):
 
 
 class NewReplyTestCase(ProjectJwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.feedbacks.views.notify_new_comment.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         comment = CommentFactory(project=project)
         owner = UserFactory()
         project.owners.add(owner)
@@ -129,12 +152,15 @@ class NewReplyTestCase(ProjectJwtAPITestCase):
             reverse("Comment-list", kwargs={"project_id": project.id}), data=payload
         )
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         comment_pk = response.json()["id"]
         notification_task.assert_called_once_with(comment_pk)
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -184,7 +210,10 @@ class NewReplyTestCase(ProjectJwtAPITestCase):
         assert notified.email == mail.outbox[0].to[0]
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()

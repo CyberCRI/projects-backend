@@ -34,11 +34,10 @@ class SetFilesHashTestCase(JwtAPITestCase):
         )
 
         out = self.call_command()
-        self.assertEqual(out, "Process finished, 2 files updated.\n", out)
-
+        assert out == "Process finished, 2 files updated.\n"
         file_a.refresh_from_db()
         file_b.refresh_from_db()
         file_c.refresh_from_db()
-        self.assertEqual(file_a.hashcode, hash_a)
-        self.assertEqual(file_b.hashcode, hash_b)
-        self.assertEqual(file_c.hashcode, hash_c)
+        assert file_a.hashcode == hash_a
+        assert file_b.hashcode == hash_b
+        assert file_c.hashcode == hash_c

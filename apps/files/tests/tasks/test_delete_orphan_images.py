@@ -31,6 +31,6 @@ class DeleteOrphanImagesTestCase(JwtAPITestCase):
         deleted = tasks.delete_orphan_images()
         image_set = set(Image.objects.values_list("pk", flat=True))
 
-        self.assertEqual(deleted, [orphan_outdated_pk])
-        self.assertNotIn(orphan_outdated_pk, image_set)
-        self.assertTrue(subset.issubset(image_set))
+        assert deleted == [orphan_outdated_pk]
+        assert orphan_outdated_pk not in image_set
+        assert subset.issubset(image_set)

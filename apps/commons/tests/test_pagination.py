@@ -7,8 +7,12 @@ from apps.organizations.models import Organization
 
 
 class PageInfoLimitOffsetPaginationTestCase(JwtAPITestCase):
-    def test_first_page(self):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
         Organization.objects.bulk_create(OrganizationFactory.build_batch(5, faq=None))
+
+    def test_first_page(self):
         pagination = PageInfoLimitOffsetPagination()
         request = SimpleNamespace(
             build_absolute_uri=lambda: "",
@@ -26,7 +30,6 @@ class PageInfoLimitOffsetPaginationTestCase(JwtAPITestCase):
         self.assertEqual(response.data["previous_page"], None)
 
     def test_middle_page(self):
-        Organization.objects.bulk_create(OrganizationFactory.build_batch(5, faq=None))
         pagination = PageInfoLimitOffsetPagination()
         request = SimpleNamespace(
             build_absolute_uri=lambda: "",
@@ -44,7 +47,6 @@ class PageInfoLimitOffsetPaginationTestCase(JwtAPITestCase):
         self.assertEqual(response.data["previous_page"], 1)
 
     def test_last_page(self):
-        Organization.objects.bulk_create(OrganizationFactory.build_batch(5, faq=None))
         pagination = PageInfoLimitOffsetPagination()
         request = SimpleNamespace(
             build_absolute_uri=lambda: "",
