@@ -22,6 +22,7 @@ from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from keycloak import KeycloakGetError, KeycloakPostError, KeycloakPutError
 
+from .filters import AccessRequestFilter
 from .models import AccessRequest, Invitation
 from .serializers import (
     AccessRequestManySerializer,
@@ -91,6 +92,8 @@ class AccessRequestViewSet(CreateListModelViewSet):
     serializer_class = AccessRequestSerializer
 
     ordering_fields = ["status", "created_at"]
+
+    filterset_class = AccessRequestFilter
 
     permission_classes = [
         IsAuthenticatedOrCreateOnly,
