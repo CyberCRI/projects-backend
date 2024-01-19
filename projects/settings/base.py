@@ -142,7 +142,6 @@ INSTALLED_APPS = [
     "apps.emailing",
     # services
     "services.keycloak",
-    "services.recsys",
     "services.mixpanel",
     "services.google",
 ]
@@ -442,6 +441,9 @@ CACHE_ANNOUNCEMENTS_LIST_TTL = 60 * int(
 CACHE_LOCATIONS_LIST_TTL = 60 * int(
     os.getenv("CACHE_LOCATIONS_LIST_TTL", CACHE_DEFAULT_TTL)
 )
+CACHE_ALGOLIA_RECOMMEND_TTL = 60 * int(
+    os.getenv("CACHE_ALGOLIA_RECOMMEND_TTL", 1440)  # defaults to 1 day
+)
 CACHE_PROJECT_VIEWS = 86400  # 1 day
 
 #############
@@ -526,19 +528,6 @@ ALGOLIA = {
     "INDEX_PREFIX": os.getenv("ALGOLIA_PREFIX", ""),
     "INDEX_SUFFIX": os.getenv("ALGOLIA_SUFFIX", ""),
 }
-
-##############
-#   PEOPLE   #
-##############
-
-PEOPLE_API_ROOT = "https://api.people.cri-paris.org"
-PROJECTS_PEOPLE_TOKEN = os.getenv("PROJECTS_PEOPLE_TOKEN")
-
-##############
-#   RECSYS   #
-##############
-
-RECSYS_API_URL = "https://recsys-api.k8s.lp-i.xyz"
 
 #####################
 #   Static files    #

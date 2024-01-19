@@ -2935,22 +2935,3 @@ class ProjectTestCase(ProjectJwtAPITestCase):
         assert response.status_code == status.HTTP_201_CREATED
         project = Project.objects.get(id=response.data["id"])
         assert user in project.owners.all()
-
-    @patch(target="services.recsys.interface.RecsysService.get_similar_projects")
-    def test_get_similar_projects(self, mocked):
-        projects = ProjectFactory.create_batch(
-            6, publication_status=Project.PublicationStatus.PUBLIC
-        )
-        mock_response = {
-            project.id: round(random.uniform(0.0, 10.0), 3)  # nosec
-            for project in projects
-        }
-        mocked.side_effect = lambda x, y, z: mock_response
-        response = self.client.get(reverse("Project-similar", args=(projects[0].id,)))
-        assert response.status_code == 200
-        content = response.json()
-        assert len(content) == 5  # Project from request is filtered
-        for i in range(4):
-            assert (
-                mock_response[content[i]["id"]] >= mock_response[content[i + 1]["id"]]
-            )

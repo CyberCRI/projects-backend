@@ -13,18 +13,6 @@ CELERY_BEAT_SCHEDULE["send_notifications_reminder"] = {  # noqa: F405
 }
 
 ##############
-#   PEOPLE   #
-##############
-
-PEOPLE_API_ROOT = "https://backend.people.k8s.lp-i.dev"
-
-##############
-#   RECSYS   #
-##############
-
-RECSYS_API_URL = "https://recsys-api.k8s.lp-i.xyz"
-
-##############
 #  MIXPANEL  #
 ##############
 
