@@ -1,0 +1,15 @@
+{% load i18n %}
+{% blocktranslate with org_name=organization.name first_name=user.given_name last_name=user.family_name email=user.email title=user.job website_url=organization.website_url contact_email=organization.contact_email %}
+New access request {{request_id}} for {{ org_name }} Projects platform
+Hello,
+You have received a new access request for {{ org_name }} Projects platform.
+First name: {{ first_name }}
+Last name: {{ last_name }}
+Email: {{ email }}
+Title: {{ title }}
+Message:{{ message }}
+See <a class="lpi-link" href="{{ website_url }}/request-access">request in platform</a>. Something odd? <a class="lpi-link" href="mailto:{{ contact_email }}">Contact us</a>.
+Have a nice day!
+The Projects team
+Made with ❤️ by Learning Planet Institute.
+{% endblocktranslate %}

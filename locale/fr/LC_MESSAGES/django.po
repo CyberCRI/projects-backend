@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 16:41+0000\n"
+"POT-Creation-Date: 2024-01-18 15:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -677,6 +677,21 @@ msgstr ""
 "\n"
 "%(full_name)s a relu le projet %(project_title)s.\n"
 
+#: apps/emailing/templates/notifications/pending_access_request/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"Respond to one pending access request!\n"
+msgid_plural ""
+"\n"
+"Respond to %(count)s pending access requests!\n"
+msgstr[0] ""
+"\n"
+"Répondez à une demande d'accès en attente!\n"
+msgstr[1] ""
+"\n"
+"Répondez à %(count)s demandes d'accès en attente!\n"
+
 #: apps/emailing/templates/notifications/project_edited/reminder.txt:2
 #, python-format
 msgid ""
@@ -807,6 +822,7 @@ msgstr ""
 "          "
 
 #: apps/invitations/templates/base.html:83
+#: apps/invitations/templates/request_created/mail.html:171
 #: services/keycloak/templates/base.html:83
 msgid ""
 "\n"
@@ -902,6 +918,230 @@ msgid ""
 msgstr ""
 "\n"
 "Bienvenue sur la plateforme Projects de %(org_name)s\n"
+
+#: apps/invitations/templates/request_created/mail.html:52
+#, python-format
+msgid ""
+"\n"
+"            New access request %(request_id)s for %(org_name)s Projects "
+"platform\n"
+"            "
+msgstr ""
+"\n"
+"            Nouvelle demande d'accès %(request_id)s pour la plateforme "
+"Projects de %(org_name)s\n"
+"            "
+
+#: apps/invitations/templates/request_created/mail.html:57
+#, python
+msgid ""
+"\n"
+"            Hello,\n"
+"            "
+msgstr ""
+"\n"
+"          Bonjour,\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:62
+#, python-format
+msgid ""
+"\n"
+"            You have received a new access request for %(org_name)s Projects "
+"platform.\n"
+"            "
+msgstr ""
+"\n"
+"           Vous avez reçu une nouvelle demande d'accès pour la plateforme "
+"Projects de %(org_name)s\n"
+"    "
+
+#: apps/invitations/templates/request_created/mail.html:71
+msgid ""
+"\n"
+"          First name:\n"
+"          "
+msgstr ""
+"\n"
+"          Prénom:\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:78
+#, python-format
+msgid ""
+"\n"
+"          %(first_name)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(first_name)s\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:87
+msgid ""
+"\n"
+"          Last name:\n"
+"          "
+msgstr ""
+"\n"
+"          Nomm de famille:\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:94
+#, python-format
+msgid ""
+"\n"
+"          %(last_name)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(last_name)s\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:103
+msgid ""
+"\n"
+"          Email:\n"
+"          "
+msgstr ""
+"\n"
+"          Email:\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:110
+#, python-format
+msgid ""
+"\n"
+"          %(email)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(email)s\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:119
+msgid ""
+"\n"
+"          Title:\n"
+"          "
+msgstr ""
+"\n"
+"          Titre:\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:126
+#, python-format
+msgid ""
+"\n"
+"          %(title)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(title)s\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:135
+msgid ""
+"\n"
+"          Message:\n"
+"          "
+msgstr ""
+"\n"
+"          Message:\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:142
+#, python-format
+msgid ""
+"\n"
+"          %(message)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(message)s\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:151
+#, python-format
+msgid ""
+"\n"
+"          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
+"access\">request in platform</a>. Something odd? <a class=\"lpi-link\" "
+"href=\"mailto:%(contact_email)s\">Contact us</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-"
+"access\">la requête sur la plateforme</a>. Quelque chose d'étrange? <a "
+"class=\"lpi-link\" href=\"mailto:%(contact_email)s\">Contactez nous</a>.\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:156
+msgid ""
+"\n"
+"            Have a nice day!\n"
+"            "
+msgstr ""
+"\n"
+"          Passez une bonne journée!\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.html:161
+msgid ""
+"\n"
+"            The Projects team\n"
+"            "
+msgstr ""
+"\n"
+"            L'équipe Projects\n"
+"          "
+
+#: apps/invitations/templates/request_created/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+"Hello,\n"
+"You have received a new access request for %(org_name)s Projects platform.\n"
+"First name: %(first_name)s\n"
+"Last name: %(last_name)s\n"
+"Email: %(email)s\n"
+"Title: %(title)s\n"
+"Message:%(message)s\n"
+"See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
+"platform</a>. Something odd? <a class=\"lpi-link\" href=\"mailto:"
+"%(contact_email)s\">Contact us</a>.\n"
+"Have a nice day!\n"
+"The Projects team\n"
+"Made with ❤️ by Learning Planet Institute.\n"
+msgstr ""
+"\n"
+"            Nouvelle demande d'accès %(request_id)s pour la plateforme "
+"Projects de %(org_name)s\n"
+"Bonjour,\n"
+"Vous avez reçu une nouvelle demande d'accès pour la plateforme Projects de "
+"%(org_name)s\n"
+"Prénom: %(first_name)s\n"
+"Nom de famille: %(last_name)s\n"
+"Email: %(email)s\n"
+"Titre: %(title)s\n"
+"Message: %(message)s\n"
+"Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">la "
+"requête sur la plateforme</a>. Quelque chose d'étrange? <a class=\"lpi-"
+"link\" href=\"mailto:%(contact_email)s\">Contactez nous</a>.\n"
+"Passez une bonne journée!\n"
+"L'équipe Projects\n"
+"Fait avec ❤️ par le Learning Planet Institute.\n"
+
+#: apps/invitations/templates/request_created/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+msgstr ""
+"\n"
+"Nouvelle demande d'accès %(request_id)s pour la plateforme Projects de "
+"%(org_name)s\n"
 
 #: apps/invitations/templates/request_declined/mail.html:8
 #, python-format

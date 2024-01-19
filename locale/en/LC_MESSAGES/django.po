@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-05 16:41+0000\n"
+"POT-Creation-Date: 2024-01-18 14:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -513,6 +513,17 @@ msgid ""
 "%(full_name)s reviewed project %(project_title)s.\n"
 msgstr ""
 
+#: apps/emailing/templates/notifications/pending_access_request/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"Respond to one pending access request!\n"
+msgid_plural ""
+"\n"
+"Respond to %(count)s pending access requests!\n"
+msgstr[0] ""
+msgstr[1] ""
+
 #: apps/emailing/templates/notifications/project_edited/reminder.txt:2
 #, python-format
 msgid ""
@@ -607,6 +618,7 @@ msgid ""
 msgstr ""
 
 #: apps/invitations/templates/base.html:83
+#: apps/invitations/templates/request_created/mail.html:171
 #: services/keycloak/templates/base.html:83
 msgid ""
 "\n"
@@ -673,6 +685,157 @@ msgstr ""
 msgid ""
 "\n"
 "Welcome to the %(org_name)s Projects platform\n"
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:52
+#, python-format
+msgid ""
+"\n"
+"            New access request %(request_id)s for %(org_name)s Projects "
+"platform\n"
+"            "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:57
+msgid ""
+"\n"
+"            Hello,\n"
+"            "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:62
+#, python-format
+msgid ""
+"\n"
+"            You have received a new access request for %(org_name)s Projects "
+"platform.\n"
+"            "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:71
+msgid ""
+"\n"
+"          First name:\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:78
+#, python-format
+msgid ""
+"\n"
+"          %(first_name)s\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:87
+msgid ""
+"\n"
+"          Last name:\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:94
+#, python-format
+msgid ""
+"\n"
+"          %(last_name)s\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:103
+msgid ""
+"\n"
+"          Email:\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:110
+#, python-format
+msgid ""
+"\n"
+"          %(email)s\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:119
+msgid ""
+"\n"
+"          Title:\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:126
+#, python-format
+msgid ""
+"\n"
+"          %(title)s\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:135
+msgid ""
+"\n"
+"          Message:\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:142
+#, python-format
+msgid ""
+"\n"
+"          %(message)s\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:151
+#, python-format
+msgid ""
+"\n"
+"          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
+"access\">request in platform</a>. Something odd? <a class=\"lpi-link\" "
+"href=\"mailto:%(contact_email)s\">Contact us</a>.\n"
+"          "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:156
+msgid ""
+"\n"
+"            Have a nice day!\n"
+"            "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.html:161
+msgid ""
+"\n"
+"            The Projects team\n"
+"            "
+msgstr ""
+
+#: apps/invitations/templates/request_created/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+"Hello,\n"
+"You have received a new access request for %(org_name)s Projects platform.\n"
+"First name: %(first_name)s\n"
+"Last name: %(last_name)s\n"
+"Email: %(email)s\n"
+"Title: %(title)s\n"
+"Message:%(message)s\n"
+"See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
+"platform</a>. Something odd? <a class=\"lpi-link\" href=\"mailto:"
+"%(contact_email)s\">Contact us</a>.\n"
+"Have a nice day!\n"
+"The Projects team\n"
+"Made with ❤️ by Learning Planet Institute.\n"
+msgstr ""
+
+#: apps/invitations/templates/request_created/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
 msgstr ""
 
 #: apps/invitations/templates/request_declined/mail.html:8

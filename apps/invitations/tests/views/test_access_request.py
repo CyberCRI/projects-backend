@@ -1,6 +1,7 @@
 import json
 from unittest.mock import patch
 
+from django.core import mail
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -23,7 +24,12 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
-        cls.organization = OrganizationFactory(access_request_enabled=True)
+        cls.organization = OrganizationFactory(
+            access_request_enabled=True, language="en"
+        )
+        cls.organization.admins.first().delete()  # created by factory
+        cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
+        cls.user_1 = UserFactory(groups=[cls.organization.get_users()])
 
     def test_create_access_request_anonymous(self):
         payload = {
@@ -37,6 +43,7 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
+        access_request_id = AccessRequest.objects.all().first().id
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["organization"] == self.organization.code
         assert response.data["status"] == AccessRequest.Status.PENDING.value
@@ -45,6 +52,12 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         assert response.data["family_name"] == payload["family_name"]
         assert response.data["job"] == payload["job"]
         assert response.data["message"] == payload["message"]
+        assert len(mail.outbox) == 1
+        assert len(mail.outbox[0].to) == 3
+        assert (
+            mail.outbox[0].subject
+            == f"New access request {access_request_id} for {self.organization.name} Projects platform"
+        )
 
     def test_create_access_request_authenticated(self):
         user = UserFactory()
@@ -60,6 +73,7 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
+        access_request_id = AccessRequest.objects.all().first().id
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["organization"] == self.organization.code
         assert response.data["status"] == AccessRequest.Status.PENDING.value
@@ -68,6 +82,12 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         assert response.data["family_name"] == user.family_name
         assert response.data["job"] == user.job
         assert response.data["message"] == payload["message"]
+        assert len(mail.outbox) == 1
+        assert len(mail.outbox[0].to) == 3
+        assert (
+            mail.outbox[0].subject
+            == f"New access request {access_request_id} for {self.organization.name} Projects platform"
+        )
 
 
 class ListAccessRequestTestCase(JwtAPITestCase):

@@ -1,0 +1,180 @@
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+{% mjml %}
+<mjml>
+  <mj-head>
+    <mj-font name="Ubuntu" href="https://fonts.google.com/specimen/Ubuntu"/>
+    <mj-style inline="inline">
+      .lpi-link {
+        color: #1D727C;
+        font-weight: 700;
+      }
+      .lpi-button {
+        padding: 10px !important;
+      }
+      .lpi-button td {
+        border: 1px solid #1d727c !important;
+        border-radius: 50px !important;
+        padding: 11px 1.5rem !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
+        background: #1d727c !important;
+      }
+      .lpi-button a {
+        line-height: 18px !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        background: #1d727c !important;
+        padding: 0px !important;
+      }
+    </mj-style>
+    <mj-attributes>
+      <mj-text font-family="Ubuntu, Arial" line-height="24px" font-size="16px"/>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-raw>
+        <div style="display: flex;">
+          {% if organization %}
+            <img src="{{ public_url }}/v1/organization/{{ organization.code }}/logo/{{ organization.logo_image.id }}" alt="organization logo" style="width: auto; height: 50px;"/>
+          {% endif %}
+          <img src="{{ public_url }}{% static 'projects_logo.png' %}" alt="projects logo" style="width: auto; height: 50px; margin-left: auto"/>
+        </div>
+      </mj-raw>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+            {% blocktranslate with org_name=organization.name %}
+            New access request {{request_id}} for {{ org_name }} Projects platform
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+            {% blocktranslate %}
+            Hello,
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+            {% blocktranslate with org_name=organization.name %}
+            You have received a new access request for {{ org_name }} Projects platform.
+            {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          First name:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with first_name=user.given_name %}
+          {{ first_name }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          Last name:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with last_name=user.family_name %}
+          {{ last_name }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          Email:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with email=user.email %}
+          {{ email }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          Title:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with title=user.job %}
+          {{ title }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text >
+          {% blocktranslate %}
+          Message:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text >
+          {% blocktranslate %}
+          {{ message }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with website_url=organization.website_url contact_email=organization.contact_email%}
+          See <a class="lpi-link" href="{{ website_url }}/request-access">request in platform</a>. Something odd? <a class="lpi-link" href="mailto:{{ contact_email }}">Contact us</a>.
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+            {% blocktranslate %}
+            Have a nice day!
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+            {% blocktranslate %}
+            The Projects team
+            {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1">
+      <mj-column>
+        <mj-image width="100px" align="center" src="{{ public_url }}{% static 'LPI-sm.png' %}" alt="lpi logo"/>
+        <mj-text align="center">
+          {% blocktranslate %}
+          Made with ❤️ by Learning Planet Institute.
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+{% endmjml %}
+{% endblock %}
