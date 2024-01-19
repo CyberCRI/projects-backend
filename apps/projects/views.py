@@ -444,9 +444,9 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def similar(self, request, *args, **kwargs):
         project = self.get_object()
         organizations = [
-            o for o in request.GET.get("organizations", None).split(",") if o
+            o for o in request.query_params.get("organizations", "").split(",") if o
         ]
-        threshold = int(request.GET.get("threshold", 5))
+        threshold = int(request.query_params.get("threshold", 5))
         user = request.user
         if not organizations:
             raise OrganizationsParameterMissing()
