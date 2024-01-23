@@ -46,12 +46,12 @@ spec:
         enum:
         - all
         - backup
-        - promote_to_weekly
-        - promote_to_monthly
-        - promote_to_yearly
-        - delete_daily
-        - delete_weekly
-        - delete_monthly
+        - promote-to-weekly
+        - promote-to-monthly
+        - promote-to-yearly
+        - delete-daily
+        - delete-weekly
+        - delete-monthly
         value: all
     steps:
     - - name: backup
