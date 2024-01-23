@@ -131,7 +131,7 @@ workflow:
   backups:
     enabled: false
     resourceName: '{{ $.Values.fullName }}-backups'
-    storageContainerName: projects-backups
+    storageContainerName: projects-backups-test
     slackChannel: '#alerts-prod-error'
     cron:
       enabled: true
