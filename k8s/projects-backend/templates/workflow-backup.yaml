@@ -70,7 +70,7 @@ spec:
                 value: {{ .Values.workflow.backups.slackChannel | quote }}
         templateRef:
           name: postgres-backuper
-          template: {{ print "{{workflow.parametere.entrypoint}}" }}
+          template: {{ print "{{workflow.parameter.entrypoint}}" | quote}}
           clusterScope: true
         arguments:
           parameters:
