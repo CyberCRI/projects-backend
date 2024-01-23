@@ -19,6 +19,8 @@ workflow:
     config:
       nonSensitive:
         ORIGIN_POSTGRES_DB: dev_projects
+  backups:
+    storageContainerName: projects-backups-test
 
 celery:
   metrics:

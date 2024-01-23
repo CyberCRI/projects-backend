@@ -78,13 +78,14 @@ spec:
             value: {{ .Values.workflow.backups.storageContainerName }}
           - name: database
             value: {{ .Values.config.nonSensitive.POSTGRES_DB }}
+{{- if .Values.workflow.backups.checkPresence.cron.enabled}}
 ---
 kind: CronWorkflow
 apiVersion: argoproj.io/v1alpha1
 metadata:
   name: {{ tpl .Values.workflow.backups.resourceName $ }}-check-presence
 spec:
-  schedule: {{ .Values.workflow.backups.cron.schedule }}
+  schedule: {{ .Values.workflow.backups.checkPresence.cron.schedule }}
   workflowSpec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
@@ -92,13 +93,15 @@ spec:
     podGC:
       strategy: OnPodCompletion
     entrypoint: check-presence
+{{- end }}
+{{- if .Values.workflow.backups.backup.cron.enabled}}
 ---
 kind: CronWorkflow
 apiVersion: argoproj.io/v1alpha1
 metadata:
   name: {{ tpl .Values.workflow.backups.resourceName $ }}-backup
 spec:
-  schedule: {{ .Values.workflow.backups.cron.schedule }}
+  schedule: {{ .Values.workflow.backups.backup.cron.schedule }}
   workflowSpec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
@@ -106,4 +109,5 @@ spec:
     podGC:
       strategy: OnPodCompletion
     entrypoint: backup
+{{- end }}
 {{- end }}
