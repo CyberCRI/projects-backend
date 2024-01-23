@@ -5,20 +5,6 @@ kind: WorkflowTemplate
 metadata:
   name: {{ tpl .Values.workflow.backups.resourceName $ }}
 spec:
-  hooks:
-    failed:
-      expression: workflow.status == "Error" || workflow.status == "Failed"
-      templateRef:
-        name: notify-slack
-        template: send-request
-        clusterScope: true
-      arguments:
-        parameters:
-        - name: message
-          value: Today's Projects backup is missing !
-        - name: slackChannel
-          value: {{ .Values.workflow.backups.slackChannel | quote }}
-  entrypoint: check-presence
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
     runAsNonRoot: true
@@ -27,10 +13,24 @@ spec:
     fsGroup: 10000
     seccompProfile:
       type: RuntimeDefault
+  entrypoint: check-presence
   templates:
   - name: check-presence
     steps:
     - - name: check-presence
+        hooks:
+          failed:
+            expression: workflow.status == "Error" || workflow.status == "Failed"
+            templateRef:
+              name: notify-slack
+              template: send-request
+              clusterScope: true
+            arguments:
+              parameters:
+              - name: message
+                value: Today's Projects backup is missing !
+              - name: slackChannel
+                value: {{ .Values.workflow.backups.slackChannel | quote }}
         templateRef:
           name: postgres-backuper
           template: check-presence
@@ -39,18 +39,75 @@ spec:
           parameters:
           - name: storage_container_name
             value: {{ .Values.workflow.backups.storageContainerName }}
+  - name: backup
+    inputs:
+      parameters:
+      - name: entrypoint
+        enum:
+        - all
+        - backup
+        - promote-to-weekly
+        - promote-to-monthly
+        - promote-to-yearly
+        - delete-daily
+        - delete-weekly
+        - delete-monthly
+        value: all
+    steps:
+    - - name: backup
+        hooks:
+          failed:
+            expression: workflow.status == "Error" || workflow.status == "Failed"
+            templateRef:
+              name: notify-slack
+              template: send-request
+              clusterScope: true
+            arguments:
+              parameters:
+              - name: message
+                value: Today's Projects backup failed !
+              - name: slackChannel
+                value: {{ .Values.workflow.backups.slackChannel | quote }}
+        templateRef:
+          name: postgres-backuper
+          template: {{ print "{{inputs.parameters.entrypoint}}" | quote}}
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: storage_container_name
+            value: {{ .Values.workflow.backups.storageContainerName }}
+          - name: database
+            value: {{ .Values.config.nonSensitive.POSTGRES_DB }}
+{{- if .Values.workflow.backups.checkPresence.cron.enabled}}
 ---
 kind: CronWorkflow
 apiVersion: argoproj.io/v1alpha1
 metadata:
-  name: {{ tpl .Values.workflow.backups.resourceName $ }}
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}-check-presence
 spec:
-  schedule: {{ .Values.workflow.backups.cron.schedule }}
+  schedule: {{ .Values.workflow.backups.checkPresence.cron.schedule }}
   workflowSpec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
       name: {{ tpl .Values.workflow.backups.resourceName $ }}
-      template: check-presence
     podGC:
       strategy: OnPodCompletion
+    entrypoint: check-presence
+{{- end }}
+{{- if .Values.workflow.backups.backup.cron.enabled}}
+---
+kind: CronWorkflow
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}-backup
+spec:
+  schedule: {{ .Values.workflow.backups.backup.cron.schedule }}
+  workflowSpec:
+    serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+    workflowTemplateRef:
+      name: {{ tpl .Values.workflow.backups.resourceName $ }}
+    podGC:
+      strategy: OnPodCompletion
+    entrypoint: backup
+{{- end }}
 {{- end }}

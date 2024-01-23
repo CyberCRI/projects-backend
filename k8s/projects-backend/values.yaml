@@ -131,10 +131,13 @@ workflow:
   backups:
     enabled: false
     resourceName: '{{ $.Values.fullName }}-backups'
-    storageContainerName: projects-backups
     slackChannel: '#alerts-prod-error'
-    cron:
-      enabled: true
-      schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
-
+    backup:
+      cron:
+        enabled: false
+        schedule: '0 5 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
+    checkPresence:
+      cron:
+        enabled: false
+        schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
 runMigrations: true

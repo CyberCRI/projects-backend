@@ -28,7 +28,14 @@ backend:
 
 workflow:
   backups:
-    enabled: false # Todo: Enable me after testing
+    storageContainerName: projects-backups
+    enabled: true # Todo: Enable me after testing
+    backup:
+      cron:
+        enabled: true
+    checkPresence:
+      cron:
+        enabled: true
 
 redis:
   valueFiles:

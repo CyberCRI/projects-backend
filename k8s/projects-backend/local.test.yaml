@@ -5,3 +5,8 @@ application:
   revision: dummy-revision
 
 hostname: dummy-host
+
+workflow:
+  backups:
+    enabled: true
+  enabled: true
