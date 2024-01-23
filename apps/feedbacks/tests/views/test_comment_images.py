@@ -2,14 +2,15 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, TestRoles
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory
+from apps.files.models import Image
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
 
-class RetrieveCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class RetrieveCommentImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -83,7 +84,7 @@ class RetrieveCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         assert response.status_code == expected_code
 
 
-class CreateCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class CreateCommentImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -152,7 +153,7 @@ class CreateCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
             assert response.json()["static_url"] is not None
 
 
-class UpdateCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class UpdateCommentImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -208,7 +209,7 @@ class UpdateCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
             assert response.json()["natural_ratio"] == payload["natural_ratio"]
 
 
-class DeleteCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class DeleteCommentImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -217,6 +218,7 @@ class DeleteCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.comment = CommentFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -233,9 +235,8 @@ class DeleteCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         ]
     )
     def test_delete_comment_image(self, role, expected_code):
-        comment = CommentFactory(project=self.project)
-        image = self.get_test_image(owner=comment.author)
-        comment.images.add(image)
+        image = self.get_test_image(owner=self.comment.author)
+        self.comment.images.add(image)
         user = self.get_parameterized_test_user(
             role, owned_instance=image, instances=[self.project]
         )
@@ -245,5 +246,4 @@ class DeleteCommentImageTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_204_NO_CONTENT:
-            comment.refresh_from_db()
-            assert not comment.images.exists()
+            assert not Image.objects.filter(id=image.id).exists()
