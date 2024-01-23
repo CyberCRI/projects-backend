@@ -5,20 +5,6 @@ kind: WorkflowTemplate
 metadata:
   name: {{ tpl .Values.workflow.backups.resourceName $ }}
 spec:
-  hooks:
-    failed:
-      expression: workflow.status == "Error" || workflow.status == "Failed"
-      templateRef:
-        name: notify-slack
-        template: send-request
-        clusterScope: true
-      arguments:
-        parameters:
-        - name: message
-          value: Today's Projects backup is missing !
-        - name: slackChannel
-          value: {{ .Values.workflow.backups.slackChannel | quote }}
-  entrypoint: check-presence
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
     runAsNonRoot: true
@@ -31,6 +17,20 @@ spec:
   - name: check-presence
     steps:
     - - name: check-presence
+        hooks:
+          failed:
+            expression: workflow.status == "Error" || workflow.status == "Failed"
+            templateRef:
+              name: notify-slack
+              template: send-request
+              clusterScope: true
+            arguments:
+              parameters:
+              - name: message
+                value: Today's Projects backup is missing !
+              - name: slackChannel
+                value: {{ .Values.workflow.backups.slackChannel | quote }}
+        entrypoint: check-presence
         templateRef:
           name: postgres-backuper
           template: check-presence
@@ -39,11 +39,64 @@ spec:
           parameters:
           - name: storage_container_name
             value: {{ .Values.workflow.backups.storageContainerName }}
+  - name: backup
+    input:
+      parameter:
+      - name: entrypoint
+        enum:
+        - all
+        - backup
+        - promote_to_weekly
+        - promote_to_monthly
+        - promote_to_yearly
+        - delete_daily
+        - delete_weekly
+        - delete_monthly
+        value: all
+    steps:
+    - - name: backup
+        hooks:
+          failed:
+            expression: workflow.status == "Error" || workflow.status == "Failed"
+            templateRef:
+              name: notify-slack
+              template: send-request
+              clusterScope: true
+            arguments:
+              parameters:
+              - name: message
+                value: Today's Projects backup failed !
+              - name: slackChannel
+                value: {{ .Values.workflow.backups.slackChannel | quote }}
+        templateRef:
+          name: postgres-backuper
+          template: {{ print "{{workflow.parametere.entrypoint}}" }}
+          clusterScope: true
+        arguments:
+          parameters:
+          - name: storage_container_name
+            value: {{ .Values.workflow.backups.storageContainerName }}
+          - name: database
+            value: {{ .Values.config.nonSensitive.POSTGRES_DB }}
 ---
 kind: CronWorkflow
 apiVersion: argoproj.io/v1alpha1
 metadata:
-  name: {{ tpl .Values.workflow.backups.resourceName $ }}
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}-check-presence
+spec:
+  schedule: {{ .Values.workflow.backups.cron.schedule }}
+  workflowSpec:
+    serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+    workflowTemplateRef:
+      name: {{ tpl .Values.workflow.backups.resourceName $ }}
+      template: check-presence
+    podGC:
+      strategy: OnPodCompletion
+---
+kind: CronWorkflow
+apiVersion: argoproj.io/v1alpha1
+metadata:
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}-backup
 spec:
   schedule: {{ .Values.workflow.backups.cron.schedule }}
   workflowSpec:
