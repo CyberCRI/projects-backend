@@ -14,23 +14,23 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   entrypoint: check-presence
+  hooks:
+    failed:
+      expression: workflow.status == "Error" || workflow.status == "Failed"
+      templateRef:
+        name: notify-slack
+        template: send-request
+        clusterScope: true
+      arguments:
+        parameters:
+        - name: message
+          value: Today's Projects backup is missing !
+        - name: slackChannel
+          value: {{ .Values.workflow.backups.slackChannel | quote }}
   templates:
   - name: check-presence
     steps:
     - - name: check-presence
-        hooks:
-          failed:
-            expression: workflow.status == "Error" || workflow.status == "Failed"
-            templateRef:
-              name: notify-slack
-              template: send-request
-              clusterScope: true
-            arguments:
-              parameters:
-              - name: message
-                value: Today's Projects backup is missing !
-              - name: slackChannel
-                value: {{ .Values.workflow.backups.slackChannel | quote }}
         templateRef:
           name: postgres-backuper
           template: check-presence
@@ -54,6 +54,19 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   entrypoint: backup
+  hooks:
+    failed:
+      expression: workflow.status == "Error" || workflow.status == "Failed"
+      templateRef:
+        name: notify-slack
+        template: send-request
+        clusterScope: true
+      arguments:
+        parameters:
+        - name: message
+          value: Today's Projects backup is missing !
+        - name: slackChannel
+          value: {{ .Values.workflow.backups.slackChannel | quote }}
   templates:
   - name: backup
     inputs:
@@ -71,19 +84,6 @@ spec:
         value: all
     steps:
     - - name: backup
-        hooks:
-          failed:
-            expression: workflow.status == "Error" || workflow.status == "Failed"
-            templateRef:
-              name: notify-slack
-              template: send-request
-              clusterScope: true
-            arguments:
-              parameters:
-              - name: message
-                value: Today's Projects backup failed !
-              - name: slackChannel
-                value: {{ .Values.workflow.backups.slackChannel | quote }}
         templateRef:
           name: postgres-backuper
           template: {{ print "{{workflow.parameters.entrypoint}}" | quote}}
