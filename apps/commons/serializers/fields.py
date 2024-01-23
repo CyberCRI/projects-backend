@@ -42,11 +42,7 @@ class UserMultipleIdRelatedField(serializers.RelatedField):
             self.fail("incorrect_type", data_type=type(data).__name__)
 
     def to_representation(self, value):
-        return {
-            "id": value.id,
-            "slug": value.slug,
-            "keycloak_id": value.keycloak_id,
-        }
+        return value.id
 
 
 @extend_schema_field(OpenApiTypes.NONE)

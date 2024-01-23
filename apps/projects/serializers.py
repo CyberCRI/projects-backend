@@ -292,8 +292,8 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
         source="member_people_groups",
     )
 
-    def add_user(self, user, project, group):
-        created = project.groups.filter(users=user).exists()
+    def add_user(self, user, project, group, role):
+        created = not project.groups.filter(users=user).exists()
         if (
             group.name == project.get_reviewers().name
             and not group.users.all().exists()
@@ -310,6 +310,7 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
             "user": user,
             "project": project,
             "group": group,
+            "role": role,
         }
 
     def add_people_group(self, people_group, project):
@@ -333,7 +334,7 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
             users = validated_data.get(role, [])
             group = getattr(project, f"get_{role}")()
             for user in users:
-                instances.append(self.add_user(user, project, group))
+                instances.append(self.add_user(user, project, group, role))
         for people_group in validated_data.get("member_people_groups", []):
             instances.append(self.add_people_group(people_group, project))
         return instances

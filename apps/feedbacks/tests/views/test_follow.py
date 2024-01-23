@@ -65,7 +65,7 @@ class CreateFollowTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
         ]
     )
-    def test_create_followed_public_project(self, role, expected_code, project_status):
+    def test_create_followed(self, role, expected_code, project_status):
         instance = self.projects[project_status]
         user = self.get_parameterized_test_user(
             role, instances=[instance], owned_instance=instance
@@ -110,7 +110,7 @@ class CreateFollowTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
         ]
     )
-    def test_create_follower_public_project(self, role, expected_code, project_status):
+    def test_create_follower(self, role, expected_code, project_status):
         instance = self.projects[project_status]
         user = self.get_parameterized_test_user(
             role, instances=[instance], owned_instance=instance

@@ -194,7 +194,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             response.data["results"][0]["created_at"],
         )
 
-    def filter_by_status(self):
+    def test_filter_by_status(self):
         self.client.force_authenticate(
             UserFactory(groups=[self.organization.get_admins()])
         )

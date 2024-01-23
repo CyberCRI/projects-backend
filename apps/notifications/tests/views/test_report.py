@@ -1,59 +1,52 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
+
+faker = Faker()
 
 
-@patch("apps.notifications.views.send_email_task.delay")
-class ReportTestCaseAnonymous(JwtAPITestCase):
-    def test_bug_report(self, send_email):
+class ReportTestCase(JwtAPITestCase):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    @patch("apps.notifications.views.send_email_task.delay")
+    def test_bug_report(self, role, send_email):
+        user = self.get_parameterized_test_user(role, instances=[])
+        self.client.force_authenticate(user)
         payload = {
-            "title": "Title",
-            "message": "This is a bug",
-            "reported_by": "test@mail.com",
-            "url": "https://www.website.com",
+            "title": faker.sentence(),
+            "message": faker.text(),
+            "reported_by": faker.email(),
+            "url": faker.url(),
         }
         response = self.client.post(reverse("Report-bug"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()
 
-    def test_abuse_report(self, send_email):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    @patch("apps.notifications.views.send_email_task.delay")
+    def test_abuse_report(self, role, send_email):
+        user = self.get_parameterized_test_user(role, instances=[])
+        self.client.force_authenticate(user)
         payload = {
-            "title": "Title",
-            "message": "This is an abuse",
-            "reported_by": "test@mail.com",
-            "url": "https://www.website.com",
+            "title": faker.sentence(),
+            "message": faker.text(),
+            "reported_by": faker.email(),
+            "url": faker.url(),
         }
-        response = self.client.post(reverse("Report-abuse"), data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        send_email.assert_called_once()
-
-
-@patch("apps.notifications.views.send_email_task.delay")
-class ReportTestCaseUser(JwtAPITestCase):
-    def test_bug_report(self, send_email):
-        payload = {
-            "title": "Title",
-            "message": "This is a bug",
-            "reported_by": "test@mail.com",
-            "url": "https://www.website.com",
-        }
-        self.client.force_authenticate(UserFactory())
-        response = self.client.post(reverse("Report-bug"), data=payload)
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        send_email.assert_called_once()
-
-    def test_abuse_report(self, send_email):
-        payload = {
-            "title": "Title",
-            "message": "This is an abuse",
-            "reported_by": "test@mail.com",
-            "url": "https://www.website.com",
-        }
-        self.client.force_authenticate(UserFactory())
         response = self.client.post(reverse("Report-abuse"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()
