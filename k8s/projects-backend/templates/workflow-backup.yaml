@@ -30,7 +30,6 @@ spec:
                 value: Today's Projects backup is missing !
               - name: slackChannel
                 value: {{ .Values.workflow.backups.slackChannel | quote }}
-        entrypoint: check-presence
         templateRef:
           name: postgres-backuper
           template: check-presence
