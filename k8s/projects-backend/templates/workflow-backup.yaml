@@ -89,9 +89,9 @@ spec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
       name: {{ tpl .Values.workflow.backups.resourceName $ }}
-      template: check-presence
     podGC:
       strategy: OnPodCompletion
+    entrypoint: check-presence
 ---
 kind: CronWorkflow
 apiVersion: argoproj.io/v1alpha1
@@ -103,7 +103,7 @@ spec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
       name: {{ tpl .Values.workflow.backups.resourceName $ }}
-      template: backup
     podGC:
       strategy: OnPodCompletion
+    entrypoint: backup
 {{- end }}
