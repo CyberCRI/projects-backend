@@ -3,7 +3,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
 metadata:
-  name: {{ tpl .Values.workflow.backups.resourceName $ }}
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}-check-presence
 spec:
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
@@ -39,6 +39,22 @@ spec:
           parameters:
           - name: storage_container_name
             value: {{ .Values.workflow.backups.storageContainerName }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ tpl .Values.workflow.backups.resourceName $ }}-backup
+spec:
+  serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+    seccompProfile:
+      type: RuntimeDefault
+  entrypoint: backup
+  templates:
   - name: backup
     inputs:
       parameters:
@@ -89,7 +105,7 @@ spec:
   workflowSpec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
-      name: {{ tpl .Values.workflow.backups.resourceName $ }}
+      name: {{ tpl .Values.workflow.backups.resourceName $ }}-check-presence
     podGC:
       strategy: OnPodCompletion
     entrypoint: check-presence
@@ -105,7 +121,7 @@ spec:
   workflowSpec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
-      name: {{ tpl .Values.workflow.backups.resourceName $ }}
+      name: {{ tpl .Values.workflow.backups.resourceName $ }}-backup
     podGC:
       strategy: OnPodCompletion
     entrypoint: backup
