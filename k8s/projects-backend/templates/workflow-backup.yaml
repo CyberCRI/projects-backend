@@ -41,7 +41,7 @@ spec:
             value: {{ .Values.workflow.backups.storageContainerName }}
   - name: backup
     input:
-      parameter:
+      parameters:
       - name: entrypoint
         enum:
         - all
@@ -70,7 +70,7 @@ spec:
                 value: {{ .Values.workflow.backups.slackChannel | quote }}
         templateRef:
           name: postgres-backuper
-          template: {{ print "{{workflow.parameter.entrypoint}}" | quote}}
+          template: {{ print "{{workflow.parameters.entrypoint}}" | quote}}
           clusterScope: true
         arguments:
           parameters:
