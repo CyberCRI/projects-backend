@@ -13,6 +13,7 @@ spec:
     fsGroup: 10000
     seccompProfile:
       type: RuntimeDefault
+  entrypoint: check-presence
   templates:
   - name: check-presence
     steps:
