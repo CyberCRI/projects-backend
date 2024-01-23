@@ -40,19 +40,6 @@ spec:
           - name: storage_container_name
             value: {{ .Values.workflow.backups.storageContainerName }}
   - name: backup
-    input:
-      parameters:
-      - name: entrypoint
-        enum:
-        - all
-        - backup
-        - promote_to_weekly
-        - promote_to_monthly
-        - promote_to_yearly
-        - delete_daily
-        - delete_weekly
-        - delete_monthly
-        value: all
     steps:
     - - name: backup
         hooks:
