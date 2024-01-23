@@ -102,7 +102,7 @@ spec:
     serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
     workflowTemplateRef:
       name: {{ tpl .Values.workflow.backups.resourceName $ }}
-      template: check-presence
+      template: backup
     podGC:
       strategy: OnPodCompletion
 {{- end }}
