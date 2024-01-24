@@ -1,9 +1,8 @@
 from django.urls import reverse
+from parameterized import parameterized
+from rest_framework import status
 
-from apps.accounts.factories import UserFactory
-from apps.accounts.models import ProjectUser
-from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
@@ -31,239 +30,58 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PRIVATE,
             organizations=[cls.organization],
         )
-        ProjectUser.objects.all().delete()  # Delete users created by the factories
-        cls.member = UserFactory()
-        cls.member_project.members.add(cls.member)
+        cls.projects = {
+            "public": cls.public_project,
+            "private": cls.private_project,
+            "org": cls.org_project,
+            "member": cls.member_project,
+        }
 
-
-class AnonymousUserTestCase(ProjectPublicationStatusTestCase):
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "member")),
+            (TestRoles.PROJECT_OWNER, ("public", "member")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "member")),
+        ]
+    )
+    def test_retrieve_projects(self, role, retrieved_projects):
+        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        self.client.force_authenticate(user)
+        for publication_status, project in self.projects.items():
             response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            if project == self.public_project:
-                self.assertEqual(response.status_code, 200)
+            if publication_status in retrieved_projects:
+                assert response.status_code == status.HTTP_200_OK
+                assert response.json()["id"] == project.id
             else:
-                self.assertEqual(response.status_code, 404)
+                assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_list_projects(self):
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "member")),
+            (TestRoles.PROJECT_OWNER, ("public", "member")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "member")),
+        ]
+    )
+    def test_list_projects(self, role, retrieved_projects):
+        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        self.client.force_authenticate(user)
         response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == status.HTTP_200_OK
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content}, {self.public_project.id}
-        )
-
-
-class AuthenticatedUserTestCase(ProjectPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory()
-
-    def setUp(self):
-        super().setUp()
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            if project == self.public_project:
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 404)
-
-    def test_list_projects(self):
-        response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content}, {self.public_project.id}
-        )
-
-
-class OrganizationMemberTestCase(ProjectPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory()
-        cls.organization.users.add(cls.user)
-
-    def setUp(self):
-        super().setUp()
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            if project in [self.public_project, self.org_project]:
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 404)
-
-    def test_list_projects(self):
-        response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project.id, self.org_project.id},
-        )
-
-
-class OrganizationFacilitatorTestCase(ProjectPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory()
-        cls.organization.facilitators.add(cls.user)
-
-    def setUp(self):
-        super().setUp()
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            self.assertEqual(response.status_code, 200)
-
-    def test_list_projects(self):
-        response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {
-                self.public_project.id,
-                self.org_project.id,
-                self.private_project.id,
-                self.member_project.id,
-            },
-        )
-
-
-class OrganizationAdminTestCase(ProjectPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory()
-        cls.organization.admins.add(cls.user)
-
-    def setUp(self):
-        super().setUp()
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            self.assertEqual(response.status_code, 200)
-
-    def test_list_projects(self):
-        response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {
-                self.public_project.id,
-                self.org_project.id,
-                self.private_project.id,
-                self.member_project.id,
-            },
-        )
-
-
-class SuperAdminTestCase(ProjectPublicationStatusTestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.user = UserFactory(
-            groups=[get_superadmins_group()],
-        )
-
-    def setUp(self):
-        super().setUp()
-        self.client.force_authenticate(self.user)
-
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            self.assertEqual(response.status_code, 200)
-
-    def test_list_projects(self):
-        response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {
-                self.public_project.id,
-                self.org_project.id,
-                self.private_project.id,
-                self.member_project.id,
-            },
-        )
-
-
-class ProjectMemberTestCase(ProjectPublicationStatusTestCase):
-    def setUp(self):
-        super().setUp()
-        self.client.force_authenticate(self.member)
-
-    def test_retrieve_projects(self):
-        for project in [
-            self.public_project,
-            self.private_project,
-            self.org_project,
-            self.member_project,
-        ]:
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
-            if project in [self.public_project, self.member_project]:
-                self.assertEqual(response.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 404)
-
-    def test_list_projects(self):
-        response = self.client.get(reverse("Project-list"))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project.id, self.member_project.id},
-        )
+        assert len(content) == len(retrieved_projects)
+        assert {project["id"] for project in content} == {
+            self.projects[publication_status].id
+            for publication_status in retrieved_projects
+        }
