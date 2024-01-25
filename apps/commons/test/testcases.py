@@ -1,11 +1,14 @@
 import base64
 import logging
+import random
 import uuid
 from typing import List, Optional
 
 from django.conf import settings
 from django.core.files import File
 from django.db import models
+from faker import Faker
+from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.factories import UserFactory
@@ -16,6 +19,8 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 
 from .client import JwtClient
+
+faker = Faker()
 
 
 class TestRoles(models.TextChoices):
@@ -179,39 +184,69 @@ class JwtAPITestCase(APITestCase):
         return image
 
 
-class TagTestCase:
-    class MockResponse:
-        def __init__(self, **kwargs):
-            self.dict = kwargs.pop("dict", {})
+class TagTestCaseMixin:
+    class QueryWikipediaMockResponse:
+        def __init__(self, status_code: int):
+            self.status_code = status_code
+            self.wikipedia_qid = TagTestCaseMixin.get_random_wikipedia_qid()
+            self.pageid = faker.pyint()
+            self.title = faker.word()
+            self.link_title = faker.word()
+            self.extract = faker.sentence()
 
         def json(self):
-            return self.dict
+            return {
+                "warnings": None,
+                "fr": [
+                    {
+                        "pageid": self.pageid,
+                        "ns": 0,
+                        "title": self.title,
+                        "index": 1,
+                        "pageprops": {"wikibase_item": self.wikipedia_qid},
+                        "links": [
+                            {"ns": 0, "title": self.link_title},
+                        ],
+                        "extract": self.extract,
+                    }
+                ],
+            }
 
-    def side_effect(self, qid, *args, **kwargs):
-        results = {
-            "Q1735684": {
-                "name_en": "Kate Foo Kune en",
-                "name_fr": "Kate Foo Kune fr",
-                "name": "Kate Foo Kune default",
-                "wikipedia_qid": "Q1735684",
-            },
-            "Q12335103": {
-                "name_en": "Sharin Foo en",
-                "name_fr": "Sharin Foo fr",
-                "name": "Sharin Foo default",
-                "wikipedia_qid": "Q12335103",
-            },
-            "Q3737270": {
-                "name_en": "FOO en",
-                "name_fr": "FOO fr",
-                "name": "FOO default",
-                "wikipedia_qid": "Q3737270",
-            },
-            "Q560361": {
-                "name_fr": "brouillon",
-                "name_en": "draft document",
-                "name": "draft document",
-                "wikipedia_qid": "Q560361",
-            },
-        }
-        return self.MockResponse(dict=results[qid])
+    class GetWikipediaTagMocked:
+        def __init__(
+            self, qid: str, status_code: int, default: bool, en: bool, fr: bool
+        ):
+            self.qid = qid
+            self.status_code = status_code
+            self.default = default
+            self.en = en
+            self.fr = fr
+
+        def json(self):
+            test = {
+                "wikipedia_qid": self.qid,
+                "name": f"name_{self.qid}" if self.default else "",
+                "name_en": f"name_en_{self.qid}" if self.en else "",
+                "name_fr": f"name_fr_{self.qid}" if self.fr else "",
+            }
+            return test
+    
+    @classmethod
+    def get_random_wikipedia_qid(cls):
+        return f"Q{random.randint(100000, 999999)}"
+
+    def get_wikipedia_tag_mocked_return(
+        self,
+        qid: str,
+        status_code: int = status.HTTP_200_OK,
+        default: bool = True,
+        en: bool = True,
+        fr: bool = True,
+    ):
+        return self.GetWikipediaTagMocked(qid, status_code, default, en, fr)
+
+    def get_wikipedia_tag_mocked_side_effect(self, qid, *args, **kwargs):
+        return self.get_wikipedia_tag_mocked_return(qid)
+
+    def query_wikipedia_mocked_return(self, status_code: int = status.HTTP_200_OK):
+        return self.QueryWikipediaMockResponse(status_code)

@@ -5,16 +5,16 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory, ReviewFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_review, _notify_ready_for_review
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class NewReviewTestCase(ProjectJwtAPITestCase):
+class NewReviewTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -123,7 +123,7 @@ class NewReviewTestCase(ProjectJwtAPITestCase):
         assert [mail.outbox[i].to[0] for i in range(4)].count(follower.email) == 2
 
 
-class ReadyForReviewTestCase(ProjectJwtAPITestCase):
+class ReadyForReviewTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

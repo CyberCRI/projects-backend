@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import (
@@ -13,10 +14,9 @@ from apps.notifications.tasks import (
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class DeletedMemberTestCase(ProjectJwtAPITestCase):
+class DeletedMemberTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

@@ -1,3 +1,4 @@
+import random
 from unittest.mock import patch
 
 from django.urls import reverse
@@ -6,25 +7,25 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
-from apps.commons.test.testcases import TagTestCase
+from apps.commons.test.testcases import TagTestCaseMixin
 from apps.misc.factories import WikipediaTagFactory
 from apps.misc.models import WikipediaTag
 from apps.organizations import factories, models
 from apps.organizations.models import ProjectCategory
 
 
-class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
+class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_anonymous(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "background_image_id": fake.background_image.pk,
@@ -33,7 +34,7 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "wikipedia_tags_ids": wikipedia_tags,
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
         }
 
@@ -57,12 +58,12 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
         response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_anonymous(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "background_image_id": fake.background_image.id,
@@ -71,7 +72,7 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "wikipedia_tags_ids": wikipedia_tags,
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
         }
         response = self.client.put(
@@ -92,18 +93,18 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
+class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_no_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "background_image_id": fake.background_image.pk,
@@ -112,7 +113,7 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "wikipedia_tags_ids": wikipedia_tags,
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
         }
 
@@ -148,12 +149,12 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
         response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_no_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "background_image_id": fake.background_image.pk,
@@ -162,7 +163,7 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "wikipedia_tags_ids": wikipedia_tags,
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
         }
         self.client.force_authenticate(UserFactory())
@@ -185,18 +186,18 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
+class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_base_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "background_image_id": fake.background_image.pk,
@@ -205,7 +206,7 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "wikipedia_tags_ids": wikipedia_tags,
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
         }
 
@@ -228,7 +229,7 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(fake.order_index, pc.order_index)
         self.assertEqual(organization.pk, pc.organization.pk)
         self.assertEqual(
-            wikipedia_tags,
+            [wikipedia_qid],
             list(pc.wikipedia_tags.all().values_list("wikipedia_qid", flat=True)),
         )
 
@@ -308,9 +309,10 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProjectCategory.objects.filter(pk=pc.pk).exists())
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_base_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         pc = factories.ProjectCategoryFactory(background_image=self.test_image)
         payload = {
             "background_color": pc.background_color,
@@ -320,7 +322,7 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
             "is_reviewable": pc.is_reviewable,
             "name": "New name",
             "order_index": pc.order_index,
-            "wikipedia_tags_ids": ["Q1735684"],
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": pc.organization.code,
         }
         user = UserFactory(groups=[get_superadmins_group()])
@@ -347,18 +349,18 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(pc.name, "New name")
 
 
-class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase):
+class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_org_permissions(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "background_image_id": fake.background_image.id,
@@ -367,7 +369,7 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase)
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "wikipedia_tags_ids": ["Q1735684"],
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
         }
 
@@ -392,7 +394,8 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase)
         self.assertEqual(fake.order_index, pc.order_index)
         self.assertEqual(organization.pk, pc.organization.pk)
         self.assertEqual(
-            tags, list(pc.wikipedia_tags.all().values_list("wikipedia_qid", flat=True))
+            [wikipedia_qid],
+            list(pc.wikipedia_tags.all().values_list("wikipedia_qid", flat=True)),
         )
 
     def test_retrieve_org_permissions(self):
@@ -421,9 +424,10 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProjectCategory.objects.filter(pk=pc.pk).exists())
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_org_permissions(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         pc = factories.ProjectCategoryFactory(background_image=self.test_image)
         payload = {
             "background_color": pc.background_color,
@@ -433,7 +437,7 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase)
             "is_reviewable": pc.is_reviewable,
             "name": "New name",
             "order_index": pc.order_index,
-            "wikipedia_tags_ids": ["Q1735684"],
+            "wikipedia_tags_ids": [wikipedia_qid],
             "organization_code": pc.organization.code,
         }
         user = UserFactory(
@@ -464,18 +468,18 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCase)
         self.assertEqual(pc.name, "New name")
 
 
-class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
+class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_create_with_template(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
         organization = factories.OrganizationFactory()
-        tags = ["Q1735684"]
         template = factories.TemplateFactory.build()
         payload = {
             "background_color": fake.background_color,
@@ -484,7 +488,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
             "is_reviewable": fake.is_reviewable,
             "name": fake.name,
             "order_index": fake.order_index,
-            "tags_ids": tags,
+            "tags_ids": [wikipedia_qid],
             "organization_code": organization.code,
             "template": {
                 "title_placeholder": template.title_placeholder,
@@ -523,9 +527,10 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
             template.blogentry_placeholder, content["template"]["blogentry_placeholder"]
         )
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_creating_missing_template(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         pc = factories.ProjectCategoryFactory(background_image=self.test_image)
         template = factories.TemplateFactory.build()
         payload = {
@@ -535,7 +540,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
             "is_reviewable": pc.is_reviewable,
             "name": "New name",
             "order_index": pc.order_index,
-            "tags_ids": ["Q1735684"],
+            "tags_ids": [wikipedia_qid],
             "organization_code": pc.organization.code,
             "template": {
                 "title_placeholder": template.title_placeholder,
@@ -569,9 +574,10 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
             template.blogentry_placeholder, payload["template"]["blogentry_placeholder"]
         )
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_updating_existing_template(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         template = factories.TemplateFactory()
         pc = factories.ProjectCategoryFactory(template=template)
         payload = {
@@ -581,7 +587,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
             "is_reviewable": pc.is_reviewable,
             "name": "New name",
             "order_index": pc.order_index,
-            "tags_ids": ["Q1735684"],
+            "tags_ids": [wikipedia_qid],
             "organization_code": pc.organization.code,
             "template": {
                 "title_placeholder": "NewTitle",
@@ -603,9 +609,10 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
         self.assertIsNotNone(template)
         self.assertEqual(template.title_placeholder, "NewTitle")
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_deleting_existing_template(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         template = factories.TemplateFactory()
         pc = factories.ProjectCategoryFactory(template=template)
         self.assertIsNotNone(pc.template)
@@ -617,7 +624,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCase):
             "is_reviewable": pc.is_reviewable,
             "name": "New name",
             "order_index": pc.order_index,
-            "tags_ids": ["Q1735684"],
+            "tags_ids": [wikipedia_qid],
             "organization_code": pc.organization.code,
         }
         user = UserFactory(

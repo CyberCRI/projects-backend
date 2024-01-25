@@ -5,16 +5,16 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_member_updated
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class UpdatedMemberTestCase(ProjectJwtAPITestCase):
+class UpdatedMemberTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
