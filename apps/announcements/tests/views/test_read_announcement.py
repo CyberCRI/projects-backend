@@ -39,30 +39,12 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (
-                TestRoles.ANONYMOUS,
-                "public",
-            ),
-            (
-                TestRoles.ANONYMOUS,
-                "org",
-            ),
-            (
-                TestRoles.ANONYMOUS,
-                "private",
-            ),
-            (
-                TestRoles.DEFAULT,
-                "public",
-            ),
-            (
-                TestRoles.DEFAULT,
-                "org",
-            ),
-            (
-                TestRoles.DEFAULT,
-                "private",
-            ),
+            (TestRoles.ANONYMOUS, "public"),
+            (TestRoles.ANONYMOUS, "org"),
+            (TestRoles.ANONYMOUS, "private"),
+            (TestRoles.DEFAULT, "public"),
+            (TestRoles.DEFAULT, "org"),
+            (TestRoles.DEFAULT, "private"),
         ]
     )
     def test_retrieve_announcement(self, role, publication_status):

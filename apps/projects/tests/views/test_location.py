@@ -1,444 +1,191 @@
-from typing import List
-
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import LocationFactory, ProjectFactory
 from apps.projects.models import Location, Project
 
+faker = Faker()
 
-class TestParams:
-    list_route = "Location-list"
-    detail_route = "Location-detail"
-    factory = LocationFactory
 
-    @staticmethod
-    def create_payload(project):
-        return {
-            "title": "title",
-            "description": "description",
-            "lat": 0,
-            "lng": 0,
+class CreateLocationTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+        ]
+    )
+    def test_create_location(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.project])
+        self.client.force_authenticate(user)
+        payload = {
+            "title": faker.word(),
+            "description": faker.text(),
+            "lat": float(faker.latitude()),
+            "lng": float(faker.longitude()),
             "type": Location.LocationType.TEAM,
-            "project_id": project.id,
+            "project_id": self.project.id,
+        }
+        response = self.client.post(
+            reverse("Location-list", args=(self.project.id,)), data=payload
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            assert content["title"] == payload["title"]
+            assert content["description"] == payload["description"]
+            assert content["lat"] == payload["lat"]
+            assert content["lng"] == payload["lng"]
+            assert content["type"] == payload["type"]
+
+
+class ListLocationTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.public_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.org_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations=[cls.organization],
+        )
+        cls.private_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
+        )
+        cls.projects = {
+            "public": cls.public_project,
+            "org": cls.org_project,
+            "private": cls.private_project,
+        }
+        cls.locations = {
+            "public": LocationFactory(project=cls.public_project),
+            "org": LocationFactory(project=cls.org_project),
+            "private": LocationFactory(project=cls.private_project),
         }
 
-    @staticmethod
-    def create_partial_payload():
-        return {"title": "new title", "description": "new description"}
-
-
-class LocationTestCaseAnonymous(JwtAPITestCase, TestParams):
-    def test_create_anonymous(self):
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_401_UNAUTHORIZED, response.json()
-        )
-
-    def test_retrieve_public_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_retrieve_location(self, role, retrieved_locations):
+        for publication_status, location in self.locations.items():
+            project = location.project
+            user = self.get_parameterized_test_user(role, instances=[project])
+            self.client.force_authenticate(user)
+            response = self.client.get(
+                reverse("Location-list", args=(project.id,)),
             )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.json()
-        )
-
-    def test_retrieve_org_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.json()
-        )
-
-    def test_list_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(len(response.json()), 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()]),
-        )
-
-    def test_patch_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_401_UNAUTHORIZED, response.json()
-        )
-
-    def test_put_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_401_UNAUTHORIZED, response.json()
-        )
-
-    def test_destroy_anonymous(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_401_UNAUTHORIZED, response.json()
-        )
+            assert response.status_code == status.HTTP_200_OK
+            content = response.json()
+            if publication_status in retrieved_locations:
+                assert len(content) == 1
+                assert content[0]["id"] == location.id
+            else:
+                assert len(content) == 0
 
 
-class LocationTestCaseNoPermission(JwtAPITestCase, TestParams):
-    def test_create_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory()
-        payload = self.create_payload(project)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
+class UpdateLocationTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
 
-    def test_retrieve_public_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PRIVATE)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.json()
-        )
-
-    def test_retrieve_org_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.ORG)
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_404_NOT_FOUND, response.json()
-        )
-
-    def test_list_public_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(len(response.json()), 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()]),
-        )
-
-    def test_patch_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
-        )
-
-    def test_put_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
-        )
-
-    def test_destroy_no_permission(self):
-        self.client.force_authenticate(UserFactory())
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
-        instance = self.factory(project=project)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_403_FORBIDDEN, response.content
-        )
-
-
-class LocationTestCaseProjectPermission(JwtAPITestCase, TestParams):
-    def create_project_with_user(
-        self,
-        permissions: List[str],
-        publication_status=Project.PublicationStatus.PUBLIC,
-    ):
-        project = ProjectFactory(publication_status=publication_status)
-        user = UserFactory(
-            permissions=[(permission, project) for permission in permissions]
-        )
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+        ]
+    )
+    def test_update_location(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        return project
-
-    def test_create_project_permission(self):
-        project = self.create_project_with_user(["projects.change_project"])
-        payload = self.create_payload(project)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_retrieve_public_project_permission(self):
-        project = self.create_project_with_user(["projects.view_project"])
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_project_permission(self):
-        project = self.create_project_with_user(
-            ["projects.view_project"], Project.PublicationStatus.PRIVATE
-        )
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_org_project_permission(self):
-        project = self.create_project_with_user(
-            ["projects.view_project"], Project.PublicationStatus.ORG
-        )
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_project_permission(self):
-        project = self.create_project_with_user(["projects.view_project"])
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(len(response.json()), 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()]),
-        )
-
-    def test_patch_project_permission(self):
-        project = self.create_project_with_user(["projects.change_project"])
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
+        location = LocationFactory(project=self.project)
+        payload = {
+            "description": faker.text(),
+        }
         response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
+            reverse("Location-detail", args=(self.project.id, location.id)),
+            data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_project_permission(self):
-        project = self.create_project_with_user(["projects.change_project"])
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_project_permission(self):
-        project = self.create_project_with_user(["projects.change_project"])
-        instance = self.factory(project=project)
-        response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_204_NO_CONTENT, response.content
-        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            assert content["description"] == payload["description"]
 
 
-class LocationTestCaseOrgPermission(JwtAPITestCase, TestParams):
-    def create_project_in_user_org(
-        self,
-        permissions: List[str],
-        publication_status=Project.PublicationStatus.PUBLIC,
-    ):
-        organization = OrganizationFactory()
-        project = ProjectFactory(publication_status=publication_status)
-        project.organizations.add(organization)
-        user = UserFactory(
-            permissions=[(permission, organization) for permission in permissions]
+class DeleteLocationTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_delete_location(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        return project
-
-    def test_create_org_permission(self):
-        project = self.create_project_in_user_org(["organizations.change_project"])
-        payload = self.create_payload(project)
-        response = self.client.post(
-            reverse(self.list_route, kwargs={"project_id": project.id}), data=payload
-        )
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-    def test_retrieve_public_org_permission(self):
-        project = self.create_project_in_user_org(["organizations.view_project"])
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_private_org_permission(self):
-        project = self.create_project_in_user_org(
-            ["organizations.view_project"],
-            Project.PublicationStatus.PRIVATE,
-        )
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_retrieve_org_org_permission(self):
-        project = self.create_project_in_user_org(
-            ["organizations.view_org_project"], Project.PublicationStatus.ORG
-        )
-        instance = self.factory(project=project)
-        response = self.client.get(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_list_org_permission(self):
-        project = self.create_project_in_user_org(["organizations.view_project"])
-        instance1 = self.factory(project=project)
-        instance2 = self.factory(project=project)
-        self.factory()
-        response = self.client.get(
-            reverse(self.list_route, kwargs={"project_id": project.id})
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        self.assertEqual(len(response.json()), 2)
-        self.assertEqual(
-            sorted([instance1.id, instance2.id]),
-            sorted([i["id"] for i in response.json()]),
-        )
-
-    def test_patch_org_permission(self):
-        project = self.create_project_in_user_org(["organizations.change_project"])
-        instance = self.factory(project=project)
-        payload = self.create_partial_payload()
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.patch(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_put_org_permission(self):
-        project = self.create_project_in_user_org(["organizations.change_project"])
-        instance = self.factory(project=project)
-        payload = self.create_payload(project)
-        kwargs = {"project_id": project.id, "id": instance.id}
-        response = self.client.put(
-            reverse(self.detail_route, kwargs=kwargs), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-
-    def test_destroy_org_permission(self):
-        project = self.create_project_in_user_org(["organizations.change_project"])
-        instance = self.factory(project=project)
+        location = LocationFactory(project=self.project)
         response = self.client.delete(
-            reverse(
-                self.detail_route, kwargs={"project_id": project.id, "id": instance.id}
-            )
+            reverse("Location-detail", args=(self.project.id, location.id)),
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert not Location.objects.filter(id=location.id).exists()

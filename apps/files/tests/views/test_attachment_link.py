@@ -217,7 +217,7 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             "non_field_errors": ["This url is already attached to this project."]
         }
 
-    @patch(target="apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_www_domain(self, mocked):
         mocked.return_value = MockResponse()
         user = UserFactory(groups=[get_superadmins_group()])
@@ -245,7 +245,7 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             "non_field_errors": ["This url is already attached to this project."]
         }
 
-    @patch(target="apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_other_project(self, mocked):
         mocked.return_value = MockResponse()
         user = UserFactory(groups=[get_superadmins_group()])

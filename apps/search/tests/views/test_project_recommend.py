@@ -48,7 +48,7 @@ class RecommendProjectsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, ("public", "org")),
         ]
     )
-    @patch(target="algoliasearch.recommend_client.RecommendClient.get_related_products")
+    @patch("algoliasearch.recommend_client.RecommendClient.get_related_products")
     def test_get_similar_projects(self, role, retrieved_projects, mocked):
         hits = [
             {"id": project.id, "_score": round(random.uniform(50, 100), 2)}  # nosec

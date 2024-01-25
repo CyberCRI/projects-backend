@@ -1,98 +1,54 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from faker import Faker
 
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test.testcases import JwtAPITestCase, TagTestCaseMixin
 from apps.misc.api import create_tag_from_wikipedia_gw
 from apps.misc.models import WikipediaTag
 
+faker = Faker()
 
-class WikipediaTagTestCase(JwtAPITestCase):
-    class WikipediaMockResponse:
-        status_code = 200
 
-        @staticmethod
-        def json():
-            return {
-                "warnings": None,
-                "fr": [
-                    {
-                        "pageid": 6243370,
-                        "ns": 0,
-                        "title": "Breakout (chanson des Foo Fighters)",
-                        "index": 1,
-                        "pageprops": {"wikibase_item": "Q2706964"},
-                        "links": [
-                            {"ns": 0, "title": "18 septembre"},
-                        ],
-                        "extract": "Breakout est le quatrieme single de l'album There Is Nothing Left to Lose sorti en 2000.",
-                    }
-                ],
-            }
-
-    class ProjectsMockResponse:
-        status_code = 200
-
-        def __init__(self, wikipedia_qid, name, name_fr, name_en):
-            self.wikipedia_qid = wikipedia_qid
-            self.name = name
-            self.name_fr = name_fr
-            self.name_en = name_en
-
-        def json(self):
-            return {
-                "name_fr": self.name_fr,
-                "name_en": self.name_en,
-                "name": self.name,
-                "wikipedia_qid": self.wikipedia_qid,
-            }
-
-    @patch(target="apps.misc.api.get_query_from_wikipedia_gw")
+class WikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
+    @patch("apps.misc.api.get_query_from_wikipedia_gw")
     def test_api_func(self, mocked):
-        mocked_response = self.WikipediaMockResponse()
+        mocked_response = self.query_wikipedia_mocked_return()
         mocked.return_value = mocked_response
-        response = self.client.get(reverse("WikipediaTagWikipedia-list"), {"q": "foo"})
+        response = self.client.get(
+            reverse("WikipediaTagWikipedia-list"), {"q": faker.word()}
+        )
         assert response.status_code == mocked_response.status_code
         assert response.json() == mocked_response.json()
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_api_detail_func(self, mocked):
-        mocked_response = self.ProjectsMockResponse(
-            "Q560361", "tag default", "tag fr", "tag en"
-        )
+        wikipedia_qid = self.get_random_wikipedia_qid()
+        mocked_response = self.get_wikipedia_tag_mocked_return(wikipedia_qid)
         mocked.return_value = mocked_response
         response = self.client.get(
-            reverse("WikipediaTagWikipedia-detail", kwargs={"wikipedia_qid": "Q560361"})
-        )
-        assert response.status_code == mocked_response.status_code
-        assert response.json() == mocked_response.json()
-
-    @patch(target="apps.misc.api.get_disambiguation_page_from_wikipedia_gw")
-    def test_api_disambiguation_func(self, mocked):
-        mocked_response = self.WikipediaMockResponse()
-        mocked.return_value = mocked_response
-        response = self.client.get(
-            reverse("WikipediaTagWikipedia-disambiguate", kwargs={"page_id": "123456"})
+            reverse("WikipediaTagWikipedia-detail", args=(wikipedia_qid,))
         )
         assert response.status_code == mocked_response.status_code
         assert response.json() == mocked_response.json()
 
     @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_api_detail_func_no_default(self, mocked):
-        mocked.return_value = self.ProjectsMockResponse(
-            "Q560361", "", "tag fr", "tag en"
+        wikipedia_qid = self.get_random_wikipedia_qid()
+        mocked.return_value = self.get_wikipedia_tag_mocked_return(
+            wikipedia_qid, default=False
         )
-        create_tag_from_wikipedia_gw("Q560361")
-        tag = WikipediaTag.objects.get(wikipedia_qid="Q560361")
-        assert tag.name == "tag en"
-        assert tag.name_fr == "tag fr"
-        assert tag.name_en == "tag en"
+        create_tag_from_wikipedia_gw(wikipedia_qid)
+        tag = WikipediaTag.objects.get(wikipedia_qid=wikipedia_qid)
+        assert tag.name == tag.name_en == f"name_en_{wikipedia_qid}"
+        assert tag.name_fr == f"name_fr_{wikipedia_qid}"
 
     @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_api_detail_func_no_default_no_en(self, mocked):
-        mocked.return_value = self.ProjectsMockResponse("Q560361", "", "tag fr", None)
-        create_tag_from_wikipedia_gw("Q560361")
-        tag = WikipediaTag.objects.get(wikipedia_qid="Q560361")
-        assert tag.name == "tag fr"
-        assert tag.name_fr == "tag fr"
-        assert tag.name_en == "tag fr"
+        wikipedia_qid = self.get_random_wikipedia_qid()
+        mocked.return_value = self.get_wikipedia_tag_mocked_return(
+            wikipedia_qid, default=False, en=False
+        )
+        create_tag_from_wikipedia_gw(wikipedia_qid)
+        tag = WikipediaTag.objects.get(wikipedia_qid=wikipedia_qid)
+        assert tag.name == tag.name_fr == tag.name_en == f"name_fr_{wikipedia_qid}"

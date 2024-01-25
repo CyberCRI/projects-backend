@@ -84,6 +84,7 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.people_group = PeopleGroupFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -99,11 +100,7 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
         ]
     )
     def test_update_people_group(self, role, expected_code):
-        organization = self.organization
-        people_group = PeopleGroupFactory(organization=organization)
-        people_group.description = faker.text()
-        people_group.save()
-        user = self.get_parameterized_test_user(role, instances=[people_group])
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "description": faker.text(),
@@ -111,7 +108,7 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "PeopleGroup-detail",
-                args=(organization.code, people_group.pk),
+                args=(self.organization.code, self.people_group.pk),
             ),
             payload,
         )

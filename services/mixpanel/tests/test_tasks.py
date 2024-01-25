@@ -35,7 +35,7 @@ class MixpanelServiceTestCase(TestCase):
 
         return inner
 
-    @patch(target="mixpanel_utils.MixpanelUtils.request")
+    @patch("mixpanel_utils.MixpanelUtils.request")
     def test_get_new_mixpanel_events(self, mocked):
         projects = ProjectFactory.create_batch(
             5, publication_status=Project.PublicationStatus.PUBLIC

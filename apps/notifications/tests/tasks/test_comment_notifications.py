@@ -5,16 +5,16 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory, FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_comment
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class NewCommentTestCase(ProjectJwtAPITestCase):
+class NewCommentTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -126,7 +126,7 @@ class NewCommentTestCase(ProjectJwtAPITestCase):
         assert notified.email == mail.outbox[1].to[0]
 
 
-class NewReplyTestCase(ProjectJwtAPITestCase):
+class NewReplyTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

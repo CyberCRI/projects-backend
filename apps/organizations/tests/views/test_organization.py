@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from dateutil.parser import parse as parse_date
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -9,18 +7,14 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
-from apps.commons.test.testcases import TagTestCase
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 
 
-class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_create_anonymous(self, mocked):
-        mocked.side_effect = self.side_effect
+class OrganizationTestCaseAnonymous(JwtAPITestCase):
+    def test_create_anonymous(self):
         fake = OrganizationFactory.build()
         parent = OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": fake.background_color,
             "code": fake.code,
@@ -34,7 +28,6 @@ class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
             "website_url": fake.website_url,
             "created_at": fake.created_at,
             "updated_at": fake.updated_at,
-            "wikipedia_tags_ids": wikipedia_tags,
             "parent_code": parent.code,
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
@@ -63,12 +56,9 @@ class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
         response = self.client.delete(reverse("Organization-detail", args=(orga.code,)))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_update_anonymous(self, mocked):
-        mocked.side_effect = self.side_effect
+    def test_update_anonymous(self):
         orga = OrganizationFactory()
         parent = OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": orga.background_color,
             "code": "NewCode",
@@ -82,7 +72,6 @@ class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
             "website_url": orga.website_url,
             "created_at": orga.created_at,
             "updated_at": orga.updated_at,
-            "wikipedia_tags_ids": wikipedia_tags,
             "parent_code": parent.code,
         }
         response = self.client.put(
@@ -101,12 +90,9 @@ class OrganizationTestCaseAnonymous(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_create_no_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+class OrganizationTestCaseNoPermission(JwtAPITestCase):
+    def test_create_no_permission(self):
         fake = OrganizationFactory.build()
-        wikipedia_tags = ["Q1735684"]
         parent = OrganizationFactory()
         payload = {
             "background_color": fake.background_color,
@@ -120,7 +106,6 @@ class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
             "name": fake.name,
             "website_url": fake.website_url,
             "created_at": fake.created_at,
-            "wikipedia_tags_ids": wikipedia_tags,
             "parent_code": parent.code,
         }
         self.client.force_authenticate(UserFactory())
@@ -149,12 +134,9 @@ class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
         response = self.client.delete(reverse("Organization-detail", args=(orga.code,)))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_update_no_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+    def test_update_no_permission(self):
         orga = OrganizationFactory()
         parent = OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": orga.background_color,
             "code": "NewCode",
@@ -168,7 +150,6 @@ class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
             "website_url": orga.website_url,
             "created_at": orga.created_at,
             "updated_at": orga.updated_at,
-            "wikipedia_tags_ids": wikipedia_tags,
             "parent_code": parent.code,
         }
         self.client.force_authenticate(UserFactory())
@@ -189,12 +170,9 @@ class OrganizationTestCaseNoPermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_create_base_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+class OrganizationTestBasePermission(JwtAPITestCase):
+    def test_create_base_permission(self):
         fake = OrganizationFactory.build()
-        wikipedia_tags = ["Q1735684"]
         parent = OrganizationFactory()
         payload = {
             "background_color": fake.background_color,
@@ -209,7 +187,6 @@ class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
             "website_url": fake.website_url,
             "created_at": fake.created_at,
             "updated_at": fake.updated_at,
-            "wikipedia_tags_ids": wikipedia_tags,
             "parent_code": parent.code,
         }
         user = UserFactory(permissions=[("organizations.add_organization", None)])
@@ -236,14 +213,6 @@ class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
         )
         self.assertEqual(fake.name, organization.name)
         self.assertEqual(fake.website_url, organization.website_url)
-        self.assertEqual(
-            wikipedia_tags,
-            list(
-                organization.wikipedia_tags.all().values_list(
-                    "wikipedia_qid", flat=True
-                )
-            ),
-        )
         self.assertEqual(parent.code, organization.parent.code)
 
     def test_retrieve_base_permission(self):
@@ -291,12 +260,9 @@ class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Organization.objects.filter(code=orga.code).exists())
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_update_base_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+    def test_update_base_permission(self):
         orga = OrganizationFactory()
         parent = OrganizationFactory()
-        wikipedia_tags = ["Q1735684"]
         payload = {
             "background_color": orga.background_color,
             "code": "NewCode",
@@ -310,7 +276,6 @@ class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
             "website_url": orga.website_url,
             "created_at": orga.created_at,
             "updated_at": orga.updated_at,
-            "wikipedia_tags_ids": wikipedia_tags,
             "parent_code": parent.code,
         }
         user = UserFactory(permissions=[("organizations.change_organization", None)])
@@ -335,7 +300,7 @@ class OrganizationTestBasePermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(orga.code, "NewCode")
 
 
-class OrganizationTestOrganizationPermission(JwtAPITestCase, TagTestCase):
+class OrganizationTestOrganizationPermission(JwtAPITestCase):
     def test_retrieve_organization_permission(self):
         orga = OrganizationFactory()
         user = UserFactory()
@@ -379,9 +344,7 @@ class OrganizationTestOrganizationPermission(JwtAPITestCase, TagTestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Organization.objects.filter(code=orga.code).exists())
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
-    def test_update_organization_permission(self, mocked):
-        mocked.side_effect = self.side_effect
+    def test_update_organization_permission(self):
         orga = OrganizationFactory()
         payload = {
             "background_color": orga.background_color,
@@ -395,7 +358,6 @@ class OrganizationTestOrganizationPermission(JwtAPITestCase, TagTestCase):
             "website_url": orga.website_url,
             "created_at": orga.created_at,
             "updated_at": orga.updated_at,
-            "tags_ids": ["Q1735684"],
         }
         user = UserFactory(permissions=[("organizations.change_organization", orga)])
         self.client.force_authenticate(user)

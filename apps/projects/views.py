@@ -388,7 +388,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def _toggle_is_locked(self, value):
         project = self.get_object()
-        project.is_locked = True
+        project.is_locked = value
         project.save()
         return Response(status=status.HTTP_200_OK)
 
@@ -609,10 +609,9 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(BlogEntry.objects.all())
-            return qs.filter(project=self.kwargs["project_id"]).prefetch_related(
-                "images"
-            )
+            return self.request.user.get_project_related_queryset(
+                BlogEntry.objects.filter(project=self.kwargs["project_id"]),
+            ).prefetch_related("images")
         return BlogEntry.objects.none()
 
     def perform_create(self, serializer):
@@ -636,9 +635,7 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(
-                    blog_entries__project__id=self.kwargs["project_id"]
-                ),
+                Image.objects.filter(blog_entries__project=self.kwargs["project_id"]),
                 project_related_name="blog_entries__project",
             )
             # Retrieve images before blog entry is posted

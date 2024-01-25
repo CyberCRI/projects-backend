@@ -7,16 +7,16 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.announcements.factories import AnnouncementFactory
 from apps.announcements.models import Announcement
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_announcement, _notify_new_application
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class NewAnnouncementTestCase(ProjectJwtAPITestCase):
+class NewAnnouncementTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -126,7 +126,7 @@ class NewAnnouncementTestCase(ProjectJwtAPITestCase):
             )
 
 
-class NewApplicationTestCase(ProjectJwtAPITestCase):
+class NewApplicationTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
