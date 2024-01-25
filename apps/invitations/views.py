@@ -119,13 +119,14 @@ class AccessRequestViewSet(CreateListModelViewSet):
                 "user": request.user.id if request.user.is_authenticated else None,
             }
         )
-        response = super().create(request, *args, **kwargs)
-        instance_request = AccessRequest.objects.get(id=response.data["id"])
-        organization = Organization.objects.get(code=self.kwargs["organization_code"])
+        return super().create(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        organization = instance.organization
         admins = organization.admins.all()
         emails = [admin.email for admin in admins]
-        instance_request.send_email(AccessRequest.EmailType.REQUEST_CREATED, emails)
-        return response
+        instance.send_email(AccessRequest.EmailType.REQUEST_CREATED, emails)
 
     def perform_accept(self, access_request: AccessRequest):
         if access_request.organization.code != self.kwargs["organization_code"]:

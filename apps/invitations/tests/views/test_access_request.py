@@ -43,7 +43,8 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
-        access_request_id = AccessRequest.objects.all().first().id
+        content = response.json()
+        access_request_id = content["id"]
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["organization"] == self.organization.code
         assert response.data["status"] == AccessRequest.Status.PENDING.value
@@ -73,7 +74,8 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
-        access_request_id = AccessRequest.objects.all().first().id
+        content = response.json()
+        access_request_id = content["id"]
         assert response.status_code == status.HTTP_201_CREATED
         assert response.data["organization"] == self.organization.code
         assert response.data["status"] == AccessRequest.Status.PENDING.value
