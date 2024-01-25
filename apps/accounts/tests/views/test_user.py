@@ -732,10 +732,13 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
 class MiscUserTestCase(JwtAPITestCase):
     def test_notifications_count(self):
+        project = ProjectFactory()
         user = UserFactory()
-        NotificationFactory.create_batch(5, receiver=user, is_viewed=False)
-        NotificationFactory(receiver=user, is_viewed=True)
-        NotificationFactory()
+        NotificationFactory.create_batch(
+            5, receiver=user, project=project, is_viewed=False
+        )
+        NotificationFactory(receiver=user, project=project, is_viewed=True)
+        NotificationFactory(project=project)
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("ProjectUser-detail", args=(user.keycloak_id,))
@@ -878,12 +881,12 @@ class MiscUserTestCase(JwtAPITestCase):
         assert response.json()["result"] is True
 
     def test_update_roles(self):
-        project_1 = ProjectFactory()
-        project_2 = ProjectFactory()
-        people_group_1 = PeopleGroupFactory()
-        people_group_2 = PeopleGroupFactory()
         organization_1 = OrganizationFactory()
         organization_2 = OrganizationFactory()
+        project_1 = ProjectFactory(organizations=[organization_1])
+        project_2 = ProjectFactory(organizations=[organization_2])
+        people_group_1 = PeopleGroupFactory(organization=organization_1)
+        people_group_2 = PeopleGroupFactory(organization=organization_2)
         user = SeedUserFactory()
         user.groups.add(
             get_superadmins_group(),
