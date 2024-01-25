@@ -223,17 +223,16 @@ class TagTestCaseMixin:
             self.fr = fr
 
         def json(self):
-            test = {
+            return {
                 "wikipedia_qid": self.qid,
                 "name": f"name_{self.qid}" if self.default else "",
                 "name_en": f"name_en_{self.qid}" if self.en else "",
                 "name_fr": f"name_fr_{self.qid}" if self.fr else "",
             }
-            return test
-    
+
     @classmethod
     def get_random_wikipedia_qid(cls):
-        return f"Q{random.randint(100000, 999999)}"
+        return f"Q{random.randint(100000, 999999)}"  # nosec
 
     def get_wikipedia_tag_mocked_return(
         self,

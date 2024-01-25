@@ -388,7 +388,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def _toggle_is_locked(self, value):
         project = self.get_object()
-        project.is_locked = True
+        project.is_locked = value
         project.save()
         return Response(status=status.HTTP_200_OK)
 

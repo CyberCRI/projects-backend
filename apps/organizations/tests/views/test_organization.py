@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from dateutil.parser import parse as parse_date
 from django.conf import settings
 from django.contrib.auth.models import Group
