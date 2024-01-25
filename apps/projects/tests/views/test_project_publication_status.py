@@ -85,3 +85,53 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
             self.projects[publication_status].id
             for publication_status in retrieved_projects
         }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "member")),
+            (TestRoles.PROJECT_OWNER, ("public", "member")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "member")),
+        ]
+    )
+    def test_random_projects(self, role, retrieved_projects):
+        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        self.client.force_authenticate(user)
+        response = self.client.get(reverse("ProjectRandom-list"))
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()["results"]
+        assert len(content) == len(retrieved_projects)
+        assert {project["id"] for project in content} == {
+            self.projects[publication_status].id
+            for publication_status in retrieved_projects
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "member")),
+            (TestRoles.PROJECT_OWNER, ("public", "member")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "member")),
+        ]
+    )
+    def test_top_projects(self, role, retrieved_projects):
+        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        self.client.force_authenticate(user)
+        response = self.client.get(reverse("ProjectTop-list"))
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()["results"]
+        assert len(content) == len(retrieved_projects)
+        assert {project["id"] for project in content} == {
+            self.projects[publication_status].id
+            for publication_status in retrieved_projects
+        }
