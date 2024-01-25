@@ -7,7 +7,7 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
-from apps.commons.test.testcases import TagTestCase
+from apps.commons.test.testcases import TagTestCaseMixin
 from apps.feedbacks.factories import CommentFactory
 from apps.misc.factories import TagFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
@@ -19,7 +19,7 @@ faker = Faker()
 HistoricalProject = apps.get_model("projects", "HistoricalProject")
 
 
-class ProjectHistoryTestCase(JwtAPITestCase, TagTestCase):
+class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -489,9 +489,10 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCase):
         assert version["categories"] == [pc2.name]
         assert version["main_category"] == pc2.name
 
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
     def test_update_wikipedia_tags(self, mocked):
-        mocked.side_effect = self.side_effect
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
         project = ProjectFactory(organizations=[self.organization])
         self.client.force_authenticate(self.user)
         initial_count = (
@@ -499,7 +500,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"wikipedia_tags_ids": ["Q1735684"]}
+        payload = {"wikipedia_tags_ids": [wikipedia_qid]}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -514,7 +515,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCase):
             .count()
         ) == initial_count + 1
         assert version["history_change_reason"] == "Updated: wikipedia_tags"
-        assert "Kate Foo Kune en" in version["wikipedia_tags"]
+        assert f"name_en_{wikipedia_qid}" in version["wikipedia_tags"]
 
     def test_update_organization_tags(self):
         organization = OrganizationFactory()
