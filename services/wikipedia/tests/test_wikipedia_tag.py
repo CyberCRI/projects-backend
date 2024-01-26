@@ -4,6 +4,7 @@ from django.urls import reverse
 from faker import Faker
 
 from apps.commons.test.testcases import JwtAPITestCase, TagTestCaseMixin
+
 # from apps.misc.api import create_tag_from_wikipedia_gw
 from apps.misc.models import WikipediaTag
 

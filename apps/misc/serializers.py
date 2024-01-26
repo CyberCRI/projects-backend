@@ -5,8 +5,8 @@ from rest_framework import serializers
 
 from apps.commons.serializers.serializers import TranslatedModelSerializer
 from apps.organizations.models import Organization
+from services.wikipedia.interface import WikipediaService
 
-from .api import create_tag_from_wikipedia_gw
 from .models import Tag, WikipediaTag
 
 
@@ -36,4 +36,4 @@ class TagRelatedField(serializers.RelatedField):
         return {"wikipedia_qid": instance.wikipedia_qid, "name": instance.name}
 
     def to_internal_value(self, qid: str) -> WikipediaTag:
-        return create_tag_from_wikipedia_gw(qid)
+        return WikipediaService.update_or_create_wikipedia_tag(qid)

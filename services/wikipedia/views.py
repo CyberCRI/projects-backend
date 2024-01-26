@@ -1,12 +1,13 @@
-from rest_framework.response import Response
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
+from rest_framework.response import Response
+
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import ListViewSet
-from .serializers import WikibaseItemSerializer
+
 from .interface import WikipediaService
 from .pagination import WikipediaPagination
-
+from .serializers import WikibaseItemSerializer
 
 
 class WikibaseItemViewset(ListViewSet):
@@ -20,7 +21,7 @@ class WikibaseItemViewset(ListViewSet):
                 name="query",
                 description="Search for a specific page name in the Wikipedia database.",
                 required=True,
-                type=str
+                type=str,
             ),
             OpenApiParameter(
                 name="language",
@@ -75,7 +76,7 @@ class WikibaseItemViewset(ListViewSet):
                 many=False,
             ),
         ],
-        responses={200: {"type": "array", "items": {"type": "string"}}}
+        responses={200: {"type": "array", "items": {"type": "string"}}},
     )
     @action(detail=False, methods=["GET"])
     def autocomplete(self, request, *args, **kwargs):
