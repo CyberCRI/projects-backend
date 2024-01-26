@@ -187,59 +187,49 @@ class JwtAPITestCase(APITestCase):
 
 class TagTestCaseMixin:
     class QueryWikipediaMockResponse:
-        def __init__(self, status_code: int):
-            self.status_code = status_code
-            self.wikipedia_qid = TagTestCaseMixin.get_random_wikipedia_qid()
-            self.pageid = faker.pyint()
-            self.title = faker.word()
-            self.link_title = faker.word()
-            self.extract = faker.sentence()
+        status_code = status.HTTP_200_OK
+
+        def __init__(self, limit: int, offset: int):
+            self.results = [
+                {
+                    "id": TagTestCaseMixin.get_random_wikipedia_qid(),
+                    "label": faker.word(),
+                    "description": faker.sentence(),
+                }
+                for _ in range(limit)
+            ]
+            self.search_continue = offset + limit
 
         def json(self):
-            return {
-                "warnings": None,
-                "fr": [
-                    {
-                        "pageid": self.pageid,
-                        "ns": 0,
-                        "title": self.title,
-                        "index": 1,
-                        "pageprops": {"wikibase_item": self.wikipedia_qid},
-                        "links": [
-                            {"ns": 0, "title": self.link_title},
-                        ],
-                        "extract": self.extract,
-                    }
-                ],
-            }
+            return {"search": self.results, "search-continue": self.search_continue}
 
     class GetWikipediaTagMocked:
-        def __init__(self, qid: str, status_code: int, en: bool, fr: bool):
-            self.qid = qid
-            self.status_code = status_code
-            self.en = en
-            self.fr = fr
+        status_code = status.HTTP_200_OK
+
+        def __init__(self, wikipedia_qid: str, en: bool, fr: bool):
+            self.wikipedia_qid = wikipedia_qid
+            self.languages = [
+                language for language, value in {"en": en, "fr": fr}.items() if value
+            ]
 
         def json(self):
-            labels = {
-                "en": {"language": "en", "value": f"name_en_{self.qid}"},
-                "fr": {"language": "fr", "value": f"name_fr_{self.qid}"},
-            }
-            descriptions = {
-                "en": {"language": "en", "value": f"description_en_{self.qid}"},
-                "fr": {"language": "fr", "value": f"description_fr_{self.qid}"},
-            }
-            if not self.en:
-                del labels["en"]
-                del descriptions["en"]
-            if not self.fr:
-                del labels["fr"]
-                del descriptions["fr"]
             return {
                 "entities": {
-                    self.qid: {
-                        "labels": labels,
-                        "descriptions": descriptions,
+                    self.wikipedia_qid: {
+                        "labels": {
+                            language: {
+                                "language": language,
+                                "value": f"name_{language}_{self.wikipedia_qid}",
+                            }
+                            for language in self.languages
+                        },
+                        "descriptions": {
+                            language: {
+                                "language": language,
+                                "value": f"description_{language}_{self.wikipedia_qid}",
+                            }
+                            for language in self.languages
+                        },
                     }
                 }
             }
@@ -251,17 +241,32 @@ class TagTestCaseMixin:
     @classmethod
     def get_wikipedia_tag_mocked_return(
         cls,
-        qid: str,
-        status_code: int = status.HTTP_200_OK,
+        wikipedia_qid: str,
         en: bool = True,
         fr: bool = True,
     ):
-        return cls.GetWikipediaTagMocked(qid, status_code, en, fr)
+        return cls.GetWikipediaTagMocked(wikipedia_qid, en, fr)
 
     @classmethod
-    def get_wikipedia_tag_mocked_side_effect(cls, qid, *args, **kwargs):
-        return cls.get_wikipedia_tag_mocked_return(qid)
+    def autocomplete_wikipedia_mocked_return(cls, query: str, limit: int = 5):
+        return [query, *[f"{query} {faker.word()}" for _ in range(limit - 1)]]
 
     @classmethod
-    def query_wikipedia_mocked_return(cls, status_code: int = status.HTTP_200_OK):
-        return cls.QueryWikipediaMockResponse(status_code)
+    def search_wikipedia_tag_mocked_return(cls, limit: int, offset: int):
+        return cls.QueryWikipediaMockResponse(limit, offset)
+
+    @classmethod
+    def get_wikipedia_tag_mocked_side_effect(cls, wikipedia_qid: str):
+        return cls.get_wikipedia_tag_mocked_return(wikipedia_qid)
+
+    @classmethod
+    def autocomplete_wikipedia_mocked_side_effect(
+        cls, query: str, language: str = "en", limit: int = 5
+    ):
+        return cls.autocomplete_wikipedia_mocked_return(query, limit)
+
+    @classmethod
+    def search_wikipedia_tag_mocked_side_effect(
+        cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
+    ):
+        return cls.search_wikipedia_tag_mocked_return(limit, offset)

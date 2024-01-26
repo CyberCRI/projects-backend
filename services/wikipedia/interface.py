@@ -109,7 +109,7 @@ class WikipediaService:
         Update or create a WikipediaTag instance.
         """
         data = cls.get_by_id(wikipedia_qid)
-        for language in ["en", *[settings.REQUIRED_LANGUAGES]]:
+        for language in ["en", *settings.REQUIRED_LANGUAGES]:
             if not data.get("name_en", None):
                 data["name_en"] = data.get(f"name_{language}", "")
             if not data.get("description_en", None):
