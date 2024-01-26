@@ -19,7 +19,6 @@ config:
     POSTGRES_DB: projects
     BEHIND_HTTPS_PROXY: "True"
     ANALYTICS_URL: http://projects-analytics
-    WIKIPEDIA_GATEWAY_URL: http://wikipedia-gateway.wikipedia-gateway
     MJML_HTTPSERVER_URL: http://mjml-server.mjml/v1/render
     CELERY_BROKER_URL: redis://projects-api-redis-master:6379/0
     CELERY_RESULT_BACKEND: redis://projects-api-redis-master:6379/0

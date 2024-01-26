@@ -463,11 +463,6 @@ EMAIL_REPORT_RECIPIENTS = ["projects.platform@learningplanetinstitute.org"]
 # any model.
 IMAGE_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
 
-# URL for wikipedia gateway service
-WIKIPEDIA_GATEWAY_URL = os.getenv(
-    "WIKIPEDIA_GATEWAY_URL", "https://wikipedia-gateway.k8s.lp-i.dev"
-)
-
 # MJML
 MJML_BACKEND_MODE = "httpserver"
 MJML_HTTPSERVERS = [

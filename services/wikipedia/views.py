@@ -64,7 +64,6 @@ class WikibaseItemViewset(ListViewSet):
                 description="Choose the language you want for your results (en or fr), default to en.",
                 required=False,
                 type=str,
-                default="en",
                 many=False,
             ),
             OpenApiParameter(
@@ -72,7 +71,6 @@ class WikibaseItemViewset(ListViewSet):
                 description="Maximum number of results in response, default to 5.",
                 required=False,
                 type=int,
-                default=5,
                 many=False,
             ),
         ],
