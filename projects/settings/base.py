@@ -144,7 +144,7 @@ INSTALLED_APPS = [
     "services.keycloak",
     "services.mixpanel",
     "services.google",
-    "services.wikimedia",
+    "services.wikipedia",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
