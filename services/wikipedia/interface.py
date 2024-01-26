@@ -110,12 +110,13 @@ class WikipediaService:
         """
         data = cls.get_by_id(wikipedia_qid)
         for language in ["en", *[settings.REQUIRED_LANGUAGES]]:
-            if not data["name_en"]:
+            if not data.get("name_en", None):
                 data["name_en"] = data.get(f"name_{language}", "")
-            if not data["description_en"]:
+            if not data.get("description_en", None):
                 data["description_en"] = data.get(f"description_{language}", "")
         wikipedia_qid = data.pop("wikipedia_qid")
-        return WikipediaTag.objects.update_or_create(
+        tag, _ = WikipediaTag.objects.update_or_create(
             wikipedia_qid=wikipedia_qid,
             defaults=data,
         )
+        return tag

@@ -15,7 +15,7 @@ faker = Faker()
 
 
 class ProjectCategoryTagsTestCase(JwtAPITestCase, TagTestCaseMixin):
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid_1 = self.get_random_wikipedia_qid()
@@ -45,7 +45,7 @@ class ProjectCategoryTagsTestCase(JwtAPITestCase, TagTestCaseMixin):
         assert to_update.name_fr == f"name_fr_{wikipedia_qid_1}"
         assert to_update.name_en == f"name_en_{wikipedia_qid_1}"
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid_1 = self.get_random_wikipedia_qid()

@@ -53,7 +53,7 @@ class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_201_CREATED),
         ]
     )
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_project(self, role, expected_code, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         user = self.get_parameterized_test_user(role, instances=[self.organization])
@@ -157,7 +157,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
     )
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_project(self, role, expected_code, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         project = ProjectFactory(organizations=[self.organization])

@@ -31,7 +31,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_skill(self, role, expected_code, mocked):
         wikipedia_qid = self.get_random_wikipedia_qid()
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
