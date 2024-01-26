@@ -19,7 +19,7 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCaseMixin):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_anonymous(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -57,7 +57,7 @@ class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_anonymous(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -98,7 +98,7 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCaseMixin):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_no_permission(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -148,7 +148,7 @@ class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_no_permission(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -191,7 +191,7 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCaseMixin):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_base_permission(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -283,8 +283,8 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(pcs[0].order_index, results["order_index"])
         self.assertEqual(pcs[0].organization.code, results["organization"])
         self.assertEqual(
-            [t.wikipedia_qid for t in pcs[0].wikipedia_tags.all()],
-            [t["wikipedia_qid"] for t in results["wikipedia_tags"]],
+            {t.wikipedia_qid for t in pcs[0].wikipedia_tags.all()},
+            {t["wikipedia_qid"] for t in results["wikipedia_tags"]},
         )
 
         results = [r for r in content["results"] if r["name"] == pcs[1].name][0]
@@ -296,8 +296,8 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(pcs[1].order_index, results["order_index"])
         self.assertEqual(pcs[1].organization.code, results["organization"])
         self.assertEqual(
-            [t.wikipedia_qid for t in pcs[1].wikipedia_tags.all()],
-            [t["wikipedia_qid"] for t in results["wikipedia_tags"]],
+            {t.wikipedia_qid for t in pcs[1].wikipedia_tags.all()},
+            {t["wikipedia_qid"] for t in results["wikipedia_tags"]},
         )
 
     def test_destroy_base_permission(self):
@@ -308,7 +308,7 @@ class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProjectCategory.objects.filter(pk=pc.pk).exists())
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_base_permission(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -354,7 +354,7 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCaseM
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_org_permissions(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -423,7 +423,7 @@ class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCaseM
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProjectCategory.objects.filter(pk=pc.pk).exists())
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_org_permissions(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -473,7 +473,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
         super().setUpTestData()
         cls.test_image = cls.get_test_image()
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_with_template(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -526,7 +526,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
             template.blogentry_placeholder, content["template"]["blogentry_placeholder"]
         )
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_creating_missing_template(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -573,7 +573,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
             template.blogentry_placeholder, payload["template"]["blogentry_placeholder"]
         )
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_updating_existing_template(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()
@@ -608,7 +608,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.assertIsNotNone(template)
         self.assertEqual(template.title_placeholder, "NewTitle")
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_deleting_existing_template(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()

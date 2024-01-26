@@ -489,7 +489,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         assert version["categories"] == [pc2.name]
         assert version["main_category"] == pc2.name
 
-    @patch("apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_wikipedia_tags(self, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         wikipedia_qid = self.get_random_wikipedia_qid()

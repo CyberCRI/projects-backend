@@ -144,6 +144,7 @@ INSTALLED_APPS = [
     "services.keycloak",
     "services.mixpanel",
     "services.google",
+    "services.wikipedia",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
@@ -461,11 +462,6 @@ EMAIL_REPORT_RECIPIENTS = ["projects.platform@learningplanetinstitute.org"]
 # Time (in seconds) after which an image is considered an orphan if it was not assigned to
 # any model.
 IMAGE_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
-
-# URL for wikipedia gateway service
-WIKIPEDIA_GATEWAY_URL = os.getenv(
-    "WIKIPEDIA_GATEWAY_URL", "https://wikipedia-gateway.k8s.lp-i.dev"
-)
 
 # MJML
 MJML_BACKEND_MODE = "httpserver"

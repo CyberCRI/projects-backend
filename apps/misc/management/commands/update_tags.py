@@ -1,7 +1,8 @@
 from django.core.management import BaseCommand
 from django.template.defaultfilters import pluralize
 
-from apps.misc import api, models
+from apps.misc import models
+from services.wikipedia.interface import WikipediaService
 
 
 class Command(BaseCommand):
@@ -24,7 +25,7 @@ class Command(BaseCommand):
                 tag.delete()
             else:
                 updated += 1
-                api.create_tag_from_wikipedia_gw(tag.wikipedia_qid)
+                WikipediaService.update_or_create_wikipedia_tag(tag.wikipedia_qid)
         self.stdout.write(
             self.style.SUCCESS(
                 f"Process finished, {updated} tag{pluralize(updated)} updated "
