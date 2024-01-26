@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-18 15:57+0000\n"
+"POT-Creation-Date: 2024-01-26 07:54+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -822,7 +822,6 @@ msgstr ""
 "          "
 
 #: apps/invitations/templates/base.html:83
-#: apps/invitations/templates/request_created/mail.html:171
 #: services/keycloak/templates/base.html:83
 msgid ""
 "\n"
@@ -919,7 +918,7 @@ msgstr ""
 "\n"
 "Bienvenue sur la plateforme Projects de %(org_name)s\n"
 
-#: apps/invitations/templates/request_created/mail.html:52
+#: apps/invitations/templates/request_created/mail.html:8
 #, python-format
 msgid ""
 "\n"
@@ -932,8 +931,7 @@ msgstr ""
 "Projects de %(org_name)s\n"
 "            "
 
-#: apps/invitations/templates/request_created/mail.html:57
-#, python
+#: apps/invitations/templates/request_created/mail.html:13
 msgid ""
 "\n"
 "            Hello,\n"
@@ -943,7 +941,7 @@ msgstr ""
 "          Bonjour,\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:62
+#: apps/invitations/templates/request_created/mail.html:18
 #, python-format
 msgid ""
 "\n"
@@ -956,7 +954,7 @@ msgstr ""
 "Projects de %(org_name)s\n"
 "    "
 
-#: apps/invitations/templates/request_created/mail.html:71
+#: apps/invitations/templates/request_created/mail.html:27
 msgid ""
 "\n"
 "          First name:\n"
@@ -966,7 +964,7 @@ msgstr ""
 "          Prénom:\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:78
+#: apps/invitations/templates/request_created/mail.html:34
 #, python-format
 msgid ""
 "\n"
@@ -977,7 +975,7 @@ msgstr ""
 "          %(first_name)s\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:87
+#: apps/invitations/templates/request_created/mail.html:43
 msgid ""
 "\n"
 "          Last name:\n"
@@ -987,7 +985,7 @@ msgstr ""
 "          Nomm de famille:\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:94
+#: apps/invitations/templates/request_created/mail.html:50
 #, python-format
 msgid ""
 "\n"
@@ -998,7 +996,7 @@ msgstr ""
 "          %(last_name)s\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:103
+#: apps/invitations/templates/request_created/mail.html:59
 msgid ""
 "\n"
 "          Email:\n"
@@ -1008,7 +1006,7 @@ msgstr ""
 "          Email:\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:110
+#: apps/invitations/templates/request_created/mail.html:66
 #, python-format
 msgid ""
 "\n"
@@ -1019,7 +1017,7 @@ msgstr ""
 "          %(email)s\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:119
+#: apps/invitations/templates/request_created/mail.html:75
 msgid ""
 "\n"
 "          Title:\n"
@@ -1029,7 +1027,7 @@ msgstr ""
 "          Titre:\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:126
+#: apps/invitations/templates/request_created/mail.html:82
 #, python-format
 msgid ""
 "\n"
@@ -1040,7 +1038,7 @@ msgstr ""
 "          %(title)s\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:135
+#: apps/invitations/templates/request_created/mail.html:91
 msgid ""
 "\n"
 "          Message:\n"
@@ -1050,7 +1048,7 @@ msgstr ""
 "          Message:\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:142
+#: apps/invitations/templates/request_created/mail.html:98
 #, python-format
 msgid ""
 "\n"
@@ -1061,7 +1059,7 @@ msgstr ""
 "          %(message)s\n"
 "          "
 
-#: apps/invitations/templates/request_created/mail.html:151
+#: apps/invitations/templates/request_created/mail.html:107
 #, python-format
 msgid ""
 "\n"

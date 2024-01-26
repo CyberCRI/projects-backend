@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-18 14:14+0000\n"
+"POT-Creation-Date: 2024-01-26 07:54+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -618,7 +618,6 @@ msgid ""
 msgstr ""
 
 #: apps/invitations/templates/base.html:83
-#: apps/invitations/templates/request_created/mail.html:171
 #: services/keycloak/templates/base.html:83
 msgid ""
 "\n"
@@ -687,7 +686,7 @@ msgid ""
 "Welcome to the %(org_name)s Projects platform\n"
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:52
+#: apps/invitations/templates/request_created/mail.html:8
 #, python-format
 msgid ""
 "\n"
@@ -696,14 +695,14 @@ msgid ""
 "            "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:57
+#: apps/invitations/templates/request_created/mail.html:13
 msgid ""
 "\n"
 "            Hello,\n"
 "            "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:62
+#: apps/invitations/templates/request_created/mail.html:18
 #, python-format
 msgid ""
 "\n"
@@ -712,14 +711,14 @@ msgid ""
 "            "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:71
+#: apps/invitations/templates/request_created/mail.html:27
 msgid ""
 "\n"
 "          First name:\n"
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:78
+#: apps/invitations/templates/request_created/mail.html:34
 #, python-format
 msgid ""
 "\n"
@@ -727,14 +726,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:87
+#: apps/invitations/templates/request_created/mail.html:43
 msgid ""
 "\n"
 "          Last name:\n"
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:94
+#: apps/invitations/templates/request_created/mail.html:50
 #, python-format
 msgid ""
 "\n"
@@ -742,14 +741,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:103
+#: apps/invitations/templates/request_created/mail.html:59
 msgid ""
 "\n"
 "          Email:\n"
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:110
+#: apps/invitations/templates/request_created/mail.html:66
 #, python-format
 msgid ""
 "\n"
@@ -757,14 +756,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:119
+#: apps/invitations/templates/request_created/mail.html:75
 msgid ""
 "\n"
 "          Title:\n"
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:126
+#: apps/invitations/templates/request_created/mail.html:82
 #, python-format
 msgid ""
 "\n"
@@ -772,14 +771,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:135
+#: apps/invitations/templates/request_created/mail.html:91
 msgid ""
 "\n"
 "          Message:\n"
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:142
+#: apps/invitations/templates/request_created/mail.html:98
 #, python-format
 msgid ""
 "\n"
@@ -787,28 +786,13 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/request_created/mail.html:151
+#: apps/invitations/templates/request_created/mail.html:107
 #, python-format
 msgid ""
 "\n"
 "          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
-"access\">request in platform</a>. Something odd? <a class=\"lpi-link\" "
-"href=\"mailto:%(contact_email)s\">Contact us</a>.\n"
+"access\">request in platform</a>.\n"
 "          "
-msgstr ""
-
-#: apps/invitations/templates/request_created/mail.html:156
-msgid ""
-"\n"
-"            Have a nice day!\n"
-"            "
-msgstr ""
-
-#: apps/invitations/templates/request_created/mail.html:161
-msgid ""
-"\n"
-"            The Projects team\n"
-"            "
 msgstr ""
 
 #: apps/invitations/templates/request_created/mail.txt:2
@@ -824,11 +808,7 @@ msgid ""
 "Title: %(title)s\n"
 "Message:%(message)s\n"
 "See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
-"platform</a>. Something odd? <a class=\"lpi-link\" href=\"mailto:"
-"%(contact_email)s\">Contact us</a>.\n"
-"Have a nice day!\n"
-"The Projects team\n"
-"Made with ❤️ by Learning Planet Institute.\n"
+"platform</a>.\n"
 msgstr ""
 
 #: apps/invitations/templates/request_created/object.txt:2
