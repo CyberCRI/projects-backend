@@ -6,5 +6,5 @@ from .models import WikipediaTag
 
 @register(WikipediaTag)
 class TagTranslationOptions(TranslationOptions):
-    fields = ("name",)
+    fields = ("name", "description")
     required_languages = settings.REQUIRED_LANGUAGES

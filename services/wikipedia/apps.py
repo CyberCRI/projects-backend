@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class RecsysConfig(AppConfig):
+class WikimediaConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "services.recsys"
+    name = "services.wikipedia"

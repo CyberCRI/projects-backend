@@ -4,19 +4,28 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.misc.models import Language
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_blogentry, _notify_project_changes
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class ProjectChangesTestCase(ProjectJwtAPITestCase):
+class ProjectChangesTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.projects.serializers.notify_project_changes.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
@@ -25,13 +34,16 @@ class ProjectChangesTestCase(ProjectJwtAPITestCase):
             reverse("Project-detail", args=(project.id,)),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         notification_task.assert_called_once_with(
             project.pk, {"title": (project.title, "title")}, owner.pk
         )
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -71,7 +83,10 @@ class ProjectChangesTestCase(ProjectJwtAPITestCase):
             )
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -114,10 +129,18 @@ class ProjectChangesTestCase(ProjectJwtAPITestCase):
             ]
 
 
-class NewBlogEntryTestCase(ProjectJwtAPITestCase):
+class NewBlogEntryTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.projects.views.notify_new_blogentry.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
@@ -125,11 +148,14 @@ class NewBlogEntryTestCase(ProjectJwtAPITestCase):
         response = self.client.post(
             reverse("BlogEntry-list", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         notification_task.assert_called_once_with(response.data["id"], owner.pk)
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -166,7 +192,10 @@ class NewBlogEntryTestCase(ProjectJwtAPITestCase):
             )
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()

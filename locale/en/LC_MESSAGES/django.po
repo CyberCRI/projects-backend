@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-01-26 07:54+0000\n"
+"POT-Creation-Date: 2024-01-26 15:20+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -867,20 +867,24 @@ msgid ""
 "declined\n"
 msgstr ""
 
-#: apps/notifications/tasks.py:172
+#: apps/notifications/tasks.py:174
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:173
+#: apps/notifications/tasks.py:175
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:174
+#: apps/notifications/tasks.py:176
 msgid "reviewer"
 msgstr ""
 
 #: apps/notifications/utils.py:201
 msgid " and "
+msgstr ""
+
+#: apps/projects/exceptions.py:7
+msgid "The organizations parameter is mandatory."
 msgstr ""
 
 #: apps/projects/models.py:134
@@ -915,7 +919,7 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: apps/projects/serializers.py:599
+#: apps/projects/serializers.py:600
 msgid "Only a reviewer can change this project's status."
 msgstr ""
 
@@ -1128,4 +1132,9 @@ msgstr ""
 msgid ""
 "\n"
 "Update your Projects password\n"
+msgstr ""
+
+#: services/wikipedia/exceptions.py:11
+#, python-brace-format
+msgid "Wikipedia API returned {status_code}"
 msgstr ""

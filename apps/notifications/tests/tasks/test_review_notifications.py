@@ -5,18 +5,27 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory, ReviewFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_review, _notify_ready_for_review
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class NewReviewTestCase(ProjectJwtAPITestCase):
+class NewReviewTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.feedbacks.views.notify_new_review.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         project.main_category.is_reviewable = True
         project.main_category.save()
         project.life_status = Project.LifeStatus.TO_REVIEW
@@ -33,12 +42,15 @@ class NewReviewTestCase(ProjectJwtAPITestCase):
         response = self.client.post(
             reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        assert response.status_code == status.HTTP_201_CREATED
         review_pk = response.json()["id"]
         notification_task.assert_called_once_with(review_pk)
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -73,7 +85,10 @@ class NewReviewTestCase(ProjectJwtAPITestCase):
         }
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -108,10 +123,18 @@ class NewReviewTestCase(ProjectJwtAPITestCase):
         assert [mail.outbox[i].to[0] for i in range(4)].count(follower.email) == 2
 
 
-class ReadyForReviewTestCase(ProjectJwtAPITestCase):
+class ReadyForReviewTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.projects.views.notify_ready_for_review.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
 
@@ -121,11 +144,14 @@ class ReadyForReviewTestCase(ProjectJwtAPITestCase):
             reverse("Project-detail", args=(project.id,)), data=payload
         )
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
         notification_task.assert_called_once_with(project.id, owner.id)
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owners = UserFactory.create_batch(3)
         project.owners.set(owners)
         members = UserFactory.create_batch(3)
@@ -158,7 +184,10 @@ class ReadyForReviewTestCase(ProjectJwtAPITestCase):
         assert notified.email == mail.outbox[0].to[0]
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owners = UserFactory.create_batch(3)
         project.owners.set(owners)
         members = UserFactory.create_batch(3)

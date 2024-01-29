@@ -77,13 +77,13 @@ class ProjectIndex(AlgoliaSplittingIndex):
             "id",
             "title",
             "purpose",
+            "description",
+            "blog_entries",
             "members",
             "categories",
             "wikipedia_tags",
             "organization_tags",
             "organizations",
-            "description",
-            "blog_entries",
         ],
         "attributesForFaceting": [
             "organizations",
@@ -95,6 +95,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
             "filterOnly(organization_tags_filter)",
             "filterOnly(permissions)",
         ],
+        "paginationLimitedTo": 5000,
         "hitsPerPage": 10,
         "attributeForDistinct": "id",
         "attributesToRetrieve": ["objectID", "id"],
@@ -283,6 +284,7 @@ class UserIndex(AlgoliaSplittingIndex):
             "filterOnly(skills_filter)",
             "filterOnly(permissions)",
         ],
+        "paginationLimitedTo": 5000,
         "hitsPerPage": 10,
         "attributeForDistinct": "id",
         "attributesToRetrieve": ["objectID", "id"],
@@ -325,6 +327,7 @@ class UserIndex(AlgoliaSplittingIndex):
             ]
         return [
             "accounts.view_projectuser",
+            f"accounts.view_projectuser.{user.pk}",
             *[f"organizations.view_projectuser.{org.pk}" for org in organizations],
         ]
 
@@ -408,6 +411,7 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
             "filterOnly(permissions)",
             "filterOnly(sdgs)",
         ],
+        "paginationLimitedTo": 5000,
         "hitsPerPage": 10,
         "attributeForDistinct": "id",
         "attributesToRetrieve": ["objectID", "id"],

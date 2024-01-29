@@ -8,13 +8,13 @@ from rest_framework import status
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import Skill
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.commons.test.testcases import TagTestCase
+from apps.commons.test.testcases import TagTestCaseMixin
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
-class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
+class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -31,9 +31,10 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    @patch(target="apps.misc.api.get_tag_from_wikipedia_gw")
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_create_skill(self, role, expected_code, mocked):
-        mocked.side_effect = self.side_effect
+        wikipedia_qid = self.get_random_wikipedia_qid()
+        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
@@ -42,15 +43,15 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCase):
         self.client.force_authenticate(user)
         payload = {
             "user": instance.keycloak_id,
-            "wikipedia_tag": "Q1735684",
+            "wikipedia_tag": wikipedia_qid,
             "level": 1,
             "level_to_reach": 2,
         }
         response = self.client.post(reverse("Skill-list"), data=payload)
         assert response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["user"]["id"] == instance.id
-            assert response.json()["wikipedia_tag"]["wikipedia_qid"] == "Q1735684"
+            assert response.json()["user"] == instance.id
+            assert response.json()["wikipedia_tag"]["wikipedia_qid"] == wikipedia_qid
             assert response.json()["level"] == 1
             assert response.json()["level_to_reach"] == 2
 

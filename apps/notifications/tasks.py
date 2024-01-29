@@ -5,7 +5,6 @@ from babel.dates import format_date
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import PeopleGroup, ProjectUser
-from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.announcements.models import Announcement
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
@@ -156,7 +155,10 @@ def _notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
     people_group = PeopleGroup.objects.get(pk=group_id)
-    people_group_data = PeopleGroupLightSerializer(people_group).data
+    people_group_data = {
+        "id": people_group.id,
+        "name": people_group.name,
+    }
     new_members = [user.id for user in people_group.get_all_members()]
     for manager in [
         AddGroupMembersNotificationManager,
@@ -175,10 +177,11 @@ def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role:
     }.get(role)
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
+    member = ProjectUser.objects.get(pk=user_pk)
     modified_members = [
         {
             "role": str(role),
-            **UserLightSerializer(ProjectUser.objects.get(pk=user_pk)).data,
+            "id": member.id,
         }
     ]
     for manager in [UpdateMembersNotificationManager, UpdatedMemberNotificationManager]:

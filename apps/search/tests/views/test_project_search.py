@@ -2,11 +2,12 @@ import time
 
 from algoliasearch_django import algolia_engine
 from django.urls import reverse
+from parameterized import parameterized
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.commons.test.mixins import skipUnlessAlgolia
 from apps.misc.factories import TagFactory, WikipediaTagFactory
 from apps.misc.models import Language
@@ -18,8 +19,8 @@ from apps.projects.models import Project
 @skipUnlessAlgolia
 class ProjectSearchTestCase(JwtAPITestCase):
     @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
         cls.wikipedia_tag = WikipediaTagFactory()
@@ -30,16 +31,16 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.organization_tag_2 = TagFactory(organization=cls.organization_2)
         Project.objects.all().delete()  # Delete projects created by the factories
 
-        cls.public_project = ProjectFactory(
+        cls.public_project_1 = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
             sdgs=[1],
             language=Language.FR,
         )
-        cls.public_project.categories.add(cls.category)
-        cls.public_project.wikipedia_tags.add(cls.wikipedia_tag)
-        cls.public_project.organization_tags.add(cls.organization_tag)
+        cls.public_project_1.categories.add(cls.category)
+        cls.public_project_1.wikipedia_tags.add(cls.wikipedia_tag)
+        cls.public_project_1.organization_tags.add(cls.organization_tag)
         cls.public_project_2 = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PUBLIC,
@@ -80,214 +81,120 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.member_project.categories.add(cls.category)
         cls.member_project.wikipedia_tags.add(cls.wikipedia_tag)
         ProjectUser.objects.all().delete()  # Delete users created by the factories
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.public_project_2_member = UserFactory()
         cls.public_project_2.members.add(cls.public_project_2_member)
         cls.member = UserFactory()
         cls.member_project.members.add(cls.member)
+        cls.projects = {
+            "public_1": cls.public_project_1,
+            "public_2": cls.public_project_2,
+            "private": cls.private_project,
+            "org": cls.org_project,
+            "member": cls.member_project,
+        }
         algolia_engine.reindex_all(Project)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
-    def test_search_project_anonymous(self):
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project.id, self.public_project_2.id},
-        )
-
-    def test_search_project_authenticated(self):
-        user = UserFactory()
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public_1", "public_2")),
+            (TestRoles.DEFAULT, ("public_1", "public_2")),
+            (
+                TestRoles.SUPERADMIN,
+                ("public_1", "public_2", "private", "org", "member"),
+            ),
+            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "member")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("public_1", "public_2", "private", "org", "member"),
+            ),
+            (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member")),
+        ]
+    )
+    def test_search_project(self, role, retrieved_projects):
+        user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project.id, self.public_project_2.id},
-        )
-
-    def test_search_project_org_project(self):
-        user = UserFactory()
-        self.organization.users.add(user)
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project.id, self.public_project_2.id, self.org_project.id},
-        )
-
-    def test_search_project_org_facilitator(self):
-        user = UserFactory()
-        self.organization.facilitators.add(user)
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 5)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {
-                self.public_project.id,
-                self.public_project_2.id,
-                self.org_project.id,
-                self.private_project.id,
-                self.member_project.id,
-            },
-        )
-
-    def test_search_project_org_admin(self):
-        user = UserFactory()
-        self.organization.admins.add(user)
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 5)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {
-                self.public_project.id,
-                self.public_project_2.id,
-                self.org_project.id,
-                self.private_project.id,
-                self.member_project.id,
-            },
-        )
-
-    def test_search_project_superadmin(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 5)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {
-                self.public_project.id,
-                self.public_project_2.id,
-                self.org_project.id,
-                self.private_project.id,
-                self.member_project.id,
-            },
-        )
-
-    def test_search_project_member(self):
-        self.client.force_authenticate(self.member)
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project.id, self.public_project_2.id, self.member_project.id},
-        )
+        assert len(content) == len(retrieved_projects)
+        assert {project["id"] for project in content} == {
+            self.projects[project].id for project in retrieved_projects
+        }
 
     def test_filter_by_organization(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?organizations={self.organization_2.code}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_sdgs(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",)) + "?sdgs=2"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_language(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",)) + "?languages=en"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_categories(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?categories={self.category_2.id}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_wikipedia_tags(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?wikipedia_tags={self.wikipedia_tag_2.wikipedia_qid}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_organization_tags(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?organization_tags={self.organization_tag_2.id}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_members(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?members={self.public_project_2_member.keycloak_id}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["id"] for project in content},
-            {self.public_project_2.id},
-        )
+        assert len(content) == 1
+        assert {project["id"] for project in content} == {self.public_project_2.id}

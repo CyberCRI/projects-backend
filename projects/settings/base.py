@@ -142,9 +142,9 @@ INSTALLED_APPS = [
     "apps.emailing",
     # services
     "services.keycloak",
-    "services.recsys",
     "services.mixpanel",
     "services.google",
+    "services.wikipedia",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
@@ -388,6 +388,8 @@ AZURE_CACHE_CONTROL = f"private,max-age={AZURE_URL_EXPIRATION_SECS},must-revalid
 #   CELERY   #
 ##############
 
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TASK_SEND_SENT_EVENT = True
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
 CELERY_TIMEZONE = TIME_ZONE
@@ -444,6 +446,9 @@ CACHE_ANNOUNCEMENTS_LIST_TTL = 60 * int(
 CACHE_LOCATIONS_LIST_TTL = 60 * int(
     os.getenv("CACHE_LOCATIONS_LIST_TTL", CACHE_DEFAULT_TTL)
 )
+CACHE_ALGOLIA_RECOMMEND_TTL = 60 * int(
+    os.getenv("CACHE_ALGOLIA_RECOMMEND_TTL", 1440)  # defaults to 1 day
+)
 CACHE_PROJECT_VIEWS = 86400  # 1 day
 
 #############
@@ -461,11 +466,6 @@ EMAIL_REPORT_RECIPIENTS = ["projects.platform@learningplanetinstitute.org"]
 # Time (in seconds) after which an image is considered an orphan if it was not assigned to
 # any model.
 IMAGE_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
-
-# URL for wikipedia gateway service
-WIKIPEDIA_GATEWAY_URL = os.getenv(
-    "WIKIPEDIA_GATEWAY_URL", "https://wikipedia-gateway.k8s.lp-i.dev"
-)
 
 # MJML
 MJML_BACKEND_MODE = "httpserver"
@@ -528,19 +528,6 @@ ALGOLIA = {
     "INDEX_PREFIX": os.getenv("ALGOLIA_PREFIX", ""),
     "INDEX_SUFFIX": os.getenv("ALGOLIA_SUFFIX", ""),
 }
-
-##############
-#   PEOPLE   #
-##############
-
-PEOPLE_API_ROOT = "https://api.people.cri-paris.org"
-PROJECTS_PEOPLE_TOKEN = os.getenv("PROJECTS_PEOPLE_TOKEN")
-
-##############
-#   RECSYS   #
-##############
-
-RECSYS_API_URL = "https://recsys-api.k8s.lp-i.xyz"
 
 #####################
 #   Static files    #

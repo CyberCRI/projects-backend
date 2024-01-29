@@ -1,0 +1,16 @@
+{{- if and ($.Values.celery.metrics.enabled) ($.Values.celery.metrics.serviceMonitor.enabled)}}
+{{- with .Values.celery.metrics.serviceMonitor }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ tpl $.Values.fullName $ }}-celery-metrics
+  labels:
+  {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 4 }}
+spec:
+  endpoints:
+    - port: http
+  selector:
+    matchLabels:
+    {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 6 }}
+{{- end }}
+{{- end }}

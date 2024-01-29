@@ -13,12 +13,6 @@ CELERY_BEAT_SCHEDULE["send_notifications_reminder"] = {  # noqa: F405
 }
 
 ##############
-#   PEOPLE   #
-##############
-
-PEOPLE_API_ROOT = "https://pp.api.people.cri-paris.org"
-
-##############
 #  MIXPANEL  #
 ##############
 

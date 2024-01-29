@@ -16,6 +16,7 @@ class StatFactory(factory.django.DjangoModelFactory):
     blog_entries = 0
     goals = 0
     versions = 0
+    description_length = 0
     last_update = factory.LazyFunction(timezone.now)
 
     class Meta:

@@ -19,7 +19,6 @@ config:
     POSTGRES_DB: projects
     BEHIND_HTTPS_PROXY: "True"
     ANALYTICS_URL: http://projects-analytics
-    WIKIPEDIA_GATEWAY_URL: http://wikipedia-gateway.wikipedia-gateway
     MJML_HTTPSERVER_URL: http://mjml-server.mjml/v1/render
     CELERY_BROKER_URL: redis://projects-api-redis-master:6379/0
     CELERY_RESULT_BACKEND: redis://projects-api-redis-master:6379/0
@@ -82,6 +81,31 @@ celery:
       memory: 700Mi
     limits:
       memory: 1Gi
+  metrics:
+    enabled: true
+    portNumber: 9808
+    image:
+      repository: danihodovic
+      path: celery-exporter
+      tag: "0.10.2"
+    brokerUrlIsSecret: false
+    livenessProbe:
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 5
+      successThreshold: 1
+    readinessProbe:
+      periodSeconds: 10
+      timeoutSeconds: 15
+      failureThreshold: 5
+      successThreshold: 1
+    service:
+      enabled: true
+      port: 9808
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      scrapeTimeout: 10s
 
 redisAllowedLabel: projects-api-redis-client # Required for network policy
 
@@ -100,17 +124,19 @@ workflow:
   rbac:
     executorClusterRoleName: executor
     serviceAccountName: workflow
-  enabled: false
   lifecycle:
     enabled: false
     resourceName: '{{ $.Values.fullName }}-lifecycle'
   backups:
     enabled: false
     resourceName: '{{ $.Values.fullName }}-backups'
-    storageContainerName: projects-backups
     slackChannel: '#alerts-prod-error'
-    cron:
-      enabled: true
-      schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
-
+    backup:
+      cron:
+        enabled: false
+        schedule: '0 5 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
+    checkPresence:
+      cron:
+        enabled: false
+        schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
 runMigrations: true

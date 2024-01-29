@@ -1,0 +1,110 @@
+{{- if .Values.workflow.lifecycle.enabled}}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+  labels:
+    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
+data:
+{{- $workflowConfig := dict }}
+{{- $workflowConfig = merge $workflowConfig .Values.config.nonSensitive}}
+{{- $workflowConfig = merge $workflowConfig .Values.workflow.lifecycle.config.nonSensitive }}
+{{- range $key, $value := $workflowConfig }}
+  {{ $key }}: {{ (tpl $value $) | quote }}
+{{- end }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+  labels:
+    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
+stringData:
+{{- $workflowConfigSecret := dict }}
+{{- $workflowConfigSecret = merge $workflowConfigSecret .Values.config.sensitive}}
+{{- $workflowConfigSecret = merge $workflowConfigSecret .Values.workflow.lifecycle.config.sensitive}}
+{{- range $key, $value := $workflowConfigSecret }}
+  {{ $key }}: {{ (tpl $value $) | quote }}
+{{- end }}
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ tpl .Values.workflow.lifecycle.resourceName $ }}
+spec:
+  entrypoint: create-db
+  serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 10000
+    runAsGroup: 10000
+    fsGroup: 10000
+    seccompProfile:
+      type: RuntimeDefault
+  templates:
+    - name: drop-db
+      inputs:
+        parameters:
+          - name: dry_run
+            value: "true"
+            enum:
+            - 'true'
+            - 'false'
+          - name: force_disconnect
+            value: "false"
+            enum:
+            - 'true'
+            - 'false'
+      container:
+      {{- with $.Values.image }}
+        image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+        args: ["make", "dropdb"]
+        env:
+        - name: DRY_RUN
+          value: {{ print "{{workflow.parameters.dry_run}}" | quote }}
+        - name: FORCE_DISCONNECT
+          value: {{ print "{{workflow.parameters.force_disconnect}}" | quote }}
+        envFrom:
+        - configMapRef:
+            name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+    - name: create-db
+      inputs:
+        parameters:
+          - name: dry_run
+            value: "true"
+            enum:
+            - 'true'
+            - 'false'
+      container:
+      {{- with $.Values.image }}
+        image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+        args: ["make", "createdb"]
+        env:
+        - name: DRY_RUN
+          value: {{ print "{{workflow.parameters.dry_run}}" | quote}}
+        envFrom:
+        - configMapRef:
+            name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+
+      volumes:
+      {{- if .Values.config.sensitive }}
+      - name: secrets
+        secret:
+          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+      {{- end }}
+{{- end }}

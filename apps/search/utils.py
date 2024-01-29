@@ -621,7 +621,9 @@ class AlgoliaSplittingIndex(AlgoliaIndex):
             records.append(record)
 
         # Create a multiple record for each 'multiple'
+        split_fields = []
         for m in self.fields.get("multiple", ()):
+            split_fields.append(*m["split"])
             # Retrieve common values
             commons = {}
             for field in m["commons"]:
@@ -640,6 +642,10 @@ class AlgoliaSplittingIndex(AlgoliaIndex):
                         **{field: element for field, element in splits},
                     }
                 )
+        for record in records:
+            for split_field in split_fields:
+                if split_field not in record.keys():
+                    record[split_field] = ""  # Add an empty value to avoid error
 
         loc = None
         if self.geo_field:

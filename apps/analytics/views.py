@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import Counter, defaultdict
 
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
@@ -75,36 +75,25 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         projects = Project.objects.filter(organizations__in=organizations)
         if publication_status != "all":
             projects = projects.filter(publication_status=publication_status)
+        projects = projects.distinct()
 
         # Number of project per SDG
-        project_per_sdg = {sdg: 0 for sdg in SDG}
-        for p in projects:
-            for sdg in p.sdgs:
-                project_per_sdg[sdg] += 1
         by_sdg = [
-            {"sdg": sdg, "project_count": count}
-            for sdg, count in project_per_sdg.items()
+            {"sdg": sdg, "project_count": projects.filter(sdgs__contains=[sdg]).count()}
+            for sdg in SDG
         ]
 
         by_month = defaultdict(lambda: {"created_count": 0, "updated_count": 0})
         # Number of project created each month
-        created_by_month = projects.annotate(month=TruncMonth("created_at")).values(
-            "month"
-        )
-        created_by_month = created_by_month.annotate(count=Count("id")).values_list(
-            "month", "count"
-        )
-        for month, count in created_by_month:
+        created_by_month = projects.annotate(month=TruncMonth("created_at"))
+        created_by_month = Counter([m.month for m in created_by_month])
+        for month, count in created_by_month.items():
             by_month[month.date()]["created_count"] += count
 
         # Number of project updated each month
-        updated_by_month = projects.annotate(month=TruncMonth("updated_at")).values(
-            "month"
-        )
-        updated_by_month = updated_by_month.annotate(count=Count("id")).values_list(
-            "month", "count"
-        )
-        for month, count in updated_by_month:
+        updated_by_month = projects.annotate(month=TruncMonth("updated_at"))
+        updated_by_month = Counter([m.month for m in updated_by_month])
+        for month, count in updated_by_month.items():
             by_month[month.date()]["updated_count"] += count
 
         # Top ten wikipedia_tags

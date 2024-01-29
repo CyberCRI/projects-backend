@@ -51,6 +51,7 @@ class SDG(models.IntegerChoices):
 
 class WikipediaTag(models.Model):
     name = models.CharField(max_length=255, help_text="name of the tag")
+    description = models.CharField(max_length=255, blank=True)
     wikipedia_qid = models.CharField(
         max_length=50,
         unique=True,

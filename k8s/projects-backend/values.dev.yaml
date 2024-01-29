@@ -14,11 +14,23 @@ config:
     ENVIRONMENT: dev
 
 workflow:
-  config:
-    nonSensitive:
-      ORIGIN_POSTGRES_DB: dev_projects
-  enabled: true
+  lifecycle:
+    enabled: true
+    config:
+      nonSensitive:
+        ORIGIN_POSTGRES_DB: dev_projects
+  backups:
+    storageContainerName: projects-backups-test
 
+celery:
+  metrics:
+      enabled: true
+      portNumber: 9808
+      image:
+        repository: danihodovic
+        path: celery-exporter
+        tag: "0.10.2"
+      brokerUrlIsSecret: true
 hostname: api.projects.k8s.lp-i.dev
 
 backend:

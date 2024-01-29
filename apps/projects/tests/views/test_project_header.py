@@ -1,70 +1,145 @@
-from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase
+from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
+from rest_framework import status
+
+from apps.accounts.factories import UserFactory
+from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.files.models import Image
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
+from apps.projects.models import Project
+
+faker = Faker()
 
 
-class ProjectHeaderTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
-    list_view = "Project-header-list"
-    detail_view = "Project-header-detail"
-    field_name = "header_image"
-    base_permissions = ["projects.change_project"]
-    org_permissions = ["organizations.change_project"]
-    project_permissions = ["projects.change_project"]
-
-    # Tests for POST calls that should pass
-    def test_upload_images_base_permission(self):
-        self.create_user(self.base_permissions)
-        kwargs = {"project_id": ProjectFactory().id}
-        self.assert_image_upload(self.list_view, **kwargs)
-
-    def test_upload_images_org_permission(self):
-        project, _, _ = self.create_org_user(self.org_permissions)
-        kwargs = {"project_id": project.id}
-        self.assert_image_upload(self.list_view, **kwargs)
-
-    def test_upload_images_project_permission(self):
-        project, _ = self.create_project_member(self.project_permissions)
-        kwargs = {"project_id": project.id}
-        self.assert_image_upload(self.list_view, **kwargs)
-
-    # Tests for POST calls that should fail
-    def test_upload_oversized_image(self):
-        self.create_user(self.base_permissions)
-        kwargs = {"project_id": ProjectFactory().id}
-        self.assert_image_too_large(self.list_view, **kwargs)
-
-    def test_upload_images_no_permission(self):
-        self.create_user()
-        kwargs = {"project_id": ProjectFactory().id}
-        self.assert_image_upload(self.list_view, **kwargs, denied=True)
-
-    # Tests for DELETE calls that should pass
-    def test_delete_fk_images_base_permission(self):
-        self.create_user(self.base_permissions)
-        project = ProjectFactory()
-        kwargs = {"project_id": project.id}
-        self.assert_delete_fk_image(
-            self.detail_view, self.field_name, project, **kwargs
+class CreateProjectHeaderTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
         )
 
-    def test_delete_fk_images_org_permission(self):
-        project, _, _ = self.create_org_user(self.org_permissions)
-        kwargs = {"project_id": project.id}
-        self.assert_delete_fk_image(
-            self.detail_view, self.field_name, project, **kwargs
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+        ]
+    )
+    def test_create_project_header(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.project])
+        self.client.force_authenticate(user)
+        payload = {"file": self.get_test_image_file()}
+        response = self.client.post(
+            reverse("Project-header-list", args=(self.project.id,)),
+            data=payload,
+            format="multipart",
         )
+        assert response.status_code == expected_code
 
-    def test_delete_fk_images_project_permission(self):
-        project, _ = self.create_project_member(self.project_permissions)
-        kwargs = {"project_id": project.id}
-        self.assert_delete_fk_image(
-            self.detail_view, self.field_name, project, **kwargs
-        )
 
-    # Tests for DELETE calls that should fail
-    def test_delete_fk_images_no_permission(self):
-        self.create_user()
-        project = ProjectFactory()
-        kwargs = {"project_id": project.id}
-        self.assert_delete_fk_image(
-            self.detail_view, self.field_name, project, denied=True, **kwargs
+class UpdateProjectHeaderTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.owner = UserFactory()
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+        ]
+    )
+    def test_update_project_header(self, role, expected_code):
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            header_image=self.get_test_image(owner=self.owner),
+            organizations=[self.organization],
         )
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=project.header_image
+        )
+        self.client.force_authenticate(user)
+        payload = {
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+        }
+        response = self.client.patch(
+            reverse(
+                "Project-header-detail",
+                args=(project.id, project.header_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_200_OK:
+            assert response.json()["scale_x"] == payload["scale_x"]
+            assert response.json()["scale_y"] == payload["scale_y"]
+            assert response.json()["left"] == payload["left"]
+            assert response.json()["top"] == payload["top"]
+            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+
+
+class DeleteProjectHeaderTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.owner = UserFactory()
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_delete_project_header(self, role, expected_code):
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            header_image=self.get_test_image(owner=self.owner),
+            organizations=[self.organization],
+        )
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=project.header_image
+        )
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse(
+                "Project-header-detail",
+                args=(project.id, project.header_image.id),
+            ),
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert not Image.objects.filter(id=project.header_image.id).exists()

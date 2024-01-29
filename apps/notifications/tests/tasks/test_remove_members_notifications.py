@@ -4,6 +4,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import (
@@ -13,13 +14,20 @@ from apps.notifications.tasks import (
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class DeletedMemberTestCase(ProjectJwtAPITestCase):
+class DeletedMemberTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.projects.views.notify_member_deleted.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
@@ -32,32 +40,35 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(project.pk, member.pk, owner.pk)
 
     @patch("apps.projects.views.notify_group_member_deleted.delay")
     def test_group_notification_task_called(self, notification_task):
-        org = OrganizationFactory()
         project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC, organizations=[org]
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
         )
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
 
-        group = PeopleGroupFactory(organization=org)
+        group = PeopleGroupFactory(organization=self.organization)
         project.member_people_groups.add(group)
         payload = {
-            "member_people_group": group.id,
+            "people_groups": [group.id],
         }
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -83,7 +94,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 1
             deleted_members = notification.context["deleted_members"]
-            assert {m["keycloak_id"] for m in deleted_members} == {member.keycloak_id}
+            assert {m["id"] for m in deleted_members} == {member.id}
             assert (
                 notification.reminder_message_fr
                 == f"{sender.get_full_name()} a retiré un membre."
@@ -94,9 +105,9 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             )
 
     def test_group_notification_task(self):
-        org = OrganizationFactory()
         project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC, organizations=[org]
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
         )
         sender = UserFactory()
         notified = UserFactory()
@@ -109,7 +120,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
         not_notified.notification_settings.project_has_been_edited = False
         not_notified.notification_settings.save()
 
-        group = PeopleGroupFactory(organization=org)
+        group = PeopleGroupFactory(organization=self.organization)
         leader = UserFactory()
         manager = UserFactory()
         group.leaders.add(leader)
@@ -143,7 +154,10 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             )
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -171,10 +185,7 @@ class DeletedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 2
             deleted_members = notification.context["deleted_members"]
-            assert {m["keycloak_id"] for m in deleted_members} == {
-                member_1.keycloak_id,
-                member_2.keycloak_id,
-            }
+            assert {m["id"] for m in deleted_members} == {member_1.id, member_2.id}
             assert (
                 notification.reminder_message_fr
                 == f"{sender.get_full_name()} a retiré 2 membres."

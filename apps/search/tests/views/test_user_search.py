@@ -2,11 +2,12 @@ import time
 
 from algoliasearch_django import algolia_engine
 from django.urls import reverse
+from parameterized import parameterized
 
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.commons.test.mixins import skipUnlessAlgolia
 from apps.organizations.factories import OrganizationFactory
 
@@ -14,19 +15,19 @@ from apps.organizations.factories import OrganizationFactory
 @skipUnlessAlgolia
 class UserSearchTestCase(JwtAPITestCase):
     @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.organization_2 = OrganizationFactory()
         ProjectUser.objects.all().delete()  # Delete users created by the factories
-
-        cls.public_user = UserFactory(
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+        cls.public_user_1 = UserFactory(
             given_name="algolia",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             sdgs=[1],
             groups=[cls.organization.get_users()],
         )
-        SkillFactory(user=cls.public_user)
+        SkillFactory(user=cls.public_user_1)
         cls.public_user_2 = UserFactory(
             given_name="algolia",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
@@ -48,137 +49,67 @@ class UserSearchTestCase(JwtAPITestCase):
             groups=[cls.organization.get_users()],
         )
         SkillFactory(user=cls.org_user)
+        cls.users = {
+            "public_1": cls.public_user_1,
+            "public_2": cls.public_user_2,
+            "private": cls.private_user,
+            "org": cls.org_user,
+        }
         algolia_engine.reindex_all(ProjectUser)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
-    def test_search_user_anonymous(self):
-        response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.public_user_2.id},
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public_1", "public_2")),
+            (TestRoles.DEFAULT, ("public_1", "public_2")),
+            (TestRoles.OWNER, ("public_1", "public_2", "private", "org")),
+            (TestRoles.SUPERADMIN, ("public_1", "public_2", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public_1", "public_2", "private", "org")),
+            (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
+        ]
+    )
+    def test_search_user(self, role, retrieved_users):
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization], owned_instance=self.private_user
         )
-
-    def test_search_user_authenticated(self):
-        user = UserFactory()
         self.client.force_authenticate(user)
         response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 2)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.public_user_2.id},
-        )
-
-    def test_search_user_org_user(self):
-        user = UserFactory()
-        self.organization.users.add(user)
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user.id, self.public_user_2.id, self.org_user.id},
-        )
-
-    def test_search_user_org_facilitator(self):
-        user = UserFactory()
-        self.organization.facilitators.add(user)
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {
-                self.public_user.id,
-                self.public_user_2.id,
-                self.org_user.id,
-                self.private_user.id,
-            },
-        )
-
-    def test_search_user_org_admin(self):
-        user = UserFactory()
-        self.organization.admins.add(user)
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {
-                self.public_user.id,
-                self.public_user_2.id,
-                self.org_user.id,
-                self.private_user.id,
-            },
-        )
-
-    def test_search_user_superadmin(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        self.assertEqual(response.status_code, 200)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 4)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {
-                self.public_user.id,
-                self.public_user_2.id,
-                self.org_user.id,
-                self.private_user.id,
-            },
-        )
+        assert len(content) == len(retrieved_users)
+        assert {user["id"] for user in content} == {
+            self.users[user].id for user in retrieved_users
+        }
 
     def test_filter_by_organization(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("UserSearch-search", args=("algolia",))
             + f"?organizations={self.organization_2.code}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user_2.id},
-        )
+        assert len(content) == 1
+        assert {user["id"] for user in content} == {self.public_user_2.id}
 
     def test_filter_by_sdgs(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("UserSearch-search", args=("algolia",)) + "?sdgs=2"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user_2.id},
-        )
+        assert len(content) == 1
+        assert {user["id"] for user in content} == {self.public_user_2.id}
 
     def test_filter_by_skills(self):
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("UserSearch-search", args=("algolia",))
             + f"?skills={self.skill_2.wikipedia_tag.wikipedia_qid}"
         )
-        self.assertEqual(response.status_code, 200)
+        assert response.status_code == 200
         content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {user["id"] for user in content},
-            {self.public_user_2.id},
-        )
+        assert len(content) == 1
+        assert {user["id"] for user in content} == {self.public_user_2.id}

@@ -5,18 +5,27 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.test.testcases import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_member_updated
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.projects.tests.views.test_project import ProjectJwtAPITestCase
 
 
-class UpdatedMemberTestCase(ProjectJwtAPITestCase):
+class UpdatedMemberTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @patch("apps.projects.views.notify_member_updated.delay")
     def test_notification_task_called(self, notification_task):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
@@ -29,16 +38,19 @@ class UpdatedMemberTestCase(ProjectJwtAPITestCase):
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
         notification_task.assert_called_once_with(
             project.pk,
             member.pk,
             owner.pk,
-            Project.DefaultGroup.MEMBERS,
+            Project.DefaultGroup.MEMBERS.value,
         )
 
     def test_notification_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -70,8 +82,8 @@ class UpdatedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 1
             modified_members = notification.context["modified_members"]
-            assert {(m["keycloak_id"], m["role"]) for m in modified_members} == {
-                (member.keycloak_id, "participant")
+            assert {(m["id"], m["role"]) for m in modified_members} == {
+                (member.id, "participant")
             }
             assert (
                 notification.reminder_message_fr
@@ -93,7 +105,10 @@ class UpdatedMemberTestCase(ProjectJwtAPITestCase):
         assert member.email == mail.outbox[0].to[0]
 
     def test_merged_notifications_task(self):
-        project = ProjectFactory(publication_status=Project.PublicationStatus.PUBLIC)
+        project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[self.organization],
+        )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
@@ -134,9 +149,9 @@ class UpdatedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 2
             modified_members = notification.context["modified_members"]
-            assert {(m["keycloak_id"], m["role"]) for m in modified_members} == {
-                (member_1.keycloak_id, "participant"),
-                (member_2.keycloak_id, "reviewer"),
+            assert {(m["id"], m["role"]) for m in modified_members} == {
+                (member_1.id, "participant"),
+                (member_2.id, "reviewer"),
             }
             assert (
                 notification.reminder_message_fr
@@ -157,12 +172,12 @@ class UpdatedMemberTestCase(ProjectJwtAPITestCase):
             assert notification.count == 1
             modified_members = notification.context["modified_members"]
             if user == member_1:
-                assert {(m["keycloak_id"], m["role"]) for m in modified_members} == {
-                    (member_2.keycloak_id, "reviewer")
+                assert {(m["id"], m["role"]) for m in modified_members} == {
+                    (member_2.id, "reviewer")
                 }
             else:
-                assert {(m["keycloak_id"], m["role"]) for m in modified_members} == {
-                    (member_1.keycloak_id, "participant")
+                assert {(m["id"], m["role"]) for m in modified_members} == {
+                    (member_1.id, "participant")
                 }
             assert (
                 notification.reminder_message_fr
@@ -181,8 +196,8 @@ class UpdatedMemberTestCase(ProjectJwtAPITestCase):
             assert not notification.is_viewed
             assert notification.count == 1
             modified_members = notification.context["modified_members"]
-            assert {(m["keycloak_id"], m["role"]) for m in modified_members} == {
-                (user.keycloak_id, "reviewer" if user == member_2 else "participant")
+            assert {(m["id"], m["role"]) for m in modified_members} == {
+                (user.id, "reviewer" if user == member_2 else "participant")
             }
             assert notification.reminder_message_fr == ""
             assert notification.reminder_message_en == ""
