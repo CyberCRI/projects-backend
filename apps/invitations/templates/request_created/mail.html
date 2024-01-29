@@ -1,0 +1,111 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+        <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+            {% blocktranslate with org_name=organization.name %}
+            New access request {{request_id}} for {{ org_name }} Projects platform
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+            {% blocktranslate %}
+            Hello,
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+            {% blocktranslate with org_name=organization.name %}
+            You have received a new access request for {{ org_name }} Projects platform.
+            {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          First name:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with first_name=user.given_name %}
+          {{ first_name }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          Last name:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with last_name=user.family_name %}
+          {{ last_name }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          Email:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with email=user.email %}
+          {{ email }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text>
+          {% blocktranslate %}
+          Title:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with title=user.job %}
+          {{ title }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1" padding="0">
+      <mj-column>
+        <mj-text >
+          {% blocktranslate %}
+          Message:
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+      <mj-column>
+        <mj-text >
+          {% blocktranslate %}
+          {{ message }}
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text>
+          {% blocktranslate with website_url=organization.website_url %}
+          See <a class="lpi-link" href="{{ website_url }}/request-access">request in platform</a>.
+          {% endblocktranslate %}
+        </mj-text>
+{% endblock %}

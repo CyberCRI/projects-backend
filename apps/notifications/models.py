@@ -30,6 +30,7 @@ class Notification(models.Model, HasOwner):
         BLOG_ENTRY = "blog_entry"
         INVITATION_TODAY_REMINDER = "invitation_today_reminder"
         INVITATION_WEEK_REMINDER = "invitation_week_reminder"
+        ACCESS_REQUEST = "access_request"
 
     class ExpirationTypes(models.TextChoices):
         """Different dates of expiration."""
@@ -52,6 +53,9 @@ class Notification(models.Model, HasOwner):
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
     invitation = models.ForeignKey(
         "invitations.Invitation", on_delete=models.CASCADE, null=True
+    )
+    access_request = models.ForeignKey(
+        "invitations.AccessRequest", on_delete=models.CASCADE, null=True
     )
     is_viewed = models.BooleanField(default=False)
     to_send = models.BooleanField(default=False)
