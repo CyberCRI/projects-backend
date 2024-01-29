@@ -5,7 +5,6 @@ config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.staging
     AZURE_ACCOUNT_NAME: criparisdevlabprojects
-    AZURE_CUSTOM_DOMAIN: assets.projects.k8s.lp-i.xyz
     AZURE_CONTAINER: staging-projects
     POSTGRES_DB: staging_projects
     POSTGRES_HOST: dev-lab-projects-backend.postgres.database.azure.com

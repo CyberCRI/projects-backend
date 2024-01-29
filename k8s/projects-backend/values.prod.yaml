@@ -9,7 +9,6 @@ config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.production
     AZURE_ACCOUNT_NAME: criparisprodprodprojects
-    AZURE_CUSTOM_DOMAIN: assets.projects.lp-i.org
     POSTGRES_HOST: prod-prod-projects-backend.postgres.database.azure.com
     EMAIL_HOST_USER: projects@learningplanetinstitute.org
     EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
