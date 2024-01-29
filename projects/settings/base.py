@@ -411,6 +411,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.invitations.tasks.send_invitations_reminder",
         "schedule": crontab(minute=0, hour=7),
     },
+    "send_access_request_notification": {
+        "task": "apps.notifications.tasks.send_access_request_notifications",
+        "schedule": crontab(minute=0, hour=9),
+    },
     "get_new_mixpanel_events": {
         "task": "services.mixpanel.tasks.get_new_mixpanel_events",
         "schedule": crontab(minute="*/2", hour="*"),

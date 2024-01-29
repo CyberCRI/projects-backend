@@ -47,6 +47,7 @@ class AccessRequest(models.Model):
         DECLINED = "declined"
 
     class EmailType(models.TextChoices):
+        REQUEST_CREATED = "request_created"
         REQUEST_ACCEPTED = "request_accepted"
         REQUEST_DECLINED = "request_declined"
 
@@ -99,7 +100,7 @@ class AccessRequest(models.Model):
             "job": self.job,
         }
 
-    def send_email(self, email_type: str):
+    def send_email(self, email_type: str, emails: List[str] = None):
         if email_type not in self.EmailType.values:
             raise ValueError(f"Email type {email_type} is not valid")
         subject, _ = render_message(
@@ -107,14 +108,20 @@ class AccessRequest(models.Model):
             self.contact_language,
             organization=self.organization,
             user=self.template_user,
+            request_id=self.id,
         )
         text, html = render_message(
             f"{email_type}/mail",
             self.contact_language,
             organization=self.organization,
             user=self.template_user,
+            request_id=self.id,
+            message=self.message,
         )
-        send_email(subject, text, [self.contact_email], html_content=html)
+
+        if emails is None:
+            emails = [self.contact_email]
+        send_email(subject, text, emails, html_content=html)
 
     @transaction.atomic
     def accept(self):

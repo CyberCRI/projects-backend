@@ -124,6 +124,13 @@ class AccessRequestViewSet(CreateListModelViewSet):
         )
         return super().create(request, *args, **kwargs)
 
+    def perform_create(self, serializer):
+        instance = serializer.save()
+        organization = instance.organization
+        admins = organization.admins.all()
+        emails = [admin.email for admin in admins]
+        instance.send_email(AccessRequest.EmailType.REQUEST_CREATED, emails)
+
     def perform_accept(self, access_request: AccessRequest):
         if access_request.organization.code != self.kwargs["organization_code"]:
             return {
