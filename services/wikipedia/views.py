@@ -44,7 +44,7 @@ class WikibaseItemViewset(ListViewSet):
         response = WikipediaService.search(**params)
         results = response.get("results", [])
         search_continue = response.get("search_continue", 0)
-        count = search_continue + len(results)
+        count = int(search_continue or 0) + len(results)
         paginator = WikipediaPagination(count=count)()
         page = paginator.paginate_queryset(results, request, view=self)
         serializer = self.get_serializer(page, many=True)
