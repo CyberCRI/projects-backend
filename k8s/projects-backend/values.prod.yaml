@@ -4,6 +4,7 @@ corsAllowedDomains:
 - projects.directory
 - learning-planet.org
 - profschercheurs.org
+- id.learning-planet.org # keycloak login page
 
 config:
   nonSensitive:

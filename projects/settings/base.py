@@ -178,8 +178,8 @@ if DEBUG and DEBUG_TOOLBAR_INSTALLED:
 
 # https://pypi.org/project/django-cors-headers/#cors-allowed-origins-sequence-str
 CORS_ALLOWED_ORIGIN_REGEXES = [
-    r"^https?:\/\/localhost(:[0-9]+)?",  # Is this really needed ?
-    r"^https?:\/\/127.0.0.1(:[0-9]+)?",  # Is this really needed ?
+    r"^https?:\/\/localhost(:[0-9]+)?",
+    r"^https?:\/\/127.0.0.1(:[0-9]+)?",
 ]
 cors_allowed_domains = os.getenv("CORS_ALLOWED_DOMAINS")
 if cors_allowed_domains:
