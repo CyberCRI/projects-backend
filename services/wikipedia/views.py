@@ -1,9 +1,11 @@
+from django.db.models import Count, Q
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import ListViewSet
+from apps.misc.models import WikipediaTag
 
 from .interface import WikipediaService
 from .pagination import WikipediaPagination
@@ -78,13 +80,22 @@ class WikibaseItemViewset(ListViewSet):
     )
     @action(detail=False, methods=["GET"])
     def autocomplete(self, request, *args, **kwargs):
-        """
-        Retrieve a specific wikipedia page name with its qid and all its available translations
-        """
-        params = {
-            "query": str(self.request.query_params.get("query", "")),
-            "language": str(self.request.query_params.get("language", "en")),
-            "limit": int(self.request.query_params.get("limit", 5)),
-        }
-        response = WikipediaService.autocomplete(**params)
-        return Response(response)
+        language = self.request.query_params.get("language", "en")
+        limit = int(self.request.query_params.get("limit", 5))
+        search = self.request.query_params.get("query", "")
+        queryset = (
+            WikipediaTag.objects.filter(
+                Q(**{f"name_{language}__unaccent__istartswith": search})
+                | Q(**{f"name_{language}__unaccent__icontains": f" {search}"})
+            )
+            .distinct()
+            .annotate(
+                usage=Count("skill", distinct=True)
+                + Count("projects", distinct=True)
+                + Count("organization", distinct=True)
+                + Count("project_categories", distinct=True)
+            )
+            .order_by("-usage")[:limit]
+        )
+        data = queryset.values_list(f"name_{language}", flat=True)
+        return Response(data)
