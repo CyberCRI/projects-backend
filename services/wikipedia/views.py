@@ -90,10 +90,10 @@ class WikibaseItemViewset(ListViewSet):
             )
             .distinct()
             .annotate(
-                usage=Count("skill")
-                + Count("projects")
-                + Count("organization")
-                + Count("project_categories")
+                usage=Count("skill", distinct=True)
+                + Count("projects", distinct=True)
+                + Count("organization", distinct=True)
+                + Count("project_categories", distinct=True)
             )
             .order_by("-usage")[:limit]
         )
