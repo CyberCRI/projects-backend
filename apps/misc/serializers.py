@@ -13,7 +13,7 @@ from .models import Tag, WikipediaTag
 class WikipediaTagSerializer(TranslatedModelSerializer):
     class Meta:
         model = WikipediaTag
-        fields = ["id", "name", "wikipedia_qid"]
+        fields = ["id", "name", "wikipedia_qid", "description"]
         lookup_field = "wikipedia_qid"
 
 
