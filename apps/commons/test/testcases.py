@@ -248,22 +248,12 @@ class TagTestCaseMixin:
         return cls.GetWikipediaTagMocked(wikipedia_qid, en, fr)
 
     @classmethod
-    def autocomplete_wikipedia_mocked_return(cls, query: str, limit: int = 5):
-        return [query, *[f"{query} {faker.word()}" for _ in range(limit - 1)]]
-
-    @classmethod
     def search_wikipedia_tag_mocked_return(cls, limit: int, offset: int):
         return cls.QueryWikipediaMockResponse(limit, offset)
 
     @classmethod
     def get_wikipedia_tag_mocked_side_effect(cls, wikipedia_qid: str):
         return cls.get_wikipedia_tag_mocked_return(wikipedia_qid)
-
-    @classmethod
-    def autocomplete_wikipedia_mocked_side_effect(
-        cls, query: str, language: str = "en", limit: int = 5
-    ):
-        return cls.autocomplete_wikipedia_mocked_return(query, limit)
 
     @classmethod
     def search_wikipedia_tag_mocked_side_effect(
