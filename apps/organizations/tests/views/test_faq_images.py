@@ -66,7 +66,7 @@ class CreateFaqImageTestCase(JwtAPITestCase):
             assert response.json()["static_url"] is not None
 
 
-class UpdateFaqTestCase(JwtAPITestCase):
+class UpdateFaqImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
