@@ -575,3 +575,10 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL = "lpi.accounts@gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_PREFIX = ""
 GOOGLE_EMAIL_DOMAIN = "gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
+
+
+##############
+#   MISTRAL  #
+##############
+
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
