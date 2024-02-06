@@ -4,7 +4,6 @@ from django.conf import settings
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
-from apps.accounts.models import ProjectUser
 from apps.projects.models import Project
 
 
@@ -13,11 +12,13 @@ class MistralService:
 
     @classmethod
     def get_project_prompt(cls, project: Project) -> List[str]:
+        desc = project.description.replace('"', '')
         messages = [
-            "Summarize the following project:",
+            "Summarize the following project in about 150 words:",
             f"Title : {project.title}",
-            f"Key concepts : {','.join([t.name for t in project.wikipedia_tags.all()])}",
-            f"Description : {project.description}",
+            f"Purpose : {project.purpose}",
+            f"Key concepts : {', '.join(project.wikipedia_tags.all().values_list('name_en', flat=True))}",
+            f"Description : {desc}",
         ]
         return [
             ChatMessage(role="user", content=message)
@@ -27,17 +28,17 @@ class MistralService:
     @classmethod
     def get_project_summary(cls, project: Project) -> str:
         prompt = cls.get_project_prompt(project)
-        return cls.service.chat(
+        response = cls.service.chat(
             model="mistral-small",
             messages = prompt
         )
+        return "\n".join([choice.message.content for choice in response.choices])
     
     @classmethod
     def get_project_embeddings(cls, project: Project) -> list:
         projects_summary = cls.get_project_summary(project)
-        return cls.service.embeddings(
+        response = cls.service.embeddings(
             model="mistral-embed",
             input=[projects_summary],
         )
-
-
+        return response.data[0].embedding
