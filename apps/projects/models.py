@@ -14,6 +14,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm
+from pgvector.django import VectorField
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.commons.db.abc import (
@@ -195,6 +196,10 @@ class Project(
         m2m_fields=[wikipedia_tags, organization_tags, categories],
     )
     objects = SoftDeleteManager()
+
+    # Mistral and PGVector fields
+    generated_summary = models.TextField(blank=True)
+    summary_embedding = VectorField(dimensions=settings.PGVECTOR_DIMENSIONS, null=True)
 
     class Meta:
         write_only_subscopes = (

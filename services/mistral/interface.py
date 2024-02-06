@@ -1,6 +1,6 @@
 from typing import List
-from django.conf import settings
 
+from django.conf import settings
 from mistralai.client import MistralClient
 from mistralai.models.chat_completion import ChatMessage
 
@@ -12,33 +12,34 @@ class MistralService:
 
     @classmethod
     def get_project_prompt(cls, project: Project) -> List[str]:
-        desc = project.description.replace('"', '')
+        desc = project.description.replace('"', "")
         messages = [
-            "Summarize the following project in about 150 words:",
+            "Generate a project profile from the following project information. Start by giving the project global objective, then its impact, then a summary. Strictly limit the summary to 100 words."
             f"Title : {project.title}",
             f"Purpose : {project.purpose}",
             f"Key concepts : {', '.join(project.wikipedia_tags.all().values_list('name_en', flat=True))}",
             f"Description : {desc}",
         ]
-        return [
-            ChatMessage(role="user", content=message)
-            for message in messages
-        ]
-    
+        return [ChatMessage(role="user", content=message) for message in messages]
+
     @classmethod
     def get_project_summary(cls, project: Project) -> str:
         prompt = cls.get_project_prompt(project)
-        response = cls.service.chat(
-            model="mistral-small",
-            messages = prompt
-        )
+        response = cls.service.chat(model="mistral-small", messages=prompt)
         return "\n".join([choice.message.content for choice in response.choices])
-    
+
     @classmethod
-    def get_project_embeddings(cls, project: Project) -> list:
-        projects_summary = cls.get_project_summary(project)
+    def get_embeddings(cls, project_summary: str) -> List[float]:
         response = cls.service.embeddings(
             model="mistral-embed",
-            input=[projects_summary],
+            input=[project_summary],
         )
         return response.data[0].embedding
+
+    @classmethod
+    def vectorize_project(cls, project: Project) -> Project:
+        summary = cls.get_project_summary(project)
+        embeddings = cls.get_embeddings(summary)
+        project = Project.objects.filter(pk=project.pk)
+        project.update(generated_summary=summary, summary_embedding=embeddings)
+        return project.get()

@@ -582,3 +582,4 @@ GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
 ##############
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
+PGVECTOR_DIMENSIONS = 1024
