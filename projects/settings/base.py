@@ -145,6 +145,7 @@ INSTALLED_APPS = [
     "services.mixpanel",
     "services.google",
     "services.wikipedia",
+    "services.mistral",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
