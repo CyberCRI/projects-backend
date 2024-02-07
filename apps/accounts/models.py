@@ -3,6 +3,7 @@ from datetime import date
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -14,6 +15,8 @@ from django.db.models.manager import Manager
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm, get_objects_for_user
+
+from pgvector.django import VectorField
 
 from apps.accounts.utils import (
     default_onboarding_status,
@@ -389,6 +392,10 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     skype = models.CharField(blank=True, max_length=255)
     landline_phone = models.CharField(blank=True, max_length=255)
     twitter = models.URLField(blank=True)
+
+    # Mistral and PGVector fields
+    generated_summary = models.TextField(blank=True)
+    summary_embedding = VectorField(dimensions=settings.PGVECTOR_DIMENSIONS, null=True)
 
     # TODO : Delete these fields when people migration is done
     people_data = models.JSONField(default=dict)
