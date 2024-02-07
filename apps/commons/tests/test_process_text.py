@@ -117,7 +117,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "organization_code": organization.code,
         }
         response = self.client.post(
-            reverse("Faq-list", args=[organization.code]),
+            reverse("Faq-list", args=(organization.code,)),
             data=payload,
         )
         assert response.status_code == 201

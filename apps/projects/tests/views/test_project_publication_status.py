@@ -10,8 +10,8 @@ from apps.projects.models import Project
 
 class ProjectPublicationStatusTestCase(JwtAPITestCase):
     @classmethod
-    def setUpClass(cls) -> None:
-        super().setUpClass()
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
         cls.organization = OrganizationFactory()
         Project.objects.all().delete()  # Delete projects created by the factories
         cls.public_project = ProjectFactory(

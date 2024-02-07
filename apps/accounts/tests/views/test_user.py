@@ -532,7 +532,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "email": existing_username,
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
+            reverse("ProjectUser-detail", args=(user.keycloak_id,)), data=payload
         )
         assert response.status_code == 409
         assert (
@@ -547,7 +547,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         response = self.client.delete(
-            reverse("ProjectUser-detail", args=[user.keycloak_id])
+            reverse("ProjectUser-detail", args=(user.keycloak_id,))
         )
         assert response.status_code == 400
         assert response.json()["error"] == "An error occured in Keycloak : error reason"
@@ -557,7 +557,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         response = self.client.delete(
-            reverse("ProjectUser-detail", args=[user.keycloak_id])
+            reverse("ProjectUser-detail", args=(user.keycloak_id,))
         )
         assert response.status_code == 204
         assert not ProjectUser.objects.filter(id=user.id).exists()
@@ -804,7 +804,7 @@ class MiscUserTestCase(JwtAPITestCase):
             "language": "fr",
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
+            reverse("ProjectUser-detail", args=(user.keycloak_id,)), data=payload
         )
         assert response.status_code == 200
         assert response.data["language"] == "fr"
@@ -906,7 +906,7 @@ class MiscUserTestCase(JwtAPITestCase):
             ]
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=[user.keycloak_id]), data=payload
+            reverse("ProjectUser-detail", args=(user.keycloak_id,)), data=payload
         )
         assert response.status_code == 200
         assert len(response.data["roles"]) == 8

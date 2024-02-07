@@ -56,15 +56,6 @@ class UserFactory(factory.django.DjangoModelFactory):
         self.groups.add(*[get_default_group(), *(extracted if extracted else [])])
 
     @factory.post_generation
-    def permissions(self, create, extracted, **kwargs):
-        if extracted:
-            for permission, obj in extracted:
-                if obj is None:
-                    assign_perm(permission, self)
-                else:
-                    assign_perm(permission, self, obj)
-
-    @factory.post_generation
     def publication_status(self, create, extracted, **kwargs):
         if not create:
             return

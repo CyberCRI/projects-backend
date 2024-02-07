@@ -104,7 +104,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.set_user_privacy_settings(instance, privacy_settings_value)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("ProjectUser-detail", args=[instance.keycloak_id])
+            reverse("ProjectUser-detail", args=(instance.keycloak_id,))
         )
         assert response.status_code == 200
         if fields_visible:

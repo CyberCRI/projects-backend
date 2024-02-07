@@ -175,7 +175,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             ) as mocked_add_user_to_group,
         ):
             response = self.client.patch(
-                reverse("ProjectUser-detail", args=[google_account.user.keycloak_id]),
+                reverse("ProjectUser-detail", args=(google_account.user.keycloak_id,)),
                 data=payload,
             )
             mocked_update_user.assert_called_once_with(google_account)
@@ -209,7 +209,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             GoogleService, "suspend_user", wraps=GoogleService.suspend_user
         ) as mocked_suspend_user:
             response = self.client.delete(
-                reverse("ProjectUser-detail", args=[google_account.user.keycloak_id])
+                reverse("ProjectUser-detail", args=(google_account.user.keycloak_id,))
             )
             mocked_suspend_user.assert_called_once_with(google_account)
             assert response.status_code == status.HTTP_204_NO_CONTENT

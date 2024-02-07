@@ -196,7 +196,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Comment-list", args=[self.project.id]))
+        response = self.client.get(reverse("Comment-list", args=(self.project.id,)))
         self.assertEqual(response.status_code, 200)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
