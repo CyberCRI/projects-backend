@@ -3,7 +3,6 @@ import uuid
 import factory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
-from guardian.shortcuts import assign_perm
 
 from apps.accounts.utils import get_default_group
 from apps.commons.factories import sdg_factory

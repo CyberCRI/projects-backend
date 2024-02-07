@@ -24,6 +24,9 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         super().setUpTestData()
         cls.parent = OrganizationFactory()
         cls.logo_image = cls.get_test_image()
+        cls.users = UserFactory.create_batch(2)
+        cls.facilitators = UserFactory.create_batch(2)
+        cls.admins = UserFactory.create_batch(2)
 
     @parameterized.expand(
         [
@@ -53,6 +56,11 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "onboarding_enabled": faker.boolean(),
             "wikipedia_tags_ids": wikipedia_qids,
             "parent_code": self.parent.code,
+            "team": {
+                "users": [u.keycloak_id for u in self.users],
+                "admins": [a.keycloak_id for a in self.admins],
+                "facilitators": [f.keycloak_id for f in self.facilitators],
+            },
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
         assert response.status_code == expected_code
@@ -81,6 +89,10 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
                 wikipedia_qids
             )
+            organization = Organization.objects.get(code=payload["code"])
+            assert all(u in organization.users.all() for u in self.users)
+            assert all(a in organization.admins.all() for a in self.admins)
+            assert all(f in organization.facilitators.all() for f in self.facilitators)
 
 
 class ReadOrganizationTestCase(JwtAPITestCase):
@@ -207,92 +219,73 @@ class DeleteOrganizationTestCase(JwtAPITestCase):
             assert not Organization.objects.filter(code=organization.code).exists()
 
 
-# class TestOrganizationMembersTempFileTestCase(JwtAPITestCase):
-#     def test_add_members_base_permission(self):
-#         organization = OrganizationFactory()
-#         admin = UserFactory()
-#         user = UserFactory()
-#         facilitator = UserFactory()
-#         user_to_admin = UserFactory()
-#         organization.users.add(user_to_admin)
-#         payload = {
-#             "users": [user.keycloak_id],
-#             "admins": [admin.keycloak_id, user_to_admin.keycloak_id],
-#             "facilitators": [facilitator.keycloak_id],
-#         }
-#         request_user = UserFactory()
-#         request_user.groups.add(get_superadmins_group())
-#         self.client.force_authenticate(request_user)
-#         response = self.client.post(
-#             reverse("Organization-add-member", args=(organization.code,)), data=payload
-#         )
-#         assert response.status_code == status.HTTP_204_NO_CONTENT
-#         assert user in organization.users.all()
-#         assert admin in organization.admins.all()
-#         assert facilitator in organization.facilitators.all()
-#         assert user_to_admin in organization.admins.all()
-#         assert user_to_admin not in organization.users.all()
+class OrganizationMembersTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.users = UserFactory.create_batch(2)
+        cls.facilitators = UserFactory.create_batch(2)
+        cls.admins = UserFactory.create_batch(2)
 
-#     def test_remove_members_base_permission(self):
-#         organization = OrganizationFactory()
-#         admin = UserFactory()
-#         user = UserFactory()
-#         facilitator = UserFactory()
-#         organization.admins.add(admin)
-#         organization.users.add(user)
-#         organization.facilitators.add(facilitator)
-#         payload = {
-#             "users": [user.keycloak_id, admin.keycloak_id, facilitator.keycloak_id],
-#         }
-#         user = UserFactory()
-#         user.groups.add(get_superadmins_group())
-#         self.client.force_authenticate(user)
-#         response = self.client.post(
-#             reverse("Organization-remove-member", args=(organization.code,)),
-#             data=payload,
-#         )
-#         assert response.status_code == status.HTTP_204_NO_CONTENT
-#         assert user not in organization.users.all()
-#         assert admin not in organization.admins.all()
-#         assert facilitator not in organization.facilitators.all()
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_add_organization_member(self, role, expected_code):
+        organization = OrganizationFactory()
+        user = self.get_parameterized_test_user(role, instances=[organization])
+        self.client.force_authenticate(user)
+        payload = {
+            "users": [u.id for u in self.users],
+            "admins": [a.id for a in self.admins],
+            "facilitators": [f.id for f in self.facilitators],
+        }
+        response = self.client.post(
+            reverse("Organization-add-member", args=(organization.code,)), data=payload
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert all(u in organization.users.all() for u in self.users)
+            assert all(a in organization.admins.all() for a in self.admins)
+            assert all(f in organization.facilitators.all() for f in self.facilitators)
 
-#     def test_create_with_members(self):
-#         organization = OrganizationFactory()
-#         admins = UserFactory.create_batch(5)
-#         users = UserFactory.create_batch(5)
-#         facilitators = UserFactory.create_batch(5)
-#         fake = OrganizationFactory.build()
-#         parent = OrganizationFactory()
-#         payload = {
-#             "background_color": fake.background_color,
-#             "code": fake.code,
-#             "contact_email": fake.contact_email,
-#             "dashboard_title": fake.dashboard_title,
-#             "dashboard_subtitle": fake.dashboard_subtitle,
-#             "language": fake.language,
-#             "logo_image_id": fake.logo_image.id,
-#             "is_logo_visible_on_parent_dashboard": fake.is_logo_visible_on_parent_dashboard,
-#             "name": fake.name,
-#             "website_url": fake.website_url,
-#             "created_at": fake.created_at,
-#             "updated_at": fake.updated_at,
-#             "wikipedia_tags_ids": [],
-#             "parent_code": parent.code,
-#             "team": {
-#                 "users": [u.keycloak_id for u in users],
-#                 "admins": [a.keycloak_id for a in admins],
-#                 "facilitators": [f.keycloak_id for f in facilitators],
-#             },
-#         }
-#         user = UserFactory()
-#         user.groups.add(get_superadmins_group())
-#         self.client.force_authenticate(user)
-#         response = self.client.post(reverse("Organization-list"), payload)
-#         assert response.status_code == status.HTTP_201_CREATED
-#         organization = Organization.objects.get(code=response.json()["code"])
-#         assert all(u in organization.users.all() for u in users)
-#         assert all(a in organization.admins.all() for a in admins)
-#         assert all(f in organization.facilitators.all() for f in facilitators)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_remove_project_member(self, role, expected_code):
+        organization = OrganizationFactory()
+        organization.users.add(*self.users)
+        organization.admins.add(*self.admins)
+        organization.facilitators.add(*self.facilitators)
+        user = self.get_parameterized_test_user(role, instances=[organization])
+        self.client.force_authenticate(user)
+        payload = {
+            "users": [u.id for u in self.users + self.admins + self.facilitators],
+        }
+        response = self.client.post(
+            reverse("Organization-remove-member", args=(organization.code,)),
+            data=payload,
+        )
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert all(u not in organization.users.all() for u in self.users)
+            assert all(a not in organization.admins.all() for a in self.admins)
+            assert all(
+                f not in organization.facilitators.all() for f in self.facilitators
+            )
 
 
 class OrganizationHierarchyTestCase(JwtAPITestCase):
