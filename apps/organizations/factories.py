@@ -59,10 +59,12 @@ class TemplateFactory(factory.django.DjangoModelFactory):
         model = Template
 
     title_placeholder = factory.Faker("text", max_nb_chars=255)
-    goal_placeholder = factory.Faker("text", max_nb_chars=255)
     description_placeholder = factory.Faker("text")
-    blogentry_title_placeholder = factory.Faker("text")
+    goal_placeholder = factory.Faker("text", max_nb_chars=255)
+    blogentry_title_placeholder = factory.Faker("text", max_nb_chars=255)
     blogentry_placeholder = factory.Faker("text")
+    goal_title = factory.Faker("text", max_nb_chars=255)
+    goal_description = factory.Faker("text")
     project_category = None
 
 

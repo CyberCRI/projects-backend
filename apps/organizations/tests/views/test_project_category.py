@@ -1,643 +1,296 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.commons.test.testcases import TagTestCaseMixin
-from apps.misc.factories import WikipediaTagFactory
-from apps.misc.models import WikipediaTag
-from apps.organizations import factories, models
+from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import ProjectCategory
 
+faker = Faker()
 
-class ProjectCategoryTestCaseAnonymous(JwtAPITestCase, TagTestCaseMixin):
+
+class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.test_image = cls.get_test_image()
+        cls.organization = OrganizationFactory()
 
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_anonymous(self, mocked):
+    def test_create_project_category(self, role, expected_code, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
-        payload = {
-            "background_color": fake.background_color,
-            "background_image_id": fake.background_image.pk,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
-        }
-
-        response = self.client.post(reverse("Category-list"), data=payload)
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_retrieve_anonymous(self):
-        obj = factories.ProjectCategoryFactory(background_image=self.test_image)
-        response = self.client.get(reverse("Category-detail", args=(obj.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_list_anonymous(self):
-        factories.ProjectCategoryFactory.create_batch(
-            2, background_image=self.test_image
-        )
-        response = self.client.get(reverse("Category-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_destroy_anonymous(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_anonymous(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
-        payload = {
-            "background_color": fake.background_color,
-            "background_image_id": fake.background_image.id,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
-        }
-        response = self.client.put(
-            reverse("Category-detail", args=(fake.id,)),
-            data=payload,
-            format="multipart",
-        )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-    def test_partial_update_anonymous(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        payload = {
-            "name": "New name",
-        }
-        response = self.client.patch(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
-
-
-class ProjectCategoryTestCaseNoPermission(JwtAPITestCase, TagTestCaseMixin):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.test_image = cls.get_test_image()
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_no_permission(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
-        payload = {
-            "background_color": fake.background_color,
-            "background_image_id": fake.background_image.pk,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
-        }
-
-        self.client.force_authenticate(UserFactory())
-        response = self.client.post(reverse("Category-list"), data=payload)
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_retrieve_no_permission(self):
-        obj = factories.ProjectCategoryFactory(background_image=self.test_image)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(reverse("Category-detail", args=(obj.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_list_no_permission(self):
-        factories.ProjectCategoryFactory.create_batch(
-            2, background_image=self.test_image
-        )
-        self.client.force_authenticate(UserFactory())
-        response = self.client.get(reverse("Category-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_destroy_no_permission(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        self.client.force_authenticate(UserFactory())
-        response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_destroy_org_no_permission(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        user = UserFactory()
-        pc.organization.users.add(user)
+        wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
-        response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_no_permission(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
         payload = {
-            "background_color": fake.background_color,
-            "background_image_id": fake.background_image.pk,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
+            "organization_code": self.organization.code,
+            "name": faker.sentence(nb_words=4),
+            "description": faker.text(),
+            "wikipedia_tags_ids": wikipedia_qids,
+            "order_index": faker.pyint(0, 10),
+            "background_color": faker.color(),
+            "foreground_color": faker.color(),
+            "is_reviewable": faker.boolean(),
         }
-        self.client.force_authenticate(UserFactory())
-        response = self.client.put(
-            reverse("Category-detail", args=(fake.id,)),
-            data=payload,
-            format="multipart",
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_partial_update_no_permission(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        payload = {
-            "name": "New name",
-        }
-        self.client.force_authenticate(UserFactory())
-        response = self.client.patch(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-
-class ProjectCategoryTestCaseBasePermission(JwtAPITestCase, TagTestCaseMixin):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.test_image = cls.get_test_image()
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_base_permission(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
-        payload = {
-            "background_color": fake.background_color,
-            "background_image_id": fake.background_image.pk,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
-        }
-
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
         response = self.client.post(reverse("Category-list"), data=payload)
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-        content = response.json()
-        self.assertIn("id", content)
-
-        pc = models.ProjectCategory.objects.get(pk=content["id"])
-        self.assertEqual(fake.background_color, pc.background_color)
-        self.assertEqual(fake.background_image.pk, pc.background_image.pk)
-        self.assertEqual(fake.foreground_color, pc.foreground_color)
-        self.assertEqual(fake.is_reviewable, pc.is_reviewable)
-        self.assertEqual(fake.name, pc.name)
-        self.assertEqual(fake.order_index, pc.order_index)
-        self.assertEqual(organization.pk, pc.organization.pk)
-        self.assertEqual(
-            [wikipedia_qid],
-            list(pc.wikipedia_tags.all().values_list("wikipedia_qid", flat=True)),
-        )
-
-    def test_retrieve_base_permission(self):
-        obj = factories.ProjectCategoryFactory(background_image=self.test_image)
-        wikipedia_tags = WikipediaTag.objects.bulk_create(
-            WikipediaTagFactory.build_batch(3)
-        )
-        obj.wikipedia_tags.add(*wikipedia_tags)
-
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("Category-detail", args=(obj.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        content = response.json()
-        self.assertEqual(obj.background_color, content["background_color"])
-        self.assertEqual(obj.background_image.pk, content["background_image"]["id"])
-        self.assertEqual(obj.foreground_color, content["foreground_color"])
-        self.assertEqual(obj.is_reviewable, content["is_reviewable"])
-        self.assertEqual(obj.name, content["name"])
-        self.assertEqual(obj.order_index, content["order_index"])
-        self.assertEqual(obj.organization.code, content["organization"])
-        self.assertEqual(
-            {t.wikipedia_qid for t in wikipedia_tags},
-            {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-        )
-
-    def test_list_base_permission(self):
-        pcs = factories.ProjectCategoryFactory.create_batch(
-            2, background_image=self.test_image
-        )
-        for pc in pcs:
-            pc.wikipedia_tags.add(
-                *WikipediaTag.objects.bulk_create(WikipediaTagFactory.build_batch(3))
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            assert content["organization"] == self.organization.code
+            assert content["name"] == payload["name"]
+            assert content["description"] == payload["description"]
+            assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
+                wikipedia_qids
             )
-
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("Category-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        content = response.json()
-        self.assertEqual(content["count"], 2)
-
-        results = [r for r in content["results"] if r["name"] == pcs[0].name][0]
-        self.assertEqual(pcs[0].background_color, results["background_color"])
-        self.assertEqual(pcs[0].background_image.pk, results["background_image"]["id"])
-        self.assertEqual(pcs[0].foreground_color, results["foreground_color"])
-        self.assertEqual(pcs[0].is_reviewable, results["is_reviewable"])
-        self.assertEqual(pcs[0].name, results["name"])
-        self.assertEqual(pcs[0].order_index, results["order_index"])
-        self.assertEqual(pcs[0].organization.code, results["organization"])
-        self.assertEqual(
-            {t.wikipedia_qid for t in pcs[0].wikipedia_tags.all()},
-            {t["wikipedia_qid"] for t in results["wikipedia_tags"]},
-        )
-
-        results = [r for r in content["results"] if r["name"] == pcs[1].name][0]
-        self.assertEqual(pcs[1].background_color, results["background_color"])
-        self.assertEqual(pcs[1].background_image.pk, results["background_image"]["id"])
-        self.assertEqual(pcs[1].foreground_color, results["foreground_color"])
-        self.assertEqual(pcs[1].is_reviewable, results["is_reviewable"])
-        self.assertEqual(pcs[1].name, results["name"])
-        self.assertEqual(pcs[1].order_index, results["order_index"])
-        self.assertEqual(pcs[1].organization.code, results["organization"])
-        self.assertEqual(
-            {t.wikipedia_qid for t in pcs[1].wikipedia_tags.all()},
-            {t["wikipedia_qid"] for t in results["wikipedia_tags"]},
-        )
-
-    def test_destroy_base_permission(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(ProjectCategory.objects.filter(pk=pc.pk).exists())
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_base_permission(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        payload = {
-            "background_color": pc.background_color,
-            "background_image_id": pc.background_image.id,
-            "description": pc.description,
-            "foreground_color": pc.foreground_color,
-            "is_reviewable": pc.is_reviewable,
-            "name": "New name",
-            "order_index": pc.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": pc.organization.code,
-        }
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        pc.refresh_from_db()
-        self.assertEqual(pc.name, "New name")
-
-    def test_partial_update_base_permission(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        payload = {
-            "name": "New name",
-        }
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
-        response = self.client.patch(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        pc.refresh_from_db()
-        self.assertEqual(pc.name, "New name")
+            assert content["order_index"] == payload["order_index"]
+            assert content["background_color"] == payload["background_color"]
+            assert content["foreground_color"] == payload["foreground_color"]
+            assert content["is_reviewable"] == payload["is_reviewable"]
 
 
-class ProjectCategoryTestCaseOrganizationPermission(JwtAPITestCase, TagTestCaseMixin):
+class ReadProjectCategoryTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.test_image = cls.get_test_image()
+        cls.organization = OrganizationFactory()
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
 
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_org_permissions(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
-        payload = {
-            "background_color": fake.background_color,
-            "background_image_id": fake.background_image.id,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
-        }
-
-        user = UserFactory(
-            permissions=[("organizations.add_projectcategory", organization)]
-        )
-        self.client.force_authenticate(user)
-        response = self.client.post(reverse("Category-list"), data=payload)
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
-        content = response.json()
-        self.assertIn("id", content)
-
-        pc = models.ProjectCategory.objects.get(pk=content["id"])
-        self.assertEqual(fake.background_color, pc.background_color)
-        self.assertEqual(fake.background_image.pk, pc.background_image.pk)
-        self.assertEqual(fake.foreground_color, pc.foreground_color)
-        self.assertEqual(fake.is_reviewable, pc.is_reviewable)
-        self.assertEqual(fake.name, pc.name)
-        self.assertEqual(fake.order_index, pc.order_index)
-        self.assertEqual(organization.pk, pc.organization.pk)
-        self.assertEqual(
-            [wikipedia_qid],
-            list(pc.wikipedia_tags.all().values_list("wikipedia_qid", flat=True)),
-        )
-
-    def test_retrieve_org_permissions(self):
-        obj = factories.ProjectCategoryFactory(background_image=self.test_image)
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("Category-detail", args=(obj.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-    def test_list_org_permissions(self):
-        factories.ProjectCategoryFactory.create_batch(
-            2, background_image=self.test_image
-        )
-        user = UserFactory()
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_list_project_category(self, role):
+        user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Category-list"))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        assert content["count"] == 1
+        assert content["results"][0]["organization"] == self.organization.code
+        assert content["results"][0]["id"] == self.category.id
 
-    def test_destroy_org_permissions(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        user = UserFactory(
-            permissions=[("organizations.delete_projectcategory", pc.organization)]
-        )
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_retrieve_project_category(self, role):
+        user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
-        response = self.client.delete(reverse("Category-detail", args=(pc.pk,)))
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(ProjectCategory.objects.filter(pk=pc.pk).exists())
+        response = self.client.get(reverse("Category-detail", args=(self.category.id,)))
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        assert content["organization"] == self.organization.code
+        assert content["id"] == self.category.id
 
+
+class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_org_permissions(self, mocked):
+    def test_update_project_category(self, role, expected_code, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        payload = {
-            "background_color": pc.background_color,
-            "background_image_id": pc.background_image.id,
-            "description": pc.description,
-            "foreground_color": pc.foreground_color,
-            "is_reviewable": pc.is_reviewable,
-            "name": "New name",
-            "order_index": pc.order_index,
-            "wikipedia_tags_ids": [wikipedia_qid],
-            "organization_code": pc.organization.code,
-        }
-        user = UserFactory(
-            permissions=[("organizations.change_projectcategory", pc.organization)]
-        )
+        wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse("Category-detail", args=(pc.pk,)), data=payload, format="multipart"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        pc.refresh_from_db()
-        self.assertEqual(pc.name, "New name")
-
-    def test_partial_update_org_permissions(self):
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
         payload = {
-            "name": "New name",
+            "name": faker.sentence(nb_words=4),
+            "description": faker.text(),
+            "wikipedia_tags_ids": wikipedia_qids,
+            "order_index": faker.pyint(0, 10),
+            "background_color": faker.color(),
+            "foreground_color": faker.color(),
+            "is_reviewable": faker.boolean(),
         }
-        user = UserFactory(
-            permissions=[("organizations.change_projectcategory", pc.organization)]
-        )
-        self.client.force_authenticate(user)
         response = self.client.patch(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
+            reverse("Category-detail", args=(self.category.id,)), data=payload
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
-        pc.refresh_from_db()
-        self.assertEqual(pc.name, "New name")
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            assert content["name"] == payload["name"]
+            assert content["description"] == payload["description"]
+            assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
+                wikipedia_qids
+            )
+            assert content["order_index"] == payload["order_index"]
+            assert content["background_color"] == payload["background_color"]
+            assert content["foreground_color"] == payload["foreground_color"]
+            assert content["is_reviewable"] == payload["is_reviewable"]
+
+
+class DeleteProjectCategoryTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_delete_project_category(self, role, expected_code):
+        category = ProjectCategoryFactory(organization=self.organization)
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        response = self.client.delete(reverse("Category-detail", args=(category.id,)))
+        assert response.status_code == expected_code
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            assert not ProjectCategory.objects.filter(id=category.id).exists()
 
 
 class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        cls.test_image = cls.get_test_image()
+        cls.organization = OrganizationFactory()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_with_template(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        fake = factories.ProjectCategoryFactory.build(background_image=self.test_image)
-        organization = factories.OrganizationFactory()
-        template = factories.TemplateFactory.build()
+    def test_create_with_template(self):
+        self.client.force_authenticate(self.superadmin)
         payload = {
-            "background_color": fake.background_color,
-            "description": fake.description,
-            "foreground_color": fake.foreground_color,
-            "is_reviewable": fake.is_reviewable,
-            "name": fake.name,
-            "order_index": fake.order_index,
-            "tags_ids": [wikipedia_qid],
-            "organization_code": organization.code,
+            "organization_code": self.organization.code,
+            "name": faker.sentence(nb_words=4),
+            "description": faker.text(),
+            "order_index": faker.pyint(0, 10),
+            "background_color": faker.color(),
+            "foreground_color": faker.color(),
+            "is_reviewable": faker.boolean(),
             "template": {
-                "title_placeholder": template.title_placeholder,
-                "description_placeholder": template.description_placeholder,
-                "goal_placeholder": template.goal_placeholder,
-                "blogentry_placeholder": template.blogentry_placeholder,
+                "title_placeholder": faker.sentence(nb_words=4),
+                "description_placeholder": faker.text(),
+                "goal_placeholder": faker.sentence(nb_words=4),
+                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "blogentry_placeholder": faker.text(),
+                "goal_title": faker.sentence(nb_words=4),
+                "goal_description": faker.text(),
             },
         }
-        user = UserFactory(
-            permissions=[("organizations.add_projectcategory", organization)]
-        )
-        self.client.force_authenticate(user)
         response = self.client.post(reverse("Category-list"), data=payload)
-        self.assertEqual(
-            response.status_code, status.HTTP_201_CREATED, response.content
-        )
-
+        assert response.status_code == status.HTTP_201_CREATED
         content = response.json()
-        self.assertIn("id", content)
-        self.assertIn("template", content)
+        template = content["template"]
+        payload_template = payload["template"]
+        assert template["title_placeholder"] == payload_template["title_placeholder"]
+        assert (
+            template["description_placeholder"]
+            == payload_template["description_placeholder"]
+        )
+        assert template["goal_placeholder"] == payload_template["goal_placeholder"]
+        assert (
+            template["blogentry_title_placeholder"]
+            == payload_template["blogentry_title_placeholder"]
+        )
+        assert (
+            template["blogentry_placeholder"]
+            == payload_template["blogentry_placeholder"]
+        )
+        assert template["goal_title"] == payload_template["goal_title"]
+        assert template["goal_description"] == payload_template["goal_description"]
 
-        pc = models.ProjectCategory.objects.get(pk=content["id"])
-        template = pc.template
-        self.assertIsNotNone(template)
-        self.assertEqual(
-            template.title_placeholder, content["template"]["title_placeholder"]
-        )
-        self.assertEqual(
-            template.description_placeholder,
-            content["template"]["description_placeholder"],
-        )
-        self.assertEqual(
-            template.goal_placeholder, content["template"]["goal_placeholder"]
-        )
-        self.assertEqual(
-            template.blogentry_placeholder, content["template"]["blogentry_placeholder"]
-        )
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_creating_missing_template(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        pc = factories.ProjectCategoryFactory(background_image=self.test_image)
-        template = factories.TemplateFactory.build()
+    def test_update_template(self):
+        self.client.force_authenticate(self.superadmin)
+        category = ProjectCategoryFactory(organization=self.organization)
         payload = {
-            "background_color": pc.background_color,
-            "description": pc.description,
-            "foreground_color": pc.foreground_color,
-            "is_reviewable": pc.is_reviewable,
-            "name": "New name",
-            "order_index": pc.order_index,
-            "tags_ids": [wikipedia_qid],
-            "organization_code": pc.organization.code,
             "template": {
-                "title_placeholder": template.title_placeholder,
-                "description_placeholder": template.description_placeholder,
-                "goal_placeholder": template.goal_placeholder,
-                "blogentry_placeholder": template.blogentry_placeholder,
+                "title_placeholder": faker.sentence(nb_words=4),
+                "description_placeholder": faker.text(),
+                "goal_placeholder": faker.sentence(nb_words=4),
+                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "blogentry_placeholder": faker.text(),
+                "goal_title": faker.sentence(nb_words=4),
+                "goal_description": faker.text(),
             },
         }
-        user = UserFactory(
-            permissions=[("organizations.change_projectcategory", pc.organization)]
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)), data=payload
         )
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        template = content["template"]
+        payload_template = payload["template"]
+        assert template["title_placeholder"] == payload_template["title_placeholder"]
+        assert (
+            template["description_placeholder"]
+            == payload_template["description_placeholder"]
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pc.refresh_from_db()
-        template = pc.template
-        self.assertIsNotNone(template)
-        self.assertEqual(
-            template.title_placeholder, payload["template"]["title_placeholder"]
+        assert template["goal_placeholder"] == payload_template["goal_placeholder"]
+        assert (
+            template["blogentry_title_placeholder"]
+            == payload_template["blogentry_title_placeholder"]
         )
-        self.assertEqual(
-            template.description_placeholder,
-            payload["template"]["description_placeholder"],
+        assert (
+            template["blogentry_placeholder"]
+            == payload_template["blogentry_placeholder"]
         )
-        self.assertEqual(
-            template.goal_placeholder, payload["template"]["goal_placeholder"]
-        )
-        self.assertEqual(
-            template.blogentry_placeholder, payload["template"]["blogentry_placeholder"]
-        )
+        assert template["goal_title"] == payload_template["goal_title"]
+        assert template["goal_description"] == payload_template["goal_description"]
 
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_updating_existing_template(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        template = factories.TemplateFactory()
-        pc = factories.ProjectCategoryFactory(template=template)
+    def test_partial_update_template(self):
+        self.client.force_authenticate(self.superadmin)
+        category = ProjectCategoryFactory(organization=self.organization)
+        original_template = category.template
         payload = {
-            "background_color": pc.background_color,
-            "description": pc.description,
-            "foreground_color": pc.foreground_color,
-            "is_reviewable": pc.is_reviewable,
-            "name": "New name",
-            "order_index": pc.order_index,
-            "tags_ids": [wikipedia_qid],
-            "organization_code": pc.organization.code,
             "template": {
-                "title_placeholder": "NewTitle",
-                "description_placeholder": template.description_placeholder,
-                "goal_placeholder": template.goal_placeholder,
-                "blogentry_placeholder": template.blogentry_placeholder,
+                "title_placeholder": faker.sentence(nb_words=4),
             },
         }
-        user = UserFactory(
-            permissions=[("organizations.change_projectcategory", pc.organization)]
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)), data=payload
         )
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
+        assert response.status_code == status.HTTP_200_OK
+        content = response.json()
+        template = content["template"]
+        assert template["title_placeholder"] == payload["template"]["title_placeholder"]
+        assert (
+            template["description_placeholder"]
+            == original_template.description_placeholder
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pc.refresh_from_db()
-        template = pc.template
-        self.assertIsNotNone(template)
-        self.assertEqual(template.title_placeholder, "NewTitle")
-
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_deleting_existing_template(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        template = factories.TemplateFactory()
-        pc = factories.ProjectCategoryFactory(template=template)
-        self.assertIsNotNone(pc.template)
-
-        payload = {
-            "background_color": pc.background_color,
-            "description": pc.description,
-            "foreground_color": pc.foreground_color,
-            "is_reviewable": pc.is_reviewable,
-            "name": "New name",
-            "order_index": pc.order_index,
-            "tags_ids": [wikipedia_qid],
-            "organization_code": pc.organization.code,
-        }
-        user = UserFactory(
-            permissions=[("organizations.change_projectcategory", pc.organization)]
+        assert template["goal_placeholder"] == original_template.goal_placeholder
+        assert (
+            template["blogentry_title_placeholder"]
+            == original_template.blogentry_title_placeholder
         )
-        self.client.force_authenticate(user)
-        response = self.client.put(
-            reverse("Category-detail", args=(pc.pk,)), data=payload
+        assert (
+            template["blogentry_placeholder"] == original_template.blogentry_placeholder
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pc.refresh_from_db()
-        self.assertEqual(pc.template.title_placeholder, "")
-        self.assertEqual(pc.template.description_placeholder, "")
-        self.assertEqual(pc.template.goal_placeholder, "")
-        self.assertEqual(pc.template.blogentry_title_placeholder, "")
-        self.assertEqual(pc.template.blogentry_placeholder, "")
-        self.assertEqual(pc.template.images.count(), 0)
+        assert template["goal_title"] == original_template.goal_title
+        assert template["goal_description"] == original_template.goal_description
