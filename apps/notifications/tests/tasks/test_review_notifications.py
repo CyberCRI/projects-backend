@@ -40,7 +40,7 @@ class NewReviewTestCase(JwtAPITestCase):
             "description": "Description",
         }
         response = self.client.post(
-            reverse("Reviewed-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Reviewed-list", args=(project.id,)), data=payload
         )
         assert response.status_code == status.HTTP_201_CREATED
         review_pk = response.json()["id"]

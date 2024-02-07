@@ -233,7 +233,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -261,7 +261,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )

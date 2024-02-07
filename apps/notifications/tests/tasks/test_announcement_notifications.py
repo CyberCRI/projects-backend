@@ -40,7 +40,7 @@ class NewAnnouncementTestCase(JwtAPITestCase):
             "project_id": project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", kwargs={"project_id": project.id}),
+            reverse("Announcement-list", args=(project.id,)),
             data=payload,
         )
 
