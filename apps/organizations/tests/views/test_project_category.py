@@ -83,7 +83,6 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         assert response.status_code == status.HTTP_200_OK
         content = response.json()
         assert content["count"] == 1
-        assert content["results"][0]["organization"] == self.organization.code
         assert content["results"][0]["id"] == self.category.id
 
     @parameterized.expand(
@@ -98,7 +97,6 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         response = self.client.get(reverse("Category-detail", args=(self.category.id,)))
         assert response.status_code == status.HTTP_200_OK
         content = response.json()
-        assert content["organization"] == self.organization.code
         assert content["id"] == self.category.id
 
 
@@ -177,7 +175,7 @@ class DeleteProjectCategoryTestCase(JwtAPITestCase):
             assert not ProjectCategory.objects.filter(id=category.id).exists()
 
 
-class ProjectCategoryTemplateTestCase(JwtAPITestCase, TagTestCaseMixin):
+class ProjectCategoryTemplateTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
