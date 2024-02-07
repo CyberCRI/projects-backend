@@ -412,7 +412,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=0, hour=7),
     },
     "send_access_request_notification": {
-        "task": "apps.notifications.tasks.send_access_request_notifications",
+        "task": "apps.notifications.tasks.send_access_request_notification",
         "schedule": crontab(minute=0, hour=9),
     },
     "get_new_mixpanel_events": {
