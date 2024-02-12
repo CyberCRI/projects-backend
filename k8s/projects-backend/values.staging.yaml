@@ -30,7 +30,7 @@ backend:
 redisAllowedLabel: projects-api-redis-stag-test-client # Required for network policy
 
 redis:
-  autoSync: true
+  autoSync: false
   valueFiles:
   - values.yaml
   - projects-api/values.yaml

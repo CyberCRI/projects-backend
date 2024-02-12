@@ -38,7 +38,6 @@ backend:
   replicaCount: 1
 
 redis:
-  # autoSync: true
   autoSync: false
   valueFiles:
   - values.yaml
