@@ -3,7 +3,6 @@ from datetime import date
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
 
 from django.apps import apps
-from django.conf import settings
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -12,11 +11,10 @@ from django.core.validators import MaxValueValidator
 from django.db import models, transaction
 from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
+from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm, get_objects_for_user
-
-from pgvector.django import VectorField
 
 from apps.accounts.utils import (
     default_onboarding_status,
@@ -320,7 +318,9 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         ]
 
 
-class ProjectUser(AbstractUser, VectorModel, HasMultipleIDs, HasOwner, OrganizationRelated):
+class ProjectUser(
+    AbstractUser, VectorModel, HasMultipleIDs, HasOwner, OrganizationRelated
+):
     """
     Override Django base user by a user of projects app
     """
@@ -617,6 +617,49 @@ class ProjectUser(AbstractUser, VectorModel, HasMultipleIDs, HasOwner, Organizat
     def save(self, *args, **kwargs):
         self.slug = self.get_slug()
         super().save(*args, **kwargs)
+
+    @property
+    def should_embed(self) -> bool:
+        # TODO : check last embedding date
+        return (
+            len(self.personal_description) > 10
+            or len(self.professional_description) > 10
+            or self.skills.filter(level__gte=3).exists()
+        )
+
+    @classmethod
+    def get_embedding_summary_chat_system(cls) -> List[str]:
+        return [
+            "CONTEXT : You are responsible for the portfolio of people in your organization.",
+            "OBJECTIVE : Generate a person's professional profile from the following information.",
+            "STYLE: Easy to understand for an embedding model.",
+            "TONE: Concise and explicit.",
+            "AUDIENCE : An embedding model which will turn this summary into a vector.",
+            "RESPONSE : The response must be a text of 120 words MAXIMUM.",
+            "IMPORTANT : DO NOT MAKE UP ANY FACTS, EVEN IF IT MEANS RETURNING JUST A SENTENCE",
+        ]
+
+    def get_embedding_summary_prompt(self) -> List[str]:
+        expert_skills = self.skills.filter(level=4).values_list(
+            "wikipedia_tag__name", flat=True
+        )
+        expert_skills = ", ".join(expert_skills) if expert_skills else ""
+        competent_skills = self.skills.filter(level=3).values_list(
+            "wikipedia_tag__name", flat=True
+        )
+        competent_skills = ", ".join(competent_skills) if competent_skills else ""
+        description = "\n".join(
+            [
+                strip_tags(self.personal_description)[:5000],
+                strip_tags(self.professional_description)[:5000],
+            ]
+        )
+        return [
+            f"Job: {self.job}",
+            f"Expert in: {expert_skills}",
+            f"Competent in: {competent_skills}",
+            f"Biography: {description}",
+        ]
 
 
 class PrivacySettings(models.Model, HasOwner):

@@ -21,4 +21,9 @@ class Migration(migrations.Migration):
             name="embedding_summary",
             field=models.TextField(blank=True),
         ),
+        migrations.AddField(
+            model_name="projectuser",
+            name="last_embedding_update",
+            field=models.DateTimeField(null=True),
+        ),
     ]

@@ -1,8 +1,9 @@
 from typing import TYPE_CHECKING, Any, List, Optional
-from pgvector.django import CosineDistance, VectorField
 
 from django.db import models
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from pgvector.django import CosineDistance, VectorField
 
 from services.mistral.interface import MistralService
 
@@ -83,16 +84,18 @@ class HasMultipleIDs:
 
 
 class VectorModel(models.Model):
+    last_embedding_update = models.DateTimeField(null=True)
     embedding_summary = models.TextField(blank=True)
     embedding = VectorField(dimensions=1024, null=True)
 
     @property
     def should_embed(self) -> bool:
         raise NotImplementedError()
-    
-    def get_embedding_summary_chat_system(self) -> List[str]:
+
+    @classmethod
+    def get_embedding_summary_chat_system(cls) -> List[str]:
         raise NotImplementedError()
-    
+
     def get_embedding_summary_prompt(self) -> List[str]:
         raise NotImplementedError()
 
@@ -100,7 +103,7 @@ class VectorModel(models.Model):
         system = self.get_embedding_summary_chat_system()
         prompt = self.get_embedding_summary_prompt()
         return MistralService.get_chat_response(system, prompt, **kwargs)
-    
+
     def get_embedding(self, summary: Optional[str] = None, **kwargs) -> List[float]:
         summary = summary or self.get_embedding_summary(**kwargs)
         return MistralService.get_embedding(summary)
@@ -112,17 +115,19 @@ class VectorModel(models.Model):
             instance = self.__class__.objects.filter(pk=self.pk)
             instance.update(
                 embedding_summary=summary,
-                embedding=embedding
+                embedding=embedding,
+                last_embedding_update=timezone.now(),
             )
             return instance.get()
         return self
-    
-    @classmethod
-    def vector_search(cls, embedding: List[float], threshold: int = 5) -> List["VectorModel"]:
-        return cls.objects.filter(embedding_summary__isnull=False).order_by(
-            CosineDistance('embedding', embedding)
-        )[:threshold]
 
+    @classmethod
+    def vector_search(
+        cls, embedding: List[float], limit: int = 5
+    ) -> List["VectorModel"]:
+        return cls.objects.filter(embedding_summary__isnull=False).order_by(
+            CosineDistance("embedding", embedding)
+        )[:limit]
 
     class Meta:
         abstract = True

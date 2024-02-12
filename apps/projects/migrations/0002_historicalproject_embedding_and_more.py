@@ -22,6 +22,11 @@ class Migration(migrations.Migration):
             field=models.TextField(blank=True),
         ),
         migrations.AddField(
+            model_name="historicalproject",
+            name="last_embedding_update",
+            field=models.DateTimeField(null=True),
+        ),
+        migrations.AddField(
             model_name="project",
             name="embedding",
             field=pgvector.django.VectorField(dimensions=1024, null=True),
@@ -30,5 +35,11 @@ class Migration(migrations.Migration):
             model_name="project",
             name="embedding_summary",
             field=models.TextField(blank=True),
+        ),
+
+        migrations.AddField(
+            model_name="project",
+            name="last_embedding_update",
+            field=models.DateTimeField(null=True),
         ),
     ]

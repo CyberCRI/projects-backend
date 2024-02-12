@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-06 15:55+0000\n"
+"POT-Creation-Date: 2024-02-12 17:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,19 +36,19 @@ msgid ""
 "invitation, reset_password"
 msgstr ""
 
-#: apps/accounts/models.py:125 apps/projects/models.py:151
+#: apps/accounts/models.py:127 apps/projects/models.py:156
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:620
+#: apps/accounts/models.py:667
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:621
+#: apps/accounts/models.py:668
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:622
+#: apps/accounts/models.py:669
 msgid "Public"
 msgstr ""
 
@@ -887,35 +887,35 @@ msgstr ""
 msgid "The organizations parameter is mandatory."
 msgstr ""
 
-#: apps/projects/models.py:135
+#: apps/projects/models.py:140
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:144
+#: apps/projects/models.py:149
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:157
+#: apps/projects/models.py:162
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:168
+#: apps/projects/models.py:173
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:175
+#: apps/projects/models.py:180
 msgid "wikipedia tags"
 msgstr ""
 
-#: apps/projects/models.py:178
+#: apps/projects/models.py:183
 msgid "organizational tags"
 msgstr ""
 
-#: apps/projects/models.py:185
+#: apps/projects/models.py:190
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:191
+#: apps/projects/models.py:196
 msgid "main category"
 msgstr ""
 
