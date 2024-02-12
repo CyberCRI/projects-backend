@@ -22,6 +22,7 @@ from apps.commons.db.abc import (
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
+    VectorModel,
 )
 from apps.commons.utils.permissions import get_write_permissions_from_subscopes
 from apps.misc.models import SDG, Language, Tag, WikipediaTag
@@ -60,7 +61,7 @@ class SoftDeleteManager(models.Manager):
 
 
 class Project(
-    HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated
+    VectorModel, HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated
 ):
     """Main model of the app, represent a user project
 
@@ -196,10 +197,6 @@ class Project(
         m2m_fields=[wikipedia_tags, organization_tags, categories],
     )
     objects = SoftDeleteManager()
-
-    # Mistral and PGVector fields
-    generated_summary = models.TextField(blank=True)
-    summary_embedding = VectorField(dimensions=settings.PGVECTOR_DIMENSIONS, null=True)
 
     class Meta:
         write_only_subscopes = (

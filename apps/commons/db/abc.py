@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING, Any, List, Optional
+from pgvector.django import CosineDistance, VectorField
 
 from django.db import models
 from django.shortcuts import get_object_or_404
+
+from services.mistral.interface import MistralService
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -77,3 +80,49 @@ class HasMultipleIDs:
     ) -> List[Any]:
         """Get the main IDs from a list of secondary IDs."""
         return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]
+
+
+class VectorModel(models.Model):
+    embedding_summary = models.TextField(blank=True)
+    embedding = VectorField(dimensions=1024, null=True)
+
+    @property
+    def should_embed(self) -> bool:
+        raise NotImplementedError()
+    
+    def get_embedding_summary_chat_system(self) -> List[str]:
+        raise NotImplementedError()
+    
+    def get_embedding_summary_prompt(self) -> List[str]:
+        raise NotImplementedError()
+
+    def get_embedding_summary(self, **kwargs) -> str:
+        system = self.get_embedding_summary_chat_system()
+        prompt = self.get_embedding_summary_prompt()
+        return MistralService.get_chat_response(system, prompt, **kwargs)
+    
+    def get_embedding(self, summary: Optional[str] = None, **kwargs) -> List[float]:
+        summary = summary or self.get_embedding_summary(**kwargs)
+        return MistralService.get_embedding(summary)
+
+    def vectorize(self, summary: Optional[str] = None, **kwargs) -> "VectorModel":
+        if self.should_embed:
+            summary = summary or self.get_embedding_summary(**kwargs)
+            embedding = self.get_embedding(summary)
+            instance = self.__class__.objects.filter(pk=self.pk)
+            instance.update(
+                embedding_summary=summary,
+                embedding=embedding
+            )
+            return instance.get()
+        return self
+    
+    @classmethod
+    def vector_search(cls, embedding: List[float], threshold: int = 5) -> List["VectorModel"]:
+        return cls.objects.filter(embedding_summary__isnull=False).order_by(
+            CosineDistance('embedding', embedding)
+        )[:threshold]
+
+
+    class Meta:
+        abstract = True

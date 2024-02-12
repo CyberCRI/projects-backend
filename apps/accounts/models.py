@@ -28,6 +28,7 @@ from apps.commons.db.abc import (
     HasOwner,
     OrganizationRelated,
     PermissionsSetupModel,
+    VectorModel,
 )
 from apps.misc.models import SDG, Language, WikipediaTag
 from apps.projects.models import Project
@@ -319,7 +320,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         ]
 
 
-class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
+class ProjectUser(AbstractUser, VectorModel, HasMultipleIDs, HasOwner, OrganizationRelated):
     """
     Override Django base user by a user of projects app
     """
@@ -392,10 +393,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     skype = models.CharField(blank=True, max_length=255)
     landline_phone = models.CharField(blank=True, max_length=255)
     twitter = models.URLField(blank=True)
-
-    # Mistral and PGVector fields
-    generated_summary = models.TextField(blank=True)
-    summary_embedding = VectorField(dimensions=settings.PGVECTOR_DIMENSIONS, null=True)
 
     # TODO : Delete these fields when people migration is done
     people_data = models.JSONField(default=dict)
