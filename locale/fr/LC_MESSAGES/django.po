@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-13 13:48+0000\n"
+"POT-Creation-Date: 2024-02-13 13:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -38,7 +38,7 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/models.py:125 apps/projects/models.py:153
+#: apps/accounts/models.py:125 apps/projects/models.py:150
 msgid "visibility"
 msgstr "visibilité"
 
@@ -1206,35 +1206,35 @@ msgstr " et "
 msgid "The organizations parameter is mandatory."
 msgstr "Le paramètre organizations est obligatoire."
 
-#: apps/projects/models.py:137
+#: apps/projects/models.py:134
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:146
+#: apps/projects/models.py:143
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:159
+#: apps/projects/models.py:156
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:170
+#: apps/projects/models.py:167
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:174
 msgid "wikipedia tags"
 msgstr "tags wikipedia"
 
-#: apps/projects/models.py:180
+#: apps/projects/models.py:177
 msgid "organizational tags"
 msgstr "tags organisationnels"
 
-#: apps/projects/models.py:187
+#: apps/projects/models.py:184
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:193
+#: apps/projects/models.py:190
 msgid "main category"
 msgstr "objectif principal"
 

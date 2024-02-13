@@ -21,6 +21,8 @@ class Embedding(models.Model):
             to set an explicit related_name
         - embed_if_not_visible: whether to embed the item if it's not visible in
             vector_search results
+        - temperature: the temperature to use for the chat prompt (API default is 0.7)
+        - max_tokens: the maximum number of tokens to use for the chat prompt
 
     And the following methods:
         - set_visibility: a method that returns whether the item should be
@@ -33,6 +35,8 @@ class Embedding(models.Model):
 
     item: models.OneToOneField
     embed_if_not_visible: bool = False
+    temperature: Optional[float] = None
+    max_tokens: Optional[int] = None
 
     last_update = models.DateTimeField(auto_now=True)
     summary = models.TextField(blank=True)
@@ -55,17 +59,22 @@ class Embedding(models.Model):
         raise NotImplementedError()
 
     def get_summary(
-        self,
-        system: Optional[List[str]] = None,
-        prompt: Optional[List[str]] = None,
-        **kwargs,
+        self, system: Optional[List[str]] = None, prompt: Optional[List[str]] = None
     ) -> str:
         system = system or self.get_summary_chat_system()
         prompt = prompt or self.get_summary_chat_prompt()
+        kwargs = {
+            key: value
+            for key, value in {
+                "temperature": self.temperature,
+                "max_tokens": self.max_tokens,
+            }.items()
+            if value is not None
+        }
         return MistralService.get_chat_response(system, prompt, **kwargs)
 
-    def get_embedding(self, summary: Optional[str] = None, **kwargs) -> List[float]:
-        summary = summary or self.get_summary(**kwargs)
+    def get_embedding(self, summary: Optional[str] = None) -> List[float]:
+        summary = summary or self.get_summary()
         return MistralService.get_embedding(summary)
 
     def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
@@ -74,12 +83,12 @@ class Embedding(models.Model):
         return hashlib.sha256(prompt.encode()).hexdigest()
 
     @transaction.atomic
-    def vectorize(self, summary: Optional[str] = None, **kwargs) -> "Embedding":
+    def vectorize(self, summary: Optional[str] = None) -> "Embedding":
         is_visible = self.set_visibility()
         if not self.embed_if_not_visible and not is_visible:
             return self
         prompt = self.get_summary_chat_prompt()
-        summary = summary or self.get_summary(prompt=prompt, **kwargs)
+        summary = summary or self.get_summary(prompt=prompt)
         embedding = self.get_embedding(summary)
         self.summary = summary
         self.embedding = embedding
