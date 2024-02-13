@@ -98,13 +98,17 @@ class Embedding(models.Model):
 
     @classmethod
     def vector_search(
-        cls, embedding: List[float], limit: int = 5
+        cls,
+        embedding: List[float],
+        queryset: Optional[models.QuerySet["Embedding"]] = None,
     ) -> List[models.Model]:
-        related_model = cls.item.field.related_model
+        queryset = queryset or cls.item.field.related_model.objects
+        if not queryset.model == cls.item.field.related_model:
+            raise ValueError("The given queryset does not match the related model.")
         related_name = cls.item.field.related_query_name()
-        return related_model.objects.filter(
-            **{f"{related_name}__is_visible": True}
-        ).order_by(CosineDistance(f"{related_name}__embedding", embedding))[:limit]
+        return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
+            CosineDistance(f"{related_name}__embedding", embedding)
+        )
 
     @classmethod
     def queue_or_create(cls, item: models.Model) -> "Embedding":
