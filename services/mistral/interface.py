@@ -11,9 +11,7 @@ class MistralService:
     @classmethod
     def get_chat_response(cls, system: List[str], prompt: List[str], **kwargs) -> str:
         """
-        adivsed kwargs for user:
-        - temperature = 0.1 (default 0.7)
-        - max_tokens = 500
+        Get the chat response from Mistral API.
         """
         system = [ChatMessage(role="system", content=message) for message in system]
         prompt = [ChatMessage(role="user", content=message) for message in prompt]
