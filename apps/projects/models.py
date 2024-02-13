@@ -11,7 +11,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
 from django.utils import timezone
-from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm
@@ -22,7 +21,6 @@ from apps.commons.db.abc import (
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
-    VectorModel,
 )
 from apps.commons.utils.permissions import get_write_permissions_from_subscopes
 from apps.misc.models import SDG, Language, Tag, WikipediaTag
@@ -61,7 +59,6 @@ class SoftDeleteManager(models.Manager):
 
 
 class Project(
-    VectorModel,
     HasMultipleIDs,
     PermissionsSetupModel,
     ProjectRelated,
@@ -480,52 +477,6 @@ class Project(
         return (
             self.owners.all() | self.reviewers.all() | self.members.all()
         ).distinct()
-
-    @property
-    def should_embed(self) -> bool:
-        # TODO : check last embedding date
-        return len(self.description) > 10 or self.blog_entries.exists()
-
-    @classmethod
-    def get_embedding_summary_chat_system(cls) -> List[str]:
-        return [
-            "CONTEXT : You are responsible for the portfolio of projects in your organization.",
-            "OBJECTIVE : Generate a project profile from the following information.\
-                - First give the project global objective\
-                - Then give the project impact\
-                - Then five the project summary",
-            "STYLE: Easy to understand for an embedding model.",
-            "TONE: Concise and explicit.",
-            "AUDIENCE : An embedding model which will turn this summary into a vector.",
-            "RESPONSE : The response must be a text of 120 words MAXIMUM.",
-            "IMPORTANT : DO NOT MAKE UP ANY FACTS, EVEN IF IT MEANS RETURNING JUST A SENTENCE",
-        ]
-
-    def get_embedding_summary_prompt(self) -> List[str]:
-        """
-        Return the prompt for the embedding model.
-        """
-        if len(self.description) > 10:
-            content = strip_tags(self.description)[:10000]
-        elif self.blog_entries.exists():
-            blog_entry = self.blog_entries.first()
-            title = blog_entry.title
-            content = strip_tags(blog_entry.content)[:10000]
-            content = f"{title}:\n{content}"
-        else:
-            content = ""
-        if self.wikipedia_tags.exists():
-            key_concepts = ", ".join(
-                self.wikipedia_tags.all().values_list("name_en", flat=True)
-            )
-        else:
-            key_concepts = ""
-        return [
-            f"Title : {self.title}",
-            f"Purpose : {self.purpose}",
-            f"Key concepts : {key_concepts}",
-            f"Content : {content}",
-        ]
 
 
 class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
