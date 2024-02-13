@@ -2,6 +2,7 @@ import hashlib
 from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
@@ -98,9 +99,7 @@ class Embedding(models.Model):
 
     @classmethod
     def vector_search(
-        cls,
-        embedding: List[float],
-        queryset: Optional[models.QuerySet["Embedding"]] = None,
+        cls, embedding: List[float], queryset: Optional[QuerySet["Embedding"]] = None
     ) -> List[models.Model]:
         queryset = queryset or cls.item.field.related_model.objects
         if not queryset.model == cls.item.field.related_model:
