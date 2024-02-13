@@ -59,10 +59,7 @@ class SoftDeleteManager(models.Manager):
 
 
 class Project(
-    HasMultipleIDs,
-    PermissionsSetupModel,
-    ProjectRelated,
-    OrganizationRelated,
+    HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated
 ):
     """Main model of the app, represent a user project
 
