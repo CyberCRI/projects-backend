@@ -114,9 +114,7 @@ class Embedding(models.Model):
     @classmethod
     def queue_or_create(cls, item: models.Model) -> "Embedding":
         instance, created = cls.objects.get_or_create(item=item)
-        if created:
-            return instance.vectorize()
-        if (
+        if created or (
             instance.prompt_hashcode != instance.hash_prompt()
             and not instance.queued_for_update
         ):

@@ -45,4 +45,4 @@ SIMPLE_JWT = {
 #   MISTRAL  #
 ##############
 
-MISTRAL_AUTO_UPDATE = False
+MISTRAL_ENABLED = False

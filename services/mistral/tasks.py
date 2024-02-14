@@ -7,7 +7,7 @@ from .models import ProjectEmbedding, UserEmbedding
 
 @app.task
 def update_queued_embeddings():
-    if settings.MISTRAL_AUTO_UPDATE:
+    if settings.MISTRAL_ENABLED:
         _update_queued_embeddings()
 
 

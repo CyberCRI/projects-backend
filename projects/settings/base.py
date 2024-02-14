@@ -586,4 +586,4 @@ GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
 ##############
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
-MISTRAL_AUTO_UPDATE = True
+MISTRAL_ENABLED = True
