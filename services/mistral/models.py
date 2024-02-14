@@ -85,16 +85,15 @@ class Embedding(models.Model):
 
     @transaction.atomic
     def vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        is_visible = self.set_visibility()
-        if not self.embed_if_not_visible and not is_visible:
-            return self
-        prompt = self.get_summary_chat_prompt()
-        summary = summary or self.get_summary(prompt=prompt)
-        embedding = self.get_embedding(summary)
-        self.summary = summary
-        self.embedding = embedding
-        self.prompt_hashcode = self.hash_prompt(prompt)
-        self.save()
+        if self.embed_if_not_visible or self.set_visibility():
+            prompt = self.get_summary_chat_prompt()
+            summary = summary or self.get_summary(prompt=prompt)
+            embedding = self.get_embedding(summary)
+            self.summary = summary
+            self.embedding = embedding
+            self.queued_for_update = False
+            self.prompt_hashcode = self.hash_prompt(prompt)
+            self.save()
         return self
 
     @classmethod
@@ -114,7 +113,10 @@ class Embedding(models.Model):
         instance, created = cls.objects.get_or_create(item=item)
         if created:
             return instance.vectorize()
-        if instance.prompt_hashcode != instance.hash_prompt():
+        if (
+            instance.prompt_hashcode != instance.hash_prompt()
+            and not instance.queued_for_update
+        ):
             instance.queued_for_update = True
             instance.save()
         return instance
@@ -145,7 +147,7 @@ class ProjectEmbedding(Embedding):
             "OBJECTIVE : Generate a project profile from the following information.\
                 - First give the project global objective\
                 - Then give the project impact\
-                - Then five the project summary",
+                - Then give the project summary",
             "STYLE: Easy to understand for an embedding model.",
             "TONE: Concise and explicit.",
             "AUDIENCE : An embedding model which will turn this summary into a vector.",
