@@ -381,7 +381,6 @@ AWS_DEFAULT_ACL = None
 AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME", "criparisdevlabprojects")
 AZURE_CONTAINER = os.getenv("AZURE_CONTAINER", "projects")
 AZURE_URL_EXPIRATION_SECS = int(os.getenv("AZURE_URL_EXPIRATION_SECS", "3600"))
-AZURE_CUSTOM_DOMAIN = os.getenv("AZURE_CUSTOM_DOMAIN")
 AZURE_CACHE_CONTROL = f"private,max-age={AZURE_URL_EXPIRATION_SECS},must-revalidate"
 
 ##############

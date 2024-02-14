@@ -6,7 +6,6 @@ config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.develop
     AZURE_ACCOUNT_NAME: criparisdevlabprojects
-    AZURE_CUSTOM_DOMAIN: assets.projects.k8s.lp-i.dev
     POSTGRES_HOST: dev-lab-projects-backend.postgres.database.azure.com
     ALGOLIA_APP_ID: YCCI8BEZKN
     KEYCLOAK_SERVER_URL: https://id.lp-i.dev/auth/
