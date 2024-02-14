@@ -83,17 +83,20 @@ class Embedding(models.Model):
         prompt = "\n".join(prompt)
         return hashlib.sha256(prompt.encode()).hexdigest()
 
+    def _vectorize(self, summary: Optional[str] = None) -> "Embedding":
+        prompt = self.get_summary_chat_prompt()
+        summary = summary or self.get_summary(prompt=prompt)
+        embedding = self.get_embedding(summary)
+        self.summary = summary
+        self.embedding = embedding
+        self.queued_for_update = False
+        self.prompt_hashcode = self.hash_prompt(prompt)
+        self.save()
+
     @transaction.atomic
     def vectorize(self, summary: Optional[str] = None) -> "Embedding":
         if self.embed_if_not_visible or self.set_visibility():
-            prompt = self.get_summary_chat_prompt()
-            summary = summary or self.get_summary(prompt=prompt)
-            embedding = self.get_embedding(summary)
-            self.summary = summary
-            self.embedding = embedding
-            self.queued_for_update = False
-            self.prompt_hashcode = self.hash_prompt(prompt)
-            self.save()
+            self._vectorize(summary)
         return self
 
     @classmethod
