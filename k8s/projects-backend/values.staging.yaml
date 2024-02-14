@@ -26,7 +26,6 @@ hostname: api.projects.k8s.lp-i.xyz
 backend:
   replicaCount: 1
 
-redisAllowedLabel: projects-api-redis-stag-test-client # Required for network policy
 
 redis:
   autoSync: false

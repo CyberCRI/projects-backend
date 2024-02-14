@@ -107,8 +107,6 @@ celery:
       interval: 30s
       scrapeTimeout: 10s
 
-redisAllowedLabel: projects-api-redis-client # Required for network policy
-
 redis:
   enabled: false # todo: enable by default
   autoSync: false
