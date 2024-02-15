@@ -4,48 +4,61 @@ from faker import Faker
 
 from apps.commons.test import JwtAPITestCase
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
+from services.mistral.tasks import queue_or_create_project_embedding_task
 from services.mistral.testcases import MistralTestCaseMixin
 
 faker = Faker()
 
 
 class ProjectEmbeddingVisibilityTestCase(JwtAPITestCase):
-    def test_set_visibility_with_description(self):
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_set_visibility_with_description(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description=faker.text())
         project.embedding.set_visibility()
         assert project.embedding.is_visible
 
-    def test_set_visibility_with_blog_entries(self):
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_set_visibility_with_blog_entries(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description="")
         BlogEntryFactory(project=project)
         project.embedding.set_visibility()
         assert project.embedding.is_visible
 
-    def test_set_visibility_not_visible(self):
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_set_visibility_not_visible(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description="")
         project.embedding.set_visibility()
         assert not project.embedding.is_visible
 
 
 class ProjectEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
-    @classmethod
-    def setUpTestData(cls):
-        cls.project = ProjectFactory(description=faker.text())
-
-    def test_get_summary_chat_system(self):
-        response = self.project.embedding.get_summary_chat_system()
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_get_summary_chat_system(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
+        project = ProjectFactory(description=faker.text())
+        response = project.embedding.get_summary_chat_system()
         assert all(isinstance(x, str) for x in response)
 
-    def test_get_summary_chat_prompt(self):
-        response = self.project.embedding.get_summary_chat_prompt()
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_get_summary_chat_prompt(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
+        project = ProjectFactory(description=faker.text())
+        response = project.embedding.get_summary_chat_prompt()
         assert all(isinstance(x, str) for x in response)
 
-    def test_queue_or_create_new_project(self):
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_queue_or_create_new_project(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory()
-        embedding = project.embedding
-        assert embedding.queued_for_update is True
+        project.refresh_from_db()
+        assert project.embedding.queued_for_update is True
 
-    def test_queue_or_create_existing_project(self):
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
+    def test_queue_or_create_existing_project(self, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description=faker.text())
         project.embedding.queued_for_update = False
         project.embedding.save()
@@ -56,9 +69,13 @@ class ProjectEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
 
 
 class ProjectVectorizeTestCase(JwtAPITestCase, MistralTestCaseMixin):
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
-    def test_vectorize_with_description(self, mocked_embeddings, mocked_chat):
+    def test_vectorize_with_description(
+        self, mocked_embeddings, mocked_chat, mocked_delay
+    ):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description=faker.text())
         messages = [faker.sentence(nb_words=6) for _ in range(3)]
         embedding = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
@@ -71,9 +88,13 @@ class ProjectVectorizeTestCase(JwtAPITestCase, MistralTestCaseMixin):
         assert project.embedding.embedding == embedding
         assert project.embedding.prompt_hashcode != ""
 
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
-    def test_vectorize_with_blog_entries(self, mocked_embeddings, mocked_chat):
+    def test_vectorize_with_blog_entries(
+        self, mocked_embeddings, mocked_chat, mocked_delay
+    ):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description="")
         BlogEntryFactory(project=project)
         messages = [faker.sentence(nb_words=6) for _ in range(3)]
@@ -87,9 +108,11 @@ class ProjectVectorizeTestCase(JwtAPITestCase, MistralTestCaseMixin):
         assert project.embedding.embedding == embedding
         assert project.embedding.prompt_hashcode != ""
 
+    @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
-    def test_vectorize_not_visible(self, mocked_embeddings, mocked_chat):
+    def test_vectorize_not_visible(self, mocked_embeddings, mocked_chat, mocked_delay):
+        mocked_delay.side_effect = queue_or_create_project_embedding_task
         project = ProjectFactory(description="")
         messages = [faker.sentence(nb_words=6) for _ in range(3)]
         embedding = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]

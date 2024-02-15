@@ -58,9 +58,3 @@ MIXPANEL_PROJECT_ID = "2560711"
 ##############
 
 GOOGLE_EMAIL_PREFIX = "local"
-
-##############
-#   MISTRAL  #
-##############
-
-MISTRAL_ENABLED = False

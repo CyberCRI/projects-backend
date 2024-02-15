@@ -40,9 +40,3 @@ SIMPLE_JWT = {
     "ALGORITHM": "RS256",
     "VERIFYING_KEY": KEYCLOAK_PUBLIC_KEY,
 }
-
-##############
-#   MISTRAL  #
-##############
-
-MISTRAL_ENABLED = False
