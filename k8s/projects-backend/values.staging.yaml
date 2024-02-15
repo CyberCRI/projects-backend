@@ -16,8 +16,6 @@ config:
     MJML_HTTPSERVER_URL: http://mjml-server.stag-test-mjml/v1/render
     ENVIRONMENT: staging
 
-projectsNamespace: stag-test-projects
-
 hostname: api.projects.k8s.lp-i.xyz
 
 backend:
