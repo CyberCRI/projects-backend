@@ -27,3 +27,5 @@ redis:
   - values.yaml
   - projects-api/values.yaml
   - projects-api/dev-lab/values.yaml
+  argocdAppName: projects-backend-e2e-redis
+  helmReleaseName: projects-backend-e2e-redis
