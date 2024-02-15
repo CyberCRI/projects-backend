@@ -16,12 +16,6 @@ services:
       timeout: 5s
       retries: 5
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 7081:8080
-
   minio:
     image: quay.io/minio/minio
     ports:

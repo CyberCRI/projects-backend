@@ -1,28 +1,43 @@
-# projects-back
+# projects-backend
 
+![https://projects.directory.com](https://api.projects.lp-i.org/static/projects_logo.png)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
-A fresh, clean and well documented framework for helping organizations to manage and communicate on their [research|student|education|any] projects efficiciently.
 
-We are currently supporting two ways of working on this project : using Docker and without.
-
-Please clone the repository first.
-
-```bash
-git clone https://github.com/CyberCRI/projects-back.git
-cd projects-back
-```
-
-## Using Docker
-
-### Requirements
-- Docker
+## Requirements
 - Docker Compose V2
 
-### Run the stack
+## Usage
+
+### Clone the repository
+
 ```bash
-make
+git clone --recurse-submodules git@github.com:CyberCRI/projects-backend.git 
+cd projects-backend
 ```
+
+### Set up your environment variables
+
+if you want to set your environnement variables (Mostly third-parties secrets):
+```bash
+cp .env.example .env
+```
+You can ask the other devs for the secret values to fill the `.env` file.
+
+### Run the stack
+
+```bash
+docker compose up
+```
+
+The backend and Celery restart multiple times because they keep crashing while Keycloak is not up. After a short moment, your backend will be up and ready.
+
+You can now access: 
+
+- [The Swagger](http://localhost:8000)
+- [The backend admin panel](http://localhost:8000/admin)
+- [The Keycloak admin panel](http://localhost:8001)
+
 ### Execute into the backend container
 *The stack need to be running.*
 Get a shell access to the backend container
@@ -32,121 +47,90 @@ make bash
 
 ### Migrate the database
 ```bash
+# inside the container
 python manage.py migrate
 ```
 
-### Default user
-A default superadmin is created in keycloak. To import it in Projects, you need to login at least once in the [swagger](http://localhost:8000/api/schema/swagger-ui) using these credentials:
-- username: `admin@localhost.com`
-- password: `admin`
-
-### Seed the database
-*The stack need to be running.*
+### Collect static files
 ```bash
-make bash
-python manage.py seed_db
-```
-
-And you're good to go !
-
-## Without Docker
-
-### Pre-requisite
-
-- Python 3.10 ^
-- [Poetry](https://python-poetry.org/docs/#installation)
-- [PostgreSQL](https://www.postgresql.org/download/)
-
-First clone the project and move at it:
-
-Switch environment and install dependencies via poetry:
-
-```bash
-poetry env use 3.10
-poetry install
-```
-
-### Django project
-
-Now you have to setup Django, all Django functionalities are available with the `python manage.py` command.
-
-First of all, you should enter your database settings as stated in `projects/settings.py` variable `DATABASES`.
-
-Then initialize your database:
-
-```bash
-python manage.py makemigrations # if migrations are not up to date
-python manage.py migrate
+# inside the container
 python manage.py collectstatic
 ```
 
-### MJML
+### Compile translations
+```bash
+# inside the container
+python manage.py compilemessages
+```
 
-Projects uses MJML as templating framework for email. We use our own MJML http server to avoid having to install the command line:
+### Default user
+A default superadmin is created in keycloak. To import it in Projects, you need to login at least once in the [swagger](http://localhost:8000/api/schema/swagger-ui) or in [Django admin](http://localhost:8000/admin) using these credentials:
+- username: `admin` or `admin@localhost.com`
+- password: `admin`
+
+You can also use these credentials (use the `admin` username, not the email) to connect to the [Keycloak admin panel](http://localhost/8001)
+
+
+### Run test
+
+Run all the tests:
 
 ```bash
-docker-compose up -d mjml
+# inside the container
+make test
 ```
 
-## Run the server
-
-You can run the server via the command:
+Run just one test file or test directory: 
 
 ```bash
-python manage.py runserver <url>:<port>
+# inside the container
+# ex:path_to_file=apps.accounts.tests.views.test_people_group
+python manage.py test <path_to_file> --settings=projects.settings.test 
 ```
 
-Where `<url>` can be `localhost` for development purpose.
+### Continuous Integration
 
-## Pagination: Limits and offset
+You can check locally that the CI will validate your pull request by running the following commands in your backend container. Your pull request cannot be merged if it doesn't meet these requirements. You can run these tests locally before asking to merge your PR, or you can let the CI run them for you remotely.
 
-Pagination is set in settings in value `DEFAULT_PAGINATION_CLASS` based
-on [django-rest-framework documentation](https://www.django-rest-framework.org/api-guide/pagination/#limitoffsetpagination)
-to limits and offset. For example, a request listing all projects `http://127.0.0.1:8000/v1/projects/` can add
-a limit and an offset parameter to the number of projects you want to display (running much faster then), example for a limit of 10
-projects: `http://127.0.0.1:8000/v1/projects/?limit=10`.
-The response will contain the full count of the listing, the link to the previous pagination
-request and the link for the next one following the limit and offset you gave, example for `http://127.0.0.1:8000/v1/projects/?limit=10&offset=20` :
-
-```json
-{
-    "count": 1261,
-    "next": "http://127.0.0.1:8000/v1/projects/?limit=10&offset=30",
-    "previous": "http://127.0.0.1:8000/v1/projects/?limit=10&offset=10",
-    "results": [ ... ]
-}
-```
-
-## Swagger
-
-The Swagger scheme is automatically generated from the DRF view sets by with use of the library [drf-spectacular](https://drf-spectacular.readthedocs.io/en/latest/).
-
-### Scheme
-
-When the server is running you can download the scheme in json format at route `/api/schema/?format=json`, in development it's usually at http://127.0.0.1:8000/api/schema//?format=json.
-
-### Swagger api documentation
-
-There is two types of documentation available:
-
-- ReDoc at route `/api/schema/redoc`, usually at http://127.0.0.1:8000/api/schema/redoc/
-- Swagger UI at route `/api/schema/swagger-ui/`, usually at http://127.0.0.1:8000/api/schema/swagger-ui/
-
-### Generating Postman collection from Swagger scheme
-
-Now that you can have a [Swagger scheme](#scheme), you can import it into Postman as full collection of the rest api ([postman import documentation](https://learning.postman.com/docs/getting-started/importing-and-exporting-data/)).
-
-## Custom commands
-
-### Migrate database
-
-To migrate from old MongoDB you can run the `apps.commons.management.commands.migrate_db` script using
+1. Respect format rules:
 
 ```bash
-python manage.py migrate_db
+# inside the container
+make format
 ```
 
-### Caveats
+This will automatically update your files
 
-- Herited
-  from `django-modeltranslation`: [forced to use `get_queryset`](https://django-modeltranslation.readthedocs.io/en/latest/caveats.html#using-in-combination-with-django-rest-framework)
+2. Respect lint rules:
+
+```bash
+# inside the container
+make lint
+```
+
+This will return errors that you need to fix manually. If there are some, fix them then repeat step 1.
+
+3. Keep translations up to date:
+
+```bash
+# inside the container
+make makemessages
+```
+
+This will detect changes in translated messages. Even if you didn't add, remove or modify any translated message. This might update some files because of line changes on translations caused by your changes.
+
+If there are new messages, be sure to add the translation after running this command.
+
+4. Create migrations if needed:
+
+```bash
+# inside the container
+python manage.py makemigrations
+```
+
+5. Be sure that all tests pass
+
+```bash
+# inside the container
+make test
+```
