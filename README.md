@@ -108,7 +108,7 @@ This will automatically update your files
 make lint
 ```
 
-This will return erros that you need to fix manually. If there are some, fix them then repeat step 1.
+This will return errors that you need to fix manually. If there are some, fix them then repeat step 1.
 
 3. Keep translations up to date:
 
