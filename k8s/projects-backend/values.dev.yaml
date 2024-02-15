@@ -33,4 +33,3 @@ redis:
   - values.yaml
   - projects-api/values.yaml
   - projects-api/dev-lab/values.yaml
-  - secrets://projects-api/dev-lab/secrets.yaml
