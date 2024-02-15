@@ -18,11 +18,11 @@ cd projects-backend
 
 ### Set up your environment variables
 
-if you want set your environnement variables (Algolia, Google, etc..) 
+if you want to set your environnement variables (Mostly third-parties secrets):
 ```bash
 cp .env.example .env
 ```
-And make sure to set the properly the variables.
+
 
 ### Run the stack
 
@@ -32,11 +32,11 @@ docker compose up
 
 The backend and Celery restart multiple times because they keep crashing while Keycloak is not up. After a short moment, your backend will be up and ready.
 
-You can now access : 
+You can now access: 
 
-- [The Swagger](http://localhost:8000).
-- [The backend admin panel](http://localhost:8000/admin).
-- [The Keycloak admin panel](http://localhost:8001).
+- [The Swagger](http://localhost:8000)
+- [The backend admin panel](http://localhost:8000/admin)
+- [The Keycloak admin panel](http://localhost:8001)
 
 ### Execute into the backend container
 *The stack need to be running.*
