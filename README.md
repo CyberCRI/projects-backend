@@ -17,7 +17,7 @@ docker compose up
 ```
 The backend and Celery restart multiple times before being ready, waiting for Keycloak to be ready. After a short moment, your backend will be up and ready to use.
 You can `localhost:8000` to acces the Backend.
-You can `localhost:8001` to acces the Keycloack.
+You can `localhost:8001` to acces the Keycloak.
 
 
 <<<<<<< Updated upstream
