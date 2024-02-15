@@ -145,6 +145,7 @@ INSTALLED_APPS = [
     "services.mixpanel",
     "services.google",
     "services.wikipedia",
+    "services.mistral",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
@@ -394,21 +395,25 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BEAT_SCHEDULE = {
-    "delete-orphan-images": {
-        "task": "apps.files.tasks.delete_orphan_images",
-        "schedule": crontab(minute=0, hour=2),
-    },
     "remove-old-project-24hours": {
         "task": "apps.projects.tasks.remove_old_projects",
         "schedule": crontab(minute=0, hour=0),
     },
-    "send_notifications_reminder": {
-        "task": "apps.notifications.tasks.send_notifications_reminder",
-        "schedule": crontab(minute=0, hour=8),
+    "update_queued_embeddings": {
+        "task": "services.mistral.tasks.update_queued_embeddings",
+        "schedule": crontab(minute=0, hour=1),
+    },
+    "delete-orphan-images": {
+        "task": "apps.files.tasks.delete_orphan_images",
+        "schedule": crontab(minute=0, hour=2),
     },
     "send_invitations_reminder": {
         "task": "apps.invitations.tasks.send_invitations_reminder",
         "schedule": crontab(minute=0, hour=7),
+    },
+    "send_notifications_reminder": {
+        "task": "apps.notifications.tasks.send_notifications_reminder",
+        "schedule": crontab(minute=0, hour=8),
     },
     "send_access_request_notification": {
         "task": "apps.notifications.tasks.send_access_request_notifications",
@@ -573,3 +578,10 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL = "lpi.accounts@gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_PREFIX = ""
 GOOGLE_EMAIL_DOMAIN = "gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
+
+
+##############
+#   MISTRAL  #
+##############
+
+MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
