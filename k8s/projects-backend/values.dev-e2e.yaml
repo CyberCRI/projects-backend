@@ -1,0 +1,27 @@
+corsAllowedDomains:
+- projects-e2e.k8s.lp-i.dev
+- lpi-dev.cloud-iam.com # keycloak login page
+
+config:
+  nonSensitive:
+    AZURE_ACCOUNT_NAME: criparisdevlabprojects
+    POSTGRES_DB: dev_projects_e2e
+
+workflow:
+  lifecycle:
+    enabled: true
+    config:
+      nonSensitive:
+        ORIGIN_POSTGRES_DB: dev_projects
+
+hostname: api-e2e.projects.k8s.lp-i.dev
+
+backend:
+  replicaCount: 1
+
+redis:
+  autoSync: false
+  valueFiles:
+  - values.yaml
+  - projects-api/values.yaml
+  - projects-api/dev-lab/values.yaml
