@@ -117,7 +117,7 @@ This will return errors that you need to fix manually. If there are some, fix th
 make makemessages
 ```
 
-This will detect changes in translated messages. Even if you didn't add, remove or modify a translated message, this might update some files because they depend on the line of the messages in the code files.
+This will detect changes in translated messages. Even if you didn't add, remove or modify any translated message. This might update some files because of line changes on translations caused by your changes.
 
 If there are new messages, be sure to add the translation after running this command
 
