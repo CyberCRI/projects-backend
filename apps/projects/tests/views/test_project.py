@@ -945,7 +945,7 @@ class MiscProjectTestCase(JwtAPITestCase):
             Project.DefaultGroup.OWNERS: [user.id],
         }
         response = self.client.post(
-            reverse("Project-add-member", args=[project.id]), data=payload
+            reverse("Project-add-member", args=(project.id,)), data=payload
         )
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert user in project.owners.all()

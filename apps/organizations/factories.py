@@ -10,17 +10,6 @@ from apps.organizations.models import Faq, Organization, ProjectCategory, Templa
 faker = Faker()
 
 
-class FaqFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Faq
-
-    title = factory.Faker("text", max_nb_chars=50)
-    content = factory.Faker("text")
-    organization = factory.RelatedFactory(
-        "apps.organizations.factories.OrganizationFactory", factory_related_name="faq"
-    )
-
-
 class OrganizationFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Organization
@@ -38,7 +27,6 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     website_url = factory.Faker("url")
     created_at = factory.LazyFunction(timezone.now)
     updated_at = factory.LazyFunction(timezone.now)
-    faq = factory.SubFactory(FaqFactory, organization=None)
     parent = None
 
     @classmethod
@@ -48,15 +36,35 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
         return instance
 
 
+class FaqFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Faq
+
+    title = factory.Faker("text", max_nb_chars=50)
+    content = factory.Faker("text")
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
+
+    @classmethod
+    def create(cls, **kwargs):
+        instance = super().create(**kwargs)
+        instance.organization.faq = instance
+        instance.organization.save()
+        return instance
+
+
 class TemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Template
 
     title_placeholder = factory.Faker("text", max_nb_chars=255)
-    goal_placeholder = factory.Faker("text", max_nb_chars=255)
     description_placeholder = factory.Faker("text")
-    blogentry_title_placeholder = factory.Faker("text")
+    goal_placeholder = factory.Faker("text", max_nb_chars=255)
+    blogentry_title_placeholder = factory.Faker("text", max_nb_chars=255)
     blogentry_placeholder = factory.Faker("text")
+    goal_title = factory.Faker("text", max_nb_chars=255)
+    goal_description = factory.Faker("text")
     project_category = None
 
 

@@ -1,2 +1,2 @@
-from .mixins import ImageStorageTestCaseMixin, skipUnlessAlgolia
+from .mixins import skipUnlessAlgolia
 from .testcases import JwtAPITestCase, TestRoles

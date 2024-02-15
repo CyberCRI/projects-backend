@@ -104,7 +104,9 @@ class FaqImagesView(ImageStorageView):
                 faqs__organization__code=self.kwargs["organization_code"]
             )
             # Retrieve images before the faq is posted
-            return (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            if self.request.user.is_authenticated:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
         return Image.objects.none()
 
     @staticmethod
@@ -349,7 +351,9 @@ class OrganizationImagesView(ImageStorageView):
                 organizations__code=self.kwargs["organization_code"]
             )
             # Retrieve images before the organization is posted
-            return (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            if self.request.user.is_authenticated:
+                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
+            return qs
         return Image.objects.none()
 
     def retrieve(self, request, *args, **kwargs):

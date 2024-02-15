@@ -3,7 +3,6 @@ import uuid
 import factory
 from factory.fuzzy import FuzzyInteger
 from faker import Faker
-from guardian.shortcuts import assign_perm
 
 from apps.accounts.utils import get_default_group
 from apps.commons.factories import sdg_factory
@@ -54,15 +53,6 @@ class UserFactory(factory.django.DjangoModelFactory):
         if not create:
             return
         self.groups.add(*[get_default_group(), *(extracted if extracted else [])])
-
-    @factory.post_generation
-    def permissions(self, create, extracted, **kwargs):
-        if extracted:
-            for permission, obj in extracted:
-                if obj is None:
-                    assign_perm(permission, self)
-                else:
-                    assign_perm(permission, self, obj)
 
     @factory.post_generation
     def publication_status(self, create, extracted, **kwargs):

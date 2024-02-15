@@ -35,7 +35,7 @@ class NewCommentTestCase(JwtAPITestCase):
             "content": "content",
         }
         response = self.client.post(
-            reverse("Comment-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Comment-list", args=(project.id,)), data=payload
         )
 
         assert response.status_code == status.HTTP_201_CREATED
@@ -149,7 +149,7 @@ class NewReplyTestCase(JwtAPITestCase):
             "reply_on_id": comment.id,
         }
         response = self.client.post(
-            reverse("Comment-list", kwargs={"project_id": project.id}), data=payload
+            reverse("Comment-list", args=(project.id,)), data=payload
         )
 
         assert response.status_code == status.HTTP_201_CREATED

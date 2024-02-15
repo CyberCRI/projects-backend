@@ -117,7 +117,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "organization_code": organization.code,
         }
         response = self.client.post(
-            reverse("Faq-list", args=[organization.code]),
+            reverse("Faq-list", args=(organization.code,)),
             data=payload,
         )
         assert response.status_code == 201
@@ -126,13 +126,12 @@ class TextProcessingTestCase(JwtAPITestCase):
     def test_update_faq_content(self):
         text = self.create_text_to_process()
         self.client.force_authenticate(self.user)
-        organization = OrganizationFactory()
-        FaqFactory(organization=organization)
+        faq = FaqFactory()
         payload = {
             "content": text,
         }
         response = self.client.patch(
-            reverse("Faq-list", args=[organization.code]),
+            reverse("Faq-list", args=(faq.organization.code,)),
             data=payload,
         )
         assert response.status_code == 200

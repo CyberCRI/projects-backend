@@ -3,11 +3,11 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.commons.test import ImageStorageTestCaseMixin, JwtAPITestCase, TestRoles
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 
 
-class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class CreateUserProfilePictureTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -44,7 +44,7 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
             assert response.json()["static_url"] is not None
 
 
-class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class UpdateUserProfilePictureTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -94,7 +94,7 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin
             assert response.json()["natural_ratio"] == payload["natural_ratio"]
 
 
-class DeleteUserProfilePictureTestCase(JwtAPITestCase, ImageStorageTestCaseMixin):
+class DeleteUserProfilePictureTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

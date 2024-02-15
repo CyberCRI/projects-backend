@@ -8,7 +8,7 @@ from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
 from apps.projects.models import BlogEntry, Project
 
-fake = Faker()
+faker = Faker()
 
 
 class CreateBlogEntryTestCase(JwtAPITestCase):
@@ -38,8 +38,8 @@ class CreateBlogEntryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
-            "title": fake.sentence(),
-            "content": fake.text(),
+            "title": faker.sentence(),
+            "content": faker.text(),
             "project_id": self.project.id,
         }
         response = self.client.post(
@@ -137,8 +137,8 @@ class UpdateBlogEntryTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         blog_entry = BlogEntryFactory(project=self.project)
         payload = {
-            "title": fake.sentence(),
-            "content": fake.text(),
+            "title": faker.sentence(),
+            "content": faker.text(),
         }
         response = self.client.patch(
             reverse("BlogEntry-detail", args=(self.project.id, blog_entry.id)),
