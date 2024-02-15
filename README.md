@@ -22,7 +22,7 @@ if you want to set your environnement variables (Mostly third-parties secrets):
 ```bash
 cp .env.example .env
 ```
-
+You can ask for other devs for the secret values to fill the `.env` file.
 
 ### Run the stack
 
