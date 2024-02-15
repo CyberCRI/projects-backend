@@ -119,7 +119,7 @@ make makemessages
 
 This will detect changes in translated messages. Even if you didn't add, remove or modify any translated message. This might update some files because of line changes on translations caused by your changes.
 
-If there are new messages, be sure to add the translation after running this command
+If there are new messages, be sure to add the translation after running this command.
 
 4. Create migrations if needed:
 
