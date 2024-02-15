@@ -1,8 +1,8 @@
 servedUrls:
   - '{{ printf ".%s" .Values.hostname }}' # .example.com will match both example.com and www.example.com
   - '{{ tpl $.Values.fullName $ }}' # The full name of the k8s service, called from inside the namespace
-  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.projectsNamespace }}' # The full name of the k8s service, called from outside the namespace
-  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.projectsNamespace }}.svc.cluster.local' # Alternative to the full name of the k8s service, called from outside the namespace
+  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.namespace }}' # The full name of the k8s service, called from outside the namespace
+  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.namespace }}.svc.cluster.local' # Alternative to the full name of the k8s service, called from outside the namespace
   - '127.0.0.1' # The localhost, test if this is required
   - '.localhost' # The localhost, test if this is required
   - '0.0.0.0' # The localhost, test if this is required
