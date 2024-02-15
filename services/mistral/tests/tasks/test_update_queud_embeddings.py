@@ -10,7 +10,7 @@ from services.mistral.tasks import (
 )
 
 
-class MixpanelServiceTestCase(JwtAPITestCase):
+class UpdateQueuedEmbeddingsTestCase(JwtAPITestCase):
     @patch("services.mistral.signals.queue_or_create_project_embedding_task.delay")
     @patch("services.mistral.signals.queue_or_create_user_embedding_task.delay")
     @patch("services.mistral.models.Embedding._vectorize")

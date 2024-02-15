@@ -95,14 +95,14 @@ class Embedding(models.Model):
 
     @transaction.atomic
     def vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        if self.embed_if_not_visible or self.set_visibility():
+        if self.set_visibility() or self.embed_if_not_visible:
             self._vectorize(summary)
         return self
 
     @classmethod
     def vector_search(
-        cls, embedding: List[float], queryset: Optional[QuerySet["Embedding"]] = None
-    ) -> List[models.Model]:
+        cls, embedding: List[float], queryset: Optional[QuerySet] = None
+    ) -> QuerySet:
         queryset = queryset or cls.item.field.related_model.objects
         if not queryset.model == cls.item.field.related_model:
             raise ValueError("The given queryset does not match the related model.")
