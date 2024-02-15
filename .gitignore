@@ -368,3 +368,5 @@ apps/commons/management/commands/*.csv
 
 # Database dumps
 *.pgdump
+
+charts/
