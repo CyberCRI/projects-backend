@@ -19,6 +19,8 @@ hostname: api-e2e.projects.k8s.lp-i.dev
 backend:
   replicaCount: 1
 
+instance: e2e
+
 redis:
   autoSync: false
   valueFiles:

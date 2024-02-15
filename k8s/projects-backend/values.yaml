@@ -108,7 +108,7 @@ celery:
       scrapeTimeout: 10s
 
 redis:
-  enabled: false # todo: enable by default
+  enabled: true
   autoSync: false
   valueFiles: []
   argocdAppName: projects-api-redis
