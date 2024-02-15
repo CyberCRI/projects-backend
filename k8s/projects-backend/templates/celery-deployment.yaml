@@ -15,7 +15,7 @@ spec:
     metadata:
       labels:
         {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 8 }}
-        {{ $.Values.redisAllowedLabel }}: "true"
+        {{ printf "%s-client" $.Values.redis.helmReleaseName }}: "true"
       annotations:
       {{- if .Values.config.nonSensitive }}
         checksum/configmap: {{ include (print $.Template.BasePath "/environment-configmap.yaml") . | sha256sum }}
