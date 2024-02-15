@@ -12,7 +12,7 @@
 ### Clone the repository
 
 ```bash
-git clone --recurse-submodules -j8 git@github.com:CyberCRI/projects-backend.git 
+git clone --recurse-submodules git@github.com:CyberCRI/projects-backend.git 
 cd projects-backend
 ```
 
