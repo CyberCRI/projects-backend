@@ -13,9 +13,6 @@ config:
     ALGOLIA_APP_ID: 0NMNSXPWQS
     KEYCLOAK_SERVER_URL: https://id.lp-i.xyz/auth/
     KEYCLOAK_PUBLIC_KEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqFiz3sDRg81xWLM/CZD0sV7m89CzQO4cKd2k++/QDim7ttDI7U/ZgQc2qLni6wrmK0wZqxURy4VEI2xemqoU2Y8ju+ZL4A6jirmt9lIhlq3FTWHd6U98qi8QpcQJy3CxoLD3aXCELU6LnzuLpr5KKA+bDXrjVTb90udT0MU/RWBrZ8jiZSIgs9uhIYHbejItwMvVE+iBmsDObN1gvRi57obpWR+nLc+F6xifuQjPQgU7ibR1lIY/wp8Gr+oxfM5ERMgrjjjSAQa+4TL4qkSWRsTrAGdNUyCWDq0Vii3EgvGr1+W9FycmL+7x7wO+vBbUSFMaNuSXnT5+xiTEk1f10QIDAQAB
-    CELERY_BROKER_URL: redis://projects-api-redis-stag-test-master:6379/0
-    CELERY_RESULT_BACKEND: redis://projects-api-redis-stag-test-master:6379/0
-    CACHE_REDIS_URL: redis://projects-api-redis-stag-test-master:6379/1
     MJML_HTTPSERVER_URL: http://mjml-server.stag-test-mjml/v1/render
     ENVIRONMENT: staging
 
