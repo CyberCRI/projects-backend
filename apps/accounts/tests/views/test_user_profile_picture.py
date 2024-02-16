@@ -52,6 +52,10 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.instance = UserFactory(
+            groups=[cls.organization.get_users()],
+            profile_picture=cls.get_test_image(),
+        )
 
     @parameterized.expand(
         [
@@ -65,12 +69,8 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
         ]
     )
     def test_update_user_profile_picture(self, role, expected_code):
-        organization = self.organization
-        instance = UserFactory(
-            groups=[organization.get_users()], profile_picture=self.get_test_image()
-        )
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance
+            role, instances=[self.organization], owned_instance=self.instance
         )
         self.client.force_authenticate(user)
         payload = {
@@ -83,7 +83,7 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "UserProfilePicture-detail",
-                args=(instance.id, instance.profile_picture.id),
+                args=(self.instance.id, self.instance.profile_picture.id),
             ),
             data=payload,
             format="multipart",

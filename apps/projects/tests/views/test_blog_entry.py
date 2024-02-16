@@ -118,6 +118,7 @@ class UpdateBlogEntryTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.blog_entry = BlogEntryFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -135,13 +136,12 @@ class UpdateBlogEntryTestCase(JwtAPITestCase):
     def test_update_blog_entry(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        blog_entry = BlogEntryFactory(project=self.project)
         payload = {
             "title": faker.sentence(),
             "content": faker.text(),
         }
         response = self.client.patch(
-            reverse("BlogEntry-detail", args=(self.project.id, blog_entry.id)),
+            reverse("BlogEntry-detail", args=(self.project.id, self.blog_entry.id)),
             data=payload,
         )
         assert response.status_code == expected_code

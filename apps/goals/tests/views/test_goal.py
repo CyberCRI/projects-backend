@@ -59,6 +59,7 @@ class UpdateGoalTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.goal = GoalFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -74,13 +75,11 @@ class UpdateGoalTestCase(JwtAPITestCase):
         ]
     )
     def test_update_goal(self, role, expected_code):
-        project = self.project
-        user = self.get_parameterized_test_user(role, instances=[project])
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        goal = GoalFactory(project=project)
         payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Goal-detail", args=(project.id, goal.id)),
+            reverse("Goal-detail", args=(self.project.id, self.goal.id)),
             data=payload,
         )
         assert response.status_code == expected_code

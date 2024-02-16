@@ -86,17 +86,16 @@ class UpdateReviewTestCase(JwtAPITestCase):
         ]
     )
     def test_update_review(self, role, expected_code):
-        project = self.project
-        review = self.review
         user = self.get_parameterized_test_user(
-            role, instances=[project], owned_instance=review
+            role, instances=[self.project], owned_instance=self.review
         )
         self.client.force_authenticate(user)
         payload = {
             "description": faker.text(),
         }
         response = self.client.patch(
-            reverse("Reviewed-detail", args=(project.id, review.id)), data=payload
+            reverse("Reviewed-detail", args=(self.project.id, self.review.id)),
+            data=payload,
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:

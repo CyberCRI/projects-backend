@@ -71,6 +71,7 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.file = AttachmentFileFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -86,13 +87,11 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
         ]
     )
     def test_update_attachment_file(self, role, expected_code):
-        project = self.project
-        user = self.get_parameterized_test_user(role, instances=[project])
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        attachment_file = AttachmentFileFactory(project=project)
         payload = {"title": faker.text(max_nb_chars=50)}
         response = self.client.patch(
-            reverse("AttachmentFile-detail", args=(project.id, attachment_file.id)),
+            reverse("AttachmentFile-detail", args=(self.project.id, self.file.id)),
             data=payload,
             format="multipart",
         )
@@ -126,13 +125,13 @@ class DeleteAttachmentFileTestCase(JwtAPITestCase):
         project = self.project
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
-        attachment_file = AttachmentFileFactory(project=project)
+        file = AttachmentFileFactory(project=project)
         response = self.client.delete(
-            reverse("AttachmentFile-detail", args=(project.id, attachment_file.id)),
+            reverse("AttachmentFile-detail", args=(project.id, file.id)),
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not AttachmentFile.objects.filter(id=attachment_file.id).exists()
+            assert not AttachmentFile.objects.filter(id=file.id).exists()
 
 
 class ListAttachmentFileTestCase(JwtAPITestCase):
@@ -154,7 +153,7 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
                 organizations=[cls.organization],
             ),
         }
-        cls.attachment_files = {
+        cls.files = {
             "public": AttachmentFileFactory(project=cls.projects["public"]),
             "org": AttachmentFileFactory(project=cls.projects["org"]),
             "private": AttachmentFileFactory(project=cls.projects["private"]),
@@ -173,7 +172,7 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_list_attachment_files(self, role, retrieved_attachment_files):
+    def test_list_attachment_files(self, role, retrieved_files):
         user = self.get_parameterized_test_user(
             role, instances=list(self.projects.values())
         )
@@ -187,9 +186,9 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
             )
             assert response.status_code == status.HTTP_200_OK
             content = response.json()["results"]
-            if publication_status in retrieved_attachment_files:
+            if publication_status in retrieved_files:
                 assert len(content) == 1
-                assert content[0]["id"] == self.attachment_files[publication_status].id
+                assert content[0]["id"] == self.files[publication_status].id
             else:
                 assert len(content) == 0
 

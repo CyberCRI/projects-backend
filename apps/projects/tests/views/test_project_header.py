@@ -54,6 +54,11 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.owner = UserFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            header_image=cls.get_test_image(owner=cls.owner),
+            organizations=[cls.organization],
+        )
 
     @parameterized.expand(
         [
@@ -70,13 +75,8 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         ]
     )
     def test_update_project_header(self, role, expected_code):
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            header_image=self.get_test_image(owner=self.owner),
-            organizations=[self.organization],
-        )
         user = self.get_parameterized_test_user(
-            role, instances=[project], owned_instance=project.header_image
+            role, instances=[self.project], owned_instance=self.project.header_image
         )
         self.client.force_authenticate(user)
         payload = {
@@ -89,7 +89,7 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Project-header-detail",
-                args=(project.id, project.header_image.id),
+                args=(self.project.id, self.project.header_image.id),
             ),
             data=payload,
             format="multipart",

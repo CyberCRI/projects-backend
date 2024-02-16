@@ -61,6 +61,7 @@ class UpdateSkillTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.skill = SkillFactory()
 
     @parameterized.expand(
         [
@@ -74,17 +75,15 @@ class UpdateSkillTestCase(JwtAPITestCase):
         ]
     )
     def test_update_skill(self, role, expected_code):
-        organization = self.organization
-        skill = SkillFactory()
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=skill
+            role, instances=[self.organization], owned_instance=self.skill
         )
         self.client.force_authenticate(user)
         payload = {
             "level": faker.pyint(1, 4),
         }
         response = self.client.patch(
-            reverse("Skill-detail", args=(skill.id,)), data=payload
+            reverse("Skill-detail", args=(self.skill.id,)), data=payload
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:

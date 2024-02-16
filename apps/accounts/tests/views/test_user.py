@@ -222,6 +222,7 @@ class UpdateUserTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.instance = SeedUserFactory(groups=[cls.organization.get_users()])
 
     @parameterized.expand(
         [
@@ -235,10 +236,8 @@ class UpdateUserTestCase(JwtAPITestCase):
         ]
     )
     def test_update_user(self, role, expected_code):
-        organization = self.organization
-        instance = SeedUserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance
+            role, instances=[self.organization], owned_instance=self.instance
         )
         self.client.force_authenticate(user)
         payload = {
@@ -246,7 +245,7 @@ class UpdateUserTestCase(JwtAPITestCase):
             "sdgs": random.choices(SDG.values, k=3),  # nosec
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(instance.id,)),
+            reverse("ProjectUser-detail", args=(self.instance.id,)),
             payload,
         )
         assert response.status_code == expected_code

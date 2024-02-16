@@ -59,6 +59,9 @@ class UpdateInvitationTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
+        cls.invitation = InvitationFactory(
+            organization=cls.organization, people_group=cls.people_group
+        )
 
     @parameterized.expand(
         [
@@ -71,19 +74,15 @@ class UpdateInvitationTestCase(JwtAPITestCase):
         ]
     )
     def test_update_invitation(self, role, expected_code):
-        organization = self.organization
-        invitation = InvitationFactory(
-            organization=organization, people_group=self.people_group
-        )
-        user = self.get_parameterized_test_user(role, instances=[organization])
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {"description": faker.text()}
         response = self.client.patch(
             reverse(
                 "Invitation-detail",
                 args=(
-                    organization.code,
-                    invitation.id,
+                    self.organization.code,
+                    self.invitation.id,
                 ),
             ),
             data=payload,

@@ -53,6 +53,10 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.people_group = PeopleGroupFactory(
+            organization=cls.organization,
+            header_image=cls.get_test_image(),
+        )
 
     @parameterized.expand(
         [
@@ -69,12 +73,10 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase):
         ]
     )
     def test_update_people_group_header(self, role, expected_code):
-        organization = self.organization
-        people_group = PeopleGroupFactory(organization=organization)
-        people_group.header_image = self.get_test_image()
-        people_group.save()
         user = self.get_parameterized_test_user(
-            role, owned_instance=people_group.header_image, instances=[people_group]
+            role,
+            owned_instance=self.people_group.header_image,
+            instances=[self.people_group],
         )
         self.client.force_authenticate(user)
         payload = {
@@ -87,7 +89,7 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "PeopleGroup-header-list",
-                args=(organization.code, people_group.id),
+                args=(self.organization.code, self.people_group.id),
             ),
             data=payload,
             format="multipart",

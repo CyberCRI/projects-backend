@@ -62,6 +62,7 @@ class UpdateAnnouncementTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.announcement = AnnouncementFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -77,14 +78,13 @@ class UpdateAnnouncementTestCase(JwtAPITestCase):
         ]
     )
     def test_update_announcement(self, role, expected_status_code):
-        announcement = AnnouncementFactory(project=self.project)
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {"description": faker.text()}
         response = self.client.patch(
             reverse(
                 "Announcement-detail",
-                args=(self.project.id, announcement.id),
+                args=(self.project.id, self.announcement.id),
             ),
             data=payload,
         )

@@ -51,6 +51,7 @@ class UpdateTagTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.tag = TagFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -63,13 +64,11 @@ class UpdateTagTestCase(JwtAPITestCase):
         ]
     )
     def test_update_tag(self, role, expected_code):
-        organization = self.organization
-        user = self.get_parameterized_test_user(role, instances=[organization])
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
-        tag = TagFactory(organization=organization)
         payload = {"name": faker.word()}
         response = self.client.patch(
-            reverse("Tag-detail", args=(tag.id,)),
+            reverse("Tag-detail", args=(self.tag.id,)),
             data=payload,
         )
         assert response.status_code == expected_code

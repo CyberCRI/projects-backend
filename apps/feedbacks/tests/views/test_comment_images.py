@@ -165,6 +165,9 @@ class UpdateCommentImageTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.comment = CommentFactory(project=cls.project)
+        cls.image = cls.get_test_image(owner=cls.comment.author)
+        cls.comment.images.add(cls.image)
 
     @parameterized.expand(
         [
@@ -181,11 +184,8 @@ class UpdateCommentImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_comment_image(self, role, expected_code):
-        comment = CommentFactory(project=self.project)
-        image = self.get_test_image(owner=comment.author)
-        comment.images.add(image)
         user = self.get_parameterized_test_user(
-            role, owned_instance=image, instances=[self.project]
+            role, owned_instance=self.image, instances=[self.project]
         )
         self.client.force_authenticate(user)
         payload = {
@@ -198,7 +198,7 @@ class UpdateCommentImageTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Comment-images-detail",
-                args=(self.project.id, image.id),
+                args=(self.project.id, self.image.id),
             ),
             data=payload,
             format="multipart",

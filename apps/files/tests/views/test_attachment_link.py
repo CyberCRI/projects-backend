@@ -69,6 +69,9 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.link = AttachmentLinkFactory(
+            project=cls.project, category=AttachmentLinkCategory.OTHER
+        )
 
     @parameterized.expand(
         [
@@ -84,15 +87,11 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         ]
     )
     def test_update_attachment_link(self, role, expected_code):
-        project = self.project
-        user = self.get_parameterized_test_user(role, instances=[project])
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        attachment_link = AttachmentLinkFactory(
-            project=project, category=AttachmentLinkCategory.OTHER
-        )
         payload = {"category": AttachmentLinkCategory.TOOL}
         response = self.client.patch(
-            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
             data=payload,
         )
         assert response.status_code == expected_code
@@ -125,13 +124,13 @@ class DeleteAttachmentLinkTestCase(JwtAPITestCase):
         project = self.project
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
-        attachment_link = AttachmentLinkFactory(project=project)
+        link = AttachmentLinkFactory(project=project)
         response = self.client.delete(
-            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+            reverse("AttachmentLink-detail", args=(project.id, link.id)),
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not AttachmentLink.objects.filter(id=attachment_link.id).exists()
+            assert not AttachmentLink.objects.filter(id=link.id).exists()
 
 
 class ListAttachmentLinkTestCase(JwtAPITestCase):
@@ -153,7 +152,7 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
                 organizations=[cls.organization],
             ),
         }
-        cls.attachment_links = {
+        cls.links = {
             "public": AttachmentLinkFactory(project=cls.projects["public"]),
             "org": AttachmentLinkFactory(project=cls.projects["org"]),
             "private": AttachmentLinkFactory(project=cls.projects["private"]),
@@ -172,7 +171,7 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_list_attachment_links(self, role, retrieved_attachment_links):
+    def test_list_attachment_links(self, role, retrieved_links):
         user = self.get_parameterized_test_user(
             role, instances=list(self.projects.values())
         )
@@ -186,9 +185,9 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
             )
             assert response.status_code == status.HTTP_200_OK
             content = response.json()["results"]
-            if publication_status in retrieved_attachment_links:
+            if publication_status in retrieved_links:
                 assert len(content) == 1
-                assert content[0]["id"] == self.attachment_links[publication_status].id
+                assert content[0]["id"] == self.links[publication_status].id
             else:
                 assert len(content) == 0
 

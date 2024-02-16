@@ -143,6 +143,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             3, organization=cls.organization
         )
         cls.wikipedia_tags = WikipediaTagFactory.create_batch(3)
+        cls.project = ProjectFactory(organizations=[cls.organization])
 
     @parameterized.expand(
         [
@@ -160,8 +161,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_project(self, role, expected_code, mocked):
         mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        project = ProjectFactory(organizations=[self.organization])
-        user = self.get_parameterized_test_user(role, instances=[project])
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
             "title": faker.sentence(),
@@ -182,7 +182,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             ],
         }
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), data=payload
+            reverse("Project-detail", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:

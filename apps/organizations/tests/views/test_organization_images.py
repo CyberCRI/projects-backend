@@ -73,6 +73,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.owner = UserFactory()
+        cls.image = cls.get_test_image(owner=cls.owner)
+        cls.organization.images.add(cls.image)
 
     @parameterized.expand(
         [
@@ -86,10 +88,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         ]
     )
     def test_update_organization_image(self, role, expected_code):
-        image = self.get_test_image(owner=self.owner)
-        self.organization.images.add(image)
         user = self.get_parameterized_test_user(
-            role, instances=[self.organization], owned_instance=image
+            role, instances=[self.organization], owned_instance=self.image
         )
         self.client.force_authenticate(user)
         payload = {
@@ -102,7 +102,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Organization-images-detail",
-                args=(self.organization.code, image.id),
+                args=(self.organization.code, self.image.id),
             ),
             data=payload,
             format="multipart",

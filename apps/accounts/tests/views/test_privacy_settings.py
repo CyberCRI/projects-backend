@@ -140,6 +140,7 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.instance = UserFactory(groups=[cls.organization.get_users()])
 
     @parameterized.expand(
         [
@@ -153,10 +154,10 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_update_privacy_settings(self, role, expected_code):
-        organization = self.organization
-        instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance.privacy_settings
+            role,
+            instances=[self.organization],
+            owned_instance=self.instance.privacy_settings,
         )
         self.client.force_authenticate(user)
         payload = {
@@ -171,7 +172,7 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
             ]
         }
         response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(instance.id,)),
+            reverse("PrivacySettings-detail", args=(self.instance.id,)),
             data=payload,
         )
         assert response.status_code == expected_code

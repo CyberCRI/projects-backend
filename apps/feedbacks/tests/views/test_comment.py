@@ -167,6 +167,7 @@ class UpdateCommentTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.comment = CommentFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -183,14 +184,13 @@ class UpdateCommentTestCase(JwtAPITestCase):
         ]
     )
     def test_update_comment(self, role, expected_code):
-        comment = CommentFactory(project=self.project)
         user = self.get_parameterized_test_user(
-            role, owned_instance=comment, instances=[self.project]
+            role, owned_instance=self.comment, instances=[self.project]
         )
         self.client.force_authenticate(user)
         payload = {"content": faker.text()}
         response = self.client.patch(
-            reverse("Comment-detail", args=(self.project.id, comment.id)),
+            reverse("Comment-detail", args=(self.project.id, self.comment.id)),
             data=payload,
         )
         assert response.status_code == expected_code

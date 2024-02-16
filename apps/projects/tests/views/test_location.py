@@ -125,6 +125,7 @@ class UpdateLocationTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.location = LocationFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -142,12 +143,11 @@ class UpdateLocationTestCase(JwtAPITestCase):
     def test_update_location(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        location = LocationFactory(project=self.project)
         payload = {
             "description": faker.text(),
         }
         response = self.client.patch(
-            reverse("Location-detail", args=(self.project.id, location.id)),
+            reverse("Location-detail", args=(self.project.id, self.location.id)),
             data=payload,
         )
         assert response.status_code == expected_code

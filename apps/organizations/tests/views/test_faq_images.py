@@ -72,6 +72,8 @@ class UpdateFaqImageTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.faq = FaqFactory()
         cls.owner = UserFactory()
+        cls.image = cls.get_test_image(owner=cls.owner)
+        cls.faq.images.add(cls.image)
 
     @parameterized.expand(
         [
@@ -85,10 +87,8 @@ class UpdateFaqImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_faq_image(self, role, expected_code):
-        image = self.get_test_image(owner=self.owner)
-        self.faq.images.add(image)
         user = self.get_parameterized_test_user(
-            role, instances=[self.faq.organization], owned_instance=image
+            role, instances=[self.faq.organization], owned_instance=self.image
         )
         self.client.force_authenticate(user)
         payload = {
@@ -101,7 +101,7 @@ class UpdateFaqImageTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Faq-images-detail",
-                args=(self.faq.organization.code, image.id),
+                args=(self.faq.organization.code, self.image.id),
             ),
             data=payload,
             format="multipart",
