@@ -13,7 +13,6 @@ from .models import ProjectEmbedding, UserEmbedding
 
 
 class ProjectRecommendationViewSet(ListViewSet):
-
     serializer_class = ProjectLightSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ProjectFilter
