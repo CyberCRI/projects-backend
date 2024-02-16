@@ -743,7 +743,7 @@ class MiscUserTestCase(JwtAPITestCase):
         )
         assert response.status_code == 201
         assert response.data["language"] == "fr"
-        keycloak_user = KeycloakService.get_user(response.data["id"])
+        keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
         assert keycloak_user["attributes"]["locale"] == ["fr"]
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
@@ -765,7 +765,7 @@ class MiscUserTestCase(JwtAPITestCase):
         )
         assert response.status_code == 201
         assert response.data["language"] == "fr"
-        keycloak_user = KeycloakService.get_user(response.data["id"])
+        keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
         assert keycloak_user["attributes"]["locale"] == ["fr"]
 
     def test_keycloak_attributes_updated(self):
