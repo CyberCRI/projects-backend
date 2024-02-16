@@ -61,22 +61,23 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             reverse("PeopleGroup-list", args=(organization.code,)),
             payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.status_code == 201
-            assert response.data["name"] == payload["name"]
-            assert response.data["description"] == payload["description"]
-            assert response.data["email"] == payload["email"]
-            assert response.data["organization"] == organization.code
-            assert response.data["hierarchy"][0]["id"] == parent.id
-            assert response.data["hierarchy"][0]["slug"] == parent.slug
+            self.assertEqual(response.data["name"], payload["name"])
+            self.assertEqual(response.data["description"], payload["description"])
+            self.assertEqual(response.data["email"], payload["email"])
+            self.assertEqual(response.data["organization"], organization.code)
+            self.assertEqual(response.data["hierarchy"][0]["id"], parent.id)
+            self.assertEqual(response.data["hierarchy"][0]["slug"], parent.slug)
             people_group = PeopleGroup.objects.get(id=response.json()["id"])
-            assert all(member in people_group.members.all() for member in members)
-            assert all(manager in people_group.managers.all() for manager in managers)
-            assert all(leader in people_group.leaders.all() for leader in leaders)
-            assert all(
-                project in people_group.featured_projects.all() for project in projects
-            )
+            for member in members:
+                self.assertIn(member, people_group.members.all())
+            for manager in managers:
+                self.assertIn(manager, people_group.managers.all())
+            for leader in leaders:
+                self.assertIn(leader, people_group.leaders.all())
+            for project in projects:
+                self.assertIn(project, people_group.featured_projects.all())
 
 
 class UpdatePeopleGroupTestCase(JwtAPITestCase):
@@ -112,9 +113,9 @@ class UpdatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["description"] == payload["description"]
+            self.assertEqual(response.data["description"], payload["description"])
 
 
 class DeletePeopleGroupTestCase(JwtAPITestCase):
@@ -147,9 +148,9 @@ class DeletePeopleGroupTestCase(JwtAPITestCase):
                 args=(organization.code, people_group.pk),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not PeopleGroup.objects.filter(id=people_group.id).exists()
+            self.assertFalse(PeopleGroup.objects.filter(id=people_group.id).exists())
 
 
 class PeopleGroupMemberTestCase(JwtAPITestCase):
@@ -194,11 +195,14 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(member in people_group.members.all() for member in members)
-            assert all(manager in people_group.managers.all() for manager in managers)
-            assert all(leader in people_group.leaders.all() for leader in leaders)
+            for member in members:
+                self.assertIn(people_group, member.people_groups.all())
+            for manager in managers:
+                self.assertIn(people_group, manager.people_groups.all())
+            for leader in leaders:
+                self.assertIn(people_group, leader.people_groups.all())
 
     @parameterized.expand(
         [
@@ -234,13 +238,14 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(member not in people_group.members.all() for member in members)
-            assert all(
-                manager not in people_group.managers.all() for manager in managers
-            )
-            assert all(leader not in people_group.leaders.all() for leader in leaders)
+            for member in members:
+                self.assertNotIn(people_group, member.people_groups.all())
+            for manager in managers:
+                self.assertNotIn(people_group, manager.people_groups.all())
+            for leader in leaders:
+                self.assertNotIn(people_group, leader.people_groups.all())
 
 
 class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
@@ -319,11 +324,10 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(
-                project in people_group.featured_projects.all() for project in projects
-            )
+            for project in projects:
+                self.assertIn(project, people_group.featured_projects.all())
 
     @parameterized.expand(
         [
@@ -353,12 +357,10 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(
-                project not in people_group.featured_projects.all()
-                for project in projects
-            )
+            for project in projects:
+                self.assertNotIn(project, people_group.featured_projects.all())
 
     @parameterized.expand(
         [
@@ -386,25 +388,27 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
                 args=(organization.code, people_group.pk),
             ),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert content[0]["id"] == self.retrieved_featured_group_project.id
-        assert {p["id"] for p in content[1 : len(retrieved_projects) + 1]} == {
-            featured_projects[p].id for p in retrieved_projects
-        }
-        assert {p["id"] for p in content[len(retrieved_projects) + 1 :]} == {
-            group_projects[p].id for p in retrieved_projects
-        }
+        self.assertEqual(content[0]["id"], self.retrieved_featured_group_project.id)
+        self.assertEqual(
+            {p["id"] for p in content[1 : len(retrieved_projects) + 1]},
+            {featured_projects[p].id for p in retrieved_projects},
+        )
+        self.assertEqual(
+            {p["id"] for p in content[len(retrieved_projects) + 1 :]},
+            {group_projects[p].id for p in retrieved_projects},
+        )
         for project in content:
             if project["id"] == self.retrieved_featured_group_project.id:
-                assert project["is_featured"] is True
-                assert project["is_group_project"] is True
+                self.assertTrue(project["is_featured"])
+                self.assertTrue(project["is_group_project"])
             elif project["id"] in [p.id for p in featured_projects.values()]:
-                assert project["is_featured"] is True
-                assert project["is_group_project"] is False
+                self.assertTrue(project["is_featured"])
+                self.assertFalse(project["is_group_project"])
             elif project["id"] in [p.id for p in group_projects.values()]:
-                assert project["is_featured"] is False
-                assert project["is_group_project"] is True
+                self.assertFalse(project["is_featured"])
+                self.assertTrue(project["is_group_project"])
 
     @parameterized.expand(
         [
@@ -431,25 +435,27 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
                 args=(organization.code, people_group.pk),
             ),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert content[0]["id"] == self.retrieved_featured_group_project.id
-        assert {p["id"] for p in content[1 : len(featured_projects) + 1]} == {
-            featured_projects[p].id for p in retrieved_projects
-        }
-        assert {p["id"] for p in content[len(featured_projects) + 1 :]} == {
-            group_projects[p].id for p in retrieved_projects
-        }
+        self.assertEqual(content[0]["id"], self.retrieved_featured_group_project.id)
+        self.assertEqual(
+            {p["id"] for p in content[1 : len(retrieved_projects) + 1]},
+            {featured_projects[p].id for p in retrieved_projects},
+        )
+        self.assertEqual(
+            {p["id"] for p in content[len(retrieved_projects) + 1 :]},
+            {group_projects[p].id for p in retrieved_projects},
+        )
         for project in content:
             if project["id"] == self.retrieved_featured_group_project.id:
-                assert project["is_featured"] is True
-                assert project["is_group_project"] is True
+                self.assertTrue(project["is_featured"])
+                self.assertTrue(project["is_group_project"])
             elif project["id"] in [p.id for p in featured_projects.values()]:
-                assert project["is_featured"] is True
-                assert project["is_group_project"] is False
+                self.assertTrue(project["is_featured"])
+                self.assertFalse(project["is_group_project"])
             elif project["id"] in [p.id for p in group_projects.values()]:
-                assert project["is_featured"] is False
-                assert project["is_group_project"] is True
+                self.assertFalse(project["is_featured"])
+                self.assertTrue(project["is_group_project"])
 
 
 class ValidatePeopleGroupTestCase(JwtAPITestCase):
@@ -474,7 +480,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("PeopleGroup-list", args=(self.organization.code,)), payload
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["parent"][0],
             "The parent group must belong to the same organization",
@@ -492,7 +498,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["parent"][0],
             "The parent group must belong to the same organization",
@@ -509,7 +515,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["organization"][0],
             "The organization of a group cannot be changed",
@@ -526,7 +532,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["parent"][0],
             "You are trying to create a loop in the group's hierarchy",
@@ -541,7 +547,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             reverse("PeopleGroup-detail", args=(self.organization.code, group_1.pk)),
             payload,
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.json()["parent"][0],
             "You are trying to create a loop in the group's hierarchy",
@@ -557,7 +563,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("PeopleGroup-list", args=(self.organization.code,)), payload
         )
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.data["organization"], self.organization.code)
 
     def test_add_featured_project_without_rights(self):
@@ -572,7 +578,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["featured_projects"][0],
             "You cannot add projects that you do not have access to",
@@ -591,7 +597,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_give_root_group_a_parent(self):
         organization = self.organization
@@ -607,8 +613,11 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == 400
-        assert response.data["parent"][0] == "The root group cannot have a parent group"
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(
+            response.data["parent"][0],
+            "The root group cannot have a parent group",
+        )
 
     def test_set_root_group_as_parent_with_none(self):
         organization = self.organization
@@ -621,10 +630,11 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         child.refresh_from_db()
-        assert child.parent == PeopleGroup.objects.get(
-            organization=organization, is_root=True
+        self.assertEqual(
+            child.parent,
+            PeopleGroup.objects.get(organization=organization, is_root=True),
         )
 
     def test_update_root_group_with_none_parent(self):
@@ -638,7 +648,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class MiscPeopleGroupTestCase(JwtAPITestCase):
@@ -675,38 +685,38 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         batch_1 = results[:2]
         batch_1_ids = [user["id"] for user in batch_1]
         leaders_managers_ids = [user.id for user in leaders_managers]
-        assert leaders_managers_ids.sort() == batch_1_ids.sort()
-        assert all(user["is_manager"] is True for user in batch_1)
-        assert all(user["is_leader"] is True for user in batch_1)
+        self.assertEqual(leaders_managers_ids.sort(), batch_1_ids.sort())
+        self.assertTrue(all(user["is_manager"] is True for user in batch_1))
+        self.assertTrue(all(user["is_leader"] is True for user in batch_1))
 
         batch_2 = results[2:4]
         batch_2_ids = [user["id"] for user in batch_2]
         leaders_members_ids = [user.id for user in leaders_members]
-        assert leaders_members_ids.sort() == batch_2_ids.sort()
-        assert all(user["is_manager"] is False for user in batch_2)
-        assert all(user["is_leader"] is True for user in batch_2)
+        self.assertEqual(leaders_members_ids.sort(), batch_2_ids.sort())
+        self.assertTrue(all(user["is_manager"] is False for user in batch_2))
+        self.assertTrue(all(user["is_leader"] is True for user in batch_2))
 
         batch_3 = results[4:6]
         batch_3_ids = [user["id"] for user in batch_3]
         managers_ids = [user.id for user in managers]
-        assert managers_ids.sort() == batch_3_ids.sort()
-        assert all(user["is_manager"] is True for user in batch_3)
-        assert all(user["is_leader"] is False for user in batch_3)
+        self.assertEqual(managers_ids.sort(), batch_3_ids.sort())
+        self.assertTrue(all(user["is_manager"] is True for user in batch_3))
+        self.assertTrue(all(user["is_leader"] is False for user in batch_3))
 
         batch_4 = results[6:]
         batch_4_ids = [user["id"] for user in batch_4]
         members_ids = [user.id for user in members]
-        assert members_ids.sort() == batch_4_ids.sort()
-        assert all(user["is_manager"] is False for user in batch_4)
-        assert all(user["is_leader"] is False for user in batch_4)
+        self.assertEqual(members_ids.sort(), batch_4_ids.sort())
+        self.assertTrue(all(user["is_manager"] is False for user in batch_4))
+        self.assertTrue(all(user["is_leader"] is False for user in batch_4))
 
     def test_root_group_creation(self):
         organization = OrganizationFactory()
         root_people_group = PeopleGroup.objects.filter(
             organization=organization, is_root=True
         )
-        assert root_people_group.exists()
-        assert root_people_group.count() == 1
+        self.assertTrue(root_people_group.exists())
+        self.assertEqual(root_people_group.count(), 1)
 
     def test_root_group_is_default_parent(self):
         organization = self.organization
@@ -722,9 +732,9 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
             reverse("PeopleGroup-list", args=(organization.code,)),
             payload,
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         people_group = PeopleGroup.objects.get(id=response.json()["id"])
-        assert people_group.parent == root_people_group
+        self.assertEqual(people_group.parent, root_people_group)
 
     def test_add_member_in_leaders_group(self):
         people_group = PeopleGroupFactory(
@@ -744,8 +754,8 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 204)
-        assert user in people_group.leaders.all()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertIn(user, people_group.leaders.all())
 
     def test_add_leader_in_members_group(self):
         people_group = PeopleGroupFactory(
@@ -765,8 +775,8 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 204)
-        assert user in people_group.members.all()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertIn(user, people_group.members.all())
 
     def test_add_member_in_managers_group(self):
         people_group = PeopleGroupFactory(
@@ -786,26 +796,27 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, 204)
-        assert user in people_group.managers.all()
-        assert user not in people_group.members.all()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertIn(user, people_group.managers.all())
+        self.assertNotIn(user, people_group.members.all())
 
     def test_get_slug(self):
         name = "My AMazing TeST GroUP !"
         people_group = PeopleGroupFactory(name=name, organization=self.organization)
-        assert people_group.slug == "my-amazing-test-group"
+        self.assertEqual(people_group.slug, "my-amazing-test-group")
         people_group = PeopleGroupFactory(name=name, organization=self.organization)
-        assert people_group.slug == "my-amazing-test-group-1"
+        self.assertEqual(people_group.slug, "my-amazing-test-group-1")
         people_group = PeopleGroupFactory(name=name, organization=self.organization)
-        assert people_group.slug == "my-amazing-test-group-2"
+        self.assertEqual(people_group.slug, "my-amazing-test-group-2")
         people_group = PeopleGroupFactory(
             name="", type="group", organization=self.organization
         )
-        assert people_group.slug.startswith("group")
+        self.assertTrue(people_group.slug.startswith("group"), people_group.slug)
+
         people_group = PeopleGroupFactory(
             name="", type="club", organization=self.organization
         )
-        assert people_group.slug.startswith("club")
+        self.assertTrue(people_group.slug.startswith("club"), people_group.slug)
 
     def test_multiple_lookups(self):
         user = UserFactory()
@@ -820,16 +831,16 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
                 args=(people_group.organization.code, people_group.pk),
             )
         )
-        assert response.status_code == 200
-        assert response.data["slug"] == people_group.slug
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["slug"], people_group.slug)
         response = self.client.get(
             reverse(
                 "PeopleGroup-detail",
                 args=(people_group.organization.code, people_group.slug),
             )
         )
-        assert response.status_code == 200
-        assert response.data["id"] == people_group.id
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], people_group.id)
 
     def test_roles_are_deleted_on_group_delete(self):
         people_group = PeopleGroupFactory(organization=self.organization)
@@ -842,5 +853,5 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
                 args=(people_group.organization.code, people_group.pk),
             )
         )
-        assert response.status_code == 204
-        assert not Group.objects.filter(name__in=roles_names).exists()
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Group.objects.filter(name__in=roles_names).exists())

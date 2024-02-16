@@ -43,9 +43,9 @@ class CreatePeopleGroupLogoTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+            self.assertIsNotNone(response.json()["static_url"])
 
 
 class UpdatePeopleGroupLogoTestCase(JwtAPITestCase):
@@ -94,13 +94,13 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            self.assertEqual(response.json()["scale_x"], payload["scale_x"])
+            self.assertEqual(response.json()["scale_y"], payload["scale_y"])
+            self.assertEqual(response.json()["left"], payload["left"])
+            self.assertEqual(response.json()["top"], payload["top"])
+            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
 
 
 class DeletePeopleGroupLogoTestCase(JwtAPITestCase):
@@ -138,7 +138,7 @@ class DeletePeopleGroupLogoTestCase(JwtAPITestCase):
                 args=(people_group.organization.code, people_group.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             people_group.refresh_from_db()
-            assert not people_group.logo_image
+            self.assertIsNone(people_group.logo_image)
