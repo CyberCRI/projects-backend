@@ -608,6 +608,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.data["results"][1]["id"] == self.user_b.id
         assert response.data["results"][2]["id"] == self.user_c.id
         assert response.data["results"][3]["id"] == self.user_d.id
+
+    def test_order_by_job_reverse(self):
         response = self.client.get(reverse("ProjectUser-list") + "?ordering=-job")
         assert response.status_code == 200
         assert response.data["results"][0]["id"] == self.user_d.id
@@ -625,6 +627,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.data["results"][1]["id"] == self.user_b.id
         assert response.data["results"][2]["id"] == self.user_c.id
         assert response.data["results"][3]["id"] == self.user_d.id
+
+    def test_order_by_role_reverse(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?ordering=-current_org_role&current_org_pk={self.organization.pk}"
@@ -635,7 +639,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.data["results"][2]["id"] == self.user_b.id
         assert response.data["results"][3]["id"] == self.user_a.id
 
-    def filter_by_role(self):
+    def filter_by_role_admin(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
@@ -643,6 +647,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == self.user_a.id
+
+    def filter_by_role_facilitator(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
@@ -650,6 +656,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == self.user_b.id
+
+    def filter_by_role_user(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=users&current_org_pk={self.organization.pk}"
@@ -657,6 +665,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == self.user_c.id
+
+    def filter_by_role_no_role(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=_no_role&current_org_pk={self.organization.pk}"

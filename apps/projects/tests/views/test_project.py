@@ -690,8 +690,11 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    def test_filter_category(self):
+    def setUp(self) -> None:
+        super().setUp()
         self.client.force_authenticate(self.superadmin)
+
+    def test_filter_by_category(self):
         filters = {"categories": f"{self.category_1.id},{self.category_2.id}"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -702,8 +705,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_2.id},
         )
 
-    def test_filter_organization_code(self):
-        self.client.force_authenticate(self.superadmin)
+    def test_filter_by_organization_code(self):
         filters = {"organizations": f"{self.organization_1.code}"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -714,8 +716,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_3.id},
         )
 
-    def test_filter_language(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_language(self):
         filters = {"languages": "en"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -726,8 +727,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_2.id, self.project_3.id},
         )
 
-    def test_filter_members(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_members(self):
         filters = {"members": f"{self.user_2.id},{self.user_3.id}"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -738,8 +738,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_2.id, self.project_3.id},
         )
 
-    def test_filter_sdgs(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_sdgs(self):
         filters = {"sdgs": "1,4,7"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -750,8 +749,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_3.id},
         )
 
-    def test_filter_tags(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_tags(self):
         filters = {
             "wikipedia_tags": f"{self.tag_1.wikipedia_qid},{self.tag_2.wikipedia_qid}"
         }
@@ -764,8 +762,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_2.id},
         )
 
-    def test_filter_member_role(self):
-        self.client.force_authenticate(self.superadmin)
+    def test_filter_by_member_role(self):
         filters = {
             "members": f"{self.user_1.id},{self.user_2.id}",
             "member_role": f"{Project.DefaultGroup.OWNERS},{Project.DefaultGroup.MEMBERS}",
@@ -779,8 +776,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_2.id},
         )
 
-    def test_filter_life_status(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_life_status(self):
         filters = {
             "life_status": f"{Project.LifeStatus.RUNNING},{Project.LifeStatus.COMPLETED}"
         }
@@ -793,8 +789,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_2.id, self.project_3.id},
         )
 
-    def test_filter_creation_year(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_creation_year(self):
         filters = {"creation_year": "2020,2021"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -805,8 +800,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_2.id},
         )
 
-    def test_filter_ids_and_slugs(self):
-        self.client.force_authenticate(UserFactory())
+    def test_filter_by_ids_and_slugs(self):
         filters = {"ids": f"{self.project_1.id},{self.project_2.slug}"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -817,7 +811,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_1.id, self.project_2.id},
         )
 
-    def test_order_by_create_date_ascending(self):
+    def test_order_by_created_date(self):
         orderby = {"ordering": "created_at"}
         response = self.client.get(reverse("Project-list"), orderby)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -830,7 +824,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             content["results"][1]["created_at"], content["results"][2]["created_at"]
         )
 
-    def test_order_by_create_date_descending(self):
+    def test_order_by_created_date_reverse(self):
         orderby = {"ordering": "-created_at"}
         response = self.client.get(reverse("Project-list"), orderby)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -843,7 +837,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             content["results"][1]["created_at"], content["results"][2]["created_at"]
         )
 
-    def test_order_by_update_date_ascending(self):
+    def test_order_by_updated_date(self):
         orderby = {"ordering": "updated_at"}
         response = self.client.get(reverse("Project-list"), orderby)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -856,7 +850,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             content["results"][1]["updated_at"], content["results"][2]["updated_at"]
         )
 
-    def test_order_by_update_date_descending(self):
+    def test_order_by_updated_date_reverse(self):
         orderby = {"ordering": "-updated_at"}
         response = self.client.get(reverse("Project-list"), orderby)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)

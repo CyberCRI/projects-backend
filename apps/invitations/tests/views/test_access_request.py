@@ -141,11 +141,13 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         cls.access_requests_d = AccessRequestFactory(
             organization=cls.organization, status=AccessRequest.Status.PENDING
         )
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.superadmin)
 
     def test_order_by_status(self):
-        self.client.force_authenticate(
-            UserFactory(groups=[self.organization.get_admins()])
-        )
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=status"
@@ -161,6 +163,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             response.data["results"][3]["status"] == self.access_requests_c.status
             or self.access_requests_d.status
         )
+
+    def test_order_by_status_reverse(self):
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=-status"
@@ -178,9 +182,6 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         assert response.data["results"][3]["status"] == self.access_requests_a.status
 
     def test_order_by_creation_date(self):
-        self.client.force_authenticate(
-            UserFactory(groups=[self.organization.get_admins()])
-        )
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=created_at"
@@ -198,6 +199,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             response.data["results"][2]["created_at"],
             response.data["results"][3]["created_at"],
         )
+
+    def test_order_by_creation_date_reverse(self):
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=-created_at"
@@ -216,7 +219,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             response.data["results"][0]["created_at"],
         )
 
-    def test_filter_by_status(self):
+    def test_filter_by_status_pending(self):
         self.client.force_authenticate(
             UserFactory(groups=[self.organization.get_admins()])
         )
@@ -228,6 +231,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         assert len(response.data["results"]) == 2
         assert response.data["results"][0]["id"] == self.access_requests_c.id
         assert response.data["results"][1]["id"] == self.access_requests_d.id
+
+    def test_filter_by_status_accepted(self):
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
             + f"?status={AccessRequest.Status.ACCEPTED.value}"
@@ -235,6 +240,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         assert response.status_code == 200
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == self.access_requests_a.id
+
+    def test_filter_by_status_declined(self):
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
             + f"?status={AccessRequest.Status.DECLINED.value}"

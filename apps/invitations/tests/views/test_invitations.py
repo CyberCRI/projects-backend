@@ -241,21 +241,16 @@ class OrderInvitationTestCase(JwtAPITestCase):
             owner=user_c,
             expire_at=make_aware(datetime(2030, 1, 3)),
         )
-        cls.user = UserFactory(groups=[get_superadmins_group()])
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    @parameterized.expand(
-        [
-            ("expire_at",),
-            ("people_group__name",),
-            ("owner__given_name",),
-            ("owner__family_name",),
-        ]
-    )
-    def test_order_invitations(self, ordering_field):
-        self.client.force_authenticate(self.user)
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.superadmin)
+
+    def test_order_by_expire_at(self):
         response = self.client.get(
             reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": ordering_field},
+            data={"ordering": "expire_at"},
         )
         assert response.status_code == 200
         content = response.json()
@@ -263,9 +258,83 @@ class OrderInvitationTestCase(JwtAPITestCase):
         assert content["results"][0]["id"] == self.invitation_a.id
         assert content["results"][1]["id"] == self.invitation_b.id
         assert content["results"][2]["id"] == self.invitation_c.id
+
+    def test_order_by_expire_at_reverse(self):
         response = self.client.get(
             reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": f"-{ordering_field}"},
+            data={"ordering": "-expire_at"},
+        )
+        assert response.status_code == 200
+        content = response.json()
+        assert content["count"] == 3
+        assert content["results"][0]["id"] == self.invitation_c.id
+        assert content["results"][1]["id"] == self.invitation_b.id
+        assert content["results"][2]["id"] == self.invitation_a.id
+
+    def test_order_by_people_group_name(self):
+        response = self.client.get(
+            reverse("Invitation-list", args=(self.organization.code,)),
+            data={"ordering": "people_group__name"},
+        )
+        assert response.status_code == 200
+        content = response.json()
+        assert content["count"] == 3
+        assert content["results"][0]["id"] == self.invitation_a.id
+        assert content["results"][1]["id"] == self.invitation_b.id
+        assert content["results"][2]["id"] == self.invitation_c.id
+
+    def test_order_by_people_group_name_reverse(self):
+        response = self.client.get(
+            reverse("Invitation-list", args=(self.organization.code,)),
+            data={"ordering": "-people_group__name"},
+        )
+        assert response.status_code == 200
+        content = response.json()
+        assert content["count"] == 3
+        assert content["results"][0]["id"] == self.invitation_c.id
+        assert content["results"][1]["id"] == self.invitation_b.id
+        assert content["results"][2]["id"] == self.invitation_a.id
+
+    def test_order_by_owner_given_name(self):
+        response = self.client.get(
+            reverse("Invitation-list", args=(self.organization.code,)),
+            data={"ordering": "owner__given_name"},
+        )
+        assert response.status_code == 200
+        content = response.json()
+        assert content["count"] == 3
+        assert content["results"][0]["id"] == self.invitation_a.id
+        assert content["results"][1]["id"] == self.invitation_b.id
+        assert content["results"][2]["id"] == self.invitation_c.id
+
+    def test_order_by_owner_given_name_reverse(self):
+        response = self.client.get(
+            reverse("Invitation-list", args=(self.organization.code,)),
+            data={"ordering": "-owner__given_name"},
+        )
+        assert response.status_code == 200
+        content = response.json()
+        assert content["count"] == 3
+        assert content["results"][0]["id"] == self.invitation_c.id
+        assert content["results"][1]["id"] == self.invitation_b.id
+        assert content["results"][2]["id"] == self.invitation_a.id
+
+    def test_order_by_owner_family_name(self):
+        response = self.client.get(
+            reverse("Invitation-list", args=(self.organization.code,)),
+            data={"ordering": "owner__family_name"},
+        )
+        assert response.status_code == 200
+        content = response.json()
+        assert content["count"] == 3
+        assert content["results"][0]["id"] == self.invitation_a.id
+        assert content["results"][1]["id"] == self.invitation_b.id
+        assert content["results"][2]["id"] == self.invitation_c.id
+
+    def test_order_by_owner_family_name_reverse(self):
+        response = self.client.get(
+            reverse("Invitation-list", args=(self.organization.code,)),
+            data={"ordering": "-owner__family_name"},
         )
         assert response.status_code == 200
         content = response.json()
