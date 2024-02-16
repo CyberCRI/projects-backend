@@ -36,92 +36,75 @@ class CreateFollowTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "public"),
-            (TestRoles.DEFAULT, status.HTTP_201_CREATED, "public"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "org"),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "org"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "private"),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "private"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN, "private"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_create_followed(self, role, expected_code, project_status):
-        instance = self.projects[project_status]
+    def test_create_followed(self, role, created_comments):
         user = self.get_parameterized_test_user(
-            role, instances=[instance], owned_instance=instance
+            role, instances=list(self.projects.values())
         )
         self.client.force_authenticate(user)
-        project_response = self.client.post(
-            reverse("Followed-list", args=(instance.id,)),
-            data={"project_id": instance.id},
-        )
-        assert project_response.status_code == expected_code
-        if expected_code == status.HTTP_201_CREATED:
-            assert project_response.json()["project"]["id"] == instance.id
-            assert project_response.json()["follower"]["id"] == user.id
+        for publication_status, project in self.projects.items():
+            payload = {
+                "project_id": project.id,
+            }
+            response = self.client.post(
+                reverse("Followed-list", args=(project.id,)), data=payload
+            )
+            if publication_status in created_comments:
+                assert response.status_code == status.HTTP_201_CREATED
+                assert response.json()["project"]["id"] == project.id
+                assert response.json()["follower"]["id"] == user.id
+            else:
+                assert response.status_code == status.HTTP_403_FORBIDDEN
+
+    def test_create_followed_anonymous(self):
+        for project in self.projects.values():
+            payload = {
+                "project_id": project.id,
+            }
+            response = self.client.post(
+                reverse("Followed-list", args=(project.id,)), data=payload
+            )
+            assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     @parameterized.expand(
         [
-            (TestRoles.DEFAULT, status.HTTP_201_CREATED, "public"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "org"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN, "private"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN, "private"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_create_follower(self, role, expected_code, project_status):
-        instance = self.projects[project_status]
+    def test_create_follower(self, role, created_comments):
         user = self.get_parameterized_test_user(
-            role, instances=[instance], owned_instance=instance
+            role, instances=list(self.projects.values())
         )
         self.client.force_authenticate(user)
-        user_response = self.client.post(
-            reverse("Follower-list", args=(user.id,)),
-            data={"project_id": instance.id},
-        )
-        assert user_response.status_code == expected_code
-        if expected_code == status.HTTP_201_CREATED:
-            assert user_response.json()["project"]["id"] == instance.id
-            assert user_response.json()["follower"]["id"] == user.id
+        for publication_status, project in self.projects.items():
+            payload = {
+                "project_id": project.id,
+            }
+            response = self.client.post(
+                reverse("Follower-list", args=(user.id,)), data=payload
+            )
+            if publication_status in created_comments:
+                assert response.status_code == status.HTTP_201_CREATED
+                assert response.json()["project"]["id"] == project.id
+                assert response.json()["follower"]["id"] == user.id
+            else:
+                assert response.status_code == status.HTTP_403_FORBIDDEN
 
     @parameterized.expand(
         [

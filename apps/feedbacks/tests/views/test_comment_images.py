@@ -42,49 +42,35 @@ class RetrieveCommentImageTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_302_FOUND, "public"),
-            (TestRoles.DEFAULT, status.HTTP_302_FOUND, "public"),
-            (TestRoles.SUPERADMIN, status.HTTP_302_FOUND, "public"),
-            (TestRoles.OWNER, status.HTTP_302_FOUND, "public"),
-            (TestRoles.ORG_ADMIN, status.HTTP_302_FOUND, "public"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_302_FOUND, "public"),
-            (TestRoles.ORG_USER, status.HTTP_302_FOUND, "public"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_302_FOUND, "public"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_302_FOUND, "public"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_302_FOUND, "public"),
-            (TestRoles.ANONYMOUS, status.HTTP_404_NOT_FOUND, "org"),
-            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND, "org"),
-            (TestRoles.SUPERADMIN, status.HTTP_302_FOUND, "org"),
-            (TestRoles.OWNER, status.HTTP_302_FOUND, "org"),
-            (TestRoles.ORG_ADMIN, status.HTTP_302_FOUND, "org"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_302_FOUND, "org"),
-            (TestRoles.ORG_USER, status.HTTP_302_FOUND, "org"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_302_FOUND, "org"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_302_FOUND, "org"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_302_FOUND, "org"),
-            (TestRoles.ANONYMOUS, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.SUPERADMIN, status.HTTP_302_FOUND, "private"),
-            (TestRoles.OWNER, status.HTTP_302_FOUND, "private"),
-            (TestRoles.ORG_ADMIN, status.HTTP_302_FOUND, "private"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_302_FOUND, "private"),
-            (TestRoles.ORG_USER, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_302_FOUND, "private"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_302_FOUND, "private"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_302_FOUND, "private"),
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_retrieve_comment_image(self, role, expected_code, project_status):
-        project = self.projects[project_status]
-        image = project.comments.first().images.first()
+    def test_retrieve_comment_image(self, role, retrieved_comments):
         user = self.get_parameterized_test_user(
-            role, instances=[project], owned_instance=image
+            role, instances=list(self.projects.values())
         )
         self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Comment-images-detail", args=(project.id, image.id)),
-        )
-        assert response.status_code == expected_code
+        for publication_status, project in self.projects.items():
+            image = project.comments.first().images.first()
+            user = self.get_parameterized_test_user(
+                role, instances=[project], owned_instance=image
+            )
+            self.client.force_authenticate(user)
+            response = self.client.get(
+                reverse("Comment-images-detail", args=(project.id, image.id)),
+            )
+            if publication_status in retrieved_comments:
+                assert response.status_code == status.HTTP_302_FOUND
+            else:
+                assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
 class CreateCommentImageTestCase(JwtAPITestCase):
@@ -112,48 +98,43 @@ class CreateCommentImageTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "public"),
-            (TestRoles.DEFAULT, status.HTTP_201_CREATED, "public"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "org"),
-            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND, "org"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "private"),
-            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_USER, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_create_comment_image(self, role, expected_code, project_status):
-        instance = self.projects[project_status]
-        user = self.get_parameterized_test_user(role, instances=[instance])
-        self.client.force_authenticate(user)
-        payload = {"file": self.get_test_image_file()}
-        response = self.client.post(
-            reverse("Comment-images-list", args=(instance.id,)),
-            data=payload,
-            format="multipart",
+    def test_create_comment_image(self, role, created_images):
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values())
         )
-        assert response.status_code == expected_code
-        if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+        self.client.force_authenticate(user)
+        for publication_status, project in self.projects.items():
+            payload = {"file": self.get_test_image_file()}
+            response = self.client.post(
+                reverse("Comment-images-list", args=(project.id,)),
+                data=payload,
+                format="multipart",
+            )
+            if publication_status in created_images:
+                assert response.status_code == status.HTTP_201_CREATED
+                assert response.json()["static_url"] is not None
+            else:
+                assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_create_comment_image_anonymous(self):
+        for project in self.projects.values():
+            payload = {"file": self.get_test_image_file()}
+            response = self.client.post(
+                reverse("Comment-images-list", args=(project.id,)),
+                data=payload,
+                format="multipart",
+            )
+            assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
 
 class UpdateCommentImageTestCase(JwtAPITestCase):
