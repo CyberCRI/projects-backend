@@ -44,7 +44,6 @@ class Embedding(models.Model):
     embedding = VectorField(dimensions=1024, null=True)
     is_visible = models.BooleanField(default=False)
     prompt_hashcode = models.CharField(max_length=64, default="")
-    queued_for_update = models.BooleanField(default=False)
 
     class Meta:
         abstract = True
@@ -89,14 +88,15 @@ class Embedding(models.Model):
         embedding = self.get_embedding(summary)
         self.summary = summary
         self.embedding = embedding
-        self.queued_for_update = False
         self.prompt_hashcode = self.hash_prompt(prompt)
         self.save()
         return self
 
     @transaction.atomic
     def vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        if self.set_visibility() or self.embed_if_not_visible:
+        if (
+            self.set_visibility() or self.embed_if_not_visible
+        ) and self.prompt_hashcode != self.hash_prompt():
             return self._vectorize(summary)
         return self
 
@@ -111,21 +111,6 @@ class Embedding(models.Model):
         return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
             CosineDistance(f"{related_name}__embedding", embedding)
         )
-
-    @classmethod
-    def queue_or_create(
-        cls, item: models.Model, skip_queue: bool = False
-    ) -> "Embedding":
-        instance, created = cls.objects.get_or_create(item=item)
-        if skip_queue:
-            return instance.vectorize()
-        if created or (
-            instance.prompt_hashcode != instance.hash_prompt()
-            and not instance.queued_for_update
-        ):
-            instance.queued_for_update = True
-            instance.save()
-        return instance
 
 
 class ProjectEmbedding(Embedding):

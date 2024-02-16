@@ -15,14 +15,10 @@ class EmbeddingAdmin(admin.ModelAdmin):
         "id",
         "item_link",
         "is_visible",
-        "queued_for_update",
         "last_update",
     )
     actions = ["vectorize"]
-    list_filter = (
-        "is_visible",
-        "queued_for_update",
-    )
+    list_filter = ("is_visible",)
 
     def vectorize(self, request, queryset):
         for embedding in queryset:
