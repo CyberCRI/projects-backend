@@ -5,6 +5,7 @@ from apps.accounts.filters import UserFilter
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import ListViewSet
+from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.filters import ProjectFilter
 from apps.projects.serializers import ProjectLightSerializer
 
@@ -21,7 +22,9 @@ class ProjectRecommendationViewSet(ListViewSet):
 
     def get_queryset(self) -> QuerySet:
         queryset = self.request.user.get_project_queryset().filter(
-            organizations__code=self.kwargs["organization_code"]
+            organizations__code__in=get_hierarchy_codes(
+                [self.kwargs["organization_code"]]
+            )
         )
         if self.request.user.is_authenticated:
             if (
