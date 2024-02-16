@@ -44,16 +44,16 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
         payload = {
             "user": instance.keycloak_id,
             "wikipedia_tag": wikipedia_qid,
-            "level": 1,
-            "level_to_reach": 2,
+            "level": faker.pyint(1, 4),
+            "level_to_reach": faker.pyint(1, 4),
         }
         response = self.client.post(reverse("Skill-list"), data=payload)
         assert response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
             assert response.json()["user"] == instance.id
             assert response.json()["wikipedia_tag"]["wikipedia_qid"] == wikipedia_qid
-            assert response.json()["level"] == 1
-            assert response.json()["level_to_reach"] == 2
+            assert response.json()["level"] == payload["level"]
+            assert response.json()["level_to_reach"] == payload["level_to_reach"]
 
 
 class UpdateSkillTestCase(JwtAPITestCase):
@@ -75,20 +75,20 @@ class UpdateSkillTestCase(JwtAPITestCase):
     )
     def test_update_skill(self, role, expected_code):
         organization = self.organization
-        skill = SkillFactory(level=1)
+        skill = SkillFactory()
         user = self.get_parameterized_test_user(
             role, instances=[organization], owned_instance=skill
         )
         self.client.force_authenticate(user)
         payload = {
-            "level": 2,
+            "level": faker.pyint(1, 4),
         }
         response = self.client.patch(
             reverse("Skill-detail", args=(skill.id,)), data=payload
         )
         assert response.status_code == expected_code
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["level"] == 2
+            assert response.json()["level"] == payload["level"]
 
 
 class DeleteSkillTestCase(JwtAPITestCase):

@@ -1,10 +1,13 @@
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
+from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
+
+faker = Faker()
 
 
 class CreateUserProfilePictureTestCase(JwtAPITestCase):
@@ -71,11 +74,11 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         payload = {
-            "scale_x": 2.0,
-            "scale_y": 2.0,
-            "left": 1.0,
-            "top": 1.0,
-            "natural_ratio": 1.0,
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
             reverse(

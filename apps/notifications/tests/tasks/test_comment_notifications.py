@@ -12,6 +12,9 @@ from apps.notifications.tasks import _notify_new_comment
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from faker import Faker
+
+faker = Faker()
 
 
 class NewCommentTestCase(JwtAPITestCase):
@@ -32,7 +35,7 @@ class NewCommentTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
         payload = {
             "project_id": project.id,
-            "content": "content",
+            "content": faker.text()
         }
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)), data=payload
@@ -145,7 +148,7 @@ class NewReplyTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
         payload = {
             "project_id": project.id,
-            "content": "content",
+            "content": faker.text(),
             "reply_on_id": comment.id,
         }
         response = self.client.post(

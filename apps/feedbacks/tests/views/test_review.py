@@ -218,8 +218,8 @@ class ValidateReviewTestCase(JwtAPITestCase):
         )
         payload = {
             "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
+            "title": faker.sentence(nb_words=4),
+            "description": faker.text(),
         }
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)

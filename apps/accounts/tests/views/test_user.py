@@ -1,4 +1,5 @@
 import datetime
+import random
 from unittest.mock import Mock, patch
 
 from django.test.client import BOUNDARY, MULTIPART_CONTENT, encode_multipart
@@ -15,6 +16,7 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.invitations.factories import InvitationFactory
+from apps.misc.models import SDG
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
@@ -53,9 +55,7 @@ class CreateUserTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "roles_to_add": [
@@ -72,7 +72,6 @@ class CreateUserTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["onboarding_status"]["show_welcome"] is True
-            assert content["people_id"] == payload["people_id"]
             assert content["email"] == payload["email"]
             assert content["given_name"] == payload["given_name"]
             assert content["family_name"] == payload["family_name"]
@@ -99,17 +98,15 @@ class CreateUserTestCase(JwtAPITestCase):
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
-            "sdgs": [1],
-            "profile_picture_scale_x": 2.0,
-            "profile_picture_scale_y": 2.0,
-            "profile_picture_left": 1.0,
-            "profile_picture_top": 1.0,
-            "profile_picture_natural_ratio": 1.0,
+            "sdgs": random.choices(SDG.values, k=3),  # nosec
+            "profile_picture_scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "profile_picture_scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "profile_picture_left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "profile_picture_top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "profile_picture_natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
             "profile_picture_file": self.get_test_image_file(),
             "roles_to_add": [
                 organization.get_users().name,
@@ -125,7 +122,6 @@ class CreateUserTestCase(JwtAPITestCase):
         assert response.status_code == status.HTTP_201_CREATED
         content = response.json()
         assert content["onboarding_status"]["show_welcome"] is True
-        assert content["people_id"] == payload["people_id"]
         assert content["email"] == payload["email"]
         assert content["given_name"] == payload["given_name"]
         assert content["family_name"] == payload["family_name"]
@@ -163,9 +159,7 @@ class CreateUserTestCase(JwtAPITestCase):
         organization = self.organization
         people_group = PeopleGroupFactory(organization=self.organization)
         payload = {
-            "people_id": faker.uuid4(),
-            "email": faker.email(),
-            "personal_email": faker.email(),
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "password": faker.password(),
@@ -202,9 +196,7 @@ class CreateUserTestCase(JwtAPITestCase):
         organization = self.organization
         people_group = PeopleGroupFactory(organization=self.organization)
         payload = {
-            "people_id": faker.uuid4(),
-            "email": faker.email(),
-            "personal_email": faker.email(),
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
         }
@@ -248,8 +240,8 @@ class UpdateUserTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         payload = {
-            "pronouns": "She / Her",
-            "sdgs": [1, 2, 3],
+            "pronouns": faker.word(),
+            "sdgs": random.choices(SDG.values, k=3),  # nosec
         }
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(instance.keycloak_id,)),
@@ -489,7 +481,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     def test_keycloak_error_create_user(self, mocked):
         mocked.return_value = {}
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        existing_username = faker.email()
+        existing_username = f"{faker.uuid4()}@{faker.domain_name()}"
         KeycloakService._create_user(
             {
                 "username": existing_username,
@@ -499,9 +491,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             }
         )
         payload = {
-            "people_id": faker.uuid4(),
             "email": existing_username,
-            "personal_email": faker.email(),
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
         }
@@ -518,7 +508,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
 
     def test_keycloak_error_update_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        existing_username = faker.email()
+        existing_username = f"{faker.uuid4()}@{faker.domain_name()}"
         KeycloakService._create_user(
             {
                 "username": existing_username,
@@ -576,9 +566,7 @@ class ValidateUserTestCase(JwtAPITestCase):
         organization_2 = OrganizationFactory()
         self.client.force_authenticate(UserFactory(groups=[organization.get_admins()]))
         payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "roles_to_add": [
@@ -753,9 +741,7 @@ class MiscUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         organization = OrganizationFactory(language="fr")
         payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "roles_to_add": [organization.get_users().name],
@@ -776,9 +762,7 @@ class MiscUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         organization = OrganizationFactory(language="en")
         payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "roles_to_add": [organization.get_users().name],

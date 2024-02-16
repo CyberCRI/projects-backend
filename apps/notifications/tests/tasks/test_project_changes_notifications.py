@@ -12,6 +12,9 @@ from apps.notifications.tasks import _notify_new_blogentry, _notify_project_chan
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
 from apps.projects.models import Project
+from faker import Faker
+
+faker = Faker()
 
 
 class ProjectChangesTestCase(JwtAPITestCase):
@@ -29,14 +32,14 @@ class ProjectChangesTestCase(JwtAPITestCase):
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
-        payload = {"title": "title"}
+        payload = {"title": faker.sentence(nb_words=4)}
         response = self.client.patch(
             reverse("Project-detail", args=(project.id,)),
             data=payload,
         )
         assert response.status_code == status.HTTP_200_OK
         notification_task.assert_called_once_with(
-            project.pk, {"title": (project.title, "title")}, owner.pk
+            project.pk, {"title": (project.title, payload["title"])}, owner.pk
         )
 
     def test_notification_task(self):
@@ -58,7 +61,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk, {"title": (project.title, "title")}, sender.pk
+            project.pk, {"title": (project.title, faker.sentence(nb_words=4))}, sender.pk
         )
 
         notifications = Notification.objects.filter(project=project)

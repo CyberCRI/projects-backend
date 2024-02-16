@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.core import mail
 from django.urls import reverse
 from rest_framework import status
+from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.announcements.factories import AnnouncementFactory
@@ -14,6 +15,8 @@ from apps.notifications.tasks import _notify_new_announcement, _notify_new_appli
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+
+faker = Faker()
 
 
 class NewAnnouncementTestCase(JwtAPITestCase):
@@ -33,10 +36,10 @@ class NewAnnouncementTestCase(JwtAPITestCase):
         project.owners.add(owner)
         self.client.force_authenticate(owner)
         payload = {
-            "title": "title",
-            "description": "description",
+            "title": faker.sentence(nb_words=4),
+            "description": faker.text(),
             "type": Announcement.AnnouncementType.JOB,
-            "is_remunerated": True,
+            "is_remunerated": faker.boolean(),
             "project_id": project.id,
         }
         response = self.client.post(
@@ -140,11 +143,11 @@ class NewApplicationTestCase(JwtAPITestCase):
         )
         announcement = AnnouncementFactory(project=project)
         application = {
-            "applicant_name": "name",
-            "applicant_firstname": "firstname",
-            "applicant_email": "email@email.com",
-            "applicant_message": "message",
-            "recaptcha": "captcha",
+            "applicant_name": faker.last_name(),
+            "applicant_firstname": faker.first_name(),
+            "applicant_email": faker.email(),
+            "applicant_message": faker.text(),
+            "recaptcha": faker.word(),
         }
         payload = {
             "project_id": project.id,

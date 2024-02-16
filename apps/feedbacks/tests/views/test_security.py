@@ -1,10 +1,13 @@
 from django.urls import reverse
+from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+
+faker = Faker()
 
 
 class FeedbacksSecurityTestCase(JwtAPITestCase):
@@ -21,8 +24,8 @@ class FeedbacksSecurityTestCase(JwtAPITestCase):
             "reviewer_id": other_user.id,
             "follower_id": other_user.id,
             "author_id": other_user.id,
-            "title": "Title",
-            "description": "Description",
+            "title": faker.sentence(nb_words=4),
+            "description": faker.text(),
         }
         self.client.force_authenticate(user)
         response = self.client.post(
