@@ -32,12 +32,13 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     @classmethod
     def create(cls, **kwargs):
         instance = super().create(**kwargs)
-        with_admin = kwargs.get("with_admin", False)
-        if with_admin:
-            instance.setup_permissions(UserFactory())
-        else:
-            instance.setup_permissions()
+        instance.setup_permissions()
         return instance
+
+    @factory.post_generation
+    def with_admin(self, create, extracted, **kwargs):
+        if not create and extracted is True:
+            UserFactory(groups=[self.get_admins()])
 
 
 class FaqFactory(factory.django.DjangoModelFactory):

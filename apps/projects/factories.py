@@ -29,12 +29,13 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
     @classmethod
     def create(cls, **kwargs):
         instance = super().create(**kwargs)
-        with_owner = kwargs.get("with_owner", False)
-        if with_owner:
-            instance.setup_permissions(UserFactory())
-        else:
-            instance.setup_permissions()
+        instance.setup_permissions()
         return instance
+
+    @factory.post_generation
+    def with_owner(self, create, extracted, **kwargs):
+        if not create and extracted is True:
+            UserFactory(groups=[self.get_owners()])
 
 
 class ProjectFactory(SeedProjectFactory):
