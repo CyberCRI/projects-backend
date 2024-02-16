@@ -92,11 +92,12 @@ class Embedding(models.Model):
         self.queued_for_update = False
         self.prompt_hashcode = self.hash_prompt(prompt)
         self.save()
+        return self
 
     @transaction.atomic
     def vectorize(self, summary: Optional[str] = None) -> "Embedding":
         if self.set_visibility() or self.embed_if_not_visible:
-            self._vectorize(summary)
+            return self._vectorize(summary)
         return self
 
     @classmethod
@@ -112,8 +113,12 @@ class Embedding(models.Model):
         )
 
     @classmethod
-    def queue_or_create(cls, item: models.Model) -> "Embedding":
+    def queue_or_create(
+        cls, item: models.Model, skip_queue: bool = False
+    ) -> "Embedding":
         instance, created = cls.objects.get_or_create(item=item)
+        if skip_queue:
+            return instance.vectorize()
         if created or (
             instance.prompt_hashcode != instance.hash_prompt()
             and not instance.queued_for_update
