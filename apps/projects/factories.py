@@ -34,7 +34,7 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
 
     @factory.post_generation
     def with_owner(self, create, extracted, **kwargs):
-        if not create and extracted is True:
+        if create and extracted is True:
             UserFactory(groups=[self.get_owners()])
 
 
