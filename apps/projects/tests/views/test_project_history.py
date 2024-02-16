@@ -75,7 +75,8 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         assert response.data["history_change_reason"] == "Added members"
 
     def test_remove_project_member(self):
-        project = ProjectFactory(organizations=[self.organization])
+
+        project = ProjectFactory(organizations=[self.organization], with_owner=True)
         self.client.force_authenticate(self.user)
         initial_count = (
             HistoricalProject.objects.filter(id=project.id)

@@ -22,7 +22,7 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         PostDeployProcess.objects.get_or_create(
             task_name=InstanceGroupsPermissions.task_name
         )
-        project = ProjectFactory()
+        project = ProjectFactory(with_owner=True)
 
         for group in project.groups.all():
             group.permissions.clear()
@@ -42,7 +42,7 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         PostDeployProcess.objects.get_or_create(
             task_name=InstanceGroupsPermissions.task_name
         )
-        organization = OrganizationFactory()
+        organization = OrganizationFactory(with_admin=True)
 
         for group in organization.groups.all():
             group.permissions.clear()

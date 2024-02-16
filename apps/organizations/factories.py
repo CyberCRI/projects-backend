@@ -32,7 +32,11 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     @classmethod
     def create(cls, **kwargs):
         instance = super().create(**kwargs)
-        instance.setup_permissions(UserFactory())
+        with_admin = kwargs.get("with_admin", False)
+        if with_admin:
+            instance.setup_permissions(UserFactory())
+        else:
+            instance.setup_permissions()
         return instance
 
 

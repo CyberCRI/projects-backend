@@ -291,7 +291,6 @@ class AdminListUserTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.organization.admins.first().delete()  # created by factory
         cls.user = UserFactory(groups=[get_superadmins_group()])
         cls.user_1 = SeedUserFactory(groups=[cls.organization.get_users()])
         KeycloakService._update_user(
@@ -803,7 +802,6 @@ class MiscUserTestCase(JwtAPITestCase):
         facilitators = UserFactory.create_batch(3)
         UserFactory.create_batch(3)
         organization = OrganizationFactory()
-        organization.admins.first().delete()  # created by factory
         organization.users.add(*users)
         organization.admins.add(*admins)
         organization.facilitators.add(*facilitators)
@@ -824,7 +822,6 @@ class MiscUserTestCase(JwtAPITestCase):
 
     def test_get_current_org_role_two_roles(self):
         organization = OrganizationFactory()
-        organization.admins.first().delete()  # created by factory
         user = UserFactory()
         organization.users.add(user)
         organization.admins.add(user)

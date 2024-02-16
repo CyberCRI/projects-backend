@@ -331,7 +331,8 @@ class ProjectMembersTestCase(JwtAPITestCase):
         ]
     )
     def test_add_project_member(self, role, expected_code):
-        project = ProjectFactory(organizations=[self.organization])
+        # Create project with owner to avoid error when removing last owner
+        project = ProjectFactory(organizations=[self.organization], with_owner=True)
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         payload = {
@@ -398,7 +399,8 @@ class ProjectMembersTestCase(JwtAPITestCase):
             )
 
     def test_remove_project_member_self(self):
-        project = ProjectFactory(organizations=[self.organization])
+        # Create project with owner to avoid error when removing last owner
+        project = ProjectFactory(organizations=[self.organization], with_owner=True)
         to_delete = UserFactory()
         project.members.add(to_delete)
         self.client.force_authenticate(to_delete)
@@ -883,7 +885,7 @@ class ValidateProjectTestCase(JwtAPITestCase):
 
     def test_remove_last_member(self):
         self.client.force_authenticate(self.superadmin)
-        project = ProjectFactory(organizations=[self.organization])
+        project = ProjectFactory(organizations=[self.organization], with_owner=True)
         owner = project.owners.first()
         payload = {
             "users": [owner.id],

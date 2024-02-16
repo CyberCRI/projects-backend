@@ -27,7 +27,6 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory(
             access_request_enabled=True, language="en"
         )
-        cls.organization.admins.first().delete()  # created by factory
         cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
         cls.user_1 = UserFactory(groups=[cls.organization.get_users()])
 
