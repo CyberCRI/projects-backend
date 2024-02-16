@@ -728,7 +728,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
 
     def test_filter_members(self):
         self.client.force_authenticate(UserFactory())
-        filters = {"members": f"{self.user_2.keycloak_id},{self.user_3.keycloak_id}"}
+        filters = {"members": f"{self.user_2.id},{self.user_3.id}"}
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
@@ -767,7 +767,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
     def test_filter_member_role(self):
         self.client.force_authenticate(self.superadmin)
         filters = {
-            "members": f"{self.user_1.keycloak_id},{self.user_2.keycloak_id}",
+            "members": f"{self.user_1.id},{self.user_2.id}",
             "member_role": f"{Project.DefaultGroup.OWNERS},{Project.DefaultGroup.MEMBERS}",
         }
 
@@ -892,7 +892,7 @@ class ValidateProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization])
         owner = project.owners.first()
         payload = {
-            "users": [owner.keycloak_id],
+            "users": [owner.id],
         }
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
@@ -995,7 +995,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         )
         reviewer = UserFactory()
         payload = {
-            Project.DefaultGroup.REVIEWERS: [reviewer.keycloak_id],
+            Project.DefaultGroup.REVIEWERS: [reviewer.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
@@ -1013,7 +1013,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         UserFactory(groups=[project.get_reviewers()])
         reviewer = UserFactory()
         payload = {
-            Project.DefaultGroup.REVIEWERS: [reviewer.keycloak_id],
+            Project.DefaultGroup.REVIEWERS: [reviewer.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload

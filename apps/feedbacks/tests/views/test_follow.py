@@ -78,9 +78,7 @@ class CreateFollowTestCase(JwtAPITestCase):
         assert project_response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
             assert project_response.json()["project"]["id"] == instance.id
-            assert (
-                project_response.json()["follower"]["keycloak_id"] == user.keycloak_id
-            )
+            assert project_response.json()["follower"]["id"] == user.id
 
     @parameterized.expand(
         [
@@ -117,13 +115,13 @@ class CreateFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         user_response = self.client.post(
-            reverse("Follower-list", args=(user.keycloak_id,)),
+            reverse("Follower-list", args=(user.id,)),
             data={"project_id": instance.id},
         )
         assert user_response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
             assert user_response.json()["project"]["id"] == instance.id
-            assert user_response.json()["follower"]["keycloak_id"] == user.keycloak_id
+            assert user_response.json()["follower"]["id"] == user.id
 
     @parameterized.expand(
         [
@@ -143,7 +141,7 @@ class CreateFollowTestCase(JwtAPITestCase):
         payload = {"follows": [{"project_id": project.id} for project in instances]}
         self.client.force_authenticate(user)
         user_response = self.client.post(
-            reverse("Follower-follow-many", args=(user.keycloak_id,)),
+            reverse("Follower-follow-many", args=(user.id,)),
             data=payload,
         )
         assert user_response.status_code == expected_code
@@ -153,10 +151,7 @@ class CreateFollowTestCase(JwtAPITestCase):
                 p.id in [f["project"]["id"] for f in user_response.json()]
                 for p in instances
             )
-            assert all(
-                user.keycloak_id == f["follower"]["keycloak_id"]
-                for f in user_response.json()
-            )
+            assert all(user.id == f["follower"]["id"] for f in user_response.json())
 
 
 class DestroyFollowTestCase(JwtAPITestCase):
@@ -227,7 +222,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
             reverse(
                 "Follower-detail",
                 args=(
-                    follower.keycloak_id,
+                    follower.id,
                     instance.id,
                 ),
             )
@@ -288,7 +283,7 @@ class ListFollowTestCase(JwtAPITestCase):
         user_response = self.client.get(
             reverse(
                 "Follower-list",
-                args=(self.follower.keycloak_id,),
+                args=(self.follower.id,),
             ),
         )
         assert user_response.status_code == status.HTTP_200_OK
@@ -324,8 +319,6 @@ class ListFollowTestCase(JwtAPITestCase):
             assert project_response.status_code == status.HTTP_200_OK
             content = project_response.json()["results"]
             if project_status in retrieved_follows:
-                assert self.follower.keycloak_id in [
-                    f["follower"]["keycloak_id"] for f in content
-                ]
+                assert self.follower.id in [f["follower"]["id"] for f in content]
             else:
                 assert len(content) == 0

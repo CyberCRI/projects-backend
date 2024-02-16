@@ -33,7 +33,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         project.owners.add(member)
         payload = {
-            Project.DefaultGroup.MEMBERS: [member.keycloak_id],
+            Project.DefaultGroup.MEMBERS: [member.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload

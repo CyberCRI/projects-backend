@@ -192,7 +192,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
-            + f"?members={self.public_project_2_member.keycloak_id}"
+            + f"?members={self.public_project_2_member.id}"
         )
         assert response.status_code == 200
         content = response.json()["results"]

@@ -35,7 +35,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         project.members.add(member)
         payload = {
-            "users": [member.keycloak_id],
+            "users": [member.id],
         }
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload

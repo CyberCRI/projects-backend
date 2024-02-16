@@ -54,7 +54,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
             response = self.client.get(
-                reverse("NotificationSettings-detail", args=(user.keycloak_id,))
+                reverse("NotificationSettings-detail", args=(user.id,))
             )
             if publication_status in retrieved_notification_settings:
                 assert response.status_code == status.HTTP_200_OK
@@ -98,7 +98,7 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             "project_has_been_reviewed": faker.boolean(),
         }
         response = self.client.patch(
-            reverse("NotificationSettings-detail", args=(self.user.keycloak_id,)),
+            reverse("NotificationSettings-detail", args=(self.user.id,)),
             data=payload,
         )
         assert response.status_code == expected_code

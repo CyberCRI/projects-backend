@@ -37,7 +37,7 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "UserProfilePicture-list",
-                args=(instance.keycloak_id,),
+                args=(instance.id,),
             ),
             data=payload,
             format="multipart",
@@ -83,7 +83,7 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "UserProfilePicture-detail",
-                args=(instance.keycloak_id, instance.profile_picture.id),
+                args=(instance.id, instance.profile_picture.id),
             ),
             data=payload,
             format="multipart",
@@ -127,7 +127,7 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse(
                 "UserProfilePicture-detail",
-                args=(instance.keycloak_id, instance.profile_picture.id),
+                args=(instance.id, instance.profile_picture.id),
             ),
         )
         assert response.status_code == expected_code

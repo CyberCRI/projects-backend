@@ -57,9 +57,9 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "wikipedia_tags_ids": wikipedia_qids,
             "parent_code": self.parent.code,
             "team": {
-                "users": [u.keycloak_id for u in self.users],
-                "admins": [a.keycloak_id for a in self.admins],
-                "facilitators": [f.keycloak_id for f in self.facilitators],
+                "users": [u.id for u in self.users],
+                "admins": [a.id for a in self.admins],
+                "facilitators": [f.id for f in self.facilitators],
             },
         }
         response = self.client.post(reverse("Organization-list"), data=payload)

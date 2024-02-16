@@ -42,7 +42,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         self.client.force_authenticate(user)
         payload = {
-            "user": instance.keycloak_id,
+            "user": instance.id,
             "wikipedia_tag": wikipedia_qid,
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),

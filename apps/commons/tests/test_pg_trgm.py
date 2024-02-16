@@ -21,7 +21,7 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             assert response.status_code == 200
             content = response.json()["results"]
             assert len(content) >= 1
-            assert content[0]["keycloak_id"] == user.keycloak_id
+            assert content[0]["id"] == user.id
 
     def test_people_group_search_pg_trgrm(self):
         people_group = PeopleGroupFactory(

@@ -155,7 +155,7 @@ class CreateCommentTestCase(JwtAPITestCase):
         assert response.status_code == expected_code
         if expected_code == status.HTTP_201_CREATED:
             assert response.json()["content"] == payload["content"]
-            assert response.json()["author"]["keycloak_id"] == user.keycloak_id
+            assert response.json()["author"]["id"] == user.id
 
 
 class UpdateCommentTestCase(JwtAPITestCase):

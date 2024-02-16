@@ -174,7 +174,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             ) as mocked_add_user_to_group,
         ):
             response = self.client.patch(
-                reverse("ProjectUser-detail", args=(google_account.user.keycloak_id,)),
+                reverse("ProjectUser-detail", args=(google_account.user.id,)),
                 data=payload,
             )
             mocked_update_user.assert_called_once_with(google_account)
@@ -208,7 +208,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             GoogleService, "suspend_user", wraps=GoogleService.suspend_user
         ) as mocked_suspend_user:
             response = self.client.delete(
-                reverse("ProjectUser-detail", args=(google_account.user.keycloak_id,))
+                reverse("ProjectUser-detail", args=(google_account.user.id,))
             )
             mocked_suspend_user.assert_called_once_with(google_account)
             assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -227,7 +227,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             "type": "group",
             "description": "",
             "team": {
-                "members": [google_user.user.keycloak_id],
+                "members": [google_user.user.id],
             },
         }
         mocked.side_effect = self.google_side_effect(
@@ -303,7 +303,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             "type": "group",
             "description": "",
             "team": {
-                "members": [existing_user.user.keycloak_id],
+                "members": [existing_user.user.id],
             },
         }
         mocked.side_effect = self.google_side_effect(
@@ -357,7 +357,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             "type": "group",
             "description": "",
             "team": {
-                "members": [google_user.user.keycloak_id],
+                "members": [google_user.user.id],
             },
         }
         mocked.side_effect = self.google_side_effect(

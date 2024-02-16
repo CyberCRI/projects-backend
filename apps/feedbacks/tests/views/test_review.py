@@ -55,7 +55,7 @@ class CreateReviewTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["project_id"] == project.id
-            assert content["reviewer"]["keycloak_id"] == user.keycloak_id
+            assert content["reviewer"]["id"] == user.id
             assert content["title"] == payload["title"]
             assert content["description"] == payload["description"]
 
@@ -162,9 +162,7 @@ class ListReviewTestCase(JwtAPITestCase):
             if project_status in retrieved_follows:
                 assert len(content) == 1
                 assert content[0]["project_id"] == project.id
-                assert (
-                    content[0]["reviewer"]["keycloak_id"] == self.reviewer.keycloak_id
-                )
+                assert content[0]["reviewer"]["id"] == self.reviewer.id
                 assert (
                     content[0]["description"]
                     == self.reviews[project_status].description

@@ -51,9 +51,9 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
             "email": faker.email(),
             "parent": parent.id,
             "team": {
-                "members": [m.keycloak_id for m in members],
-                "managers": [r.keycloak_id for r in managers],
-                "leaders": [r.keycloak_id for r in leaders],
+                "members": [m.id for m in members],
+                "managers": [r.id for r in managers],
+                "leaders": [r.id for r in leaders],
             },
             "featured_projects": [p.pk for p in projects],
         }
@@ -183,9 +183,9 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[people_group])
         self.client.force_authenticate(user)
         payload = {
-            "members": [m.keycloak_id for m in members],
-            "managers": [r.keycloak_id for r in managers],
-            "leaders": [r.keycloak_id for r in leaders],
+            "members": [m.id for m in members],
+            "managers": [r.id for r in managers],
+            "leaders": [r.id for r in leaders],
         }
         response = self.client.post(
             reverse(
@@ -225,7 +225,7 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         people_group.managers.add(*managers)
         people_group.leaders.add(*leaders)
         payload = {
-            "users": [u.keycloak_id for u in members + managers + leaders],
+            "users": [u.id for u in members + managers + leaders],
         }
         response = self.client.post(
             reverse(
@@ -673,29 +673,29 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         results = content["results"]
 
         batch_1 = results[:2]
-        batch_1_ids = [user["keycloak_id"] for user in batch_1]
-        leaders_managers_ids = [user.keycloak_id for user in leaders_managers]
+        batch_1_ids = [user["id"] for user in batch_1]
+        leaders_managers_ids = [user.id for user in leaders_managers]
         assert leaders_managers_ids.sort() == batch_1_ids.sort()
         assert all(user["is_manager"] is True for user in batch_1)
         assert all(user["is_leader"] is True for user in batch_1)
 
         batch_2 = results[2:4]
-        batch_2_ids = [user["keycloak_id"] for user in batch_2]
-        leaders_members_ids = [user.keycloak_id for user in leaders_members]
+        batch_2_ids = [user["id"] for user in batch_2]
+        leaders_members_ids = [user.id for user in leaders_members]
         assert leaders_members_ids.sort() == batch_2_ids.sort()
         assert all(user["is_manager"] is False for user in batch_2)
         assert all(user["is_leader"] is True for user in batch_2)
 
         batch_3 = results[4:6]
-        batch_3_ids = [user["keycloak_id"] for user in batch_3]
-        managers_ids = [user.keycloak_id for user in managers]
+        batch_3_ids = [user["id"] for user in batch_3]
+        managers_ids = [user.id for user in managers]
         assert managers_ids.sort() == batch_3_ids.sort()
         assert all(user["is_manager"] is True for user in batch_3)
         assert all(user["is_leader"] is False for user in batch_3)
 
         batch_4 = results[6:]
-        batch_4_ids = [user["keycloak_id"] for user in batch_4]
-        members_ids = [user.keycloak_id for user in members]
+        batch_4_ids = [user["id"] for user in batch_4]
+        members_ids = [user.id for user in members]
         assert members_ids.sort() == batch_4_ids.sort()
         assert all(user["is_manager"] is False for user in batch_4)
         assert all(user["is_leader"] is False for user in batch_4)
@@ -735,7 +735,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         user = UserFactory()
         people_group.members.add(user)
         payload = {
-            PeopleGroup.DefaultGroup.LEADERS: [user.keycloak_id],
+            PeopleGroup.DefaultGroup.LEADERS: [user.id],
         }
         response = self.client.post(
             reverse(
@@ -756,7 +756,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         user = UserFactory()
         people_group.leaders.add(user)
         payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [user.keycloak_id],
+            PeopleGroup.DefaultGroup.MEMBERS: [user.id],
         }
         response = self.client.post(
             reverse(
@@ -777,7 +777,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         user = UserFactory()
         people_group.members.add(user)
         payload = {
-            PeopleGroup.DefaultGroup.MANAGERS: [user.keycloak_id],
+            PeopleGroup.DefaultGroup.MANAGERS: [user.id],
         }
         response = self.client.post(
             reverse(
