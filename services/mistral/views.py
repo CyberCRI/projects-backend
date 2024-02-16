@@ -26,16 +26,9 @@ class ProjectRecommendationViewSet(ListViewSet):
             )
         )
         if self.request.user.is_authenticated:
-            if (
-                self.request.user.embedding is None
-                or self.request.user.embedding.embedding is None
-            ):
-                embedding = UserEmbedding.queue_or_create(
-                    self.request.user, skip_queue=True
-                )
-            else:
-                embedding = self.request.user.embedding
-            return ProjectEmbedding.vector_search(embedding.embedding, queryset)
+            embedding, _ = UserEmbedding.objects.get_or_create(item=self.request.user)
+            vector = embedding.embedding or embedding.vectorize().embedding
+            return ProjectEmbedding.vector_search(vector, queryset)
         return queryset
 
 
@@ -51,14 +44,7 @@ class UserRecommendationViewSet(ListViewSet):
             groups__organizations__code=self.kwargs["organization_code"]
         )
         if self.request.user.is_authenticated:
-            if (
-                self.request.user.embedding is None
-                or self.request.user.embedding.embedding is None
-            ):
-                embedding = UserEmbedding.queue_or_create(
-                    self.request.user, skip_queue=True
-                )
-            else:
-                embedding = self.request.user.embedding
-            return UserEmbedding.vector_search(embedding.embedding, queryset)
+            embedding, _ = UserEmbedding.objects.get_or_create(item=self.request.user)
+            vector = embedding.embedding or embedding.vectorize().embedding
+            return UserEmbedding.vector_search(vector, queryset)
         return queryset

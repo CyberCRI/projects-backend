@@ -399,8 +399,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.projects.tasks.remove_old_projects",
         "schedule": crontab(minute=0, hour=0),
     },
-    "update_queued_embeddings": {
-        "task": "services.mistral.tasks.update_queued_embeddings",
+    "vectorize_updated_objects": {
+        "task": "services.mistral.tasks.vectorize_updated_objects",
         "schedule": crontab(minute=0, hour=1),
     },
     "delete-orphan-images": {
