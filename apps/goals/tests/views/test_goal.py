@@ -38,7 +38,7 @@ class CreateGoalTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "status": Goal.GoalStatus.ONGOING,
             "project_id": project.id,
         }
@@ -78,7 +78,7 @@ class UpdateGoalTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         goal = GoalFactory(project=project)
-        payload = {"title": faker.sentence(nb_words=4)}
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
             reverse("Goal-detail", args=(project.id, goal.id)),
             data=payload,

@@ -14,7 +14,7 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
     publication_status = Project.PublicationStatus.PUBLIC
     life_status = FuzzyChoice(Project.LifeStatus.choices, getter=lambda c: c[0])
     language = language_factory()
-    title = factory.Faker("sentence", nb_words=4)
+    title = factory.Faker("sentence")
     header_image = None
     description = factory.Faker("text")
     purpose = factory.Faker("text")

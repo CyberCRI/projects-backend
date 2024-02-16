@@ -53,7 +53,7 @@ class VectorizeProjectTestCase(JwtAPITestCase, MistralTestCaseMixin):
             description=faker.text(), organizations=[self.organization]
         )
         embedding = ProjectEmbeddingFactory(item=project)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
@@ -68,7 +68,7 @@ class VectorizeProjectTestCase(JwtAPITestCase, MistralTestCaseMixin):
         project = ProjectFactory(description="", organizations=[self.organization])
         embedding = ProjectEmbeddingFactory(item=project)
         BlogEntryFactory(project=project)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
@@ -82,7 +82,7 @@ class VectorizeProjectTestCase(JwtAPITestCase, MistralTestCaseMixin):
     def test_vectorize_not_visible(self, mocked_embeddings, mocked_chat):
         project = ProjectFactory(description="", organizations=[self.organization])
         embedding = ProjectEmbeddingFactory(item=project)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)

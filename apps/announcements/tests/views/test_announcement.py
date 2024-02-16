@@ -36,7 +36,7 @@ class CreateAnnouncementTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": faker.text(),
             "type": Announcement.AnnouncementType.JOB,
             "is_remunerated": faker.boolean(),

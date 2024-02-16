@@ -24,7 +24,7 @@ class FeedbacksSecurityTestCase(JwtAPITestCase):
             "reviewer_id": other_user.id,
             "follower_id": other_user.id,
             "author_id": other_user.id,
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": faker.text(),
         }
         self.client.force_authenticate(user)

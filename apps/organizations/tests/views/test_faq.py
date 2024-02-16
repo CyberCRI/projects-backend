@@ -30,7 +30,7 @@ class CreateFaqTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": faker.text(),
             "organization_code": self.organization.code,
         }
@@ -91,7 +91,7 @@ class UpdateFaqTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": faker.text(),
         }
         response = self.client.patch(

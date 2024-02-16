@@ -39,7 +39,7 @@ class NewReviewTestCase(JwtAPITestCase):
         self.client.force_authenticate(reviewer)
         payload = {
             "project_id": project.id,
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": faker.text(),
         }
         response = self.client.post(

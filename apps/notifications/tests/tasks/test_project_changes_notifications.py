@@ -32,7 +32,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
-        payload = {"title": faker.sentence(nb_words=4)}
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
             reverse("Project-detail", args=(project.id,)),
             data=payload,
@@ -62,7 +62,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
 
         _notify_project_changes(
             project.pk,
-            {"title": (project.title, faker.sentence(nb_words=4))},
+            {"title": (project.title, faker.sentence())},
             sender.pk,
         )
 
@@ -107,12 +107,12 @@ class ProjectChangesTestCase(JwtAPITestCase):
 
         _notify_project_changes(
             project.pk,
-            {"title": (project.title, faker.sentence(nb_words=4))},
+            {"title": (project.title, faker.sentence())},
             sender.pk,
         )
         _notify_project_changes(
             project.pk,
-            {"purpose": (project.purpose, faker.sentence(nb_words=4))},
+            {"purpose": (project.purpose, faker.sentence())},
             sender.pk,
         )
 
@@ -154,7 +154,7 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         project.owners.add(owner)
         self.client.force_authenticate(owner)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": faker.text(),
             "project_id": project.id,
         }

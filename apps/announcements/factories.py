@@ -11,7 +11,7 @@ class AnnouncementFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`
-    title = factory.Faker("sentence", nb_words=4)
+    title = factory.Faker("sentence")
     description = factory.Faker("text")
     type = FuzzyChoice(
         models.Announcement.AnnouncementType.choices, getter=lambda c: c[0]

@@ -39,7 +39,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.client.force_authenticate(user)
         payload = {
             "organization_code": self.organization.code,
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "description": faker.text(),
             "wikipedia_tags_ids": wikipedia_qids,
             "order_index": faker.pyint(0, 10),
@@ -124,7 +124,7 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "description": faker.text(),
             "wikipedia_tags_ids": wikipedia_qids,
             "order_index": faker.pyint(0, 10),
@@ -186,19 +186,19 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {
             "organization_code": self.organization.code,
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "description": faker.text(),
             "order_index": faker.pyint(0, 10),
             "background_color": faker.color(),
             "foreground_color": faker.color(),
             "is_reviewable": faker.boolean(),
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
                 "description_placeholder": faker.text(),
-                "goal_placeholder": faker.sentence(nb_words=4),
-                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "goal_placeholder": faker.sentence(),
+                "blogentry_title_placeholder": faker.sentence(),
                 "blogentry_placeholder": faker.text(),
-                "goal_title": faker.sentence(nb_words=4),
+                "goal_title": faker.sentence(),
                 "goal_description": faker.text(),
             },
         }
@@ -229,12 +229,12 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         category = ProjectCategoryFactory(organization=self.organization)
         payload = {
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
                 "description_placeholder": faker.text(),
-                "goal_placeholder": faker.sentence(nb_words=4),
-                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "goal_placeholder": faker.sentence(),
+                "blogentry_title_placeholder": faker.sentence(),
                 "blogentry_placeholder": faker.text(),
-                "goal_title": faker.sentence(nb_words=4),
+                "goal_title": faker.sentence(),
                 "goal_description": faker.text(),
             },
         }
@@ -268,7 +268,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         original_template = category.template
         payload = {
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
             },
         }
         response = self.client.patch(

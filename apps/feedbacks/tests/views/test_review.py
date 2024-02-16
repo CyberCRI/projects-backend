@@ -218,7 +218,7 @@ class ValidateReviewTestCase(JwtAPITestCase):
         )
         payload = {
             "project_id": project.id,
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": faker.text(),
         }
         user = UserFactory(groups=[get_superadmins_group()])

@@ -210,7 +210,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "project_id": to_link.id,
-            "reason": faker.sentence(nb_words=4),
+            "reason": faker.sentence(),
             "target_id": project.id,
         }
         self.client.post(
@@ -271,7 +271,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"reason": faker.sentence(nb_words=4)}
+        payload = {"reason": faker.sentence()}
         self.client.patch(
             reverse("LinkedProjects-detail", args=(project.id, linked_project.id)),
             data=payload,
@@ -303,7 +303,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             "projects": [
                 {
                     "project_id": to_link.id,
-                    "reason": faker.sentence(nb_words=4),
+                    "reason": faker.sentence(),
                     "target_id": project.id,
                 }
             ]
@@ -367,7 +367,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"title": faker.sentence(nb_words=4)}
+        payload = {"title": faker.sentence()}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -392,7 +392,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"purpose": faker.sentence(nb_words=4)}
+        payload = {"purpose": faker.sentence()}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -418,8 +418,8 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .count()
         )
         payload = {
-            "title": faker.sentence(nb_words=4),
-            "purpose": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
+            "purpose": faker.sentence(),
         }
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)

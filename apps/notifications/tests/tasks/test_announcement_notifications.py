@@ -36,7 +36,7 @@ class NewAnnouncementTestCase(JwtAPITestCase):
         project.owners.add(owner)
         self.client.force_authenticate(owner)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": faker.text(),
             "type": Announcement.AnnouncementType.JOB,
             "is_remunerated": faker.boolean(),

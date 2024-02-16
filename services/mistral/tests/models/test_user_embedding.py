@@ -50,7 +50,7 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
             personal_description=faker.text(), professional_description=""
         )
         embedding = UserEmbeddingFactory(item=user)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
@@ -68,7 +68,7 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
             personal_description="", professional_description=faker.text()
         )
         embedding = UserEmbeddingFactory(item=user)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
@@ -83,7 +83,7 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         user = UserFactory(personal_description="", professional_description="")
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=3)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
@@ -98,7 +98,7 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         user = UserFactory(personal_description="", professional_description="")
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=2)
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)

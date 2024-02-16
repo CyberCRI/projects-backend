@@ -44,8 +44,8 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         payload = {
             "name": faker.word(),
             "code": faker.word(),
-            "dashboard_title": faker.sentence(nb_words=4),
-            "dashboard_subtitle": faker.sentence(nb_words=6),
+            "dashboard_title": faker.sentence(),
+            "dashboard_subtitle": faker.sentence(),
             "contact_email": faker.email(),
             "website_url": faker.url(),
             "background_color": faker.color(),
@@ -158,8 +158,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.client.force_authenticate(user)
         payload = {
             "name": faker.word(),
-            "dashboard_title": faker.sentence(nb_words=4),
-            "dashboard_subtitle": faker.sentence(nb_words=6),
+            "dashboard_title": faker.sentence(),
+            "dashboard_subtitle": faker.sentence(),
             "contact_email": faker.email(),
             "background_color": faker.color(),
             "logo_image_id": self.logo_image.id,

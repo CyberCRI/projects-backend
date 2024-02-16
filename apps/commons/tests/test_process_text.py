@@ -34,11 +34,11 @@ class TextProcessingTestCase(JwtAPITestCase):
         text = self.create_text_to_process()
         self.client.force_authenticate(self.user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": text,
             "is_locked": faker.boolean(),
             "is_shareable": faker.boolean(),
-            "purpose": faker.sentence(nb_words=4),
+            "purpose": faker.sentence(),
             "organizations_codes": [self.organization.code],
             "images_ids": [],
         }
@@ -62,7 +62,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.user)
         project = self.project
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": text,
             "project_id": project.id,
         }
@@ -112,7 +112,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.user)
         organization = self.organization
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": text,
             "organization_code": organization.code,
         }
@@ -145,14 +145,14 @@ class TextProcessingTestCase(JwtAPITestCase):
         payload = {
             "description": faker.text(),
             "is_reviewable": faker.boolean(),
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "order_index": 1,
             "organization_code": organization.code,
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
-                "goal_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
+                "goal_placeholder": faker.sentence(),
                 "description_placeholder": text1,
-                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "blogentry_title_placeholder": faker.sentence(),
                 "blogentry_placeholder": text2,
             },
         }
@@ -167,10 +167,10 @@ class TextProcessingTestCase(JwtAPITestCase):
         category = ProjectCategoryFactory(organization=self.organization)
         payload = {
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
-                "goal_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
+                "goal_placeholder": faker.sentence(),
                 "description_placeholder": text1,
-                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "blogentry_title_placeholder": faker.sentence(),
                 "blogentry_placeholder": text2,
             }
         }
