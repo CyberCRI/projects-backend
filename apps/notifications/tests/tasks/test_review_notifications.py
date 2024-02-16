@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
@@ -12,6 +13,8 @@ from apps.notifications.tasks import _notify_new_review, _notify_ready_for_revie
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+
+faker = Faker()
 
 
 class NewReviewTestCase(JwtAPITestCase):
@@ -36,8 +39,8 @@ class NewReviewTestCase(JwtAPITestCase):
         self.client.force_authenticate(reviewer)
         payload = {
             "project_id": project.id,
-            "title": "Title",
-            "description": "Description",
+            "title": faker.sentence(nb_words=4),
+            "description": faker.text(),
         }
         response = self.client.post(
             reverse("Reviewed-list", args=(project.id,)), data=payload

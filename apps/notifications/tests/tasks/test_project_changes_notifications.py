@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
@@ -12,7 +13,6 @@ from apps.notifications.tasks import _notify_new_blogentry, _notify_project_chan
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
 from apps.projects.models import Project
-from faker import Faker
 
 faker = Faker()
 
@@ -61,7 +61,9 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk, {"title": (project.title, faker.sentence(nb_words=4))}, sender.pk
+            project.pk,
+            {"title": (project.title, faker.sentence(nb_words=4))},
+            sender.pk,
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -104,10 +106,14 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk, {"title": (project.title, "title")}, sender.pk
+            project.pk,
+            {"title": (project.title, faker.sentence(nb_words=4))},
+            sender.pk,
         )
         _notify_project_changes(
-            project.pk, {"purpose": (project.purpose, "purpose")}, sender.pk
+            project.pk,
+            {"purpose": (project.purpose, faker.sentence(nb_words=4))},
+            sender.pk,
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -147,7 +153,11 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         owner = UserFactory()
         project.owners.add(owner)
         self.client.force_authenticate(owner)
-        payload = {"title": "title", "content": "content", "project_id": project.id}
+        payload = {
+            "title": faker.sentence(nb_words=4),
+            "content": faker.text(),
+            "project_id": project.id,
+        }
         response = self.client.post(
             reverse("BlogEntry-list", args=(project.id,)), data=payload
         )

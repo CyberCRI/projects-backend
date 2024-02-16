@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
@@ -12,7 +13,6 @@ from apps.notifications.tasks import _notify_new_comment
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from faker import Faker
 
 faker = Faker()
 
@@ -33,10 +33,7 @@ class NewCommentTestCase(JwtAPITestCase):
         project.owners.add(owner)
 
         self.client.force_authenticate(owner)
-        payload = {
-            "project_id": project.id,
-            "content": faker.text()
-        }
+        payload = {"project_id": project.id, "content": faker.text()}
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)), data=payload
         )

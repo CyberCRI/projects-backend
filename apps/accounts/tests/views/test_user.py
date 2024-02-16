@@ -106,7 +106,9 @@ class CreateUserTestCase(JwtAPITestCase):
             "profile_picture_scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
             "profile_picture_left": faker.pyfloat(min_value=1.0, max_value=2.0),
             "profile_picture_top": faker.pyfloat(min_value=1.0, max_value=2.0),
-            "profile_picture_natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "profile_picture_natural_ratio": faker.pyfloat(
+                min_value=1.0, max_value=2.0
+            ),
             "profile_picture_file": self.get_test_image_file(),
             "roles_to_add": [
                 organization.get_users().name,
@@ -504,7 +506,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             response.json()["error"]
             == "An error occured in Keycloak : User exists with same username"
         )
-        assert not ProjectUser.objects.filter(people_id=payload["people_id"]).exists()
+        assert not ProjectUser.objects.filter(**payload).exists()
 
     def test_keycloak_error_update_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))

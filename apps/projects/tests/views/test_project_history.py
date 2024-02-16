@@ -115,7 +115,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "project_id": project.id,
-            "content": "content",
+            "content": faker.text(),
         }
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)),
@@ -210,7 +210,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "project_id": to_link.id,
-            "reason": "reason",
+            "reason": faker.sentence(nb_words=4),
             "target_id": project.id,
         }
         self.client.post(
@@ -271,7 +271,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"reason": "new reason"}
+        payload = {"reason": faker.sentence(nb_words=4)}
         self.client.patch(
             reverse("LinkedProjects-detail", args=(project.id, linked_project.id)),
             data=payload,
@@ -301,7 +301,11 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "projects": [
-                {"project_id": to_link.id, "reason": "reason", "target_id": project.id}
+                {
+                    "project_id": to_link.id,
+                    "reason": faker.sentence(nb_words=4),
+                    "target_id": project.id,
+                }
             ]
         }
         self.client.post(
@@ -363,7 +367,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"title": "New title"}
+        payload = {"title": faker.sentence(nb_words=4)}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -377,7 +381,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         ) == initial_count + 1
-        assert version["title"] == "New title"
+        assert version["title"] == payload["title"]
         assert version["history_change_reason"] == "Updated: title"
 
     def test_update_purpose(self):
@@ -388,7 +392,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"purpose": "New purpose"}
+        payload = {"purpose": faker.sentence(nb_words=4)}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -402,7 +406,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         ) == initial_count + 1
-        assert version["purpose"] == "New purpose"
+        assert version["purpose"] == payload["purpose"]
         assert version["history_change_reason"] == "Updated: purpose"
 
     def test_update_purpose_and_title(self):
@@ -413,7 +417,10 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"title": "New title", "purpose": "New purpose"}
+        payload = {
+            "title": faker.sentence(nb_words=4),
+            "purpose": faker.sentence(nb_words=4),
+        }
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -427,8 +434,8 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         ) == initial_count + 1
-        assert version["purpose"] == "New purpose"
-        assert version["title"] == "New title"
+        assert version["purpose"] == payload["purpose"]
+        assert version["title"] == payload["title"]
         assert version["history_change_reason"] == "Updated: title + purpose"
 
     def test_update_categories(self):

@@ -48,9 +48,8 @@ class GoogleTasksTestCase(GoogleTestCase):
         group = GoogleGroupFactory()
         existing_user = GoogleAccountFactory()
         payload = {
-            "people_id": faker.uuid4(),
-            "email": f"{faker.uuid4()}@yopmail.com",
-            "personal_email": f"{faker.uuid4()}@yopmail.com",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
+            "personal_email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "roles_to_add": [

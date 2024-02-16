@@ -2,8 +2,8 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.urls import reverse
-from rest_framework import status
 from faker import Faker
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.announcements.factories import AnnouncementFactory

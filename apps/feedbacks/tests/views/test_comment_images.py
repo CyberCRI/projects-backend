@@ -1,7 +1,7 @@
 from django.urls import reverse
+from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
-from faker import Faker
 
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory
