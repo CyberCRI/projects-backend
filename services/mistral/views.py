@@ -1,11 +1,10 @@
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.accounts.filters import UserFilter
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import ListViewSet
-from apps.organizations.models import Organization
 from apps.projects.filters import ProjectFilter
 from apps.projects.serializers import ProjectLightSerializer
 
@@ -21,28 +20,6 @@ class ProjectRecommendationViewSet(ListViewSet):
     permission_classes = [ReadOnly]
 
     def get_queryset(self) -> QuerySet:
-        organizations = Prefetch(
-            "organizations",
-            queryset=Organization.objects.select_related(
-                "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("wikipedia_tags"),
-        )
-        return self.request.user.get_project_queryset(
-            "wikipedia_tags",
-            "goals",
-            "follows",
-            "follows",
-            "reviews",
-            "locations",
-            "announcements",
-            "links",
-            "files",
-            "images",
-            "blog_entries",
-            "linked_projects",
-            "categories",
-            organizations,
-        )
         queryset = self.request.user.get_project_queryset().filter(
             organizations__code=self.kwargs["organization_code"]
         )
