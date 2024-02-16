@@ -403,6 +403,7 @@ class Project(
         self.queue_for_embedding = False  # avoid AI costs
         # Saving is also mandatory to trigger indexing in Algolia
         self.save(update_fields=["permissions_up_to_date"])
+        delattr(self, "queue_for_embedding")
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""

@@ -16,7 +16,7 @@ class PostDeployTask:
     task_name: str
     priority: int
     task: Callable[[int], None]
-    run_in_tests: bool = True
+    run_in_tests: bool = False
 
     @classmethod
     def run(cls):
@@ -32,13 +32,13 @@ class BaseGroupsPermissions(PostDeployTask):
     task_name = "base_groups_permissions"
     priority = 1
     task = base_groups_permissions
+    run_in_tests = True
 
 
 class AlgoliaReindex(PostDeployTask):
     task_name = "algolia_reindex"
     priority = 2
     task = algolia_reindex_task
-    run_in_tests = False
 
 
 class InstanceGroupsPermissions(PostDeployTask):
