@@ -26,7 +26,7 @@ class Embedding(models.Model):
         - max_tokens: the maximum number of tokens to use for the chat prompt
 
     And the following methods:
-        - set_visibility: a method that returns whether the item should be
+        - get_is_visible: a method that returns whether the item should be
             returned in vector_search results
         - get_summary_chat_system: a class method that returns the system messages
             for the chat prompt
@@ -48,7 +48,7 @@ class Embedding(models.Model):
     class Meta:
         abstract = True
 
-    def set_visibility(self) -> bool:
+    def get_is_visible(self) -> bool:
         raise NotImplementedError()
 
     @classmethod
@@ -57,6 +57,11 @@ class Embedding(models.Model):
 
     def get_summary_chat_prompt(self) -> List[str]:
         raise NotImplementedError()
+
+    def set_visibility(self) -> bool:
+        self.is_visible = self.get_is_visible()
+        self.save(update_fields=["is_visible"])
+        return self.is_visible
 
     def get_summary(
         self, system: Optional[List[str]] = None, prompt: Optional[List[str]] = None
@@ -123,13 +128,8 @@ class ProjectEmbedding(Embedding):
     def project(self) -> "Project":
         return self.item
 
-    def set_visibility(self) -> bool:
-        is_visible = (
-            len(self.project.description) > 10 or self.project.blog_entries.exists()
-        )
-        self.is_visible = is_visible
-        self.save()
-        return is_visible
+    def get_is_visible(self) -> bool:
+        return len(self.project.description) > 10 or self.project.blog_entries.exists()
 
     @classmethod
     def get_summary_chat_system(cls) -> List[str]:
@@ -183,15 +183,12 @@ class UserEmbedding(Embedding):
     def user(self) -> "ProjectUser":
         return self.item
 
-    def set_visibility(self) -> bool:
-        is_visible = (
+    def get_is_visible(self) -> bool:
+        return (
             len(self.user.personal_description) > 10
             or len(self.user.professional_description) > 10
             or self.user.skills.filter(level__gte=3).exists()
         )
-        self.is_visible = is_visible
-        self.save()
-        return is_visible
 
     @classmethod
     def get_summary_chat_system(cls) -> List[str]:
