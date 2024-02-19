@@ -198,11 +198,11 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             for member in members:
-                self.assertIn(people_group, member.people_groups.all())
+                self.assertIn(member, people_group.members.all())
             for manager in managers:
-                self.assertIn(people_group, manager.people_groups.all())
+                self.assertIn(manager, people_group.managers.all())
             for leader in leaders:
-                self.assertIn(people_group, leader.people_groups.all())
+                self.assertIn(leader, people_group.leaders.all())
 
     @parameterized.expand(
         [
@@ -241,11 +241,11 @@ class PeopleGroupMemberTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             for member in members:
-                self.assertNotIn(people_group, member.people_groups.all())
+                self.assertNotIn(member, people_group.members.all())
             for manager in managers:
-                self.assertNotIn(people_group, manager.people_groups.all())
+                self.assertNotIn(manager, people_group.managers.all())
             for leader in leaders:
-                self.assertNotIn(people_group, leader.people_groups.all())
+                self.assertNotIn(leader, people_group.leaders.all())
 
 
 class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):

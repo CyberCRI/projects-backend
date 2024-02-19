@@ -32,14 +32,14 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
 
     def assert_fields_visible(self, user, data):
         self.assertEqual(data["facebook"], user.facebook)
-        self.assertEqual(["twitter"], user.twitter)
-        self.assertEqual(["skype"], user.skype)
-        self.assertEqual(["landline_phone"], user.landline_phone)
-        self.assertEqual(["mobile_phone"], user.mobile_phone)
-        self.assertEqual(["personal_email"], user.personal_email)
-        self.assertEqual(["linkedin"], user.linkedin)
-        self.assertEqual(["medium"], user.medium)
-        self.assertEqual(["website"], user.website)
+        self.assertEqual(data["twitter"], user.twitter)
+        self.assertEqual(data["skype"], user.skype)
+        self.assertEqual(data["landline_phone"], user.landline_phone)
+        self.assertEqual(data["mobile_phone"], user.mobile_phone)
+        self.assertEqual(data["personal_email"], user.personal_email)
+        self.assertEqual(data["linkedin"], user.linkedin)
+        self.assertEqual(data["medium"], user.medium)
+        self.assertEqual(data["website"], user.website)
         self.assertEqual(data["profile_picture"]["id"], user.profile_picture.id)
         self.assertEqual(
             {skill["id"] for skill in data["skills"]},
