@@ -19,7 +19,7 @@ spec:
       # Incoming traffic from projects namespace
       - namespaceSelector:
           matchLabels:
-            kubernetes.io/metadata.name: {{ .Values.projectsNamespace }}
+            kubernetes.io/metadata.name: {{ .Values.namespace }}
       # Incoming traffic from monitoring namespace
       - namespaceSelector:
           matchLabels:

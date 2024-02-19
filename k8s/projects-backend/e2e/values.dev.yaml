@@ -1,0 +1,34 @@
+corsAllowedDomains:
+- e2e.projects.k8s.lp-i.dev
+- e2e-meta.projects.k8s.lp-i.dev
+- lpi-dev.cloud-iam.com # keycloak login page
+
+config:
+  nonSensitive:
+    AZURE_ACCOUNT_NAME: criparisdevlabprojects
+    POSTGRES_DB: dev_projects_e2e
+    KEYCLOAK_REALM: e2e
+    KEYCLOAK_PUBLIC_KEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2dkbAV8k5QupaoNmv6y0ySpMhxBWL9v0ORiQDhY9urWtLx1jry97GhR9+RurslC9PSoeOD7UjUaMXWCslOw/omQItcS7ck3LCxGMw3V7KWF/i9fBvqYgJeHsqqVo421GnHUl+gskuICUcScVgiUVLOmY4rBwRWdar6obirdQ9sxDMHNaJJLvPEvIAYE4Uen361Yu9cGkC7+ax3mcm8Wmy0BI6heytiaKh8ozG6NhjEcJG4/ZusB+RHrepJ0nSt9yW+iE1bfKjbFqM3MxWWe97wFciUreJnVXSBRIIHfrfY2shZKSQh4wMaZr/ipSvA2CSpmV+vINfC8lPJgWLMweZQIDAQAB
+
+workflow:
+  lifecycle:
+    enabled: true
+    config:
+      nonSensitive:
+        ORIGIN_POSTGRES_DB: dev_projects
+
+hostname: api-e2e.projects.k8s.lp-i.dev
+
+backend:
+  replicaCount: 1
+
+instance: e2e
+
+redis:
+  autoSync: false
+  valueFiles:
+  - values.yaml
+  - projects-api/values.yaml
+  - projects-api/dev-lab/values.yaml
+  argocdAppName: projects-backend-e2e-redis
+  helmReleaseName: projects-backend-e2e-redis

@@ -17,12 +17,7 @@ spec:
         {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 8 }}
         {{ printf "%s-client" $.Values.redis.helmReleaseName }}: "true"
       annotations:
-      {{- if .Values.config.nonSensitive }}
-        checksum/configmap: {{ include (print $.Template.BasePath "/environment-configmap.yaml") . | sha256sum }}
-      {{- end }}
-      {{- if .Values.config.sensitive }}
-        checksum/secret: {{ include (print $.Template.BasePath "/environment-secret.yaml") . | sha256sum }}
-      {{- end }}
+        checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
     spec:
       securityContext:
         runAsNonRoot: true
@@ -112,17 +107,10 @@ spec:
           failureThreshold: {{ .failureThreshold }}
           periodSeconds: {{ .periodSeconds }}
           successThreshold: {{ .successThreshold }}
+        {{- end }}
         env:
         - name: CE_BROKER_URL
-        {{- end }}
-        {{- if .brokerUrlIsSecret }}
-          valueFrom:
-            secretKeyRef:
-              name: {{ tpl $.Values.fullName $ }}
-              key: CELERY_BROKER_URL
-        {{- else }}
-          value: {{ $.Values.config.nonSensitive.CELERY_BROKER_URL }}
-        {{- end }}
+          value: {{ tpl $.Values.config.nonSensitive.CELERY_BROKER_URL $ }}
         securityContext:
           allowPrivilegeEscalation: false
           capabilities:

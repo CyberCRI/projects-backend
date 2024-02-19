@@ -63,9 +63,9 @@ spec:
         args: ["make", "dropdb"]
         env:
         - name: DRY_RUN
-          value: {{ print "{{workflow.parameters.dry_run}}" | quote }}
+          value: {{ print "{{inputs.parameters.dry_run}}" | quote }}
         - name: FORCE_DISCONNECT
-          value: {{ print "{{workflow.parameters.force_disconnect}}" | quote }}
+          value: {{ print "{{inputs.parameters.force_disconnect}}" | quote }}
         envFrom:
         - configMapRef:
             name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
@@ -92,7 +92,7 @@ spec:
         args: ["make", "createdb"]
         env:
         - name: DRY_RUN
-          value: {{ print "{{workflow.parameters.dry_run}}" | quote}}
+          value: {{ print "{{inputs.parameters.dry_run}}" | quote}}
         envFrom:
         - configMapRef:
             name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}

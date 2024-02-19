@@ -33,7 +33,7 @@ spec:
   # Destination cluster and namespace to deploy the application
   destination:
     server: https://kubernetes.default.svc
-    namespace: {{ .Values.projectsNamespace }}
+    namespace: {{ .Values.namespace }}
 
   # Sync policy
   syncPolicy:
