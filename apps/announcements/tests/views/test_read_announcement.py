@@ -54,7 +54,7 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Read-announcement-detail", args=(announcement.id,)),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["id"] == announcement.id
 
@@ -70,7 +70,7 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Read-announcement-list"),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 3
         assert {a["id"] for a in content} == {a.id for a in self.announcements.values()}

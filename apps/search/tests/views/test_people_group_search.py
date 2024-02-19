@@ -3,6 +3,7 @@ import time
 from algoliasearch_django import algolia_engine
 from django.urls import reverse
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, ProjectUser
@@ -94,7 +95,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("PeopleGroupSearch-search", args=("algolia",))
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == len(retrieved_groups)
         assert {group["id"] for group in content} == {
@@ -107,7 +108,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             reverse("PeopleGroupSearch-search", args=("algolia",))
             + f"?organizations={self.organization_2.code}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 1
         assert {group["id"] for group in content} == {self.public_people_group_2.id}
@@ -117,7 +118,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("PeopleGroupSearch-search", args=("algolia",)) + "?sdgs=1"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 1
         assert {group["id"] for group in content} == {self.public_people_group_2.id}
@@ -127,7 +128,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("PeopleGroupSearch-search", args=("algolia",)) + "?types=group"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 1
         assert {group["id"] for group in content} == {self.public_people_group_2.id}

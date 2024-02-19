@@ -97,7 +97,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 reverse("ProjectUser-list") + f"?organization={self.organization.code}",
                 data=payload,
             )
-            assert response.status_code == status.HTTP_201_CREATED
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             user = ProjectUser.objects.get(id=content["id"])
             assert user.google_account is not None
@@ -183,7 +183,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 google_account, group_1
             )
             mocked_add_user_to_group.assert_called_once_with(google_account, group_2)
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             google_account.refresh_from_db()
             assert (
                 google_account.organizational_unit
@@ -211,7 +211,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 reverse("ProjectUser-detail", args=(google_account.user.id,))
             )
             mocked_suspend_user.assert_called_once_with(google_account)
-            assert response.status_code == status.HTTP_204_NO_CONTENT
+            self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
             assert not GoogleAccount.objects.filter(google_id=google_id).exists()
 
     @patch("services.google.tasks.create_google_group_task.delay")
@@ -265,7 +265,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 reverse("PeopleGroup-list", args=(self.organization.code,)),
                 data=payload,
             )
-            assert response.status_code == status.HTTP_201_CREATED
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             people_group = PeopleGroup.objects.get(id=content["id"])
             assert people_group.google_group is not None
@@ -335,7 +335,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 reverse("PeopleGroup-list", args=(self.organization.code,)),
                 data=payload,
             )
-            assert response.status_code == status.HTTP_409_CONFLICT
+            self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
             content = response.json()
             assert content["detail"] == "This email is already used by another group"
 
@@ -396,7 +396,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                 reverse("PeopleGroup-list", args=(self.organization.code,)),
                 data=payload,
             )
-            assert response.status_code == status.HTTP_201_CREATED
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             people_group = PeopleGroup.objects.get(id=content["id"])
             assert people_group.google_group is not None
@@ -476,6 +476,6 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_get_group_members.assert_called_once_with(google_group)
             mocked_remove_user_from_group.assert_called_once_with(user_1, google_group)
             mocked_add_user_to_group.assert_called_once_with(user_2, google_group)
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             google_group.refresh_from_db()
             assert google_group.people_group.name == payload["name"]

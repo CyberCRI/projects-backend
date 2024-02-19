@@ -47,7 +47,7 @@ class NewAnnouncementTestCase(JwtAPITestCase):
             data=payload,
         )
 
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         announcement_pk = response.json()["id"]
         notification_task.assert_called_once_with(announcement_pk, owner.pk)
 

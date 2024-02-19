@@ -77,7 +77,7 @@ class ListCommentTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("Comment-list", args=(project.id,)),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_comments:
                 assert len(content) == 1
@@ -136,11 +136,11 @@ class CreateCommentTestCase(JwtAPITestCase):
                 reverse("Comment-list", args=(project.id,)), data=payload
             )
             if publication_status in created_comments:
-                assert response.status_code == status.HTTP_201_CREATED
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 assert response.json()["content"] == payload["content"]
                 assert response.json()["author"]["id"] == user.id
             else:
-                assert response.status_code == status.HTTP_404_NOT_FOUND
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_comment_anonymous(self):
         for project in self.projects.values():
@@ -151,7 +151,7 @@ class CreateCommentTestCase(JwtAPITestCase):
             response = self.client.post(
                 reverse("Comment-list", args=(project.id,)), data=payload
             )
-            assert response.status_code == status.HTTP_401_UNAUTHORIZED
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class UpdateCommentTestCase(JwtAPITestCase):
@@ -189,7 +189,7 @@ class UpdateCommentTestCase(JwtAPITestCase):
             reverse("Comment-detail", args=(self.project.id, self.comment.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             assert response.json()["content"] == payload["content"]
 
@@ -227,12 +227,12 @@ class DeleteCommentTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, comment.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             response = self.client.get(
                 reverse("Comment-list", args=(self.project.id,)),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             assert comment.id not in [c["id"] for c in content]
 
@@ -253,7 +253,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, reply.id)),
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_can_patch_reply(self):
         self.client.force_authenticate(self.user)
@@ -268,7 +268,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             reverse("Comment-detail", args=(self.project.id, reply.id)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.json()["content"] == payload["content"]
 
     def test_cannot_reply_to_themselves(self):
@@ -279,7 +279,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             reverse("Comment-detail", args=(self.project.id, comment.id)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["reply_on_id"] == "Comments cannot reply to themselves"
 
@@ -296,7 +296,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             reverse("Comment-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["reply_on_id"] == ["You cannot reply to a reply."]
 
@@ -310,7 +310,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Comment-list", args=(self.project.id,)),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 1
         assert content["results"][0]["id"] == comment.id

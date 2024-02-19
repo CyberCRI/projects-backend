@@ -1,5 +1,6 @@
 from django.urls import reverse
 from faker import Faker
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
@@ -43,7 +44,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "images_ids": [],
         }
         response = self.client.post(reverse("Project-list"), data=payload)
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert len(response.json()["images"]) == 2
 
     def test_update_project_description(self):
@@ -54,7 +55,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse("Project-detail", args=(project.id,)), data=payload
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.json()["images"]) == 2
 
     def test_create_blog_entry_content(self):
@@ -69,7 +70,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("BlogEntry-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert len(response.json()["images"]) == 2
 
     def test_update_blog_entry_content(self):
@@ -80,7 +81,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse("BlogEntry-detail", args=(self.project.id, blog.id)), data=payload
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.json()["images"]) == 2
 
     def test_create_comment_content(self):
@@ -91,7 +92,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         project.refresh_from_db()
         assert len(response.json()["images"]) == 2
 
@@ -104,7 +105,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("Comment-detail", args=(self.project.id, comment.id)),
             data=payload,
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.json()["images"]) == 2
 
     def test_create_faq_content(self):
@@ -120,7 +121,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("Faq-list", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert len(response.json()["images"]) == 2
 
     def test_update_faq_content(self):
@@ -134,7 +135,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("Faq-list", args=(faq.organization.code,)),
             data=payload,
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.json()["images"]) == 2
 
     def test_create_template_contents(self):
@@ -157,7 +158,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             },
         }
         response = self.client.post(reverse("Category-list"), data=payload)
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert len(response.json()["template"]["images"]) == 4
 
     def test_update_template_contents(self):
@@ -177,5 +178,5 @@ class TextProcessingTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse("Category-detail", args=(category.id,)), data=payload
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.json()["template"]["images"]) == 4

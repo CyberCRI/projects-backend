@@ -37,7 +37,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
             reverse("Project-detail", args=(project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         notification_task.assert_called_once_with(
             project.pk, {"title": (project.title, payload["title"])}, owner.pk
         )
@@ -161,7 +161,7 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("BlogEntry-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         notification_task.assert_called_once_with(response.data["id"], owner.pk)
 
     def test_notification_task(self):

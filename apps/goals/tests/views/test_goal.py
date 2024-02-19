@@ -46,7 +46,7 @@ class CreateGoalTestCase(JwtAPITestCase):
             reverse("Goal-list", args=(project.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["title"] == payload["title"]
@@ -82,7 +82,7 @@ class UpdateGoalTestCase(JwtAPITestCase):
             reverse("Goal-detail", args=(self.project.id, self.goal.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert content["title"] == payload["title"]
@@ -116,7 +116,7 @@ class DeleteGoalTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Goal-detail", args=(project.id, goal.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not Goal.objects.filter(id=goal.id).exists()
 
@@ -171,7 +171,7 @@ class ListGoalsTestCase(JwtAPITestCase):
                     args=(project.id,),
                 ),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_goals:
                 assert len(content) == 1

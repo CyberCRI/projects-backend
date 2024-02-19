@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 from faker import Faker
+from rest_framework import status
 
 from apps.commons.test.testcases import JwtAPITestCase, TagTestCaseMixin
 from apps.misc.factories import WikipediaTagFactory
@@ -18,7 +19,7 @@ class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.get(
             reverse("WikibaseItem-list"), {"query": faker.word()}
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 100
         result = content[0]
@@ -30,7 +31,7 @@ class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.get(
             reverse("WikibaseItem-list"), {"query": faker.word(), "limit": 10}
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert "limit=10" in content["next"]
         assert "offset=10" in content["next"]
@@ -85,7 +86,7 @@ class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("WikibaseItem-autocomplete"), {"query": self.query}
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content) == 5
         assert content == [
@@ -100,7 +101,7 @@ class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("WikibaseItem-autocomplete"), {"query": self.query, "limit": 10}
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content) == 10
         assert content[:5] == [

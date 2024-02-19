@@ -3,6 +3,7 @@ import time
 from algoliasearch_django import algolia_engine
 from django.urls import reverse
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
@@ -75,7 +76,7 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == len(retrieved_users)
         assert {user["id"] for user in content} == {
@@ -88,7 +89,7 @@ class UserSearchTestCase(JwtAPITestCase):
             reverse("UserSearch-search", args=("algolia",))
             + f"?organizations={self.organization_2.code}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 1
         assert {user["id"] for user in content} == {self.public_user_2.id}
@@ -98,7 +99,7 @@ class UserSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("UserSearch-search", args=("algolia",)) + "?sdgs=2"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 1
         assert {user["id"] for user in content} == {self.public_user_2.id}
@@ -109,7 +110,7 @@ class UserSearchTestCase(JwtAPITestCase):
             reverse("UserSearch-search", args=("algolia",))
             + f"?skills={self.skill_2.wikipedia_tag.wikipedia_qid}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         assert len(content) == 1
         assert {user["id"] for user in content} == {self.public_user_2.id}

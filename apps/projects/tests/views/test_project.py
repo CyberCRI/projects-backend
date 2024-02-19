@@ -344,7 +344,7 @@ class ProjectMembersTestCase(JwtAPITestCase):
             reverse("Project-add-member", args=(project.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert all(member in project.members.all() for member in self.members)
             assert all(owner in project.owners.all() for owner in self.owners)
@@ -386,7 +386,7 @@ class ProjectMembersTestCase(JwtAPITestCase):
             reverse("Project-remove-member", args=(project.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert all(member not in project.members.all() for member in self.members)
             assert all(owner not in project.owners.all() for owner in self.owners)
@@ -407,7 +407,7 @@ class ProjectMembersTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Project-remove-self", args=(project.id,))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         assert to_delete not in project.members.all()
 
 
@@ -771,7 +771,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         }
 
         response = self.client.get(reverse("Project-list"), filters)
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.data["count"] == 2
         self.assertEqual(
             {p["id"] for p in response.data["results"]},
@@ -783,7 +783,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             "life_status": f"{Project.LifeStatus.RUNNING},{Project.LifeStatus.COMPLETED}"
         }
         response = self.client.get(reverse("Project-list"), filters)
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data["count"], 2)
         self.assertEqual(
@@ -927,10 +927,10 @@ class MiscProjectTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
         )
         response = self.client.get(reverse("Project-detail", args=(project.id,)))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.data["slug"] == project.slug
         response = self.client.get(reverse("Project-detail", args=(project.slug,)))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.data["id"] == project.id
 
     def test_change_member_role(self):
@@ -943,7 +943,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         assert user in project.owners.all()
         assert user not in project.members.all()
 
@@ -953,12 +953,12 @@ class MiscProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
 
         response = self.client.get(reverse("Project-detail", args=(project.id,)))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.json()["is_followed"]["is_followed"] is False
 
         follow = FollowFactory(follower=user, project=project)
         response = self.client.get(reverse("Project-detail", args=(project.id,)))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.json()["is_followed"]["is_followed"] is True
         assert response.json()["is_followed"]["follow_id"] == follow.id
 
@@ -970,7 +970,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
 
         response = self.client.get(reverse("Project-list"))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         followed = {
             p["id"]

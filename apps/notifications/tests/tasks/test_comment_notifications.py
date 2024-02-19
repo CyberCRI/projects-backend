@@ -38,7 +38,7 @@ class NewCommentTestCase(JwtAPITestCase):
             reverse("Comment-list", args=(project.id,)), data=payload
         )
 
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         comment_pk = response.json()["id"]
         notification_task.assert_called_once_with(comment_pk)
 
@@ -152,7 +152,7 @@ class NewReplyTestCase(JwtAPITestCase):
             reverse("Comment-list", args=(project.id,)), data=payload
         )
 
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         comment_pk = response.json()["id"]
         notification_task.assert_called_once_with(comment_pk)
 

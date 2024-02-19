@@ -44,7 +44,7 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         )
         content = response.json()
         access_request_id = content["id"]
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert response.data["organization"] == self.organization.code
         assert response.data["status"] == AccessRequest.Status.PENDING.value
         assert response.data["email"] == payload["email"]
@@ -75,7 +75,7 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         )
         content = response.json()
         access_request_id = content["id"]
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         assert response.data["organization"] == self.organization.code
         assert response.data["status"] == AccessRequest.Status.PENDING.value
         assert response.data["email"] == user.email
@@ -116,7 +116,7 @@ class ListAccessRequestTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()["results"]
             assert len(content) == len(self.access_requests)
@@ -151,7 +151,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=status"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.data["results"][0]["status"] == self.access_requests_a.status
         assert response.data["results"][1]["status"] == self.access_requests_b.status
         assert (
@@ -168,7 +168,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=-status"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             response.data["results"][0]["status"] == self.access_requests_c.status
             or self.access_requests_d.status
@@ -185,7 +185,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=created_at"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertLess(
             response.data["results"][0]["created_at"],
             response.data["results"][1]["created_at"],
@@ -204,7 +204,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + "?ordering=-created_at"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertLess(
             response.data["results"][3]["created_at"],
             response.data["results"][2]["created_at"],
@@ -226,7 +226,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + f"?status={AccessRequest.Status.PENDING.value}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.data["results"]) == 2
         assert response.data["results"][0]["id"] == self.access_requests_c.id
         assert response.data["results"][1]["id"] == self.access_requests_d.id
@@ -236,7 +236,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + f"?status={AccessRequest.Status.ACCEPTED.value}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == self.access_requests_a.id
 
@@ -245,7 +245,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,))
             + f"?status={AccessRequest.Status.DECLINED.value}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert len(response.data["results"]) == 1
         assert response.data["results"][0]["id"] == self.access_requests_b.id
 
@@ -290,7 +290,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert len(content["success"]) == 4
@@ -365,7 +365,7 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-decline", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert len(content["success"]) == 4
@@ -412,7 +412,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["organization"] == [
             "This organization does not accept access requests."
@@ -432,7 +432,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["user"] == [
             "This user is already a member of this organization."
@@ -451,7 +451,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["email"] == ["A user with this email already exists."]
 
@@ -466,7 +466,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content["error"]) == 1
         assert len(content["success"]) == 0
@@ -490,7 +490,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content["error"]) == 1
         assert len(content["success"]) == 0
@@ -512,7 +512,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-decline", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content["error"]) == 1
         assert len(content["success"]) == 0
@@ -536,7 +536,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-decline", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content["error"]) == 1
         assert len(content["success"]) == 0
@@ -562,7 +562,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content["error"]) == 1
         assert len(content["success"]) == 0
@@ -588,7 +588,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             reverse("AccessRequest-accept", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert len(content["error"]) == 0
         assert len(content["success"]) == 0

@@ -56,7 +56,7 @@ class CreateAttachmentFileTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["mime"] == payload["mime"]
@@ -95,7 +95,7 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert content["title"] == payload["title"]
@@ -129,7 +129,7 @@ class DeleteAttachmentFileTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("AttachmentFile-detail", args=(project.id, file.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not AttachmentFile.objects.filter(id=file.id).exists()
 
@@ -184,7 +184,7 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
                     args=(project.id,),
                 ),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_files:
                 assert len(content) == 1
@@ -219,13 +219,13 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
             data={"file": file_a, **payload},
             format="multipart",
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         response = self.client.post(
             reverse("AttachmentFile-list", args=(project.id,)),
             data={"file": file_b, **payload},
             format="multipart",
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["error"] == [
             "The file you are trying to upload is already attached to this project."

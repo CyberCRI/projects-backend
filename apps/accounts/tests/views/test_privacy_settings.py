@@ -50,19 +50,18 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("PrivacySettings-detail", args=(instance.id,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == getattr(instance.privacy_settings, key)
-                for key in [
-                    "publication_status",
-                    "profile_picture",
-                    "skills",
-                    "socials",
-                    "mobile_phone",
-                    "personal_email",
-                ]
-            )
+            content = response.json()
+            for key in [
+                "publication_status",
+                "profile_picture",
+                "skills",
+                "socials",
+                "mobile_phone",
+                "personal_email",
+            ]:
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
     @parameterized.expand(
         [
@@ -85,19 +84,18 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("PrivacySettings-detail", args=(instance.id,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == getattr(instance.privacy_settings, key)
-                for key in [
-                    "publication_status",
-                    "profile_picture",
-                    "skills",
-                    "socials",
-                    "mobile_phone",
-                    "personal_email",
-                ]
-            )
+            content = response.json()
+            for key in [
+                "publication_status",
+                "profile_picture",
+                "skills",
+                "socials",
+                "mobile_phone",
+                "personal_email",
+            ]:
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
     @parameterized.expand(
         [
@@ -120,19 +118,18 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("PrivacySettings-detail", args=(instance.id,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == getattr(instance.privacy_settings, key)
-                for key in [
-                    "publication_status",
-                    "profile_picture",
-                    "skills",
-                    "socials",
-                    "mobile_phone",
-                    "personal_email",
-                ]
-            )
+            content = response.json()
+            for key in [
+                "publication_status",
+                "profile_picture",
+                "skills",
+                "socials",
+                "mobile_phone",
+                "personal_email",
+            ]:
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
 
 class UpdatePrivacySettingsTestCase(JwtAPITestCase):
@@ -175,6 +172,8 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
             reverse("PrivacySettings-detail", args=(self.instance.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(response.json()[key] == value for key, value in payload.items())
+            content = response.json()
+            for key, value in payload.items():
+                self.assertEqual(content[key], value)

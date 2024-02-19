@@ -48,12 +48,16 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
             "level_to_reach": faker.pyint(1, 4),
         }
         response = self.client.post(reverse("Skill-list"), data=payload)
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["user"] == instance.id
-            assert response.json()["wikipedia_tag"]["wikipedia_qid"] == wikipedia_qid
-            assert response.json()["level"] == payload["level"]
-            assert response.json()["level_to_reach"] == payload["level_to_reach"]
+            self.assertEqual(response.json()["user"], instance.id)
+            self.assertEqual(
+                response.json()["wikipedia_tag"]["wikipedia_qid"], wikipedia_qid
+            )
+            self.assertEqual(response.json()["level"], payload["level"])
+            self.assertEqual(
+                response.json()["level_to_reach"], payload["level_to_reach"]
+            )
 
 
 class UpdateSkillTestCase(JwtAPITestCase):
@@ -85,9 +89,9 @@ class UpdateSkillTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse("Skill-detail", args=(self.skill.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["level"] == payload["level"]
+            self.assertEqual(response.json()["level"], payload["level"])
 
 
 class DeleteSkillTestCase(JwtAPITestCase):
@@ -115,6 +119,6 @@ class DeleteSkillTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(reverse("Skill-detail", args=(skill.id,)))
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Skill.objects.filter(id=skill.id).exists()
+            self.assertFalse(Skill.objects.filter(id=skill.id).exists())

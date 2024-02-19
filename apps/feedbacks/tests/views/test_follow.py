@@ -59,11 +59,11 @@ class CreateFollowTestCase(JwtAPITestCase):
                 reverse("Followed-list", args=(project.id,)), data=payload
             )
             if publication_status in created_comments:
-                assert response.status_code == status.HTTP_201_CREATED
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 assert response.json()["project"]["id"] == project.id
                 assert response.json()["follower"]["id"] == user.id
             else:
-                assert response.status_code == status.HTTP_403_FORBIDDEN
+                self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_followed_anonymous(self):
         for project in self.projects.values():
@@ -73,7 +73,7 @@ class CreateFollowTestCase(JwtAPITestCase):
             response = self.client.post(
                 reverse("Followed-list", args=(project.id,)), data=payload
             )
-            assert response.status_code == status.HTTP_401_UNAUTHORIZED
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     @parameterized.expand(
         [
@@ -100,11 +100,11 @@ class CreateFollowTestCase(JwtAPITestCase):
                 reverse("Follower-list", args=(user.id,)), data=payload
             )
             if publication_status in created_comments:
-                assert response.status_code == status.HTTP_201_CREATED
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
                 assert response.json()["project"]["id"] == project.id
                 assert response.json()["follower"]["id"] == user.id
             else:
-                assert response.status_code == status.HTTP_403_FORBIDDEN
+                self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     @parameterized.expand(
         [

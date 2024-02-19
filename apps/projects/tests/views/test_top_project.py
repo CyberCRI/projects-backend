@@ -34,7 +34,7 @@ class ProjectTopTestCase(JwtAPITestCase):
         StatFactory(project=project_1, **{stat_type: 1})
         StatFactory(project=project_2, **{stat_type: 0})
         response = self.client.get(reverse("ProjectTop-list"))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 2
         assert content["results"][0]["id"] == project_1.id
@@ -45,7 +45,7 @@ class ProjectTopTestCase(JwtAPITestCase):
         project_2 = ProjectFactory(organizations=[self.organization])
         MixpanelEventFactory(project=project_1, organization=self.organization)
         response = self.client.get(reverse("ProjectTop-list"))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 2
         assert content["results"][0]["id"] == project_1.id

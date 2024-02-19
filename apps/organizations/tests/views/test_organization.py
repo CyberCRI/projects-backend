@@ -63,7 +63,7 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             },
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["name"] == payload["name"]
@@ -113,7 +113,7 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Organization-detail", args=(self.organization.code,))
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["code"] == self.organization.code
 
@@ -127,7 +127,7 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Organization-list"))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 1
         assert content["results"][0]["code"] == self.organization.code
@@ -172,7 +172,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.patch(
             reverse("Organization-detail", args=(self.organization.code,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert content["name"] == payload["name"]
@@ -214,7 +214,7 @@ class DeleteOrganizationTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Organization-detail", args=(organization.code,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not Organization.objects.filter(code=organization.code).exists()
 
@@ -249,7 +249,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Organization-add-member", args=(organization.code,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert all(u in organization.users.all() for u in self.users)
             assert all(a in organization.admins.all() for a in self.admins)
@@ -279,7 +279,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
             reverse("Organization-remove-member", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert all(u not in organization.users.all() for u in self.users)
             assert all(a not in organization.admins.all() for a in self.admins)
@@ -304,7 +304,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
             reverse("Organization-detail", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization.refresh_from_db()
         assert organization.parent == self.parent
 
@@ -317,7 +317,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
             reverse("Organization-detail", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["parent_code"] == [
             "You are trying to create a loop in the organization's hierarchy."
@@ -334,7 +334,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
             reverse("Organization-detail", args=(organization_1.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert content["parent_code"] == [
             "You are trying to create a loop in the organization's hierarchy."
@@ -350,7 +350,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
             reverse("Organization-detail", args=(organization_3.code,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization_3.refresh_from_db()
         assert organization_3.parent == organization_2
 
@@ -365,13 +365,13 @@ class MiscOrganizationTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Organization-detail", args=(organization.code,))
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.json()["google_sync_enabled"] is False
 
         response = self.client.get(
             reverse("Organization-detail", args=(synced_organization.code,))
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert response.json()["google_sync_enabled"] is True
 
     def test_roles_are_deleted_on_organization_delete(self):
@@ -385,5 +385,5 @@ class MiscOrganizationTestCase(JwtAPITestCase):
                 args=(organization.code,),
             )
         )
-        assert response.status_code == 204
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         assert not Group.objects.filter(name__in=roles_names).exists()

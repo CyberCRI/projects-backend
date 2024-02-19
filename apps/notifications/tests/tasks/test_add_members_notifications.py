@@ -35,7 +35,7 @@ class AddedMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(
             project.pk,
             member.pk,
@@ -60,7 +60,7 @@ class AddedMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(
             project.pk,
             group.id,

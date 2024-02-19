@@ -33,7 +33,7 @@ class RetrieveFaqImageTestCase(JwtAPITestCase):
                 "Faq-images-detail", args=(self.faq.organization.code, self.image.id)
             )
         )
-        assert response.status_code == status.HTTP_302_FOUND
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
 
 class CreateFaqImageTestCase(JwtAPITestCase):
@@ -61,7 +61,7 @@ class CreateFaqImageTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             assert response.json()["static_url"] is not None
 
@@ -106,7 +106,7 @@ class UpdateFaqImageTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             assert response.json()["scale_x"] == payload["scale_x"]
             assert response.json()["scale_y"] == payload["scale_y"]
@@ -146,6 +146,6 @@ class DeleteFaqImageTestCase(JwtAPITestCase):
                 args=(self.faq.organization.code, image.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not Image.objects.filter(id=image.id).exists()

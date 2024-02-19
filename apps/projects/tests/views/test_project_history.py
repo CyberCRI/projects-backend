@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.apps import apps
 from django.urls import reverse
 from faker import Faker
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
@@ -42,7 +43,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project_id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert version["history_change_reason"] == "Created project"
         assert self.user.get_full_name() in version["members"]
 
@@ -66,7 +67,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.get(
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -97,7 +98,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -129,7 +130,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -159,7 +160,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -191,7 +192,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -224,7 +225,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -252,7 +253,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -283,7 +284,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -319,7 +320,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -349,7 +350,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -376,7 +377,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -401,7 +402,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -429,7 +430,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -458,7 +459,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -487,7 +488,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -516,7 +517,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
@@ -543,7 +544,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         assert (
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)

@@ -57,9 +57,9 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
                 reverse("NotificationSettings-detail", args=(user.id,))
             )
             if publication_status in retrieved_notification_settings:
-                assert response.status_code == status.HTTP_200_OK
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
-                assert response.status_code == status.HTTP_404_NOT_FOUND
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class UpdateNotificationSettingsTestCase(JwtAPITestCase):
@@ -101,7 +101,7 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             reverse("NotificationSettings-detail", args=(self.user.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             notification_settings = self.user.notification_settings
             notification_settings.refresh_from_db()

@@ -48,7 +48,7 @@ class CreateLocationTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Location-list", args=(self.project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["title"] == payload["title"]
@@ -107,7 +107,7 @@ class ListLocationTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("Location-list", args=(project.id,)),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
             if publication_status in retrieved_locations:
                 assert len(content) == 1
@@ -150,7 +150,7 @@ class UpdateLocationTestCase(JwtAPITestCase):
             reverse("Location-detail", args=(self.project.id, self.location.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert content["description"] == payload["description"]
@@ -186,6 +186,6 @@ class DeleteLocationTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Location-detail", args=(self.project.id, location.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not Location.objects.filter(id=location.id).exists()

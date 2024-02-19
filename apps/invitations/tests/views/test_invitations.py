@@ -46,7 +46,7 @@ class CreateInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["people_group"]["id"] == payload["people_group_id"]
@@ -87,7 +87,7 @@ class UpdateInvitationTestCase(JwtAPITestCase):
             ),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
             assert content["description"] == payload["description"]
@@ -126,7 +126,7 @@ class DeleteInvitationTestCase(JwtAPITestCase):
                 ),
             )
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not Invitation.objects.filter(id=invitation.id).exists()
 
@@ -151,7 +151,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
                 "description": faker.text(),
             },
         )
-        assert response.status_code == 400
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert (
             content["people_group_id"][0]
@@ -173,7 +173,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
             ),
             data={"people_group_id": self.people_group_2.id},
         )
-        assert response.status_code == 400
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
         assert (
             content["people_group_id"][0]
@@ -193,7 +193,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
             ),
             data={"organization": self.organization_2.code},
         )
-        assert response.status_code == 400
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         assert response.json() == ["Cannot change the organization of an invitation."]
 
     def test_create_with_org_in_payload(self):
@@ -207,7 +207,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
                 "organization": self.organization_2.code,
             },
         )
-        assert response.status_code == 201
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         assert content["organization"] == self.organization.code
 
@@ -252,7 +252,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "expire_at"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_a.id
@@ -264,7 +264,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "-expire_at"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_c.id
@@ -276,7 +276,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "people_group__name"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_a.id
@@ -288,7 +288,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "-people_group__name"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_c.id
@@ -300,7 +300,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "owner__given_name"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_a.id
@@ -312,7 +312,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "-owner__given_name"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_c.id
@@ -324,7 +324,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "owner__family_name"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_a.id
@@ -336,7 +336,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
             reverse("Invitation-list", args=(self.organization.code,)),
             data={"ordering": "-owner__family_name"},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 3
         assert content["results"][0]["id"] == self.invitation_c.id

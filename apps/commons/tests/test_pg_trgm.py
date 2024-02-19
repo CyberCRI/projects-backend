@@ -1,4 +1,5 @@
 from django.urls import reverse
+from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
@@ -18,7 +19,7 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("ProjectUser-list") + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             assert len(content) >= 1
             assert content[0]["id"] == user.id
@@ -39,7 +40,7 @@ class PostgresTrigramTestCase(JwtAPITestCase):
                 reverse("PeopleGroup-list", args=(organization.code,))
                 + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             assert len(content) >= 1
             assert content[0]["id"] == people_group.id
@@ -51,7 +52,7 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("WikipediaTag-list") + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             assert len(content) >= 1
             assert content[0]["wikipedia_qid"] == wikipedia_tag.wikipedia_qid
@@ -63,7 +64,7 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("Tag-list") + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             assert len(content) >= 1
             assert content[0]["id"] == tag.id

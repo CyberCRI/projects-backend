@@ -51,7 +51,7 @@ class CreateReviewTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Reviewed-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["project_id"] == project.id
@@ -97,7 +97,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
             reverse("Reviewed-detail", args=(self.project.id, self.review.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             assert response.json()["description"] == payload["description"]
 
@@ -202,7 +202,7 @@ class DestroyReviewTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Reviewed-detail", args=(project.id, review.id))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert Review.objects.filter(id=review.id).exists() is False
 
@@ -223,4 +223,4 @@ class ValidateReviewTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Reviewed-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_403_FORBIDDEN
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

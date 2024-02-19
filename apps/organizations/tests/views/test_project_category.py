@@ -48,7 +48,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             "is_reviewable": faker.boolean(),
         }
         response = self.client.post(reverse("Category-list"), data=payload)
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["organization"] == self.organization.code
@@ -80,7 +80,7 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Category-list"))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["count"] == 1
         assert content["results"][0]["id"] == self.category.id
@@ -95,7 +95,7 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Category-detail", args=(self.category.id,)))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["id"] == self.category.id
 
@@ -135,7 +135,7 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.patch(
             reverse("Category-detail", args=(self.category.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["name"] == payload["name"]
@@ -170,7 +170,7 @@ class DeleteProjectCategoryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.delete(reverse("Category-detail", args=(category.id,)))
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not ProjectCategory.objects.filter(id=category.id).exists()
 
@@ -203,7 +203,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
             },
         }
         response = self.client.post(reverse("Category-list"), data=payload)
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         template = content["template"]
         payload_template = payload["template"]
@@ -241,7 +241,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse("Category-detail", args=(category.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         template = content["template"]
         payload_template = payload["template"]
@@ -274,7 +274,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse("Category-detail", args=(category.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         template = content["template"]
         assert template["title_placeholder"] == payload["template"]["title_placeholder"]

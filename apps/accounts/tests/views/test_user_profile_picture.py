@@ -42,7 +42,7 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             assert response.json()["static_url"] is not None
 
@@ -88,7 +88,7 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             assert response.json()["scale_x"] == payload["scale_x"]
             assert response.json()["scale_y"] == payload["scale_y"]
@@ -130,7 +130,7 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase):
                 args=(instance.id, instance.profile_picture.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             instance.refresh_from_db()
             assert not instance.profile_picture

@@ -40,7 +40,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(project.pk, member.pk, owner.pk)
 
     @patch("apps.projects.views.notify_group_member_deleted.delay")
@@ -61,7 +61,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)
 
     def test_notification_task(self):

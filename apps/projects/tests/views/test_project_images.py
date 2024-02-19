@@ -65,9 +65,9 @@ class RetrieveProjectImageTestCase(JwtAPITestCase):
                 reverse("Project-images-detail", args=(project.id, image.id)),
             )
             if publication_status in retrieved_images:
-                assert response.status_code == status.HTTP_302_FOUND
+                self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                assert response.status_code == status.HTTP_404_NOT_FOUND
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class CreateProjectImageTestCase(JwtAPITestCase):
@@ -102,7 +102,7 @@ class CreateProjectImageTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             assert response.json()["static_url"] is not None
 
@@ -154,7 +154,7 @@ class UpdateProjectImageTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             assert response.json()["scale_x"] == payload["scale_x"]
             assert response.json()["scale_y"] == payload["scale_y"]
@@ -201,6 +201,6 @@ class DeleteProjectImageTestCase(JwtAPITestCase):
                 args=(self.project.id, image.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             assert not Image.objects.filter(id=image.id).exists()

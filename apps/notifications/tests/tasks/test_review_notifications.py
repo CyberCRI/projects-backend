@@ -45,7 +45,7 @@ class NewReviewTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Reviewed-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         review_pk = response.json()["id"]
         notification_task.assert_called_once_with(review_pk)
 
@@ -147,7 +147,7 @@ class ReadyForReviewTestCase(JwtAPITestCase):
             reverse("Project-detail", args=(project.id,)), data=payload
         )
 
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         notification_task.assert_called_once_with(project.id, owner.id)
 
     def test_notification_task(self):

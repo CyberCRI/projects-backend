@@ -38,7 +38,7 @@ class CreateFaqTestCase(JwtAPITestCase):
             reverse("Faq-list", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_201_CREATED:
             content = response.json()
             assert content["title"] == payload["title"]
@@ -64,7 +64,7 @@ class RetrieveFaqTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Faq-list", args=(self.organization.code,)),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         assert content["title"] == self.organization.faq.title
         assert content["content"] == self.organization.faq.content
@@ -98,7 +98,7 @@ class UpdateFaqTestCase(JwtAPITestCase):
             reverse("Faq-list", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_200_OK:
             content = response.json()
             assert content["title"] == payload["title"]
@@ -128,6 +128,6 @@ class DeleteFaqTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Faq-list", args=(self.organization.code,)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_204_NO_CONTENT:
             assert not Faq.objects.filter(id=faq.id).exists()
