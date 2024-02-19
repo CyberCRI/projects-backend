@@ -35,6 +35,7 @@ config:
     GUNICORN_MAX_REQUESTS: "1000"
     GUNICORN_MAX_REQUESTS_JITTER: "50"
     GUNICORN_LOG_LEVEL: "info"
+    KEYCLOAK_REALM: lp
 
 fullName: projects-backend
 
