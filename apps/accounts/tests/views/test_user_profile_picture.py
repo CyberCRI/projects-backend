@@ -44,7 +44,8 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+            content = response.json()
+            self.assertIsNotNone(content["static_url"])
 
 
 class UpdateUserProfilePictureTestCase(JwtAPITestCase):
@@ -90,11 +91,12 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            content = response.json()
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteUserProfilePictureTestCase(JwtAPITestCase):
@@ -133,4 +135,4 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             instance.refresh_from_db()
-            assert not instance.profile_picture
+            self.assertIsNone(instance.profile_picture)

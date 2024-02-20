@@ -71,23 +71,29 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["onboarding_status"]["show_welcome"] is True
-            assert content["email"] == payload["email"]
-            assert content["given_name"] == payload["given_name"]
-            assert content["family_name"] == payload["family_name"]
-            assert len(content["roles"]) == 8
-            assert {*content["roles"]} == {
-                get_default_group().name,
-                organization.get_users().name,
-                *[project.get_members().name for project in projects],
-                *[people_group.get_members().name for people_group in people_groups],
-            }
+            self.assertTrue(content["onboarding_status"]["show_welcome"])
+            self.assertEqual(content["email"], payload["email"])
+            self.assertEqual(content["given_name"], payload["given_name"])
+            self.assertEqual(content["family_name"], payload["family_name"])
+            self.assertEqual(len(content["roles"]), 8)
+            self.assertSetEqual(
+                {*content["roles"]},
+                {
+                    get_default_group().name,
+                    organization.get_users().name,
+                    *[project.get_members().name for project in projects],
+                    *[
+                        people_group.get_members().name
+                        for people_group in people_groups
+                    ],
+                },
+            )
             keycloak_user = KeycloakService.get_user(content["keycloak_id"])
-            assert keycloak_user is not None
-            assert set(keycloak_user["requiredActions"]) == {
-                "VERIFY_EMAIL",
-                "UPDATE_PASSWORD",
-            }
+            self.assertIsNotNone(keycloak_user)
+            self.assertSetEqual(
+                set(keycloak_user["requiredActions"]),
+                {"VERIFY_EMAIL", "UPDATE_PASSWORD"},
+            )
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_create_user_with_formdata(self, mocked):
@@ -123,37 +129,44 @@ class CreateUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        assert content["onboarding_status"]["show_welcome"] is True
-        assert content["email"] == payload["email"]
-        assert content["given_name"] == payload["given_name"]
-        assert content["family_name"] == payload["family_name"]
-        assert content["sdgs"] == payload["sdgs"]
-        assert content["profile_picture"] is not None
-        assert (
-            content["profile_picture"]["scale_x"] == payload["profile_picture_scale_x"]
+        self.assertTrue(content["onboarding_status"]["show_welcome"])
+        self.assertEqual(content["email"], payload["email"])
+        self.assertEqual(content["given_name"], payload["given_name"])
+        self.assertEqual(content["family_name"], payload["family_name"])
+        self.assertEqual(content["sdgs"], payload["sdgs"])
+        self.assertIsNotNone(content["profile_picture"])
+        self.assertEqual(
+            content["profile_picture"]["scale_x"], payload["profile_picture_scale_x"]
         )
-        assert (
-            content["profile_picture"]["scale_y"] == payload["profile_picture_scale_y"]
+        self.assertEqual(
+            content["profile_picture"]["scale_y"], payload["profile_picture_scale_y"]
         )
-        assert content["profile_picture"]["left"] == payload["profile_picture_left"]
-        assert content["profile_picture"]["top"] == payload["profile_picture_top"]
-        assert (
-            content["profile_picture"]["natural_ratio"]
-            == payload["profile_picture_natural_ratio"]
+        self.assertEqual(
+            content["profile_picture"]["left"], payload["profile_picture_left"]
         )
-        assert len(content["roles"]) == 8
-        assert {*content["roles"]} == {
-            get_default_group().name,
-            organization.get_users().name,
-            *[project.get_members().name for project in projects],
-            *[people_group.get_members().name for people_group in people_groups],
-        }
+        self.assertEqual(
+            content["profile_picture"]["top"], payload["profile_picture_top"]
+        )
+        self.assertEqual(
+            content["profile_picture"]["natural_ratio"],
+            payload["profile_picture_natural_ratio"],
+        )
+        self.assertEqual(len(content["roles"]), 8)
+        self.assertSetEqual(
+            {*content["roles"]},
+            {
+                get_default_group().name,
+                organization.get_users().name,
+                *[project.get_members().name for project in projects],
+                *[people_group.get_members().name for people_group in people_groups],
+            },
+        )
         keycloak_user = KeycloakService.get_user(content["keycloak_id"])
-        assert keycloak_user is not None
-        assert set(keycloak_user["requiredActions"]) == {
-            "VERIFY_EMAIL",
-            "UPDATE_PASSWORD",
-        }
+        self.assertIsNotNone(keycloak_user)
+        self.assertSetEqual(
+            set(keycloak_user["requiredActions"]),
+            {"VERIFY_EMAIL", "UPDATE_PASSWORD"},
+        )
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_create_user_with_invitation(self, mocked):
@@ -180,17 +193,20 @@ class CreateUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         user = ProjectUser.objects.filter(email=payload["email"])
-        assert user.exists()
+        self.assertTrue(user.exists())
         user = user.get()
-        assert user.onboarding_status["show_welcome"] is True
-        assert {g.name for g in user.groups.all()} == {
-            get_default_group().name,
-            organization.get_users().name,
-            people_group.get_members().name,
-        }
+        self.assertTrue(user.onboarding_status["show_welcome"])
+        self.assertSetEqual(
+            {g.name for g in user.groups.all()},
+            {
+                get_default_group().name,
+                organization.get_users().name,
+                people_group.get_members().name,
+            },
+        )
         keycloak_user = KeycloakService.get_user(user.keycloak_id)
-        assert keycloak_user is not None
-        assert keycloak_user["requiredActions"] == ["VERIFY_EMAIL"]
+        self.assertIsNotNone(keycloak_user)
+        self.assertListEqual(keycloak_user["requiredActions"], ["VERIFY_EMAIL"])
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_create_user_with_expired_invitation(self, mocked):
@@ -250,8 +266,9 @@ class UpdateUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["pronouns"] == payload["pronouns"]
-            assert response.json()["sdgs"] == payload["sdgs"]
+            content = response.json()
+            self.assertEqual(content["pronouns"], payload["pronouns"])
+            self.assertEqual(content["sdgs"], payload["sdgs"])
 
 
 class DeleteUserTestCase(JwtAPITestCase):
@@ -283,7 +300,7 @@ class DeleteUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not ProjectUser.objects.filter(pk=instance.pk).exists()
+            self.assertFalse(ProjectUser.objects.filter(id=instance.id).exists())
 
 
 class AdminListUserTestCase(JwtAPITestCase):
@@ -354,13 +371,15 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["count"] == 4
+        self.assertEqual(len(response.data["results"]), 4)
         content = {user["id"]: user for user in response.data["results"]}
         for user in self.users:
-            assert (
-                content[user["user"].id]["password_created"] == user["password_created"]
+            self.assertEqual(
+                content[user["user"].id]["password_created"], user["password_created"]
             )
-            assert content[user["user"].id]["email_verified"] == user["email_verified"]
+            self.assertEqual(
+                content[user["user"].id]["email_verified"], user["email_verified"]
+            )
 
     def test_order_by_password_created(self):
         self.client.force_authenticate(self.user)
@@ -369,12 +388,11 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?ordering=password_created&organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_4.id
-        assert {u["id"] for u in response.data["results"][1:]} == {
-            self.user_1.id,
-            self.user_2.id,
-            self.user_3.id,
-        }
+        self.assertEqual(response.data["results"][0]["id"], self.user_4.id)
+        self.assertSetEqual(
+            {u["id"] for u in response.data["results"][1:]},
+            {self.user_1.id, self.user_2.id, self.user_3.id},
+        )
 
     def test_order_by_password_created_reverse(self):
         self.client.force_authenticate(self.user)
@@ -383,12 +401,11 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?ordering=-password_created&organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert {u["id"] for u in response.data["results"][:3]} == {
-            self.user_1.id,
-            self.user_2.id,
-            self.user_3.id,
-        }
-        assert response.data["results"][3]["id"] == self.user_4.id
+        self.assertSetEqual(
+            {u["id"] for u in response.data["results"][:3]},
+            {self.user_1.id, self.user_2.id, self.user_3.id},
+        )
+        self.assertEqual(response.data["results"][3]["id"], self.user_4.id)
 
     def test_order_by_email_verified(self):
         self.client.force_authenticate(self.user)
@@ -397,14 +414,14 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?ordering=email_verified&organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert {u["id"] for u in response.data["results"][:2]} == {
-            self.user_2.id,
-            self.user_3.id,
-        }
-        assert {u["id"] for u in response.data["results"][2:]} == {
-            self.user_1.id,
-            self.user_4.id,
-        }
+        self.assertSetEqual(
+            {u["id"] for u in response.data["results"][:2]},
+            {self.user_2.id, self.user_3.id},
+        )
+        self.assertSetEqual(
+            {u["id"] for u in response.data["results"][2:]},
+            {self.user_1.id, self.user_4.id},
+        )
 
     def test_order_by_email_verified_reverse(self):
         self.client.force_authenticate(self.user)
@@ -413,14 +430,14 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?ordering=-email_verified&organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert {u["id"] for u in response.data["results"][:2]} == {
-            self.user_1.id,
-            self.user_4.id,
-        }
-        assert {u["id"] for u in response.data["results"][2:]} == {
-            self.user_2.id,
-            self.user_3.id,
-        }
+        self.assertSetEqual(
+            {u["id"] for u in response.data["results"][:2]},
+            {self.user_1.id, self.user_4.id},
+        )
+        self.assertSetEqual(
+            {u["id"] for u in response.data["results"][2:]},
+            {self.user_2.id, self.user_3.id},
+        )
 
     def test_order_by_created_at(self):
         self.client.force_authenticate(self.user)
@@ -429,12 +446,10 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?ordering=created_at&organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert [u["id"] for u in response.data["results"]] == [
-            self.user_1.id,
-            self.user_2.id,
-            self.user_3.id,
-            self.user_4.id,
-        ]
+        self.assertListEqual(
+            [u["id"] for u in response.data["results"]],
+            [self.user_1.id, self.user_2.id, self.user_3.id, self.user_4.id],
+        )
 
     def test_order_by_created_at_reverse(self):
         self.client.force_authenticate(self.user)
@@ -443,12 +458,10 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?ordering=-created_at&organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert [u["id"] for u in response.data["results"]] == [
-            self.user_4.id,
-            self.user_3.id,
-            self.user_2.id,
-            self.user_1.id,
-        ]
+        self.assertListEqual(
+            [u["id"] for u in response.data["results"]],
+            [self.user_4.id, self.user_3.id, self.user_2.id, self.user_1.id],
+        )
 
 
 class UserSyncErrorsTestCase(JwtAPITestCase):
@@ -496,11 +509,12 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-        assert (
-            response.json()["error"]
-            == "An error occured in Keycloak : User exists with same username"
+        content = response.json()
+        self.assertEqual(
+            content["error"],
+            "An error occured in Keycloak : User exists with same username",
         )
-        assert not ProjectUser.objects.filter(**payload).exists()
+        self.assertFalse(ProjectUser.objects.filter(**payload).exists())
 
     def test_keycloak_error_update_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
@@ -521,11 +535,14 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-        assert (
-            response.json()["error"]
-            == "An error occured in Keycloak : User exists with same username or email"
+        content = response.json()
+        self.assertEqual(
+            content["error"],
+            "An error occured in Keycloak : User exists with same username or email",
         )
-        assert ProjectUser.objects.get(id=user.id).email != existing_username
+        self.assertNotEqual(
+            ProjectUser.objects.get(id=user.id).email, existing_username
+        )
 
     @patch("services.keycloak.interface.KeycloakService.delete_user")
     def test_keycloak_error_delete_user(self, mocked):
@@ -534,15 +551,18 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         user = UserFactory()
         response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        assert response.json()["error"] == "An error occured in Keycloak : error reason"
-        assert ProjectUser.objects.filter(id=user.id).exists()
+        content = response.json()
+        self.assertEqual(
+            content["error"], "An error occured in Keycloak : error reason"
+        )
+        self.assertTrue(ProjectUser.objects.filter(id=user.id).exists())
 
     def test_keycloak_404_delete_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        assert not ProjectUser.objects.filter(id=user.id).exists()
+        self.assertFalse(ProjectUser.objects.filter(id=user.id).exists())
 
 
 class ValidateUserTestCase(JwtAPITestCase):
@@ -571,7 +591,9 @@ class ValidateUserTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        assert f"organization:#{organization_2.pk}:users" in response.json()["detail"]
+        self.assertIn(
+            f"organization:#{organization_2.pk}:users", response.json()["detail"]
+        )
 
 
 class FilterSearchOrderUserTestCase(JwtAPITestCase):
@@ -603,18 +625,20 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
     def test_order_by_job(self):
         response = self.client.get(reverse("ProjectUser-list") + "?ordering=job")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_a.id
-        assert response.data["results"][1]["id"] == self.user_b.id
-        assert response.data["results"][2]["id"] == self.user_c.id
-        assert response.data["results"][3]["id"] == self.user_d.id
+        content = response.json()
+        self.assertEqual(content["results"][0]["id"], self.user_a.id)
+        self.assertEqual(content["results"][1]["id"], self.user_b.id)
+        self.assertEqual(content["results"][2]["id"], self.user_c.id)
+        self.assertEqual(content["results"][3]["id"], self.user_d.id)
 
     def test_order_by_job_reverse(self):
         response = self.client.get(reverse("ProjectUser-list") + "?ordering=-job")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_d.id
-        assert response.data["results"][1]["id"] == self.user_c.id
-        assert response.data["results"][2]["id"] == self.user_b.id
-        assert response.data["results"][3]["id"] == self.user_a.id
+        content = response.json()
+        self.assertEqual(content["results"][0]["id"], self.user_d.id)
+        self.assertEqual(content["results"][1]["id"], self.user_c.id)
+        self.assertEqual(content["results"][2]["id"], self.user_b.id)
+        self.assertEqual(content["results"][3]["id"], self.user_a.id)
 
     def test_order_by_role(self):
         response = self.client.get(
@@ -622,10 +646,11 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?ordering=current_org_role&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_a.id
-        assert response.data["results"][1]["id"] == self.user_b.id
-        assert response.data["results"][2]["id"] == self.user_c.id
-        assert response.data["results"][3]["id"] == self.user_d.id
+        content = response.json()
+        self.assertEqual(content["results"][0]["id"], self.user_a.id)
+        self.assertEqual(content["results"][1]["id"], self.user_b.id)
+        self.assertEqual(content["results"][2]["id"], self.user_c.id)
+        self.assertEqual(content["results"][3]["id"], self.user_d.id)
 
     def test_order_by_role_reverse(self):
         response = self.client.get(
@@ -633,10 +658,11 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?ordering=-current_org_role&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_d.id
-        assert response.data["results"][1]["id"] == self.user_c.id
-        assert response.data["results"][2]["id"] == self.user_b.id
-        assert response.data["results"][3]["id"] == self.user_a.id
+        content = response.json()
+        self.assertEqual(content["results"][0]["id"], self.user_d.id)
+        self.assertEqual(content["results"][1]["id"], self.user_c.id)
+        self.assertEqual(content["results"][2]["id"], self.user_b.id)
+        self.assertEqual(content["results"][3]["id"], self.user_a.id)
 
     def filter_by_role_admin(self):
         response = self.client.get(
@@ -644,8 +670,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["id"] == self.user_a.id
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_a.id)
 
     def filter_by_role_facilitator(self):
         response = self.client.get(
@@ -653,8 +680,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["id"] == self.user_b.id
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_b.id)
 
     def filter_by_role_user(self):
         response = self.client.get(
@@ -662,8 +690,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?current_org_role=users&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["id"] == self.user_c.id
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_c.id)
 
     def filter_by_role_no_role(self):
         response = self.client.get(
@@ -671,8 +700,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?current_org_role=_no_role&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["id"] == self.user_d.id
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_d.id)
 
     def test_filter_by_organization(self):
         other_organization = OrganizationFactory(parent=self.organization)
@@ -681,23 +711,23 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             reverse("ProjectUser-list") + f"?organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 3
-        assert {u["id"] for u in response.data["results"]} == {
-            self.user_a.id,
-            self.user_b.id,
-            self.user_c.id,
-        }
+        content = response.json()
+        self.assertEqual(len(content["results"]), 3)
+        self.assertSetEqual(
+            {u["id"] for u in content["results"]},
+            {self.user_a.id, self.user_b.id, self.user_c.id},
+        )
 
     def test_search_by_job(self):
         response = self.client.get(reverse("ProjectUser-list") + "?search=ABC")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_a.id
+        self.assertEqual(response.json()["results"][0]["id"], self.user_a.id)
         response = self.client.get(reverse("ProjectUser-list") + "?search=DEF")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_b.id
+        self.assertEqual(response.json()["results"][0]["id"], self.user_b.id)
         response = self.client.get(reverse("ProjectUser-list") + "?search=GHI")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_c.id
+        self.assertEqual(response.json()["results"][0]["id"], self.user_c.id)
 
     def test_search_with_current_org_pk(self):
         response = self.client.get(
@@ -705,19 +735,19 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             + f"?search=ABC&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_a.id
+        self.assertEqual(response.json()["results"][0]["id"], self.user_a.id)
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?search=DEF&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_b.id
+        self.assertEqual(response.json()["results"][0]["id"], self.user_b.id)
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?search=GHI&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["id"] == self.user_c.id
+        self.assertEqual(response.json()["results"][0]["id"], self.user_c.id)
 
 
 class MiscUserTestCase(JwtAPITestCase):
@@ -732,7 +762,7 @@ class MiscUserTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["notifications"] == 5
+        self.assertEqual(response.json()["notifications"], 5)
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_language_from_organization(self, mocked):
@@ -751,9 +781,9 @@ class MiscUserTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert response.data["language"] == "fr"
+        self.assertEqual(response.json()["language"], "fr")
         keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
-        assert keycloak_user["attributes"]["locale"] == ["fr"]
+        self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_language_from_payload(self, mocked):
@@ -773,9 +803,9 @@ class MiscUserTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert response.data["language"] == "fr"
+        self.assertEqual(response.json()["language"], "fr")
         keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
-        assert keycloak_user["attributes"]["locale"] == ["fr"]
+        self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
 
     def test_keycloak_attributes_updated(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
@@ -791,10 +821,10 @@ class MiscUserTestCase(JwtAPITestCase):
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["language"] == "fr"
+        self.assertEqual(response.json()["language"], "fr")
         keycloak_user = KeycloakService.get_user(user.keycloak_id)
-        assert keycloak_user["attributes"]["attribute_1"] == ["value_1"]
-        assert keycloak_user["attributes"]["locale"] == ["fr"]
+        self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
+        self.assertEqual(keycloak_user["attributes"]["attribute_1"], ["value_1"])
 
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)
@@ -809,16 +839,17 @@ class MiscUserTestCase(JwtAPITestCase):
         url += f"?current_org_pk={organization.pk}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["count"] == 12
+        content = response.json()
+        self.assertEqual(content["count"], 12)
         for user in response.data["results"]:
             if user["id"] in [u.id for u in admins]:
-                assert user["current_org_role"] == "admins"
+                self.assertEqual(user["current_org_role"], "admins")
             elif user["id"] in [u.id for u in facilitators]:
-                assert user["current_org_role"] == "facilitators"
+                self.assertEqual(user["current_org_role"], "facilitators")
             elif user["id"] in [u.id for u in users]:
-                assert user["current_org_role"] == "users"
+                self.assertEqual(user["current_org_role"], "users")
             else:
-                assert user["current_org_role"] is None
+                self.assertIsNone(user["current_org_role"])
 
     def test_get_current_org_role_two_roles(self):
         organization = OrganizationFactory()
@@ -829,8 +860,9 @@ class MiscUserTestCase(JwtAPITestCase):
         url += f"?current_org_pk={organization.pk}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["current_org_role"] == "admins"
+        content = response.json()
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["current_org_role"], "admins")
 
     def test_check_permissions(self):
         user = UserFactory()
@@ -844,7 +876,7 @@ class MiscUserTestCase(JwtAPITestCase):
             {"permissions": ",".join(permissions)},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["result"] is False
+        self.assertFalse(response.json()["result"])
 
         assign_perm("organizations.view_org_project", user, organization)
         response = self.client.get(
@@ -852,7 +884,7 @@ class MiscUserTestCase(JwtAPITestCase):
             {"permissions": ",".join(permissions)},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["result"] is True
+        self.assertTrue(response.json()["result"])
 
         assign_perm("projects.view_project", user)
         response = self.client.get(
@@ -860,7 +892,7 @@ class MiscUserTestCase(JwtAPITestCase):
             {"permissions": ",".join(permissions)},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["result"] is True
+        self.assertTrue(response.json()["result"])
 
     def test_update_roles(self):
         organization_1 = OrganizationFactory()
@@ -891,57 +923,64 @@ class MiscUserTestCase(JwtAPITestCase):
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["roles"]) == 8
-        assert set(response.data["roles"]) == {
-            project_1.get_owners().name,
-            project_2.get_members().name,
-            people_group_2.get_members().name,
-            people_group_1.get_leaders().name,
-            organization_1.get_admins().name,
-            organization_2.get_users().name,
-            get_superadmins_group().name,
-            get_default_group().name,
-        }
+        content = response.json()
+        self.assertEqual(len(content["roles"]), 8)
+        self.assertSetEqual(
+            set(content["roles"]),
+            {
+                project_1.get_owners().name,
+                project_2.get_members().name,
+                people_group_2.get_members().name,
+                people_group_1.get_leaders().name,
+                organization_1.get_admins().name,
+                organization_2.get_users().name,
+                get_superadmins_group().name,
+                get_default_group().name,
+            },
+        )
 
     def test_get_slug(self):
         given_name = faker.first_name()
         family_name = faker.last_name()
         user = UserFactory(given_name=given_name, family_name=family_name)
         slug_base = "-".join([given_name.lower(), family_name.lower()])
-        assert user.slug == slug_base
+        self.assertEqual(user.slug, slug_base)
         user = UserFactory(given_name=given_name, family_name=family_name)
-        assert user.slug == f"{slug_base}-1"
+        self.assertEqual(user.slug, f"{slug_base}-1")
         user = UserFactory(given_name=given_name, family_name=family_name)
-        assert user.slug == f"{slug_base}-2"
+        self.assertEqual(user.slug, f"{slug_base}-2")
         user = UserFactory(given_name="", family_name="")
         slug_base = user.email.split("@")[0].lower()
-        assert user.slug == slug_base
+        self.assertEqual(user.slug, slug_base)
 
     def test_integer_slug(self):
         given_name = str(faker.pyint())
         family_name = ""
         user = UserFactory(given_name=given_name, family_name=family_name)
-        assert user.slug == f"user-{given_name}"
+        self.assertEqual(user.slug, f"user-{given_name}")
 
     def test_uuid_slug(self):
         given_name = str(faker.uuid4())
         family_name = ""
         user = UserFactory(given_name=given_name, family_name=family_name)
-        assert user.slug == f"user-{given_name}"
+        self.assertEqual(user.slug, f"user-{given_name}")
 
     def test_multiple_lookups(self):
         user = UserFactory()
         response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["slug"] == user.slug
-        assert response.data["keycloak_id"] == user.keycloak_id
+        content = response.json()
+        self.assertEqual(content["slug"], user.slug)
+        self.assertEqual(content["keycloak_id"], user.keycloak_id)
         response = self.client.get(reverse("ProjectUser-detail", args=(user.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["id"] == user.id
-        assert response.data["keycloak_id"] == user.keycloak_id
+        content = response.json()
+        self.assertEqual(content["id"], user.id)
+        self.assertEqual(content["keycloak_id"], user.keycloak_id)
         response = self.client.get(
             reverse("ProjectUser-detail", args=(user.keycloak_id,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["id"] == user.id
-        assert response.data["slug"] == user.slug
+        content = response.json()
+        self.assertEqual(content["id"], user.id)
+        self.assertEqual(content["slug"], user.slug)
