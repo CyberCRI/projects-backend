@@ -15,9 +15,15 @@ FRONTEND_URL = "http://localhost:8080"
 
 ALGOLIA["AUTO_INDEXING"] = False  # noqa: F405
 
-CELERY_BEAT_SCHEDULE["send_notifications_reminder"] = {  # noqa: F405
-    "task": "apps.notifications.tasks.send_notifications_reminder",
-    "schedule": crontab(minute="*", hour="*"),
+##############
+#   CELERY   #
+##############
+
+CELERY_BEAT_SCHEDULE = {
+    "send_notifications_reminder": {
+        "task": "apps.notifications.tasks.send_notifications_reminder",
+        "schedule": crontab(minute="*", hour="*"),
+    }
 }
 
 ##############

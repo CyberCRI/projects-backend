@@ -1,4 +1,5 @@
 import requests
+from celery.schedules import crontab
 
 from projects.settings.base import REQUESTS_DEFAULT_TIMEOUT
 from projects.settings.develop import *  # noqa: F401, F403
@@ -7,6 +8,17 @@ ENVIRONMENT = "fullstack"
 
 FRONTEND_URL = "https://localhost:8080"
 PUBLIC_URL = "http://localhost:8000"
+
+##############
+#   CELERY   #
+##############
+
+CELERY_BEAT_SCHEDULE = {
+    "send_notifications_reminder": {
+        "task": "apps.notifications.tasks.send_notifications_reminder",
+        "schedule": crontab(minute="*", hour="*"),
+    }
+}
 
 ##############
 #   GOOGLE   #
