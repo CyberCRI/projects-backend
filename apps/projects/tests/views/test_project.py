@@ -538,9 +538,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             filter(lambda x: len(x["images"]) > 0, duplicated_project["blog_entries"])
         )[0]
         for duplicated_image in duplicated_blog_entry["images"]:
-            self.assertNotIn(
-                duplicated_image, [i["id"] for i in initial_blog_entry["images"]]
-            )
+            self.assertNotIn(duplicated_image, initial_blog_entry["images"])
             self.assertIn(
                 f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{duplicated_image}/\" />",
                 duplicated_blog_entry["content"],

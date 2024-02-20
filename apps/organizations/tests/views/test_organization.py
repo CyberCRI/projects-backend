@@ -338,7 +338,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
         content = response.json()
         self.assertEqual(
             content["parent_code"],
-            ["You are trying to set the organization as its own parent."],
+            ["You are trying to create a loop in the organization's hierarchy."],
         )
 
     def test_create_hierarchy_loop(self):
