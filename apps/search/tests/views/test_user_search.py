@@ -91,7 +91,7 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {user["id"] for user in content} == {self.public_user_2.id}
 
     def test_filter_by_sdgs(self):
@@ -101,7 +101,7 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {user["id"] for user in content} == {self.public_user_2.id}
 
     def test_filter_by_skills(self):
@@ -112,5 +112,5 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {user["id"] for user in content} == {self.public_user_2.id}

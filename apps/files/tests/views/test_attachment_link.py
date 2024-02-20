@@ -186,10 +186,10 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_links:
-                assert len(content) == 1
+                self.assertEqual(len(content), 1)
                 assert content[0]["id"] == self.links[publication_status].id
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class ValidateAttachmentLinkTestCase(JwtAPITestCase):

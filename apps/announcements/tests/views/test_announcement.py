@@ -49,11 +49,11 @@ class CreateAnnouncementTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["description"] == payload["description"]
-            assert content["type"] == payload["type"]
-            assert content["is_remunerated"] == payload["is_remunerated"]
-            assert content["project"]["id"] == payload["project_id"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["description"], payload["description"])
+            self.assertEqual(content["type"], payload["type"])
+            self.assertEqual(content["is_remunerated"], payload["is_remunerated"])
+            self.assertEqual(content["project"]["id"], payload["project_id"])
 
 
 class UpdateAnnouncementTestCase(JwtAPITestCase):
@@ -91,7 +91,7 @@ class UpdateAnnouncementTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["description"], payload["description"])
 
 
 class DeleteAnnouncementTestCase(JwtAPITestCase):
@@ -126,4 +126,4 @@ class DeleteAnnouncementTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_204_NO_CONTENT:
-            assert not Announcement.objects.filter(id=announcement.id).exists()
+            self.assertFalse(Announcement.objects.filter(id=announcement.id).exists())

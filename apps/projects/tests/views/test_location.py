@@ -110,10 +110,10 @@ class ListLocationTestCase(JwtAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
             if publication_status in retrieved_locations:
-                assert len(content) == 1
+                self.assertEqual(len(content), 1)
                 assert content[0]["id"] == location.id
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class UpdateLocationTestCase(JwtAPITestCase):

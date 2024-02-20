@@ -103,10 +103,10 @@ class ListBlogEntryTestCase(JwtAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_blog_entries:
-                assert len(content) == 1
+                self.assertEqual(len(content), 1)
                 assert content[0]["id"] == blog_entry.id
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class UpdateBlogEntryTestCase(JwtAPITestCase):

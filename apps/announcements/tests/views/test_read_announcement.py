@@ -56,7 +56,7 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["id"] == announcement.id
+        self.assertEqual(content["id"], announcement.id)
 
     @parameterized.expand(
         [
@@ -72,5 +72,8 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 3
-        assert {a["id"] for a in content} == {a.id for a in self.announcements.values()}
+        self.assertEqual(len(content), len(self.announcements))
+        self.assertSetEqual(
+            {a["id"] for a in content},
+            {a.id for a in self.announcements.values()},
+        )

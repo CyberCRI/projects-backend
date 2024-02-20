@@ -21,8 +21,8 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["id"] == user.id
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["id"], user.id)
 
     def test_people_group_search_pg_trgrm(self):
         people_group = PeopleGroupFactory(
@@ -42,8 +42,8 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["id"] == people_group.id
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["id"], people_group.id)
 
     def test_wikipedia_tag_search_pg_trgrm(self):
         wikipedia_tag = WikipediaTagFactory(name_en="abcdef", name_fr="ééé")
@@ -54,8 +54,8 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["wikipedia_qid"] == wikipedia_tag.wikipedia_qid
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["wikipedia_qid"], wikipedia_tag.wikipedia_qid)
 
     def test_tag_search_pg_trgrm(self):
         tag = TagFactory(name="ééé abcdef")
@@ -66,5 +66,5 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["id"] == tag.id
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["id"], tag.id)

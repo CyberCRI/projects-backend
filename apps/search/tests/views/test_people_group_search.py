@@ -110,7 +110,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {group["id"] for group in content} == {self.public_people_group_2.id}
 
     def test_filter_by_sdgs(self):
@@ -120,7 +120,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {group["id"] for group in content} == {self.public_people_group_2.id}
 
     def test_filter_by_type(self):
@@ -130,5 +130,5 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {group["id"] for group in content} == {self.public_people_group_2.id}

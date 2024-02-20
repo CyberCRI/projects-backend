@@ -133,7 +133,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_sdgs(self):
@@ -143,7 +143,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_language(self):
@@ -153,7 +153,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_categories(self):
@@ -164,7 +164,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_wikipedia_tags(self):
@@ -175,7 +175,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_organization_tags(self):
@@ -186,7 +186,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}
 
     def test_filter_by_members(self):
@@ -197,5 +197,5 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
+        self.assertEqual(len(content), 1)
         assert {project["id"] for project in content} == {self.public_project_2.id}

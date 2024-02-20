@@ -80,11 +80,14 @@ class ListCommentTestCase(JwtAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_comments:
-                assert len(content) == 1
-                assert content[0]["id"] == self.comments[project_status].id
-                assert content[0]["replies"][0]["id"] == self.replies[project_status].id
+                self.assertEqual(len(content), 1)
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["id"], self.comments[project_status].id)
+                self.assertEqual(
+                    content[0]["replies"][0]["id"], self.replies[project_status].id
+                )
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class CreateCommentTestCase(JwtAPITestCase):
@@ -137,8 +140,8 @@ class CreateCommentTestCase(JwtAPITestCase):
             )
             if publication_status in created_comments:
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-                assert response.json()["content"] == payload["content"]
-                assert response.json()["author"]["id"] == user.id
+                self.assertEqual(response.json()["content"], payload["content"])
+                self.assertEqual(response.json()["author"]["id"], user.id)
             else:
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -191,7 +194,7 @@ class UpdateCommentTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["content"] == payload["content"]
+            self.assertEqual(response.json()["content"], payload["content"])
 
 
 class DeleteCommentTestCase(JwtAPITestCase):
@@ -234,7 +237,7 @@ class DeleteCommentTestCase(JwtAPITestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert comment.id not in [c["id"] for c in content]
+            self.assertNotIn(comment.id, [c["id"] for c in content])
 
 
 class ReplyToCommentTestCase(JwtAPITestCase):
@@ -269,7 +272,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["content"] == payload["content"]
+        self.assertEqual(response.json()["content"], payload["content"])
 
     def test_cannot_reply_to_themselves(self):
         self.client.force_authenticate(self.user)
@@ -281,7 +284,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["reply_on_id"] == "Comments cannot reply to themselves"
+        self.assertEqual(content["reply_on_id"], "Comments cannot reply to themselves")
 
     def test_cannot_reply_to_reply(self):
         self.client.force_authenticate(self.user)
@@ -298,7 +301,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["reply_on_id"] == ["You cannot reply to a reply."]
+        self.assertEqual(content["reply_on_id"], ["You cannot reply to a reply."])
 
     def test_deleted_with_replies_returned(self):
         self.client.force_authenticate(self.user)
@@ -312,6 +315,6 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 1
-        assert content["results"][0]["id"] == comment.id
-        assert content["results"][0]["content"] == "<deleted comment>"
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["id"], comment.id)
+        self.assertEqual(content["results"][0]["content"], "<deleted comment>")

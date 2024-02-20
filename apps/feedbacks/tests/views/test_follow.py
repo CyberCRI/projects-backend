@@ -60,8 +60,9 @@ class CreateFollowTestCase(JwtAPITestCase):
             )
             if publication_status in created_comments:
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-                assert response.json()["project"]["id"] == project.id
-                assert response.json()["follower"]["id"] == user.id
+                content = response.json()
+                self.assertEqual(content["project"]["id"], project.id)
+                self.assertEqual(content["follower"]["id"], user.id)
             else:
                 self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -101,8 +102,9 @@ class CreateFollowTestCase(JwtAPITestCase):
             )
             if publication_status in created_comments:
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-                assert response.json()["project"]["id"] == project.id
-                assert response.json()["follower"]["id"] == user.id
+                content = response.json()
+                self.assertEqual(content["project"]["id"], project.id)
+                self.assertEqual(content["follower"]["id"], user.id)
             else:
                 self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -123,18 +125,19 @@ class CreateFollowTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=instances)
         payload = {"follows": [{"project_id": project.id} for project in instances]}
         self.client.force_authenticate(user)
-        user_response = self.client.post(
+        response = self.client.post(
             reverse("Follower-follow-many", args=(user.id,)),
             data=payload,
         )
-        assert user_response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert len(user_response.json()) == len(instances)
-            assert all(
-                p.id in [f["project"]["id"] for f in user_response.json()]
-                for p in instances
+            content = response.json()
+            self.assertEqual(len(content), len(instances))
+            self.assertSetEqual({f["follower"]["id"] for f in content}, {user.id})
+            self.assertSetEqual(
+                {f["project"]["id"] for f in content},
+                {project.id for project in instances},
             )
-            assert all(user.id == f["follower"]["id"] for f in user_response.json())
 
 
 class DestroyFollowTestCase(JwtAPITestCase):
@@ -167,7 +170,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
             role, instances=[self.project], owned_instance=follow
         )
         self.client.force_authenticate(user)
-        project_response = self.client.delete(
+        response = self.client.delete(
             reverse(
                 "Followed-detail",
                 args=(
@@ -176,9 +179,9 @@ class DestroyFollowTestCase(JwtAPITestCase):
                 ),
             )
         )
-        assert project_response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert Follow.objects.filter(id=follow.id).exists() is False
+            self.assertFalse(Follow.objects.filter(id=follow.id).exists())
 
     @parameterized.expand(
         [
@@ -201,7 +204,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
             role, instances=[self.project], owned_instance=instance
         )
         self.client.force_authenticate(user)
-        project_response = self.client.delete(
+        response = self.client.delete(
             reverse(
                 "Follower-detail",
                 args=(
@@ -210,7 +213,9 @@ class DestroyFollowTestCase(JwtAPITestCase):
                 ),
             )
         )
-        assert project_response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            self.assertFalse(Follow.objects.filter(id=instance.id).exists())
 
 
 class ListFollowTestCase(JwtAPITestCase):
@@ -263,18 +268,18 @@ class ListFollowTestCase(JwtAPITestCase):
             role, instances=list(self.projects.values()), owned_instance=self.follower
         )
         self.client.force_authenticate(user)
-        user_response = self.client.get(
+        response = self.client.get(
             reverse(
                 "Follower-list",
                 args=(self.follower.id,),
             ),
         )
-        assert user_response.status_code == status.HTTP_200_OK
-        content = user_response.json()["results"]
-        assert len(content) == len(retrieved_follows)
-        assert {f["id"] for f in content} == {
-            self.follows[f].id for f in retrieved_follows
-        }
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), len(retrieved_follows))
+        self.assertSetEqual(
+            {f["id"] for f in content}, {self.follows[f].id for f in retrieved_follows}
+        )
 
     @parameterized.expand(
         [
@@ -296,12 +301,12 @@ class ListFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
-            project_response = self.client.get(
+            response = self.client.get(
                 reverse("Followed-list", args=(project.id,)),
             )
-            assert project_response.status_code == status.HTTP_200_OK
-            content = project_response.json()["results"]
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = response.json()["results"]
             if project_status in retrieved_follows:
-                assert self.follower.id in [f["follower"]["id"] for f in content]
+                self.assertIn(self.follower.id, [f["follower"]["id"] for f in content])
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)

@@ -31,14 +31,14 @@ class FeedbacksSecurityTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Reviewed-list", args=(project.id,)), data=payload
         )
-        assert response.data["reviewer"]["id"] == user.id
+        self.assertEqual(response.json()["reviewer"]["id"], user.id)
 
         response = self.client.post(
             reverse("Followed-list", args=(project.id,)), data=payload
         )
-        assert response.data["follower"]["id"] == user.id
+        self.assertEqual(response.json()["follower"]["id"], user.id)
 
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)), data=payload
         )
-        assert response.data["author"]["id"] == user.id
+        self.assertEqual(response.json()["author"]["id"], user.id)

@@ -45,7 +45,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_update_project_description(self):
         text = self.create_text_to_process()
@@ -56,7 +56,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("Project-detail", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_create_blog_entry_content(self):
         text = self.create_text_to_process()
@@ -71,7 +71,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("BlogEntry-list", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_update_blog_entry_content(self):
         text = self.create_text_to_process()
@@ -82,7 +82,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("BlogEntry-detail", args=(self.project.id, blog.id)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_create_comment_content(self):
         text = self.create_text_to_process()
@@ -94,7 +94,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         project.refresh_from_db()
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_update_comment_content(self):
         text = self.create_text_to_process()
@@ -106,7 +106,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_create_faq_content(self):
         text = self.create_text_to_process()
@@ -122,7 +122,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_update_faq_content(self):
         text = self.create_text_to_process()
@@ -136,7 +136,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.json()["images"]) == 2
+        self.assertEqual(len(response.json()["images"]), 2)
 
     def test_create_template_contents(self):
         text1 = self.create_text_to_process()
@@ -159,7 +159,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         }
         response = self.client.post(reverse("Category-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert len(response.json()["template"]["images"]) == 4
+        self.assertEqual(len(response.json()["template"]["images"]), 4)
 
     def test_update_template_contents(self):
         text1 = self.create_text_to_process()
@@ -179,4 +179,4 @@ class TextProcessingTestCase(JwtAPITestCase):
             reverse("Category-detail", args=(category.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.json()["template"]["images"]) == 4
+        self.assertEqual(len(response.json()["template"]["images"]), 4)

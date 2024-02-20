@@ -54,10 +54,10 @@ class CreateReviewTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["project_id"] == project.id
-            assert content["reviewer"]["id"] == user.id
-            assert content["title"] == payload["title"]
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["project_id"], project.id)
+            self.assertEqual(content["reviewer"]["id"], user.id)
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["description"], payload["description"])
 
 
 class UpdateReviewTestCase(JwtAPITestCase):
@@ -99,7 +99,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["description"] == payload["description"]
+            self.assertEqual(response.json()["description"], payload["description"])
 
 
 class ListReviewTestCase(JwtAPITestCase):
@@ -153,18 +153,15 @@ class ListReviewTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
-            project_response = self.client.get(
-                reverse("Reviewed-list", args=(project.id,))
-            )
-            assert project_response.status_code == status.HTTP_200_OK
-            content = project_response.json()["results"]
+            response = self.client.get(reverse("Reviewed-list", args=(project.id,)))
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = response.json()["results"]
             if project_status in retrieved_follows:
-                assert len(content) == 1
-                assert content[0]["project_id"] == project.id
-                assert content[0]["reviewer"]["id"] == self.reviewer.id
-                assert (
-                    content[0]["description"]
-                    == self.reviews[project_status].description
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["project_id"], project.id)
+                self.assertEqual(content[0]["reviewer"]["id"], self.reviewer.id)
+                self.assertEqual(
+                    content[0]["description"], self.reviews[project_status].description
                 )
 
 
@@ -204,7 +201,7 @@ class DestroyReviewTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert Review.objects.filter(id=review.id).exists() is False
+            self.assertFalse(Review.objects.filter(id=review.id).exists())
 
 
 class ValidateReviewTestCase(JwtAPITestCase):

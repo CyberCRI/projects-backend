@@ -107,7 +107,7 @@ class CreateBlogEntryImageTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+            self.assertIsNotNone(response.json()["static_url"])
 
 
 class UpdateBlogEntryImageTestCase(JwtAPITestCase):
@@ -160,11 +160,12 @@ class UpdateBlogEntryImageTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            content = response.json()
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteBlogEntryImageTestCase(JwtAPITestCase):
@@ -208,4 +209,4 @@ class DeleteBlogEntryImageTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Image.objects.filter(id=image.id).exists()
+            self.assertFalse(Image.objects.filter(id=image.id).exists())
