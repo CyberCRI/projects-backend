@@ -16,12 +16,11 @@ class WikipediaServiceTestCase(JwtAPITestCase, TagTestCaseMixin):
         mocked.return_value = self.get_wikipedia_tag_mocked_return(wikipedia_qid)
         WikipediaService.update_or_create_wikipedia_tag(wikipedia_qid)
         tag = WikipediaTag.objects.get(wikipedia_qid=wikipedia_qid)
-        assert tag.name_fr == f"name_fr_{wikipedia_qid}"
-        assert tag.name_en == tag.name == f"name_en_{wikipedia_qid}"
-        assert tag.description_fr == f"description_fr_{wikipedia_qid}"
-        assert (
-            tag.description_en == tag.description == f"description_en_{wikipedia_qid}"
-        )
+        self.assertEqual(tag.name_fr, f"name_fr_{wikipedia_qid}")
+        self.assertEqual(tag.name_en, tag.name == f"name_en_{wikipedia_qid}")
+        self.assertEqual(tag.description_fr, f"description_fr_{wikipedia_qid}")
+        self.assertEqual(tag.description_en, f"description_en_{wikipedia_qid}")
+        self.assertEqual(tag.description, tag.description_en)
 
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_or_create_tag_no_english(self, mocked):
@@ -31,10 +30,9 @@ class WikipediaServiceTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         WikipediaService.update_or_create_wikipedia_tag(wikipedia_qid)
         tag = WikipediaTag.objects.get(wikipedia_qid=wikipedia_qid)
-        assert tag.name == tag.name_fr == tag.name_en == f"name_fr_{wikipedia_qid}"
-        assert (
-            tag.description
-            == tag.description_fr
-            == tag.description_en
-            == f"description_fr_{wikipedia_qid}"
-        )
+        self.assertEqual(tag.name_fr, f"name_fr_{wikipedia_qid}")
+        self.assertEqual(tag.name_en, tag.name_fr)
+        self.assertEqual(tag.name, tag.name_fr)
+        self.assertEqual(tag.description_fr, f"description_fr_{wikipedia_qid}")
+        self.assertEqual(tag.description_en, tag.description_fr)
+        self.assertEqual(tag.description, tag.description_fr)

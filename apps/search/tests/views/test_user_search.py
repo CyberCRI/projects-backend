@@ -78,10 +78,11 @@ class UserSearchTestCase(JwtAPITestCase):
         response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_users)
-        assert {user["id"] for user in content} == {
-            self.users[user].id for user in retrieved_users
-        }
+        self.assertEqual(len(content), len(retrieved_users))
+        self.assertSetEqual(
+            {user["id"] for user in content},
+            {self.users[user].id for user in retrieved_users},
+        )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
@@ -92,7 +93,7 @@ class UserSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {user["id"] for user in content} == {self.public_user_2.id}
+        self.assertSetEqual({user["id"] for user in content}, {self.public_user_2.id})
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
@@ -102,7 +103,7 @@ class UserSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {user["id"] for user in content} == {self.public_user_2.id}
+        self.assertSetEqual({user["id"] for user in content}, {self.public_user_2.id})
 
     def test_filter_by_skills(self):
         self.client.force_authenticate(self.superadmin)
@@ -113,4 +114,4 @@ class UserSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {user["id"] for user in content} == {self.public_user_2.id}
+        self.assertSetEqual({user["id"] for user in content}, {self.public_user_2.id})

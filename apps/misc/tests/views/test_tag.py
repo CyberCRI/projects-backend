@@ -42,8 +42,8 @@ class CreateTagTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["name"] == payload["name"]
-            assert content["organization"] == payload["organization"]
+            self.assertEqual(content["name"], payload["name"])
+            self.assertEqual(content["organization"], payload["organization"])
 
 
 class UpdateTagTestCase(JwtAPITestCase):
@@ -74,7 +74,7 @@ class UpdateTagTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["name"] == payload["name"]
+            self.assertEqual(content["name"], payload["name"])
 
 
 class DeleteTagTestCase(JwtAPITestCase):
@@ -103,4 +103,4 @@ class DeleteTagTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Tag.objects.filter(id=tag.id).exists()
+            self.assertFalse(Tag.objects.filter(id=tag.id).exists())

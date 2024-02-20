@@ -17,7 +17,7 @@ class UserEmbeddingVisibilityTestCase(JwtAPITestCase):
         )
         embedding = UserEmbeddingFactory(item=user)
         embedding.set_visibility()
-        assert embedding.is_visible
+        self.assertTrue(embedding.is_visible)
 
     def test_set_visibility_with_professional_description(self):
         user = UserFactory(
@@ -25,21 +25,21 @@ class UserEmbeddingVisibilityTestCase(JwtAPITestCase):
         )
         embedding = UserEmbeddingFactory(item=user)
         embedding.set_visibility()
-        assert embedding.is_visible
+        self.assertTrue(embedding.is_visible)
 
     def test_set_visibility_with_skills(self):
         user = UserFactory(personal_description="", professional_description="")
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=3)
         embedding.set_visibility()
-        assert embedding.is_visible
+        self.assertTrue(embedding.is_visible)
 
     def test_set_visibility_not_visible(self):
         user = UserFactory(personal_description="", professional_description="")
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=2)
         embedding.set_visibility()
-        assert not embedding.is_visible
+        self.assertFalse(embedding.is_visible)
 
 
 class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
@@ -55,9 +55,9 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
-        assert embedding.is_visible
-        assert embedding.embedding == vector
-        assert embedding.prompt_hashcode != ""
+        self.assertTrue(embedding.is_visible)
+        self.assertEqual(embedding.embedding, vector)
+        self.assertNotEqual(embedding.prompt_hashcode, "")
 
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
@@ -73,9 +73,9 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
-        assert embedding.is_visible
-        assert embedding.embedding == vector
-        assert embedding.prompt_hashcode != ""
+        self.assertTrue(embedding.is_visible)
+        self.assertEqual(embedding.embedding, vector)
+        self.assertNotEqual(embedding.prompt_hashcode, "")
 
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
@@ -88,9 +88,9 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
-        assert embedding.is_visible
-        assert embedding.embedding == vector
-        assert embedding.prompt_hashcode != ""
+        self.assertTrue(embedding.is_visible)
+        self.assertEqual(embedding.embedding, vector)
+        self.assertNotEqual(embedding.prompt_hashcode, "")
 
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
@@ -103,9 +103,9 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
-        assert not embedding.is_visible
-        assert embedding.embedding is not None
-        assert embedding.prompt_hashcode != ""
+        self.assertFalse(embedding.is_visible)
+        self.assertIsNotNone(embedding.embedding)
+        self.assertNotEqual(embedding.prompt_hashcode, "")
 
 
 class UserEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
@@ -113,13 +113,15 @@ class UserEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
         user = UserFactory(professional_description=faker.text())
         embedding = UserEmbeddingFactory(item=user)
         response = embedding.get_summary_chat_system()
-        assert all(isinstance(x, str) for x in response)
+        for x in response:
+            self.assertIsInstance(x, str)
 
     def test_get_summary_chat_prompt(self):
         user = UserFactory(professional_description=faker.text())
         embedding = UserEmbeddingFactory(item=user)
         response = embedding.get_summary_chat_prompt()
-        assert all(isinstance(x, str) for x in response)
+        for x in response:
+            self.assertIsInstance(x, str)
 
     def test_hashcode_consistency(self):
         user = UserFactory(
@@ -132,4 +134,4 @@ class UserEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
         SkillFactory.create_batch(3, user=user, level=4)
         prompt_hashcode = embedding.hash_prompt()
         for _ in range(10):
-            assert embedding.hash_prompt() == prompt_hashcode
+            self.assertEqual(embedding.hash_prompt(), prompt_hashcode)

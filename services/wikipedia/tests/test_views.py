@@ -21,9 +21,10 @@ class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 100
+        self.assertEqual(len(content), 100)
         result = content[0]
-        assert all(key in result for key in ["wikipedia_qid", "name", "description"])
+        for key in ["wikipedia_qid", "name", "description"]:
+            self.assertIn(key, result)
 
     @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
     def test_search_tags_pagination(self, mocked):
@@ -33,9 +34,9 @@ class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert "limit=10" in content["next"]
-        assert "offset=10" in content["next"]
-        assert len(content["results"]) == 10
+        self.assertIn("limit=10", content["next"])
+        self.assertIn("offset=10", content["next"])
+        self.assertEqual(len(content["results"]), 10)
 
 
 class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
@@ -88,14 +89,17 @@ class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content) == 5
-        assert content == [
-            self.tag_1.name,
-            self.tag_2.name,
-            self.tag_3.name,
-            self.tag_4.name,
-            self.tag_5.name,
-        ]
+        self.assertEqual(len(content), 5)
+        self.assertListEqual(
+            content,
+            [
+                self.tag_1.name,
+                self.tag_2.name,
+                self.tag_3.name,
+                self.tag_4.name,
+                self.tag_5.name,
+            ],
+        )
 
     def test_autocomplete_custom_limit(self):
         response = self.client.get(
@@ -103,12 +107,15 @@ class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content) == 10
-        assert content[:5] == [
-            self.tag_1.name,
-            self.tag_2.name,
-            self.tag_3.name,
-            self.tag_4.name,
-            self.tag_5.name,
-        ]
-        assert set(content[5:]) == {tag.name for tag in self.unused_tags}
+        self.assertEqual(len(content), 10)
+        self.assertListEqual(
+            content[:5],
+            [
+                self.tag_1.name,
+                self.tag_2.name,
+                self.tag_3.name,
+                self.tag_4.name,
+                self.tag_5.name,
+            ],
+        )
+        self.assertSetEqual(set(content[5:]), {tag.name for tag in self.unused_tags})

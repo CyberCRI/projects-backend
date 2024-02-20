@@ -120,10 +120,11 @@ class ProjectSearchTestCase(JwtAPITestCase):
         response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_projects)
-        assert {project["id"] for project in content} == {
-            self.projects[project].id for project in retrieved_projects
-        }
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {self.projects[project].id for project in retrieved_projects},
+        )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
@@ -134,7 +135,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
@@ -144,7 +147,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_language(self):
         self.client.force_authenticate(self.superadmin)
@@ -154,7 +159,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_categories(self):
         self.client.force_authenticate(self.superadmin)
@@ -165,7 +172,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_wikipedia_tags(self):
         self.client.force_authenticate(self.superadmin)
@@ -176,7 +185,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_organization_tags(self):
         self.client.force_authenticate(self.superadmin)
@@ -187,7 +198,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_members(self):
         self.client.force_authenticate(self.superadmin)
@@ -198,4 +211,6 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )

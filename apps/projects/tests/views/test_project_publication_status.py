@@ -57,7 +57,7 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
             response = self.client.get(reverse("Project-detail", args=(project.id,)))
             if publication_status in retrieved_projects:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
-                assert response.json()["id"] == project.id
+                self.assertEqual(response.json()["id"], project.id)
             else:
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -80,11 +80,14 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
         response = self.client.get(reverse("Project-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_projects)
-        assert {project["id"] for project in content} == {
-            self.projects[publication_status].id
-            for publication_status in retrieved_projects
-        }
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {
+                self.projects[publication_status].id
+                for publication_status in retrieved_projects
+            },
+        )
 
     @parameterized.expand(
         [
@@ -105,11 +108,14 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
         response = self.client.get(reverse("ProjectRandom-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_projects)
-        assert {project["id"] for project in content} == {
-            self.projects[publication_status].id
-            for publication_status in retrieved_projects
-        }
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {
+                self.projects[publication_status].id
+                for publication_status in retrieved_projects
+            },
+        )
 
     @parameterized.expand(
         [
@@ -130,8 +136,11 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
         response = self.client.get(reverse("ProjectTop-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_projects)
-        assert {project["id"] for project in content} == {
-            self.projects[publication_status].id
-            for publication_status in retrieved_projects
-        }
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {
+                self.projects[publication_status].id
+                for publication_status in retrieved_projects
+            },
+        )

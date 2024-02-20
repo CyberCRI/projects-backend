@@ -67,7 +67,7 @@ class ReadLocationTestCase(JwtAPITestCase):
             if publication_status in retrieved_locations:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
                 content = response.json()
-                assert content["id"] == location.id
+                self.assertEqual(content["id"], location.id)
             else:
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -94,7 +94,8 @@ class ReadLocationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content) == len(retrieved_locations)
-        assert {a["id"] for a in content} == {
-            a.id for a in [self.locations[a] for a in retrieved_locations]
-        }
+        self.assertEqual(len(content), len(retrieved_locations))
+        self.assertSetEqual(
+            {a["id"] for a in content},
+            {a.id for a in [self.locations[a] for a in retrieved_locations]},
+        )

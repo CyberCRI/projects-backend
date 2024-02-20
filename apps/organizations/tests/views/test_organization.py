@@ -66,33 +66,40 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["name"] == payload["name"]
-            assert content["code"] == payload["code"]
-            assert content["dashboard_title"] == payload["dashboard_title"]
-            assert content["dashboard_subtitle"] == payload["dashboard_subtitle"]
-            assert content["contact_email"] == payload["contact_email"]
-            assert content["website_url"] == payload["website_url"]
-            assert content["background_color"] == payload["background_color"]
-            assert content["logo_image"]["id"] == payload["logo_image_id"]
-            assert content["language"] == payload["language"]
-            assert (
-                content["is_logo_visible_on_parent_dashboard"]
-                == payload["is_logo_visible_on_parent_dashboard"]
+            self.assertEqual(content["name"], payload["name"])
+            self.assertEqual(content["code"], payload["code"])
+            self.assertEqual(content["dashboard_title"], payload["dashboard_title"])
+            self.assertEqual(
+                content["dashboard_subtitle"], payload["dashboard_subtitle"]
             )
-            assert content["parent_code"] == self.parent.code
-            assert (
-                content["access_request_enabled"] == payload["access_request_enabled"]
+            self.assertEqual(content["contact_email"], payload["contact_email"])
+            self.assertEqual(content["website_url"], payload["website_url"])
+            self.assertEqual(content["background_color"], payload["background_color"])
+            self.assertEqual(content["logo_image"]["id"], payload["logo_image_id"])
+            self.assertEqual(content["language"], payload["language"])
+            self.assertEqual(
+                content["is_logo_visible_on_parent_dashboard"],
+                payload["is_logo_visible_on_parent_dashboard"],
             )
-            assert content["onboarding_enabled"] == payload["onboarding_enabled"]
-            assert content["wikipedia_tags"]
-            assert len(content["wikipedia_tags"]) == 3
-            assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
-                wikipedia_qids
+            self.assertEqual(content["parent_code"], self.parent.code)
+            self.assertEqual(
+                content["access_request_enabled"], payload["access_request_enabled"]
+            )
+            self.assertEqual(
+                content["onboarding_enabled"], payload["onboarding_enabled"]
+            )
+            self.assertEqual(len(content["wikipedia_tags"]), 3)
+            self.assertSetEqual(
+                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
+                set(wikipedia_qids),
             )
             organization = Organization.objects.get(code=payload["code"])
-            assert all(u in organization.users.all() for u in self.users)
-            assert all(a in organization.admins.all() for a in self.admins)
-            assert all(f in organization.facilitators.all() for f in self.facilitators)
+            for user in self.users:
+                self.assertIn(user, organization.users.all())
+            for admin in self.admins:
+                self.assertIn(admin, organization.admins.all())
+            for facilitator in self.facilitators:
+                self.assertIn(facilitator, organization.facilitators.all())
 
 
 class ReadOrganizationTestCase(JwtAPITestCase):
@@ -115,7 +122,7 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["code"] == self.organization.code
+        self.assertEqual(content["code"], self.organization.code)
 
     @parameterized.expand(
         [
@@ -129,8 +136,8 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         response = self.client.get(reverse("Organization-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 1
-        assert content["results"][0]["code"] == self.organization.code
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["code"], self.organization.code)
 
 
 class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
@@ -175,24 +182,28 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["name"] == payload["name"]
-            assert content["dashboard_title"] == payload["dashboard_title"]
-            assert content["dashboard_subtitle"] == payload["dashboard_subtitle"]
-            assert content["contact_email"] == payload["contact_email"]
-            assert content["background_color"] == payload["background_color"]
-            assert content["logo_image"]["id"] == payload["logo_image_id"]
-            assert content["language"] == payload["language"]
-            assert (
-                content["is_logo_visible_on_parent_dashboard"]
-                == payload["is_logo_visible_on_parent_dashboard"]
+            self.assertEqual(content["name"], payload["name"])
+            self.assertEqual(content["dashboard_title"], payload["dashboard_title"])
+            self.assertEqual(
+                content["dashboard_subtitle"], payload["dashboard_subtitle"]
             )
-            assert (
-                content["access_request_enabled"] == payload["access_request_enabled"]
+            self.assertEqual(content["contact_email"], payload["contact_email"])
+            self.assertEqual(content["background_color"], payload["background_color"])
+            self.assertEqual(content["logo_image"]["id"], payload["logo_image_id"])
+            self.assertEqual(content["language"], payload["language"])
+            self.assertEqual(
+                content["is_logo_visible_on_parent_dashboard"],
+                payload["is_logo_visible_on_parent_dashboard"],
             )
-            assert content["onboarding_enabled"] == payload["onboarding_enabled"]
-            assert content["wikipedia_tags"]
-            assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
-                wikipedia_qids
+            self.assertEqual(
+                content["access_request_enabled"], payload["access_request_enabled"]
+            )
+            self.assertEqual(
+                content["onboarding_enabled"], payload["onboarding_enabled"]
+            )
+            self.assertSetEqual(
+                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
+                set(wikipedia_qids),
             )
 
 
@@ -216,7 +227,9 @@ class DeleteOrganizationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Organization.objects.filter(code=organization.code).exists()
+            self.assertFalse(
+                Organization.objects.filter(code=organization.code).exists()
+            )
 
 
 class OrganizationMembersTestCase(JwtAPITestCase):
@@ -251,9 +264,12 @@ class OrganizationMembersTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(u in organization.users.all() for u in self.users)
-            assert all(a in organization.admins.all() for a in self.admins)
-            assert all(f in organization.facilitators.all() for f in self.facilitators)
+            for user in self.users:
+                self.assertIn(user, organization.users.all())
+            for admin in self.admins:
+                self.assertIn(admin, organization.admins.all())
+            for facilitator in self.facilitators:
+                self.assertIn(facilitator, organization.facilitators.all())
 
     @parameterized.expand(
         [
@@ -281,11 +297,12 @@ class OrganizationMembersTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(u not in organization.users.all() for u in self.users)
-            assert all(a not in organization.admins.all() for a in self.admins)
-            assert all(
-                f not in organization.facilitators.all() for f in self.facilitators
-            )
+            for user in self.users:
+                self.assertNotIn(user, organization.users.all())
+            for admin in self.admins:
+                self.assertNotIn(admin, organization.admins.all())
+            for facilitator in self.facilitators:
+                self.assertNotIn(facilitator, organization.facilitators.all())
 
 
 class OrganizationHierarchyTestCase(JwtAPITestCase):
@@ -306,7 +323,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization.refresh_from_db()
-        assert organization.parent == self.parent
+        self.assertEqual(organization.parent, self.parent)
 
     def test_set_self_as_parent(self):
         self.client.force_authenticate(self.superadmin)
@@ -319,9 +336,10 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["parent_code"] == [
-            "You are trying to create a loop in the organization's hierarchy."
-        ]
+        self.assertEqual(
+            content["parent_code"],
+            ["You are trying to set the organization as its own parent."],
+        )
 
     def test_create_hierarchy_loop(self):
         self.client.force_authenticate(self.superadmin)
@@ -336,9 +354,10 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["parent_code"] == [
-            "You are trying to create a loop in the organization's hierarchy."
-        ]
+        self.assertEqual(
+            content["parent_code"],
+            ["You are trying to create a loop in the organization's hierarchy."],
+        )
 
     def test_create_nested_hierarchy(self):
         self.client.force_authenticate(self.superadmin)
@@ -352,7 +371,7 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization_3.refresh_from_db()
-        assert organization_3.parent == organization_2
+        self.assertEqual(organization_3.parent, organization_2)
 
 
 class MiscOrganizationTestCase(JwtAPITestCase):
@@ -366,13 +385,13 @@ class MiscOrganizationTestCase(JwtAPITestCase):
             reverse("Organization-detail", args=(organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["google_sync_enabled"] is False
+        self.assertFalse(response.json()["google_sync_enabled"])
 
         response = self.client.get(
             reverse("Organization-detail", args=(synced_organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["google_sync_enabled"] is True
+        self.assertTrue(response.json()["google_sync_enabled"])
 
     def test_roles_are_deleted_on_organization_delete(self):
         user = UserFactory(groups=[get_superadmins_group()])
@@ -386,4 +405,4 @@ class MiscOrganizationTestCase(JwtAPITestCase):
             )
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        assert not Group.objects.filter(name__in=roles_names).exists()
+        self.assertFalse(Group.objects.filter(name__in=roles_names).exists())

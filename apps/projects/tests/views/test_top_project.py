@@ -36,9 +36,9 @@ class ProjectTopTestCase(JwtAPITestCase):
         response = self.client.get(reverse("ProjectTop-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 2
-        assert content["results"][0]["id"] == project_1.id
-        assert content["results"][1]["id"] == project_2.id
+        self.assertEqual(content["count"], 2)
+        self.assertEqual(content["results"][0]["id"], project_1.id)
+        self.assertEqual(content["results"][1]["id"], project_2.id)
 
     def test_views_ranking(self):
         project_1 = ProjectFactory(organizations=[self.organization])
@@ -47,6 +47,6 @@ class ProjectTopTestCase(JwtAPITestCase):
         response = self.client.get(reverse("ProjectTop-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 2
-        assert content["results"][0]["id"] == project_1.id
-        assert content["results"][1]["id"] == project_2.id
+        self.assertEqual(content["count"], 2)
+        self.assertEqual(content["results"][0]["id"], project_1.id)
+        self.assertEqual(content["results"][1]["id"], project_2.id)

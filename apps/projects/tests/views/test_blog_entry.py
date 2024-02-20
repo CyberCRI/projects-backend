@@ -47,8 +47,9 @@ class CreateBlogEntryTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["title"] == payload["title"]
-            assert response.json()["content"] == payload["content"]
+            content = response.json()
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["content"], payload["content"])
 
 
 class ListBlogEntryTestCase(JwtAPITestCase):
@@ -104,7 +105,7 @@ class ListBlogEntryTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_blog_entries:
                 self.assertEqual(len(content), 1)
-                assert content[0]["id"] == blog_entry.id
+                self.assertEqual(content[0]["id"], blog_entry.id)
             else:
                 self.assertEqual(len(content), 0)
 
@@ -146,8 +147,9 @@ class UpdateBlogEntryTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["title"] == payload["title"]
-            assert response.json()["content"] == payload["content"]
+            content = response.json()
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["content"], payload["content"])
 
 
 class DeleteBlogEntryTestCase(JwtAPITestCase):
@@ -182,4 +184,4 @@ class DeleteBlogEntryTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not BlogEntry.objects.filter(id=blog_entry.id).exists()
+            self.assertFalse(BlogEntry.objects.filter(id=blog_entry.id).exists())

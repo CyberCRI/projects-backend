@@ -49,8 +49,8 @@ class CreateInvitationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["people_group"]["id"] == payload["people_group_id"]
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["people_group"]["id"], payload["people_group_id"])
+            self.assertEqual(content["description"], payload["description"])
 
 
 class UpdateInvitationTestCase(JwtAPITestCase):
@@ -90,7 +90,7 @@ class UpdateInvitationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["description"], payload["description"])
 
 
 class DeleteInvitationTestCase(JwtAPITestCase):
@@ -128,7 +128,7 @@ class DeleteInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Invitation.objects.filter(id=invitation.id).exists()
+            self.assertFalse(Invitation.objects.filter(id=invitation.id).exists())
 
 
 class ValidateInvitationTestCase(JwtAPITestCase):
@@ -153,9 +153,9 @@ class ValidateInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert (
-            content["people_group_id"][0]
-            == "People group must belong to the invitation's organization."
+        self.assertEqual(
+            content["people_group_id"][0],
+            "People group must belong to the invitation's organization.",
         )
 
     def test_update_people_group_in_other_organization(self):
@@ -175,9 +175,9 @@ class ValidateInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert (
-            content["people_group_id"][0]
-            == "People group must belong to the invitation's organization."
+        self.assertEqual(
+            content["people_group_id"][0],
+            "People group must belong to the invitation's organization.",
         )
 
     def test_update_organization(self):
@@ -194,7 +194,10 @@ class ValidateInvitationTestCase(JwtAPITestCase):
             data={"organization": self.organization_2.code},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        assert response.json() == ["Cannot change the organization of an invitation."]
+
+        self.assertEqual(
+            response.json(), ["Cannot change the organization of an invitation."]
+        )
 
     def test_create_with_org_in_payload(self):
         self.client.force_authenticate(self.user)
@@ -209,7 +212,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        assert content["organization"] == self.organization.code
+        self.assertEqual(content["organization"], self.organization.code)
 
 
 class OrderInvitationTestCase(JwtAPITestCase):
@@ -254,10 +257,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_a.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_c.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_a.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_c.id)
 
     def test_order_by_expire_at_reverse(self):
         response = self.client.get(
@@ -266,10 +269,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_c.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_a.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_c.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_a.id)
 
     def test_order_by_people_group_name(self):
         response = self.client.get(
@@ -278,10 +281,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_a.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_c.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_a.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_c.id)
 
     def test_order_by_people_group_name_reverse(self):
         response = self.client.get(
@@ -290,10 +293,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_c.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_a.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_c.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_a.id)
 
     def test_order_by_owner_given_name(self):
         response = self.client.get(
@@ -302,10 +305,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_a.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_c.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_a.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_c.id)
 
     def test_order_by_owner_given_name_reverse(self):
         response = self.client.get(
@@ -314,10 +317,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_c.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_a.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_c.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_a.id)
 
     def test_order_by_owner_family_name(self):
         response = self.client.get(
@@ -326,10 +329,10 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_a.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_c.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_a.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_c.id)
 
     def test_order_by_owner_family_name_reverse(self):
         response = self.client.get(
@@ -338,7 +341,7 @@ class OrderInvitationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 3
-        assert content["results"][0]["id"] == self.invitation_c.id
-        assert content["results"][1]["id"] == self.invitation_b.id
-        assert content["results"][2]["id"] == self.invitation_a.id
+        self.assertEqual(content["count"], 3)
+        self.assertEqual(content["results"][0]["id"], self.invitation_c.id)
+        self.assertEqual(content["results"][1]["id"], self.invitation_b.id)
+        self.assertEqual(content["results"][2]["id"], self.invitation_a.id)

@@ -24,9 +24,11 @@ class SendInvitationReminderTestCase(JwtAPITestCase):
 
         send_invitations_reminder()
         invitations = Invitation.objects.all()
-        assert invitations.count() == 2
-        assert len(mail.outbox) == 1
-        assert mail.outbox[0].subject == "Registration link to expire in one week"
+        self.assertEqual(invitations.count(), 2)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(
+            mail.outbox[0].subject, "Registration link to expire in one week"
+        )
 
     def test_send_invitations_last_day_reminder_task(self):
         owner = UserFactory()
@@ -41,6 +43,6 @@ class SendInvitationReminderTestCase(JwtAPITestCase):
         )
         send_invitations_reminder()
         invitations = Invitation.objects.all()
-        assert invitations.count() == 3
-        assert len(mail.outbox) == 1
-        assert mail.outbox[0].subject == "Registration link to expire today"
+        self.assertEqual(invitations.count(), 3)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Registration link to expire today")

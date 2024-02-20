@@ -59,10 +59,10 @@ class CreateAttachmentFileTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["mime"] == payload["mime"]
-            assert content["title"] == payload["title"]
+            self.assertEqual(content["mime"], payload["mime"])
+            self.assertEqual(content["title"], payload["title"])
             with AttachmentFile.objects.get(id=content["id"]).file as file:
-                assert file.read() == b"test attachment file"
+                self.assertEqual(file.read(), b"test attachment file")
 
 
 class UpdateAttachmentFileTestCase(JwtAPITestCase):
@@ -98,7 +98,7 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["title"] == payload["title"]
+            self.assertEqual(content["title"], payload["title"])
 
 
 class DeleteAttachmentFileTestCase(JwtAPITestCase):
@@ -131,7 +131,7 @@ class DeleteAttachmentFileTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not AttachmentFile.objects.filter(id=file.id).exists()
+            self.assertFalse(AttachmentFile.objects.filter(id=file.id).exists())
 
 
 class ListAttachmentFileTestCase(JwtAPITestCase):
@@ -188,7 +188,7 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_files:
                 self.assertEqual(len(content), 1)
-                assert content[0]["id"] == self.files[publication_status].id
+                self.assertEqual(content[0]["id"], self.files[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)
 
@@ -227,6 +227,7 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["error"] == [
-            "The file you are trying to upload is already attached to this project."
-        ]
+        self.assertEqual(
+            content["error"],
+            ["The file you are trying to upload is already attached to this project."],
+        )

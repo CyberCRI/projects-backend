@@ -49,8 +49,8 @@ class CreateGoalTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["status"] == payload["status"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["status"], payload["status"])
 
 
 class UpdateGoalTestCase(JwtAPITestCase):
@@ -85,7 +85,7 @@ class UpdateGoalTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["title"] == payload["title"]
+            self.assertEqual(content["title"], payload["title"])
 
 
 class DeleteGoalTestCase(JwtAPITestCase):
@@ -118,7 +118,7 @@ class DeleteGoalTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Goal.objects.filter(id=goal.id).exists()
+            self.assertFalse(Goal.objects.filter(id=goal.id).exists())
 
 
 class ListGoalsTestCase(JwtAPITestCase):
@@ -175,6 +175,6 @@ class ListGoalsTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_goals:
                 self.assertEqual(len(content), 1)
-                assert content[0]["id"] == self.goals[publication_status].id
+                self.assertEqual(content[0]["id"], self.goals[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)

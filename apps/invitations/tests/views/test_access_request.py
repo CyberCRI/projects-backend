@@ -42,21 +42,21 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         access_request_id = content["id"]
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert response.data["organization"] == self.organization.code
-        assert response.data["status"] == AccessRequest.Status.PENDING.value
-        assert response.data["email"] == payload["email"]
-        assert response.data["given_name"] == payload["given_name"]
-        assert response.data["family_name"] == payload["family_name"]
-        assert response.data["job"] == payload["job"]
-        assert response.data["message"] == payload["message"]
-        assert len(mail.outbox) == 1
-        assert len(mail.outbox[0].to) == 3
-        assert (
-            mail.outbox[0].subject
-            == f"New access request {access_request_id} for {self.organization.name} Projects platform"
+        self.assertEqual(["organization"], self.organization.code)
+        self.assertEqual(["status"], AccessRequest.Status.PENDING.value)
+        self.assertEqual(["email"], payload["email"])
+        self.assertEqual(["given_name"], payload["given_name"])
+        self.assertEqual(["family_name"], payload["family_name"])
+        self.assertEqual(["job"], payload["job"])
+        self.assertEqual(["message"], payload["message"])
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox[0].to), 3)
+        self.assertEqual(
+            mail.outbox[0].subject,
+            f"New access request {access_request_id} for {self.organization.name} Projects platform",
         )
 
     def test_create_access_request_authenticated(self):
@@ -73,21 +73,21 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
             reverse("AccessRequest-list", args=(self.organization.code,)),
             data=payload,
         )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         access_request_id = content["id"]
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        assert response.data["organization"] == self.organization.code
-        assert response.data["status"] == AccessRequest.Status.PENDING.value
-        assert response.data["email"] == user.email
-        assert response.data["given_name"] == user.given_name
-        assert response.data["family_name"] == user.family_name
-        assert response.data["job"] == user.job
-        assert response.data["message"] == payload["message"]
-        assert len(mail.outbox) == 1
-        assert len(mail.outbox[0].to) == 3
-        assert (
-            mail.outbox[0].subject
-            == f"New access request {access_request_id} for {self.organization.name} Projects platform"
+        self.assertEqual(["organization"], self.organization.code)
+        self.assertEqual(["status"], AccessRequest.Status.PENDING.value)
+        self.assertEqual(["email"], user.email)
+        self.assertEqual(["given_name"], user.given_name)
+        self.assertEqual(["family_name"], user.family_name)
+        self.assertEqual(["job"], user.job)
+        self.assertEqual(["message"], payload["message"])
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox[0].to), 3)
+        self.assertEqual(
+            mail.outbox[0].subject,
+            f"New access request {access_request_id} for {self.organization.name} Projects platform",
         )
 
 
@@ -119,8 +119,10 @@ class ListAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()["results"]
-            assert len(content) == len(self.access_requests)
-            assert {r.id for r in self.access_requests} == {r["id"] for r in content}
+            self.assertEqual(len(content), len(self.access_requests))
+            self.assertSetEqual(
+                {r.id for r in self.access_requests}, {r["id"] for r in content}
+            )
 
 
 class FilterOrderUserTestCase(JwtAPITestCase):
@@ -152,15 +154,18 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             + "?ordering=status"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["results"][0]["status"] == self.access_requests_a.status
-        assert response.data["results"][1]["status"] == self.access_requests_b.status
-        assert (
-            response.data["results"][2]["status"] == self.access_requests_c.status
-            or self.access_requests_d.status
+        self.assertEqual(
+            response.data["results"][0]["status"], self.access_requests_a.status
         )
-        assert (
-            response.data["results"][3]["status"] == self.access_requests_c.status
-            or self.access_requests_d.status
+        self.assertEqual(
+            response.data["results"][1]["status"], self.access_requests_b.status
+        )
+        self.assertSetEqual(
+            {
+                response.data["results"][2]["status"],
+                response.data["results"][3]["status"],
+            },
+            {self.access_requests_c.status, self.access_requests_d.status},
         )
 
     def test_order_by_status_reverse(self):
@@ -169,16 +174,19 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             + "?ordering=-status"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert (
-            response.data["results"][0]["status"] == self.access_requests_c.status
-            or self.access_requests_d.status
+        self.assertSetEqual(
+            {
+                response.data["results"][0]["status"],
+                response.data["results"][1]["status"],
+            },
+            {self.access_requests_c.status, self.access_requests_d.status},
         )
-        assert (
-            response.data["results"][1]["status"] == self.access_requests_c.status
-            or self.access_requests_d.status
+        self.assertEqual(
+            response.data["results"][2]["status"], self.access_requests_b.status
         )
-        assert response.data["results"][2]["status"] == self.access_requests_b.status
-        assert response.data["results"][3]["status"] == self.access_requests_a.status
+        self.assertEqual(
+            response.data["results"][3]["status"], self.access_requests_a.status
+        )
 
     def test_order_by_creation_date(self):
         response = self.client.get(
@@ -227,9 +235,9 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             + f"?status={AccessRequest.Status.PENDING.value}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 2
-        assert response.data["results"][0]["id"] == self.access_requests_c.id
-        assert response.data["results"][1]["id"] == self.access_requests_d.id
+        self.assertEqual(len(response.data["results"]), 2)
+        self.assertEqual(response.data["results"][0]["id"], self.access_requests_c.id)
+        self.assertEqual(response.data["results"][1]["id"], self.access_requests_d.id)
 
     def test_filter_by_status_accepted(self):
         response = self.client.get(
@@ -237,8 +245,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             + f"?status={AccessRequest.Status.ACCEPTED.value}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["id"] == self.access_requests_a.id
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], self.access_requests_a.id)
 
     def test_filter_by_status_declined(self):
         response = self.client.get(
@@ -246,8 +254,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
             + f"?status={AccessRequest.Status.DECLINED.value}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert len(response.data["results"]) == 1
-        assert response.data["results"][0]["id"] == self.access_requests_b.id
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]["id"], self.access_requests_b.id)
 
 
 class AcceptAccessRequestTestCase(JwtAPITestCase):
@@ -293,37 +301,42 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert len(content["success"]) == 4
-            assert len(content["error"]) == 0
-            assert len(content["warning"]) == 0
+            self.assertEqual(len(content["success"]), 4)
+            self.assertEqual(len(content["error"]), 0)
+            self.assertEqual(len(content["warning"]), 0)
 
             authentified_access_request.refresh_from_db()
-            assert authentified_access_request.status == AccessRequest.Status.ACCEPTED
-            assert request_access_user in organization.users.all()
+            self.assertEqual(
+                authentified_access_request.status, AccessRequest.Status.ACCEPTED
+            )
+            self.assertIn(request_access_user, organization.users.all())
 
             for access_request in anonymous_access_request:
                 access_request.refresh_from_db()
-                assert access_request.status == AccessRequest.Status.ACCEPTED
+                self.assertEqual(access_request.status, AccessRequest.Status.ACCEPTED)
                 user = ProjectUser.objects.filter(email=access_request.email)
-                assert user.exists()
+                self.assertTrue(user.exists())
                 user = user.get()
-                assert user.onboarding_status["show_welcome"] is True
-                assert user.email == access_request.email
-                assert user.given_name == access_request.given_name
-                assert user.family_name == access_request.family_name
-                assert user.job == access_request.job
-                assert user.groups.count() == 2
-                assert {*user.groups.all()} == {
-                    get_default_group(),
-                    organization.get_users(),
-                }
-                assert hasattr(user, "keycloak_account")
+                self.assertTrue(user.onboarding_status["show_welcome"])
+                self.assertEqual(user.email, access_request.email)
+                self.assertEqual(user.given_name, access_request.given_name)
+                self.assertEqual(user.family_name, access_request.family_name)
+                self.assertEqual(user.job, access_request.job)
+                self.assertEqual(user.groups.count(), 2)
+                self.assertSetEqual(
+                    {*user.groups.all()},
+                    {
+                        get_default_group(),
+                        organization.get_users(),
+                    },
+                )
+                self.assertTrue(hasattr(user, "keycloak_account"))
                 keycloak_user = KeycloakService.get_user(user.keycloak_id)
-                assert keycloak_user is not None
-                assert set(keycloak_user["requiredActions"]) == {
-                    "VERIFY_EMAIL",
-                    "UPDATE_PASSWORD",
-                }
+                self.assertIsNotNone(keycloak_user)
+                self.assertSetEqual(
+                    set(keycloak_user["requiredActions"]),
+                    {"VERIFY_EMAIL", "UPDATE_PASSWORD"},
+                )
 
 
 class DeclineAccessRequestTestCase(JwtAPITestCase):
@@ -368,19 +381,21 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert len(content["success"]) == 4
-            assert len(content["error"]) == 0
-            assert len(content["warning"]) == 0
+            self.assertEqual(len(content["success"]), 4)
+            self.assertEqual(len(content["error"]), 0)
+            self.assertEqual(len(content["warning"]), 0)
 
             authentified_access_request.refresh_from_db()
-            assert authentified_access_request.status == AccessRequest.Status.DECLINED
-            assert request_access_user not in organization.users.all()
+            self.assertEqual(
+                authentified_access_request.status, AccessRequest.Status.DECLINED
+            )
+            self.assertNotIn(request_access_user, organization.users.all())
 
             for access_request in anonymous_access_request:
                 access_request.refresh_from_db()
-                assert access_request.status == AccessRequest.Status.DECLINED
+                self.assertEqual(access_request.status, AccessRequest.Status.DECLINED)
                 user = ProjectUser.objects.filter(email=access_request.email)
-                assert not user.exists()
+                self.assertFalse(user.exists())
 
 
 class ValidateRequestAccessTestCase(JwtAPITestCase):
@@ -414,9 +429,10 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["organization"] == [
-            "This organization does not accept access requests."
-        ]
+        self.assertEqual(
+            content["organization"],
+            ["This organization does not accept access requests."],
+        )
 
     def test_create_access_request_user_in_organization(self):
         user = UserFactory(groups=[self.organization.get_users()])
@@ -434,9 +450,9 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["user"] == [
-            "This user is already a member of this organization."
-        ]
+        self.assertEqual(
+            content["user"], ["This user is already a member of this organization."]
+        )
 
     def test_create_access_request_existing_user(self):
         user = UserFactory()
@@ -453,7 +469,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["email"] == ["A user with this email already exists."]
+        self.assertEqual(content["email"], ["A user with this email already exists."])
 
     def test_accept_access_requests_from_different_organization(self):
         user = UserFactory(groups=[get_superadmins_group()])
@@ -468,13 +484,13 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content["error"]) == 1
-        assert len(content["success"]) == 0
-        assert len(content["warning"]) == 0
-        assert content["error"][0]["id"] == access_request.id
-        assert (
-            content["error"][0]["message"]
-            == "This access request is not for the current organization."
+        self.assertEqual(len(content["error"]), 1)
+        self.assertEqual(len(content["success"]), 0)
+        self.assertEqual(len(content["warning"]), 0)
+        self.assertEqual(content["error"][0]["id"], access_request.id)
+        self.assertEqual(
+            content["error"][0]["message"],
+            "This access request is not for the current organization.",
         )
 
     def test_accept_accepted_access_request(self):
@@ -492,13 +508,13 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content["error"]) == 1
-        assert len(content["success"]) == 0
-        assert len(content["warning"]) == 0
-        assert content["error"][0]["id"] == access_request.id
-        assert (
-            content["error"][0]["message"]
-            == "This access request has already been processed."
+        self.assertEqual(len(content["error"]), 1)
+        self.assertEqual(len(content["success"]), 0)
+        self.assertEqual(len(content["warning"]), 0)
+        self.assertEqual(content["error"][0]["id"], access_request.id)
+        self.assertEqual(
+            content["error"][0]["message"],
+            "This access request has already been processed.",
         )
 
     def test_decline_access_requests_from_different_organization(self):
@@ -514,13 +530,13 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content["error"]) == 1
-        assert len(content["success"]) == 0
-        assert len(content["warning"]) == 0
-        assert content["error"][0]["id"] == access_request.id
-        assert (
-            content["error"][0]["message"]
-            == "This access request is not for the current organization."
+        self.assertEqual(len(content["error"]), 1)
+        self.assertEqual(len(content["success"]), 0)
+        self.assertEqual(len(content["warning"]), 0)
+        self.assertEqual(content["error"][0]["id"], access_request.id)
+        self.assertEqual(
+            content["error"][0]["message"],
+            "This access request is not for the current organization.",
         )
 
     def test_decline_accepted_access_request(self):
@@ -538,13 +554,13 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content["error"]) == 1
-        assert len(content["success"]) == 0
-        assert len(content["warning"]) == 0
-        assert content["error"][0]["id"] == access_request.id
-        assert (
-            content["error"][0]["message"]
-            == "This access request has already been processed."
+        self.assertEqual(len(content["error"]), 1)
+        self.assertEqual(len(content["success"]), 0)
+        self.assertEqual(len(content["warning"]), 0)
+        self.assertEqual(content["error"][0]["id"], access_request.id)
+        self.assertEqual(
+            content["error"][0]["message"],
+            "This access request has already been processed.",
         )
 
     @patch("services.keycloak.interface.KeycloakService.create_user")
@@ -564,13 +580,13 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content["error"]) == 1
-        assert len(content["success"]) == 0
-        assert len(content["warning"]) == 0
-        assert content["error"][0]["id"] == access_request.id
-        assert (
-            content["error"][0]["message"]
-            == "Keycloak error : User exists with same username"
+        self.assertEqual(len(content["error"]), 1)
+        self.assertEqual(len(content["success"]), 0)
+        self.assertEqual(len(content["warning"]), 0)
+        self.assertEqual(content["error"][0]["id"], access_request.id)
+        self.assertEqual(
+            content["error"][0]["message"],
+            "Keycloak error : User exists with same username",
         )
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
@@ -590,8 +606,10 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content["error"]) == 0
-        assert len(content["success"]) == 0
-        assert len(content["warning"]) == 1
-        assert content["warning"][0]["id"] == access_request.id
-        assert content["warning"][0]["message"] == "Confirmation email not sent to user"
+        self.assertEqual(len(content["error"]), 0)
+        self.assertEqual(len(content["success"]), 0)
+        self.assertEqual(len(content["warning"]), 1)
+        self.assertEqual(content["warning"][0]["id"], access_request.id)
+        self.assertEqual(
+            content["warning"][0]["message"], "Confirmation email not sent to user"
+        )

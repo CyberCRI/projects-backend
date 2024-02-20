@@ -346,15 +346,14 @@ class ProjectMembersTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(member in project.members.all() for member in self.members)
-            assert all(owner in project.owners.all() for owner in self.owners)
-            assert all(
-                reviewer in project.reviewers.all() for reviewer in self.reviewers
-            )
-            assert all(
-                people_group in project.member_people_groups.all()
-                for people_group in self.people_groups
-            )
+            for member in self.members:
+                self.assertIn(member, project.members.all())
+            for owner in self.owners:
+                self.assertIn(owner, project.owners.all())
+            for reviewer in self.reviewers:
+                self.assertIn(reviewer, project.reviewers.all())
+            for people_group in self.people_groups:
+                self.assertIn(people_group, project.member_people_groups.all())
 
     @parameterized.expand(
         [
@@ -388,15 +387,14 @@ class ProjectMembersTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert all(member not in project.members.all() for member in self.members)
-            assert all(owner not in project.owners.all() for owner in self.owners)
-            assert all(
-                reviewer not in project.reviewers.all() for reviewer in self.reviewers
-            )
-            assert all(
-                people_group not in project.member_people_groups.all()
-                for people_group in self.people_groups
-            )
+            for member in self.members:
+                self.assertNotIn(member, project.members.all())
+            for owner in self.owners:
+                self.assertNotIn(owner, project.owners.all())
+            for reviewer in self.reviewers:
+                self.assertNotIn(reviewer, project.reviewers.all())
+            for people_group in self.people_groups:
+                self.assertNotIn(people_group, project.member_people_groups.all())
 
     def test_remove_project_member_self(self):
         # Create project with owner to avoid error when removing last owner
@@ -408,7 +406,7 @@ class ProjectMembersTestCase(JwtAPITestCase):
             reverse("Project-remove-self", args=(project.id,))
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        assert to_delete not in project.members.all()
+        self.assertNotIn(to_delete, project.members.all())
 
 
 class DuplicateProjectTestCase(JwtAPITestCase):
@@ -447,8 +445,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         )
         blog_entries[0].save()
 
-    @classmethod
-    def check_duplicated_project(cls, duplicated_project: Dict, initial_project: Dict):
+    def check_duplicated_project(self, duplicated_project: Dict, initial_project: Dict):
         fields = [
             "is_locked",
             "title",
@@ -475,19 +472,23 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         list_fields = ["sdgs"]
 
         for field in fields:
-            assert duplicated_project[field] == initial_project[field]
+            self.assertEqual(duplicated_project[field], initial_project[field])
 
         for field in list_fields:
-            assert set(duplicated_project[field]) == set(initial_project[field])
+            self.assertSetEqual(
+                set(duplicated_project[field]), set(initial_project[field])
+            )
 
         for field in many_to_many_fields:
-            assert set([item["id"] for item in duplicated_project[field]]) == set(
-                [item["id"] for item in initial_project[field]]
+            self.assertSetEqual(
+                {item["id"] for item in duplicated_project[field]},
+                {item["id"] for item in initial_project[field]},
             )
 
         for related_field in related_fields:
-            assert len(duplicated_project[related_field]) == len(
-                initial_project[related_field]
+            self.assertEqual(
+                len(duplicated_project[related_field]),
+                len(initial_project[related_field]),
             )
             duplicated_field = [
                 {
@@ -505,42 +506,45 @@ class DuplicateProjectTestCase(JwtAPITestCase):
                 }
                 for item in initial_project[related_field]
             ]
-            assert len(duplicated_field) == len(initial_field)
-            assert all(item in initial_field for item in duplicated_field)
+            self.assertEqual(len(duplicated_field), len(initial_field))
+            for item in duplicated_field:
+                self.assertIn(item, initial_field)
 
-        assert len(duplicated_project["images"]) == len(initial_project["images"])
-        assert all(
-            di["id"] not in [ii["id"] for ii in initial_project["images"]]
-            for di in duplicated_project["images"]
+        self.assertEqual(
+            len(duplicated_project["images"]), len(initial_project["images"])
         )
-        assert all(
-            f"<img src=\"/v1/project/{duplicated_project['id']}/image/{i['id']}/\" />"
-            in duplicated_project["description"]
-            for i in duplicated_project["images"]
-        )
+        for duplicated_image in duplicated_project["images"]:
+            self.assertNotIn(
+                duplicated_image["id"], [i["id"] for i in initial_project["images"]]
+            )
+            self.assertIn(
+                f"<img src=\"/v1/project/{duplicated_project['id']}/image/{duplicated_image['id']}/\" />",
+                duplicated_project["description"],
+            )
 
-        assert len(duplicated_project["blog_entries"]) == len(
-            initial_project["blog_entries"]
+        self.assertEqual(
+            len(duplicated_project["blog_entries"]),
+            len(initial_project["blog_entries"]),
         )
-        assert all(
-            dbe["id"] not in [ibe["id"] for ibe in initial_project["blog_entries"]]
-            for dbe in duplicated_project["blog_entries"]
-        )
+        for duplicated_blog_entry in duplicated_project["blog_entries"]:
+            self.assertNotIn(
+                duplicated_blog_entry["id"],
+                [i["id"] for i in initial_project["blog_entries"]],
+            )
         initial_blog_entry = list(
             filter(lambda x: len(x["images"]) > 0, initial_project["blog_entries"])
         )[0]
         duplicated_blog_entry = list(
             filter(lambda x: len(x["images"]) > 0, duplicated_project["blog_entries"])
         )[0]
-        assert all(
-            di not in initial_blog_entry["images"]
-            for di in duplicated_blog_entry["images"]
-        )
-        assert all(
-            f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{di}/\" />"
-            in duplicated_blog_entry["content"]
-            for di in duplicated_blog_entry["images"]
-        )
+        for duplicated_image in duplicated_blog_entry["images"]:
+            self.assertNotIn(
+                duplicated_image, [i["id"] for i in initial_blog_entry["images"]]
+            )
+            self.assertIn(
+                f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{duplicated_image}/\" />",
+                duplicated_blog_entry["content"],
+            )
 
     @parameterized.expand(
         [
@@ -772,8 +776,9 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
 
         response = self.client.get(reverse("Project-list"), filters)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["count"] == 2
-        self.assertEqual(
+        content = response.json()
+        self.assertEqual(content["count"], 2)
+        self.assertSetEqual(
             {p["id"] for p in response.data["results"]},
             {self.project_1.id, self.project_2.id},
         )
@@ -915,11 +920,11 @@ class MiscProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(
             organizations=[self.organization], title=title, deleted_at=now()
         )
-        assert project.slug == "my-amazing-test-project"
+        self.assertEqual(project.slug, "my-amazing-test-project")
         project = ProjectFactory(organizations=[self.organization], title=title)
-        assert project.slug == "my-amazing-test-project-1"
+        self.assertEqual(project.slug, "my-amazing-test-project-1")
         project = ProjectFactory(organizations=[self.organization], title=title)
-        assert project.slug == "my-amazing-test-project-2"
+        self.assertEqual(project.slug, "my-amazing-test-project-2")
 
     def test_multiple_lookups(self):
         project = ProjectFactory(
@@ -928,10 +933,10 @@ class MiscProjectTestCase(JwtAPITestCase):
         )
         response = self.client.get(reverse("Project-detail", args=(project.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["slug"] == project.slug
+        self.assertEqual(response.json()["slug"], project.slug)
         response = self.client.get(reverse("Project-detail", args=(project.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.data["id"] == project.id
+        self.assertEqual(response.json()["id"], project.id)
 
     def test_change_member_role(self):
         self.client.force_authenticate(self.superadmin)
@@ -944,8 +949,8 @@ class MiscProjectTestCase(JwtAPITestCase):
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        assert user in project.owners.all()
-        assert user not in project.members.all()
+        self.assertIn(user, project.owners.all())
+        self.assertNotIn(user, project.members.all())
 
     def test_is_followed_get(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -954,13 +959,14 @@ class MiscProjectTestCase(JwtAPITestCase):
 
         response = self.client.get(reverse("Project-detail", args=(project.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["is_followed"]["is_followed"] is False
+        self.assertFalse(response.json()["is_followed"]["is_followed"])
 
         follow = FollowFactory(follower=user, project=project)
         response = self.client.get(reverse("Project-detail", args=(project.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        assert response.json()["is_followed"]["is_followed"] is True
-        assert response.json()["is_followed"]["follow_id"] == follow.id
+        content = response.json()
+        self.assertTrue(content["is_followed"]["is_followed"])
+        self.assertEqual(content["is_followed"]["follow_id"], follow.id)
 
     def test_is_followed_list(self):
         projects = ProjectFactory.create_batch(3, organizations=[self.organization])
@@ -972,16 +978,24 @@ class MiscProjectTestCase(JwtAPITestCase):
         response = self.client.get(reverse("Project-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        followed = {
-            p["id"]
-            for p in list(filter(lambda x: x["is_followed"]["is_followed"], content))
-        }
-        assert followed == {projects[0].id, projects[1].id}
-        follow_ids = {
-            p["is_followed"]["follow_id"]
-            for p in list(filter(lambda x: x["is_followed"]["is_followed"], content))
-        }
-        assert follow_ids == {follow_1.id, follow_2.id}
+        self.assertSetEqual(
+            {projects[0].id, projects[1].id},
+            {
+                p["id"]
+                for p in list(
+                    filter(lambda x: x["is_followed"]["is_followed"], content)
+                )
+            },
+        )
+        self.assertSetEqual(
+            {follow_1.id, follow_2.id},
+            {
+                p["is_followed"]["follow_id"]
+                for p in list(
+                    filter(lambda x: x["is_followed"]["is_followed"], content)
+                )
+            },
+        )
 
     def test_add_reviewer_to_public_project(self):
         self.client.force_authenticate(self.superadmin)

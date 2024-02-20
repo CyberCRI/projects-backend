@@ -66,5 +66,8 @@ class RecommendProjectsTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content) == len(retrieved_projects)
-        assert [p["id"] for p in content] == [p["id"] for p in hits]
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertListEqual(
+            [p["id"] for p in content],
+            [p["id"] for p in hits],
+        )

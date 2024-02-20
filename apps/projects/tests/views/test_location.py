@@ -51,11 +51,11 @@ class CreateLocationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["description"] == payload["description"]
-            assert content["lat"] == payload["lat"]
-            assert content["lng"] == payload["lng"]
-            assert content["type"] == payload["type"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["description"], payload["description"])
+            self.assertEqual(content["lat"], payload["lat"])
+            self.assertEqual(content["lng"], payload["lng"])
+            self.assertEqual(content["type"], payload["type"])
 
 
 class ListLocationTestCase(JwtAPITestCase):
@@ -111,7 +111,7 @@ class ListLocationTestCase(JwtAPITestCase):
             content = response.json()
             if publication_status in retrieved_locations:
                 self.assertEqual(len(content), 1)
-                assert content[0]["id"] == location.id
+                self.assertEqual(content[0]["id"], location.id)
             else:
                 self.assertEqual(len(content), 0)
 
@@ -153,7 +153,7 @@ class UpdateLocationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["description"], payload["description"])
 
 
 class DeleteLocationTestCase(JwtAPITestCase):
@@ -188,4 +188,4 @@ class DeleteLocationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Location.objects.filter(id=location.id).exists()
+            self.assertFalse(Location.objects.filter(id=location.id).exists())

@@ -29,8 +29,9 @@ class CommandsTestCase(JwtAPITestCase):
         )
         roles = [g.name for g in Group.objects.filter(projects__in=projects_to_delete)]
         call_command("remove_old_projects")
-        assert len(Project.objects.deleted_projects()) == 3
-        assert {p.id for p in Project.objects.deleted_projects()} == {
-            p.id for p in projects_to_keep
-        }
-        assert not Group.objects.filter(name__in=roles).exists()
+        self.assertEqual(len(Project.objects.deleted_projects()), 3)
+        self.assertSetEqual(
+            {p.id for p in Project.objects.deleted_projects()},
+            {p.id for p in projects_to_keep},
+        )
+        self.assertFalse(Group.objects.filter(name__in=roles).exists())

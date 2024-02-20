@@ -97,10 +97,11 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_groups)
-        assert {group["id"] for group in content} == {
-            self.groups[group].id for group in retrieved_groups
-        }
+        self.assertEqual(len(content), len(retrieved_groups))
+        self.assertSetEqual(
+            {group["id"] for group in content},
+            {self.groups[group].id for group in retrieved_groups},
+        )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
@@ -111,7 +112,9 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {group["id"] for group in content} == {self.public_people_group_2.id}
+        self.assertSetEqual(
+            {group["id"] for group in content}, {self.public_people_group_2.id}
+        )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
@@ -121,7 +124,9 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {group["id"] for group in content} == {self.public_people_group_2.id}
+        self.assertSetEqual(
+            {group["id"] for group in content}, {self.public_people_group_2.id}
+        )
 
     def test_filter_by_type(self):
         self.client.force_authenticate(self.superadmin)
@@ -131,4 +136,6 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        assert {group["id"] for group in content} == {self.public_people_group_2.id}
+        self.assertSetEqual(
+            {group["id"] for group in content}, {self.public_people_group_2.id}
+        )

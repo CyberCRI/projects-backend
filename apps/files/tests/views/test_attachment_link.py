@@ -57,10 +57,10 @@ class CreateAttachmentLinkTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["attachment_type"] == "link"
-            assert content["site_url"] == payload["site_url"]
-            assert content["preview_image_url"] == mocked_response.image
-            assert content["site_name"] == mocked_response.site_name
+            self.assertEqual(content["attachment_type"], "link")
+            self.assertEqual(content["site_url"], payload["site_url"])
+            self.assertEqual(content["preview_image_url"], mocked_response.image)
+            self.assertEqual(content["site_name"], mocked_response.site_name)
 
 
 class UpdateAttachmentLinkTestCase(JwtAPITestCase):
@@ -97,7 +97,7 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["category"] == payload["category"]
+            self.assertEqual(content["category"], payload["category"])
 
 
 class DeleteAttachmentLinkTestCase(JwtAPITestCase):
@@ -130,7 +130,7 @@ class DeleteAttachmentLinkTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not AttachmentLink.objects.filter(id=link.id).exists()
+            self.assertFalse(AttachmentLink.objects.filter(id=link.id).exists())
 
 
 class ListAttachmentLinkTestCase(JwtAPITestCase):
@@ -187,7 +187,7 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_links:
                 self.assertEqual(len(content), 1)
-                assert content[0]["id"] == self.links[publication_status].id
+                self.assertEqual(content[0]["id"], self.links[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)
 
@@ -212,9 +212,10 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content == {
-            "non_field_errors": ["This url is already attached to this project."]
-        }
+        self.assertEqual(
+            content["non_field_errors"],
+            ["This url is already attached to this project."],
+        )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_www_domain(self, mocked):
@@ -240,9 +241,10 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content == {
-            "non_field_errors": ["This url is already attached to this project."]
-        }
+        self.assertEqual(
+            content["non_field_errors"],
+            ["This url is already attached to this project."],
+        )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_other_project(self, mocked):

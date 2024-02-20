@@ -31,17 +31,17 @@ class SendAccessRequestNotificationTestCase(JwtAPITestCase):
     def test_send_access_request_notification(self):
         send_access_request_notification()
         notifications = Notification.objects.all()
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
         for admin in self.admins:
             notification = notifications.get(receiver=admin)
-            assert notification.type == Notification.Types.ACCESS_REQUEST
-            assert notification.context["access_request_nb"] == 2
-            assert not notification.is_viewed
-            assert (
-                notification.reminder_message_en
-                == "Respond to 2 pending access requests!"
+            self.assertEqual(notification.type, Notification.Types.ACCESS_REQUEST)
+            self.assertEqual(notification.context["access_request_nb"], 2)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(
+                notification.reminder_message_en,
+                "Respond to 2 pending access requests!",
             )
-            assert (
-                notification.reminder_message_fr
-                == "Répondez à 2 demandes d'accès en attente!"
+            self.assertEqual(
+                notification.reminder_message_fr,
+                "Répondez à 2 demandes d'accès en attente!",
             )
