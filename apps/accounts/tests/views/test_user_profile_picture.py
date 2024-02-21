@@ -1,10 +1,13 @@
 from django.urls import reverse
+from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
+
+faker = Faker()
 
 
 class CreateUserProfilePictureTestCase(JwtAPITestCase):
@@ -34,14 +37,15 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "UserProfilePicture-list",
-                args=(instance.keycloak_id,),
+                args=(instance.id,),
             ),
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+            content = response.json()
+            self.assertIsNotNone(content["static_url"])
 
 
 class UpdateUserProfilePictureTestCase(JwtAPITestCase):
@@ -49,6 +53,10 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.instance = UserFactory(
+            groups=[cls.organization.get_users()],
+            profile_picture=cls.get_test_image(),
+        )
 
     @parameterized.expand(
         [
@@ -62,36 +70,33 @@ class UpdateUserProfilePictureTestCase(JwtAPITestCase):
         ]
     )
     def test_update_user_profile_picture(self, role, expected_code):
-        organization = self.organization
-        instance = UserFactory(
-            groups=[organization.get_users()], profile_picture=self.get_test_image()
-        )
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance
+            role, instances=[self.organization], owned_instance=self.instance
         )
         self.client.force_authenticate(user)
         payload = {
-            "scale_x": 2.0,
-            "scale_y": 2.0,
-            "left": 1.0,
-            "top": 1.0,
-            "natural_ratio": 1.0,
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
             reverse(
                 "UserProfilePicture-detail",
-                args=(instance.keycloak_id, instance.profile_picture.id),
+                args=(self.instance.id, self.instance.profile_picture.id),
             ),
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            content = response.json()
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteUserProfilePictureTestCase(JwtAPITestCase):
@@ -124,10 +129,10 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse(
                 "UserProfilePicture-detail",
-                args=(instance.keycloak_id, instance.profile_picture.id),
+                args=(instance.id, instance.profile_picture.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             instance.refresh_from_db()
-            assert not instance.profile_picture
+            self.assertIsNone(instance.profile_picture)

@@ -33,10 +33,10 @@ class StatsTestCase(JwtAPITestCase):
             reverse("Comment-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         comment_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.comments == 1
+        self.assertEqual(self.stat.comments, 1)
 
         # Create a reply
         payload = {
@@ -48,26 +48,26 @@ class StatsTestCase(JwtAPITestCase):
             reverse("Comment-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         reply_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.replies == 1
+        self.assertEqual(self.stat.replies, 1)
 
         # Delete the reply
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, reply_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.replies == 0
+        self.assertEqual(self.stat.replies, 0)
 
         # Delete the comment
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, comment_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.comments == 0
+        self.assertEqual(self.stat.comments, 0)
 
     def test_follow_stats(self):
         self.client.force_authenticate(self.superadmin)
@@ -78,18 +78,18 @@ class StatsTestCase(JwtAPITestCase):
             reverse("Followed-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         follow_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.follows == 1
+        self.assertEqual(self.stat.follows, 1)
 
         # Delete the follow
         response = self.client.delete(
             reverse("Followed-detail", args=(self.project.id, follow_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.follows == 0
+        self.assertEqual(self.stat.follows, 0)
 
     def test_link_stats(self):
         self.client.force_authenticate(self.superadmin)
@@ -103,18 +103,18 @@ class StatsTestCase(JwtAPITestCase):
             reverse("AttachmentLink-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         link_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.links == 1
+        self.assertEqual(self.stat.links, 1)
 
         # Delete the link
         response = self.client.delete(
             reverse("AttachmentLink-detail", args=(self.project.id, link_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.links == 0
+        self.assertEqual(self.stat.links, 0)
 
     def test_file_stats(self):
         self.client.force_authenticate(self.superadmin)
@@ -136,18 +136,18 @@ class StatsTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         file_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.files == 1
+        self.assertEqual(self.stat.files, 1)
 
         # Delete the file
         response = self.client.delete(
             reverse("AttachmentFile-detail", args=(self.project.id, file_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.files == 0
+        self.assertEqual(self.stat.files, 0)
 
     def test_blog_entry_stats(self):
         self.client.force_authenticate(self.superadmin)
@@ -162,18 +162,18 @@ class StatsTestCase(JwtAPITestCase):
             reverse("BlogEntry-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         blog_entry_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.blog_entries == 1
+        self.assertEqual(self.stat.blog_entries, 1)
 
         # Delete the blog entry
         response = self.client.delete(
             reverse("BlogEntry-detail", args=(self.project.id, blog_entry_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.blog_entries == 0
+        self.assertEqual(self.stat.blog_entries, 0)
 
     def test_goal_stats(self):
         self.client.force_authenticate(self.superadmin)
@@ -188,18 +188,18 @@ class StatsTestCase(JwtAPITestCase):
             reverse("Goal-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         goal_id = response.json()["id"]
         self.stat.refresh_from_db()
-        assert self.stat.goals == 1
+        self.assertEqual(self.stat.goals, 1)
 
         # Delete the goal
         response = self.client.delete(
             reverse("Goal-detail", args=(self.project.id, goal_id))
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.stat.refresh_from_db()
-        assert self.stat.goals == 0
+        self.assertEqual(self.stat.goals, 0)
 
     def test_update_project_description(self):
         self.client.force_authenticate(self.superadmin)
@@ -209,6 +209,6 @@ class StatsTestCase(JwtAPITestCase):
             reverse("Project-detail", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.stat.refresh_from_db()
-        assert self.stat.description_length == len(payload["description"])
+        self.assertEqual(self.stat.description_length, len(payload["description"]))

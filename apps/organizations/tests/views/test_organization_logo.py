@@ -36,7 +36,7 @@ class CreateOrganizationLogoTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
 
 
 class UpdateOrganizationLogoTestCase(JwtAPITestCase):
@@ -78,13 +78,14 @@ class UpdateOrganizationLogoTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            content = response.json()
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteOrganizationLogoTestCase(JwtAPITestCase):
@@ -98,4 +99,4 @@ class DeleteOrganizationLogoTestCase(JwtAPITestCase):
                 args=(organization.code, organization.logo_image.id),
             ),
         )
-        assert response.status_code == status.HTTP_409_CONFLICT
+        self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)

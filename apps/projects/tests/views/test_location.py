@@ -48,14 +48,14 @@ class CreateLocationTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Location-list", args=(self.project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["description"] == payload["description"]
-            assert content["lat"] == payload["lat"]
-            assert content["lng"] == payload["lng"]
-            assert content["type"] == payload["type"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["description"], payload["description"])
+            self.assertEqual(content["lat"], payload["lat"])
+            self.assertEqual(content["lng"], payload["lng"])
+            self.assertEqual(content["type"], payload["type"])
 
 
 class ListLocationTestCase(JwtAPITestCase):
@@ -107,13 +107,13 @@ class ListLocationTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("Location-list", args=(project.id,)),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
             if publication_status in retrieved_locations:
-                assert len(content) == 1
-                assert content[0]["id"] == location.id
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["id"], location.id)
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class UpdateLocationTestCase(JwtAPITestCase):
@@ -125,6 +125,7 @@ class UpdateLocationTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.location = LocationFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -142,18 +143,17 @@ class UpdateLocationTestCase(JwtAPITestCase):
     def test_update_location(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        location = LocationFactory(project=self.project)
         payload = {
             "description": faker.text(),
         }
         response = self.client.patch(
-            reverse("Location-detail", args=(self.project.id, location.id)),
+            reverse("Location-detail", args=(self.project.id, self.location.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["description"], payload["description"])
 
 
 class DeleteLocationTestCase(JwtAPITestCase):
@@ -186,6 +186,6 @@ class DeleteLocationTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Location-detail", args=(self.project.id, location.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Location.objects.filter(id=location.id).exists()
+            self.assertFalse(Location.objects.filter(id=location.id).exists())

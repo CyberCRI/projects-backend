@@ -73,16 +73,20 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=False
         )
-        assert previous_errors.count() == 3
-        assert errors.count() == 3
-        assert [e.on_task for e in errors.order_by("created_at")] == [
-            GoogleSyncErrors.OnTaskChoices.CREATE_USER,
-            GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
-            GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-        ]
-        assert all(e.google_group is None for e in errors)
-        assert all(e.google_account == user.google_account for e in errors)
-        assert all(e.retries_count == 0 for e in errors)
+        self.assertEqual(previous_errors.count(), 3)
+        self.assertEqual(errors.count(), 3)
+        self.assertListEqual(
+            [e.on_task for e in errors.order_by("created_at")],
+            [
+                GoogleSyncErrors.OnTaskChoices.CREATE_USER,
+                GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
+                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
+            ],
+        )
+        for error in errors:
+            self.assertIsNone(error.google_group)
+            self.assertEqual(error.google_account, user.google_account)
+            self.assertEqual(error.retries_count, 0)
 
     @patch("services.google.tasks.create_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -117,12 +121,12 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.USER_ALIAS
-        assert errors[0].google_group is None
-        assert errors[0].google_account == user.google_account
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.USER_ALIAS)
+        self.assertIsNone(errors[0].google_group)
+        self.assertEqual(errors[0].google_account, user.google_account)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.create_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -156,12 +160,12 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS
-        assert errors[0].google_group is None
-        assert errors[0].google_account == user.google_account
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
+        self.assertIsNone(errors[0].google_group)
+        self.assertEqual(errors[0].google_account, user.google_account)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.create_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -196,12 +200,12 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS
-        assert errors[0].google_group == group
-        assert errors[0].google_account == user.google_account
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
+        self.assertEqual(errors[0].google_group, group)
+        self.assertEqual(errors[0].google_account, user.google_account)
+        self.assertEqual(errors[0].retries_count, 0)
 
 
 class GoogleUpdateUserErrorTestCase(GoogleTestCase):
@@ -243,12 +247,12 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.UPDATE_USER
-        assert errors[0].google_group is None
-        assert errors[0].google_account == google_account
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.UPDATE_USER)
+        self.assertIsNone(errors[0].google_group)
+        self.assertEqual(errors[0].google_account, google_account)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.update_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -276,12 +280,12 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS
-        assert errors[0].google_group is None
-        assert errors[0].google_account == google_account
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
+        self.assertIsNone(errors[0].google_group)
+        self.assertEqual(errors[0].google_account, google_account)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.update_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -310,12 +314,12 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS
-        assert errors[0].google_group == group
-        assert errors[0].google_account == google_account
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
+        self.assertEqual(errors[0].google_group, group)
+        self.assertEqual(errors[0].google_account, google_account)
+        self.assertEqual(errors[0].retries_count, 0)
 
 
 class GoogleSuspendUserErrorTestCase(GoogleTestCase):
@@ -355,11 +359,11 @@ class GoogleSuspendUserErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SUSPEND_USER
-        assert errors[0].google_group is None
-        assert errors[0].google_account == google_account
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SUSPEND_USER)
+        self.assertIsNone(errors[0].google_group)
+        self.assertEqual(errors[0].google_account, google_account)
 
 
 class GoogleCreateGroupErrorTestCase(GoogleTestCase):
@@ -411,16 +415,20 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 3
-        assert errors.count() == 3
-        assert [e.on_task for e in errors.order_by("created_at")] == [
-            GoogleSyncErrors.OnTaskChoices.CREATE_GROUP,
-            GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
-            GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-        ]
-        assert all(e.google_account is None for e in errors)
-        assert all(e.google_group == google_group for e in errors)
-        assert all(e.retries_count == 0 for e in errors)
+        self.assertEqual(previous_errors.count(), 3)
+        self.assertEqual(errors.count(), 3)
+        self.assertListEqual(
+            [e.on_task for e in errors.order_by("created_at")],
+            [
+                GoogleSyncErrors.OnTaskChoices.CREATE_GROUP,
+                GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
+                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
+            ],
+        )
+        for error in errors:
+            self.assertIsNone(error.google_account)
+            self.assertEqual(error.google_group, google_group)
+            self.assertEqual(error.retries_count, 0)
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -452,12 +460,12 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS
-        assert errors[0].google_account is None
-        assert errors[0].google_group == google_group
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS)
+        self.assertIsNone(errors[0].google_account)
+        self.assertEqual(errors[0].google_group, google_group)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -488,12 +496,12 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS
-        assert errors[0].google_account is None
-        assert errors[0].google_group == google_group
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
+        self.assertIsNone(errors[0].google_account)
+        self.assertEqual(errors[0].google_group, google_group)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -525,12 +533,12 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS
-        assert errors[0].google_account == google_account
-        assert errors[0].google_group == google_group
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
+        self.assertEqual(errors[0].google_account, google_account)
+        self.assertEqual(errors[0].google_group, google_group)
+        self.assertEqual(errors[0].retries_count, 0)
 
 
 class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
@@ -569,12 +577,12 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.UPDATE_GROUP
-        assert errors[0].google_account is None
-        assert errors[0].google_group == google_group
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.UPDATE_GROUP)
+        self.assertIsNone(errors[0].google_account)
+        self.assertEqual(errors[0].google_group, google_group)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.update_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -605,12 +613,12 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS
-        assert errors[0].google_account is None
-        assert errors[0].google_group == google_group
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
+        self.assertIsNone(errors[0].google_account)
+        self.assertEqual(errors[0].google_group, google_group)
+        self.assertEqual(errors[0].retries_count, 0)
 
     @patch("services.google.tasks.update_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -642,9 +650,9 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=False
         )
-        assert previous_errors.count() == 1
-        assert errors.count() == 1
-        assert errors[0].on_task == GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS
-        assert errors[0].google_account == google_account
-        assert errors[0].google_group == google_group
-        assert errors[0].retries_count == 0
+        self.assertEqual(previous_errors.count(), 1)
+        self.assertEqual(errors.count(), 1)
+        self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
+        self.assertEqual(errors[0].google_account, google_account)
+        self.assertEqual(errors[0].google_group, google_group)
+        self.assertEqual(errors[0].retries_count, 0)

@@ -77,14 +77,17 @@ class ListCommentTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("Comment-list", args=(project.id,)),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_comments:
-                assert len(content) == 1
-                assert content[0]["id"] == self.comments[project_status].id
-                assert content[0]["replies"][0]["id"] == self.replies[project_status].id
+                self.assertEqual(len(content), 1)
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["id"], self.comments[project_status].id)
+                self.assertEqual(
+                    content[0]["replies"][0]["id"], self.replies[project_status].id
+                )
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class CreateCommentTestCase(JwtAPITestCase):
@@ -112,50 +115,46 @@ class CreateCommentTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "public"),
-            (TestRoles.DEFAULT, status.HTTP_201_CREATED, "public"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "public"),
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "org"),
-            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND, "org"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ORG_USER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "org"),
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, "private"),
-            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED, "private"),
-            (TestRoles.ORG_USER, status.HTTP_404_NOT_FOUND, "private"),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED, "private"),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED, "private"),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_create_comment(self, role, expected_code, project_status):
-        instance = self.projects[project_status]
-        user = self.get_parameterized_test_user(role, instances=[instance])
-        self.client.force_authenticate(user)
-        payload = {
-            "content": faker.text(),
-            "project_id": instance.id,
-        }
-        response = self.client.post(
-            reverse("Comment-list", args=(instance.id,)), data=payload
+    def test_create_comment(self, role, created_comments):
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values())
         )
-        assert response.status_code == expected_code
-        if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["content"] == payload["content"]
-            assert response.json()["author"]["keycloak_id"] == user.keycloak_id
+        self.client.force_authenticate(user)
+        for publication_status, project in self.projects.items():
+            payload = {
+                "content": faker.text(),
+                "project_id": project.id,
+            }
+            response = self.client.post(
+                reverse("Comment-list", args=(project.id,)), data=payload
+            )
+            if publication_status in created_comments:
+                self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+                self.assertEqual(response.json()["content"], payload["content"])
+                self.assertEqual(response.json()["author"]["id"], user.id)
+            else:
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_comment_anonymous(self):
+        for project in self.projects.values():
+            payload = {
+                "content": faker.text(),
+                "project_id": project.id,
+            }
+            response = self.client.post(
+                reverse("Comment-list", args=(project.id,)), data=payload
+            )
+            self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
 class UpdateCommentTestCase(JwtAPITestCase):
@@ -167,6 +166,7 @@ class UpdateCommentTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
+        cls.comment = CommentFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -183,19 +183,18 @@ class UpdateCommentTestCase(JwtAPITestCase):
         ]
     )
     def test_update_comment(self, role, expected_code):
-        comment = CommentFactory(project=self.project)
         user = self.get_parameterized_test_user(
-            role, owned_instance=comment, instances=[self.project]
+            role, owned_instance=self.comment, instances=[self.project]
         )
         self.client.force_authenticate(user)
         payload = {"content": faker.text()}
         response = self.client.patch(
-            reverse("Comment-detail", args=(self.project.id, comment.id)),
+            reverse("Comment-detail", args=(self.project.id, self.comment.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["content"] == payload["content"]
+            self.assertEqual(response.json()["content"], payload["content"])
 
 
 class DeleteCommentTestCase(JwtAPITestCase):
@@ -231,14 +230,14 @@ class DeleteCommentTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, comment.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             response = self.client.get(
                 reverse("Comment-list", args=(self.project.id,)),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert comment.id not in [c["id"] for c in content]
+            self.assertNotIn(comment.id, [c["id"] for c in content])
 
 
 class ReplyToCommentTestCase(JwtAPITestCase):
@@ -257,7 +256,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, reply.id)),
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_can_patch_reply(self):
         self.client.force_authenticate(self.user)
@@ -272,8 +271,8 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             reverse("Comment-detail", args=(self.project.id, reply.id)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
-        assert response.json()["content"] == payload["content"]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["content"], payload["content"])
 
     def test_cannot_reply_to_themselves(self):
         self.client.force_authenticate(self.user)
@@ -283,9 +282,9 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             reverse("Comment-detail", args=(self.project.id, comment.id)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["reply_on_id"] == "Comments cannot reply to themselves"
+        self.assertEqual(content["reply_on_id"], "Comments cannot reply to themselves")
 
     def test_cannot_reply_to_reply(self):
         self.client.force_authenticate(self.user)
@@ -300,9 +299,9 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             reverse("Comment-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content["reply_on_id"] == ["You cannot reply to a reply."]
+        self.assertEqual(content["reply_on_id"], ["You cannot reply to a reply."])
 
     def test_deleted_with_replies_returned(self):
         self.client.force_authenticate(self.user)
@@ -314,8 +313,8 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Comment-list", args=(self.project.id,)),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 1
-        assert content["results"][0]["id"] == comment.id
-        assert content["results"][0]["content"] == "<deleted comment>"
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["id"], comment.id)
+        self.assertEqual(content["results"][0]["content"], "<deleted comment>")

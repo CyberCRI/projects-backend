@@ -39,11 +39,11 @@ class CreateTagTestCase(JwtAPITestCase):
             reverse("Tag-list"),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["name"] == payload["name"]
-            assert content["organization"] == payload["organization"]
+            self.assertEqual(content["name"], payload["name"])
+            self.assertEqual(content["organization"], payload["organization"])
 
 
 class UpdateTagTestCase(JwtAPITestCase):
@@ -51,6 +51,7 @@ class UpdateTagTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.tag = TagFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -63,19 +64,17 @@ class UpdateTagTestCase(JwtAPITestCase):
         ]
     )
     def test_update_tag(self, role, expected_code):
-        organization = self.organization
-        user = self.get_parameterized_test_user(role, instances=[organization])
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
-        tag = TagFactory(organization=organization)
         payload = {"name": faker.word()}
         response = self.client.patch(
-            reverse("Tag-detail", args=(tag.id,)),
+            reverse("Tag-detail", args=(self.tag.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["name"] == payload["name"]
+            self.assertEqual(content["name"], payload["name"])
 
 
 class DeleteTagTestCase(JwtAPITestCase):
@@ -102,6 +101,6 @@ class DeleteTagTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Tag-detail", args=(tag.id,)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Tag.objects.filter(id=tag.id).exists()
+            self.assertFalse(Tag.objects.filter(id=tag.id).exists())

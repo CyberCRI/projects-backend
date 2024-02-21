@@ -67,9 +67,9 @@ class RetrieveBlogEntryImageTestCase(JwtAPITestCase):
                 reverse("BlogEntry-images-detail", args=(project.id, image.id)),
             )
             if publication_status in retrieved_images:
-                assert response.status_code == status.HTTP_302_FOUND
+                self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                assert response.status_code == status.HTTP_404_NOT_FOUND
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class CreateBlogEntryImageTestCase(JwtAPITestCase):
@@ -105,9 +105,9 @@ class CreateBlogEntryImageTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+            self.assertIsNotNone(response.json()["static_url"])
 
 
 class UpdateBlogEntryImageTestCase(JwtAPITestCase):
@@ -121,6 +121,8 @@ class UpdateBlogEntryImageTestCase(JwtAPITestCase):
         )
         cls.blog_entry = BlogEntryFactory(project=cls.project)
         cls.owner = UserFactory()
+        cls.image = cls.get_test_image(owner=cls.owner)
+        cls.blog_entry.images.add(cls.image)
 
     @parameterized.expand(
         [
@@ -137,10 +139,8 @@ class UpdateBlogEntryImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_blog_entry_image(self, role, expected_code):
-        image = self.get_test_image(owner=self.owner)
-        self.blog_entry.images.add(image)
         user = self.get_parameterized_test_user(
-            role, instances=[self.project], owned_instance=image
+            role, instances=[self.project], owned_instance=self.image
         )
         self.client.force_authenticate(user)
         payload = {
@@ -153,18 +153,19 @@ class UpdateBlogEntryImageTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "BlogEntry-images-detail",
-                args=(self.project.id, image.id),
+                args=(self.project.id, self.image.id),
             ),
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            content = response.json()
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteBlogEntryImageTestCase(JwtAPITestCase):
@@ -206,6 +207,6 @@ class DeleteBlogEntryImageTestCase(JwtAPITestCase):
                 args=(self.project.id, image.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Image.objects.filter(id=image.id).exists()
+            self.assertFalse(Image.objects.filter(id=image.id).exists())

@@ -54,13 +54,13 @@ class CreateAttachmentLinkTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("AttachmentLink-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["attachment_type"] == "link"
-            assert content["site_url"] == payload["site_url"]
-            assert content["preview_image_url"] == mocked_response.image
-            assert content["site_name"] == mocked_response.site_name
+            self.assertEqual(content["attachment_type"], "link")
+            self.assertEqual(content["site_url"], payload["site_url"])
+            self.assertEqual(content["preview_image_url"], mocked_response.image)
+            self.assertEqual(content["site_name"], mocked_response.site_name)
 
 
 class UpdateAttachmentLinkTestCase(JwtAPITestCase):
@@ -69,6 +69,9 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.link = AttachmentLinkFactory(
+            project=cls.project, category=AttachmentLinkCategory.OTHER
+        )
 
     @parameterized.expand(
         [
@@ -84,21 +87,17 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         ]
     )
     def test_update_attachment_link(self, role, expected_code):
-        project = self.project
-        user = self.get_parameterized_test_user(role, instances=[project])
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        attachment_link = AttachmentLinkFactory(
-            project=project, category=AttachmentLinkCategory.OTHER
-        )
         payload = {"category": AttachmentLinkCategory.TOOL}
         response = self.client.patch(
-            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["category"] == payload["category"]
+            self.assertEqual(content["category"], payload["category"])
 
 
 class DeleteAttachmentLinkTestCase(JwtAPITestCase):
@@ -125,13 +124,13 @@ class DeleteAttachmentLinkTestCase(JwtAPITestCase):
         project = self.project
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
-        attachment_link = AttachmentLinkFactory(project=project)
+        link = AttachmentLinkFactory(project=project)
         response = self.client.delete(
-            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+            reverse("AttachmentLink-detail", args=(project.id, link.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not AttachmentLink.objects.filter(id=attachment_link.id).exists()
+            self.assertFalse(AttachmentLink.objects.filter(id=link.id).exists())
 
 
 class ListAttachmentLinkTestCase(JwtAPITestCase):
@@ -153,7 +152,7 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
                 organizations=[cls.organization],
             ),
         }
-        cls.attachment_links = {
+        cls.links = {
             "public": AttachmentLinkFactory(project=cls.projects["public"]),
             "org": AttachmentLinkFactory(project=cls.projects["org"]),
             "private": AttachmentLinkFactory(project=cls.projects["private"]),
@@ -172,7 +171,7 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_list_attachment_links(self, role, retrieved_attachment_links):
+    def test_list_attachment_links(self, role, retrieved_links):
         user = self.get_parameterized_test_user(
             role, instances=list(self.projects.values())
         )
@@ -184,13 +183,13 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
                     args=(project.id,),
                 ),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            if publication_status in retrieved_attachment_links:
-                assert len(content) == 1
-                assert content[0]["id"] == self.attachment_links[publication_status].id
+            if publication_status in retrieved_links:
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["id"], self.links[publication_status].id)
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)
 
 
 class ValidateAttachmentLinkTestCase(JwtAPITestCase):
@@ -211,11 +210,12 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             reverse("AttachmentLink-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content == {
-            "non_field_errors": ["This url is already attached to this project."]
-        }
+        self.assertEqual(
+            content["non_field_errors"],
+            ["This url is already attached to this project."],
+        )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_www_domain(self, mocked):
@@ -228,7 +228,7 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             reverse("AttachmentLink-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_patch_duplicate_link(self):
         user = UserFactory(groups=[get_superadmins_group()])
@@ -239,11 +239,12 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             reverse("AttachmentLink-detail", args=(self.project.id, link.id)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         content = response.json()
-        assert content == {
-            "non_field_errors": ["This url is already attached to this project."]
-        }
+        self.assertEqual(
+            content["non_field_errors"],
+            ["This url is already attached to this project."],
+        )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
     def test_create_duplicate_other_project(self, mocked):
@@ -256,4 +257,4 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             reverse("AttachmentLink-list", args=(project.id,)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

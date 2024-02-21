@@ -66,4 +66,4 @@ class AnnouncementApplyTestCase(JwtAPITestCase):
             reverse("Announcement-apply", args=(project.id, announcement.id)),
             data=payload,
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

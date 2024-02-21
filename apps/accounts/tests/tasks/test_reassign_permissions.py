@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 from faker import Faker
+from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase
 from apps.deploys.models import PostDeployProcess
@@ -22,19 +23,19 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         PostDeployProcess.objects.get_or_create(
             task_name=InstanceGroupsPermissions.task_name
         )
-        project = ProjectFactory()
+        project = ProjectFactory(with_owner=True)
 
         for group in project.groups.all():
             group.permissions.clear()
-            assert group.permissions.count() == 0
+            self.assertEqual(group.permissions.count(), 0)
         project.permissions_up_to_date = False
         project.save()
 
         self.client.force_authenticate(user=project.get_owners().users.first())
         response = self.client.get(reverse("Project-list"))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         project.refresh_from_db()
-        assert project.permissions_up_to_date is True
+        self.assertTrue(project.permissions_up_to_date)
 
     @patch("apps.deploys.models.PostDeployProcess._status")
     def test_reassign_organization_permissions(self, mocked):
@@ -42,16 +43,16 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         PostDeployProcess.objects.get_or_create(
             task_name=InstanceGroupsPermissions.task_name
         )
-        organization = OrganizationFactory()
+        organization = OrganizationFactory(with_admin=True)
 
         for group in organization.groups.all():
             group.permissions.clear()
-            assert group.permissions.count() == 0
+            self.assertEqual(group.permissions.count(), 0)
         organization.permissions_up_to_date = False
         organization.save()
 
         self.client.force_authenticate(user=organization.get_admins().users.first())
         response = self.client.get(reverse("Organization-list"))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization.refresh_from_db()
-        assert organization.permissions_up_to_date is True
+        self.assertTrue(organization.permissions_up_to_date)

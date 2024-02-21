@@ -31,11 +31,11 @@ class AddedMemberTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
 
         member = UserFactory()
-        payload = {Project.DefaultGroup.MEMBERS: [member.keycloak_id]}
+        payload = {Project.DefaultGroup.MEMBERS: [member.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(
             project.pk,
             member.pk,
@@ -60,7 +60,7 @@ class AddedMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(
             project.pk,
             group.id,
@@ -93,35 +93,35 @@ class AddedMemberTestCase(JwtAPITestCase):
         )
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.MEMBER_ADDED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 1
+            self.assertEqual(notification.type, Notification.Types.MEMBER_ADDED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
             new_members = notification.context["new_members"]
-            assert {m["id"] for m in new_members} == {member.id}
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a ajouté un membre."
+            self.assertSetEqual({m["id"] for m in new_members}, {member.id})
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a ajouté un membre.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} added a new member."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} added a new member.",
             )
 
         notification = notifications.get(receiver=member)
-        assert notification.type == Notification.Types.MEMBER_ADDED_SELF
-        assert notification.project == project
-        assert not notification.to_send
-        assert not notification.is_viewed
-        assert notification.count == 1
+        self.assertEqual(notification.type, Notification.Types.MEMBER_ADDED_SELF)
+        self.assertEqual(notification.project, project)
+        self.assertFalse(notification.to_send)
+        self.assertFalse(notification.is_viewed)
+        self.assertEqual(notification.count, 1)
 
-        assert len(mail.outbox) == 1
-        assert member.email == mail.outbox[0].to[0]
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(member.email, mail.outbox[0].to[0])
 
     def test_group_notification_task(self):
         project = ProjectFactory(
@@ -153,26 +153,26 @@ class AddedMemberTestCase(JwtAPITestCase):
             sender.pk,
         )
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 5
+        self.assertEqual(notifications.count(), 5)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.GROUP_MEMBER_ADDED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} added a group as member to the project {project.title}."
+            self.assertEqual(notification.type, Notification.Types.GROUP_MEMBER_ADDED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} added a group as member to the project {project.title}.",
             )
 
         notification = notifications.get(receiver=member)
-        assert notification.type == Notification.Types.GROUP_MEMBER_ADDED_SELF
-        assert notification.project == project
-        assert not notification.to_send
-        assert not notification.is_viewed
-        assert notification.count == 1
+        self.assertEqual(notification.type, Notification.Types.GROUP_MEMBER_ADDED_SELF)
+        self.assertEqual(notification.project, project)
+        self.assertFalse(notification.to_send)
+        self.assertFalse(notification.is_viewed)
+        self.assertEqual(notification.count, 1)
 
         emails_outbox = [
             mail.outbox[0].to[0],
@@ -180,8 +180,8 @@ class AddedMemberTestCase(JwtAPITestCase):
             mail.outbox[2].to[0],
         ].sort()
         emails_members = [member.email, leader.email, manager.email].sort()
-        assert len(mail.outbox) == 3
-        assert emails_members == emails_outbox
+        self.assertEqual(len(mail.outbox), 3)
+        self.assertEqual(emails_members, emails_outbox)
 
     def test_merged_notifications_task(self):
         project = ProjectFactory(
@@ -215,58 +215,60 @@ class AddedMemberTestCase(JwtAPITestCase):
         )
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 6
+        self.assertEqual(notifications.count(), 6)
 
         for user in [not_notified, notified]:
             notification = notifications.get(
                 receiver=user, type=Notification.Types.MEMBER_ADDED
             )
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 2
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
             new_members = notification.context["new_members"]
-            assert {m["id"] for m in new_members} == {member_1.id, member_2.id}
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a ajouté 2 membres."
+            self.assertSetEqual(
+                {m["id"] for m in new_members}, {member_1.id, member_2.id}
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} added 2 new members."
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a ajouté 2 membres.",
+            )
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} added 2 new members.",
             )
 
         for user in [member_1, member_2]:
             notification = notifications.get(
                 receiver=user, type=Notification.Types.MEMBER_ADDED_SELF
             )
-            assert notification.project == project
-            assert not notification.to_send
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert notification.reminder_message_fr == ""
-            assert notification.reminder_message_en == ""
+            self.assertEqual(notification.project, project)
+            self.assertFalse(notification.to_send)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(notification.reminder_message_fr, "")
+            self.assertEqual(notification.reminder_message_en, "")
 
         notification = notifications.get(
             receiver=member_1, type=Notification.Types.MEMBER_ADDED
         )
-        assert notification.project == project
-        assert notification.to_send
-        assert not notification.is_viewed
-        assert notification.count == 1
+        self.assertEqual(notification.project, project)
+        self.assertTrue(notification.to_send)
+        self.assertFalse(notification.is_viewed)
+        self.assertEqual(notification.count, 1)
         new_members = notification.context["new_members"]
-        assert {m["id"] for m in new_members} == {member_2.id}
-        assert (
-            notification.reminder_message_fr
-            == f"{sender.get_full_name()} a ajouté un membre."
+        self.assertSetEqual({m["id"] for m in new_members}, {member_2.id})
+        self.assertEqual(
+            notification.reminder_message_fr,
+            f"{sender.get_full_name()} a ajouté un membre.",
         )
-        assert (
-            notification.reminder_message_en
-            == f"{sender.get_full_name()} added a new member."
+        self.assertEqual(
+            notification.reminder_message_en,
+            f"{sender.get_full_name()} added a new member.",
         )
 
-        assert len(mail.outbox) == 2
-        assert {member_1.email, member_2.email} == {
-            mail.outbox[0].to[0],
-            mail.outbox[1].to[0],
-        }
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertSetEqual(
+            {member_1.email, member_2.email},
+            {mail.outbox[0].to[0], mail.outbox[1].to[0]},
+        )

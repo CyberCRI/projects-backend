@@ -2,6 +2,7 @@ from unittest.mock import patch
 
 from django.core import mail
 from django.urls import reverse
+from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
@@ -12,6 +13,8 @@ from apps.notifications.tasks import _notify_new_comment
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+
+faker = Faker()
 
 
 class NewCommentTestCase(JwtAPITestCase):
@@ -30,15 +33,12 @@ class NewCommentTestCase(JwtAPITestCase):
         project.owners.add(owner)
 
         self.client.force_authenticate(owner)
-        payload = {
-            "project_id": project.id,
-            "content": "content",
-        }
+        payload = {"project_id": project.id, "content": faker.text()}
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)), data=payload
         )
 
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         comment_pk = response.json()["id"]
         notification_task.assert_called_once_with(comment_pk)
 
@@ -62,26 +62,26 @@ class NewCommentTestCase(JwtAPITestCase):
         _notify_new_comment(comment.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.COMMENT
-            assert notification.project == project
-            assert notification.to_send == (user == follower)
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a commenté le projet {project.title}."
+            self.assertEqual(notification.type, Notification.Types.COMMENT)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, (user == follower))
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a commenté le projet {project.title}.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} commented project {project.title}."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} commented project {project.title}.",
             )
 
-        assert len(mail.outbox) == 1
-        assert notified.email == mail.outbox[0].to[0]
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(notified.email, mail.outbox[0].to[0])
 
     def test_merged_notifications_task(self):
         project = ProjectFactory(
@@ -104,26 +104,26 @@ class NewCommentTestCase(JwtAPITestCase):
         _notify_new_comment(comments[1].pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.COMMENT
-            assert notification.project == project
-            assert notification.to_send == (user == follower)
-            assert not notification.is_viewed
-            assert notification.count == 2
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a ajouté 2 commentaires au projet {project.title}."
+            self.assertEqual(notification.type, Notification.Types.COMMENT)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, (user == follower))
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a ajouté 2 commentaires au projet {project.title}.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} added 2 comments to project {project.title}."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} added 2 comments to project {project.title}.",
             )
-        assert len(mail.outbox) == 2
-        assert notified.email == mail.outbox[0].to[0]
-        assert notified.email == mail.outbox[1].to[0]
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(notified.email, mail.outbox[0].to[0])
+        self.assertEqual(notified.email, mail.outbox[1].to[0])
 
 
 class NewReplyTestCase(JwtAPITestCase):
@@ -145,14 +145,14 @@ class NewReplyTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
         payload = {
             "project_id": project.id,
-            "content": "content",
+            "content": faker.text(),
             "reply_on_id": comment.id,
         }
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)), data=payload
         )
 
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         comment_pk = response.json()["id"]
         notification_task.assert_called_once_with(comment_pk)
 
@@ -177,37 +177,37 @@ class NewReplyTestCase(JwtAPITestCase):
         _notify_new_comment(reply.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.COMMENT
-            assert notification.project == project
-            assert notification.receiver == user
-            assert notification.to_send == (user == follower)
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a commenté le projet {project.title}."
+            self.assertEqual(notification.type, Notification.Types.COMMENT)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.receiver, user)
+            self.assertEqual(notification.to_send, (user == follower))
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a commenté le projet {project.title}.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} commented project {project.title}."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} commented project {project.title}.",
             )
 
         notification = notifications.get(receiver=notified)
-        assert notification.type == Notification.Types.REPLY
-        assert notification.project == project
-        assert notification.receiver == notified
-        assert not notification.to_send
-        assert not notification.is_viewed
-        assert notification.count == 1
-        assert notification.reminder_message_fr == ""
-        assert notification.reminder_message_en == ""
+        self.assertEqual(notification.type, Notification.Types.REPLY)
+        self.assertEqual(notification.project, project)
+        self.assertEqual(notification.receiver, notified)
+        self.assertFalse(notification.to_send)
+        self.assertFalse(notification.is_viewed)
+        self.assertEqual(notification.count, 1)
+        self.assertEqual(notification.reminder_message_fr, "")
+        self.assertEqual(notification.reminder_message_en, "")
 
-        assert len(mail.outbox) == 1
-        assert notified.email == mail.outbox[0].to[0]
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(notified.email, mail.outbox[0].to[0])
 
     def test_merged_notifications_task(self):
         project = ProjectFactory(
@@ -232,35 +232,35 @@ class NewReplyTestCase(JwtAPITestCase):
         _notify_new_comment(reply_2.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.COMMENT
-            assert notification.project == project
-            assert notification.receiver == user
-            assert notification.to_send == (user == follower)
-            assert not notification.is_viewed
-            assert notification.count == 2
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a ajouté 2 commentaires au projet {project.title}."
+            self.assertEqual(notification.type, Notification.Types.COMMENT)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.receiver, user)
+            self.assertEqual(notification.to_send, (user == follower))
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a ajouté 2 commentaires au projet {project.title}.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} added 2 comments to project {project.title}."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} added 2 comments to project {project.title}.",
             )
 
         notification = notifications.get(receiver=notified)
-        assert notification.type == Notification.Types.REPLY
-        assert notification.project == project
-        assert notification.receiver == notified
-        assert not notification.to_send
-        assert not notification.is_viewed
-        assert notification.count == 2
-        assert notification.reminder_message_fr == ""
-        assert notification.reminder_message_en == ""
+        self.assertEqual(notification.type, Notification.Types.REPLY)
+        self.assertEqual(notification.project, project)
+        self.assertEqual(notification.receiver, notified)
+        self.assertFalse(notification.to_send)
+        self.assertFalse(notification.is_viewed)
+        self.assertEqual(notification.count, 2)
+        self.assertEqual(notification.reminder_message_fr, "")
+        self.assertEqual(notification.reminder_message_en, "")
 
-        assert len(mail.outbox) == 2
-        assert notified.email == mail.outbox[0].to[0]
-        assert notified.email == mail.outbox[1].to[0]
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(notified.email, mail.outbox[0].to[0])
+        self.assertEqual(notified.email, mail.outbox[1].to[0])

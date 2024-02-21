@@ -45,7 +45,7 @@ class CreateProjectHeaderTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
 
 
 class UpdateProjectHeaderTestCase(JwtAPITestCase):
@@ -54,6 +54,11 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.owner = UserFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            header_image=cls.get_test_image(owner=cls.owner),
+            organizations=[cls.organization],
+        )
 
     @parameterized.expand(
         [
@@ -70,13 +75,8 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         ]
     )
     def test_update_project_header(self, role, expected_code):
-        project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
-            header_image=self.get_test_image(owner=self.owner),
-            organizations=[self.organization],
-        )
         user = self.get_parameterized_test_user(
-            role, instances=[project], owned_instance=project.header_image
+            role, instances=[self.project], owned_instance=self.project.header_image
         )
         self.client.force_authenticate(user)
         payload = {
@@ -89,18 +89,19 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Project-header-detail",
-                args=(project.id, project.header_image.id),
+                args=(self.project.id, self.project.header_image.id),
             ),
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            content = response.json()
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteProjectHeaderTestCase(JwtAPITestCase):
@@ -140,6 +141,6 @@ class DeleteProjectHeaderTestCase(JwtAPITestCase):
                 args=(project.id, project.header_image.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Image.objects.filter(id=project.header_image.id).exists()
+            self.assertFalse(Image.objects.filter(id=project.header_image.id).exists())

@@ -165,9 +165,9 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
-            assert error.solved is False
-            assert error.retries_count == 1
-            assert error.error == "Updated error"
+            self.assertFalse(error.solved)
+            self.assertEqual(error.retries_count, 1)
+            self.assertEqual(error.error, "Updated error")
 
     @parameterized.expand(
         [
@@ -202,9 +202,9 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
-            assert error.solved is False
-            assert error.retries_count == 1
-            assert error.error == "Updated error"
+            self.assertFalse(error.solved)
+            self.assertEqual(error.retries_count, 1)
+            self.assertEqual(error.error, "Updated error")
 
     @parameterized.expand(
         [
@@ -241,9 +241,9 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             mocked_get.assert_called_once()
             mocked_add.assert_called_once()
             error.refresh_from_db()
-            assert error.solved is False
-            assert error.retries_count == 1
-            assert error.error == "Updated error"
+            self.assertFalse(error.solved)
+            self.assertEqual(error.retries_count, 1)
+            self.assertEqual(error.error, "Updated error")
 
 
 class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
@@ -299,9 +299,9 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
-            assert error.solved is True
-            assert error.retries_count == 1
-            assert error.error == "Initial error"
+            self.assertTrue(error.solved)
+            self.assertEqual(error.retries_count, 1)
+            self.assertEqual(error.error, "Initial error")
 
     @parameterized.expand(
         [
@@ -336,9 +336,9 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
             retry_failed_tasks()
             mock.assert_called_once()
             error.refresh_from_db()
-            assert error.solved is True
-            assert error.retries_count == 1
-            assert error.error == "Initial error"
+            self.assertTrue(error.solved)
+            self.assertEqual(error.retries_count, 1)
+            self.assertEqual(error.error, "Initial error")
 
     @parameterized.expand(
         [
@@ -390,6 +390,6 @@ class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
             retry_failed_tasks()
             mocked_get.assert_called_once()
             error.refresh_from_db()
-            assert error.solved is True
-            assert error.retries_count == 1
-            assert error.error == "Initial error"
+            self.assertTrue(error.solved)
+            self.assertEqual(error.retries_count, 1)
+            self.assertEqual(error.error, "Initial error")

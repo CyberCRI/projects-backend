@@ -39,7 +39,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.client.force_authenticate(user)
         payload = {
             "organization_code": self.organization.code,
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "description": faker.text(),
             "wikipedia_tags_ids": wikipedia_qids,
             "order_index": faker.pyint(0, 10),
@@ -48,19 +48,20 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             "is_reviewable": faker.boolean(),
         }
         response = self.client.post(reverse("Category-list"), data=payload)
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["organization"] == self.organization.code
-            assert content["name"] == payload["name"]
-            assert content["description"] == payload["description"]
-            assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
-                wikipedia_qids
+            self.assertEqual(content["organization"], self.organization.code)
+            self.assertEqual(content["name"], payload["name"])
+            self.assertEqual(content["description"], payload["description"])
+            self.assertSetEqual(
+                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
+                set(wikipedia_qids),
             )
-            assert content["order_index"] == payload["order_index"]
-            assert content["background_color"] == payload["background_color"]
-            assert content["foreground_color"] == payload["foreground_color"]
-            assert content["is_reviewable"] == payload["is_reviewable"]
+            self.assertEqual(content["order_index"], payload["order_index"])
+            self.assertEqual(content["background_color"], payload["background_color"])
+            self.assertEqual(content["foreground_color"], payload["foreground_color"])
+            self.assertEqual(content["is_reviewable"], payload["is_reviewable"])
 
 
 class ReadProjectCategoryTestCase(JwtAPITestCase):
@@ -80,10 +81,10 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Category-list"))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["count"] == 1
-        assert content["results"][0]["id"] == self.category.id
+        self.assertEqual(content["count"], 1)
+        self.assertEqual(content["results"][0]["id"], self.category.id)
 
     @parameterized.expand(
         [
@@ -95,9 +96,9 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Category-detail", args=(self.category.id,)))
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["id"] == self.category.id
+        self.assertEqual(content["id"], self.category.id)
 
 
 class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
@@ -124,7 +125,7 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "description": faker.text(),
             "wikipedia_tags_ids": wikipedia_qids,
             "order_index": faker.pyint(0, 10),
@@ -135,18 +136,19 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.patch(
             reverse("Category-detail", args=(self.category.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["name"] == payload["name"]
-            assert content["description"] == payload["description"]
-            assert {t["wikipedia_qid"] for t in content["wikipedia_tags"]} == set(
-                wikipedia_qids
+            self.assertEqual(content["name"], payload["name"])
+            self.assertEqual(content["description"], payload["description"])
+            self.assertSetEqual(
+                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
+                set(wikipedia_qids),
             )
-            assert content["order_index"] == payload["order_index"]
-            assert content["background_color"] == payload["background_color"]
-            assert content["foreground_color"] == payload["foreground_color"]
-            assert content["is_reviewable"] == payload["is_reviewable"]
+            self.assertEqual(content["order_index"], payload["order_index"])
+            self.assertEqual(content["background_color"], payload["background_color"])
+            self.assertEqual(content["foreground_color"], payload["foreground_color"])
+            self.assertEqual(content["is_reviewable"], payload["is_reviewable"])
 
 
 class DeleteProjectCategoryTestCase(JwtAPITestCase):
@@ -170,9 +172,9 @@ class DeleteProjectCategoryTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.delete(reverse("Category-detail", args=(category.id,)))
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not ProjectCategory.objects.filter(id=category.id).exists()
+            self.assertFalse(ProjectCategory.objects.filter(id=category.id).exists())
 
 
 class ProjectCategoryTemplateTestCase(JwtAPITestCase):
@@ -186,81 +188,91 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {
             "organization_code": self.organization.code,
-            "name": faker.sentence(nb_words=4),
+            "name": faker.sentence(),
             "description": faker.text(),
             "order_index": faker.pyint(0, 10),
             "background_color": faker.color(),
             "foreground_color": faker.color(),
             "is_reviewable": faker.boolean(),
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
                 "description_placeholder": faker.text(),
-                "goal_placeholder": faker.sentence(nb_words=4),
-                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "goal_placeholder": faker.sentence(),
+                "blogentry_title_placeholder": faker.sentence(),
                 "blogentry_placeholder": faker.text(),
-                "goal_title": faker.sentence(nb_words=4),
+                "goal_title": faker.sentence(),
                 "goal_description": faker.text(),
             },
         }
         response = self.client.post(reverse("Category-list"), data=payload)
-        assert response.status_code == status.HTTP_201_CREATED
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         template = content["template"]
         payload_template = payload["template"]
-        assert template["title_placeholder"] == payload_template["title_placeholder"]
-        assert (
-            template["description_placeholder"]
-            == payload_template["description_placeholder"]
+        self.assertEqual(
+            template["title_placeholder"], payload_template["title_placeholder"]
         )
-        assert template["goal_placeholder"] == payload_template["goal_placeholder"]
-        assert (
-            template["blogentry_title_placeholder"]
-            == payload_template["blogentry_title_placeholder"]
+        self.assertEqual(
+            template["description_placeholder"],
+            payload_template["description_placeholder"],
         )
-        assert (
-            template["blogentry_placeholder"]
-            == payload_template["blogentry_placeholder"]
+        self.assertEqual(
+            template["goal_placeholder"], payload_template["goal_placeholder"]
         )
-        assert template["goal_title"] == payload_template["goal_title"]
-        assert template["goal_description"] == payload_template["goal_description"]
+        self.assertEqual(
+            template["blogentry_title_placeholder"],
+            payload_template["blogentry_title_placeholder"],
+        )
+        self.assertEqual(
+            template["blogentry_placeholder"], payload_template["blogentry_placeholder"]
+        )
+        self.assertEqual(template["goal_title"], payload_template["goal_title"])
+        self.assertEqual(
+            template["goal_description"], payload_template["goal_description"]
+        )
 
     def test_update_template(self):
         self.client.force_authenticate(self.superadmin)
         category = ProjectCategoryFactory(organization=self.organization)
         payload = {
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
                 "description_placeholder": faker.text(),
-                "goal_placeholder": faker.sentence(nb_words=4),
-                "blogentry_title_placeholder": faker.sentence(nb_words=4),
+                "goal_placeholder": faker.sentence(),
+                "blogentry_title_placeholder": faker.sentence(),
                 "blogentry_placeholder": faker.text(),
-                "goal_title": faker.sentence(nb_words=4),
+                "goal_title": faker.sentence(),
                 "goal_description": faker.text(),
             },
         }
         response = self.client.patch(
             reverse("Category-detail", args=(category.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         template = content["template"]
         payload_template = payload["template"]
-        assert template["title_placeholder"] == payload_template["title_placeholder"]
-        assert (
-            template["description_placeholder"]
-            == payload_template["description_placeholder"]
+        self.assertEqual(
+            template["title_placeholder"], payload_template["title_placeholder"]
         )
-        assert template["goal_placeholder"] == payload_template["goal_placeholder"]
-        assert (
-            template["blogentry_title_placeholder"]
-            == payload_template["blogentry_title_placeholder"]
+        self.assertEqual(
+            template["description_placeholder"],
+            payload_template["description_placeholder"],
         )
-        assert (
-            template["blogentry_placeholder"]
-            == payload_template["blogentry_placeholder"]
+        self.assertEqual(
+            template["goal_placeholder"], payload_template["goal_placeholder"]
         )
-        assert template["goal_title"] == payload_template["goal_title"]
-        assert template["goal_description"] == payload_template["goal_description"]
+        self.assertEqual(
+            template["blogentry_title_placeholder"],
+            payload_template["blogentry_title_placeholder"],
+        )
+        self.assertEqual(
+            template["blogentry_placeholder"], payload_template["blogentry_placeholder"]
+        )
+        self.assertEqual(template["goal_title"], payload_template["goal_title"])
+        self.assertEqual(
+            template["goal_description"], payload_template["goal_description"]
+        )
 
     def test_partial_update_template(self):
         self.client.force_authenticate(self.superadmin)
@@ -268,27 +280,33 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         original_template = category.template
         payload = {
             "template": {
-                "title_placeholder": faker.sentence(nb_words=4),
+                "title_placeholder": faker.sentence(),
             },
         }
         response = self.client.patch(
             reverse("Category-detail", args=(category.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         template = content["template"]
-        assert template["title_placeholder"] == payload["template"]["title_placeholder"]
-        assert (
-            template["description_placeholder"]
-            == original_template.description_placeholder
+        self.assertEqual(
+            template["title_placeholder"], payload["template"]["title_placeholder"]
         )
-        assert template["goal_placeholder"] == original_template.goal_placeholder
-        assert (
-            template["blogentry_title_placeholder"]
-            == original_template.blogentry_title_placeholder
+        self.assertEqual(
+            template["description_placeholder"],
+            original_template.description_placeholder,
         )
-        assert (
-            template["blogentry_placeholder"] == original_template.blogentry_placeholder
+        self.assertEqual(
+            template["goal_placeholder"], original_template.goal_placeholder
         )
-        assert template["goal_title"] == original_template.goal_title
-        assert template["goal_description"] == original_template.goal_description
+        self.assertEqual(
+            template["blogentry_title_placeholder"],
+            original_template.blogentry_title_placeholder,
+        )
+        self.assertEqual(
+            template["blogentry_placeholder"], original_template.blogentry_placeholder
+        )
+        self.assertEqual(template["goal_title"], original_template.goal_title)
+        self.assertEqual(
+            template["goal_description"], original_template.goal_description
+        )

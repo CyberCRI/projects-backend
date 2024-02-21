@@ -12,17 +12,17 @@ faker = Faker()
 class MistralServiceTestCase(JwtAPITestCase, MistralTestCaseMixin):
     @patch("services.mistral.interface.MistralService.service.chat")
     def test_get_chat_response(self, mocked):
-        messages = [faker.sentence(nb_words=6) for _ in range(3)]
+        messages = [faker.sentence() for _ in range(3)]
         mocked.return_value = self.chat_response_mocked_return(messages)
         response = MistralService.get_chat_response(
-            system=[faker.sentence(nb_words=6) for _ in range(2)],
-            prompt=[faker.sentence(nb_words=6) for _ in range(2)],
+            system=[faker.sentence() for _ in range(2)],
+            prompt=[faker.sentence() for _ in range(2)],
         )
-        assert response == "\n".join(messages)
+        self.assertEqual(response, "\n".join(messages))
 
     @patch("services.mistral.interface.MistralService.service.embeddings")
     def test_get_embedding(self, mocked):
         embedding = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked.return_value = self.embedding_response_mocked_return(embedding)
         response = MistralService.get_embedding(faker.text())
-        assert response == embedding
+        self.assertEqual(response, embedding)

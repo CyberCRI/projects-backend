@@ -1,4 +1,5 @@
 from django.urls import reverse
+from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
@@ -18,10 +19,10 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("ProjectUser-list") + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["keycloak_id"] == user.keycloak_id
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["id"], user.id)
 
     def test_people_group_search_pg_trgrm(self):
         people_group = PeopleGroupFactory(
@@ -39,10 +40,10 @@ class PostgresTrigramTestCase(JwtAPITestCase):
                 reverse("PeopleGroup-list", args=(organization.code,))
                 + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["id"] == people_group.id
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["id"], people_group.id)
 
     def test_wikipedia_tag_search_pg_trgrm(self):
         wikipedia_tag = WikipediaTagFactory(name_en="abcdef", name_fr="ééé")
@@ -51,10 +52,10 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("WikipediaTag-list") + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["wikipedia_qid"] == wikipedia_tag.wikipedia_qid
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["wikipedia_qid"], wikipedia_tag.wikipedia_qid)
 
     def test_tag_search_pg_trgrm(self):
         tag = TagFactory(name="ééé abcdef")
@@ -63,7 +64,7 @@ class PostgresTrigramTestCase(JwtAPITestCase):
             response = self.client.get(
                 reverse("Tag-list") + f"?search={query}",
             )
-            assert response.status_code == 200
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            assert len(content) >= 1
-            assert content[0]["id"] == tag.id
+            self.assertGreaterEqual(len(content), 1)
+            self.assertEqual(content[0]["id"], tag.id)

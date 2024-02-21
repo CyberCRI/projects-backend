@@ -1,6 +1,7 @@
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings, Skill
@@ -29,39 +30,39 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         user.privacy_settings.personal_email = privacy
         user.privacy_settings.save()
 
-    @staticmethod
-    def assert_fields_visible(user, data):
-        assert data["facebook"] == user.facebook
-        assert data["twitter"] == user.twitter
-        assert data["skype"] == user.skype
-        assert data["landline_phone"] == user.landline_phone
-        assert data["mobile_phone"] == user.mobile_phone
-        assert data["personal_email"] == user.personal_email
-        assert data["linkedin"] == user.linkedin
-        assert data["medium"] == user.medium
-        assert data["website"] == user.website
-        assert {skill["id"] for skill in data["skills"]} == {
-            skill.id for skill in user.skills.filter(type=Skill.SkillType.SKILL)
-        }
-        assert {skill["id"] for skill in data["hobbies"]} == {
-            skill.id for skill in user.skills.filter(type=Skill.SkillType.HOBBY)
-        }
-        assert data["profile_picture"]["id"] == user.profile_picture.id
+    def assert_fields_visible(self, user, data):
+        self.assertEqual(data["facebook"], user.facebook)
+        self.assertEqual(data["twitter"], user.twitter)
+        self.assertEqual(data["skype"], user.skype)
+        self.assertEqual(data["landline_phone"], user.landline_phone)
+        self.assertEqual(data["mobile_phone"], user.mobile_phone)
+        self.assertEqual(data["personal_email"], user.personal_email)
+        self.assertEqual(data["linkedin"], user.linkedin)
+        self.assertEqual(data["medium"], user.medium)
+        self.assertEqual(data["website"], user.website)
+        self.assertEqual(data["profile_picture"]["id"], user.profile_picture.id)
+        self.assertEqual(
+            {skill["id"] for skill in data["skills"]},
+            {skill.id for skill in user.skills.filter(type=Skill.SkillType.SKILL)},
+        )
+        self.assertEqual(
+            {skill["id"] for skill in data["hobbies"]},
+            {skill.id for skill in user.skills.filter(type=Skill.SkillType.HOBBY)},
+        )
 
-    @staticmethod
-    def assert_fields_hidden(data):
-        assert data["facebook"] is None
-        assert data["twitter"] is None
-        assert data["skype"] is None
-        assert data["landline_phone"] is None
-        assert data["mobile_phone"] is None
-        assert data["personal_email"] is None
-        assert data["linkedin"] is None
-        assert data["medium"] is None
-        assert data["website"] is None
-        assert data["skills"] == []
-        assert data["hobbies"] == []
-        assert data["profile_picture"] is None
+    def assert_fields_hidden(self, data):
+        self.assertIsNone(data["facebook"])
+        self.assertIsNone(data["twitter"])
+        self.assertIsNone(data["skype"])
+        self.assertIsNone(data["landline_phone"])
+        self.assertIsNone(data["mobile_phone"])
+        self.assertIsNone(data["personal_email"])
+        self.assertIsNone(data["linkedin"])
+        self.assertIsNone(data["medium"])
+        self.assertIsNone(data["website"])
+        self.assertIsNone(data["profile_picture"])
+        self.assertEqual(data["skills"], [])
+        self.assertEqual(data["hobbies"], [])
 
     @parameterized.expand(
         [
@@ -103,10 +104,8 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         instance.save()
         self.set_user_privacy_settings(instance, privacy_settings_value)
         self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("ProjectUser-detail", args=(instance.keycloak_id,))
-        )
-        assert response.status_code == 200
+        response = self.client.get(reverse("ProjectUser-detail", args=(instance.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         if fields_visible:
             self.assert_fields_visible(instance, response.data)
         else:
@@ -151,16 +150,15 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.set_user_privacy_settings(instance, privacy_settings_value)
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-list"))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        retrieved_user = [
-            u for u in content if u["keycloak_id"] == instance.keycloak_id
-        ]
-        assert len(retrieved_user) == 1
+        retrieved_user = [u for u in content if u["id"] == instance.id]
+        self.assertEqual(len(retrieved_user), 1)
         retrieved_user = retrieved_user[0]
         if fields_visible:
-            assert (
-                retrieved_user["profile_picture"]["id"] == instance.profile_picture.id
+            self.assertIsNotNone(retrieved_user["profile_picture"])
+            self.assertEqual(
+                retrieved_user["profile_picture"]["id"], instance.profile_picture.id
             )
         else:
-            assert retrieved_user["profile_picture"] is None
+            self.assertIsNone(retrieved_user["profile_picture"])

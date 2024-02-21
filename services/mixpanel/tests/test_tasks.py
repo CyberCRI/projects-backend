@@ -42,6 +42,6 @@ class MixpanelServiceTestCase(TestCase):
         )
         mocked.side_effect = self.side_effect(projects)
         get_new_mixpanel_events()
-        assert MixpanelEvent.objects.count() == 5
+        self.assertEqual(MixpanelEvent.objects.count(), 5)
         for project in projects:
-            assert project.get_views() == 1
+            self.assertEqual(project.get_views(), 1)

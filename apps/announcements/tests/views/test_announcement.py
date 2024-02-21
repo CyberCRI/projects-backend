@@ -36,7 +36,7 @@ class CreateAnnouncementTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "description": faker.text(),
             "type": Announcement.AnnouncementType.JOB,
             "is_remunerated": faker.boolean(),
@@ -46,14 +46,14 @@ class CreateAnnouncementTestCase(JwtAPITestCase):
             reverse("Announcement-list", args=(self.project.id,)),
             data=payload,
         )
-        assert response.status_code == expected_status_code
+        self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["description"] == payload["description"]
-            assert content["type"] == payload["type"]
-            assert content["is_remunerated"] == payload["is_remunerated"]
-            assert content["project"]["id"] == payload["project_id"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["description"], payload["description"])
+            self.assertEqual(content["type"], payload["type"])
+            self.assertEqual(content["is_remunerated"], payload["is_remunerated"])
+            self.assertEqual(content["project"]["id"], payload["project_id"])
 
 
 class UpdateAnnouncementTestCase(JwtAPITestCase):
@@ -62,6 +62,7 @@ class UpdateAnnouncementTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.announcement = AnnouncementFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -77,21 +78,20 @@ class UpdateAnnouncementTestCase(JwtAPITestCase):
         ]
     )
     def test_update_announcement(self, role, expected_status_code):
-        announcement = AnnouncementFactory(project=self.project)
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {"description": faker.text()}
         response = self.client.patch(
             reverse(
                 "Announcement-detail",
-                args=(self.project.id, announcement.id),
+                args=(self.project.id, self.announcement.id),
             ),
             data=payload,
         )
-        assert response.status_code == expected_status_code
+        self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["description"] == payload["description"]
+            self.assertEqual(content["description"], payload["description"])
 
 
 class DeleteAnnouncementTestCase(JwtAPITestCase):
@@ -124,6 +124,6 @@ class DeleteAnnouncementTestCase(JwtAPITestCase):
                 args=(self.project.id, announcement.id),
             ),
         )
-        assert response.status_code == expected_status_code
+        self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_204_NO_CONTENT:
-            assert not Announcement.objects.filter(id=announcement.id).exists()
+            self.assertFalse(Announcement.objects.filter(id=announcement.id).exists())

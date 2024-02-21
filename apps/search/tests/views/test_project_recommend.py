@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
@@ -63,7 +64,10 @@ class RecommendProjectsTestCase(JwtAPITestCase):
             reverse("Project-similar", args=(self.project.id,)),
             {"organizations": self.organization.code},
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert len(content) == len(retrieved_projects)
-        assert [p["id"] for p in content] == [p["id"] for p in hits]
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertListEqual(
+            [p["id"] for p in content],
+            [p["id"] for p in hits],
+        )

@@ -38,7 +38,7 @@ class CreateGoalTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "status": Goal.GoalStatus.ONGOING,
             "project_id": project.id,
         }
@@ -46,11 +46,11 @@ class CreateGoalTestCase(JwtAPITestCase):
             reverse("Goal-list", args=(project.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["status"] == payload["status"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["status"], payload["status"])
 
 
 class UpdateGoalTestCase(JwtAPITestCase):
@@ -59,6 +59,7 @@ class UpdateGoalTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.goal = GoalFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -74,19 +75,17 @@ class UpdateGoalTestCase(JwtAPITestCase):
         ]
     )
     def test_update_goal(self, role, expected_code):
-        project = self.project
-        user = self.get_parameterized_test_user(role, instances=[project])
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        goal = GoalFactory(project=project)
-        payload = {"title": faker.sentence(nb_words=4)}
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Goal-detail", args=(project.id, goal.id)),
+            reverse("Goal-detail", args=(self.project.id, self.goal.id)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["title"] == payload["title"]
+            self.assertEqual(content["title"], payload["title"])
 
 
 class DeleteGoalTestCase(JwtAPITestCase):
@@ -117,9 +116,9 @@ class DeleteGoalTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Goal-detail", args=(project.id, goal.id)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not Goal.objects.filter(id=goal.id).exists()
+            self.assertFalse(Goal.objects.filter(id=goal.id).exists())
 
 
 class ListGoalsTestCase(JwtAPITestCase):
@@ -172,10 +171,10 @@ class ListGoalsTestCase(JwtAPITestCase):
                     args=(project.id,),
                 ),
             )
-            assert response.status_code == status.HTTP_200_OK
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_goals:
-                assert len(content) == 1
-                assert content[0]["id"] == self.goals[publication_status].id
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["id"], self.goals[publication_status].id)
             else:
-                assert len(content) == 0
+                self.assertEqual(len(content), 0)

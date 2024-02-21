@@ -1,10 +1,13 @@
 from django.urls import reverse
+from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
+
+faker = Faker()
 
 
 class CreatePeopleGroupLogoTestCase(JwtAPITestCase):
@@ -40,9 +43,9 @@ class CreatePeopleGroupLogoTestCase(JwtAPITestCase):
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            assert response.json()["static_url"] is not None
+            self.assertIsNotNone(response.json()["static_url"])
 
 
 class UpdatePeopleGroupLogoTestCase(JwtAPITestCase):
@@ -50,6 +53,10 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.people_group = PeopleGroupFactory(
+            organization=cls.organization,
+            logo_image=cls.get_test_image(),
+        )
 
     @parameterized.expand(
         [
@@ -66,36 +73,34 @@ class UpdatePeopleGroupLogoTestCase(JwtAPITestCase):
         ]
     )
     def test_update_people_group_logo(self, role, expected_code):
-        organization = self.organization
-        people_group = PeopleGroupFactory(
-            organization=organization, logo_image=self.get_test_image()
-        )
         user = self.get_parameterized_test_user(
-            role, owned_instance=people_group.logo_image, instances=[people_group]
+            role,
+            owned_instance=self.people_group.logo_image,
+            instances=[self.people_group],
         )
         self.client.force_authenticate(user)
         payload = {
-            "scale_x": 2.0,
-            "scale_y": 2.0,
-            "left": 1.0,
-            "top": 1.0,
-            "natural_ratio": 1.0,
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
             reverse(
                 "PeopleGroup-logo-list",
-                args=(organization.code, people_group.id),
+                args=(self.organization.code, self.people_group.id),
             ),
             data=payload,
             format="multipart",
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert response.json()["scale_x"] == payload["scale_x"]
-            assert response.json()["scale_y"] == payload["scale_y"]
-            assert response.json()["left"] == payload["left"]
-            assert response.json()["top"] == payload["top"]
-            assert response.json()["natural_ratio"] == payload["natural_ratio"]
+            self.assertEqual(response.json()["scale_x"], payload["scale_x"])
+            self.assertEqual(response.json()["scale_y"], payload["scale_y"])
+            self.assertEqual(response.json()["left"], payload["left"])
+            self.assertEqual(response.json()["top"], payload["top"])
+            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
 
 
 class DeletePeopleGroupLogoTestCase(JwtAPITestCase):
@@ -133,7 +138,7 @@ class DeletePeopleGroupLogoTestCase(JwtAPITestCase):
                 args=(people_group.organization.code, people_group.id),
             ),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             people_group.refresh_from_db()
-            assert not people_group.logo_image
+            self.assertIsNone(people_group.logo_image)

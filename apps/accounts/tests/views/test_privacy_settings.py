@@ -48,21 +48,20 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
+            reverse("PrivacySettings-detail", args=(instance.id,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == getattr(instance.privacy_settings, key)
-                for key in [
-                    "publication_status",
-                    "profile_picture",
-                    "skills",
-                    "socials",
-                    "mobile_phone",
-                    "personal_email",
-                ]
-            )
+            content = response.json()
+            for key in [
+                "publication_status",
+                "profile_picture",
+                "skills",
+                "socials",
+                "mobile_phone",
+                "personal_email",
+            ]:
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
     @parameterized.expand(
         [
@@ -83,21 +82,20 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
+            reverse("PrivacySettings-detail", args=(instance.id,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == getattr(instance.privacy_settings, key)
-                for key in [
-                    "publication_status",
-                    "profile_picture",
-                    "skills",
-                    "socials",
-                    "mobile_phone",
-                    "personal_email",
-                ]
-            )
+            content = response.json()
+            for key in [
+                "publication_status",
+                "profile_picture",
+                "skills",
+                "socials",
+                "mobile_phone",
+                "personal_email",
+            ]:
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
     @parameterized.expand(
         [
@@ -118,21 +116,20 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("PrivacySettings-detail", args=(instance.keycloak_id,))
+            reverse("PrivacySettings-detail", args=(instance.id,))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(
-                response.json()[key] == getattr(instance.privacy_settings, key)
-                for key in [
-                    "publication_status",
-                    "profile_picture",
-                    "skills",
-                    "socials",
-                    "mobile_phone",
-                    "personal_email",
-                ]
-            )
+            content = response.json()
+            for key in [
+                "publication_status",
+                "profile_picture",
+                "skills",
+                "socials",
+                "mobile_phone",
+                "personal_email",
+            ]:
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
 
 class UpdatePrivacySettingsTestCase(JwtAPITestCase):
@@ -140,6 +137,7 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.instance = UserFactory(groups=[cls.organization.get_users()])
 
     @parameterized.expand(
         [
@@ -153,10 +151,10 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
         ]
     )
     def test_update_privacy_settings(self, role, expected_code):
-        organization = self.organization
-        instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance.privacy_settings
+            role,
+            instances=[self.organization],
+            owned_instance=self.instance.privacy_settings,
         )
         self.client.force_authenticate(user)
         payload = {
@@ -171,9 +169,11 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
             ]
         }
         response = self.client.patch(
-            reverse("PrivacySettings-detail", args=(instance.keycloak_id,)),
+            reverse("PrivacySettings-detail", args=(self.instance.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert all(response.json()[key] == value for key, value in payload.items())
+            content = response.json()
+            for key, value in payload.items():
+                self.assertEqual(content[key], value)

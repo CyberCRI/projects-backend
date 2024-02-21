@@ -9,4 +9,4 @@ class AttachmentLinkSerializerTestCase(TestCase):
         project = ProjectFactory()
         data = {"project_id": project.id, "site_url": "https://unreachable.unreachable"}
         serializer = AttachmentLinkSerializer(data=data)
-        assert serializer.is_valid()
+        self.assertTrue(serializer.is_valid())

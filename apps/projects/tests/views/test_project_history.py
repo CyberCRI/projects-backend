@@ -3,6 +3,7 @@ from unittest.mock import patch
 from django.apps import apps
 from django.urls import reverse
 from faker import Faker
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
@@ -42,9 +43,9 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project_id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert version["history_change_reason"] == "Created project"
-        assert self.user.get_full_name() in version["members"]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(version["history_change_reason"], "Created project")
+        self.assertIn(self.user.get_full_name(), version["members"])
 
     def test_add_project_member(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -66,16 +67,18 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         response = self.client.get(
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert response.data["history_change_reason"] == "Added members"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(response.json()["history_change_reason"], "Added members")
 
     def test_remove_project_member(self):
-        project = ProjectFactory(organizations=[self.organization])
+
+        project = ProjectFactory(organizations=[self.organization], with_owner=True)
         self.client.force_authenticate(self.user)
         initial_count = (
             HistoricalProject.objects.filter(id=project.id)
@@ -96,14 +99,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert self.user.get_full_name() not in version["members"]
-        assert version["history_change_reason"] == "Removed members"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertNotIn(self.user.get_full_name(), version["members"])
+        self.assertEqual(version["history_change_reason"], "Removed members")
 
     def test_add_comment(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -115,7 +119,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "project_id": project.id,
-            "content": "content",
+            "content": faker.text(),
         }
         response = self.client.post(
             reverse("Comment-list", args=(project.id,)),
@@ -128,14 +132,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert comment_id in [c["id"] for c in version["comments"]]
-        assert version["history_change_reason"] == "Added comment"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertIn(comment_id, [c["id"] for c in version["comments"]])
+        self.assertEqual(version["history_change_reason"], "Added comment")
 
     def test_remove_comment(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -158,14 +163,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert comment.id not in [c["id"] for c in version["comments"]]
-        assert version["history_change_reason"] == "Deleted comment"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertNotIn(comment.id, [c["id"] for c in version["comments"]])
+        self.assertEqual(version["history_change_reason"], "Deleted comment")
 
     def test_update_comment(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -190,14 +196,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["history_change_reason"] == "Updated comment"
-        assert payload["content"] in [c["content"] for c in version["comments"]]
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["history_change_reason"], "Updated comment")
+        self.assertIn(payload["content"], [c["content"] for c in version["comments"]])
 
     def test_add_linked_project(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -210,7 +217,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "project_id": to_link.id,
-            "reason": "reason",
+            "reason": faker.sentence(),
             "target_id": project.id,
         }
         self.client.post(
@@ -223,14 +230,17 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert to_link.id in [p["project"]["id"] for p in version["linked_projects"]]
-        assert version["history_change_reason"] == "Added linked projects"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertIn(
+            to_link.id, [p["project"]["id"] for p in version["linked_projects"]]
+        )
+        self.assertEqual(version["history_change_reason"], "Added linked projects")
 
     def test_remove_linked_project(self):
         to_unlink = ProjectFactory(organizations=[self.organization])
@@ -251,16 +261,17 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert to_unlink.id not in [
-            p["project"]["id"] for p in version["linked_projects"]
-        ]
-        assert version["history_change_reason"] == "Removed linked projects"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertNotIn(
+            to_unlink.id, [p["project"]["id"] for p in version["linked_projects"]]
+        )
+        self.assertEqual(version["history_change_reason"], "Removed linked projects")
 
     def test_update_linked_project(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -271,7 +282,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"reason": "new reason"}
+        payload = {"reason": faker.sentence()}
         self.client.patch(
             reverse("LinkedProjects-detail", args=(project.id, linked_project.id)),
             data=payload,
@@ -282,13 +293,14 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["history_change_reason"] == "Updated linked projects"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["history_change_reason"], "Updated linked projects")
 
     def test_add_many_linked_project(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -301,7 +313,11 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         payload = {
             "projects": [
-                {"project_id": to_link.id, "reason": "reason", "target_id": project.id}
+                {
+                    "project_id": to_link.id,
+                    "reason": faker.sentence(),
+                    "target_id": project.id,
+                }
             ]
         }
         self.client.post(
@@ -314,14 +330,17 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert to_link.id in [p["project"]["id"] for p in version["linked_projects"]]
-        assert version["history_change_reason"] == "Added linked projects"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertIn(
+            to_link.id, [p["project"]["id"] for p in version["linked_projects"]]
+        )
+        self.assertEqual(version["history_change_reason"], "Added linked projects")
 
     def test_remove_many_linked_project(self):
         to_unlink = ProjectFactory(organizations=[self.organization])
@@ -344,16 +363,17 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert to_unlink.id not in [
-            p["project"]["id"] for p in version["linked_projects"]
-        ]
-        assert version["history_change_reason"] == "Removed linked projects"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertNotIn(
+            to_unlink.id, [p["project"]["id"] for p in version["linked_projects"]]
+        )
+        self.assertEqual(version["history_change_reason"], "Removed linked projects")
 
     def test_update_title(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -363,7 +383,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"title": "New title"}
+        payload = {"title": faker.sentence()}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -371,14 +391,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["title"] == "New title"
-        assert version["history_change_reason"] == "Updated: title"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["title"], payload["title"])
+        self.assertEqual(version["history_change_reason"], "Updated: title")
 
     def test_update_purpose(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -388,7 +409,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"purpose": "New purpose"}
+        payload = {"purpose": faker.sentence()}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -396,14 +417,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["purpose"] == "New purpose"
-        assert version["history_change_reason"] == "Updated: purpose"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["purpose"], payload["purpose"])
+        self.assertEqual(version["history_change_reason"], "Updated: purpose")
 
     def test_update_purpose_and_title(self):
         project = ProjectFactory(organizations=[self.organization])
@@ -413,7 +435,10 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"title": "New title", "purpose": "New purpose"}
+        payload = {
+            "title": faker.sentence(),
+            "purpose": faker.sentence(),
+        }
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -421,15 +446,16 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["purpose"] == "New purpose"
-        assert version["title"] == "New title"
-        assert version["history_change_reason"] == "Updated: title + purpose"
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["purpose"], payload["purpose"])
+        self.assertEqual(version["title"], payload["title"])
+        self.assertEqual(version["history_change_reason"], "Updated: title + purpose")
 
     def test_update_categories(self):
         organization = OrganizationFactory()
@@ -450,15 +476,16 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["history_change_reason"] == "Updated: categories"
-        assert set(version["categories"]) == {pc1.name, pc2.name}
-        assert version["main_category"] == pc1.name
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["history_change_reason"], "Updated: categories")
+        self.assertSetEqual(set(version["categories"]), {pc1.name, pc2.name})
+        self.assertEqual(version["main_category"], pc1.name)
 
     def test_update_main_category(self):
         organization = OrganizationFactory()
@@ -479,15 +506,16 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["history_change_reason"] == "Updated: categories"
-        assert version["categories"] == [pc2.name]
-        assert version["main_category"] == pc2.name
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["history_change_reason"], "Updated: categories")
+        self.assertEqual(version["categories"], [pc2.name])
+        self.assertEqual(version["main_category"], pc2.name)
 
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_wikipedia_tags(self, mocked):
@@ -508,14 +536,15 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["history_change_reason"] == "Updated: wikipedia_tags"
-        assert f"name_en_{wikipedia_qid}" in version["wikipedia_tags"]
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["history_change_reason"], "Updated: wikipedia_tags")
+        self.assertIn(f"name_en_{wikipedia_qid}", version["wikipedia_tags"])
 
     def test_update_organization_tags(self):
         organization = OrganizationFactory()
@@ -535,11 +564,12 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             reverse("Project-versions-detail", args=(project.id, latest_version.pk))
         )
         version = response.json()
-        assert response.status_code == 200
-        assert (
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
             HistoricalProject.objects.filter(id=project.id)
             .exclude(history_change_reason=None)
-            .count()
-        ) == initial_count + 1
-        assert version["history_change_reason"] == "Updated: organization_tags"
-        assert tag.name in version["organization_tags"]
+            .count(),
+            initial_count + 1,
+        )
+        self.assertEqual(version["history_change_reason"], "Updated: organization_tags")
+        self.assertIn(tag.name, version["organization_tags"])

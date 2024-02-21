@@ -35,12 +35,12 @@ class DeletedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         project.members.add(member)
         payload = {
-            "users": [member.keycloak_id],
+            "users": [member.id],
         }
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(project.pk, member.pk, owner.pk)
 
     @patch("apps.projects.views.notify_group_member_deleted.delay")
@@ -61,7 +61,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
-        assert response.status_code == status.HTTP_204_NO_CONTENT
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)
 
     def test_notification_task(self):
@@ -84,24 +84,24 @@ class DeletedMemberTestCase(JwtAPITestCase):
         _notify_member_deleted(project.pk, member.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 2
+        self.assertEqual(notifications.count(), 2)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.MEMBER_REMOVED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 1
+            self.assertEqual(notification.type, Notification.Types.MEMBER_REMOVED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
             deleted_members = notification.context["deleted_members"]
-            assert {m["id"] for m in deleted_members} == {member.id}
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a retiré un membre."
+            self.assertSetEqual({m["id"] for m in deleted_members}, {member.id})
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a retiré un membre.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} removed a member."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} removed a member.",
             )
 
     def test_group_notification_task(self):
@@ -135,22 +135,22 @@ class DeletedMemberTestCase(JwtAPITestCase):
         )
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 2
+        self.assertEqual(notifications.count(), 2)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.GROUP_MEMBER_REMOVED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a retiré un groupe des membres."
+            self.assertEqual(notification.type, Notification.Types.GROUP_MEMBER_REMOVED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a retiré un groupe des membres.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} removed a group from members."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} removed a group from members.",
             )
 
     def test_merged_notifications_task(self):
@@ -175,22 +175,24 @@ class DeletedMemberTestCase(JwtAPITestCase):
         _notify_member_deleted(project.pk, member_2.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 2
+        self.assertEqual(notifications.count(), 2)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.MEMBER_REMOVED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 2
+            self.assertEqual(notification.type, Notification.Types.MEMBER_REMOVED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
             deleted_members = notification.context["deleted_members"]
-            assert {m["id"] for m in deleted_members} == {member_1.id, member_2.id}
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a retiré 2 membres."
+            self.assertSetEqual(
+                {m["id"] for m in deleted_members}, {member_1.id, member_2.id}
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} removed 2 members."
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a retiré 2 membres.",
+            )
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} removed 2 members.",
             )

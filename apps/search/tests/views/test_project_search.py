@@ -3,6 +3,7 @@ import time
 from algoliasearch_django import algolia_engine
 from django.urls import reverse
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
@@ -117,12 +118,13 @@ class ProjectSearchTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == len(retrieved_projects)
-        assert {project["id"] for project in content} == {
-            self.projects[project].id for project in retrieved_projects
-        }
+        self.assertEqual(len(content), len(retrieved_projects))
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {self.projects[project].id for project in retrieved_projects},
+        )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
@@ -130,30 +132,36 @@ class ProjectSearchTestCase(JwtAPITestCase):
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?organizations={self.organization_2.code}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",)) + "?sdgs=2"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_language(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",)) + "?languages=en"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_categories(self):
         self.client.force_authenticate(self.superadmin)
@@ -161,10 +169,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?categories={self.category_2.id}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_wikipedia_tags(self):
         self.client.force_authenticate(self.superadmin)
@@ -172,10 +182,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?wikipedia_tags={self.wikipedia_tag_2.wikipedia_qid}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_organization_tags(self):
         self.client.force_authenticate(self.superadmin)
@@ -183,18 +195,22 @@ class ProjectSearchTestCase(JwtAPITestCase):
             reverse("ProjectSearch-search", args=("algolia",))
             + f"?organization_tags={self.organization_tag_2.id}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )
 
     def test_filter_by_members(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("ProjectSearch-search", args=("algolia",))
-            + f"?members={self.public_project_2_member.keycloak_id}"
+            + f"?members={self.public_project_2_member.id}"
         )
-        assert response.status_code == 200
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        assert len(content) == 1
-        assert {project["id"] for project in content} == {self.public_project_2.id}
+        self.assertEqual(len(content), 1)
+        self.assertSetEqual(
+            {project["id"] for project in content}, {self.public_project_2.id}
+        )

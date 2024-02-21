@@ -54,12 +54,12 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
             response = self.client.get(
-                reverse("NotificationSettings-detail", args=(user.keycloak_id,))
+                reverse("NotificationSettings-detail", args=(user.id,))
             )
             if publication_status in retrieved_notification_settings:
-                assert response.status_code == status.HTTP_200_OK
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
-                assert response.status_code == status.HTTP_404_NOT_FOUND
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class UpdateNotificationSettingsTestCase(JwtAPITestCase):
@@ -98,38 +98,38 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             "project_has_been_reviewed": faker.boolean(),
         }
         response = self.client.patch(
-            reverse("NotificationSettings-detail", args=(self.user.keycloak_id,)),
+            reverse("NotificationSettings-detail", args=(self.user.id,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             notification_settings = self.user.notification_settings
             notification_settings.refresh_from_db()
-            assert (
-                notification_settings.notify_added_to_project
-                == payload["notify_added_to_project"]
+            self.assertEqual(
+                notification_settings.notify_added_to_project,
+                payload["notify_added_to_project"],
             )
-            assert (
-                notification_settings.announcement_published
-                == payload["announcement_published"]
+            self.assertEqual(
+                notification_settings.announcement_published,
+                payload["announcement_published"],
             )
-            assert (
-                notification_settings.followed_project_has_been_edited
-                == payload["followed_project_has_been_edited"]
+            self.assertEqual(
+                notification_settings.followed_project_has_been_edited,
+                payload["followed_project_has_been_edited"],
             )
-            assert (
-                notification_settings.project_has_been_commented
-                == payload["project_has_been_commented"]
+            self.assertEqual(
+                notification_settings.project_has_been_commented,
+                payload["project_has_been_commented"],
             )
-            assert (
-                notification_settings.project_has_been_edited
-                == payload["project_has_been_edited"]
+            self.assertEqual(
+                notification_settings.project_has_been_edited,
+                payload["project_has_been_edited"],
             )
-            assert (
-                notification_settings.project_ready_for_review
-                == payload["project_ready_for_review"]
+            self.assertEqual(
+                notification_settings.project_ready_for_review,
+                payload["project_ready_for_review"],
             )
-            assert (
-                notification_settings.project_has_been_reviewed
-                == payload["project_has_been_reviewed"]
+            self.assertEqual(
+                notification_settings.project_has_been_reviewed,
+                payload["project_has_been_reviewed"],
             )

@@ -95,51 +95,59 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
             top_tags = content["top_tags"]
             if role == TestRoles.SUPERADMIN:
-                assert len(by_organization) == 2
-                assert by_organization_1[0]["project_count"] == 3
-                assert by_organization_2[0]["project_count"] == 2
+                self.assertEqual(len(by_organization), 2)
+                self.assertEqual(by_organization_1[0]["project_count"], 3)
+                self.assertEqual(by_organization_2[0]["project_count"], 2)
 
-                assert len(by_month) == 3
-                assert by_month_1[0]["created_count"] == 2
-                assert by_month_1[0]["updated_count"] == 1
-                assert by_month_2[0]["created_count"] == 1
-                assert by_month_2[0]["updated_count"] == 0
-                assert by_month_3[0]["created_count"] == 1
-                assert by_month_3[0]["updated_count"] == 3
+                self.assertEqual(len(by_month), 3)
+                self.assertEqual(by_month_1[0]["created_count"], 2)
+                self.assertEqual(by_month_1[0]["updated_count"], 1)
+                self.assertEqual(by_month_2[0]["created_count"], 1)
+                self.assertEqual(by_month_2[0]["updated_count"], 0)
+                self.assertEqual(by_month_3[0]["created_count"], 1)
+                self.assertEqual(by_month_3[0]["updated_count"], 3)
 
-                assert len(by_sdg) == 3
-                assert by_sdg_1[0]["project_count"] == 1
-                assert by_sdg_2[0]["project_count"] == 3
-                assert by_sdg_3[0]["project_count"] == 1
+                self.assertEqual(len(by_sdg), 3)
+                self.assertEqual(by_sdg_1[0]["project_count"], 1)
+                self.assertEqual(by_sdg_2[0]["project_count"], 3)
+                self.assertEqual(by_sdg_3[0]["project_count"], 1)
 
-                assert len(top_tags) == 3
-                assert content["top_tags"][0]["id"] == self.tag_1.pk
-                assert content["top_tags"][0]["project_count"] == 3
-                assert content["top_tags"][1]["id"] in [self.tag_2.pk, self.tag_3.pk]
-                assert content["top_tags"][1]["project_count"] == 1
-                assert content["top_tags"][2]["id"] in [self.tag_2.pk, self.tag_3.pk]
-                assert content["top_tags"][2]["project_count"] == 1
+                self.assertEqual(len(top_tags), 3)
+                self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
+                self.assertEqual(content["top_tags"][0]["project_count"], 3)
+                self.assertIn(
+                    content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk]
+                )
+                self.assertEqual(content["top_tags"][1]["project_count"], 1)
+                self.assertIn(
+                    content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk]
+                )
+                self.assertEqual(content["top_tags"][2]["project_count"], 1)
             else:
-                assert len(by_organization) == 1
-                assert by_organization_1[0]["project_count"] == 3
+                self.assertEqual(len(by_organization), 1)
+                self.assertEqual(by_organization_1[0]["project_count"], 3)
 
-                assert len(by_month) == 3
-                assert by_month_1[0]["created_count"] == 2
-                assert by_month_1[0]["updated_count"] == 1
-                assert by_month_2[0]["created_count"] == 1
-                assert by_month_2[0]["updated_count"] == 0
-                assert by_month_3[0]["created_count"] == 0
-                assert by_month_3[0]["updated_count"] == 2
+                self.assertEqual(len(by_month), 3)
+                self.assertEqual(by_month_1[0]["created_count"], 2)
+                self.assertEqual(by_month_1[0]["updated_count"], 1)
+                self.assertEqual(by_month_2[0]["created_count"], 1)
+                self.assertEqual(by_month_2[0]["updated_count"], 0)
+                self.assertEqual(by_month_3[0]["created_count"], 0)
+                self.assertEqual(by_month_3[0]["updated_count"], 2)
 
-                assert len(by_sdg) == 3
-                assert by_sdg_1[0]["project_count"] == 1
-                assert by_sdg_2[0]["project_count"] == 2
-                assert by_sdg_3[0]["project_count"] == 1
+                self.assertEqual(len(by_sdg), 3)
+                self.assertEqual(by_sdg_1[0]["project_count"], 1)
+                self.assertEqual(by_sdg_2[0]["project_count"], 2)
+                self.assertEqual(by_sdg_3[0]["project_count"], 1)
 
-                assert len(content["top_tags"]) == 3
-                assert content["top_tags"][0]["id"] == self.tag_1.pk
-                assert content["top_tags"][0]["project_count"] == 2
-                assert content["top_tags"][1]["id"] in [self.tag_2.pk, self.tag_3.pk]
-                assert content["top_tags"][1]["project_count"] == 1
-                assert content["top_tags"][2]["id"] in [self.tag_2.pk, self.tag_3.pk]
-                assert content["top_tags"][2]["project_count"] == 1
+                self.assertEqual(len(content["top_tags"]), 3)
+                self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
+                self.assertEqual(content["top_tags"][0]["project_count"], 2)
+                self.assertIn(
+                    content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk]
+                )
+                self.assertEqual(content["top_tags"][1]["project_count"], 1)
+                self.assertIn(
+                    content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk]
+                )
+                self.assertEqual(content["top_tags"][2]["project_count"], 1)

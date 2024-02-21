@@ -42,10 +42,10 @@ class CreateLinkedProjectTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("LinkedProjects-list", args=(project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["project"]["id"] == self.linked_project_1.id
+            self.assertEqual(content["project"]["id"], self.linked_project_1.id)
 
     @parameterized.expand(
         [
@@ -79,13 +79,13 @@ class CreateLinkedProjectTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("LinkedProjects-add-many", args=(project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            assert {p["project"]["id"] for p in content["linked_projects"]} == {
-                self.linked_project_1.id,
-                self.linked_project_2.id,
-            }
+            self.assertSetEqual(
+                {p["project"]["id"] for p in content["linked_projects"]},
+                {self.linked_project_1.id, self.linked_project_2.id},
+            )
 
 
 class DeleteLinkedProjectTestCase(JwtAPITestCase):
@@ -117,9 +117,9 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("LinkedProjects-detail", args=(project.id, instance.id))
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            assert not project.linked_projects.filter(id=instance.id).exists()
+            self.assertFalse(project.linked_projects.filter(id=instance.id).exists())
 
     @parameterized.expand(
         [
@@ -144,7 +144,7 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("LinkedProjects-delete-many", args=(project.id,)), data=payload
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            assert not project.linked_projects.filter(id=instance_1.id).exists()
-            assert not project.linked_projects.filter(id=instance_2.id).exists()
+            self.assertFalse(project.linked_projects.filter(id=instance_1.id).exists())
+            self.assertFalse(project.linked_projects.filter(id=instance_2.id).exists())

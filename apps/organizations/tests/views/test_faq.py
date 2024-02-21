@@ -30,7 +30,7 @@ class CreateFaqTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": faker.text(),
             "organization_code": self.organization.code,
         }
@@ -38,11 +38,11 @@ class CreateFaqTestCase(JwtAPITestCase):
             reverse("Faq-list", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_201_CREATED:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["content"] == payload["content"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["content"], payload["content"])
 
 
 class RetrieveFaqTestCase(JwtAPITestCase):
@@ -64,10 +64,10 @@ class RetrieveFaqTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Faq-list", args=(self.organization.code,)),
         )
-        assert response.status_code == status.HTTP_200_OK
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        assert content["title"] == self.organization.faq.title
-        assert content["content"] == self.organization.faq.content
+        self.assertEqual(content["title"], self.organization.faq.title)
+        self.assertEqual(content["content"], self.organization.faq.content)
 
 
 class UpdateFaqTestCase(JwtAPITestCase):
@@ -91,18 +91,18 @@ class UpdateFaqTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(nb_words=4),
+            "title": faker.sentence(),
             "content": faker.text(),
         }
         response = self.client.patch(
             reverse("Faq-list", args=(self.organization.code,)),
             data=payload,
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_200_OK:
             content = response.json()
-            assert content["title"] == payload["title"]
-            assert content["content"] == payload["content"]
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["content"], payload["content"])
 
 
 class DeleteFaqTestCase(JwtAPITestCase):
@@ -128,6 +128,6 @@ class DeleteFaqTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse("Faq-list", args=(self.organization.code,)),
         )
-        assert response.status_code == expected_code
+        self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_204_NO_CONTENT:
-            assert not Faq.objects.filter(id=faq.id).exists()
+            self.assertFalse(Faq.objects.filter(id=faq.id).exists())

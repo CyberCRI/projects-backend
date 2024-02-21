@@ -14,7 +14,7 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
     publication_status = Project.PublicationStatus.PUBLIC
     life_status = FuzzyChoice(Project.LifeStatus.choices, getter=lambda c: c[0])
     language = language_factory()
-    title = factory.Faker("sentence", nb_words=4)
+    title = factory.Faker("sentence")
     header_image = None
     description = factory.Faker("text")
     purpose = factory.Faker("text")
@@ -29,8 +29,13 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
     @classmethod
     def create(cls, **kwargs):
         instance = super().create(**kwargs)
-        instance.setup_permissions(UserFactory())
+        instance.setup_permissions()
         return instance
+
+    @factory.post_generation
+    def with_owner(self, create, extracted, **kwargs):
+        if create and extracted is True:
+            UserFactory(groups=[self.get_owners()])
 
 
 class ProjectFactory(SeedProjectFactory):

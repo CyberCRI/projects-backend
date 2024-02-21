@@ -84,9 +84,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         for user_type, user in self.users.items():
-            response = self.client.get(
-                reverse("ProjectUser-detail", args=(user.keycloak_id,))
-            )
+            response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
             if user_type in expected_users:
                 self.assertEqual(response.status_code, 200)
             else:
