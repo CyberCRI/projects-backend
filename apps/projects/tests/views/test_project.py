@@ -699,8 +699,10 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
 
     def test_filter_by_category(self):
-        filters = {"categories": f"{self.category_1.id},{self.category_2.id}"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list")
+            + f"?categories={self.category_1.id},{self.category_2.id}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -710,8 +712,9 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_organization_code(self):
-        filters = {"organizations": f"{self.organization_1.code}"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list") + f"?organizations={self.organization_1.code}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -721,8 +724,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_language(self):
-        filters = {"languages": "en"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(reverse("Project-list") + "?languages=en")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -732,8 +734,9 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_members(self):
-        filters = {"members": f"{self.user_2.id},{self.user_3.id}"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list") + f"?members={self.user_2.id},{self.user_3.id}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -743,8 +746,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_sdgs(self):
-        filters = {"sdgs": "1,4,7"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(reverse("Project-list") + "?sdgs=1,4,7")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -754,10 +756,10 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_tags(self):
-        filters = {
-            "wikipedia_tags": f"{self.tag_1.wikipedia_qid},{self.tag_2.wikipedia_qid}"
-        }
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list")
+            + f"?wikipedia_tags={self.tag_1.wikipedia_qid},{self.tag_2.wikipedia_qid}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -767,12 +769,11 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_member_role(self):
-        filters = {
-            "members": f"{self.user_1.id},{self.user_2.id}",
-            "member_role": f"{Project.DefaultGroup.OWNERS},{Project.DefaultGroup.MEMBERS}",
-        }
-
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list")
+            + f"?members={self.user_1.id},{self.user_2.id}"
+            + f"&member_role={Project.DefaultGroup.OWNERS},{Project.DefaultGroup.MEMBERS}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -782,10 +783,10 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_life_status(self):
-        filters = {
-            "life_status": f"{Project.LifeStatus.RUNNING},{Project.LifeStatus.COMPLETED}"
-        }
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list")
+            + f"?life_status={Project.LifeStatus.RUNNING},{Project.LifeStatus.COMPLETED}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         self.assertEqual(response.data["count"], 2)
@@ -795,8 +796,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_creation_year(self):
-        filters = {"creation_year": "2020,2021"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(reverse("Project-list") + "?creation_year=2020,2021")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -806,8 +806,9 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_filter_by_ids_and_slugs(self):
-        filters = {"ids": f"{self.project_1.id},{self.project_2.slug}"}
-        response = self.client.get(reverse("Project-list"), filters)
+        response = self.client.get(
+            reverse("Project-list") + f"?ids={self.project_1.id},{self.project_2.slug}"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 2)
@@ -817,8 +818,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_order_by_created_date(self):
-        orderby = {"ordering": "created_at"}
-        response = self.client.get(reverse("Project-list"), orderby)
+        response = self.client.get(reverse("Project-list") + "?ordering=created_at")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 3)
@@ -830,8 +830,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_order_by_created_date_reverse(self):
-        orderby = {"ordering": "-created_at"}
-        response = self.client.get(reverse("Project-list"), orderby)
+        response = self.client.get(reverse("Project-list") + "?ordering=-created_at")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 3)
@@ -843,8 +842,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_order_by_updated_date(self):
-        orderby = {"ordering": "updated_at"}
-        response = self.client.get(reverse("Project-list"), orderby)
+        response = self.client.get(reverse("Project-list") + "?ordering=updated_at")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 3)
@@ -856,8 +854,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         )
 
     def test_order_by_updated_date_reverse(self):
-        orderby = {"ordering": "-updated_at"}
-        response = self.client.get(reverse("Project-list"), orderby)
+        response = self.client.get(reverse("Project-list") + "?ordering=-updated_at")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         content = response.json()
         self.assertEqual(content["count"], 3)

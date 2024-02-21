@@ -61,8 +61,8 @@ class RecommendProjectsTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user=user)
         response = self.client.get(
-            reverse("Project-similar", args=(self.project.id,)),
-            {"organizations": self.organization.code},
+            reverse("Project-similar", args=(self.project.id,))
+            + f"?organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()

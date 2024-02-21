@@ -252,8 +252,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_expire_at(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "expire_at"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=expire_at"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -264,8 +264,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_expire_at_reverse(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "-expire_at"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=-expire_at"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -276,8 +276,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_people_group_name(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "people_group__name"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=people_group__name"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -288,8 +288,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_people_group_name_reverse(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "-people_group__name"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=-people_group__name"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -300,8 +300,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_owner_given_name(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "owner__given_name"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=owner__given_name"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -312,8 +312,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_owner_given_name_reverse(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "-owner__given_name"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=-owner__given_name"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -324,8 +324,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_owner_family_name(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "owner__family_name"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=owner__family_name"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -336,8 +336,8 @@ class OrderInvitationTestCase(JwtAPITestCase):
 
     def test_order_by_owner_family_name_reverse(self):
         response = self.client.get(
-            reverse("Invitation-list", args=(self.organization.code,)),
-            data={"ordering": "-owner__family_name"},
+            reverse("Invitation-list", args=(self.organization.code,))
+            + "?ordering=-owner__family_name"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
