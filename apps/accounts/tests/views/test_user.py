@@ -872,24 +872,24 @@ class MiscUserTestCase(JwtAPITestCase):
             f"organizations.view_org_project.{organization.pk}",
         ]
         response = self.client.get(
-            reverse("ProjectUser-has-permissions", args=(user.id,)),
-            {"permissions": ",".join(permissions)},
+            reverse("ProjectUser-has-permissions", args=(user.id,))
+            + f"?permissions={','.join(permissions)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.json()["result"])
 
         assign_perm("organizations.view_org_project", user, organization)
         response = self.client.get(
-            reverse("ProjectUser-has-permissions", args=(user.id,)),
-            {"permissions": ",".join(permissions)},
+            reverse("ProjectUser-has-permissions", args=(user.id,))
+            + f"?permissions={','.join(permissions)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.json()["result"])
 
         assign_perm("projects.view_project", user)
         response = self.client.get(
-            reverse("ProjectUser-has-permissions", args=(user.id,)),
-            {"permissions": ",".join(permissions)},
+            reverse("ProjectUser-has-permissions", args=(user.id,))
+            + f"?permissions={','.join(permissions)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.json()["result"])

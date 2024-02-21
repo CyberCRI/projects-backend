@@ -17,7 +17,7 @@ class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
     def test_search_tags(self, mocked):
         mocked.side_effect = self.search_wikipedia_tag_mocked_side_effect
         response = self.client.get(
-            reverse("WikibaseItem-list"), {"query": faker.word()}
+            reverse("WikibaseItem-list") + f"?query={faker.word()}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -30,7 +30,7 @@ class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
     def test_search_tags_pagination(self, mocked):
         mocked.side_effect = self.search_wikipedia_tag_mocked_side_effect
         response = self.client.get(
-            reverse("WikibaseItem-list"), {"query": faker.word(), "limit": 10}
+            reverse("WikibaseItem-list") + f"?query={faker.word()}&limit=10"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -85,7 +85,7 @@ class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
 
     def test_autocomplete_default_limit(self):
         response = self.client.get(
-            reverse("WikibaseItem-autocomplete"), {"query": self.query}
+            reverse("WikibaseItem-autocomplete") + f"?query={self.query}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -103,7 +103,7 @@ class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
 
     def test_autocomplete_custom_limit(self):
         response = self.client.get(
-            reverse("WikibaseItem-autocomplete"), {"query": self.query, "limit": 10}
+            reverse("WikibaseItem-autocomplete") + f"?query={self.query}&limit=10"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
