@@ -67,24 +67,24 @@ class ProjectChangesTestCase(JwtAPITestCase):
         )
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.PROJECT_UPDATED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 1
+            self.assertEqual(notification.type, Notification.Types.PROJECT_UPDATED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
             updated_fields = notification.context["updated_fields"]
-            assert updated_fields == ["title"]
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a modifié les champs suivants: titre."
+            self.assertEqual(updated_fields, ["title"])
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a modifié les champs suivants: titre.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} edited the title."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} edited the title.",
             )
 
     def test_merged_notifications_task(self):
@@ -117,25 +117,31 @@ class ProjectChangesTestCase(JwtAPITestCase):
         )
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.PROJECT_UPDATED
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 2
+            self.assertEqual(notification.type, Notification.Types.PROJECT_UPDATED)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
             updated_fields = notification.context["updated_fields"]
-            assert set(updated_fields) == {"main goal", "title"}
-            assert notification.reminder_message_fr in [
-                f"{sender.get_full_name()} a modifié les champs suivants: objectif principal et titre.",
-                f"{sender.get_full_name()} a modifié les champs suivants: titre et objectif principal.",
-            ]
-            assert notification.reminder_message_en in [
-                f"{sender.get_full_name()} edited the main goal and title.",
-                f"{sender.get_full_name()} edited the title and main goal.",
-            ]
+            self.assertEqual(set(updated_fields), {"main goal", "title"})
+            self.assertIn(
+                notification.reminder_message_fr,
+                [
+                    f"{sender.get_full_name()} a modifié les champs suivants: objectif principal et titre.",
+                    f"{sender.get_full_name()} a modifié les champs suivants: titre et objectif principal.",
+                ],
+            )
+            self.assertIn(
+                notification.reminder_message_en,
+                [
+                    f"{sender.get_full_name()} edited the main goal and title.",
+                    f"{sender.get_full_name()} edited the title and main goal.",
+                ],
+            )
 
 
 class NewBlogEntryTestCase(JwtAPITestCase):
@@ -186,22 +192,22 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         _notify_new_blogentry(blog_entry.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.BLOG_ENTRY
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a publié une nouvelle entrée de blog."
+            self.assertEqual(notification.type, Notification.Types.BLOG_ENTRY)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a publié une nouvelle entrée de blog.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} published a new blog entry."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} published a new blog entry.",
             )
 
     def test_merged_notifications_task(self):
@@ -228,20 +234,20 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         _notify_new_blogentry(blog_entry_2.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.BLOG_ENTRY
-            assert notification.project == project
-            assert notification.to_send == (user != not_notified)
-            assert not notification.is_viewed
-            assert notification.count == 2
-            assert (
-                notification.reminder_message_fr
-                == f"{sender.get_full_name()} a publié 2 nouvelles entrées de blog."
+            self.assertEqual(notification.type, Notification.Types.BLOG_ENTRY)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.to_send, user != not_notified)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
+            self.assertEqual(
+                notification.reminder_message_fr,
+                f"{sender.get_full_name()} a publié 2 nouvelles entrées de blog.",
             )
-            assert (
-                notification.reminder_message_en
-                == f"{sender.get_full_name()} published 2 new blog entries."
+            self.assertEqual(
+                notification.reminder_message_en,
+                f"{sender.get_full_name()} published 2 new blog entries.",
             )

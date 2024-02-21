@@ -105,31 +105,31 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_200_OK:
             notification_settings = self.user.notification_settings
             notification_settings.refresh_from_db()
-            assert (
-                notification_settings.notify_added_to_project
-                == payload["notify_added_to_project"]
+            self.assertEqual(
+                notification_settings.notify_added_to_project,
+                payload["notify_added_to_project"],
             )
-            assert (
-                notification_settings.announcement_published
-                == payload["announcement_published"]
+            self.assertEqual(
+                notification_settings.announcement_published,
+                payload["announcement_published"],
             )
-            assert (
-                notification_settings.followed_project_has_been_edited
-                == payload["followed_project_has_been_edited"]
+            self.assertEqual(
+                notification_settings.followed_project_has_been_edited,
+                payload["followed_project_has_been_edited"],
             )
-            assert (
-                notification_settings.project_has_been_commented
-                == payload["project_has_been_commented"]
+            self.assertEqual(
+                notification_settings.project_has_been_commented,
+                payload["project_has_been_commented"],
             )
-            assert (
-                notification_settings.project_has_been_edited
-                == payload["project_has_been_edited"]
+            self.assertEqual(
+                notification_settings.project_has_been_edited,
+                payload["project_has_been_edited"],
             )
-            assert (
-                notification_settings.project_ready_for_review
-                == payload["project_ready_for_review"]
+            self.assertEqual(
+                notification_settings.project_ready_for_review,
+                payload["project_ready_for_review"],
             )
-            assert (
-                notification_settings.project_has_been_reviewed
-                == payload["project_has_been_reviewed"]
+            self.assertEqual(
+                notification_settings.project_has_been_reviewed,
+                payload["project_has_been_reviewed"],
             )

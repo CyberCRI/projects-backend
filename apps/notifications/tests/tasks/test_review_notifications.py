@@ -70,22 +70,22 @@ class NewReviewTestCase(JwtAPITestCase):
         _notify_new_review(review.pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.REVIEW
-            assert notification.project == project
-            assert not notification.to_send
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert notification.reminder_message_fr == ""
-            assert notification.reminder_message_en == ""
-        assert len(mail.outbox) == 2
-        assert {notified.email, follower.email} == {
-            mail.outbox[0].to[0],
-            mail.outbox[1].to[0],
-        }
+            self.assertEqual(notification.type, Notification.Types.REVIEW)
+            self.assertEqual(notification.project, project)
+            self.assertFalse(notification.to_send)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(notification.reminder_message_fr, "")
+            self.assertEqual(notification.reminder_message_en, "")
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertSetEqual(
+            {notified.email, follower.email},
+            {mail.outbox[0].to[0], mail.outbox[1].to[0]},
+        )
 
     def test_merged_notifications_task(self):
         project = ProjectFactory(
@@ -109,21 +109,25 @@ class NewReviewTestCase(JwtAPITestCase):
         _notify_new_review(reviews[1].pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 3
+        self.assertEqual(notifications.count(), 3)
 
         for user in [not_notified, notified, follower]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.REVIEW
-            assert notification.project == project
-            assert not notification.to_send
-            assert not notification.is_viewed
-            assert notification.count == 2
-            assert notification.reminder_message_fr == ""
-            assert notification.reminder_message_en == ""
+            self.assertEqual(notification.type, Notification.Types.REVIEW)
+            self.assertEqual(notification.project, project)
+            self.assertFalse(notification.to_send)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
+            self.assertEqual(notification.reminder_message_fr, "")
+            self.assertEqual(notification.reminder_message_en, "")
 
-        assert len(mail.outbox) == 4
-        assert [mail.outbox[i].to[0] for i in range(4)].count(notified.email) == 2
-        assert [mail.outbox[i].to[0] for i in range(4)].count(follower.email) == 2
+        self.assertEqual(len(mail.outbox), 4)
+        self.assertEqual(
+            [mail.outbox[i].to[0] for i in range(4)].count(notified.email), 2
+        )
+        self.assertEqual(
+            [mail.outbox[i].to[0] for i in range(4)].count(follower.email), 2
+        )
 
 
 class ReadyForReviewTestCase(JwtAPITestCase):
@@ -171,20 +175,20 @@ class ReadyForReviewTestCase(JwtAPITestCase):
         _notify_ready_for_review(project.pk, owners[0].pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 2
+        self.assertEqual(notifications.count(), 2)
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.READY_FOR_REVIEW
-            assert notification.project == project
-            assert notification.receiver == user
-            assert not notification.to_send
-            assert not notification.is_viewed
-            assert notification.count == 1
-            assert notification.reminder_message_fr == ""
-            assert notification.reminder_message_en == ""
+            self.assertEqual(notification.type, Notification.Types.READY_FOR_REVIEW)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.receiver, user)
+            self.assertFalse(notification.to_send)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+            self.assertEqual(notification.reminder_message_fr, "")
+            self.assertEqual(notification.reminder_message_en, "")
 
-        assert len(mail.outbox) == 1
-        assert notified.email == mail.outbox[0].to[0]
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(notified.email, mail.outbox[0].to[0])
 
     def test_merged_notifications_task(self):
         project = ProjectFactory(
@@ -208,19 +212,19 @@ class ReadyForReviewTestCase(JwtAPITestCase):
         _notify_ready_for_review(project.pk, owners[0].pk)
 
         notifications = Notification.objects.filter(project=project)
-        assert notifications.count() == 2
+        self.assertEqual(notifications.count(), 2)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            assert notification.type == Notification.Types.READY_FOR_REVIEW
-            assert notification.project == project
-            assert notification.receiver == user
-            assert not notification.to_send
-            assert not notification.is_viewed
-            assert notification.count == 2
-            assert notification.reminder_message_fr == ""
-            assert notification.reminder_message_en == ""
+            self.assertEqual(notification.type, Notification.Types.READY_FOR_REVIEW)
+            self.assertEqual(notification.project, project)
+            self.assertEqual(notification.receiver, user)
+            self.assertFalse(notification.to_send)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 2)
+            self.assertEqual(notification.reminder_message_fr, "")
+            self.assertEqual(notification.reminder_message_en, "")
 
-        assert len(mail.outbox) == 2
-        assert notified.email == mail.outbox[0].to[0]
-        assert notified.email == mail.outbox[1].to[0]
+        self.assertEqual(len(mail.outbox), 2)
+        self.assertEqual(notified.email, mail.outbox[0].to[0])
+        self.assertEqual(notified.email, mail.outbox[1].to[0])

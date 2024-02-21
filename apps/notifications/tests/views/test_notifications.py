@@ -30,6 +30,6 @@ class NotificationsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for notification in notifications:
             notification.refresh_from_db()
-            assert notification.is_viewed is True
+            self.assertTrue(notification.is_viewed)
         unchanged.refresh_from_db()
-        assert unchanged.is_viewed is False
+        self.assertFalse(unchanged.is_viewed)

@@ -100,34 +100,37 @@ class GoogleTasksTestCase(GoogleTestCase):
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             user = ProjectUser.objects.get(id=content["id"])
-            assert user.google_account is not None
+            self.assertIsNotNone(user.google_account)
             mocked_create_user.assert_called_once_with(user, "/CRI/Test")
             mocked_add_user_alias.assert_called_once_with(user.google_account)
             mocked_get_user_groups.assert_called_once_with(user.google_account)
             mocked_add_user_to_group.assert_called_once_with(user.google_account, group)
             keycloak_user = KeycloakService.get_user(user.keycloak_id)
-            assert (
-                user.google_account.email.lower()
-                == user.email.lower()
-                == user.keycloak_account.username.lower()
-                == content["email"].lower()
-                == keycloak_user["username"].lower()
-                == f"{payload['given_name']}.{payload['family_name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower()
+            self.assertEqual(user.email.lower(), user.google_account.email.lower())
+            self.assertEqual(user.email.lower(), user.keycloak_account.username.lower())
+            self.assertEqual(user.email.lower(), content["email"].lower())
+            self.assertEqual(user.email.lower(), keycloak_user["username"].lower())
+            self.assertEqual(
+                user.email.lower(),
+                f"{payload['given_name']}.{payload['family_name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower(),
             )
-            assert (
-                user.personal_email.lower()
-                == user.keycloak_account.email.lower()
-                == content["personal_email"].lower()
-                == keycloak_user["email"].lower()
-                == payload["email"].lower()
+            self.assertEqual(
+                user.personal_email.lower(), user.keycloak_account.email.lower()
             )
-            assert (
-                user.google_account.organizational_unit
-                == payload["google_organizational_unit"]
+            self.assertEqual(
+                user.personal_email.lower(), content["personal_email"].lower()
             )
-            assert bool(user.google_account.google_id) is True
-            assert (
-                GoogleSyncErrors.objects.filter(google_account__user=user).count() == 0
+            self.assertEqual(
+                user.personal_email.lower(), keycloak_user["email"].lower()
+            )
+            self.assertEqual(user.personal_email.lower(), payload["email"].lower())
+            self.assertEqual(
+                user.google_account.organizational_unit,
+                payload["google_organizational_unit"],
+            )
+            self.assertTrue(bool(user.google_account.google_id))
+            self.assertFalse(
+                GoogleSyncErrors.objects.filter(google_account__user=user).exists()
             )
 
     @patch("services.google.tasks.update_google_user_task.delay")
@@ -185,9 +188,9 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_add_user_to_group.assert_called_once_with(google_account, group_2)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             google_account.refresh_from_db()
-            assert (
-                google_account.organizational_unit
-                == payload["google_organizational_unit"]
+            self.assertEqual(
+                google_account.organizational_unit,
+                payload["google_organizational_unit"],
             )
 
     @patch("services.google.tasks.suspend_google_user_task.delay")
@@ -212,7 +215,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             )
             mocked_suspend_user.assert_called_once_with(google_account)
             self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-            assert not GoogleAccount.objects.filter(google_id=google_id).exists()
+            self.assertFalse(GoogleAccount.objects.filter(google_id=google_id).exists())
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -268,25 +271,23 @@ class GoogleTasksTestCase(GoogleTestCase):
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             people_group = PeopleGroup.objects.get(id=content["id"])
-            assert people_group.google_group is not None
+            self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
             mocked_add_group_alias.assert_called_once_with(people_group.google_group)
             mocked_get_group_members.assert_called_once_with(people_group.google_group)
             mocked_add_user_to_group.assert_called_once_with(
                 google_user, people_group.google_group
             )
-            assert (
-                people_group.google_group.email.lower()
-                == people_group.email.lower()
-                == content["email"].lower()
-                == payload["email"].lower()
+            self.assertEqual(
+                people_group.email.lower(), people_group.google_group.email.lower()
             )
-            assert bool(people_group.google_group.google_id) is True
-            assert (
+            self.assertEqual(people_group.email.lower(), content["email"].lower())
+            self.assertEqual(people_group.email.lower(), payload["email"].lower())
+            self.assertTrue(bool(people_group.google_group.google_id))
+            self.assertFalse(
                 GoogleSyncErrors.objects.filter(
                     google_group__people_group=people_group
-                ).count()
-                == 0
+                ).exists()
             )
 
     @patch("services.google.tasks.create_google_group_task.delay")
@@ -337,13 +338,15 @@ class GoogleTasksTestCase(GoogleTestCase):
             )
             self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
             content = response.json()
-            assert content["detail"] == "This email is already used by another group"
+            self.assertEqual(
+                content["detail"], "This email is already used by another group"
+            )
 
             mocked_create_group.assert_called_once()
             mocked_add_group_alias.assert_not_called()
             mocked_get_group_members.assert_not_called()
             mocked_add_user_to_group.assert_not_called()
-            assert not PeopleGroup.objects.filter(name=payload["name"]).exists()
+            self.assertFalse(PeopleGroup.objects.filter(name=payload["name"]).exists())
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
@@ -399,25 +402,26 @@ class GoogleTasksTestCase(GoogleTestCase):
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             people_group = PeopleGroup.objects.get(id=content["id"])
-            assert people_group.google_group is not None
+            self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
             mocked_add_group_alias.assert_called_once_with(people_group.google_group)
             mocked_get_group_members.assert_called_once_with(people_group.google_group)
             mocked_add_user_to_group.assert_called_once_with(
                 google_user, people_group.google_group
             )
-            assert (
-                people_group.google_group.email.lower()
-                == people_group.email.lower()
-                == content["email"].lower()
-                == f"{payload['name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower()
+            self.assertEqual(
+                people_group.email.lower(), people_group.google_group.email.lower()
             )
-            assert bool(people_group.google_group.google_id) is True
-            assert (
+            self.assertEqual(people_group.email.lower(), content["email"].lower())
+            self.assertEqual(
+                people_group.email.lower(),
+                f"{payload['name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower(),
+            )
+            self.assertTrue(bool(people_group.google_group.google_id))
+            self.assertFalse(
                 GoogleSyncErrors.objects.filter(
                     google_group__people_group=people_group
-                ).count()
-                == 0
+                ).exists()
             )
 
     @patch("services.google.tasks.update_google_group_task.delay")
@@ -478,4 +482,4 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_add_user_to_group.assert_called_once_with(user_2, google_group)
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             google_group.refresh_from_db()
-            assert google_group.people_group.name == payload["name"]
+            self.assertEqual(google_group.people_group.name, payload["name"])

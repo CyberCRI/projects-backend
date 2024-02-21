@@ -64,8 +64,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_id(user.google_account.google_id)
-            assert google_user is not None
-            assert google_user["id"] == user.google_account.google_id
+            self.assertIsNotNone(google_user)
+            self.assertEqual(google_user["id"], user.google_account.google_id)
 
         self.retry_test_assertion(test_result)
 
@@ -74,8 +74,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_email(user.email)
-            assert google_user is not None
-            assert google_user["id"] == user.google_account.google_id
+            self.assertIsNotNone(google_user)
+            self.assertEqual(google_user["id"], user.google_account.google_id)
 
         self.retry_test_assertion(test_result)
 
@@ -87,14 +87,16 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_id(response["id"])
-            assert google_user is not None
-            assert google_user["id"] is not None
-            assert google_user["orgUnitPath"] == "/CRI/Test Google Sync"
-            assert google_user["primaryEmail"].startswith(
-                f"test.{user.given_name}.{user.family_name}".lower()
+            self.assertIsNotNone(google_user)
+            self.assertIsNotNone(google_user["id"])
+            self.assertEqual(google_user["orgUnitPath"], "/CRI/Test Google Sync")
+            self.assertTrue(
+                google_user["primaryEmail"].startswith(
+                    f"test.{user.given_name}.{user.family_name}".lower()
+                )
             )
-            assert google_user["name"]["givenName"] == user.given_name
-            assert google_user["name"]["familyName"] == user.family_name
+            self.assertEqual(google_user["name"]["givenName"], user.given_name)
+            self.assertEqual(google_user["name"]["familyName"], user.family_name)
 
         self.retry_test_assertion(test_result)
         GoogleService.service().users().delete(userKey=response["id"]).execute()
@@ -110,9 +112,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_email(user.google_account.email)
-            assert google_user is not None
-            assert google_user["name"]["familyName"] == "test update"
-            assert google_user["orgUnitPath"] == "/CRI/Test Google Sync Update"
+            self.assertIsNotNone(google_user)
+            self.assertEqual(google_user["name"]["familyName"], "test update")
+            self.assertEqual(google_user["orgUnitPath"], "/CRI/Test Google Sync Update")
 
         self.retry_test_assertion(test_result)
 
@@ -122,8 +124,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_email(user.email)
-            assert google_user is not None
-            assert google_user["suspended"] is True
+            self.assertIsNotNone(google_user)
+            self.assertTrue(google_user["suspended"])
 
         self.retry_test_assertion(test_result)
 
@@ -133,7 +135,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_email(user.email, 5)
-            assert google_user is None
+            self.assertIsNone(google_user)
 
         self.retry_test_assertion(test_result)
 
@@ -146,9 +148,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_user = GoogleService.get_user_by_email(user.email)
-            assert google_user is not None
+            self.assertIsNotNone(google_user)
             emails = [email["address"] for email in google_user["emails"]]
-            assert alias in emails
+            self.assertIn(alias, emails)
 
         self.retry_test_assertion(test_result)
 
@@ -161,11 +163,13 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_groups = GoogleService.get_user_groups(user.google_account)
-            assert google_groups is not None
-            assert {
-                group_1.google_group.google_id,
-                group_2.google_group.google_id,
-            }.issubset({group["id"] for group in google_groups})
+            self.assertIsNotNone(google_groups)
+            self.assertIn(
+                group_1.google_group.google_id, [group["id"] for group in google_groups]
+            )
+            self.assertIn(
+                group_2.google_group.google_id, [group["id"] for group in google_groups]
+            )
 
         self.retry_test_assertion(test_result)
 
@@ -174,8 +178,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_email(group.email)
-            assert google_group is not None
-            assert google_group["id"] == group.google_group.google_id
+            self.assertIsNotNone(google_group)
+            self.assertEqual(google_group["id"], group.google_group.google_id)
 
         self.retry_test_assertion(test_result)
 
@@ -184,8 +188,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_id(group.google_group.google_id)
-            assert google_group is not None
-            assert google_group["id"] == group.google_group.google_id
+            self.assertIsNotNone(google_group)
+            self.assertEqual(google_group["id"], group.google_group.google_id)
 
         self.retry_test_assertion(test_result)
 
@@ -195,12 +199,14 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_groups = GoogleService.get_groups()
-            assert google_groups != []
-            assert len(google_groups) > 0
-            assert {
-                group_1.google_group.google_id,
-                group_2.google_group.google_id,
-            }.issubset({group["id"] for group in google_groups})
+            self.assertNotEqual(google_groups, [])
+            self.assertGreater(len(google_groups), 0)
+            self.assertIn(
+                group_1.google_group.google_id, [group["id"] for group in google_groups]
+            )
+            self.assertIn(
+                group_2.google_group.google_id, [group["id"] for group in google_groups]
+            )
 
         self.retry_test_assertion(test_result)
 
@@ -212,12 +218,14 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_id(response["id"])
-            assert google_group is not None
-            assert google_group["id"] is not None
-            assert google_group["email"].startswith(
-                f"test.team.{group.name}".replace("-", "")
+            self.assertIsNotNone(google_group)
+            self.assertIsNotNone(google_group["id"])
+            self.assertTrue(
+                google_group["email"].startswith(
+                    f"test.team.{group.name}".replace("-", "")
+                )
             )
-            assert google_group["name"] == group.name
+            self.assertEqual(google_group["name"], group.name)
 
         self.retry_test_assertion(test_result)
         GoogleService.service().groups().delete(groupKey=response["id"]).execute()
@@ -231,10 +239,10 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_id(response["id"])
-            assert google_group is not None
-            assert google_group["id"] is not None
-            assert google_group["email"] == group.email
-            assert google_group["name"] == group.name
+            self.assertIsNotNone(google_group)
+            self.assertIsNotNone(google_group["id"])
+            self.assertEqual(google_group["email"], group.email)
+            self.assertEqual(google_group["name"], group.name)
 
         self.retry_test_assertion(test_result)
 
@@ -247,9 +255,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_email(group.email)
-            assert google_group is not None
-            assert "aliases" in google_group
-            assert alias in google_group["aliases"]
+            self.assertIsNotNone(google_group)
+            self.assertIn("aliases", google_group)
+            self.assertIn(alias, google_group["aliases"])
 
         self.retry_test_assertion(test_result)
 
@@ -261,8 +269,8 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_email(group.email)
-            assert google_group is not None
-            assert google_group["name"] == "test update"
+            self.assertIsNotNone(google_group)
+            self.assertEqual(google_group["name"], "test update")
 
         self.retry_test_assertion(test_result)
 
@@ -272,7 +280,7 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_group = GoogleService.get_group_by_email(group.email, 5)
-            assert google_group is None
+            self.assertIsNone(google_group)
 
         self.retry_test_assertion(test_result)
 
@@ -285,11 +293,15 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_result():
             google_members = GoogleService.get_group_members(group.google_group)
-            assert google_members is not None
-            assert {
+            self.assertIsNotNone(google_members)
+            self.assertIn(
                 user_1.google_account.google_id,
+                [member["id"] for member in google_members],
+            )
+            self.assertIn(
                 user_2.google_account.google_id,
-            }.issubset({member["id"] for member in google_members})
+                [member["id"] for member in google_members],
+            )
 
         self.retry_test_assertion(test_result)
 
@@ -300,28 +312,33 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
         def test_add_result():
             google_members = GoogleService.get_group_members(group.google_group)
-            assert google_members is not None
-            assert user.google_account.google_id in {
-                member["id"] for member in google_members
-            }
+            self.assertIsNotNone(google_members)
+            self.assertIn(
+                user.google_account.google_id,
+                [member["id"] for member in google_members],
+            )
 
         self.retry_test_assertion(test_add_result)
         GoogleService.remove_user_from_group(user.google_account, group.google_group)
 
         def test_remove_result():
             google_members = GoogleService.get_group_members(group.google_group)
-            assert google_members is not None
-            assert user.google_account.google_id not in {
-                member["id"] for member in google_members
-            }
+            self.assertIsNotNone(google_members)
+            self.assertNotIn(
+                user.google_account.google_id,
+                [member["id"] for member in google_members],
+            )
 
         self.retry_test_assertion(test_remove_result)
 
     def test_get_org_units(self):
         org_units = GoogleService.get_org_units()
-        assert set(org_units) == {
-            "/CRI",
-            "/CRI/Test Google Sync",
-            "/CRI/Test Google Sync Update",
-            "/CRI/Admin Staff",
-        }
+        self.assertSetEqual(
+            set(org_units),
+            {
+                "/CRI",
+                "/CRI/Test Google Sync",
+                "/CRI/Test Google Sync Update",
+                "/CRI/Admin Staff",
+            },
+        )
