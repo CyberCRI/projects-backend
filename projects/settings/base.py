@@ -391,6 +391,7 @@ CELERY_ENABLED = os.getenv("CELERY_ENABLED", "True").lower() == "true"
 
 if CELERY_ENABLED:
     from celery.schedules import crontab
+
     CELERY_WORKER_SEND_TASK_EVENTS = True
     CELERY_TASK_SEND_SENT_EVENT = True
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
