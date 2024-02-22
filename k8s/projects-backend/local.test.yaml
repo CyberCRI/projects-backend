@@ -10,3 +10,6 @@ workflow:
   backups:
     enabled: true
   enabled: true
+
+namespace: projects
+project: projects
