@@ -14,7 +14,8 @@ from apps.accounts.models import PeopleGroup
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import UserSerializer
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
-from apps.commons.permissions import IsOwner, ReadOnly, map_action_to_permission
+from apps.commons.permissions import IsOwner, ReadOnly
+from apps.commons.utils import map_action_to_permission
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.filters import OrganizationFilter, ProjectCategoryFilter

@@ -22,7 +22,7 @@ from apps.commons.models import (
     PermissionsSetupModel,
     ProjectRelated,
 )
-from apps.commons.permissions import get_write_permissions_from_subscopes
+from apps.commons.utils import get_write_permissions_from_subscopes
 from apps.misc.models import SDG, Language, Tag, WikipediaTag
 
 logger = logging.getLogger(__file__)
