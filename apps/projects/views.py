@@ -37,8 +37,9 @@ from apps.notifications.tasks import (
 )
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.exceptions import OrganizationsParameterMissing
-from apps.search.recommend import AlgoliaRecommendService
+from services.mistral.models import ProjectEmbedding
 
 from .filters import LocationFilter, ProjectFilter
 from .models import BlogEntry, LinkedProject, Location, Project
@@ -443,16 +444,20 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def similar(self, request, *args, **kwargs):
         project = self.get_object()
+        embedding, _ = ProjectEmbedding.objects.get_or_create(item=project)
+        vector = embedding.embedding or embedding.vectorize().embedding
+        if vector is None:
+            return Response([])
         organizations = [
             o for o in request.query_params.get("organizations", "").split(",") if o
         ]
-        threshold = int(request.query_params.get("threshold", 5))
-        user = request.user
         if not organizations:
             raise OrganizationsParameterMissing()
-        queryset = AlgoliaRecommendService.get_similar_projects(
-            project, organizations, threshold, user
+        threshold = int(request.query_params.get("threshold", 5))
+        queryset = self.request.user.get_project_queryset().filter(
+            organizations__code__in=get_hierarchy_codes(organizations)
         )
+        queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)
 
 
