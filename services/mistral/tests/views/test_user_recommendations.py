@@ -19,7 +19,7 @@ from services.mistral.testcases import MistralTestCaseMixin
 faker = Faker()
 
 
-class UserRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
+class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -74,7 +74,7 @@ class UserRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
             UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("RecommendedUsers-list", args=(self.organization.code,)),
+            reverse("UserRecommendedUsers-list", args=(self.organization.code,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -98,7 +98,7 @@ class UserRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         response = self.client.get(
-            reverse("RecommendedUsers-list", args=(self.organization.code,)),
+            reverse("UserRecommendedUsers-list", args=(self.organization.code,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         embedding.refresh_from_db()
@@ -123,7 +123,7 @@ class UserRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         response = self.client.get(
-            reverse("RecommendedUsers-list", args=(self.organization.code,)),
+            reverse("UserRecommendedUsers-list", args=(self.organization.code,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         embedding = UserEmbedding.objects.filter(item=user)
@@ -137,7 +137,7 @@ class UserRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
 
 
-class ProjectRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
+class UserRecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -198,9 +198,9 @@ class ProjectRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.ORG_ADMIN, ["member", "org", "private", "public"]),
             (TestRoles.ORG_FACILITATOR, ["member", "org", "private", "public"]),
             (TestRoles.ORG_USER, ["org", "public"]),
-            (TestRoles.PROJECT_OWNER, ["member", "public"]),
-            (TestRoles.PROJECT_REVIEWER, ["member", "public"]),
-            (TestRoles.PROJECT_MEMBER, ["member", "public"]),
+            (TestRoles.PROJECT_OWNER, ["public"]),
+            (TestRoles.PROJECT_REVIEWER, ["public"]),
+            (TestRoles.PROJECT_MEMBER, ["public"]),
         ]
     )
     def test_get_recommended_projects(self, role, retrieved_projects):
@@ -209,7 +209,7 @@ class ProjectRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
             UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("RecommendedProjects-list", args=(self.organization.code,)),
+            reverse("UserRecommendedProjects-list", args=(self.organization.code,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -233,7 +233,7 @@ class ProjectRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         response = self.client.get(
-            reverse("RecommendedProjects-list", args=(self.organization.code,)),
+            reverse("UserRecommendedProjects-list", args=(self.organization.code,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         embedding.refresh_from_db()
@@ -261,7 +261,7 @@ class ProjectRecommendationTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         response = self.client.get(
-            reverse("RecommendedProjects-list", args=(self.organization.code,)),
+            reverse("UserRecommendedProjects-list", args=(self.organization.code,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         embedding = UserEmbedding.objects.filter(item=user)
