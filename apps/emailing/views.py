@@ -2,8 +2,7 @@ from django.shortcuts import redirect
 from rest_framework import mixins, viewsets
 
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.permissions import ReadOnly
-from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.permissions import ReadOnly, map_action_to_permission
 from apps.emailing.serializers import EmailSerializer
 from apps.files.models import Image
 from apps.files.views import ImageStorageView

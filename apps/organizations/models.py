@@ -9,8 +9,8 @@ from guardian.shortcuts import assign_perm
 from rest_framework.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
-from apps.commons.db.abc import OrganizationRelated, PermissionsSetupModel
-from apps.commons.utils.permissions import (
+from apps.commons.models import OrganizationRelated, PermissionsSetupModel
+from apps.commons.permissions import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )

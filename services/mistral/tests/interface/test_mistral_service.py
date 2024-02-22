@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from faker import Faker
 
-from apps.commons.test.testcases import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase
 from services.mistral.interface import MistralService
 from services.mistral.testcases import MistralTestCaseMixin
 

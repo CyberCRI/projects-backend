@@ -13,8 +13,7 @@ from simple_history.utils import update_change_reason
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.permissions import IsOwner, ReadOnly
-from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.permissions import IsOwner, ReadOnly, map_action_to_permission
 from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView

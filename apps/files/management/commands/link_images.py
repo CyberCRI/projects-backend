@@ -1,6 +1,6 @@
 from django.core.management import BaseCommand
 
-from apps.commons.utils.process_text import process_unlinked_images
+from apps.commons.utils import process_unlinked_images
 from apps.feedbacks.models import Comment
 from apps.organizations.models import Faq, Template
 from apps.projects.models import BlogEntry, Project

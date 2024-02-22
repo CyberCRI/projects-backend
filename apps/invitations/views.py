@@ -15,9 +15,9 @@ from apps.commons.permissions import (
     IsAuthenticatedOrCreateOnly,
     IsOwner,
     ReadOnly,
+    map_action_to_permission,
 )
-from apps.commons.serializers.serializers import CreateListModelViewSet
-from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.serializers import CreateListModelViewSet
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from keycloak import KeycloakGetError, KeycloakPostError, KeycloakPutError

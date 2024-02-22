@@ -6,7 +6,7 @@ from apps.accounts.views import (
     PeopleGroupLogoView,
     PeopleGroupViewSet,
 )
-from apps.commons.routers import DetailOnlyNestedRouter
+from apps.commons.urls import DetailOnlyNestedRouter
 from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 from apps.organizations import views
 from services.mistral.views import (

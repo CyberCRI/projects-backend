@@ -7,7 +7,7 @@ from apps.accounts.utils import (
     get_superadmins_group,
     get_superadmins_group_permissions,
 )
-from apps.commons.db.abc import PermissionsSetupModel
+from apps.commons.models import PermissionsSetupModel
 from projects.celery import app
 
 

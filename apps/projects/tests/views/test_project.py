@@ -12,8 +12,7 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.announcements.factories import AnnouncementFactory
-from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.commons.test.testcases import TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
 from apps.goals.factories import GoalFactory

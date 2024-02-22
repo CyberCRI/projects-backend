@@ -3,10 +3,42 @@ import re
 import uuid
 
 from bs4 import BeautifulSoup
+from django.conf import settings
+from django.contrib.postgres.fields import ArrayField
+from django.core.files import File
 from django.core.files.base import ContentFile
+from django.db.models import Func, Value
+from django.forms import IntegerField
 from django.urls import reverse
 
 from apps.files.models import Image
+
+
+class ArrayPosition(Func):
+    """Allows to order the rows through a list of column's value.
+
+    Only works with Postgresql.
+
+    Examples
+    --------
+    >>> qs = Project.objects.all()
+    >>> qs = qs.annotate(ordering=ArrayPosition(pk_list, F('pk'))
+    >>> qs = qs.order_by('ordering')
+    """
+
+    function = "array_position"
+
+    def __init__(
+        self, items, *expressions, base_field=None, output_field=None, **extra
+    ):
+        if base_field is None:
+            base_field = IntegerField()
+        if output_field is None:
+            output_field = base_field
+
+        first_arg = Value(list(items), output_field=ArrayField(base_field))
+        expressions = (first_arg,) + expressions
+        super().__init__(*expressions, output_field=output_field, **extra)
 
 
 def process_text(request, instance, text, upload_to, view, **kwargs):
@@ -54,3 +86,18 @@ def process_unlinked_images(instance, text):
             if image not in instance.images.all():
                 images.append(image)
     return images
+
+
+def get_test_image_file() -> File:
+    """Return a dummy test image file."""
+    return File(
+        open(f"{settings.BASE_DIR}/assets/test_image.png", "rb")  # noqa : SIM115
+    )
+
+
+def get_test_image() -> Image:
+    """Return an Image instance."""
+    image = Image(name=f"{uuid.uuid4()}.png", file=get_test_image_file())
+    image._upload_to = lambda instance, filename: image.name
+    image.save()
+    return image

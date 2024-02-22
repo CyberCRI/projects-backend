@@ -6,7 +6,7 @@ from django.conf import settings
 from googleapiclient.discovery import build
 from googleapiclient.http import HttpMockSequence
 
-from apps.commons.test.testcases import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase
 from services.google.models import GoogleAccount, GoogleGroup
 
 

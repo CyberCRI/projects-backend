@@ -11,15 +11,12 @@ from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.analytics.serializers import ProjectStatSerializer
 from apps.announcements.serializers import AnnouncementSerializer
+from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
 )
-from apps.commons.serializers.fields import (
-    HiddenPrimaryKeyRelatedField,
-    UserMultipleIdRelatedField,
-)
-from apps.commons.utils.process_text import process_text
+from apps.commons.utils import process_text
 from apps.feedbacks.models import Comment, Follow
 from apps.feedbacks.serializers import CommentSerializer, ReviewSerializer
 from apps.files.models import Image

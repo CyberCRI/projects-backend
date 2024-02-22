@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from faker import Faker
 
-from apps.commons.test.testcases import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
 from apps.misc.models import WikipediaTag
 from services.wikipedia.interface import WikipediaService
 

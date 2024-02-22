@@ -6,8 +6,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.filters import TrigramSearchFilter
-from apps.commons.permissions import ReadOnly
-from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.permissions import ReadOnly, map_action_to_permission
 from apps.misc import filters, models, serializers
 from apps.organizations.permissions import HasOrganizationPermission
 

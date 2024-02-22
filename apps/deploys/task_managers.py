@@ -2,7 +2,7 @@ from typing import Callable
 
 from django.conf import settings
 
-from apps.commons.db.abc import PermissionsSetupModel
+from apps.commons.models import PermissionsSetupModel
 
 from .tasks import (
     algolia_reindex_task,

@@ -16,7 +16,12 @@ from apps.accounts.utils import get_superadmins_group
 @extend_schema_field(OpenApiTypes.UUID)
 class UserMultipleIdRelatedField(serializers.RelatedField):
     """
-    TODO: Replace with PrimaryKeyRelatedField when API users fully switch to id
+    A read-write field that allows multiple ids to be used to represent a user.
+
+    Possible ids are:
+        - id
+        - slug
+        - keycloak_id
     """
 
     default_error_messages = {

@@ -26,12 +26,13 @@ from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
 from apps.commons.filters import TrigramSearchFilter
-from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.commons.serializers.serializers import (
-    EmailSerializer,
-    RetrieveUpdateModelViewSet,
+from apps.commons.permissions import (
+    IsOwner,
+    ReadOnly,
+    WillBeOwner,
+    map_action_to_permission,
 )
-from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.serializers import EmailSerializer, RetrieveUpdateModelViewSet
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
