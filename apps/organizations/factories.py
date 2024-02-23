@@ -4,7 +4,7 @@ from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.commons.factories import language_factory
-from apps.commons.utils.create_test_image import get_test_image
+from apps.commons.utils import get_test_image
 from apps.organizations.models import Faq, Organization, ProjectCategory, Template
 
 faker = Faker()

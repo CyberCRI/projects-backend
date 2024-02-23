@@ -9,7 +9,7 @@ from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
-from apps.commons.db.abc import HasOwner, OrganizationRelated, ProjectRelated
+from apps.commons.models import HasOwner, OrganizationRelated, ProjectRelated
 from apps.files.enums import AttachmentLinkCategory, AttachmentType
 from apps.files.utils import resize_and_autorotate
 

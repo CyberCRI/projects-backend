@@ -10,12 +10,9 @@ from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
 from apps.accounts.models import ProjectUser
+from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
 from apps.commons.serializers import OrganizationRelatedSerializer
-from apps.commons.serializers.fields import (
-    HiddenPrimaryKeyRelatedField,
-    UserMultipleIdRelatedField,
-)
-from apps.commons.utils.process_text import process_text
+from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.misc.models import Tag

@@ -1,10 +1,29 @@
-from typing import Collection
+from typing import Collection, List
 
 from django.conf import settings
 from django.db.models import Q
 from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
+
+from apps.organizations.models import Organization
+from apps.projects.models import Project
+
+
+class ProjectRelatedSerializer(serializers.ModelSerializer):
+    """Base serializer for serializers related to projects."""
+
+    def get_related_projects(self) -> List[Project]:
+        """Retrieve the related projects"""
+        raise NotImplementedError()
+
+
+class OrganizationRelatedSerializer(serializers.ModelSerializer):
+    """Base serializer for serializers related to organizations."""
+
+    def get_related_organizations(self) -> List[Organization]:
+        """Retrieve the related organizations"""
+        raise NotImplementedError()
 
 
 class EmailSerializer(serializers.Serializer):

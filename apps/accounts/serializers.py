@@ -16,12 +16,12 @@ from apps.accounts.models import (
     Skill,
 )
 from apps.accounts.utils import get_default_group, get_instance_from_group
-from apps.commons.serializers import UserMultipleIdRelatedField
-from apps.commons.serializers.fields import (
+from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     PrivacySettingProtectedCharField,
     PrivacySettingProtectedEmailField,
     PrivacySettingProtectedMethodField,
+    UserMultipleIdRelatedField,
 )
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer

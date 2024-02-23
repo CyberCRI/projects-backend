@@ -4,7 +4,7 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from apps.commons.test.testcases import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
 from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory

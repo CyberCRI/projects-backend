@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserLightSerializer
-from apps.commons.serializers.serializers import TranslatedModelSerializer
+from apps.commons.serializers import TranslatedModelSerializer
 from apps.invitations.serializers import InvitationSerializer
 from apps.projects.serializers import ProjectSuperLightSerializer
 

@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models
 
-from apps.commons.db.abc import OrganizationRelated
+from apps.commons.models import OrganizationRelated
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization

@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
-from apps.commons.serializers.serializers import RetrieveUpdateModelViewSet
+from apps.commons.serializers import RetrieveUpdateModelViewSet
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
 from apps.emailing.tasks import send_email_task
 from apps.emailing.utils import render_message

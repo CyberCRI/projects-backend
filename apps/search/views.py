@@ -12,7 +12,7 @@ from rest_framework.settings import api_settings
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
-from apps.commons.db.functions import ArrayPosition
+from apps.commons.utils import ArrayPosition
 from apps.commons.views import ListViewSet
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_hierarchy_codes

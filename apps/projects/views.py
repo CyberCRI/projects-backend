@@ -20,9 +20,9 @@ from simple_history.utils import update_change_reason
 
 from apps.accounts.permissions import HasBasePermission
 from apps.analytics.models import Stat
+from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
-from apps.commons.utils.cache import clear_cache_with_key, redis_cache_view
-from apps.commons.utils.permissions import map_action_to_permission
+from apps.commons.utils import map_action_to_permission
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView

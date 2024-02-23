@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
-from apps.commons.db.abc import HasOwner, OrganizationRelated, ProjectRelated
+from apps.commons.models import HasOwner, OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
