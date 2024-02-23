@@ -1,3 +1,4 @@
+from typing import Any
 import uuid
 
 from django.conf import settings
@@ -27,7 +28,7 @@ from rest_framework.views import APIView
 
 from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.commons.serializers import EmailSerializer, RetrieveUpdateModelViewSet
+from apps.commons.serializers import EmailAddressSerializer, RetrieveUpdateModelViewSet
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
@@ -367,7 +368,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
         raise KeycloakAccountNotFound()
 
-    @extend_schema(request=EmailSerializer, responses={200: OpenApiTypes.OBJECT})
+    @extend_schema(request=EmailAddressSerializer, responses={200: OpenApiTypes.OBJECT})
     @action(
         detail=False,
         methods=["POST"],
@@ -375,7 +376,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         permission_classes=[],
     )
     def reset_password(self, request, *args, **kwargs):
-        serializer = EmailSerializer(data=request.data)
+        serializer = EmailAddressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data["email"]
         user = ProjectUser.objects.filter(email=email)
@@ -765,6 +766,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
 
 
+@extend_schema(parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)])
 class PeopleGroupHeaderView(
     MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
 ):
@@ -807,7 +809,7 @@ class PeopleGroupHeaderView(
             return f"/v1/people-group/{people_group.id}/header"
         return None
 
-
+@extend_schema(parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)])
 class PeopleGroupLogoView(
     MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
 ):

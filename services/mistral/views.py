@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.accounts.filters import UserFilter
+from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
@@ -57,7 +58,6 @@ class UserRecommendationViewSet(RecommendationViewSet):
 
     It overrides the `get_query_embedding` method to return the user's embedding.
     """
-
     return_if_no_embedding = True
 
     def get_query_embedding(self) -> Embedding:
@@ -80,7 +80,6 @@ class ProjectRecommendationViewSet(MultipleIDViewsetMixin, RecommendationViewSet
 
     It overrides the `get_query_embedding` method to return the project's embedding.
     """
-
     return_if_no_embedding = False
     multiple_lookup_fields = [
         (Project, "project_id"),
@@ -108,7 +107,7 @@ class UserRecommendedProjectsViewSet(UserRecommendationViewSet):
     """
     Recommend projects to a user based on the user's embedding.
     """
-
+    queryset = Project.objects.all()
     searched_model = ProjectEmbedding
     serializer_class = ProjectLightSerializer
     filterset_class = ProjectFilter
@@ -132,7 +131,7 @@ class UserRecommendedUsersViewSet(UserRecommendationViewSet):
     """
     Recommend users to a user based on the user's embedding.
     """
-
+    queryset = ProjectUser.objects.all()
     searched_model = UserEmbedding
     serializer_class = UserLightSerializer
     filterset_class = UserFilter
@@ -154,7 +153,7 @@ class ProjectRecommendedProjectsViewSet(ProjectRecommendationViewSet):
     """
     Recommend projects to a project based on the project's embedding.
     """
-
+    queryset = Project.objects.all()
     searched_model = ProjectEmbedding
     serializer_class = ProjectLightSerializer
     filterset_class = ProjectFilter
@@ -179,7 +178,7 @@ class ProjectRecommendedUsersViewSet(ProjectRecommendationViewSet):
     """
     Recommend users to a project based on the project's embedding.
     """
-
+    queryset = ProjectUser.objects.all()
     searched_model = UserEmbedding
     serializer_class = UserLightSerializer
     filterset_class = UserFilter

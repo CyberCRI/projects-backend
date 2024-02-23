@@ -5,7 +5,7 @@ from algoliasearch_django import algolia_engine
 from django.conf import settings
 from django.db.models import BigIntegerField, CharField, F, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema, PolymorphicProxySerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.settings import api_settings

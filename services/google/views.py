@@ -2,16 +2,16 @@ from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.commons.serializers import EmailSerializer
+from apps.commons.serializers import EmailAddressSerializer
 
 from .interface import GoogleService
 from .serializers import EmailAvailableSerializer
 
 
 class UserEmailAvailableView(APIView):
-    @extend_schema(request=EmailSerializer, responses=EmailAvailableSerializer)
+    @extend_schema(request=EmailAddressSerializer, responses=EmailAvailableSerializer)
     def post(self, request):
-        serializer = EmailSerializer(data=request.data)
+        serializer = EmailAddressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         google_user = GoogleService.get_user_by_email(
             serializer.validated_data["email"]
@@ -22,9 +22,9 @@ class UserEmailAvailableView(APIView):
 
 
 class GroupEmailAvailableView(APIView):
-    @extend_schema(request=EmailSerializer, responses=EmailAvailableSerializer)
+    @extend_schema(request=EmailAddressSerializer, responses=EmailAvailableSerializer)
     def post(self, request):
-        serializer = EmailSerializer(data=request.data)
+        serializer = EmailAddressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         google_group = GoogleService.get_group_by_email(
             serializer.validated_data["email"]
