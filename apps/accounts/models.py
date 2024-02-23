@@ -20,7 +20,7 @@ from apps.accounts.utils import (
     get_group_permissions,
     get_superadmins_group,
 )
-from apps.commons.db.abc import (
+from apps.commons.models import (
     HasMultipleIDs,
     HasOwner,
     OrganizationRelated,

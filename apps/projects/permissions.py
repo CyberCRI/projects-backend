@@ -6,7 +6,7 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
-from apps.commons.db.abc import ProjectRelated
+from apps.commons.models import ProjectRelated
 from apps.commons.permissions import IgnoreCall
 from apps.commons.serializers import ProjectRelatedSerializer
 

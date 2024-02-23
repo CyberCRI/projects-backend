@@ -5,7 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
-from apps.commons.test.testcases import JwtAPITestCase
+from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_group_as_member_added, _notify_member_added

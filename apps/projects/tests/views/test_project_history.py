@@ -7,8 +7,7 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase
-from apps.commons.test.testcases import TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
 from apps.feedbacks.factories import CommentFactory
 from apps.misc.factories import TagFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory

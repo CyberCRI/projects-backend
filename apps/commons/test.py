@@ -1,25 +1,27 @@
 import base64
 import logging
+import os
 import random
 import uuid
 from typing import List, Optional
+from unittest import skipUnless, util
 
 from django.conf import settings
 from django.core.files import File
 from django.db import models
 from faker import Faker
 from rest_framework import status
-from rest_framework.test import APITestCase
+from rest_framework.test import APIClient, APITestCase
 
+from apps.accounts.authentication import BearerToken
 from apps.accounts.factories import UserFactory
-from apps.accounts.models import PeopleGroup
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
-from .client import JwtClient
-
+util._MAX_LENGTH = 1000000
 faker = Faker()
 
 
@@ -37,6 +39,32 @@ class TestRoles(models.TextChoices):
     PROJECT_REVIEWER = "project_reviewer"
     PROJECT_MEMBER = "project_member"
     OWNER = "object_owner"
+
+
+class JwtClient(APIClient):
+    """Override default `Client` to create a JWT token when `force_login()`.
+
+    This token will then be given in any subsequent request in the
+    header `HTTP_AUTHORIZATION`.
+    """
+
+    def force_authenticate(  # nosec
+        self,
+        user: ProjectUser = None,
+        token: str = None,
+        token_type: str = "JWT",
+        through_cookie=False,
+    ):
+        """Login the given user by creating a JWT token."""
+        if user:
+            if token is None:
+                token = BearerToken.for_user(user)
+            if through_cookie:
+                self.cookies[settings.JWT_ACCESS_TOKEN_COOKIE_NAME] = token
+            else:
+                self.credentials(HTTP_AUTHORIZATION=f"{token_type} {token}")
+        elif token:
+            self.credentials(HTTP_AUTHORIZATION=f"{token_type} {token}")
 
 
 class JwtAPITestCase(APITestCase):
@@ -260,3 +288,17 @@ class TagTestCaseMixin:
         cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
     ):
         return cls.search_wikipedia_tag_mocked_return(limit, offset)
+
+
+def skipUnlessAlgolia(decorated):  # noqa : N802
+    """Skip decorated tests if ennvar `TEST_ALGOLIA` has not been set to 1."""
+    check = bool(int(os.getenv("TEST_ALGOLIA", 0)))
+    msg = "Algolia test skipped, use envvar 'TEST_ALGOLIA=1' to test"
+    return skipUnless(check, msg)(decorated)
+
+
+def skipUnlessGoogle(decorated):  # noqa : N802
+    """Skip decorated tests if ennvar `TEST_ALGOLIA` has not been set to 1."""
+    check = bool(int(os.getenv("TEST_GOOGLE", 0)))
+    msg = "Google test skipped, use envvar 'TEST_GOOGLE=1' to test"
+    return skipUnless(check, msg)(decorated)

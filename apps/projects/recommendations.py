@@ -6,7 +6,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from django.db.models import CharField, F, QuerySet
 from django.utils.timezone import utc
 
-from apps.commons.db.functions import ArrayPosition
+from apps.commons.utils import ArrayPosition
 from apps.organizations.models import Organization
 
 from .models import Project

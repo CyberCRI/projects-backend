@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models, transaction
 
-from apps.commons.db.abc import OrganizationRelated, ProjectRelated
+from apps.commons.models import OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization

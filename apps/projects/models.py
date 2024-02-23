@@ -16,13 +16,13 @@ from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
-from apps.commons.db.abc import (
+from apps.commons.models import (
     HasMultipleIDs,
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
 )
-from apps.commons.utils.permissions import get_write_permissions_from_subscopes
+from apps.commons.utils import get_write_permissions_from_subscopes
 from apps.misc.models import SDG, Language, Tag, WikipediaTag
 
 logger = logging.getLogger(__file__)

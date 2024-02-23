@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.commons.serializers.serializers import TranslatedModelSerializer
+from apps.commons.serializers import TranslatedModelSerializer
 from apps.files.serializers import ImageSerializer
 from apps.misc.models import WikipediaTag
 from apps.misc.serializers import WikipediaTagSerializer

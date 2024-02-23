@@ -4,14 +4,13 @@ from django.db import transaction
 from rest_framework import exceptions, serializers
 
 from apps.accounts.serializers import UserLightSerializer
+from apps.commons.fields import RecursiveField, WritableSerializerMethodField
 from apps.commons.serializers import (
     LazySerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
-    RecursiveField,
-    WritableSerializerMethodField,
 )
-from apps.commons.utils.process_text import process_text
+from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project

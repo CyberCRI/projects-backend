@@ -3,7 +3,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.commons.serializers.serializers import TranslatedModelSerializer
+from apps.commons.serializers import TranslatedModelSerializer
 from apps.organizations.models import Organization
 from services.wikipedia.interface import WikipediaService
 

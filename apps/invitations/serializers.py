@@ -2,9 +2,8 @@ from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
-from apps.commons.serializers import UserMultipleIdRelatedField
-from apps.commons.serializers.abc import OrganizationRelatedSerializer
-from apps.commons.serializers.fields import HiddenSlugRelatedField
+from apps.commons.fields import HiddenSlugRelatedField, UserMultipleIdRelatedField
+from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.invitations.models import AccessRequest
 from apps.organizations.models import Organization
 

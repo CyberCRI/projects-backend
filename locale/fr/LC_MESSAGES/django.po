@@ -107,16 +107,16 @@ msgstr ""
 "trouver 😊</p>\n"
 "</div>\n"
 
-#: apps/commons/serializers/fields.py:23
+#: apps/commons/fields.py:28
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: apps/commons/serializers/fields.py:24
+#: apps/commons/fields.py:29
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 
-#: apps/commons/serializers/fields.py:26
+#: apps/commons/fields.py:31
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
@@ -1238,7 +1238,7 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: apps/projects/serializers.py:600
+#: apps/projects/serializers.py:597
 msgid "Only a reviewer can change this project's status."
 msgstr "Seul un correcteur peut modifier le statut de ce projet."
 

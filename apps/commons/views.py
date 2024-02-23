@@ -3,7 +3,7 @@ from typing import List, Tuple
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 
-from apps.commons.db.abc import HasMultipleIDs
+from .models import HasMultipleIDs
 
 
 class CreateListDestroyViewSet(

@@ -8,8 +8,7 @@ from rest_framework import status
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.commons.test.mixins import skipUnlessAlgolia
+from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
 from apps.organizations.factories import OrganizationFactory
 
 

@@ -5,7 +5,7 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import ProjectUser
-from apps.commons.db.abc import ProjectRelated
+from apps.commons.models import ProjectRelated
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Follow
 from apps.projects.models import Project
