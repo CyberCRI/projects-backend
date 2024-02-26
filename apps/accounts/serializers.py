@@ -55,6 +55,9 @@ class UserLightSerializer(serializers.ModelSerializer):
     email_verified = serializers.BooleanField(required=False, read_only=True)
     password_created = serializers.BooleanField(required=False, read_only=True)
     people_groups = serializers.SerializerMethodField()
+    skills = PrivacySettingProtectedMethodField(
+        privacy_field="skills", default_value=[]
+    )
 
     class Meta:
         model = ProjectUser
@@ -77,6 +80,7 @@ class UserLightSerializer(serializers.ModelSerializer):
             "last_login",
             "people_groups",
             "created_at",
+            "skills",
         ]
         fields = read_only_fields
 
@@ -107,6 +111,11 @@ class UserLightSerializer(serializers.ModelSerializer):
         )
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
+        ).data
+
+    def get_skills(self, user: ProjectUser) -> List[Dict]:
+        return SkillSerializer(
+            user.skills.filter(type=Skill.SkillType.SKILL), many=True
         ).data
 
 
