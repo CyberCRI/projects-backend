@@ -17,6 +17,9 @@ workflow:
       nonSensitive:
         ORIGIN_POSTGRES_DB: dev_projects
 
+celery:
+  enabled: false
+
 hostname: api-e2e.projects.k8s.lp-i.dev
 
 backend:
@@ -30,5 +33,6 @@ redis:
   - values.yaml
   - projects-api/values.yaml
   - projects-api/dev-lab/values.yaml
+  - projects-api/dev-lab/values.e2e.yaml
   argocdAppName: projects-backend-e2e-redis
   helmReleaseName: projects-backend-e2e-redis
