@@ -1,4 +1,3 @@
-from typing import Any
 import uuid
 
 from django.conf import settings
@@ -766,7 +765,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
 
 
-@extend_schema(parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)])
+@extend_schema(
+    parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]
+)
 class PeopleGroupHeaderView(
     MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
 ):
@@ -809,7 +810,10 @@ class PeopleGroupHeaderView(
             return f"/v1/people-group/{people_group.id}/header"
         return None
 
-@extend_schema(parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)])
+
+@extend_schema(
+    parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]
+)
 class PeopleGroupLogoView(
     MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
 ):

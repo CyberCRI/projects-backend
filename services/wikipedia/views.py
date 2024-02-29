@@ -2,9 +2,9 @@ from django.db.models import Count, Q
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
 from apps.commons.permissions import ReadOnly
-from rest_framework.viewsets import ViewSet
 from apps.misc.models import WikipediaTag
 
 from .interface import WikipediaService

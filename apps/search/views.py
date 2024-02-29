@@ -5,15 +5,15 @@ from algoliasearch_django import algolia_engine
 from django.conf import settings
 from django.db.models import BigIntegerField, CharField, F, Prefetch
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, extend_schema, PolymorphicProxySerializer
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
+from rest_framework.viewsets import ViewSet
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.commons.utils import ArrayPosition
-from rest_framework.viewsets import ViewSet
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.models import Project
@@ -472,6 +472,11 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
                 }
             )
         return results
+
+    # avoid conflict in swagger operation ids
+    @extend_schema(operation_id="algolia_multiple_index_search")
+    def search(self, request, *args, **kwargs):
+        return super().search(request, *args, **kwargs)
 
     def get_paginated_list(self, results):
         return Response(results)

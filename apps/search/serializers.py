@@ -1,4 +1,5 @@
 from typing import Any, Dict
+
 from rest_framework import serializers
 
 from apps.feedbacks.models import Follow
@@ -9,7 +10,6 @@ from apps.organizations.serializers import (
 )
 from apps.projects.models import Project
 from apps.projects.utils import get_views_from_serializer
-from apps.accounts.serializers import UserLightSerializer, PeopleGroupLightSerializer
 
 
 class ProjectSearchSerializer(serializers.ModelSerializer):

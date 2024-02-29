@@ -1,6 +1,6 @@
 import enum
 import uuid
-from typing import Dict, List
+from typing import Dict
 
 from django.apps import apps
 from django.conf import settings
