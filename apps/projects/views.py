@@ -433,7 +433,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 name="organizations",
                 description="Comma-separated list of organization codes.",
                 required=False,
-                type=List[str],
+                type=str,
             ),
         ],
     )

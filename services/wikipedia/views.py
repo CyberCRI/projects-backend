@@ -4,7 +4,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from apps.commons.permissions import ReadOnly
-from apps.commons.views import ListViewSet
+from rest_framework.viewsets import ViewSet
 from apps.misc.models import WikipediaTag
 
 from .interface import WikipediaService
@@ -12,7 +12,7 @@ from .pagination import WikipediaPagination
 from .serializers import WikibaseItemSerializer
 
 
-class WikibaseItemViewset(ListViewSet):
+class WikibaseItemViewset(ViewSet):
     permission_classes = [ReadOnly]
     http_method_names = ["list", "get"]
     serializer_class = WikibaseItemSerializer

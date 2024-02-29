@@ -13,7 +13,7 @@ from rest_framework.settings import api_settings
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.commons.utils import ArrayPosition
-from apps.commons.views import ListViewSet
+from rest_framework.viewsets import ViewSet
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.models import Project
@@ -23,7 +23,7 @@ from .pagination import AlgoliaPagination
 from .serializers import ProjectSearchSerializer
 
 
-class AlgoliaSearchViewSetMixin(ListViewSet):
+class AlgoliaSearchViewSetMixin(ViewSet):
     filter_backends = [DjangoFilterBackend]
     serializer_class = None
     pagination_class = AlgoliaPagination()
