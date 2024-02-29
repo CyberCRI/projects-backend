@@ -360,7 +360,7 @@ SPECTACULAR_SETTINGS = {
     "ENUM_NAME_OVERRIDES": {
         "PublicationStatus": "apps.projects.models.Project.PublicationStatus",
         "PrivacySettingsChoices": "apps.accounts.models.PrivacySettings.PrivacyChoices",
-    }
+    },
 }
 
 # Storage

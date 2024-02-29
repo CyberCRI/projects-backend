@@ -49,7 +49,7 @@ class WikibaseItemViewset(ViewSet):
         count = int(search_continue or 0) + len(results)
         paginator = WikipediaPagination(count=count)()
         page = paginator.paginate_queryset(results, request, view=self)
-        serializer = self.get_serializer(page, many=True)
+        serializer = self.serializer_class(page, many=True)
         return paginator.get_paginated_response(data=serializer.data)
 
     @extend_schema(
