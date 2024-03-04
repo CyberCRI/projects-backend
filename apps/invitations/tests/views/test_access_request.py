@@ -415,7 +415,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         return inner
 
     def test_create_access_request_in_unauthorized_organization(self):
-        organization = OrganizationFactory()
+        organization = OrganizationFactory(access_request_enabled=False)
         payload = {
             "email": faker.email(),
             "given_name": faker.first_name(),
