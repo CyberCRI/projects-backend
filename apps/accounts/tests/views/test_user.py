@@ -11,6 +11,7 @@ from guardian.shortcuts import assign_perm
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.authentication import import_user
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
@@ -825,6 +826,20 @@ class MiscUserTestCase(JwtAPITestCase):
         keycloak_user = KeycloakService.get_user(user.keycloak_id)
         self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
         self.assertEqual(keycloak_user["attributes"]["attribute_1"], ["value_1"])
+
+    def test_add_organization_from_keycloak_attributes(self):
+        organization = OrganizationFactory()
+        payload = {
+            "username": f"{faker.uuid4()}@{faker.domain_name()}",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
+            "firstName": faker.first_name(),
+            "lastName": faker.last_name(),
+            "attributes": {"idp_organizations": [organization.code]},
+        }
+        keycloak_id = KeycloakService._create_user(payload)
+        user = import_user(keycloak_id)
+        self.assertIsNotNone(user)
+        self.assertIn(user, organization.users.all())
 
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)

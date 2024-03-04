@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-22 17:28+0000\n"
+"POT-Creation-Date: 2024-03-04 15:34+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/authentication.py:138
+#: apps/accounts/authentication.py:145
 msgid "Token contained no recognizable user identification"
 msgstr ""
 
-#: apps/accounts/authentication.py:145
+#: apps/accounts/authentication.py:152
 msgid "User is inactive"
 msgstr ""
 
-#: apps/accounts/authentication.py:157
+#: apps/accounts/authentication.py:164
 msgid "Invitation not found or expired"
 msgstr ""
 

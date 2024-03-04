@@ -19,11 +19,12 @@ from rest_framework_simplejwt.tokens import AccessToken
 from apps.accounts.utils import get_instance_from_group, get_superadmins_group
 from apps.deploys.models import PostDeployProcess
 from apps.deploys.task_managers import InstanceGroupsPermissions
+from apps.invitations.models import Invitation
+from apps.organizations.models import Organization
 from keycloak import KeycloakGetError
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 
-from ..invitations.models import Invitation
 from .models import InvitationUser, ProjectUser
 
 logger = logging.getLogger(__name__)
@@ -49,6 +50,12 @@ def import_user(keycloak_id: str) -> ProjectUser:
     )
     if KeycloakService.is_superuser(keycloak_account):
         user.groups.add(get_superadmins_group())
+    # Users imported from an external IdP can be added to one or more organizations
+    organizations = Organization.objects.filter(
+        code__in=keycloak_user.get("attributes", {}).get("idp_organizations", [])
+    )
+    for organization in organizations:
+        organization.users.add(user)
     return user
 
 
