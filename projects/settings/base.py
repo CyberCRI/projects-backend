@@ -356,6 +356,10 @@ SPECTACULAR_SETTINGS = {
         "clientSecret": KEYCLOAK_CLIENT_SECRET,
         "realm": KEYCLOAK_REALM,
     },
+    "ENUM_NAME_OVERRIDES": {
+        "PublicationStatus": "apps.projects.models.Project.PublicationStatus",
+        "PrivacySettingsChoices": "apps.accounts.models.PrivacySettings.PrivacyChoices",
+    },
 }
 
 # Storage

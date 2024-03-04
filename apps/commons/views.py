@@ -2,6 +2,8 @@ from typing import List, Tuple
 
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
+from rest_framework.response import Response
+from rest_framework.settings import api_settings
 
 from .models import HasMultipleIDs
 
@@ -57,3 +59,57 @@ class DetailOnlyViewsetMixin:
         obj = get_object_or_404(queryset)
         self.check_object_permissions(self.request, obj)
         return obj
+
+
+class PaginatedViewSet(viewsets.ViewSet):
+    """
+    A viewset that allows paginated responses for viewsets not based on models.
+    """
+
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    serializer_class = None
+
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, "_paginator"):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+    def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        return {"request": self.request, "format": self.format_kwarg, "view": self}
+
+    def get_paginated_list(self, queryset):
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.serializer_class(
+                page, many=True, context=self.get_serializer_context()
+            )
+            return self.get_paginated_response(serializer.data)
+        serializer = self.serializer_class(
+            queryset, many=True, context=self.get_serializer_context()
+        )
+        return Response(serializer.data)

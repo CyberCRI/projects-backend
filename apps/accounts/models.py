@@ -1,6 +1,6 @@
 import uuid
 from datetime import date
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -398,27 +398,27 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         return self.get_full_name()
 
     @property
-    def keycloak_id(self):
+    def keycloak_id(self) -> Optional[uuid.UUID]:
         if hasattr(self, "keycloak_account"):
             return str(self.keycloak_account.keycloak_id)
         return None
 
     @property
-    def is_superuser(self):
+    def is_superuser(self) -> bool:
         """
         Return True if user is in the superadmins group
         """
         return self in get_superadmins_group().users.all()
 
     @property
-    def is_staff(self):
+    def is_staff(self) -> bool:
         """
         Needs to return True if user can access admin site
         """
         return self.is_superuser
 
     @classmethod
-    def get_id_field_name(cls, object_id: Any) -> str:
+    def get_id_field_name(cls, object_id: Union[uuid.UUID, int, str]) -> str:
         """Get the name of the field which contains the given ID."""
         try:
             uuid.UUID(object_id)
@@ -434,7 +434,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         """Whether the given user is the owner of the object."""
         return self == user
 
-    def get_owner(self):
+    def get_owner(self) -> "ProjectUser":
         """Get the owner of the object."""
         return self
 
@@ -443,7 +443,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         Organization = apps.get_model("organizations", "Organization")  # noqa
         return list(Organization.objects.filter(groups__users=self).distinct())
 
-    def get_full_name(self):
+    def get_full_name(self) -> str:
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
@@ -540,21 +540,21 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
-    ):
+    ) -> QuerySet["Project"]:
         return queryset.filter(
             **{f"{project_related_name}__in": self.get_project_queryset()}
         )
 
     def get_user_related_queryset(
         self, queryset: QuerySet, user_related_name: str = "user"
-    ):
+    ) -> QuerySet["ProjectUser"]:
         return queryset.filter(**{f"{user_related_name}__in": self.get_user_queryset()})
 
-    def can_see_project(self, project):
+    def can_see_project(self, project: "Project") -> bool:
         """Return a `BasePermission` according to `linked_project`'s publication status."""
         return project in self.get_project_queryset()
 
-    def get_permissions_representations(self):
+    def get_permissions_representations(self) -> List[str]:
         """Return a list of the permissions representations."""
         groups_permissions = [
             get_group_permissions(group) for group in self.groups.all()
@@ -566,7 +566,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         ]
         return list(set(groups_permissions))
 
-    def get_instance_permissions_representations(self):
+    def get_instance_permissions_representations(self) -> List[str]:
         """Return a list of the instance permissions representations."""
         groups = self.groups.exclude(
             projects=None, people_groups=None, organizations=None

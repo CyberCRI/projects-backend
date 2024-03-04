@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 class NotificationsViewSet(ListViewSet):
     """Allows getting or modifying a user's notification."""
 
+    queryset = Notification.objects.all()
     permission_classes = [ReadOnly]
     serializer_class = NotificationsSerializer
 

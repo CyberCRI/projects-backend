@@ -13,7 +13,7 @@ from rest_framework.settings import api_settings
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.commons.utils import ArrayPosition
-from apps.commons.views import ListViewSet
+from apps.commons.views import PaginatedViewSet
 from apps.organizations.models import Organization
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.models import Project
@@ -23,7 +23,7 @@ from .pagination import AlgoliaPagination
 from .serializers import ProjectSearchSerializer
 
 
-class AlgoliaSearchViewSetMixin(ListViewSet):
+class AlgoliaSearchViewSetMixin(PaginatedViewSet):
     filter_backends = [DjangoFilterBackend]
     serializer_class = None
     pagination_class = AlgoliaPagination()
@@ -97,10 +97,6 @@ class AlgoliaSearchViewSetMixin(ListViewSet):
         values = self.request.query_params.get(name, "")
         return values.split(",") if values else []
 
-    def get_serializer_context(self):
-        """Add the request to the serializer's context."""
-        return {"request": self.request}
-
     def _search(self, query: str = "") -> Dict[str, Any]:
         raise NotImplementedError
 
@@ -121,14 +117,6 @@ class AlgoliaSearchViewSetMixin(ListViewSet):
     def list(self, request, *args, **kwargs):
         queryset = self._search()
         return self.get_paginated_list(queryset)
-
-    def get_paginated_list(self, queryset):
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
 
 
 class ProjectSearchViewSet(AlgoliaSearchViewSetMixin):
@@ -472,6 +460,15 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
                 }
             )
         return results
+
+    @extend_schema(
+        description="Search all Algolia indexes with one query.",
+        parameters=AlgoliaSearchViewSetMixin.get_extra_api_parameters(),
+        operation_id="algolia_multiple_index_search",
+    )
+    @action(detail=False, methods=["get"], url_path="(?P<search>.+)")
+    def search(self, request, *args, **kwargs):
+        return super().search(request, *args, **kwargs)
 
     def get_paginated_list(self, results):
         return Response(results)

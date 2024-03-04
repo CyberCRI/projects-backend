@@ -2,9 +2,9 @@ from django.db.models import Count, Q
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import ViewSet
 
 from apps.commons.permissions import ReadOnly
-from apps.commons.views import ListViewSet
 from apps.misc.models import WikipediaTag
 
 from .interface import WikipediaService
@@ -12,7 +12,7 @@ from .pagination import WikipediaPagination
 from .serializers import WikibaseItemSerializer
 
 
-class WikibaseItemViewset(ListViewSet):
+class WikibaseItemViewset(ViewSet):
     permission_classes = [ReadOnly]
     http_method_names = ["list", "get"]
     serializer_class = WikibaseItemSerializer
@@ -49,7 +49,7 @@ class WikibaseItemViewset(ListViewSet):
         count = int(search_continue or 0) + len(results)
         paginator = WikipediaPagination(count=count)()
         page = paginator.paginate_queryset(results, request, view=self)
-        serializer = self.get_serializer(page, many=True)
+        serializer = self.serializer_class(page, many=True)
         return paginator.get_paginated_response(data=serializer.data)
 
     @extend_schema(

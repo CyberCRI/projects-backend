@@ -192,7 +192,7 @@ class ProjectLightSerializer(serializers.ModelSerializer):
 
     get_views = get_views_from_serializer
 
-    def get_is_followed(self, project: Project):
+    def get_is_followed(self, project: Project) -> Dict[str, Any]:
         if "request" in self.context:
             user = self.context["request"].user
             if not user.is_anonymous:
@@ -517,7 +517,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         queryset = user.get_project_related_queryset(queryset)
         return LinkedProjectSerializer(queryset, many=True).data
 
-    def get_is_followed(self, project: Project):
+    def get_is_followed(self, project: Project) -> Dict[str, Any]:
         if "request" in self.context:
             user = self.context["request"].user
             if not user.is_anonymous:
@@ -659,7 +659,7 @@ class TopProjectSerializer(serializers.ModelSerializer):
     def get_score(self, project: Project) -> float:
         return self.context["scores"][project.id]
 
-    def get_is_followed(self, project: Project):
+    def get_is_followed(self, project: Project) -> Dict[str, Any]:
         if "request" in self.context:
             user = self.context["request"].user
             if not user.is_anonymous:
@@ -682,15 +682,15 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     delta = serializers.SerializerMethodField(read_only=True)
 
     @staticmethod
-    def get_id(version):
+    def get_id(version) -> int:
         return version.pk
 
     @staticmethod
-    def get_project_id(version):
+    def get_project_id(version) -> str:
         return version.id
 
     @staticmethod
-    def get_delta(version):
+    def get_delta(version) -> Dict[str, str]:
         previous = version.prev_record
         while previous:
             previous_reason = previous.history_change_reason
@@ -704,7 +704,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         return {}
 
     @staticmethod
-    def get_categories(version):
+    def get_categories(version) -> List[str]:
         categories_ids = version.categories.all().values_list(
             "projectcategory_id", flat=True
         )
@@ -713,7 +713,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_wikipedia_tags(version):
+    def get_wikipedia_tags(version) -> List[str]:
         tags_ids = version.wikipedia_tags.all().values_list(
             "wikipediatag_id", flat=True
         )
@@ -722,24 +722,24 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_organization_tags(version):
+    def get_organization_tags(version) -> List[str]:
         tags_ids = version.organization_tags.all().values_list("tag_id", flat=True)
         return Tag.objects.filter(id__in=tags_ids).values_list("name", flat=True)
 
     @staticmethod
-    def get_members(version):
+    def get_members(version) -> List[str]:
         members = Project.objects.get(id=version.id).get_all_members()
         return [m.get_full_name() for m in members]
 
     @staticmethod
-    def get_comments(version):
+    def get_comments(version) -> Dict[str, Any]:
         comments = Comment.history.as_of(version.history_date).filter(
             project__id=version.id, deleted_at=None
         )
         return CommentSerializer(comments, many=True).data
 
     @staticmethod
-    def get_linked_projects(version):
+    def get_linked_projects(version) -> Dict[str, Any]:
         linked_projects = LinkedProject.history.as_of(version.history_date).filter(
             target__id=version.id
         )
@@ -772,15 +772,15 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
     updated_fields = serializers.SerializerMethodField(read_only=True)
 
     @staticmethod
-    def get_id(version):
+    def get_id(version) -> int:
         return version.pk
 
     @staticmethod
-    def get_project_id(version):
+    def get_project_id(version) -> str:
         return version.id
 
     @staticmethod
-    def get_updated_fields(version):
+    def get_updated_fields(version) -> List[str]:
         previous = version.prev_record
         while previous:
             previous_reason = previous.history_change_reason

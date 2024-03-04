@@ -26,7 +26,7 @@ class OrganizationRelatedSerializer(serializers.ModelSerializer):
         raise NotImplementedError()
 
 
-class EmailSerializer(serializers.Serializer):
+class EmailAddressSerializer(serializers.Serializer):
     email = serializers.EmailField()
 
 
