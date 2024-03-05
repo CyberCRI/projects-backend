@@ -360,6 +360,7 @@ SPECTACULAR_SETTINGS = {
         "PublicationStatus": "apps.projects.models.Project.PublicationStatus",
         "PrivacySettingsChoices": "apps.accounts.models.PrivacySettings.PrivacyChoices",
     },
+    "SERVE_INCLUDE_SCHEMA": False
 }
 
 # Storage
