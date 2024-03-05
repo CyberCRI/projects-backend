@@ -11,7 +11,6 @@ from guardian.shortcuts import assign_perm
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.authentication import import_user
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
@@ -834,10 +833,10 @@ class MiscUserTestCase(JwtAPITestCase):
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "firstName": faker.first_name(),
             "lastName": faker.last_name(),
-            "attributes": {"idp_organizations": [organization.code]},
+            "attributes": {"idp_organizations": [organization.id]},
         }
         keycloak_id = KeycloakService._create_user(payload)
-        user = import_user(keycloak_id)
+        user = ProjectUser.import_from_keycloak(keycloak_id)
         self.assertIsNotNone(user)
         self.assertIn(user, organization.users.all())
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-04 15:34+0000\n"
+"POT-Creation-Date: 2024-03-05 10:39+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/authentication.py:145
+#: apps/accounts/authentication.py:113
 msgid "Token contained no recognizable user identification"
 msgstr "Le token n'a pas permis de retrouver un utilisateur"
 
-#: apps/accounts/authentication.py:152
+#: apps/accounts/authentication.py:120
 msgid "User is inactive"
 msgstr "L'utilisateur.ice est inactif.ve"
 
-#: apps/accounts/authentication.py:164
+#: apps/accounts/authentication.py:132
 msgid "Invitation not found or expired"
 msgstr "Invitation invalide ou expirée"
 
@@ -38,19 +38,19 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/models.py:125 apps/projects/models.py:150
+#: apps/accounts/models.py:129 apps/projects/models.py:150
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:620
+#: apps/accounts/models.py:663
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:621
+#: apps/accounts/models.py:664
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:622
+#: apps/accounts/models.py:665
 msgid "Public"
 msgstr "Publique"
 

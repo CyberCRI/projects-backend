@@ -11,6 +11,7 @@ from django.core.validators import MaxValueValidator
 from django.db import models, transaction
 from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
+from django.http import Http404
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm, get_objects_for_user
@@ -28,6 +29,9 @@ from apps.commons.models import (
 )
 from apps.misc.models import SDG, Language, WikipediaTag
 from apps.projects.models import Project
+from keycloak import KeycloakGetError
+from services.keycloak.interface import KeycloakService
+from services.keycloak.models import KeycloakAccount
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization
@@ -429,6 +433,45 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 return "id"
             except ValueError:
                 return "slug"
+
+    @classmethod
+    def get_main_id(
+        cls, object_id: Union[uuid.UUID, int, str], returned_field: str = "id"
+    ) -> Any:
+        try:
+            return super().get_main_id(object_id, returned_field)
+        except Http404:
+            user = cls.import_from_keycloak(object_id)
+            return getattr(user, returned_field)
+
+    @classmethod
+    @transaction.atomic
+    def import_from_keycloak(cls, keycloak_id: str) -> "ProjectUser":
+        try:
+            keycloak_user = KeycloakService.get_user(keycloak_id)
+        except KeycloakGetError:
+            raise Http404
+        user = cls.objects.create(
+            email=keycloak_user.get("username", ""),
+            personal_email=keycloak_user.get("email", ""),
+            given_name=keycloak_user.get("firstName", ""),
+            family_name=keycloak_user.get("lastName", ""),
+        )
+        keycloak_account = KeycloakAccount.objects.create(
+            keycloak_id=keycloak_id,
+            username=keycloak_user.get("username", ""),
+            email=keycloak_user.get("email", ""),
+            user=user,
+        )
+        if KeycloakService.is_superuser(keycloak_account):
+            user.groups.add(get_superadmins_group())
+        # Users imported from an external IdP can be added to one or more organizations
+        organizations_pks = keycloak_user.get("attributes", {}).get(
+            "idp_organizations", []
+        )
+        groups = [f"organization:#{o}:users" for o in organizations_pks]
+        user.groups.add(*Group.objects.filter(name__in=groups))
+        return user
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
