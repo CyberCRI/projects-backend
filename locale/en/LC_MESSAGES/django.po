@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-02-22 17:28+0000\n"
+"POT-Creation-Date: 2024-03-05 11:06+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/authentication.py:138
+#: apps/accounts/authentication.py:113
 msgid "Token contained no recognizable user identification"
 msgstr ""
 
-#: apps/accounts/authentication.py:145
+#: apps/accounts/authentication.py:120
 msgid "User is inactive"
 msgstr ""
 
-#: apps/accounts/authentication.py:157
+#: apps/accounts/authentication.py:132
 msgid "Invitation not found or expired"
 msgstr ""
 
@@ -36,19 +36,19 @@ msgid ""
 "invitation, reset_password"
 msgstr ""
 
-#: apps/accounts/models.py:125 apps/projects/models.py:150
+#: apps/accounts/models.py:127 apps/projects/models.py:150
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:620
+#: apps/accounts/models.py:660
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:621
+#: apps/accounts/models.py:661
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:622
+#: apps/accounts/models.py:662
 msgid "Public"
 msgstr ""
 

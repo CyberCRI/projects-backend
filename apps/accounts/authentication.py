@@ -4,8 +4,6 @@ import uuid
 
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
-from django.db import transaction
-from django.http import Http404
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from django.utils.translation import gettext_lazy as _
@@ -16,40 +14,15 @@ from rest_framework_simplejwt.exceptions import AuthenticationFailed, InvalidTok
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
 
-from apps.accounts.utils import get_instance_from_group, get_superadmins_group
+from apps.accounts.utils import get_instance_from_group
 from apps.deploys.models import PostDeployProcess
 from apps.deploys.task_managers import InstanceGroupsPermissions
-from keycloak import KeycloakGetError
+from apps.invitations.models import Invitation
 from services.keycloak.interface import KeycloakService
-from services.keycloak.models import KeycloakAccount
 
-from ..invitations.models import Invitation
 from .models import InvitationUser, ProjectUser
 
 logger = logging.getLogger(__name__)
-
-
-@transaction.atomic
-def import_user(keycloak_id: str) -> ProjectUser:
-    try:
-        keycloak_user = KeycloakService.get_user(keycloak_id)
-    except KeycloakGetError:
-        raise Http404()
-    user = ProjectUser.objects.create(
-        email=keycloak_user.get("username", ""),
-        personal_email=keycloak_user.get("email", ""),
-        given_name=keycloak_user.get("firstName", ""),
-        family_name=keycloak_user.get("lastName", ""),
-    )
-    keycloak_account = KeycloakAccount.objects.create(
-        keycloak_id=keycloak_id,
-        username=keycloak_user.get("username", ""),
-        email=keycloak_user.get("email", ""),
-        user=user,
-    )
-    if KeycloakService.is_superuser(keycloak_account):
-        user.groups.add(get_superadmins_group())
-    return user
 
 
 class BearerToken(AccessToken):
@@ -81,7 +54,7 @@ class AdminAuthentication(ModelBackend):
         try:
             return ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except ProjectUser.DoesNotExist:
-            return import_user(user_id)
+            return ProjectUser.import_from_keycloak(user_id)
 
 
 class ProjectJWTAuthentication(JWTAuthentication):
@@ -94,7 +67,9 @@ class ProjectJWTAuthentication(JWTAuthentication):
         """
         Create user if present in keycloak but not yet in Projects.
         """
-        return import_user(payload[settings.SIMPLE_JWT["USER_ID_CLAIM"]])
+        return ProjectUser.import_from_keycloak(
+            payload[settings.SIMPLE_JWT["USER_ID_CLAIM"]]
+        )
 
     def authenticate(self, request):
         header = self.get_header(request)

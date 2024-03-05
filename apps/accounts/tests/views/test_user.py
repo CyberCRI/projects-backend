@@ -826,6 +826,20 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
         self.assertEqual(keycloak_user["attributes"]["attribute_1"], ["value_1"])
 
+    def test_add_organization_from_keycloak_attributes(self):
+        organization = OrganizationFactory()
+        payload = {
+            "username": f"{faker.uuid4()}@{faker.domain_name()}",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
+            "firstName": faker.first_name(),
+            "lastName": faker.last_name(),
+            "attributes": {"idp_organizations": [organization.code]},
+        }
+        keycloak_id = KeycloakService._create_user(payload)
+        user = ProjectUser.import_from_keycloak(keycloak_id)
+        self.assertIsNotNone(user)
+        self.assertIn(user, organization.users.all())
+
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)
         admins = UserFactory.create_batch(3)
