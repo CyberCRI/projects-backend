@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "projects-back"
+name = "projects"
 version = "2.0.1"
 description = "Learning Planet Institute Projects backend"
 authors = ["LPI IT team <it-team@learningplanetinstitute.org>"]
