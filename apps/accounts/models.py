@@ -453,7 +453,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             raise Http404
         user = cls.objects.create(
             email=keycloak_user.get("username", ""),
-            personal_email=keycloak_user.get("email", ""),
             given_name=keycloak_user.get("firstName", ""),
             family_name=keycloak_user.get("lastName", ""),
         )
