@@ -833,7 +833,7 @@ class MiscUserTestCase(JwtAPITestCase):
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "firstName": faker.first_name(),
             "lastName": faker.last_name(),
-            "attributes": {"idp_organizations": [organization.id]},
+            "attributes": {"idp_organizations": [organization.code]},
         }
         keycloak_id = KeycloakService._create_user(payload)
         user = ProjectUser.import_from_keycloak(keycloak_id)

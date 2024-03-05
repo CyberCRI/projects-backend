@@ -1,6 +1,6 @@
 import uuid
 from datetime import date
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
+from typing import Any, Iterable, List, Optional, Union
 
 from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -28,13 +28,11 @@ from apps.commons.models import (
     PermissionsSetupModel,
 )
 from apps.misc.models import SDG, Language, WikipediaTag
+from apps.organizations.models import Organization
 from apps.projects.models import Project
 from keycloak import KeycloakGetError
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
-
-if TYPE_CHECKING:
-    from apps.organizations.models import Organization
 
 
 class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
@@ -465,11 +463,11 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         if KeycloakService.is_superuser(keycloak_account):
             user.groups.add(get_superadmins_group())
         # Users imported from an external IdP can be added to one or more organizations
-        organizations_pks = keycloak_user.get("attributes", {}).get(
+        organizations_codes = keycloak_user.get("attributes", {}).get(
             "idp_organizations", []
         )
-        groups = [f"organization:#{o}:users" for o in organizations_pks]
-        user.groups.add(*Group.objects.filter(name__in=groups))
+        organizations = Organization.objects.filter(code__in=organizations_codes)
+        user.groups.add(*[o.get_users() for o in organizations])
         return user
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
