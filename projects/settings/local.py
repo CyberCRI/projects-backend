@@ -15,6 +15,8 @@ FRONTEND_URL = "http://localhost:8080"
 
 ALGOLIA["AUTO_INDEXING"] = False  # noqa: F405
 
+SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = "/api/schema/"  # noqa: F405
+
 ##############
 #   CELERY   #
 ##############
