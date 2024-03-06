@@ -31,11 +31,10 @@ RUN pip install -r requirements.txt
 COPY devops-toolbox/scripts/secrets-entrypoint.sh secrets-entrypoint.sh
 COPY . .
 
-RUN django-admin compilemessages
-
-RUN python manage.py spectacular --file assets/schema.yml
-
-RUN python manage.py collectstatic
+RUN django-admin compilemessages &&\
+    python manage.py spectacular --file assets/schema.yml &&\
+    python manage.py collectstatic &&\
+    rm -fr /app/assets
 
 USER app
 
