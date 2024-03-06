@@ -552,7 +552,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "assets",
 ]
 # Add compression and caching support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 
 ##############
