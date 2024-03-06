@@ -107,6 +107,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     # external
+    "whitenoise.runserver_nostatic",
     "algoliasearch_django",
     "corsheaders",
     "django_cleanup.apps.CleanupConfig",
@@ -552,7 +553,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "assets",
 ]
 # Add compression and caching support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 ##############
