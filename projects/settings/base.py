@@ -107,7 +107,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     # external
-    "whitenoise.runserver_nostatic",
     "algoliasearch_django",
     "corsheaders",
     "django_cleanup.apps.CleanupConfig",
