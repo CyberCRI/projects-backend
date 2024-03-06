@@ -92,9 +92,7 @@ def process_unlinked_images(instance, text):
 
 def get_test_image_file() -> File:
     """Return a dummy test image file."""
-    return File(
-        open(f"{settings.BASE_DIR}/assets/test_image.png", "rb")  # noqa : SIM115
-    )
+    return File(open(f"{settings.STATIC_ROOT}/test_image.png", "rb"))  # noqa : SIM115
 
 
 def get_test_image() -> Image:

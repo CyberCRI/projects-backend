@@ -9,6 +9,8 @@ ENVIRONMENT = "fullstack"
 FRONTEND_URL = "https://localhost:8080"
 PUBLIC_URL = "http://localhost:8000"
 
+SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = "/api/schema/"  # noqa: F405
+
 ##############
 #   CELERY   #
 ##############

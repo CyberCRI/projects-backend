@@ -54,10 +54,8 @@ spec:
         envFrom:
           - configMapRef:
               name: {{ tpl $.Values.fullName $ }}
-        volumeMounts:
-        - name: static-files
-          mountPath: /app/static
         {{- if .Values.config.sensitive }}
+        volumeMounts:
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
@@ -93,10 +91,8 @@ spec:
             name: {{ tpl $.Values.fullName $ }}
         resources:
           {{- .Values.backend.resources | toYaml | nindent 10 }}
-        volumeMounts:
-        - name: static-files
-          mountPath: /app/static
         {{- if .Values.config.sensitive }}
+        volumeMounts:
         - name: secrets
           mountPath: "/secrets"
           readOnly: true
@@ -105,10 +101,8 @@ spec:
           allowPrivilegeEscalation: false
           capabilities:
             drop: [ALL]
-      volumes:
-      - name: static-files
-        emptyDir: {}
       {{- if .Values.config.sensitive }}
+      volumes:
       - name: secrets
         secret:
           secretName: {{ tpl $.Values.fullName $ }}

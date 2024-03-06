@@ -350,6 +350,7 @@ SPECTACULAR_SETTINGS = {
         "displayRequestDuration": True,
         "syntaxHighlight.activate": True,
         "syntaxHighlight.theme": "monokai",
+        "url": "/static/schema.yml",
     },
     "SWAGGER_UI_OAUTH2_CONFIG": {
         "clientId": KEYCLOAK_CLIENT_ID,

@@ -179,7 +179,7 @@ class JwtAPITestCase(APITestCase):
     def get_test_image_file(cls) -> File:
         """Return a dummy test image file."""
         return File(
-            open(f"{settings.BASE_DIR}/assets/test_image.png", "rb")  # noqa: SIM115
+            open(f"{settings.STATIC_ROOT}/test_image.png", "rb")  # noqa: SIM115
         )
 
     @classmethod
@@ -187,7 +187,7 @@ class JwtAPITestCase(APITestCase):
         """Return a dummy test image file."""
         return File(
             open(  # noqa: SIM115
-                f"{settings.BASE_DIR}/assets/oversized_test_image.jpg", "rb"
+                f"{settings.STATIC_ROOT}/oversized_test_image.jpg", "rb"
             )
         )
 
