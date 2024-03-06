@@ -69,7 +69,7 @@ migrate:
 	python manage.py migrate --no-input --skip-checks
 
 .PHONY: prestart
-prestart: check migrate
+prestart: check collectstatic migrate
 
 .PHONY: prestart-no-migrate
 prestart-no-migrate: check collectstatic
