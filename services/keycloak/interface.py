@@ -337,7 +337,9 @@ class KeycloakService:
         else:
             username = user.email
             email = user.email
-
+        keycloak_account.username = username
+        keycloak_account.email = email
+        keycloak_account.save()
         payload = {
             "username": username,
             "email": email,
