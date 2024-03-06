@@ -34,7 +34,7 @@ COPY . .
 RUN django-admin compilemessages &&\
     python manage.py spectacular --file assets/schema.yml &&\
     python manage.py collectstatic &&\
-    rm -fr /app/assets
+    rm -fr /app/assets/*
 
 USER app
 
