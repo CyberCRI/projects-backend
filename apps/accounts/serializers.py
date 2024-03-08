@@ -44,6 +44,56 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
         )
 
 
+class UserAdminListSerializer(serializers.ModelSerializer):
+    current_org_role = serializers.CharField(required=False, read_only=True)
+    email_verified = serializers.BooleanField(required=False, read_only=True)
+    password_created = serializers.BooleanField(required=False, read_only=True)
+    people_groups = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProjectUser
+        read_only_fields = [
+            "id",
+            "slug",
+            "keycloak_id",
+            "email",
+            "given_name",
+            "family_name",
+            "job",
+            "current_org_role",
+            "email_verified",
+            "password_created",
+            "last_login",
+            "people_groups",
+            "created_at",
+        ]
+        fields = read_only_fields
+
+    def to_representation(self, instance):
+        request = self.context.get("request", None)
+        if request and request.user.get_user_queryset().filter(id=instance.id).exists():
+            return super().to_representation(instance)
+        return {
+            **AnonymousUser.serialize(with_permissions=False),
+            "current_org_role": None,
+            "is_manager": False,
+            "is_leader": False,
+        }
+
+    def get_people_groups(self, user: ProjectUser) -> list:
+        request_user = getattr(
+            self.context.get("request", None), "user", AnonymousUser()
+        )
+        queryset = (
+            request_user.get_people_group_queryset()
+            .filter(groups__users=user)
+            .distinct()
+        )
+        return PeopleGroupSuperLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
+
+
 class UserLightSerializer(serializers.ModelSerializer):
     pronouns = serializers.CharField(required=False)
     profile_picture = PrivacySettingProtectedMethodField(

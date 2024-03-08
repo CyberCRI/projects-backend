@@ -2,7 +2,6 @@ import uuid
 from datetime import date
 from typing import Any, Iterable, List, Optional, Union
 
-from django.apps import apps
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -480,7 +479,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        Organization = apps.get_model("organizations", "Organization")  # noqa
         return list(Organization.objects.filter(groups__users=self).distinct())
 
     def get_full_name(self) -> str:

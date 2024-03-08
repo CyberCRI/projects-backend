@@ -1,6 +1,5 @@
 import inspect
 
-from django.contrib.auth.models import Group
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
@@ -180,23 +179,22 @@ class PrivacySettingFieldMixin:
         ):
             return True
         settings, _ = PrivacySettings.objects.get_or_create(user=instance)
-        match getattr(settings, self.privacy_field):
-            case PrivacySettings.PrivacyChoices.PUBLIC:
-                return True
-            case PrivacySettings.PrivacyChoices.ORGANIZATION:
-                return instance.groups.filter(
-                    organizations__isnull=False,
-                    organizations__in=request.user.get_related_organizations(),
-                ).exists()
-            case PrivacySettings.PrivacyChoices.HIDE:
-                if not request.user.is_authenticated:
-                    return False
-                return Group.objects.filter(
-                    organizations__isnull=False,
-                    organizations__in=instance.get_related_organizations(),
-                    name__contains="admins",
-                    users=request.user,
-                ).exists()
+        if (
+            getattr(settings, self.privacy_field)
+            == PrivacySettings.PrivacyChoices.PUBLIC
+        ):
+            return True
+        if getattr(settings, self.privacy_field) == PrivacySettings.PrivacyChoices.HIDE:
+            return instance.groups.filter(
+                organizations__isnull=False, name__contains="admin", users=request.user
+            ).exists()
+        if (
+            getattr(settings, self.privacy_field)
+            == PrivacySettings.PrivacyChoices.ORGANIZATION
+        ):
+            return instance.groups.filter(
+                organizations__isnull=False, users=request.user
+            ).exists()
         return False
 
     def to_representation(self, value):

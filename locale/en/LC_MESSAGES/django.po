@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-05 11:06+0000\n"
+"POT-Creation-Date: 2024-03-08 13:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,19 +36,19 @@ msgid ""
 "invitation, reset_password"
 msgstr ""
 
-#: apps/accounts/models.py:127 apps/projects/models.py:150
+#: apps/accounts/models.py:126 apps/projects/models.py:150
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:660
+#: apps/accounts/models.py:658
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:661
+#: apps/accounts/models.py:659
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:662
+#: apps/accounts/models.py:660
 msgid "Public"
 msgstr ""
 
@@ -85,16 +85,16 @@ msgid ""
 "</div>\n"
 msgstr ""
 
-#: apps/commons/fields.py:28
+#: apps/commons/fields.py:27
 msgid "This field is required."
 msgstr ""
 
-#: apps/commons/fields.py:29
+#: apps/commons/fields.py:28
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr ""
 
-#: apps/commons/fields.py:31
+#: apps/commons/fields.py:30
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
