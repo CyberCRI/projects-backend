@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-08 13:21+0000\n"
+"POT-Creation-Date: 2024-03-08 14:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -107,16 +107,16 @@ msgstr ""
 "trouver 😊</p>\n"
 "</div>\n"
 
-#: apps/commons/fields.py:27
+#: apps/commons/fields.py:28
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: apps/commons/fields.py:28
+#: apps/commons/fields.py:29
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 
-#: apps/commons/fields.py:30
+#: apps/commons/fields.py:31
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
