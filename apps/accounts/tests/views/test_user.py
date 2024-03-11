@@ -361,9 +361,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         )
         self.assertSetEqual(
             {u["id"] for u in response.data["results"][2:]},
-            {
-                self.user_1.id,
-            },
+            {self.user_1.id},
         )
 
     def test_order_by_email_verified_reverse(self):
@@ -375,9 +373,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertSetEqual(
             {u["id"] for u in response.data["results"][:1]},
-            {
-                self.user_1.id,
-            },
+            {self.user_1.id},
         )
         self.assertSetEqual(
             {u["id"] for u in response.data["results"][1:]},
