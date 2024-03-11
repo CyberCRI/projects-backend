@@ -808,15 +808,8 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(people_group.slug, "my-amazing-test-group-1")
         people_group = PeopleGroupFactory(name=name, organization=self.organization)
         self.assertEqual(people_group.slug, "my-amazing-test-group-2")
-        people_group = PeopleGroupFactory(
-            name="", type="group", organization=self.organization
-        )
+        people_group = PeopleGroupFactory(name="", organization=self.organization)
         self.assertTrue(people_group.slug.startswith("group"), people_group.slug)
-
-        people_group = PeopleGroupFactory(
-            name="", type="club", organization=self.organization
-        )
-        self.assertTrue(people_group.slug.startswith("club"), people_group.slug)
 
     def test_multiple_lookups(self):
         user = UserFactory()

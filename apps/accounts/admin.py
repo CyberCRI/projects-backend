@@ -223,10 +223,10 @@ class GroupAdmin(admin.ModelAdmin):
 
 
 class PeopleGroupAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "organization", "type", "email")
-    search_fields = ("name", "type", "email", "id")
+    list_display = ("id", "name", "organization", "email")
+    search_fields = ("name", "email", "id")
     filter_horizontal = ("featured_projects",)
-    list_filter = ("type", "organization")
+    list_filter = ("organization",)
 
 
 class PermissionAdmin(admin.ModelAdmin):

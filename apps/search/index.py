@@ -145,7 +145,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
         """Return the organizations' code for Algolia indexing."""
         return [org.code for org in project.organizations.all()]
 
-    def split_description(self, project: Project) -> Collection[str]:
+    def split_description(self, project: Project) -> Collection[str]:  # type: ignore
         """Split description every `TEXT_THRESHOLD` bytes.
 
         HTML is stripped since it can take up a lot of space, and it is
@@ -160,7 +160,7 @@ class ProjectIndex(AlgoliaSplittingIndex):
         for i in range(0, len(description), TEXT_THRESHOLD):
             yield description[i : i + TEXT_THRESHOLD]
 
-    def split_blog_entries(self, project: Project) -> Collection[str]:
+    def split_blog_entries(self, project: Project) -> Collection[str]:  # type: ignore
         """Concatenate then split blog entries every `TEXT_THRESHOLD` bytes.
 
         HTML is stripped since it can take up a lot of space, and it is
@@ -347,7 +347,7 @@ class UserIndex(AlgoliaSplittingIndex):
             for project in Project.objects.filter(groups__users=user).distinct()
         ]
 
-    def split_description(self, user: ProjectUser) -> Collection[str]:
+    def split_description(self, user: ProjectUser) -> Collection[str]:  # type: ignore
         """Split short_description every `TEXT_THRESHOLD` bytes.
 
         HTML is stripped since it can take up a lot of space, and it is
@@ -378,7 +378,6 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
             "id",
             "name",
             "email",
-            "type",
             "organization",
             "permissions",
             "sdgs",
@@ -388,7 +387,6 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
                 "id_suffix": "desc",
                 "commons": (  # IDs and attributes for faceting
                     "id",
-                    "type",
                     "organization",
                     "permissions",
                     "sdgs",
@@ -401,12 +399,10 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
         "searchableAttributes": [
             "name",
             "email",
-            "type",
             "organization",
             "description",
         ],
         "attributesForFaceting": [
-            "type",
             "organization",
             "filterOnly(permissions)",
             "filterOnly(sdgs)",
@@ -425,7 +421,7 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
         """Return the organizations' code for Algolia indexing."""
         return group.organization.code if group.organization else None
 
-    def split_description(self, group: PeopleGroup) -> Collection[str]:
+    def split_description(self, group: PeopleGroup) -> Collection[str]:  # type: ignore
         """Split short_description every `TEXT_THRESHOLD` bytes.
 
         HTML is stripped since it can take up a lot of space, and it is

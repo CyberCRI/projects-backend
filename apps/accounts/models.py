@@ -51,8 +51,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             Short description of the group in one line.
         email: EmailField
             The contact email of the group.
-        type: CharField
-            The type of the group.
         sdgs: ArrayField
             UN Sustainable Development Goals this group try to achieve.
         parent: ForeignKey
@@ -90,7 +88,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     description = models.TextField(blank=True)
     short_description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
-    type = models.CharField(max_length=50, blank=True)
     sdgs = ArrayField(
         models.PositiveSmallIntegerField(choices=SDG.choices, unique=True),
         len(SDG),
@@ -160,7 +157,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             is_root=True,
             defaults={
                 "name": organization.name,
-                "type": "group",
             },
         )
         root_group.members.set(
@@ -177,12 +173,11 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             "id": groups[group_id].id,
             "slug": groups[group_id].slug,
             "name": groups[group_id].name,
-            "type": groups[group_id].type,
             "publication_status": groups[group_id].publication_status,
             "children": [
                 cls._get_hierarchy(groups, child)
                 for child in groups[group_id].children_ids
-                if child is not None and groups[child].type == "group"
+                if child is not None
             ],
             "roles": [group.name for group in groups[group_id].groups.all()],
             "header_image": ImageSerializer(groups[group_id].header_image).data
@@ -287,7 +282,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         if self.slug == "":
             name = self.name
             if name == "":
-                name = self.type or "group"
+                name = "group"
             raw_slug = slugify(name[0:46])
             try:
                 int(raw_slug)

@@ -44,12 +44,6 @@ class AlgoliaSearchViewSetMixin(PaginatedViewSet):
                 type=str,
             ),
             OpenApiParameter(
-                name="types",
-                description="Types to filter on, separated by a comma. Works on groups.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
                 name="categories",
                 description="Categories ids to filter on, separated by a comma. Works on projects.",
                 required=False,
@@ -292,7 +286,6 @@ class PeopleGroupSearchViewSet(AlgoliaSearchViewSetMixin):
     def get_facet_filters(self):
         facet_filters = [
             [f"organization:{o}" for o in self.get_filter("organizations")],
-            [f"type:{s}" for s in self.get_filter("types")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
             [f"permissions:{p}" for p in self.get_user_groups_permissions()],
         ]
@@ -371,7 +364,6 @@ class MultipleSearchViewSet(AlgoliaSearchViewSetMixin):
         filters = {
             "organization__code__in": self.get_filter("organizations"),
             "sdgs__overlap": self.get_filter("sdgs"),
-            "type__in": self.get_filter("types"),
         }
         return {k: v for k, v in filters.items() if v}
 

@@ -227,7 +227,6 @@ class GoogleTasksTestCase(GoogleTestCase):
             "organization": self.organization.code,
             "create_in_google": True,
             "email": f"googlesync-{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
-            "type": "group",
             "description": "",
             "team": {
                 "members": [google_user.user.id],
@@ -301,7 +300,6 @@ class GoogleTasksTestCase(GoogleTestCase):
             "organization": self.organization.code,
             "create_in_google": True,
             "email": existing_group.email,
-            "type": "group",
             "description": "",
             "team": {
                 "members": [existing_user.user.id],
@@ -357,7 +355,6 @@ class GoogleTasksTestCase(GoogleTestCase):
             "name": f"googlesync-{uuid.uuid4()}",
             "organization": self.organization.code,
             "create_in_google": True,
-            "type": "group",
             "description": "",
             "team": {
                 "members": [google_user.user.id],

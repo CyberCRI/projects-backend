@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-08 14:52+0000\n"
+"POT-Creation-Date: 2024-03-11 10:53+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -36,19 +36,19 @@ msgid ""
 "invitation, reset_password"
 msgstr ""
 
-#: apps/accounts/models.py:126 apps/projects/models.py:150
+#: apps/accounts/models.py:123 apps/projects/models.py:150
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:658
+#: apps/accounts/models.py:653
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:659
+#: apps/accounts/models.py:654
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:660
+#: apps/accounts/models.py:655
 msgid "Public"
 msgstr ""
 
