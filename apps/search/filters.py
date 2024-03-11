@@ -44,11 +44,10 @@ class UserSearchFilter(filters.FilterSet):
 
 class PeopleGroupSearchFilter(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
-    types = MultiValueCharFilter(field_name="type", lookup_expr="in")
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(organization__code__in=value).distinct()
 
     class Meta:
         model = PeopleGroup
-        fields = ["organizations", "types"]
+        fields = ["organizations"]

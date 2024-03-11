@@ -23,7 +23,6 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             name="algolia",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization,
-            type="club",
             sdgs=[2],
         )
         cls.organization_2 = OrganizationFactory()
@@ -32,27 +31,23 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization_2,
             sdgs=[1],
-            type="group",
         )
         cls.private_people_group = PeopleGroupFactory(
             name="algolia",
             publication_status=PeopleGroup.PublicationStatus.PRIVATE,
             organization=cls.organization,
-            type="club",
             sdgs=[2],
         )
         cls.org_people_group = PeopleGroupFactory(
             name="algolia",
             publication_status=PeopleGroup.PublicationStatus.ORG,
             organization=cls.organization,
-            type="club",
             sdgs=[2],
         )
         cls.member_people_group = PeopleGroupFactory(
             name="algolia",
             publication_status=PeopleGroup.PublicationStatus.PRIVATE,
             organization=cls.organization,
-            type="club",
             sdgs=[2],
         )
         ProjectUser.objects.all().delete()  # Delete users created by the factories
@@ -119,18 +114,6 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("PeopleGroupSearch-search", args=("algolia",)) + "?sdgs=1"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertSetEqual(
-            {group["id"] for group in content}, {self.public_people_group_2.id}
-        )
-
-    def test_filter_by_type(self):
-        self.client.force_authenticate(self.superadmin)
-        response = self.client.get(
-            reverse("PeopleGroupSearch-search", args=("algolia",)) + "?types=group"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

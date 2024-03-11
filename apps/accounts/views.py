@@ -761,13 +761,6 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def hierarchy(self, request, *args, **kwargs):
         people_group = self.get_object()
-        if people_group.type != "group":
-            return Response(
-                {
-                    "error": "Hierarchy is only available for 'group' type people-groups."
-                },
-                status=status.HTTP_400_BAD_REQUEST,
-            )
         return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
 
 
