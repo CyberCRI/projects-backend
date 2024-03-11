@@ -74,8 +74,8 @@ class KeycloakService:
         return cls.service().get_user(keycloak_id)
 
     @classmethod
-    def get_users(cls):
-        return cls.service().get_users({})
+    def get_users(cls, **kwargs):
+        return cls.service().get_users(kwargs)
 
     @classmethod
     def _create_user(cls, keycloak_data: Dict[str, Union[str, bool]]):

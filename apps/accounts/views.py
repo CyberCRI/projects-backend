@@ -70,6 +70,7 @@ from .serializers import (
     PeopleGroupSerializer,
     PrivacySettingsSerializer,
     SkillSerializer,
+    UserAdminListSerializer,
     UserLightSerializer,
     UserSerializer,
 )
@@ -172,11 +173,16 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                     default=Value(False),
                 ),
             )
-        return queryset
+        return queryset.prefetch_related(
+            "skills__wikipedia_tag",
+            "groups",
+        )
 
     def get_serializer_class(self):
-        if self.action in ["list", "admin_list"]:
+        if self.action == "list":
             return UserLightSerializer
+        if self.action == "admin_list":
+            return UserAdminListSerializer
         return self.serializer_class
 
     def get_serializer_context(self):
