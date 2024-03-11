@@ -21,7 +21,10 @@ class OrganizationAdmin(admin.ModelAdmin):
         "website_url",
         "contact_email",
     )
-    filter_horizontal = ("wikipedia_tags",)
+    filter_horizontal = (
+        "wikipedia_tags",
+        "identity_providers",
+    )
 
 
 admin.site.register(Organization, OrganizationAdmin)

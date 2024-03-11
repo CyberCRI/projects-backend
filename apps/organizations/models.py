@@ -124,6 +124,9 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     groups = models.ManyToManyField(Group, related_name="organizations")
     access_request_enabled = models.BooleanField(default=True)
     onboarding_enabled = models.BooleanField(default=True)
+    identity_providers = models.ManyToManyField(
+        "keycloak.IdentityProvider", related_name="organizations", blank=True
+    )
 
     class Meta:
         subscopes = (
