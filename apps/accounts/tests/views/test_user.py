@@ -22,6 +22,7 @@ from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from keycloak import KeycloakDeleteError
 from services.keycloak.interface import KeycloakService
+from services.keycloak.models import KeycloakAccount
 
 faker = Faker()
 
@@ -309,7 +310,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.user = UserFactory(groups=[get_superadmins_group()])
-        cls.user_1 = SeedUserFactory(groups=[cls.organization.get_users()])
+        cls.user_1 = SeedUserFactory(groups=[cls.organization.get_admins()])
         KeycloakService._update_user(
             str(cls.user_1.keycloak_id),
             {
@@ -317,7 +318,7 @@ class AdminListUserTestCase(JwtAPITestCase):
                 "requiredActions": [],
             },
         )
-        cls.user_2 = SeedUserFactory(groups=[cls.organization.get_users()])
+        cls.user_2 = SeedUserFactory(groups=[cls.organization.get_facilitators()])
         KeycloakService._update_user(
             str(cls.user_2.keycloak_id),
             {
@@ -325,43 +326,12 @@ class AdminListUserTestCase(JwtAPITestCase):
                 "requiredActions": [],
             },
         )
-        cls.user_3 = SeedUserFactory(groups=[cls.organization.get_users()])
-        KeycloakService._update_user(
-            str(cls.user_3.keycloak_id),
-            {
-                "emailVerified": True,
-                "requiredActions": ["VERIFY_EMAIL"],
-            },
-        )
-        cls.user_4 = SeedUserFactory(groups=[cls.organization.get_users()])
-        KeycloakService._update_user(
-            str(cls.user_4.keycloak_id),
-            {
-                "emailVerified": True,
-                "requiredActions": ["UPDATE_PASSWORD"],
-            },
-        )
+        cls.user_3 = UserFactory(groups=[cls.organization.get_users()])
+        KeycloakAccount.objects.get(user=cls.user_3).delete()
         cls.users = [
-            {
-                "user": cls.user_1,
-                "email_verified": True,
-                "password_created": True,
-            },
-            {
-                "user": cls.user_2,
-                "email_verified": False,
-                "password_created": True,
-            },
-            {
-                "user": cls.user_3,
-                "email_verified": False,
-                "password_created": True,
-            },
-            {
-                "user": cls.user_4,
-                "email_verified": True,
-                "password_created": False,
-            },
+            {"user": cls.user_1, "email_verified": True},
+            {"user": cls.user_2, "email_verified": False},
+            {"user": cls.user_3, "email_verified": False},
         ]
 
     def test_list_accounts_status(self):
@@ -371,41 +341,12 @@ class AdminListUserTestCase(JwtAPITestCase):
             + f"?organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data["results"]), 4)
+        self.assertEqual(len(response.data["results"]), len(self.users))
         content = {user["id"]: user for user in response.data["results"]}
         for user in self.users:
             self.assertEqual(
-                content[user["user"].id]["password_created"], user["password_created"]
-            )
-            self.assertEqual(
                 content[user["user"].id]["email_verified"], user["email_verified"]
             )
-
-    def test_order_by_password_created(self):
-        self.client.force_authenticate(self.user)
-        response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?ordering=password_created&organizations={self.organization.code}"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["results"][0]["id"], self.user_4.id)
-        self.assertSetEqual(
-            {u["id"] for u in response.data["results"][1:]},
-            {self.user_1.id, self.user_2.id, self.user_3.id},
-        )
-
-    def test_order_by_password_created_reverse(self):
-        self.client.force_authenticate(self.user)
-        response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?ordering=-password_created&organizations={self.organization.code}"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertSetEqual(
-            {u["id"] for u in response.data["results"][:3]},
-            {self.user_1.id, self.user_2.id, self.user_3.id},
-        )
-        self.assertEqual(response.data["results"][3]["id"], self.user_4.id)
 
     def test_order_by_email_verified(self):
         self.client.force_authenticate(self.user)
@@ -420,7 +361,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         )
         self.assertSetEqual(
             {u["id"] for u in response.data["results"][2:]},
-            {self.user_1.id, self.user_4.id},
+            {self.user_1.id},
         )
 
     def test_order_by_email_verified_reverse(self):
@@ -431,11 +372,11 @@ class AdminListUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertSetEqual(
-            {u["id"] for u in response.data["results"][:2]},
-            {self.user_1.id, self.user_4.id},
+            {u["id"] for u in response.data["results"][:1]},
+            {self.user_1.id},
         )
         self.assertSetEqual(
-            {u["id"] for u in response.data["results"][2:]},
+            {u["id"] for u in response.data["results"][1:]},
             {self.user_2.id, self.user_3.id},
         )
 
@@ -448,7 +389,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
             [u["id"] for u in response.data["results"]],
-            [self.user_1.id, self.user_2.id, self.user_3.id, self.user_4.id],
+            [self.user_1.id, self.user_2.id, self.user_3.id],
         )
 
     def test_order_by_created_at_reverse(self):
@@ -460,7 +401,35 @@ class AdminListUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
             [u["id"] for u in response.data["results"]],
-            [self.user_4.id, self.user_3.id, self.user_2.id, self.user_1.id],
+            [self.user_3.id, self.user_2.id, self.user_1.id],
+        )
+
+    def test_order_by_role(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + "?ordering=current_org_role"
+            + f"&organizations={self.organization.code}"
+            + f"&current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertListEqual(
+            [u["id"] for u in response.data["results"]],
+            [self.user_1.id, self.user_2.id, self.user_3.id],
+        )
+
+    def test_order_by_role_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + "?ordering=-current_org_role"
+            + f"&organizations={self.organization.code}"
+            + f"&current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertListEqual(
+            [u["id"] for u in response.data["results"]],
+            [self.user_3.id, self.user_2.id, self.user_1.id],
         )
 
 

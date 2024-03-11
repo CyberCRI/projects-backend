@@ -127,51 +127,41 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         organization_pk = self.request.query_params.get("current_org_pk", None)
         if organization_pk is not None:
             organization = Organization.objects.get(pk=organization_pk)
+            admins = organization.admins.values_list("pk", flat=True)
+            facilitators = organization.facilitators.values_list("pk", flat=True)
+            users = organization.users.values_list("pk", flat=True)
             queryset = queryset.annotate(
                 current_org_role=Case(
                     When(
-                        pk__in=organization.admins.values_list("pk", flat=True),
+                        pk__in=admins,
                         then=Value(Organization.DefaultGroup.ADMINS),
                     ),
                     When(
-                        pk__in=organization.facilitators.values_list("pk", flat=True),
+                        pk__in=facilitators,
                         then=Value(Organization.DefaultGroup.FACILITATORS),
                     ),
                     When(
-                        pk__in=organization.users.values_list("pk", flat=True),
+                        pk__in=users,
                         then=Value(Organization.DefaultGroup.USERS),
                     ),
                     default=Value(None),
                 )
             )
         if self.action == "admin_list":
-            keycloak_users = KeycloakService.get_users()
-            email_verified = [
-                user["id"]
-                for user in keycloak_users
-                if user["emailVerified"]
-                and "VERIFY_EMAIL" not in user["requiredActions"]
-            ]
-            password_created = [
-                user["id"]
-                for user in keycloak_users
-                if "UPDATE_PASSWORD" not in user["requiredActions"]
-            ]
+            email_not_verified = KeycloakService.get_users(emailVerified=False)
+            email_not_verified = [user["id"] for user in email_not_verified]
             queryset = queryset.annotate(
                 email_verified=Case(
                     When(
-                        keycloak_account__keycloak_id__in=email_verified,
-                        then=Value(True),
+                        keycloak_account__isnull=True,
+                        then=Value(False),
                     ),
-                    default=Value(False),
-                ),
-                password_created=Case(
                     When(
-                        keycloak_account__keycloak_id__in=password_created,
-                        then=Value(True),
+                        keycloak_account__keycloak_id__in=email_not_verified,
+                        then=Value(False),
                     ),
-                    default=Value(False),
-                ),
+                    default=Value(True),
+                )
             )
         return queryset.prefetch_related(
             "skills__wikipedia_tag",
