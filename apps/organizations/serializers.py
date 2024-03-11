@@ -17,6 +17,7 @@ from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.misc.models import Tag
 from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSerializer
+from services.keycloak.serializers import IdentityProviderSerializer
 
 from .models import Faq, Organization, ProjectCategory, Template
 
@@ -138,6 +139,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
         source="parent",
         slug_field="code",
     )
+    identity_providers = IdentityProviderSerializer(many=True, read_only=True)
     # write_only
     banner_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -171,7 +173,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "onboarding_enabled",
             "name",
             "website_url",
-            "parent_code",
             "created_at",
             "updated_at",
             # read_only
@@ -181,8 +182,10 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "wikipedia_tags",
             "tags",
             "children",
+            "parent_code",
             "is_logo_visible_on_parent_dashboard",
             "google_sync_enabled",
+            "identity_providers",
             # write_only
             "banner_image_id",
             "logo_image_id",

@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import KeycloakAccount
+from .models import IdentityProvider, KeycloakAccount
 
 
 class KeycloalAccountAdmin(admin.ModelAdmin):
@@ -17,4 +17,14 @@ class KeycloalAccountAdmin(admin.ModelAdmin):
     )
 
 
+class IdentityProviderAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "alias",
+        "enabled",
+    )
+    search_fields = ("alias",)
+
+
 admin.site.register(KeycloakAccount, KeycloalAccountAdmin)
+admin.site.register(IdentityProvider, IdentityProviderAdmin)

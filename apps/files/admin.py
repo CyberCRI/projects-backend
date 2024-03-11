@@ -19,7 +19,8 @@ class ImageForm(forms.ModelForm):
         FAQ_IMAGES = "faq/images/"
         CATEGORY_BACKGROUND = "category/background/"
         TEMPLATE_IMAGES = "template/images/"
-        EMAIL_IMAGES = "email/images"
+        EMAIL_IMAGES = "email/images/"
+        IDP_LOGO = "idp/logo/"
 
     upload_to = forms.CharField(
         widget=forms.Select(choices=ImageUploadToChoices.choices)
