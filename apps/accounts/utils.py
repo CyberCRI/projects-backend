@@ -10,12 +10,13 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm, get_group_perms
-from rest_framework import exceptions
 from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.commons.models import PermissionsSetupModel
 from keycloak import KeycloakError
+
+from .exceptions import ExpiredTokenError, TokenPrefixMissingError
 
 
 def decode_token(request: Request) -> Optional[Dict[str, Any]]:
@@ -36,9 +37,9 @@ def decode_token(request: Request) -> Optional[Dict[str, Any]]:
             options={"verify_signature": settings.AUTH_CONFIG["VERIFY_SIGNATURE"]},
         )
     except jwt.ExpiredSignatureError:
-        raise exceptions.AuthenticationFailed("access_token expired")
+        raise ExpiredTokenError
     except IndexError:
-        raise exceptions.AuthenticationFailed("Token prefix missing")
+        raise TokenPrefixMissingError
 
 
 def get_default_group_permissions():

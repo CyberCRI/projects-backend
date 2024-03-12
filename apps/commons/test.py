@@ -3,7 +3,7 @@ import logging
 import os
 import random
 import uuid
-from typing import List, Optional
+from typing import Dict, List, Optional
 from unittest import skipUnless, util
 
 from django.conf import settings
@@ -20,6 +20,8 @@ from apps.accounts.utils import get_superadmins_group
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+
+from .exceptions import ExceptionType
 
 util._MAX_LENGTH = 1000000
 faker = Faker()
@@ -211,6 +213,38 @@ class JwtAPITestCase(APITestCase):
         image._upload_to = lambda instance, filename: f"test/{uuid.uuid4()}"
         image.save()
         return image
+
+    def assertApiValidationError(  # noqa : N802
+        self, response, messages: Optional[Dict[str, List[str]]] = None
+    ):
+        content = response.json()
+        self.assertEqual(content["type"], ExceptionType.VALIDATION.value)
+        if messages:
+            self.assertEqual(content["errors"], messages)
+
+    def assertApiPermissionError(  # noqa : N802
+        self, response, detail: Optional[str] = None
+    ):
+        content = response.json()
+        self.assertEqual(content["type"], ExceptionType.PERMISSION.value)
+        if detail:
+            self.assertEqual(content["detail"], detail)
+
+    def assertApiTechnicalError(  # noqa : N802
+        self, response, detail: Optional[str] = None
+    ):
+        content = response.json()
+        self.assertEqual(content["type"], ExceptionType.TECHNICAL.value)
+        if detail:
+            self.assertEqual(content["detail"], detail)
+
+    def assertApiAuthenticationError(  # noqa : N802
+        self, response, detail: Optional[str] = None
+    ):
+        content = response.json()
+        self.assertEqual(content["type"], ExceptionType.AUTHENTHICATION.value)
+        if detail:
+            self.assertEqual(content["detail"], detail)
 
 
 class TagTestCaseMixin:

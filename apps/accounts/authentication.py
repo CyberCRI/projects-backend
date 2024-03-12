@@ -6,11 +6,9 @@ from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django.utils import timezone
 from django.utils.timezone import make_aware
-from django.utils.translation import gettext_lazy as _
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import AuthenticationFailed, InvalidToken
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
 
@@ -20,6 +18,7 @@ from apps.deploys.task_managers import InstanceGroupsPermissions
 from apps.invitations.models import Invitation
 from services.keycloak.interface import KeycloakService
 
+from .exceptions import InactiveUserError, InvalidInvitationError, InvalidTokenError
 from .models import InvitationUser, ProjectUser
 
 logger = logging.getLogger(__name__)
@@ -110,14 +109,14 @@ class ProjectJWTAuthentication(JWTAuthentication):
         try:
             user_id = validated_token[api_settings.USER_ID_CLAIM]
         except KeyError:
-            raise InvalidToken(_("Token contained no recognizable user identification"))
+            raise InvalidTokenError
         try:
             user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except self.user_model.DoesNotExist:
             return self._create_user(validated_token)
 
         if not user.is_active:
-            raise AuthenticationFailed(_("User is inactive"), code="user_inactive")
+            raise InactiveUserError
 
         return user
 
@@ -128,9 +127,7 @@ class ProjectJWTAuthentication(JWTAuthentication):
         )
         if queryset.exists():
             return InvitationUser(invitation=queryset.get())
-        raise AuthenticationFailed(
-            _("Invitation not found or expired"), code="invitation_not_found_or_expired"
-        )
+        raise InvalidInvitationError
 
 
 class KeycloakJWTAuthenticationExtension(OpenApiAuthenticationExtension):

@@ -30,6 +30,7 @@ from apps.misc.models import SDG, Language, WikipediaTag
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from keycloak import KeycloakGetError
+from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 
@@ -442,7 +443,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         try:
             keycloak_user = KeycloakService.get_user(keycloak_id)
         except KeycloakGetError:
-            raise Http404
+            raise RemoteKeycloakAccountNotFound
         user = cls.objects.create(
             email=keycloak_user.get("username", ""),
             given_name=keycloak_user.get("firstName", ""),

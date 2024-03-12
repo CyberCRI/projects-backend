@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-11 10:53+0000\n"
+"POT-Creation-Date: 2024-03-12 15:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,19 +18,42 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/authentication.py:113
+#: apps/accounts/exceptions.py:15
 msgid "Token contained no recognizable user identification"
 msgstr "Le token n'a pas permis de retrouver un utilisateur"
 
-#: apps/accounts/authentication.py:120
+#: apps/accounts/exceptions.py:21
 msgid "User is inactive"
 msgstr "L'utilisateur.ice est inactif.ve"
 
-#: apps/accounts/authentication.py:132
-msgid "Invitation not found or expired"
+#: apps/accounts/exceptions.py:27
+#, fuzzy
+#| msgid "Invitation not found or expired"
+msgid "Invitation link not found or expired"
 msgstr "Invitation invalide ou expirée"
 
-#: apps/accounts/exceptions.py:8
+#: apps/accounts/exceptions.py:33
+msgid "Access token has expired"
+msgstr ""
+
+#: apps/accounts/exceptions.py:39
+msgid "Token prefix is missing"
+msgstr ""
+
+#: apps/accounts/exceptions.py:48
+msgid "You cannot add projects that you do not have access to"
+msgstr ""
+
+#: apps/accounts/exceptions.py:54
+msgid "You do not have the permission to assign this role"
+msgstr ""
+
+#: apps/accounts/exceptions.py:58
+#, python-brace-format
+msgid "You do not have the permission to assign this role : {role}"
+msgstr ""
+
+#: apps/accounts/exceptions.py:68
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -38,19 +61,60 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/models.py:123 apps/projects/models.py:150
+#: apps/accounts/exceptions.py:75
+#, fuzzy
+#| msgid "Service account not found"
+msgid "Permission not found"
+msgstr "Compte de service inconnu"
+
+#: apps/accounts/exceptions.py:81
+msgid "You already have this skill in your profile"
+msgstr ""
+
+#: apps/accounts/exceptions.py:90
+#, fuzzy
+#| msgid "The organizations parameter is mandatory."
+msgid "The organization of a group cannot be changed"
+msgstr "Le paramètre organizations est obligatoire."
+
+#: apps/accounts/exceptions.py:96
+msgid "The root group cannot have a parent group"
+msgstr ""
+
+#: apps/accounts/exceptions.py:102
+msgid "A non-root group must have a parent group"
+msgstr ""
+
+#: apps/accounts/exceptions.py:108
+msgid "The parent group must belong to the same organization"
+msgstr ""
+
+#: apps/accounts/exceptions.py:114
+msgid "You are trying to create a loop in the group's hierarchy"
+msgstr ""
+
+#: apps/accounts/exceptions.py:120
+msgid "You cannot assign this role to a user"
+msgstr ""
+
+#: apps/accounts/exceptions.py:124
+#, python-brace-format
+msgid "You cannot assign this role to a user : {role}"
+msgstr ""
+
+#: apps/accounts/models.py:124 apps/projects/models.py:150
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:653
+#: apps/accounts/models.py:654
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:654
+#: apps/accounts/models.py:655
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:655
+#: apps/accounts/models.py:656
 msgid "Public"
 msgstr "Publique"
 
@@ -1258,9 +1322,15 @@ msgstr "Cet email est déjà utilisé par un autre groupe"
 msgid "This email is already used by another user"
 msgstr "Cet email est déjà utilisé par un autre utilisateur"
 
-#: services/keycloak/exceptions.py:7
-msgid "Given user does not have a keycloak account."
+#: services/keycloak/exceptions.py:8
+#, fuzzy
+#| msgid "Given user does not have a keycloak account."
+msgid "Given user does not have a keycloak account"
 msgstr "L'utilisateur.ice n'a pas de compte keycloak."
+
+#: services/keycloak/exceptions.py:14
+msgid "No user was found with the given keycloak id"
+msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
@@ -1553,9 +1623,6 @@ msgstr ""
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
 msgstr "L'API Wikipedia a renvoyé une erreur {status_code}"
-
-#~ msgid "Service account not found"
-#~ msgstr "Compte de service inconnu"
 
 #, python-brace-format
 #~ msgid "Invalid representation \"{representation}\" - object does not exist."

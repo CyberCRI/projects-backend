@@ -481,9 +481,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             reverse("PeopleGroup-list", args=(self.organization.code,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["parent"][0],
-            "The parent group must belong to the same organization",
+        self.assertApiValidationError(
+            response,
+            {"parent": ["The parent group must belong to the same organization"]},
         )
 
     def test_update_parent_in_other_organization(self):
@@ -499,9 +499,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["parent"][0],
-            "The parent group must belong to the same organization",
+        self.assertApiValidationError(
+            response,
+            {"parent": ["The parent group must belong to the same organization"]},
         )
 
     def test_update_organization(self):
@@ -516,9 +516,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["organization"][0],
-            "The organization of a group cannot be changed",
+        self.assertApiValidationError(
+            response,
+            {"organization": ["The organization of a group cannot be changed"]},
         )
 
     def test_own_parent(self):
@@ -533,9 +533,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["parent"][0],
-            "You are trying to create a loop in the group's hierarchy",
+        self.assertApiValidationError(
+            response,
+            {"parent": ["You are trying to create a loop in the group's hierarchy"]},
         )
 
     def test_create_hierarchy_loop(self):
@@ -548,9 +548,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.json()["parent"][0],
-            "You are trying to create a loop in the group's hierarchy",
+        self.assertApiValidationError(
+            response,
+            {"parent": ["You are trying to create a loop in the group's hierarchy"]},
         )
 
     def test_create_other_organization_in_payload(self):
@@ -578,9 +578,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             ),
             payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["featured_projects"][0],
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertApiPermissionError(
+            response,
             "You cannot add projects that you do not have access to",
         )
 
@@ -614,9 +614,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data["parent"][0],
-            "The root group cannot have a parent group",
+        self.assertApiValidationError(
+            response,
+            {"parent": ["The root group cannot have a parent group"]},
         )
 
     def test_set_root_group_as_parent_with_none(self):

@@ -1,3 +1,5 @@
+from enum import Enum
+
 from rest_framework.exceptions import (
     APIException,
     AuthenticationFailed,
@@ -8,25 +10,46 @@ from rest_framework.exceptions import (
 from rest_framework.views import exception_handler
 
 
+class ExceptionType(Enum):
+    VALIDATION = "validation"
+    AUTHENTHICATION = "authentication"
+    PERMISSION = "permission"
+    TECHNICAL = "technical"
+    UNKNOWN = "unknown"
+
+
+def get_exception_type(exc: Exception) -> str:
+    """
+    Get the type of exception.
+
+    The order of the exception_types is important because some exceptions are
+    subclasses of others
+    """
+    exception_types = [
+        (ValidationError, ExceptionType.VALIDATION.value),
+        (NotAuthenticated, ExceptionType.AUTHENTHICATION.value),
+        (AuthenticationFailed, ExceptionType.AUTHENTHICATION.value),
+        (PermissionDenied, ExceptionType.PERMISSION.value),
+        (APIException, ExceptionType.TECHNICAL.value),
+    ]
+    for exception_class, exception_type in exception_types:
+        if isinstance(exc, exception_class):
+            return exception_type
+    return ExceptionType.UNKNOWN.value
+
+
 def projects_exception_handler(exc, context):
     response = exception_handler(exc, context)
     if response is not None:
-        exception_types = [
-            (ValidationError, "validation"),
-            (NotAuthenticated, "authentication"),
-            (AuthenticationFailed, "authentication"),
-            (PermissionDenied, "permission"),
-            (APIException, "technical"),
-        ]
-        for exception_class, exception_type in exception_types:
-            if isinstance(exc, exception_class):
-                response.data = {
-                    "type": exception_type,
-                    "errors": response.data,
-                }
-                return response
-        response.data = {
-            "type": "unknown",
-            "errors": response.data,
-        }
+        exception_type = get_exception_type(exc)
+        if exception_type == ExceptionType.VALIDATION.value:
+            response.data = {
+                "type": exception_type,
+                "errors": response.data,
+            }
+        else:
+            response.data = {
+                "type": exception_type,
+                **response.data,
+            }
     return response

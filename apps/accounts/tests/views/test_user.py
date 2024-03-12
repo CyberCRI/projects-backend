@@ -560,8 +560,10 @@ class ValidateUserTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertIn(
-            f"organization:#{organization_2.pk}:users", response.json()["detail"]
+        self.assertApiPermissionError(
+            response,
+            "You do not have the permission to assign this role : "
+            f"organization:#{organization_2.pk}:users",
         )
 
 
