@@ -293,6 +293,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "apps.commons.swagger.CustomAutoSchema",
     "TEST_REQUEST_DEFAULT_FORMAT": "json",
     "UNAUTHENTICATED_USER": "apps.accounts.models.AnonymousUser",
+    "EXCEPTION_HANDLER": "apps.commons.exceptions.projects_exception_handler",
 }
 
 # Authentication
