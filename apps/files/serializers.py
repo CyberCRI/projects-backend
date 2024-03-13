@@ -256,7 +256,7 @@ class ImageSerializer(serializers.ModelSerializer):
         ]
 
     def validate_file(self, file):
-        limit = settings.MAX_IMAGE_SIZE * 1024 * 1024
+        limit = settings.MAX_FILE_SIZE * 1024 * 1024
         if file.size > limit:
             raise FileTooLargeError
         return file
