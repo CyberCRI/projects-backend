@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 09:26+0000\n"
+"POT-Creation-Date: 2024-03-13 14:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -188,6 +188,15 @@ msgstr ""
 "    <p style=\"font-size: 20px;\">Rafraîchissez votre boîte mail pour le "
 "trouver 😊</p>\n"
 "</div>\n"
+
+#: apps/analytics/exceptions.py:10
+msgid "Unknown publication status"
+msgstr ""
+
+#: apps/analytics/exceptions.py:15
+#, python-brace-format
+msgid "Unknown publication status '{publication_status}'"
+msgstr ""
 
 #: apps/commons/fields.py:28
 msgid "This field is required."
@@ -846,6 +855,39 @@ msgstr ""
 #: apps/emailing/templates/notifications/reminder/object.txt:2
 msgid "New highlights on Projects"
 msgstr "Résumé de l'activité sur Projects"
+
+#: apps/feedbacks/exceptions.py:12
+msgid "You don't have the permission to comment on this project"
+msgstr ""
+
+#: apps/feedbacks/exceptions.py:18
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "\n"
+#| "%(full_name)s has replied on your comment on project %(project_title)s.\n"
+msgid ""
+"You don't have the permission to comment on this project : {project_title}"
+msgstr ""
+"\n"
+"%(full_name)s a répondu à votre commentaire sur le projet "
+"%(project_title)s.\n"
+
+#: apps/feedbacks/exceptions.py:28
+msgid "You don't have the permission to follow this project"
+msgstr ""
+
+#: apps/feedbacks/exceptions.py:33
+#, python-brace-format
+msgid "You don't have the permission to follow this project : {project_title}"
+msgstr ""
+
+#: apps/feedbacks/exceptions.py:45
+msgid "You cannot reply to a reply"
+msgstr ""
+
+#: apps/feedbacks/exceptions.py:51
+msgid "A comment cannot be a reply to itself"
+msgstr ""
 
 #: apps/invitations/templates/base.html:56
 #: services/keycloak/templates/base.html:56

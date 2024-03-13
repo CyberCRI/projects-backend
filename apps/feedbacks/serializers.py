@@ -1,7 +1,7 @@
 from typing import List
 
 from django.db import transaction
-from rest_framework import exceptions, serializers
+from rest_framework import serializers
 
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.fields import RecursiveField, WritableSerializerMethodField
@@ -15,6 +15,11 @@ from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
+from .exceptions import (
+    CommentProjectPermissionDeniedError,
+    ReplyOnReplyError,
+    ReplyToSelfError,
+)
 from .models import Comment, Follow, Review
 
 
@@ -151,24 +156,19 @@ class CommentSerializer(
     def get_content(self, comment: Comment) -> str:
         return "<deleted comment>" if comment.deleted_at else comment.content
 
-    def validate(self, data):
-        """Ensure no 2nd level replies are created."""
-        if "reply_on" in data and data["reply_on"].reply_on_id is not None:
-            raise serializers.ValidationError(
-                {"reply_on_id": "You cannot reply to a reply."}
-            )
-        return data
+    def validate_reply_on_id(self, reply_on: Comment):
+        if reply_on.reply_on_id is not None:
+            raise ReplyOnReplyError
+        if self.instance and self.instance.pk == reply_on.pk:
+            raise ReplyToSelfError
+        return reply_on
 
     def validate_project_id(self, project: Project):
         """Ensure the project is public."""
         request = self.context.get("request")
         user = request.user
         if project not in user.get_project_queryset():
-            raise exceptions.PermissionDenied(
-                {
-                    "project_id": "You cannot comment on a project you don't have access to."
-                }
-            )
+            raise CommentProjectPermissionDeniedError(project.title)
         return project
 
     @transaction.atomic
