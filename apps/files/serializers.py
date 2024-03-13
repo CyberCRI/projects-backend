@@ -18,7 +18,13 @@ from apps.commons.serializers import (
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
-from .exceptions import DuplicatedFileError, FileTooLargeError
+from .exceptions import (
+    ChangeFileProjectError,
+    ChangeLinkProjectError,
+    DuplicatedFileError,
+    DuplicatedLinkError,
+    FileTooLargeError,
+)
 from .models import AttachmentFile, AttachmentLink, AttachmentType, Image
 
 
@@ -106,7 +112,7 @@ class AttachmentLinkSerializer(
         if "site_url" in data and not re.match(r"^https?://", data.get("site_url", "")):
             query_dict["site_url"] = f'https://{data["site_url"]}'
         instance = super().to_internal_value(query_dict)
-        self.validate_url(instance)
+        self.get_url_metadata(instance)
         return instance
 
     def get_url_response(self, instance):
@@ -118,7 +124,7 @@ class AttachmentLinkSerializer(
             return None
         return response
 
-    def validate_url(self, instance):
+    def get_url_metadata(self, instance):
         # Get metadata if website is reachable
         response = self.get_url_response(instance)
         if not response:
@@ -129,6 +135,26 @@ class AttachmentLinkSerializer(
             soup, instance.get("site_url")
         )
         instance["attachment_type"] = self.find_attachment_type(soup)
+
+    def validate_site_url(self, site_url):
+        project_id = None
+        if "project_id" in self.initial_data:
+            project_id = self.initial_data["project_id"]
+        elif self.instance:
+            project_id = self.instance.project.id
+        if (
+            project_id
+            and self.Meta.model.objects.filter(
+                project=project_id, site_url=site_url
+            ).exists()
+        ):
+            raise DuplicatedLinkError
+        return site_url
+
+    def validate_project_id(self, project):
+        if self.instance and self.instance.project != project:
+            raise ChangeLinkProjectError
+        return project
 
     @staticmethod
     def find_attribute(soup, attr):
@@ -188,6 +214,7 @@ class AttachmentFileSerializer(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
     )
     file = serializers.FileField()
+    hashcode = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = AttachmentFile
@@ -199,19 +226,37 @@ class AttachmentFileSerializer(
             "description",
             "attachment_type",
             "mime",
+            "hashcode",
         ]
 
-    def validate(self, data):
+    def to_internal_value(self, data):
         if "file" in data:
             file = data["file"]
-            hashcode = hashlib.sha256(file.read()).hexdigest()
+            data["hashcode"] = hashlib.sha256(file.read()).hexdigest()
             file.seek(0)  # Reset file position so it starts at 0
-            if self.Meta.model.objects.filter(
-                project_id=data["project"].id, hashcode=hashcode
-            ).exists():
-                raise DuplicatedFileError
-            data["hashcode"] = hashcode
-        return data
+        elif "hashcode" in data:
+            del data["hashcode"]
+        return super().to_internal_value(data)
+
+    def validate_hashcode(self, hashcode):
+        project_id = None
+        if "project_id" in self.initial_data:
+            project_id = self.initial_data["project_id"]
+        elif self.instance:
+            project_id = self.instance.project.id
+        if (
+            project_id
+            and self.Meta.model.objects.filter(
+                project=project_id, hashcode=hashcode
+            ).exists()
+        ):
+            raise DuplicatedFileError
+        return hashcode
+
+    def validate_project_id(self, project):
+        if self.instance and self.instance.project != project:
+            raise ChangeFileProjectError
+        return project
 
     def validate_file(self, file):
         limit = settings.MAX_FILE_SIZE * 1024 * 1024

@@ -213,7 +213,30 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"non_field_errors": ["This url is already attached to this project."]},
+            {
+                "site_url": [
+                    "The link you are trying to attach is already attached to this project"
+                ]
+            },
+        )
+
+    def test_update_duplicate_domain(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        payload = {"site_url": self.url}
+        link = AttachmentLinkFactory(project=self.project)
+        response = self.client.patch(
+            reverse("AttachmentLink-detail", args=(self.project.id, link.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "site_url": [
+                    "The link you are trying to attach is already attached to this project"
+                ]
+            },
         )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
@@ -241,7 +264,25 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"non_field_errors": ["This url is already attached to this project."]},
+            {
+                "site_url": [
+                    "The link you are trying to attach is already attached to this project"
+                ]
+            },
+        )
+
+    def test_change_link_project(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        project = ProjectFactory(organizations=[self.organization])
+        response = self.client.patch(
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
+            data={"project_id": project.id},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response, {"project_id": ["You can't change the project of a link"]}
         )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")

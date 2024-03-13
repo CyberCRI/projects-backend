@@ -16,12 +16,32 @@ class DuplicatedFileError(ValidationError):
     default_code = "duplicated_file_error"
 
 
+class DuplicatedLinkError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _(
+        "The link you are trying to attach is already attached to this project"
+    )
+    default_code = "duplicated_link_error"
+
+
 class FileTooLargeError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _(
         f"File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
     )
     default_code = "file_too_large_error"
+
+
+class ChangeFileProjectError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("You can't change the project of a file")
+    default_code = "change_file_project_error"
+
+
+class ChangeLinkProjectError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("You can't change the project of a link")
+    default_code = "change_file_attachment_type_error"
 
 
 # Technical errors
