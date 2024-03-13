@@ -7,6 +7,13 @@ from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.invitations.models import AccessRequest
 from apps.organizations.models import Organization
 
+from .exceptions import (
+    InvitationOrganizationAccessRequestDisabledError,
+    InvitationOrganizationChangeError,
+    InvitationUserAlreadyExistsError,
+    InvitationUserAlreadyMemberError,
+    PeopleGroupOrganizationError,
+)
 from .models import Invitation
 
 
@@ -34,9 +41,7 @@ class InvitationSerializer(OrganizationRelatedSerializer):
         if not PeopleGroup.objects.filter(
             id=value.id, organization__code=self.context.get("organization_code")
         ).exists():
-            raise serializers.ValidationError(
-                "People group must belong to the invitation's organization."
-            )
+            raise PeopleGroupOrganizationError
         return value
 
     def get_related_organizations(self):
@@ -44,9 +49,7 @@ class InvitationSerializer(OrganizationRelatedSerializer):
 
     def update(self, instance, validated_data):
         if "organization" in validated_data:
-            raise serializers.ValidationError(
-                "Cannot change the organization of an invitation."
-            )
+            raise InvitationOrganizationChangeError
         return super().update(instance, validated_data)
 
 
@@ -75,7 +78,7 @@ class AccessRequestSerializer(serializers.ModelSerializer):
         if self.initial_data.get("user"):
             return ""
         if ProjectUser.objects.filter(email=value).exists():
-            raise serializers.ValidationError("A user with this email already exists.")
+            raise InvitationUserAlreadyExistsError
         return value
 
     def validate_given_name(self, value: str) -> str:
@@ -99,16 +102,12 @@ class AccessRequestSerializer(serializers.ModelSerializer):
             if Organization.objects.filter(
                 code=organization, groups__users=value
             ).exists():
-                raise serializers.ValidationError(
-                    "This user is already a member of this organization."
-                )
+                raise InvitationUserAlreadyMemberError
         return value
 
     def validate_organization(self, value: Organization) -> Organization:
         if not value.access_request_enabled:
-            raise serializers.ValidationError(
-                "This organization does not accept access requests."
-            )
+            raise InvitationOrganizationAccessRequestDisabledError
         return value
 
     def to_representation(self, instance):

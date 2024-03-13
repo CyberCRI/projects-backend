@@ -10,6 +10,8 @@ from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from services.keycloak.interface import KeycloakService
 
+from .exceptions import InvalidEmailTypeError
+
 
 class Invitation(models.Model, HasOwner):
     organization = models.ForeignKey(
@@ -102,7 +104,7 @@ class AccessRequest(models.Model):
 
     def send_email(self, email_type: str, emails: List[str] = None):
         if email_type not in self.EmailType.values:
-            raise ValueError(f"Email type {email_type} is not valid")
+            raise InvalidEmailTypeError(email_type=email_type)
         subject, _ = render_message(
             f"{email_type}/object",
             self.contact_language,

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 17:11+0000\n"
+"POT-Creation-Date: 2024-03-13 17:54+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -919,6 +919,35 @@ msgid ""
 "You can't delete this picture: It is related to an instance of "
 "{relation['model']} with pk={relation['pk']} through field "
 "{relation['field']}"
+msgstr ""
+
+#: apps/invitations/exceptions.py:12
+msgid "The email type is not valid"
+msgstr ""
+
+#: apps/invitations/exceptions.py:17
+#, python-brace-format
+msgid "The email type '{email_type}' is not valid"
+msgstr ""
+
+#: apps/invitations/exceptions.py:29
+msgid "People group must belong to the invitation's organization"
+msgstr ""
+
+#: apps/invitations/exceptions.py:35
+msgid "You cannot change the organization of an invitation"
+msgstr ""
+
+#: apps/invitations/exceptions.py:41
+msgid "This user is already a member of this organization"
+msgstr ""
+
+#: apps/invitations/exceptions.py:47
+msgid "A user with this email already exists"
+msgstr ""
+
+#: apps/invitations/exceptions.py:53
+msgid "This organization does not accept access requests"
 msgstr ""
 
 #: apps/invitations/templates/base.html:56
