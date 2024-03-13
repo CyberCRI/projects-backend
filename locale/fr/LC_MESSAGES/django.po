@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-12 15:47+0000\n"
+"POT-Creation-Date: 2024-03-13 09:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,42 +18,42 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/exceptions.py:15
+#: apps/accounts/exceptions.py:17
 msgid "Token contained no recognizable user identification"
 msgstr "Le token n'a pas permis de retrouver un utilisateur"
 
-#: apps/accounts/exceptions.py:21
+#: apps/accounts/exceptions.py:23
 msgid "User is inactive"
 msgstr "L'utilisateur.ice est inactif.ve"
 
-#: apps/accounts/exceptions.py:27
+#: apps/accounts/exceptions.py:29
 #, fuzzy
 #| msgid "Invitation not found or expired"
 msgid "Invitation link not found or expired"
 msgstr "Invitation invalide ou expirée"
 
-#: apps/accounts/exceptions.py:33
+#: apps/accounts/exceptions.py:35
 msgid "Access token has expired"
 msgstr ""
 
-#: apps/accounts/exceptions.py:39
+#: apps/accounts/exceptions.py:41
 msgid "Token prefix is missing"
 msgstr ""
 
-#: apps/accounts/exceptions.py:48
+#: apps/accounts/exceptions.py:50
 msgid "You cannot add projects that you do not have access to"
 msgstr ""
 
-#: apps/accounts/exceptions.py:54
+#: apps/accounts/exceptions.py:56
 msgid "You do not have the permission to assign this role"
 msgstr ""
 
-#: apps/accounts/exceptions.py:58
+#: apps/accounts/exceptions.py:61
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr ""
 
-#: apps/accounts/exceptions.py:68
+#: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -61,43 +61,61 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:75
+#: apps/accounts/exceptions.py:81
 #, fuzzy
 #| msgid "Service account not found"
 msgid "Permission not found"
 msgstr "Compte de service inconnu"
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:87
 msgid "You already have this skill in your profile"
 msgstr ""
 
-#: apps/accounts/exceptions.py:90
+#: apps/accounts/exceptions.py:93
+msgid "An error occurred while syncing with Keycloak"
+msgstr ""
+
+#: apps/accounts/exceptions.py:98
+#, python-brace-format
+msgid "An error occurred while syncing with Keycloak : {message}"
+msgstr ""
+
+#: apps/accounts/exceptions.py:108
+msgid "An error occurred while syncing with Google"
+msgstr ""
+
+#: apps/accounts/exceptions.py:113
+#, python-brace-format
+msgid "An error occurred while syncing with Google : {message}"
+msgstr ""
+
+#: apps/accounts/exceptions.py:126
 #, fuzzy
 #| msgid "The organizations parameter is mandatory."
 msgid "The organization of a group cannot be changed"
 msgstr "Le paramètre organizations est obligatoire."
 
-#: apps/accounts/exceptions.py:96
+#: apps/accounts/exceptions.py:132
 msgid "The root group cannot have a parent group"
 msgstr ""
 
-#: apps/accounts/exceptions.py:102
+#: apps/accounts/exceptions.py:138
 msgid "A non-root group must have a parent group"
 msgstr ""
 
-#: apps/accounts/exceptions.py:108
+#: apps/accounts/exceptions.py:144
 msgid "The parent group must belong to the same organization"
 msgstr ""
 
-#: apps/accounts/exceptions.py:114
+#: apps/accounts/exceptions.py:150
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr ""
 
-#: apps/accounts/exceptions.py:120
+#: apps/accounts/exceptions.py:156
 msgid "You cannot assign this role to a user"
 msgstr ""
 
-#: apps/accounts/exceptions.py:124
+#: apps/accounts/exceptions.py:161
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import (
@@ -54,9 +56,13 @@ class UserRolePermissionDeniedError(PermissionDenied):
     default_detail = _("You do not have the permission to assign this role")
     default_code = "user_role_permission_denied"
 
-    def __init__(self, role: str):
-        detail = _(f"You do not have the permission to assign this role : {role}")
-        super().__init__(detail=detail, code=self.default_code)
+    def __init__(self, role: Optional[str] = None):
+        detail = (
+            _(f"You do not have the permission to assign this role : {role}")
+            if role
+            else self.default_detail
+        )
+        super().__init__(detail=detail)
 
 
 # Technical errors
@@ -80,6 +86,36 @@ class SkillAlreadyAddedError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = _("You already have this skill in your profile")
     default_code = "skill_already_added"
+
+
+class KeycloakSyncError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("An error occurred while syncing with Keycloak")
+    default_code = "keycloak_sync_error"
+
+    def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
+        detail = (
+            _(f"An error occurred while syncing with Keycloak : {message}")
+            if message
+            else self.default_detail
+        )
+        self.status_code = code if code else self.status_code
+        super().__init__(detail=detail)
+
+
+class GoogleSyncError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("An error occurred while syncing with Google")
+    default_code = "google_sync_error"
+
+    def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
+        detail = (
+            _(f"An error occurred while syncing with Google : {message}")
+            if message
+            else self.default_detail
+        )
+        self.status_code = code if code else self.status_code
+        super().__init__(detail=detail)
 
 
 # Validation errors
@@ -120,6 +156,10 @@ class UserRoleAssignmentError(ValidationError):
     default_detail = _("You cannot assign this role to a user")
     default_code = "user_role_assignment_error"
 
-    def __init__(self, role: str):
-        detail = _(f"You cannot assign this role to a user : {role}")
-        super().__init__(detail=detail, code=self.default_code)
+    def __init__(self, role: Optional[str] = None):
+        detail = (
+            _(f"You cannot assign this role to a user : {role}")
+            if role
+            else self.default_detail
+        )
+        super().__init__(detail=detail)

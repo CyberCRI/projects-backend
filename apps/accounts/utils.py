@@ -11,12 +11,16 @@ from django.contrib.contenttypes.models import ContentType
 from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm, get_group_perms
 from rest_framework.request import Request
-from rest_framework.response import Response
 
 from apps.commons.models import PermissionsSetupModel
 from keycloak import KeycloakError
 
-from .exceptions import ExpiredTokenError, TokenPrefixMissingError
+from .exceptions import (
+    ExpiredTokenError,
+    GoogleSyncError,
+    KeycloakSyncError,
+    TokenPrefixMissingError,
+)
 
 
 def decode_token(request: Request) -> Optional[Dict[str, Any]]:
@@ -145,15 +149,9 @@ def account_sync_errors_handler(
                 return func(request, *args, **kwargs)
             except keycloak_error as e:
                 message = json.loads(e.response_body.decode()).get("errorMessage")
-                return Response(
-                    {"error": f"An error occured in Keycloak : {message}"},
-                    status=e.response_code,
-                )
+                raise KeycloakSyncError(message=message, code=e.response_code)
             except google_error as e:
-                return Response(
-                    {"error": f"An error occured in Google : {e.reason}"},
-                    status=e.status_code,
-                )
+                raise GoogleSyncError(message=e.reason, code=e.status_code)
 
         return wrapper
 

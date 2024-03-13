@@ -478,10 +478,9 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-        content = response.json()
-        self.assertEqual(
-            content["error"],
-            "An error occured in Keycloak : User exists with same username",
+        self.assertApiTechnicalError(
+            response,
+            "An error occurred while syncing with Keycloak : User exists with same username",
         )
         self.assertFalse(ProjectUser.objects.filter(**payload).exists())
 
@@ -504,10 +503,9 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
-        content = response.json()
-        self.assertEqual(
-            content["error"],
-            "An error occured in Keycloak : User exists with same username or email",
+        self.assertApiTechnicalError(
+            response,
+            "An error occurred while syncing with Keycloak : User exists with same username or email",
         )
         self.assertNotEqual(
             ProjectUser.objects.get(id=user.id).email, existing_username
@@ -520,9 +518,9 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         user = UserFactory()
         response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["error"], "An error occured in Keycloak : error reason"
+        self.assertApiTechnicalError(
+            response,
+            "An error occurred while syncing with Keycloak : error reason",
         )
         self.assertTrue(ProjectUser.objects.filter(id=user.id).exists())
 
