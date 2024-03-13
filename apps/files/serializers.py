@@ -9,17 +9,17 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.http import QueryDict
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from rest_framework.validators import UniqueTogetherValidator
 
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
 )
-from apps.files.models import AttachmentFile, AttachmentLink, AttachmentType, Image
-from apps.files.validators import file_size
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+
+from .exceptions import DuplicatedFileError, FileTooLargeError
+from .models import AttachmentFile, AttachmentLink, AttachmentType, Image
 
 
 # From https://github.com/glemmaPaul/django-stdimage-serializer (however the repo is not maintained anymore)
@@ -187,7 +187,7 @@ class AttachmentFileSerializer(
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
     )
-    file = serializers.FileField(validators=[file_size])
+    file = serializers.FileField()
 
     class Meta:
         model = AttachmentFile
@@ -209,13 +209,15 @@ class AttachmentFileSerializer(
             if self.Meta.model.objects.filter(
                 project_id=data["project"].id, hashcode=hashcode
             ).exists():
-                raise ValidationError(
-                    {
-                        "error": "The file you are trying to upload is already attached to this project."
-                    }
-                )
+                raise DuplicatedFileError
             data["hashcode"] = hashcode
         return data
+
+    def validate_file(self, file):
+        limit = settings.MAX_FILE_SIZE * 1024 * 1024
+        if file.size > limit:
+            raise FileTooLargeError
+        return file
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
@@ -232,7 +234,7 @@ class AttachmentFileSerializer(
 
 class ImageSerializer(serializers.ModelSerializer):
     url = serializers.SerializerMethodField()
-    file = serializers.ImageField(validators=[file_size], write_only=True)
+    file = serializers.ImageField(write_only=True)
     variations = StdImageField(source="file", read_only=True)
 
     class Meta:
@@ -252,6 +254,12 @@ class ImageSerializer(serializers.ModelSerializer):
             "file",
             "variations",
         ]
+
+    def validate_file(self, file):
+        limit = settings.MAX_IMAGE_SIZE * 1024 * 1024
+        if file.size > limit:
+            raise FileTooLargeError
+        return file
 
     def get_url(self, image: Image) -> Optional[str]:
         try:

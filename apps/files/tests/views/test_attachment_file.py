@@ -226,8 +226,11 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
             format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["error"],
-            ["The file you are trying to upload is already attached to this project."],
+        self.assertApiValidationError(
+            response,
+            {
+                "non_field_errors": [
+                    "The file you are trying to upload is already attached to this project."
+                ]
+            },
         )

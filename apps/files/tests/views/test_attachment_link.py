@@ -211,10 +211,9 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["non_field_errors"],
-            ["This url is already attached to this project."],
+        self.assertApiValidationError(
+            response,
+            {"non_field_errors": ["This url is already attached to this project."]},
         )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
@@ -240,10 +239,9 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["non_field_errors"],
-            ["This url is already attached to this project."],
+        self.assertApiValidationError(
+            response,
+            {"non_field_errors": ["This url is already attached to this project."]},
         )
 
     @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")

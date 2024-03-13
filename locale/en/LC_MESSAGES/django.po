@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 14:14+0000\n"
+"POT-Creation-Date: 2024-03-13 15:07+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -689,6 +689,26 @@ msgstr ""
 
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
+msgstr ""
+
+#: apps/files/exceptions.py:14
+msgid "The file you are trying to upload is already attached to this project"
+msgstr ""
+
+#: apps/files/exceptions.py:22
+#, python-brace-format
+msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
+msgstr ""
+
+#: apps/files/exceptions.py:32
+msgid "You can't delete this picture: It is related to another object"
+msgstr ""
+
+#: apps/files/exceptions.py:38
+msgid ""
+"You can't delete this picture: It is related to an instance of "
+"{relation['model']} with pk={relation['pk']} through field "
+"{relation['field']}"
 msgstr ""
 
 #: apps/invitations/templates/base.html:56

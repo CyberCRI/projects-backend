@@ -22,6 +22,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
 
+from .exceptions import ProtectedImageError
 from .models import AttachmentFile, AttachmentLink, Image
 from .serializers import (
     AttachmentFileSerializer,
@@ -167,8 +168,5 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
             image.delete()
         except ProtectedError:
             relation = self.get_relation(image)
-            return Response(
-                f"You can't delete this picture: It is related to an instance of {relation['model']} with pk={relation['pk']} through field {relation['field']}.",
-                status=status.HTTP_409_CONFLICT,
-            )
+            raise ProtectedImageError(relation)
         return Response(status=status.HTTP_204_NO_CONTENT)
