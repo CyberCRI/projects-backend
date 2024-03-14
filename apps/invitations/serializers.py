@@ -44,13 +44,13 @@ class InvitationSerializer(OrganizationRelatedSerializer):
             raise PeopleGroupOrganizationError
         return value
 
+    def validate_organization(self, value):
+        if self.instance and value != self.instance.organization:
+            raise InvitationOrganizationChangeError
+        return value
+
     def get_related_organizations(self):
         return Organization.objects.filter(code=self.context.get("organization_code"))
-
-    def update(self, instance, validated_data):
-        if "organization" in validated_data:
-            raise InvitationOrganizationChangeError
-        return super().update(instance, validated_data)
 
 
 class AccessRequestSerializer(serializers.ModelSerializer):

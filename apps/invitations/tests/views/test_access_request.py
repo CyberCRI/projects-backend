@@ -428,10 +428,9 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["organization"],
-            ["This organization does not accept access requests."],
+        self.assertApiValidationError(
+            response,
+            {"organization": ["This organization does not accept access requests"]},
         )
 
     def test_create_access_request_user_in_organization(self):
@@ -449,9 +448,9 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["user"], ["This user is already a member of this organization."]
+        self.assertApiValidationError(
+            response,
+            {"user": ["This user is already a member of this organization"]},
         )
 
     def test_create_access_request_existing_user(self):
@@ -468,8 +467,10 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(content["email"], ["A user with this email already exists."])
+        self.assertApiValidationError(
+            response,
+            {"email": ["A user with this email already exists"]},
+        )
 
     def test_accept_access_requests_from_different_organization(self):
         user = UserFactory(groups=[get_superadmins_group()])
