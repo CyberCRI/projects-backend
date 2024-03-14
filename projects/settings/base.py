@@ -425,7 +425,7 @@ if CELERY_ENABLED:
             "schedule": crontab(minute=0, hour=8),
         },
         "send_access_request_notification": {
-            "task": "apps.notifications.tasks.send_access_request_notification",
+            "task": "apps.invitations.tasks.send_access_request_notification",
             "schedule": crontab(minute=0, hour=9),
         },
         "get_new_mixpanel_events": {
