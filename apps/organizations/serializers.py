@@ -4,7 +4,6 @@ from types import SimpleNamespace
 from typing import Dict, List
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -19,6 +18,7 @@ from apps.misc.models import Tag
 from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSerializer
 from services.keycloak.serializers import IdentityProviderSerializer
 
+from .exceptions import OrganizationHierarchyLoopError
 from .models import Faq, Organization, ProjectCategory, Template
 
 logger = logging.getLogger(__name__)
@@ -199,9 +199,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
         parent = value
         while parent is not None:
             if self.instance == parent:
-                raise ValidationError(
-                    "You are trying to create a loop in the organization's hierarchy."
-                )
+                raise OrganizationHierarchyLoopError
             parent = parent.parent
         return value
 

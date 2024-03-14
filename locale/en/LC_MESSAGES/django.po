@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-13 17:54+0000\n"
+"POT-Creation-Date: 2024-03-14 15:08+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1054,6 +1054,10 @@ msgstr ""
 
 #: apps/notifications/utils.py:201
 msgid " and "
+msgstr ""
+
+#: apps/organizations/exceptions.py:11
+msgid "You are trying to create a loop in the organization's hierarchy."
 msgstr ""
 
 #: apps/projects/exceptions.py:7

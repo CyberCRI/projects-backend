@@ -1,5 +1,6 @@
 from enum import Enum
 
+from django.http import Http404
 from rest_framework.exceptions import (
     APIException,
     AuthenticationFailed,
@@ -15,6 +16,7 @@ class ExceptionType(Enum):
     AUTHENTHICATION = "authentication"
     PERMISSION = "permission"
     TECHNICAL = "technical"
+    NOT_FOUND = "not_found"
     UNKNOWN = "unknown"
 
 
@@ -31,6 +33,7 @@ def get_exception_type(exc: Exception) -> str:
         (AuthenticationFailed, ExceptionType.AUTHENTHICATION.value),
         (PermissionDenied, ExceptionType.PERMISSION.value),
         (APIException, ExceptionType.TECHNICAL.value),
+        (Http404, ExceptionType.NOT_FOUND.value),
     ]
     for exception_class, exception_type in exception_types:
         if isinstance(exc, exception_class):

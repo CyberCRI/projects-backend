@@ -452,7 +452,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             o for o in request.query_params.get("organizations", "").split(",") if o
         ]
         if not organizations:
-            raise OrganizationsParameterMissing()
+            raise OrganizationsParameterMissing
         threshold = int(request.query_params.get("threshold", 5))
         queryset = self.request.user.get_project_queryset().filter(
             organizations__code__in=get_hierarchy_codes(organizations)
