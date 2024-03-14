@@ -264,7 +264,7 @@ class GoogleService:
                 google_group is not None
                 and PeopleGroup.objects.filter(google_group__email=group.email).exists()
             ):
-                raise GoogleGroupEmailUnavailable()
+                raise GoogleGroupEmailUnavailable
             email = group.email
         else:
             username = cls.text_to_ascii(f"team.{group.name}")

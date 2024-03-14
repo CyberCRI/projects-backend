@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-14 15:43+0000\n"
+"POT-Creation-Date: 2024-03-14 16:31+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1147,12 +1147,29 @@ msgstr ""
 msgid "This email is already used by another user"
 msgstr ""
 
-#: services/keycloak/exceptions.py:8
+#: services/keycloak/exceptions.py:12
+msgid "Invalid user credentials"
+msgstr ""
+
+#: services/keycloak/exceptions.py:21
 msgid "Given user does not have a keycloak account"
 msgstr ""
 
-#: services/keycloak/exceptions.py:14
+#: services/keycloak/exceptions.py:27
 msgid "No user was found with the given keycloak id"
+msgstr ""
+
+#: services/keycloak/exceptions.py:33
+msgid "The 'redirect_uri' parameter is mandatory"
+msgstr ""
+
+#: services/keycloak/exceptions.py:39
+msgid "The given email type is not valid"
+msgstr ""
+
+#: services/keycloak/exceptions.py:44
+#, python-brace-format
+msgid "Email type '{email_type}' is not valid"
 msgstr ""
 
 #: services/keycloak/templates/admin_created/mail.html:13
@@ -1346,7 +1363,24 @@ msgid ""
 "Update your Projects password\n"
 msgstr ""
 
-#: services/wikipedia/exceptions.py:11
+#: services/mistral/exceptions.py:10
+msgid "The given queryset does not match the related model"
+msgstr ""
+
+#: services/wikipedia/exceptions.py:12
+msgid "Wikipedia API error"
+msgstr ""
+
+#: services/wikipedia/exceptions.py:17
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
+msgstr ""
+
+#: services/wikipedia/exceptions.py:26
+msgid "Language is not supported"
+msgstr ""
+
+#: services/wikipedia/exceptions.py:31
+#, python-brace-format
+msgid "Language {language} is not supported"
 msgstr ""

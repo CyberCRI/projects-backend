@@ -4,7 +4,8 @@ from mediawiki import MediaWiki
 from rest_framework import status
 
 from apps.misc.models import WikipediaTag
-from services.wikipedia.exceptions import WikibaseAPIException
+
+from .exceptions import UnsupportedWikipediaLanguageError, WikibaseAPIException
 
 
 class WikipediaService:
@@ -16,7 +17,7 @@ class WikipediaService:
         Get the Wikimedia service.
         """
         if language not in settings.REQUIRED_LANGUAGES:
-            raise ValueError(f"Language {language} is not supported.")
+            raise UnsupportedWikipediaLanguageError(language=language)
         if not getattr(cls, f"service_{language}", None):
             setattr(cls, f"service_{language}", MediaWiki(lang=language))
         return getattr(cls, f"service_{language}")

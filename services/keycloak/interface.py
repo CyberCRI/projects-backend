@@ -12,12 +12,16 @@ from keycloak.exceptions import (
     KeycloakGetError,
     raise_error_from_response,
 )
-from rest_framework import status
 
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from keycloak import KeycloakAdmin
 
+from .exceptions import (
+    InvalidKeycloakEmailTypeError,
+    KeycloakApiAuthenticationError,
+    MissingRedirectUriError,
+)
 from .models import KeycloakAccount
 
 if TYPE_CHECKING:
@@ -65,9 +69,9 @@ class KeycloakService:
                 user_realm_name=settings.KEYCLOAK_REALM,
                 verify=True,
             )
-            return status.HTTP_200_OK, service.token
+            return service.token
         except KeycloakAuthenticationError:
-            return status.HTTP_401_UNAUTHORIZED, {"error": "Invalid user credentials"}
+            raise KeycloakApiAuthenticationError
 
     @classmethod
     def get_user(cls, keycloak_id: str):
@@ -143,7 +147,7 @@ class KeycloakService:
         if settings.ENVIRONMENT == "test":
             return {}
         if email_type not in cls.EmailType.values:
-            raise ValueError(f"Email type {email_type} is not valid")
+            raise InvalidKeycloakEmailTypeError(email_type)
         service = cls.service()
         url = f"realms/lp/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
         url += f"?client_id={cls.EMAIL_CLIENT_ID}"
@@ -222,7 +226,7 @@ class KeycloakService:
             - False if the email was not sent because no action was required
         """
         if email_type not in cls.EmailType.values:
-            raise ValueError(f"Email type {email_type} is not valid")
+            raise InvalidKeycloakEmailTypeError(email_type)
         keycloak_user = cls.get_user(keycloak_account.keycloak_id)
         if not actions:
             actions = keycloak_user.get("requiredActions", [])
@@ -261,7 +265,7 @@ class KeycloakService:
         cls, keycloak_account: KeycloakAccount, redirect_uri: str
     ):
         if not redirect_uri:
-            raise ValueError("redirect_uri is required")
+            raise MissingRedirectUriError
         try:
             keycloak_user = cls.get_user(keycloak_account.keycloak_id)
         except KeycloakGetError:
