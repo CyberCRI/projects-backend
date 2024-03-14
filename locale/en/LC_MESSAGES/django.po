@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-14 15:08+0000\n"
+"POT-Creation-Date: 2024-03-14 15:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:124 apps/projects/models.py:150
+#: apps/accounts/models.py:124 apps/projects/models.py:152
 msgid "visibility"
 msgstr ""
 
@@ -1060,44 +1060,75 @@ msgstr ""
 msgid "You are trying to create a loop in the organization's hierarchy."
 msgstr ""
 
-#: apps/projects/exceptions.py:7
-msgid "The organizations parameter is mandatory."
+#: apps/projects/exceptions.py:12
+msgid "You don't have the permission to link this project"
 msgstr ""
 
-#: apps/projects/models.py:134
+#: apps/projects/exceptions.py:17
+#, python-brace-format
+msgid "You don't have the permission to link this project : {project_title}"
+msgstr ""
+
+#: apps/projects/exceptions.py:29
+msgid "The organizations parameter is mandatory"
+msgstr ""
+
+#: apps/projects/exceptions.py:35
+msgid "The project does not belong to any of the given organizations"
+msgstr ""
+
+#: apps/projects/exceptions.py:56
+msgid "You cannot remove all the owners of a project"
+msgstr ""
+
+#: apps/projects/exceptions.py:62
+msgid "A project must belong to at least one organization"
+msgstr ""
+
+#: apps/projects/exceptions.py:68
+msgid "Only a reviewer can change this project's status"
+msgstr ""
+
+#: apps/projects/exceptions.py:74
+msgid "You cannot empty the description of a project"
+msgstr ""
+
+#: apps/projects/exceptions.py:81
+msgid ""
+"A project cannot be in a category if it doesn't belong to one of the "
+"project's organizations"
+msgstr ""
+
+#: apps/projects/models.py:136
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:143
+#: apps/projects/models.py:145
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:156
+#: apps/projects/models.py:158
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:167
+#: apps/projects/models.py:169
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:176
 msgid "wikipedia tags"
 msgstr ""
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:179
 msgid "organizational tags"
 msgstr ""
 
-#: apps/projects/models.py:184
+#: apps/projects/models.py:186
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:190
+#: apps/projects/models.py:192
 msgid "main category"
-msgstr ""
-
-#: apps/projects/serializers.py:597
-msgid "Only a reviewer can change this project's status."
 msgstr ""
 
 #: projects/settings/base.py:258

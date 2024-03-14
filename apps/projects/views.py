@@ -38,7 +38,10 @@ from apps.notifications.tasks import (
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
-from apps.projects.exceptions import OrganizationsParameterMissing
+from apps.projects.exceptions import (
+    LinkedProjectPermissionDeniedError,
+    OrganizationsParameterMissing,
+)
 from services.mistral.models import ProjectEmbedding
 
 from .filters import LocationFilter, ProjectFilter
@@ -753,7 +756,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def check_linked_project_permission(self, project):
         if not self.request.user.can_see_project(project):
-            self.permission_denied(self.request, code=403)
+            raise LinkedProjectPermissionDeniedError(project.title)
 
     @transaction.atomic
     def perform_create(self, serializer):

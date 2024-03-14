@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-14 15:08+0000\n"
+"POT-Creation-Date: 2024-03-14 15:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,7 +120,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:124 apps/projects/models.py:150
+#: apps/accounts/models.py:124 apps/projects/models.py:152
 msgid "visibility"
 msgstr "visibilité"
 
@@ -1391,45 +1391,93 @@ msgstr " et "
 msgid "You are trying to create a loop in the organization's hierarchy."
 msgstr ""
 
-#: apps/projects/exceptions.py:7
-msgid "The organizations parameter is mandatory."
+#: apps/projects/exceptions.py:12
+#, fuzzy
+#| msgid ""
+#| "\n"
+#| "%(full_name)s has replied on your comment on project %(project_title)s.\n"
+msgid "You don't have the permission to link this project"
+msgstr ""
+"\n"
+"%(full_name)s a répondu à votre commentaire sur le projet "
+"%(project_title)s.\n"
+
+#: apps/projects/exceptions.py:17
+#, fuzzy, python-brace-format
+#| msgid ""
+#| "\n"
+#| "%(full_name)s has replied on your comment on project %(project_title)s.\n"
+msgid "You don't have the permission to link this project : {project_title}"
+msgstr ""
+"\n"
+"%(full_name)s a répondu à votre commentaire sur le projet "
+"%(project_title)s.\n"
+
+#: apps/projects/exceptions.py:29
+#, fuzzy
+#| msgid "The organizations parameter is mandatory."
+msgid "The organizations parameter is mandatory"
 msgstr "Le paramètre organizations est obligatoire."
 
-#: apps/projects/models.py:134
+#: apps/projects/exceptions.py:35
+msgid "The project does not belong to any of the given organizations"
+msgstr ""
+
+#: apps/projects/exceptions.py:56
+msgid "You cannot remove all the owners of a project"
+msgstr ""
+
+#: apps/projects/exceptions.py:62
+msgid "A project must belong to at least one organization"
+msgstr ""
+
+#: apps/projects/exceptions.py:68
+#, fuzzy
+#| msgid "Only a reviewer can change this project's status."
+msgid "Only a reviewer can change this project's status"
+msgstr "Seul un correcteur peut modifier le statut de ce projet."
+
+#: apps/projects/exceptions.py:74
+msgid "You cannot empty the description of a project"
+msgstr ""
+
+#: apps/projects/exceptions.py:81
+msgid ""
+"A project cannot be in a category if it doesn't belong to one of the "
+"project's organizations"
+msgstr ""
+
+#: apps/projects/models.py:136
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:143
+#: apps/projects/models.py:145
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:156
+#: apps/projects/models.py:158
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:167
+#: apps/projects/models.py:169
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:176
 msgid "wikipedia tags"
 msgstr "tags wikipedia"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:179
 msgid "organizational tags"
 msgstr "tags organisationnels"
 
-#: apps/projects/models.py:184
+#: apps/projects/models.py:186
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:190
+#: apps/projects/models.py:192
 msgid "main category"
 msgstr "objectif principal"
-
-#: apps/projects/serializers.py:597
-msgid "Only a reviewer can change this project's status."
-msgstr "Seul un correcteur peut modifier le statut de ce projet."
 
 #: projects/settings/base.py:258
 msgid "English"
