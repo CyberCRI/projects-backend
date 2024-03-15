@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-15 10:09+0000\n"
+"POT-Creation-Date: 2024-03-15 13:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -74,7 +74,8 @@ msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
 #: apps/accounts/exceptions.py:98
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
-msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
+msgstr ""
+"Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
 
 #: apps/accounts/exceptions.py:108
 msgid "An error occurred while syncing with Google"
@@ -83,7 +84,8 @@ msgstr "Une erreur est survenue lors de la synchronisation avec Google"
 #: apps/accounts/exceptions.py:113
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
-msgstr "Une erreur est survenue lors de la synchronisation avec Google : {message}"
+msgstr ""
+"Une erreur est survenue lors de la synchronisation avec Google : {message}"
 
 #: apps/accounts/exceptions.py:126
 msgid "The organization of a group cannot be changed"
@@ -858,8 +860,7 @@ msgstr "Vous n'avez pas la permission de commenter ce projet"
 #, python-brace-format
 msgid ""
 "You don't have the permission to comment on this project : {project_title}"
-msgstr ""
-"Vous n'avez pas la permission de commenter ce projet : {project_title}"
+msgstr "Vous n'avez pas la permission de commenter ce projet : {project_title}"
 
 #: apps/feedbacks/exceptions.py:28
 msgid "You don't have the permission to follow this project"
@@ -889,7 +890,9 @@ msgstr "Le lien que vous essayez d'attacher est déjà lié à ce projet"
 #: apps/files/exceptions.py:30
 #, python-brace-format
 msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-msgstr "Fichier trop volumineux. La taille ne doit pas dépasser {settings.MAX_FILE_SIZE} Mo"
+msgstr ""
+"Fichier trop volumineux. La taille ne doit pas dépasser {settings."
+"MAX_FILE_SIZE} Mo"
 
 #: apps/files/exceptions.py:37
 msgid "You can't change the project of a file"
@@ -901,7 +904,8 @@ msgstr "Vous ne pouvez pas changer le projet d'un lien"
 
 #: apps/files/exceptions.py:52
 msgid "You can't delete this picture: It is related to another object"
-msgstr "Vous ne pouvez pas supprimer cette image: elle est liée à un autre objet"
+msgstr ""
+"Vous ne pouvez pas supprimer cette image: elle est liée à un autre objet"
 
 #: apps/files/exceptions.py:58
 msgid ""
@@ -1420,8 +1424,8 @@ msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
 msgstr ""
-"Un projet ne peut pas être dans une catégorie si elle n'appartient pas à l'une "
-"des organisations du projet"
+"Un projet ne peut pas être dans une catégorie si elle n'appartient pas à "
+"l'une des organisations du projet"
 
 #: apps/projects/exceptions.py:88
 msgid "A project can't be linked to itself"
@@ -1463,10 +1467,6 @@ msgstr "objectifs de développement durable"
 #: apps/projects/models.py:192
 msgid "main category"
 msgstr "objectif principal"
-
-#: apps/projects/serializers.py:597
-msgid "Only a reviewer can change this project's status."
-msgstr "Seul un correcteur peut modifier le statut de ce projet."
 
 #: projects/settings/base.py:259
 msgid "English"
