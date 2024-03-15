@@ -38,6 +38,7 @@ from apps.organizations.serializers import (
 
 from .exceptions import (
     EmptyProjectDescriptionError,
+    LinkProjectToSelfError,
     OnlyReviewerCanChangeStatusError,
     ProjectCategoryOrganizationError,
     ProjectWithNoOrganizationError,
@@ -234,6 +235,11 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = LinkedProject
         fields = ["id", "project_id", "target_id", "project"]
+
+    def validate(self, data):
+        if data["project"] == data["target"]:
+            raise LinkProjectToSelfError(data["project"].title)
+        return data
 
 
 class ProjectAddLinkedProjectSerializer(serializers.Serializer):

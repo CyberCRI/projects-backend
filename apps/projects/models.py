@@ -502,12 +502,6 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
     class Meta:
         unique_together = ("project", "target")
 
-    def save(self, **kwargs):
-        """Block Projects from linking to themselves."""
-        if self.project.id == self.target.id:
-            raise ValueError(f"Project {self.project.id} can't be linked to himself")
-        super().save(**kwargs)
-
     def get_related_projects(self) -> List["Project"]:
         """Return the projects related to this model."""
         return [self.target]

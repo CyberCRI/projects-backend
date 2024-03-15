@@ -81,3 +81,17 @@ class ProjectCategoryOrganizationError(ValidationError):
         "A project cannot be in a category if it doesn't belong to one of the project's organizations"
     )
     default_code = "project_category_organization_error"
+
+
+class LinkProjectToSelfError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("A project can't be linked to itself")
+    default_code = "link_project_to_self_error"
+
+    def __init__(self, project_title: Optional[str] = None):
+        detail = (
+            _(f"The project '{project_title}' can't be linked to itself")
+            if project_title
+            else self.default_detail
+        )
+        super().__init__(detail={"project_id": [detail]})

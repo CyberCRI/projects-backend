@@ -760,11 +760,12 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        project = Project.objects.get(id=self.kwargs["project_id"])
+        target = serializer.validated_data["target"]
+        project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_create(serializer)
-        project._change_reason = "Added linked projects"
-        project.save()
+        target._change_reason = "Added linked projects"
+        target.save()
 
     @transaction.atomic
     def perform_destroy(self, instance):
@@ -775,11 +776,12 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
-        project = Project.objects.get(id=self.kwargs["project_id"])
+        target = serializer.validated_data["target"]
+        project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
-        project._change_reason = "Updated linked projects"
-        project.save()
+        target._change_reason = "Updated linked projects"
+        target.save()
 
     @extend_schema(
         request=ProjectAddLinkedProjectSerializer,
@@ -799,23 +801,17 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def add_many(self, request, *args, **kwargs):
         """Link projects to a given project."""
-        project = Project.objects.get(id=self.kwargs["project_id"])
-        serializer = ProjectAddLinkedProjectSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        target = Project.objects.get(id=self.kwargs["project_id"])
         with transaction.atomic():
-            for p in serializer.validated_data["projects"]:
-                # Check the user has permission on all projects to be linked
-                self.check_linked_project_permission(p["project"])
-                LinkedProject.objects.create(
-                    project=p["project"],
-                    target=project,
-                )
-            project._change_reason = "Added linked projects"
-            project.save()
-
+            for linked_project in request.data["projects"]:
+                serializer = LinkedProjectSerializer(data=linked_project)
+                serializer.is_valid(raise_exception=True)
+                self.perform_create(serializer)
+        target._change_reason = "Added linked projects"
+        target.save()
         context = {"request": request}
         return Response(
-            ProjectSerializer(project, context=context).data,
+            ProjectSerializer(target, context=context).data,
             status=status.HTTP_200_OK,
         )
 
