@@ -139,6 +139,7 @@ INSTALLED_APPS = [
     "apps.search",
     "apps.deploys",
     "apps.emailing",
+    "apps.newsfeed",
     # services
     "services.keycloak",
     "services.mixpanel",
