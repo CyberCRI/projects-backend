@@ -1140,11 +1140,15 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: projects/settings/base.py:258
-msgid "English"
+#: apps/projects/serializers.py:597
+msgid "Only a reviewer can change this project's status."
 msgstr ""
 
 #: projects/settings/base.py:259
+msgid "English"
+msgstr ""
+
+#: projects/settings/base.py:260
 msgid "French"
 msgstr ""
 

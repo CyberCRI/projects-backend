@@ -1464,11 +1464,15 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: projects/settings/base.py:258
+#: apps/projects/serializers.py:597
+msgid "Only a reviewer can change this project's status."
+msgstr "Seul un correcteur peut modifier le statut de ce projet."
+
+#: projects/settings/base.py:259
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:259
+#: projects/settings/base.py:260
 msgid "French"
 msgstr "Français"
 

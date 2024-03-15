@@ -578,8 +578,8 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
             )
             # Retrieve images before project is posted
             if self.request.user.is_authenticated:
-                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
-            return qs
+                qs = qs | Image.objects.filter(owner=self.request.user)
+            return qs.distinct()
         return Image.objects.none()
 
     @staticmethod
@@ -648,8 +648,8 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
             )
             # Retrieve images before blog entry is posted
             if self.request.user.is_authenticated:
-                qs = (qs | Image.objects.filter(owner=self.request.user)).distinct()
-            return qs
+                qs = qs | Image.objects.filter(owner=self.request.user)
+            return qs.distinct()
         return Image.objects.none()
 
     @staticmethod
