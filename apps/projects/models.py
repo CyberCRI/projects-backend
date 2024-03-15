@@ -25,6 +25,8 @@ from apps.commons.models import (
 from apps.commons.utils import get_write_permissions_from_subscopes
 from apps.misc.models import SDG, Language, Tag, WikipediaTag
 
+from .exceptions import WrongProjectOrganizationError
+
 logger = logging.getLogger(__file__)
 
 if TYPE_CHECKING:
@@ -343,7 +345,9 @@ class Project(
             if not organizations:
                 return self.get_views()
             if not any(o in self.organizations.all() for o in organizations):
-                raise ValueError(f"{self} does not belong to one of {organizations}")
+                raise WrongProjectOrganizationError(
+                    self.title, [o.name for o in organizations]
+                )
             return sum(self.get_cached_views().get(o.code, 0) for o in organizations)
         return self.mixpanel_events.filter(organization__in=organizations).count()
 
@@ -497,12 +501,6 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
 
     class Meta:
         unique_together = ("project", "target")
-
-    def save(self, **kwargs):
-        """Block Projects from linking to themselves."""
-        if self.project.id == self.target.id:
-            raise ValueError(f"Project {self.project.id} can't be linked to himself")
-        super().save(**kwargs)
 
     def get_related_projects(self) -> List["Project"]:
         """Return the projects related to this model."""

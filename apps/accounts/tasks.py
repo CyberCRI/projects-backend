@@ -57,8 +57,6 @@ def _create_user_from_csv_data(request, user_data):
 
 def _get_serializer_update_data(user, user_data, update_mode=""):
     user_data.pop("redirect_organization_code", "")
-    if update_mode == "no_update":
-        return {"email": user.email}
     if update_mode == "soft":
         user_data = {
             key: value
@@ -71,7 +69,7 @@ def _get_serializer_update_data(user, user_data, update_mode=""):
     elif update_mode == "hard":
         user_data = {key: value for key, value in user_data.items() if value}
     else:
-        raise ValueError("Invalid update mode")
+        return {"email": user.email}
     user_data["sdgs"] = list(
         set([int(i) for i in user_data.get("sdgs", []) + user.sdgs])
     )

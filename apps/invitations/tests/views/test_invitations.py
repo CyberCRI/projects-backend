@@ -152,10 +152,13 @@ class ValidateInvitationTestCase(JwtAPITestCase):
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["people_group_id"][0],
-            "People group must belong to the invitation's organization.",
+        self.assertApiValidationError(
+            response,
+            {
+                "people_group_id": [
+                    "People group must belong to the invitation's organization"
+                ]
+            },
         )
 
     def test_update_people_group_in_other_organization(self):
@@ -174,10 +177,13 @@ class ValidateInvitationTestCase(JwtAPITestCase):
             data={"people_group_id": self.people_group_2.id},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["people_group_id"][0],
-            "People group must belong to the invitation's organization.",
+        self.assertApiValidationError(
+            response,
+            {
+                "people_group_id": [
+                    "People group must belong to the invitation's organization"
+                ]
+            },
         )
 
     def test_update_organization(self):
@@ -194,9 +200,9 @@ class ValidateInvitationTestCase(JwtAPITestCase):
             data={"organization": self.organization_2.code},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        self.assertEqual(
-            response.json(), ["Cannot change the organization of an invitation."]
+        self.assertApiValidationError(
+            response,
+            {"organization": ["You cannot change the organization of an invitation"]},
         )
 
     def test_create_with_org_in_payload(self):

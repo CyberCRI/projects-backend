@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-15 10:08+0000\n"
+"POT-Creation-Date: 2024-03-15 13:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,19 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: apps/accounts/authentication.py:113
+#: apps/accounts/exceptions.py:17
 msgid "Token contained no recognizable user identification"
 msgstr "Le token n'a pas permis de retrouver un utilisateur"
 
-#: apps/accounts/authentication.py:120
+#: apps/accounts/exceptions.py:23
 msgid "User is inactive"
-msgstr "L'utilisateur.ice est inactif.ve"
+msgstr "L'utilisateur·ice est inactif·ve"
 
-#: apps/accounts/authentication.py:132
-msgid "Invitation not found or expired"
+#: apps/accounts/exceptions.py:29
+msgid "Invitation link not found or expired"
 msgstr "Invitation invalide ou expirée"
 
-#: apps/accounts/exceptions.py:8
+#: apps/accounts/exceptions.py:35
+msgid "Access token has expired"
+msgstr "Le token d'accès a expiré"
+
+#: apps/accounts/exceptions.py:41
+msgid "Token prefix is missing"
+msgstr "Le préfixe du token est manquant"
+
+#: apps/accounts/exceptions.py:50
+msgid "You cannot add projects that you do not have access to"
+msgstr "Vous ne pouvez pas ajouter des projets auxquels vous n'avez pas accès"
+
+#: apps/accounts/exceptions.py:56
+msgid "You do not have the permission to assign this role"
+msgstr "Vous n'avez pas la permission d'assigner ce rôle"
+
+#: apps/accounts/exceptions.py:61
+#, python-brace-format
+msgid "You do not have the permission to assign this role : {role}"
+msgstr "Vous n'avez pas la permission d'assigner ce rôle : {role}"
+
+#: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -38,19 +59,76 @@ msgstr ""
 "Le paramètre email_type est manquant. Les choix sont : admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/models.py:123 apps/projects/models.py:150
+#: apps/accounts/exceptions.py:81
+msgid "Permission not found"
+msgstr "La permission n'a pas été trouvée"
+
+#: apps/accounts/exceptions.py:87
+msgid "You already have this skill in your profile"
+msgstr "Vous avez déjà cette compétence dans votre profil"
+
+#: apps/accounts/exceptions.py:93
+msgid "An error occurred while syncing with Keycloak"
+msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
+
+#: apps/accounts/exceptions.py:98
+#, python-brace-format
+msgid "An error occurred while syncing with Keycloak : {message}"
+msgstr ""
+"Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
+
+#: apps/accounts/exceptions.py:108
+msgid "An error occurred while syncing with Google"
+msgstr "Une erreur est survenue lors de la synchronisation avec Google"
+
+#: apps/accounts/exceptions.py:113
+#, python-brace-format
+msgid "An error occurred while syncing with Google : {message}"
+msgstr ""
+"Une erreur est survenue lors de la synchronisation avec Google : {message}"
+
+#: apps/accounts/exceptions.py:126
+msgid "The organization of a group cannot be changed"
+msgstr "L'organisation d'un groupe ne peut pas être modifiée"
+
+#: apps/accounts/exceptions.py:132
+msgid "The root group cannot have a parent group"
+msgstr "Le groupe racine ne peut pas avoir de groupe parent"
+
+#: apps/accounts/exceptions.py:138
+msgid "A non-root group must have a parent group"
+msgstr "Un groupe doit avoir un groupe parent"
+
+#: apps/accounts/exceptions.py:144
+msgid "The parent group must belong to the same organization"
+msgstr "Le groupe parent doit appartenir à la même organisation"
+
+#: apps/accounts/exceptions.py:150
+msgid "You are trying to create a loop in the group's hierarchy"
+msgstr "Vous essayez de créer une boucle dans la hiérarchie des groupes"
+
+#: apps/accounts/exceptions.py:156
+msgid "You cannot assign this role to a user"
+msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
+
+#: apps/accounts/exceptions.py:161
+#, python-brace-format
+msgid "You cannot assign this role to a user : {role}"
+msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
+
+#: apps/accounts/models.py:124 apps/projects/models.py:152
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:653
+#: apps/accounts/models.py:654
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:654
+#: apps/accounts/models.py:655
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:655
+#: apps/accounts/models.py:656
 msgid "Public"
 msgstr "Publique"
 
@@ -106,6 +184,15 @@ msgstr ""
 "    <p style=\"font-size: 20px;\">Rafraîchissez votre boîte mail pour le "
 "trouver 😊</p>\n"
 "</div>\n"
+
+#: apps/analytics/exceptions.py:10
+msgid "Unknown publication status"
+msgstr "Statut de publication inconnu"
+
+#: apps/analytics/exceptions.py:15
+#, python-brace-format
+msgid "Unknown publication status '{publication_status}'"
+msgstr "Statut de publication inconnu '{publication_status}'"
 
 #: apps/commons/fields.py:28
 msgid "This field is required."
@@ -765,6 +852,99 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr "Résumé de l'activité sur Projects"
 
+#: apps/feedbacks/exceptions.py:12
+msgid "You don't have the permission to comment on this project"
+msgstr "Vous n'avez pas la permission de commenter ce projet"
+
+#: apps/feedbacks/exceptions.py:18
+#, python-brace-format
+msgid ""
+"You don't have the permission to comment on this project : {project_title}"
+msgstr "Vous n'avez pas la permission de commenter ce projet : {project_title}"
+
+#: apps/feedbacks/exceptions.py:28
+msgid "You don't have the permission to follow this project"
+msgstr "Vous n'avez pas la permission de suivre ce projet"
+
+#: apps/feedbacks/exceptions.py:33
+#, python-brace-format
+msgid "You don't have the permission to follow this project : {project_title}"
+msgstr "Vous n'avez pas la permission de suivre ce projet : {project_title}"
+
+#: apps/feedbacks/exceptions.py:45
+msgid "You cannot reply to a reply"
+msgstr "Vous ne pouvez pas répondre à une réponse"
+
+#: apps/feedbacks/exceptions.py:51
+msgid "A comment cannot be a reply to itself"
+msgstr "Un commentaire ne peut pas être une réponse à lui-même"
+
+#: apps/files/exceptions.py:14
+msgid "The file you are trying to upload is already attached to this project"
+msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
+
+#: apps/files/exceptions.py:22
+msgid "The link you are trying to attach is already attached to this project"
+msgstr "Le lien que vous essayez d'attacher est déjà lié à ce projet"
+
+#: apps/files/exceptions.py:30
+#, python-brace-format
+msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
+msgstr ""
+"Fichier trop volumineux. La taille ne doit pas dépasser {settings."
+"MAX_FILE_SIZE} Mo"
+
+#: apps/files/exceptions.py:37
+msgid "You can't change the project of a file"
+msgstr "Vous ne pouvez pas changer le projet d'un fichier"
+
+#: apps/files/exceptions.py:43
+msgid "You can't change the project of a link"
+msgstr "Vous ne pouvez pas changer le projet d'un lien"
+
+#: apps/files/exceptions.py:52
+msgid "You can't delete this picture: It is related to another object"
+msgstr ""
+"Vous ne pouvez pas supprimer cette image: elle est liée à un autre objet"
+
+#: apps/files/exceptions.py:58
+msgid ""
+"You can't delete this picture: It is related to an instance of "
+"{relation['model']} with pk={relation['pk']} through field "
+"{relation['field']}"
+msgstr ""
+"Vous ne pouvez pas supprimer cette image: elle est liée à une instance de "
+"{relation['model']} avec pk={relation['pk']} via le champ {relation['field']}"
+
+#: apps/invitations/exceptions.py:12
+msgid "The email type is not valid"
+msgstr "Le type d'email n'est pas valide"
+
+#: apps/invitations/exceptions.py:17
+#, python-brace-format
+msgid "The email type '{email_type}' is not valid"
+msgstr "Le type d'email '{email_type}' n'est pas valide"
+
+#: apps/invitations/exceptions.py:29
+msgid "People group must belong to the invitation's organization"
+msgstr "Le groupe doit appartenir à l'organisation de l'invitation"
+
+#: apps/invitations/exceptions.py:35
+msgid "You cannot change the organization of an invitation"
+msgstr "Vous ne pouvez pas changer l'organisation d'une invitation"
+
+#: apps/invitations/exceptions.py:41
+msgid "This user is already a member of this organization"
+msgstr "Cet·te utilisateur·rice est déjà membre de cette organisation"
+
+#: apps/invitations/exceptions.py:47
+msgid "A user with this email already exists"
+msgstr "Un·e utilisateur·rice avec cette adresse email existe déjà"
+
+#: apps/invitations/exceptions.py:53
+msgid "This organization does not accept access requests"
+msgstr "Cette organisation n'accepte pas les demandes d'accès"
+
 #: apps/invitations/templates/base.html:56
 #: services/keycloak/templates/base.html:56
 msgid ""
@@ -1202,45 +1382,91 @@ msgstr "correcteur"
 msgid " and "
 msgstr " et "
 
-#: apps/projects/exceptions.py:7
-msgid "The organizations parameter is mandatory."
+#: apps/organizations/exceptions.py:11
+msgid "You are trying to create a loop in the organization's hierarchy."
+msgstr "Vous essayez de créer une boucle dans la hiérarchie de l'organisation."
+
+#: apps/projects/exceptions.py:12
+msgid "You don't have the permission to link this project"
+msgstr "Vous n'avez pas la permission de lier ce projet"
+
+#: apps/projects/exceptions.py:17
+#, python-brace-format
+msgid "You don't have the permission to link this project : {project_title}"
+msgstr "Vous n'avez pas la permission de lier ce projet : {project_title}"
+
+#: apps/projects/exceptions.py:29
+msgid "The organizations parameter is mandatory"
 msgstr "Le paramètre organizations est obligatoire."
 
-#: apps/projects/models.py:134
+#: apps/projects/exceptions.py:35
+msgid "The project does not belong to any of the given organizations"
+msgstr "Le projet n'appartient à aucune des organisations données"
+
+#: apps/projects/exceptions.py:56
+msgid "You cannot remove all the owners of a project"
+msgstr "Vous ne pouvez pas supprimer tou·te·s les éditeur·ices d'un projet"
+
+#: apps/projects/exceptions.py:62
+msgid "A project must belong to at least one organization"
+msgstr "Un projet doit appartenir à au moins une organisation"
+
+#: apps/projects/exceptions.py:68
+msgid "Only a reviewer can change this project's status"
+msgstr "Seul un correcteur peut modifier le statut de ce projet."
+
+#: apps/projects/exceptions.py:74
+msgid "You cannot empty the description of a project"
+msgstr "Vous ne pouvez pas vider la description d'un projet"
+
+#: apps/projects/exceptions.py:81
+msgid ""
+"A project cannot be in a category if it doesn't belong to one of the "
+"project's organizations"
+msgstr ""
+"Un projet ne peut pas être dans une catégorie si elle n'appartient pas à "
+"l'une des organisations du projet"
+
+#: apps/projects/exceptions.py:88
+msgid "A project can't be linked to itself"
+msgstr "Un projet ne peut pas être lié à lui-même"
+
+#: apps/projects/exceptions.py:93
+#, python-brace-format
+msgid "The project '{project_title}' can't be linked to itself"
+msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
+
+#: apps/projects/models.py:136
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:143
+#: apps/projects/models.py:145
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:156
+#: apps/projects/models.py:158
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:167
+#: apps/projects/models.py:169
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:176
 msgid "wikipedia tags"
 msgstr "tags wikipedia"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:179
 msgid "organizational tags"
 msgstr "tags organisationnels"
 
-#: apps/projects/models.py:184
+#: apps/projects/models.py:186
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:190
+#: apps/projects/models.py:192
 msgid "main category"
 msgstr "objectif principal"
-
-#: apps/projects/serializers.py:597
-msgid "Only a reviewer can change this project's status."
-msgstr "Seul un correcteur peut modifier le statut de ce projet."
 
 #: projects/settings/base.py:259
 msgid "English"
@@ -1256,11 +1482,32 @@ msgstr "Cet email est déjà utilisé par un autre groupe"
 
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
-msgstr "Cet email est déjà utilisé par un autre utilisateur"
+msgstr "Cet email est déjà utilisé par un·e autre utilisateur·ice"
 
-#: services/keycloak/exceptions.py:7
-msgid "Given user does not have a keycloak account."
-msgstr "L'utilisateur.ice n'a pas de compte keycloak."
+#: services/keycloak/exceptions.py:12
+msgid "Invalid user credentials"
+msgstr ""
+
+#: services/keycloak/exceptions.py:21
+msgid "Given user does not have a keycloak account"
+msgstr "L'utilisateur·ice n'a pas de compte keycloak."
+
+#: services/keycloak/exceptions.py:27
+msgid "No user was found with the given keycloak id"
+msgstr "Aucun·e utilisateur·ice n'a été trouvé·e avec l'id keycloak donné"
+
+#: services/keycloak/exceptions.py:33
+msgid "The 'redirect_uri' parameter is mandatory"
+msgstr "Le paramètre 'redirect_uri' est obligatoire"
+
+#: services/keycloak/exceptions.py:39
+msgid "The given email type is not valid"
+msgstr "Le type d'email donné n'est pas valide"
+
+#: services/keycloak/exceptions.py:44
+#, python-brace-format
+msgid "Email type '{email_type}' is not valid"
+msgstr "Le type d'email '{email_type}' n'est pas valide"
 
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
@@ -1549,142 +1796,24 @@ msgstr ""
 "\n"
 "Mettez à jour votre mot de passe Projects\n"
 
-#: services/wikipedia/exceptions.py:11
+#: services/mistral/exceptions.py:10
+msgid "The given queryset does not match the related model"
+msgstr ""
+
+#: services/wikipedia/exceptions.py:12
+msgid "Wikipedia API error"
+msgstr "L'API Wikipedia a renvoyé une erreur"
+
+#: services/wikipedia/exceptions.py:17
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
 msgstr "L'API Wikipedia a renvoyé une erreur {status_code}"
 
-#~ msgid "Service account not found"
-#~ msgstr "Compte de service inconnu"
+#: services/wikipedia/exceptions.py:26
+msgid "Language is not supported"
+msgstr "La langue n'est pas disponible"
 
+#: services/wikipedia/exceptions.py:31
 #, python-brace-format
-#~ msgid "Invalid representation \"{representation}\" - object does not exist."
-#~ msgstr ""
-#~ "Représentation invalide \"{representation}\" - cet objet n'existe pas."
-
-#, python-brace-format
-#~ msgid "{error}"
-#~ msgstr "{error}"
-
-#~ msgid ""
-#~ "\n"
-#~ "                    We are cleaning up our database. Your @cri-paris.org "
-#~ "or @external.cri-paris.org login will disappear.\n"
-#~ "                    To connect to Projects, please use the email address "
-#~ "you provided when you created your account. \n"
-#~ "                    You don't remember it? It's the one on which we send "
-#~ "you this email ;). \n"
-#~ "                    Your password remains unchanged.\n"
-#~ "                    "
-#~ msgstr ""
-#~ "\n"
-#~ "                    Nous faisons un peu de ménage dans nos bases de "
-#~ "données. Vos identifiants en @cri-paris.org ou @external.cri-paris.org "
-#~ "vont disparaître. \n"
-#~ "                    Pour vous connecter à Projects, utilisez dorénavant "
-#~ "l’email que vous avez renseigné à la création du compte. \n"
-#~ "                    Vous ne vous en souvenez plus ? C’est celui sur "
-#~ "lequel nous vous envoyons cet email ;). \n"
-#~ "                    Votre mot de passe reste inchangé.\n"
-#~ "                    "
-
-#~ msgid ""
-#~ "\n"
-#~ "                    If you have any questions, you can reach the support "
-#~ "team at <a class=\"lpi-link\" href=\"mailto:projects.platform@cri-paris."
-#~ "org\">projects.platform@cri-paris.org</a>.\n"
-#~ "                    "
-#~ msgstr ""
-#~ "\n"
-#~ "                    Si vous avez une question, vous pouvez joindre "
-#~ "l’équipe support à <a class=\"lpi-link\" href=\"mailto:projects."
-#~ "platform@cri-paris.org\">projects.platform@cri-paris.org</a>.\n"
-#~ "                    "
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "Hello %(recipient.given_name)s, We are cleaning up our database. Your "
-#~ "@cri-paris.org or @external.cri-paris.org login will disappear. To "
-#~ "connect to Projects, please use the email address you provided when you "
-#~ "created your account. You don't remember it? It's the one on which we "
-#~ "send you this email ;). Your password remains unchanged. If you have any "
-#~ "questions, you can reach the support team at projects.platform@cri-paris."
-#~ "org. Have a nice day, The Projects team.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Bonjour %(recipient.given_name)s, Nous faisons un peu de ménage dans nos "
-#~ "bases de données. Vos identifiants en @cri-paris.org ou @external.cri-"
-#~ "paris.org vont disparaître. Pour vous connecter à Projects, utilisez "
-#~ "dorénavant l’email que vous avez renseigné à la création du compte. Vous "
-#~ "ne vous en souvenez plus ? C’est celui sur lequel nous vous envoyons cet "
-#~ "email ;). Votre mot de passe reste inchangé. Si vous avez une question, "
-#~ "vous pouvez joindre l’équipe support à projects.platform@cri-paris.org. "
-#~ "Très bonne journée, L’équipe Projects.\n"
-
-#~ msgid ""
-#~ "\n"
-#~ "Projects Platform : this email address becomes your unique username.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "Plateforme Projects : Cette adresse mail devient votre unique "
-#~ "identifiant.\n"
-
-#, python-format
-#~| msgid ""
-#~| "\n"
-#~| "%(full_name)s published a new announcement.\n"
-#~ msgid ""
-#~ "\n"
-#~ "%(full_name)s published "
-#~ "%(count|pluralize:\"a new announcement,new annoucements\")s.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "%(full_name)s a publié une nouvelle annonce.\n"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "%(full_name)s removed member(s) from project %(project_title)s.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "%(full_name)s a retiré un membre de l'équipe du projet "
-#~ "%(project_title)s.\n"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "%(full_name)s updated member(s) in project %(project_title)s.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "%(full_name)s a mis à jour le rôle d'un membre du projet "
-#~ "%(project_title)s.\n"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "%(full_name)s published a new announcement for project "
-#~ "%(project_title)s.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "%(full_name)s a publié une nouvelle annonce pour le projet "
-#~ "%(project_title)s.\n"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "%(full_name)s published a new blog entry on project %(project_title)s.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "%(full_name)s a publié une nouvelle entrée de blog sur le projet "
-#~ "%(project_title)s.\n"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "%(full_name)s edited the %(updated_fields)s in project "
-#~ "%(project_title)s.\n"
-#~ msgstr ""
-#~ "\n"
-#~ "%(full_name)s a modifié les champs suivants dans le projet "
-#~ "%(project_title)s: %(updated_fields)s.\n"
+msgid "Language {language} is not supported"
+msgstr "La langue {language} n'est pas disponible"

@@ -602,7 +602,7 @@ class AlgoliaSplittingIndex(AlgoliaIndex):
 
     def _wrap_split_func(
         self, field: str, collection: Collection[Any]
-    ) -> Collection[Tuple[str, Any]]:
+    ) -> Collection[Tuple[str, Any]]:  # type: ignore
         """Yield the field name alongside each element of the collection."""
         collection = list(collection)
         for element in collection:

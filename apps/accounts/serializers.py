@@ -6,16 +6,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
-from rest_framework.exceptions import PermissionDenied
 
-from apps.accounts.models import (
-    AnonymousUser,
-    PeopleGroup,
-    PrivacySettings,
-    ProjectUser,
-    Skill,
-)
-from apps.accounts.utils import get_default_group, get_instance_from_group
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     PrivacySettingProtectedCharField,
@@ -29,6 +20,19 @@ from apps.misc.serializers import TagRelatedField
 from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+
+from .exceptions import (
+    FeaturedProjectPermissionDeniedError,
+    GroupHierarchyLoopError,
+    GroupOrganizationChangeError,
+    NonRootGroupParentError,
+    ParentGroupOrganizationError,
+    RootGroupParentError,
+    UserRoleAssignmentError,
+    UserRolePermissionDeniedError,
+)
+from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .utils import get_default_group, get_instance_from_group
 
 
 class PrivacySettingsSerializer(serializers.ModelSerializer):
@@ -234,9 +238,7 @@ class PeopleGroupAddFeaturedProjectsSerializer(serializers.Serializer):
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
-            raise serializers.ValidationError(
-                "You cannot add projects that you do not have access to"
-            )
+            raise FeaturedProjectPermissionDeniedError
         return projects
 
     def create(self, validated_data):
@@ -302,16 +304,12 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
-            raise serializers.ValidationError(
-                "You cannot add projects that you do not have access to"
-            )
+            raise FeaturedProjectPermissionDeniedError
         return projects
 
     def validate_organization(self, value):
         if self.instance and self.instance.organization != value:
-            raise serializers.ValidationError(
-                "The organization of a group cannot be changed"
-            )
+            raise GroupOrganizationChangeError
         return value
 
     def run_validation(self, data=serializers.empty):
@@ -334,23 +332,15 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
             organization = get_object_or_404(Organization, code=organization_code)
             value = PeopleGroup.update_or_create_root(organization)
         if value and self.instance and self.instance.is_root is True:
-            raise serializers.ValidationError(
-                "The root group cannot have a parent group"
-            )
+            raise RootGroupParentError
         if not value and self.instance and self.instance.is_root is False:
-            raise serializers.ValidationError(
-                "A non-root group must have a parent group"
-            )
+            raise NonRootGroupParentError
         if value and value.organization.code != organization_code:
-            raise serializers.ValidationError(
-                "The parent group must belong to the same organization"
-            )
+            raise ParentGroupOrganizationError
         parent = value
         while parent is not None:
             if self.instance == parent:
-                raise serializers.ValidationError(
-                    "You are trying to create a loop in the group's hierarchy"
-                )
+                raise GroupHierarchyLoopError
             parent = parent.parent
         return value
 
@@ -567,9 +557,7 @@ class UserSerializer(serializers.ModelSerializer):
             if not instance or (
                 isinstance(instance, Project) and group.people_groups.exists()
             ):
-                raise serializers.ValidationError(
-                    f"You cannot assign this role to a user : {group.name}"
-                )
+                raise UserRoleAssignmentError(group.name)
             content_type = ContentType.objects.get_for_model(instance)
             if not any(
                 [
@@ -588,9 +576,7 @@ class UserSerializer(serializers.ModelSerializer):
                     ],
                 ]
             ):
-                raise PermissionDenied(
-                    detail=f"You do not have the permission to give this role : {group.name}"
-                )
+                raise UserRolePermissionDeniedError(group.name)
         return groups
 
     def get_permissions(self, user: ProjectUser) -> List[str]:

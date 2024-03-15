@@ -335,10 +335,13 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["parent_code"],
-            ["You are trying to create a loop in the organization's hierarchy."],
+        self.assertApiValidationError(
+            response,
+            {
+                "parent_code": [
+                    "You are trying to create a loop in the organization's hierarchy."
+                ]
+            },
         )
 
     def test_create_hierarchy_loop(self):
@@ -353,10 +356,13 @@ class OrganizationHierarchyTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["parent_code"],
-            ["You are trying to create a loop in the organization's hierarchy."],
+        self.assertApiValidationError(
+            response,
+            {
+                "parent_code": [
+                    "You are trying to create a loop in the organization's hierarchy."
+                ]
+            },
         )
 
     def test_create_nested_hierarchy(self):

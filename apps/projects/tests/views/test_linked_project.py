@@ -3,6 +3,8 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import LinkedProjectFactory, ProjectFactory
@@ -66,14 +68,8 @@ class CreateLinkedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {
             "projects": [
-                {
-                    "project_id": self.linked_project_1.id,
-                    "target_id": project.id,
-                },
-                {
-                    "project_id": self.linked_project_2.id,
-                    "target_id": project.id,
-                },
+                {"project_id": self.linked_project_1.id, "target_id": project.id},
+                {"project_id": self.linked_project_2.id, "target_id": project.id},
             ]
         }
         response = self.client.post(
@@ -148,3 +144,52 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_200_OK:
             self.assertFalse(project.linked_projects.filter(id=instance_1.id).exists())
             self.assertFalse(project.linked_projects.filter(id=instance_2.id).exists())
+
+
+class ValidateLinkedProjectTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
+    def test_link_project_to_itself(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        project = ProjectFactory(organizations=[self.organization])
+        self.client.force_authenticate(user)
+        payload = {"project_id": project.id, "target_id": project.id}
+        response = self.client.post(
+            reverse("LinkedProjects-list", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "project_id": [
+                    f"The project '{project.title}' can't be linked to itself"
+                ]
+            },
+        )
+
+    def test_link_many_projects_to_itself(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        project = ProjectFactory(organizations=[self.organization])
+        project_2 = ProjectFactory(organizations=[self.organization])
+        self.client.force_authenticate(user)
+        payload = {
+            "projects": [
+                {"project_id": project_2.id, "target_id": project.id},
+                {"project_id": project.id, "target_id": project.id},
+            ]
+        }
+        response = self.client.post(
+            reverse("LinkedProjects-add-many", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "project_id": [
+                    f"The project '{project.title}' can't be linked to itself"
+                ]
+            },
+        )

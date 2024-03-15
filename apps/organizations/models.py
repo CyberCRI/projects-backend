@@ -3,10 +3,9 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models, transaction
+from django.db import models
 from django.http import Http404
 from guardian.shortcuts import assign_perm
-from rest_framework.exceptions import ValidationError
 from simple_history.models import HistoricalRecords
 
 from apps.commons.models import OrganizationRelated, PermissionsSetupModel
@@ -155,14 +154,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             *get_permissions_from_subscopes(subscopes),
             *get_write_permissions_from_subscopes(write_only_subscopes),
         )
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        if self.pk is not None and self.pk == self.parent_id:
-            raise ValidationError(
-                {"parent_id": "Organization cannot be her own parent."}
-            )
-        super().save(*args, **kwargs)
 
     def __str__(self) -> str:
         return "%s object (%s)" % (self.__class__.__name__, self.code)

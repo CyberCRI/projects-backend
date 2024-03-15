@@ -38,7 +38,10 @@ from apps.notifications.tasks import (
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_hierarchy_codes
-from apps.projects.exceptions import OrganizationsParameterMissing
+from apps.projects.exceptions import (
+    LinkedProjectPermissionDeniedError,
+    OrganizationsParameterMissing,
+)
 from services.mistral.models import ProjectEmbedding
 
 from .filters import LocationFilter, ProjectFilter
@@ -452,7 +455,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             o for o in request.query_params.get("organizations", "").split(",") if o
         ]
         if not organizations:
-            raise OrganizationsParameterMissing()
+            raise OrganizationsParameterMissing
         threshold = int(request.query_params.get("threshold", 5))
         queryset = self.request.user.get_project_queryset().filter(
             organizations__code__in=get_hierarchy_codes(organizations)
@@ -753,15 +756,16 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def check_linked_project_permission(self, project):
         if not self.request.user.can_see_project(project):
-            self.permission_denied(self.request, code=403)
+            raise LinkedProjectPermissionDeniedError(project.title)
 
     @transaction.atomic
     def perform_create(self, serializer):
-        project = Project.objects.get(id=self.kwargs["project_id"])
+        target = serializer.validated_data["target"]
+        project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_create(serializer)
-        project._change_reason = "Added linked projects"
-        project.save()
+        target._change_reason = "Added linked projects"
+        target.save()
 
     @transaction.atomic
     def perform_destroy(self, instance):
@@ -772,11 +776,13 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
-        project = Project.objects.get(id=self.kwargs["project_id"])
-        self.check_linked_project_permission(project)
+        project = serializer.validated_data.get("project", None)
+        if project:
+            self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
-        project._change_reason = "Updated linked projects"
-        project.save()
+        target = self.get_object().target
+        target._change_reason = "Updated linked projects"
+        target.save()
 
     @extend_schema(
         request=ProjectAddLinkedProjectSerializer,
@@ -796,23 +802,15 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def add_many(self, request, *args, **kwargs):
         """Link projects to a given project."""
-        project = Project.objects.get(id=self.kwargs["project_id"])
-        serializer = ProjectAddLinkedProjectSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        target = Project.objects.get(id=self.kwargs["project_id"])
         with transaction.atomic():
-            for p in serializer.validated_data["projects"]:
-                # Check the user has permission on all projects to be linked
-                self.check_linked_project_permission(p["project"])
-                LinkedProject.objects.create(
-                    project=p["project"],
-                    target=project,
-                )
-            project._change_reason = "Added linked projects"
-            project.save()
-
+            for linked_project in request.data["projects"]:
+                serializer = LinkedProjectSerializer(data=linked_project)
+                serializer.is_valid(raise_exception=True)
+                self.perform_create(serializer)
         context = {"request": request}
         return Response(
-            ProjectSerializer(project, context=context).data,
+            ProjectSerializer(target, context=context).data,
             status=status.HTTP_200_OK,
         )
 

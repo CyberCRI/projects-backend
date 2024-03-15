@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from django.db.utils import IntegrityError
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import translation
 from django.utils.decorators import method_decorator
@@ -53,7 +53,11 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
-from .exceptions import EmailTypeMissingError
+from .exceptions import (
+    EmailTypeMissingError,
+    PermissionNotFoundError,
+    SkillAlreadyAddedError,
+)
 from .filters import PeopleGroupFilter, SkillFilter, UserFilter
 from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
 from .parsers import UserMultipartParser
@@ -253,7 +257,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         for permission in permissions:
             codename, instance = get_permission_from_representation(permission)
             if not codename:
-                raise Http404("Permission not found")
+                raise PermissionNotFoundError
             if instance and user.has_perm(codename, instance):
                 return Response({"result": True}, status=status.HTTP_200_OK)
             if not instance and user.has_perm(codename):
@@ -361,7 +365,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 redirect_organization_code=redirect_organization_code,
             )
             return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
-        raise KeycloakAccountNotFound()
+        raise KeycloakAccountNotFound
 
     @extend_schema(request=EmailAddressSerializer, responses={200: OpenApiTypes.OBJECT})
     @action(
@@ -385,7 +389,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 user=user.keycloak_account, redirect_uri=redirect_uri
             )
             return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
-        raise KeycloakAccountNotFound()
+        raise KeycloakAccountNotFound
 
     @extend_schema(responses={200: OpenApiTypes.OBJECT})
     @action(
@@ -402,9 +406,9 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             )
             email_type = request.query_params.get("email_type", None)
             if not email_type:
-                raise EmailTypeMissingError()
+                raise EmailTypeMissingError
             if not hasattr(user, "keycloak_account"):
-                raise KeycloakAccountNotFound()
+                raise KeycloakAccountNotFound
             email_sent = KeycloakService.send_email(
                 keycloak_account=user.keycloak_account,
                 email_type=email_type,
@@ -861,9 +865,7 @@ class SkillViewSet(viewsets.ModelViewSet):
         try:
             return super().create(request, *args, **kwargs)
         except IntegrityError:
-            return Response(
-                {"error": "Skill already added"}, status=status.HTTP_409_CONFLICT
-            )
+            raise SkillAlreadyAddedError
 
 
 class DeleteCookieView(views.APIView):

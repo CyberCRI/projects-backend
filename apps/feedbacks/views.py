@@ -16,6 +16,7 @@ from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
+from apps.feedbacks.exceptions import FollowProjectPermissionDeniedError
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import notify_new_comment, notify_new_review
@@ -115,10 +116,9 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
             )
         return Follow.objects.none()
 
-    def check_linked_project_permission(self, project):
-        # TODO : django-guardian rework this is weird
+    def check_linked_project_permission(self, project: Project):
         if not self.request.user.can_see_project(project):
-            self.permission_denied(self.request, code=403)
+            raise FollowProjectPermissionDeniedError(project.title)
 
     def perform_create(self, serializer):
         project = serializer.validated_data["project"]
@@ -133,13 +133,11 @@ class UserFollowViewSet(FollowViewSet):
         methods=["POST"],
         url_name="follow-many",
         url_path="follow-many",
-        # TODO : maybe a better permission check here ?
         permission_classes=[AllowAny],
     )
     def follow_many(self, request, *args, **kwargs):
         serializer = UserFollowManySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        # TODO do we have to check the permission of the user making the request or the user following the projects? probably the same anyway
         user = ProjectUser.objects.get(id=kwargs["user_id"])
         with transaction.atomic():
             for follow in serializer.validated_data["follows"]:

@@ -6,6 +6,7 @@ from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
+from .exceptions import VectorSearchWrongQuerysetError
 from .interface import MistralService
 
 if TYPE_CHECKING:
@@ -111,7 +112,7 @@ class Embedding(models.Model):
     ) -> QuerySet:
         queryset = queryset or cls.item.field.related_model.objects
         if not queryset.model == cls.item.field.related_model:
-            raise ValueError("The given queryset does not match the related model.")
+            raise VectorSearchWrongQuerysetError
         related_name = cls.item.field.related_query_name()
         return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
             CosineDistance(f"{related_name}__embedding", embedding)

@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models, transaction
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.commons.models import HasOwner, OrganizationRelated, ProjectRelated
@@ -143,10 +142,6 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
 
     @transaction.atomic
     def save(self, *args, **kwargs):
-        if self.pk is not None and self.pk == self.reply_on_id:
-            raise ValidationError(
-                {"reply_on_id": "Comments cannot reply to themselves"}
-            )
         create = self.pk is None
         super().save(*args, **kwargs)
         if create and hasattr(self.project, "stat"):

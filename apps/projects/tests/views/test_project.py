@@ -241,9 +241,13 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
                 content["publication_status"], payload["publication_status"]
             )
         if expected_code == status.HTTP_400_BAD_REQUEST:
-            self.assertEqual(
-                content["publication_status"],
-                ["Only a reviewer can change this project's status."],
+            self.assertApiValidationError(
+                response,
+                {
+                    "publication_status": [
+                        "Only a reviewer can change this project's status"
+                    ]
+                },
             )
 
     @parameterized.expand(
@@ -880,7 +884,14 @@ class ValidateProjectTestCase(JwtAPITestCase):
             reverse("Project-detail", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("organizations_codes", response.data)
+        self.assertApiValidationError(
+            response,
+            {
+                "organizations_codes": [
+                    "A project must belong to at least one organization"
+                ]
+            },
+        )
 
     def test_remove_last_member(self):
         self.client.force_authenticate(self.superadmin)
@@ -895,10 +906,8 @@ class ValidateProjectTestCase(JwtAPITestCase):
         self.assertEqual(
             response.status_code, status.HTTP_400_BAD_REQUEST, response.content
         )
-        content = response.json()
-        self.assertEqual(
-            content["users"],
-            {"users": "You cannot remove all the owners of a project."},
+        self.assertApiValidationError(
+            response, {"users": ["You cannot remove all the owners of a project"]}
         )
 
 

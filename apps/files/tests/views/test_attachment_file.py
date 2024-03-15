@@ -194,40 +194,105 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
 
 
 class ValidateAttachmentFileTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
+
     def test_create_identical_files(self):
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
-        project = ProjectFactory()
-        file_a = SimpleUploadedFile(
-            "test_attachment_file.txt",
-            b"test attachment file",
-            content_type="text/plain",
-        )
-        file_b = SimpleUploadedFile(
-            "test_attachment_file.txt",
-            b"test attachment file",
-            content_type="text/plain",
-        )
+        project = self.project
+        existing_file = AttachmentFileFactory(project=project)
         payload = {
             "mime": "text/plain",
             "title": faker.text(max_nb_chars=50),
             "attachment_type": AttachmentType.FILE,
             "project_id": project.id,
+            "file": SimpleUploadedFile(
+                "test_attachment_file.txt",
+                existing_file.file.read(),
+                content_type="text/plain",
+            ),
         }
         response = self.client.post(
             reverse("AttachmentFile-list", args=(project.id,)),
-            data={"file": file_a, **payload},
-            format="multipart",
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        response = self.client.post(
-            reverse("AttachmentFile-list", args=(project.id,)),
-            data={"file": file_b, **payload},
+            data=payload,
             format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(
-            content["error"],
-            ["The file you are trying to upload is already attached to this project."],
+        self.assertApiValidationError(
+            response,
+            {
+                "hashcode": [
+                    "The file you are trying to upload is already attached to this project"
+                ]
+            },
         )
+
+    def test_update_identical_files(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        project = self.project
+        file = AttachmentFileFactory(project=project)
+        existing_file = AttachmentFileFactory(project=project)
+        payload = {
+            "file": SimpleUploadedFile(
+                "test_attachment_file.txt",
+                existing_file.file.read(),
+                content_type="text/plain",
+            )
+        }
+        response = self.client.patch(
+            reverse("AttachmentFile-detail", args=(project.id, file.id)),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "hashcode": [
+                    "The file you are trying to upload is already attached to this project"
+                ]
+            },
+        )
+
+    def test_change_file_project(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        project = self.project
+        file = AttachmentFileFactory(project=project)
+        response = self.client.patch(
+            reverse("AttachmentFile-detail", args=(project.id, file.id)),
+            data={"project_id": ProjectFactory(organizations=[self.organization]).id},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response, {"project_id": ["You can't change the project of a file"]}
+        )
+
+    def test_create_duplicate_other_project(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        existing_file = AttachmentFileFactory(project=self.project)
+        project = ProjectFactory(organizations=[self.organization])
+        payload = {
+            "mime": "text/plain",
+            "title": faker.text(max_nb_chars=50),
+            "attachment_type": AttachmentType.FILE,
+            "project_id": project.id,
+            "file": SimpleUploadedFile(
+                "test_attachment_file.txt",
+                existing_file.file.read(),
+                content_type="text/plain",
+            ),
+        }
+        response = self.client.post(
+            reverse("AttachmentFile-list", args=(project.id,)),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

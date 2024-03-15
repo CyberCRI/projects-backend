@@ -283,8 +283,10 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(content["reply_on_id"], "Comments cannot reply to themselves")
+        self.assertApiValidationError(
+            response,
+            {"reply_on_id": ["A comment cannot be a reply to itself"]},
+        )
 
     def test_cannot_reply_to_reply(self):
         self.client.force_authenticate(self.user)
@@ -300,8 +302,10 @@ class ReplyToCommentTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        content = response.json()
-        self.assertEqual(content["reply_on_id"], ["You cannot reply to a reply."])
+        self.assertApiValidationError(
+            response,
+            {"reply_on_id": ["You cannot reply to a reply"]},
+        )
 
     def test_deleted_with_replies_returned(self):
         self.client.force_authenticate(self.user)

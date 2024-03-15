@@ -3,9 +3,7 @@ from typing import Any, Dict, List, Optional
 from django.apps import apps
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
@@ -38,6 +36,14 @@ from apps.organizations.serializers import (
     TemplateSerializer,
 )
 
+from .exceptions import (
+    EmptyProjectDescriptionError,
+    LinkProjectToSelfError,
+    OnlyReviewerCanChangeStatusError,
+    ProjectCategoryOrganizationError,
+    ProjectWithNoOrganizationError,
+    RemoveLastProjectOwnerError,
+)
 from .models import BlogEntry, LinkedProject, Location, Project
 from .utils import compute_project_changes, get_views_from_serializer
 
@@ -230,6 +236,21 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
         model = LinkedProject
         fields = ["id", "project_id", "target_id", "project"]
 
+    def validate(self, data):
+        project = None
+        target = None
+        if "project" in data:
+            project = data["project"]
+        elif self.instance:
+            project = self.instance.project
+        if "target" in data:
+            target = data["target"]
+        elif self.instance:
+            target = self.instance.target
+        if project and target and project == target:
+            raise LinkProjectToSelfError(target.title)
+        return data
+
 
 class ProjectAddLinkedProjectSerializer(serializers.Serializer):
     """Used to link projects to another one."""
@@ -354,9 +375,7 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
     def validate_users(self, users):
         project = get_object_or_404(Project, pk=self.initial_data["project"])
         if all(owner in users for owner in project.get_owners().users.all()):
-            raise serializers.ValidationError(
-                {"users": "You cannot remove all the owners of a project."}
-            )
+            raise RemoveLastProjectOwnerError
         return list(filter(lambda x: x.groups.filter(projects=project).exists(), users))
 
     def validate_people_groups(self, people_groups):
@@ -574,7 +593,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
 
     def validate_organizations_codes(self, value):
         if len(value) < 1:
-            raise serializers.ValidationError("Need at least one organization.")
+            raise ProjectWithNoOrganizationError
         return value
 
     def validate_publication_status(self, value):
@@ -594,11 +613,11 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             or user in self.instance.reviewers.all()
         ):
             return value
-        raise ValidationError(_("Only a reviewer can change this project's status."))
+        raise OnlyReviewerCanChangeStatusError
 
     # This is a fix to prevent bugs from hocus pocus
     # TODO: Remove this validation when history is implemented in the frontend
-    def validate_description(self, value):
+    def validate_description(self, value: str):
         if not self.instance:
             return value
         empty_descriptions = ["<p></p>", ""]
@@ -606,21 +625,20 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             self.instance.description not in empty_descriptions
             and value in empty_descriptions
         ):
-            raise ValidationError("You cannot empty the description of a project.")
+            raise EmptyProjectDescriptionError
         return value
 
-    def validate(self, data):
-        if self.instance and "organizations" not in data:
-            lookup = self.instance.organizations.all()
-        else:
-            lookup = data.get("organizations", list())
-        for category in data.get("categories", list()):
-            if category.organization not in lookup:
-                raise ValidationError(
-                    "Upload aborted : "
-                    "A project cannot have a category if it doesn't belong to one of the project's organizations"
-                )
-        return data
+    def validate_categories(self, value: List[ProjectCategory]):
+        organizations_codes = self.initial_data.get("organizations_codes", [])
+        if self.instance and not organizations_codes:
+            organizations_codes = self.instance.organizations.all().values_list(
+                "code", flat=True
+            )
+        if not all(
+            category.organization.code in organizations_codes for category in value
+        ):
+            raise ProjectCategoryOrganizationError
+        return value
 
     get_views = get_views_from_serializer
 

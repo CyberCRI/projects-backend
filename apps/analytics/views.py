@@ -5,7 +5,6 @@ from django.db.models.functions import TruncMonth
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins
-from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
@@ -15,6 +14,7 @@ from apps.misc.models import SDG, WikipediaTag
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
+from .exceptions import UnknownPublicationStatusError
 from .serializers import StatsSerializer
 
 
@@ -59,11 +59,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
             Project.PublicationStatus.PRIVATE,
             "all",
         ]:
-            raise ValidationError(
-                {
-                    "publication_status": f"Unknown publication status '{publication_status}"
-                }
-            )
+            raise UnknownPublicationStatusError(publication_status=publication_status)
 
         # Number of project by organization
         count = Count("projects")
