@@ -237,8 +237,18 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
         fields = ["id", "project_id", "target_id", "project"]
 
     def validate(self, data):
-        if data["project"] == data["target"]:
-            raise LinkProjectToSelfError(data["project"].title)
+        project = None
+        target = None
+        if "project" in data:
+            project = data["project"]
+        elif self.instance:
+            project = self.instance.project
+        if "target" in data:
+            target = data["target"]
+        elif self.instance:
+            target = self.instance.target
+        if project and target and project == target:
+            raise LinkProjectToSelfError(target.title)
         return data
 
 

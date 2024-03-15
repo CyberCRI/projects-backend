@@ -776,10 +776,11 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
-        target = serializer.validated_data["target"]
-        project = serializer.validated_data["project"]
-        self.check_linked_project_permission(project)
+        project = serializer.validated_data.get("project", None)
+        if project:
+            self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
+        target = self.get_object().target
         target._change_reason = "Updated linked projects"
         target.save()
 
@@ -807,8 +808,6 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 serializer = LinkedProjectSerializer(data=linked_project)
                 serializer.is_valid(raise_exception=True)
                 self.perform_create(serializer)
-        target._change_reason = "Added linked projects"
-        target.save()
         context = {"request": request}
         return Response(
             ProjectSerializer(target, context=context).data,
