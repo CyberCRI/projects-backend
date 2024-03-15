@@ -1,18 +1,18 @@
 from django.db.models import BigIntegerField, F
-from rest_framework import viewsets
-from rest_framework.response import Response
+from django_filters.rest_framework import DjangoFilterBackend
 
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import ArrayPosition
-from apps.newsfeed import filters
+from apps.commons.views import ListViewSet
 from apps.newsfeed.models import Newsfeed
 from apps.newsfeed.serializers import NewsfeedSerializer
 
 
-class NewsfeedViewSet(viewsets.ModelViewSet):
+class NewsfeedViewSet(ListViewSet):
     serializer_class = NewsfeedSerializer
-    filterset_class = filters.NewsfeedFilter
     permission_classes = [ReadOnly]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = None
 
     announcement_pattern = {
         0: {"index": 1, "step": 1},
@@ -44,16 +44,16 @@ class NewsfeedViewSet(viewsets.ModelViewSet):
 
         projects_queryset = (
             Newsfeed.objects.filter(project__in=projects_ids)
-            .annotate(updated=F("project__updated_at"))
+            .annotate(updated_at=F("project__updated_at"))
             .distinct()
-            .order_by("-updated")
+            .order_by("-updated_at")
         )
 
         announcements_queryset = (
             Newsfeed.objects.filter(type=Newsfeed.NewsfeedType.ANNOUNCEMENT)
-            .annotate(updated=F("announcement__updated_at"))
+            .annotate(updated_at=F("announcement__updated_at"))
             .distinct()
-            .order_by("-updated")
+            .order_by("-updated_at")
         )
 
         projects_ids_list = [item.id for item in projects_queryset]
@@ -100,17 +100,3 @@ class NewsfeedViewSet(viewsets.ModelViewSet):
             .annotate(ordering=ordering)
             .order_by("ordering")
         )
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            newsfeed_serializer = NewsfeedSerializer(
-                page, many=True, context={"request": request}
-            )
-            return self.get_paginated_response(newsfeed_serializer.data)
-
-        newsfeed_serializer = NewsfeedSerializer(
-            queryset, many=True, context={"request": request}
-        )
-        return Response(newsfeed_serializer.data)

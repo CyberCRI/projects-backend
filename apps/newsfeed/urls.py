@@ -1,7 +1,14 @@
-from rest_framework_nested import routers
+from rest_framework.routers import DefaultRouter
 
-from . import views
+from apps.commons.urls import organization_router_register
 
-router = routers.SimpleRouter()
+from .views import NewsfeedViewSet
 
-router.register(r"newsfeed", views.NewsfeedViewSet, basename="Newsfeed")
+router = DefaultRouter()
+
+organization_router_register(
+    router,
+    r"newsfeed",
+    NewsfeedViewSet,
+    basename="Newsfeed",
+)

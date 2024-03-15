@@ -9,7 +9,7 @@ class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)
     announcement = AnnouncementSerializer(many=False, read_only=True)
     type = serializers.CharField(max_length=50)
-    updated = serializers.DateTimeField(read_only=True)
+    updated_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Newsfeed
@@ -18,5 +18,5 @@ class NewsfeedSerializer(serializers.ModelSerializer):
             "project",
             "announcement",
             "type",
-            "updated",
+            "updated_at",
         ]

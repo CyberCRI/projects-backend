@@ -15,7 +15,6 @@ class Newsfeed(models.Model):
         Announcement in the newsfeed.
     type: CharField
         Type of the object.
-    updated_at: DateTimeField
     """
 
     class NewsfeedType(models.TextChoices):
@@ -39,4 +38,3 @@ class Newsfeed(models.Model):
     type = models.CharField(
         max_length=50, choices=NewsfeedType.choices, default=NewsfeedType.PROJECT
     )
-    updated_at = models.DateTimeField(auto_now=True)

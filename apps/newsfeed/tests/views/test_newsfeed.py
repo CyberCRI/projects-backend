@@ -134,7 +134,9 @@ class NewsfeedTestCase(JwtAPITestCase):
             4: {"projects": [0, 1, 2, 5], "announcements": [3, 4, 6, 7]},
         }
 
-        response = self.client.get(reverse("Newsfeed-list"))
+        response = self.client.get(
+            reverse("Newsfeed-list", args=(self.organization.code,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         content = response.json()["results"]
@@ -176,32 +178,3 @@ class NewsfeedTestCase(JwtAPITestCase):
                 )
             previous_date = content[result_ann_index]["announcement"]["updated_at"]
             i += 1
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, ("public",)),
-            (TestRoles.DEFAULT, ("public",)),
-            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
-            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
-            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
-            (TestRoles.ORG_USER, ("public", "org")),
-            (TestRoles.PROJECT_MEMBER, ("public", "member")),
-            (TestRoles.PROJECT_OWNER, ("public", "member")),
-            (TestRoles.PROJECT_REVIEWER, ("public", "member")),
-        ]
-    )
-    def test_retrieve_newsfeed(self, role, retrieved_newsfeed):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
-        self.client.force_authenticate(user)
-        for publication_status, id_item in self.newsfeed_projects_ids.items():
-            response = self.client.get(reverse("Newsfeed-detail", args=(id_item,)))
-            if publication_status in retrieved_newsfeed:
-                self.assertEqual(response.status_code, status.HTTP_200_OK)
-                self.assertEqual(response.json()["id"], id_item)
-            else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
-        for id_item in self.newsfeed_announcements_ids:
-            response = self.client.get(reverse("Newsfeed-detail", args=(id_item,)))
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-            self.assertEqual(response.json()["id"], id_item)
