@@ -13,7 +13,6 @@ class Command(BaseCommand):
                 defaults={
                     "project": project,
                     "type": Newsfeed.NewsfeedType.PROJECT,
-                    "updated_at": project.updated_at,
                 },
             )
         for announcement in Announcement.objects.all():
@@ -22,6 +21,5 @@ class Command(BaseCommand):
                 defaults={
                     "announcement": announcement,
                     "type": Newsfeed.NewsfeedType.ANNOUNCEMENT,
-                    "updated_at": announcement.updated_at,
                 },
             )
