@@ -248,20 +248,23 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
 
     def get_managers(self) -> Group:
         """Return the managers group."""
+        group = self.get_or_create_group(self.DefaultGroup.MANAGERS)
         if self.is_root:
-            return self.organization.get_facilitators()
-        return self.get_or_create_group(self.DefaultGroup.MANAGERS)
+            group.users.set(self.organization.facilitators)
+        return group
 
     def get_members(self) -> Group:
         """Return the members group."""
+        group = self.get_or_create_group(self.DefaultGroup.MEMBERS)
         if self.is_root:
-            return self.organization.get_users()
-        return self.get_or_create_group(self.DefaultGroup.MEMBERS)
+            group.users.set(self.organization.users)
+        return group
 
     def get_leaders(self) -> Group:
         """Return the leaders group."""
+        group = self.get_or_create_group(self.DefaultGroup.LEADERS)
         if self.is_root:
-            return self.organization.get_admins()
+            group.users.set(self.organization.admins)
         return self.get_or_create_group(self.DefaultGroup.LEADERS)
 
     @property
