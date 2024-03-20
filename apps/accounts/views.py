@@ -608,16 +608,10 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def member(self, request, *args, **kwargs):
         group = self.get_object()
-        if group.is_root:
-            queryset = group.organization.get_all_members()
-            managers_ids = group.organization.facilitators.all().values_list("id", flat=True)
-            leaders_ids = group.organization.admin.all().values_list("id", flat=True)
-        else:
-            queryset = group.get_all_members()
-            managers_ids = group.managers.all().values_list("id", flat=True)
-            leaders_ids = group.leaders.all().values_list("id", flat=True)
+        managers_ids = group.managers.all().values_list("id", flat=True)
+        leaders_ids = group.leaders.all().values_list("id", flat=True)
         queryset = (
-            queryset
+            group.get_all_members()
             .distinct()
             .annotate(
                 is_leader=Case(
