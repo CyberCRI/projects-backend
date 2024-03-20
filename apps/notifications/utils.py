@@ -37,7 +37,7 @@ class NotificationTaskManager:
         if item and isinstance(item, Project):
             self.project = item
         elif item and isinstance(item, ProjectRelated):
-            self.project = item.get_related_projects().first()
+            self.project = item.get_related_project()
         else:
             self.project = None
         if organization:

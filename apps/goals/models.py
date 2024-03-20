@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
 
@@ -62,6 +62,6 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated):
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
-        return [self.project]
+        return self.project

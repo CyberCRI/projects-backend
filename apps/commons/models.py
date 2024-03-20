@@ -20,7 +20,7 @@ class OrganizationRelated:
 class ProjectRelated:
     """Abstract class for models related to `Project`."""
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         raise NotImplementedError()
 

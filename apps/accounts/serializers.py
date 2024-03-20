@@ -579,6 +579,9 @@ class UserSerializer(serializers.ModelSerializer):
                 ]
             ):
                 raise UserRolePermissionDeniedError(group.name)
+        default_group = get_default_group()
+        if default_group not in groups:
+            groups.append(default_group)
         return groups
 
     def get_permissions(self, user: ProjectUser) -> List[str]:
@@ -652,16 +655,16 @@ class UserSerializer(serializers.ModelSerializer):
 
         # Handle roles_to_add and roles_to_remove
         groups_to_add = data.pop("roles_to_add", [])
-        groups_to_add.append(get_default_group().name)
         groups_to_remove = data.pop("roles_to_remove", [])
         if self.instance:
             groups = self.instance.groups.exclude(name__in=groups_to_remove)
             for group in groups_to_add:
                 group = Group.objects.get(name=group)
                 group_instance = get_instance_from_group(group)
-                groups = groups.exclude(
-                    name__in=group_instance.groups.values_list("name", flat=True)
-                )
+                if group_instance:
+                    groups = groups.exclude(
+                        name__in=group_instance.groups.values_list("name", flat=True)
+                    )
                 groups = Group.objects.filter(
                     name__in=[group.name, *groups.values_list("name", flat=True)]
                 )

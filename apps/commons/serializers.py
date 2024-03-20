@@ -1,4 +1,4 @@
-from typing import Collection, List
+from typing import Collection, List, Optional
 
 from django.conf import settings
 from django.db.models import Q
@@ -13,7 +13,7 @@ from apps.projects.models import Project
 class ProjectRelatedSerializer(serializers.ModelSerializer):
     """Base serializer for serializers related to projects."""
 
-    def get_related_projects(self) -> List[Project]:
+    def get_related_project(self) -> Optional[Project]:
         """Retrieve the related projects"""
         raise NotImplementedError()
 

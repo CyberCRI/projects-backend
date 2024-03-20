@@ -63,11 +63,7 @@ class OrganizationRelatedPermission(IgnoreCall):
         if obj is not None and isinstance(obj, OrganizationRelated):
             return obj.get_related_organizations()
         if obj is not None and isinstance(obj, ProjectRelated):
-            return [
-                organization
-                for project in obj.get_related_projects()
-                for organization in project.get_related_organizations()
-            ]
+            return obj.get_related_project().get_related_organizations()
 
         serializer_class = view.get_serializer_class()
         if issubclass(serializer_class, OrganizationRelatedSerializer):
@@ -81,11 +77,7 @@ class OrganizationRelatedPermission(IgnoreCall):
                 data=request.data, context=view.get_serializer_context()
             )
             serializer.is_valid()
-            return [
-                organization
-                for project in serializer.get_related_projects()
-                for organization in project.get_related_organizations()
-            ]
+            return serializer.get_related_project().get_related_organizations()
 
         return []
 

@@ -112,11 +112,11 @@ class BlogEntrySerializer(
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_projects(self) -> List[Project]:
+    def get_related_project(self) -> Optional[Project]:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
-            return [self.validated_data["project"]]
-        return []
+            return self.validated_data["project"]
+        return None
 
 
 class LocationProjectSerializer(serializers.ModelSerializer):
@@ -155,11 +155,11 @@ class LocationSerializer(
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_projects(self) -> List[Project]:
+    def get_related_project(self) -> Optional[Project]:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
-            return [self.validated_data["project"]]
-        return []
+            return self.validated_data["project"]
+        return None
 
 
 class ProjectSuperLightSerializer(serializers.ModelSerializer):

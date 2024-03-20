@@ -50,6 +50,9 @@ class Notification(models.Model, HasOwner):
         on_delete=models.CASCADE,
         related_name="notifications_received",
     )
+    organization = models.ForeignKey(
+        "organizations.Organization", on_delete=models.CASCADE, null=True
+    )
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
     invitation = models.ForeignKey(
         "invitations.Invitation", on_delete=models.CASCADE, null=True
