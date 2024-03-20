@@ -623,7 +623,6 @@ class UserSerializer(serializers.ModelSerializer):
             "natural_ratio": validated_data.pop("profile_picture_natural_ratio", None),
         }
         instance = super(UserSerializer, self).create(validated_data)
-        instance.groups.add(get_default_group())
         if profile_picture["file"]:
             image = Image(
                 name=profile_picture["file"].name,
@@ -651,21 +650,15 @@ class UserSerializer(serializers.ModelSerializer):
 
         # Handle roles_to_add and roles_to_remove
         groups_to_add = data.pop("roles_to_add", [])
+        groups_to_add.append(get_default_group().name)
         groups_to_remove = data.pop("roles_to_remove", [])
         if self.instance:
-            groups = (
-                self.instance.groups.all() if self.instance else Group.objects.none()
-            )
-            groups = (
-                groups.exclude(name__in=groups_to_remove)
-                if groups_to_remove
-                else groups
-            )
+            groups = self.instance.groups.exclude(name__in=groups_to_remove)
             for group in groups_to_add:
                 group = Group.objects.get(name=group)
-                instance = get_instance_from_group(group)
+                group_instance = get_instance_from_group(group)
                 groups = groups.exclude(
-                    name__in=instance.groups.values_list("name", flat=True)
+                    name__in=group_instance.groups.values_list("name", flat=True)
                 )
                 groups = Group.objects.filter(
                     name__in=[group.name, *groups.values_list("name", flat=True)]

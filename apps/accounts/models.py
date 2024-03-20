@@ -17,6 +17,7 @@ from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from apps.accounts.utils import (
     default_onboarding_status,
+    get_default_group,
     get_group_permissions,
     get_superadmins_group,
 )
@@ -462,7 +463,14 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             "idp_organizations", []
         )
         organizations = Organization.objects.filter(code__in=organizations_codes)
-        user.groups.add(*[o.get_users() for o in organizations])
+        root_groups = PeopleGroup.objects.filter(
+            organization__code__in=organizations_codes, is_root=True
+        )
+        user.groups.add(
+            get_default_group(),
+            *[o.get_users() for o in organizations],
+            *[g.get_members() for g in root_groups]
+        )
         return user
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
