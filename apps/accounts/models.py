@@ -161,10 +161,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
                 "name": organization.name,
             },
         )
-        root_group.members.set(
-            [*organization.facilitators.all(), *organization.users.all()]
-        )
-        root_group.managers.set(organization.admins.all())
         return root_group
 
     @classmethod
@@ -463,13 +459,9 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             "idp_organizations", []
         )
         organizations = Organization.objects.filter(code__in=organizations_codes)
-        root_groups = PeopleGroup.objects.filter(
-            organization__code__in=organizations_codes, is_root=True
-        )
         user.groups.add(
             get_default_group(),
             *[o.get_users() for o in organizations],
-            *[g.get_members() for g in root_groups]
         )
         return user
 

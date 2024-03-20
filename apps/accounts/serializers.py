@@ -168,6 +168,8 @@ class PeopleGroupLightSerializer(serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
     def get_members_count(self, group: PeopleGroup) -> int:
+        if group.is_root:
+            return group.organization.get_all_members().count()
         return group.get_all_members().count()
 
     class Meta:
