@@ -5,9 +5,10 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import ProjectUser
-from apps.commons.models import ProjectRelated
+from apps.commons.models import OrganizationRelated, ProjectRelated
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Follow
+from apps.organizations.models import Organization
 from apps.projects.models import Project
 
 from .models import Notification
@@ -27,15 +28,30 @@ class NotificationTaskManager:
     def __init__(
         self,
         sender: Optional[ProjectUser],
-        item: Union[Project, ProjectRelated],
+        item: Optional[Union[Project, ProjectRelated]] = None,
+        organization: Optional[Organization] = None,
         **kwargs,
     ):
         self.sender = sender
         self.item = item
-        self.project = item if isinstance(item, Project) else item.project
+        if item and isinstance(item, Project):
+            self.project = item
+        elif item and isinstance(item, ProjectRelated):
+            self.project = item.get_related_projects().first()
+        else:
+            self.project = None
+        if organization:
+            self.organization = organization
+        elif item and isinstance(item, OrganizationRelated):
+            self.organization = item.get_related_organizations().first()
+        elif self.project:
+            self.organization = self.project.organizations.first()
+        else:
+            self.organization = None
         self.base_context = kwargs
         self.template_context = {
             "project": self.project,
+            "organization": self.organization,
             "by": sender,
             "item": item,
             **kwargs,
@@ -101,7 +117,7 @@ class NotificationTaskManager:
         to_send = getattr(
             recipient.notification_settings, self.member_setting_name, False
         )
-        if self.notify_followers:
+        if self.project and self.notify_followers:
             to_send &= self.project.get_all_members().filter(id=recipient.id).exists()
             to_send |= (
                 getattr(
@@ -121,6 +137,7 @@ class NotificationTaskManager:
             "sender": self.sender,
             "receiver": recipient,
             "project": self.project,
+            "organization": self.organization,
             "to_send": self.recipient_must_receive(recipient)
             and not self.send_immediately,
         }
@@ -437,3 +454,13 @@ class AddGroupMemberNotificationManager(NotificationTaskManager):
         return ProjectUser.objects.filter(
             id__in=self.base_context["new_members"]
         ).exclude(id=self.sender.id)
+
+
+class NewAccessRequestNotificationManager(NotificationTaskManager):
+    member_setting_name = "organization_has_new_access_request"
+    notification_type = Notification.Types.ACCESS_REQUEST
+    template_dir = "notifications/new_access_request"
+    send_immediately = False
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()

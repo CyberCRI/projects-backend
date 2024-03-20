@@ -90,6 +90,7 @@ class NotificationSettings(models.Model, HasOwner):
     project_ready_for_review = models.BooleanField(default=True)
     project_has_been_reviewed = models.BooleanField(default=True)
     comment_received_a_response = models.BooleanField(default=True)
+    organization_has_new_access_request = models.BooleanField(default=True)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.user == user
