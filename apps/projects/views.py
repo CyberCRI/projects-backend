@@ -448,7 +448,9 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def similar(self, request, *args, **kwargs):
         project = self.get_object()
         embedding, _ = ProjectEmbedding.objects.get_or_create(item=project)
-        vector = embedding.embedding or embedding.vectorize().embedding
+        if embedding.embedding is None:
+            embedding = embedding.vectorize()
+        vector = embedding.embedding
         if vector is None:
             return Response([])
         organizations = [
