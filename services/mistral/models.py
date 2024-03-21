@@ -166,12 +166,13 @@ class ProjectEmbedding(Embedding):
             )
         else:
             key_concepts = ""
-        return [
-            f"Title : {self.project.title}",
-            f"Purpose : {self.project.purpose}",
-            f"Key concepts : {key_concepts}",
-            f"Content : {content}",
+        prompt = [
+            ("Title", self.project.title),
+            ("Purpose", self.project.purpose),
+            ("Key concepts", key_concepts),
+            ("Content", content),
         ]
+        return [f"{key} : {value}" for key, value in prompt if value]
 
 
 class UserEmbedding(Embedding):
@@ -218,9 +219,10 @@ class UserEmbedding(Embedding):
                 strip_tags(self.user.professional_description)[:5000],
             ]
         )
-        return [
-            f"Job: {self.user.job}",
-            f"Expert in: {expert_skills}",
-            f"Competent in: {competent_skills}",
-            f"Biography: {description}",
+        prompt = [
+            ("Job", self.user.job),
+            ("Expert in", expert_skills),
+            ("Competent in", competent_skills),
+            ("Biography", description),
         ]
+        return [f"{key} : {value}" for key, value in prompt if value]
