@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-20 16:14+0000\n"
+"POT-Creation-Date: 2024-03-21 10:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,15 +120,15 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:663
+#: apps/accounts/models.py:665
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:664
+#: apps/accounts/models.py:666
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:665
+#: apps/accounts/models.py:667
 msgid "Public"
 msgstr "Publique"
 
@@ -1378,7 +1378,7 @@ msgstr "participant"
 msgid "reviewer"
 msgstr "correcteur"
 
-#: apps/notifications/utils.py:201
+#: apps/notifications/utils.py:205
 msgid " and "
 msgstr " et "
 
@@ -1468,11 +1468,11 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: projects/settings/base.py:259
+#: projects/settings/base.py:260
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:260
+#: projects/settings/base.py:261
 msgid "French"
 msgstr "Français"
 

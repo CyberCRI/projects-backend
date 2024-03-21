@@ -178,9 +178,11 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
                 if child is not None
             ],
             "roles": [group.name for group in groups[group_id].groups.all()],
-            "header_image": ImageSerializer(groups[group_id].header_image).data
-            if groups[group_id].header_image
-            else None,
+            "header_image": (
+                ImageSerializer(groups[group_id].header_image).data
+                if groups[group_id].header_image
+                else None
+            ),
         }
 
     def get_hierarchy(self):
