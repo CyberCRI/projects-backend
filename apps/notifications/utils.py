@@ -146,9 +146,13 @@ class NotificationTaskManager:
         context = self.base_context
         if not created:
             context = {
-                key: value
-                if not isinstance(value, list)
-                else self.merge_context_lists(notification.context.get(key, []), value)
+                key: (
+                    value
+                    if not isinstance(value, list)
+                    else self.merge_context_lists(
+                        notification.context.get(key, []), value
+                    )
+                )
                 for key, value in context.items()
             }
             notification.count += 1

@@ -70,28 +70,35 @@ class GoogleTestCase(JwtAPITestCase):
                         "primary": True,
                     },
                     {
-                        "address": google_user.email.replace(
+                        "address": (
+                            google_user.email.replace(
+                                settings.GOOGLE_EMAIL_DOMAIN,
+                                settings.GOOGLE_EMAIL_ALIAS_DOMAIN,
+                            )
+                            if google_user
+                            else ""
+                        ),
+                    },
+                    (
+                        {"address": f"{google_user.email}.test-google-a.com"}
+                        if google_user
+                        else ""
+                    ),
+                ],
+                "languages": [{"languageCode": "en", "preference": "preferred"}],
+                "aliases": (
+                    [
+                        google_user.email.replace(
                             settings.GOOGLE_EMAIL_DOMAIN,
                             settings.GOOGLE_EMAIL_ALIAS_DOMAIN,
                         )
-                        if google_user
-                        else "",
-                    },
-                    {"address": f"{google_user.email}.test-google-a.com"}
+                    ]
                     if google_user
-                    else "",
-                ],
-                "languages": [{"languageCode": "en", "preference": "preferred"}],
-                "aliases": [
-                    google_user.email.replace(
-                        settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
-                    )
-                ]
-                if google_user
-                else [],
-                "nonEditableAliases": [f"{google_user.email}.test-google-a.com"]
-                if google_user
-                else [],
+                    else []
+                ),
+                "nonEditableAliases": (
+                    [f"{google_user.email}.test-google-a.com"] if google_user else []
+                ),
                 "customerId": settings.GOOGLE_CUSTOMER_ID,  # nosec
                 "orgUnitPath": google_user.organizational_unit if google_user else "",
                 "isMailboxSetup": True,
@@ -203,16 +210,18 @@ class GoogleTestCase(JwtAPITestCase):
             "directMembersCount": "1",
             "description": "description",
             "adminCreated": True,
-            "aliases": [
-                f"{google_group.email.split('@')[0]}@{settings.GOOGLE_EMAIL_ALIAS_DOMAIN}"
-            ]
-            if google_group
-            else [],
-            "nonEditableAliases": [
-                f"{google_group.email.split('@')[0]}@alias.org.test-google-a.com"
-            ]
-            if google_group
-            else [],
+            "aliases": (
+                [
+                    f"{google_group.email.split('@')[0]}@{settings.GOOGLE_EMAIL_ALIAS_DOMAIN}"
+                ]
+                if google_group
+                else []
+            ),
+            "nonEditableAliases": (
+                [f"{google_group.email.split('@')[0]}@alias.org.test-google-a.com"]
+                if google_group
+                else []
+            ),
         }
         return {"status": 200}, json.dumps(content)
 

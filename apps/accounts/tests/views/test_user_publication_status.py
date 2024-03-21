@@ -201,9 +201,11 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.assertEqual(
             {(comment["author"]["id"], comment["id"]) for comment in content},
             {
-                (self.users[user_type].id, self.comments[user_type].id)
-                if user_type in expected_users
-                else (None, self.comments[user_type].id)
+                (
+                    (self.users[user_type].id, self.comments[user_type].id)
+                    if user_type in expected_users
+                    else (None, self.comments[user_type].id)
+                )
                 for user_type in self.users.keys()
             },
         )
@@ -229,9 +231,11 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.assertEqual(
             {(follow["follower"]["id"], follow["id"]) for follow in content},
             {
-                (self.users[user_type].id, self.follows[user_type].id)
-                if user_type in expected_users
-                else (None, self.follows[user_type].id)
+                (
+                    (self.users[user_type].id, self.follows[user_type].id)
+                    if user_type in expected_users
+                    else (None, self.follows[user_type].id)
+                )
                 for user_type in self.users.keys()
             },
         )
@@ -257,9 +261,11 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.assertEqual(
             {(review["reviewer"]["id"], review["id"]) for review in content},
             {
-                (self.users[user_type].id, self.reviews[user_type].id)
-                if user_type in expected_users
-                else (None, self.reviews[user_type].id)
+                (
+                    (self.users[user_type].id, self.reviews[user_type].id)
+                    if user_type in expected_users
+                    else (None, self.reviews[user_type].id)
+                )
                 for user_type in self.users.keys()
             },
         )
@@ -287,9 +293,11 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.assertEqual(
             {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
             {
-                (self.users[user_type].id, self.invitations[user_type].id)
-                if user_type in expected_users
-                else (None, self.invitations[user_type].id)
+                (
+                    (self.users[user_type].id, self.invitations[user_type].id)
+                    if user_type in expected_users
+                    else (None, self.invitations[user_type].id)
+                )
                 for user_type in self.users.keys()
             },
         )
@@ -323,9 +331,11 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                 for notification in content
             },
             {
-                (self.users[user_type].id, notifications[user_type].id)
-                if user_type in expected_users
-                else (None, notifications[user_type].id)
+                (
+                    (self.users[user_type].id, notifications[user_type].id)
+                    if user_type in expected_users
+                    else (None, notifications[user_type].id)
+                )
                 for user_type in self.users.keys()
             },
         )

@@ -295,12 +295,16 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 invitation = self.request.user.invitation
                 groups = [
                     get_default_group(),
-                    invitation.people_group.get_members()
-                    if invitation.people_group
-                    else None,
-                    invitation.organization.get_users()
-                    if invitation.organization
-                    else None,
+                    (
+                        invitation.people_group.get_members()
+                        if invitation.people_group
+                        else None
+                    ),
+                    (
+                        invitation.organization.get_users()
+                        if invitation.organization
+                        else None
+                    ),
                 ]
                 instance = serializer.save(groups=list(filter(lambda x: x, groups)))
                 email_type = KeycloakService.EmailType.INVITATION

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-20 16:14+0000\n"
+"POT-Creation-Date: 2024-03-21 10:58+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,15 +116,15 @@ msgstr ""
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:663
+#: apps/accounts/models.py:665
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:664
+#: apps/accounts/models.py:666
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:665
+#: apps/accounts/models.py:667
 msgid "Public"
 msgstr ""
 
@@ -1052,7 +1052,7 @@ msgstr ""
 msgid "reviewer"
 msgstr ""
 
-#: apps/notifications/utils.py:201
+#: apps/notifications/utils.py:205
 msgid " and "
 msgstr ""
 
@@ -1140,11 +1140,11 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: projects/settings/base.py:259
+#: projects/settings/base.py:260
 msgid "English"
 msgstr ""
 
-#: projects/settings/base.py:260
+#: projects/settings/base.py:261
 msgid "French"
 msgstr ""
 
