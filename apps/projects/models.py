@@ -351,9 +351,9 @@ class Project(
             return sum(self.get_cached_views().get(o.code, 0) for o in organizations)
         return self.mixpanel_events.filter(organization__in=organizations).count()
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
-        return [self]
+        return self
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
@@ -502,9 +502,9 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
     class Meta:
         unique_together = ("project", "target")
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
-        return [self.target]
+        return self.target
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
@@ -556,9 +556,9 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated):
         if hasattr(project, "stat"):
             project.stat.update_blog_entries()
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
-        return [self.project]
+        return self.project
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
@@ -605,9 +605,9 @@ class Location(models.Model, ProjectRelated, OrganizationRelated):
         default=LocationType.TEAM,
     )
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
-        return [self.project]
+        return self.project
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

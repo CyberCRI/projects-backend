@@ -17,6 +17,7 @@ from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from apps.accounts.utils import (
     default_onboarding_status,
+    get_default_group,
     get_group_permissions,
     get_superadmins_group,
 )
@@ -160,10 +161,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
                 "name": organization.name,
             },
         )
-        root_group.members.set(
-            [*organization.facilitators.all(), *organization.users.all()]
-        )
-        root_group.managers.set(organization.admins.all())
         return root_group
 
     @classmethod
@@ -251,14 +248,23 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
 
     def get_managers(self) -> Group:
         """Return the managers group."""
-        return self.get_or_create_group(self.DefaultGroup.MANAGERS)
+        group = self.get_or_create_group(self.DefaultGroup.MANAGERS)
+        if self.is_root:
+            group.users.set(self.organization.facilitators.all())
+        return group
 
     def get_members(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.MEMBERS)
+        group = self.get_or_create_group(self.DefaultGroup.MEMBERS)
+        if self.is_root:
+            group.users.set(self.organization.users.all())
+        return group
 
     def get_leaders(self) -> Group:
         """Return the leaders group."""
+        group = self.get_or_create_group(self.DefaultGroup.LEADERS)
+        if self.is_root:
+            group.users.set(self.organization.admins.all())
         return self.get_or_create_group(self.DefaultGroup.LEADERS)
 
     @property
@@ -462,7 +468,10 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             "idp_organizations", []
         )
         organizations = Organization.objects.filter(code__in=organizations_codes)
-        user.groups.add(*[o.get_users() for o in organizations])
+        user.groups.add(
+            get_default_group(),
+            *[o.get_users() for o in organizations],
+        )
         return user
 
     def is_owned_by(self, user: "ProjectUser") -> bool:

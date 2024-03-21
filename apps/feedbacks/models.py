@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
 from django.utils import timezone
@@ -68,9 +68,9 @@ class Follow(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         """Get the owner of the object."""
         return self.follower
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
-        return [self.project]
+        return self.project
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
@@ -163,9 +163,9 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         """Get the owner of the object."""
         return self.author
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
-        return [self.project]
+        return self.project
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
@@ -218,9 +218,9 @@ class Review(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         """Get the owner of the object."""
         return self.reviewer
 
-    def get_related_projects(self) -> List["Project"]:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
-        return [self.project]
+        return self.project
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

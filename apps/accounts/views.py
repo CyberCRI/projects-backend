@@ -78,7 +78,11 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
-from .utils import account_sync_errors_handler, get_permission_from_representation
+from .utils import (
+    account_sync_errors_handler,
+    get_default_group,
+    get_permission_from_representation,
+)
 
 
 class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -290,6 +294,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             if hasattr(self.request.user, "invitation"):
                 invitation = self.request.user.invitation
                 groups = [
+                    get_default_group(),
                     invitation.people_group.get_members()
                     if invitation.people_group
                     else None,

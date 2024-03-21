@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from rest_framework import serializers
 
@@ -35,8 +35,8 @@ class GoalSerializer(
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_projects(self) -> List[Project]:
+    def get_related_project(self) -> Optional[Project]:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
-            return [self.validated_data["project"]]
-        return []
+            return self.validated_data["project"]
+        return None

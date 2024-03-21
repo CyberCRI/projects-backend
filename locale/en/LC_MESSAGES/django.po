@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-15 13:12+0000\n"
+"POT-Creation-Date: 2024-03-20 16:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,19 +112,19 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:124 apps/projects/models.py:152
+#: apps/accounts/models.py:125 apps/projects/models.py:152
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:654
+#: apps/accounts/models.py:663
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:655
+#: apps/accounts/models.py:664
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:656
+#: apps/accounts/models.py:665
 msgid "Public"
 msgstr ""
 
