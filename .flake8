@@ -15,6 +15,14 @@ ignore =
     # code line is too long, but we are using black.
     E501,
     # Line too long, flake8-length is a bit nicer, cf. https://github.com/orsinium-labs/flake8-length#usage
+    E221,
+    # Multiple spaces before operator
+    E226,
+    # Missing whitespace around arithmetic operator
+    E231,
+    # Missing whitespace after operator
+    E702,
+    # Multiple statements on one line
     W503,
     # Line break before binary operator
     W505,
