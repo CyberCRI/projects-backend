@@ -45,9 +45,7 @@ class BearerToken(AccessToken):
 
 class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
-        code, token = KeycloakService.get_token_for_user(username, password)
-        if code != status.HTTP_200_OK:
-            return None
+        token = KeycloakService.get_token_for_user(username, password)
         validated_token = BearerToken(token["access_token"])
         user_id = validated_token[api_settings.USER_ID_CLAIM]
         try:
