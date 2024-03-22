@@ -7,7 +7,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
-from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
@@ -45,9 +44,7 @@ class BearerToken(AccessToken):
 
 class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
-        code, token = KeycloakService.get_token_for_user(username, password)
-        if code != status.HTTP_200_OK:
-            return None
+        token = KeycloakService.get_token_for_user(username, password)
         validated_token = BearerToken(token["access_token"])
         user_id = validated_token[api_settings.USER_ID_CLAIM]
         try:

@@ -952,7 +952,7 @@ class AccessTokenView(APIView):
     def post(self, request):
         serializer = CredentialsSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        code, token = KeycloakService.get_token_for_user(
+        token = KeycloakService.get_token_for_user(
             request.data["username"], request.data["password"]
         )
-        return Response(AccessTokenSerializer(token).data, status=code)
+        return Response(AccessTokenSerializer(token).data)
