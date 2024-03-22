@@ -7,7 +7,6 @@ from django.contrib.auth.backends import ModelBackend
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
-from rest_framework import status
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
