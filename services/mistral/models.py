@@ -161,9 +161,11 @@ class ProjectEmbedding(Embedding):
         else:
             content = ""
         if self.project.wikipedia_tags.exists():
-            key_concepts = ", ".join(
-                self.project.wikipedia_tags.all().values_list("name_en", flat=True)
-            )
+            tags = [
+                tag.name_en or tag.name_fr for tag in self.project.wikipedia_tags.all()
+            ]
+            tags = [tag for tag in tags if tag]
+            key_concepts = ", ".join(tags)
         else:
             key_concepts = ""
         prompt = [
