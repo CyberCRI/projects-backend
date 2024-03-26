@@ -66,6 +66,7 @@ class Notification(models.Model, HasOwner):
     )
     context = models.JSONField(default=dict)
     count = models.IntegerField(default=1)
+    should_merge = models.BooleanField(default=False)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.receiver == user

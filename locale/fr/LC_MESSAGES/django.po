@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-21 10:58+0000\n"
+"POT-Creation-Date: 2024-03-26 16:24+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1378,7 +1378,7 @@ msgstr "participant"
 msgid "reviewer"
 msgstr "correcteur"
 
-#: apps/notifications/utils.py:205
+#: apps/notifications/utils.py:212
 msgid " and "
 msgstr " et "
 
