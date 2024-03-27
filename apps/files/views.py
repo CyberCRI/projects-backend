@@ -1,3 +1,4 @@
+import logging
 from abc import abstractmethod
 from typing import Callable
 
@@ -29,6 +30,8 @@ from .serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -150,6 +153,7 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
     )
     def create(self, request, *args, **kwargs):
         """Allows the upload of images."""
+        logger.error(request.data)
         file = request.data["file"]
         file = self.process_image(file)
         filename = file._name

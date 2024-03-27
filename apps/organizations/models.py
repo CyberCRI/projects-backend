@@ -203,6 +203,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         assign_perm("accounts.add_projectuser", admins)
         assign_perm("accounts.change_projectuser", admins)
         assign_perm("accounts.delete_projectuser", admins)
+        assign_perm("news.change_news", admins)
         for permission in self.get_default_admins_permissions():
             assign_perm(permission, admins, self)
 

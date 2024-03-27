@@ -71,3 +71,14 @@ def project_router_register(
         viewset,
         basename,
     )
+
+
+def news_router_register(
+    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+):
+    router.register(
+        r"organization/(?P<organization_code>[^/]+)/"
+        r"news/(?P<news_id>[^/]+)/" + prefix,
+        viewset,
+        basename,
+    )
