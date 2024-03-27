@@ -43,6 +43,9 @@ class News(models.Model, OrganizationRelated):
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
-    organization = models.ManyToManyField(
-        "organizations.Organization", related_name="news"
+    organization = models.ForeignKey(
+        "organizations.Organization", related_name="news", on_delete=models.CASCADE
     )
+
+    def get_related_organizations(self):
+        return [self.organization]

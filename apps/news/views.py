@@ -13,7 +13,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.news.models import News
-from apps.news.serializer import NewsSerializer
+from apps.news.serializers import NewsSerializer
 from apps.organizations.permissions import HasOrganizationPermission
 
 
@@ -44,14 +44,23 @@ class NewsViewSet(viewsets.ModelViewSet):
             )
         return News.objects.none()
 
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
+
     def get_serializer(self, *args, **kwargs):
         """
         Force the usage of the organization code from the url in the serializer
         """
-        data = self.request.data
         if self.action in ["create", "update", "partial_update"]:
-            data["organization"] = self.kwargs["organization_code"]
-        return super().get_serializer(data=data)
+            self.request.data.update(
+                {
+                    "organization": self.kwargs["organization_code"],
+                }
+            )
+        return super().get_serializer(*args, **kwargs)
 
 
 class NewsHeaderView(ImageStorageView):

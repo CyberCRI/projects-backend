@@ -527,11 +527,13 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
         if self._news_queryset is None:
             if self.is_superuser:
-                self._news_queryset = News.objects.all().distinct()
+                self._news_queryset = News.objects.all()
             else:
                 groups = self.get_people_group_queryset()
-                self._news_queryset = News.objects.filter(people_groups__in=groups)
-        return self._news_queryset.prefetch_related(*prefetch)
+                self._news_queryset = News.objects.filter(
+                    Q(people_groups__in=groups) | Q(people_groups=None)
+                )
+        return self._news_queryset.distinct().prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:

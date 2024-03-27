@@ -7,7 +7,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
 from apps.news.factories import NewsFactory
 from apps.news.models import News
@@ -16,7 +16,7 @@ from apps.organizations.factories import OrganizationFactory
 faker = Faker()
 
 
-class NewsTestCase(JwtAPITestCase, TagTestCaseMixin):
+class CreateNewsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -61,7 +61,7 @@ class NewsTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["people_groups"], payload["people_groups"])
 
 
-class UpdateNewsTestCase(JwtAPITestCase, TagTestCaseMixin):
+class UpdateNewsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -150,3 +150,6 @@ class DeleteNewsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(News.objects.filter(id=news_id).exists())
+
+
+# TODO : Test custom exceptions

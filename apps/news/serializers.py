@@ -41,3 +41,16 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
             # write_only
             "header_image_id",
         ]
+
+    def validate_people_groups(self, value):
+        for group in value:
+            if group.organization.code != self.context.get("organization_code"):
+                # TODO : write a custom exception
+                raise "PeopleGroupOrganizationError"
+        return value
+
+    def validate_organization(self, value):
+        if self.instance and value != self.instance.organization:
+            # TODO : write a custom exception
+            raise "InvitationOrganizationChangeError"
+        return value
