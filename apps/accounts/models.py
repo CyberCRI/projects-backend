@@ -28,7 +28,7 @@ from apps.commons.models import (
     PermissionsSetupModel,
 )
 from apps.misc.models import SDG, Language, WikipediaTag
-from apps.news.models import News
+from apps.newsfeed.models import News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from keycloak import KeycloakGetError

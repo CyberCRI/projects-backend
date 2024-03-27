@@ -1,3 +1,6 @@
+import datetime
+import random
+
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -5,15 +8,17 @@ from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.news.factories import NewsFactory
+from apps.misc.models import Language
+from apps.newsfeed.factories import NewsFactory
+from apps.newsfeed.models import News
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
-class CreateNewsHeaderTestCase(JwtAPITestCase):
+class CreateNewsTestCase(JwtAPITestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
@@ -31,37 +36,39 @@ class CreateNewsHeaderTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_create_news_header(self, role, expected_code):
+    def test_create_news(self, role, expected_code):
         organization = self.organization
-        news = NewsFactory(
-            organization=self.organization, people_groups=[self.people_group]
-        )
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
-        payload = {"file": self.get_test_image_file()}
+        payload = {
+            "organization": self.organization.code,
+            "title": faker.sentence(),
+            "content": faker.text(),
+            "language": random.choice(Language.values),  # nosec
+            "publication_date": datetime.date.today().isoformat(),
+            "people_groups": [self.people_group.id],
+        }
+
         response = self.client.post(
-            reverse(
-                "News-header-list",
-                args=(organization.code, news.id),
-            ),
-            data=payload,
-            format="multipart",
+            reverse("News-list", args=(organization.code,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            self.assertIsNotNone(response.json()["static_url"])
+            content = response.json()
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["content"], payload["content"])
+            self.assertEqual(content["language"], payload["language"])
+            self.assertEqual(content["people_groups"], payload["people_groups"])
 
 
-class UpdateNewsHeaderTestCase(JwtAPITestCase):
+class UpdateNewsTestCase(JwtAPITestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.news = NewsFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
-            header_image=cls.get_test_image(),
+            organization=cls.organization, people_groups=[cls.people_group]
         )
 
     @parameterized.expand(
@@ -77,44 +84,39 @@ class UpdateNewsHeaderTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_update_news_header(self, role, expected_code):
+    def test_update_news(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
-            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
-            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
-            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
-            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
-            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "title": faker.sentence(),
+            "content": faker.text(),
+            "language": "fr",
+            "publication_date": datetime.date.today().isoformat(),
         }
         response = self.client.patch(
             reverse(
-                "News-header-detail",
-                args=(self.organization.code, self.news.id, self.news.header_image.id),
+                "News-detail",
+                args=(
+                    self.organization.code,
+                    self.news.id,
+                ),
             ),
             data=payload,
-            format="multipart",
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            self.assertEqual(response.json()["scale_x"], payload["scale_x"])
-            self.assertEqual(response.json()["scale_y"], payload["scale_y"])
-            self.assertEqual(response.json()["left"], payload["left"])
-            self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
+            content = response.json()
+            self.assertEqual(content["title"], payload["title"])
+            self.assertEqual(content["content"], payload["content"])
+            self.assertEqual(content["language"], payload["language"])
 
 
-class DeleteNewsHeaderTestCase(JwtAPITestCase):
+class DeleteNewsTestCase(JwtAPITestCase):
     @classmethod
-    def setUpTestData(cls):
+    def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
-        cls.news = NewsFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
-            header_image=cls.get_test_image(),
-        )
 
     @parameterized.expand(
         [
@@ -129,21 +131,25 @@ class DeleteNewsHeaderTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_delete_news_header(self, role, expected_code):
+    def test_delete_news(self, role, expected_code):
         news = NewsFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        news.header_image = self.get_test_image()
-        news.save()
+        news_id = news.id
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
-                "News-header-detail",
-                args=(self.organization.code, news.id, news.header_image.id),
-            ),
+                "News-detail",
+                args=(
+                    self.organization.code,
+                    news.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            news.refresh_from_db()
-            self.assertIsNone(news.header_image)
+            self.assertFalse(News.objects.filter(id=news_id).exists())
+
+
+# TODO : Test custom exceptions
