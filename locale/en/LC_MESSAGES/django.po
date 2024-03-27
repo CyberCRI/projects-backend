@@ -112,19 +112,19 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:125 apps/projects/models.py:152
+#: apps/accounts/models.py:126 apps/projects/models.py:152
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:665
+#: apps/accounts/models.py:676
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:666
+#: apps/accounts/models.py:677
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:667
+#: apps/accounts/models.py:678
 msgid "Public"
 msgstr ""
 
@@ -1140,11 +1140,11 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: projects/settings/base.py:260
+#: projects/settings/base.py:261
 msgid "English"
 msgstr ""
 
-#: projects/settings/base.py:261
+#: projects/settings/base.py:262
 msgid "French"
 msgstr ""
 
