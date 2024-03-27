@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+from django.apps import apps
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
@@ -47,6 +48,131 @@ class MultipleIDViewsetMixin:
                 else:
                     kwargs[field] = model.get_main_id(lookup_value)
         return super().dispatch(request, *args, **kwargs)
+
+
+class ProjectRelatedViewSetMixin:
+    project_url_kwarg = "project_id"
+    force_serializer_data_on = ["create", "update", "partial_update"]
+    write_serializer_project_field = "project"
+    _project = None
+
+    def _get_project_id(self):
+        """
+        Retrieve the project id from the request.
+        """
+        try:
+            return self.kwargs[self.project_url_kwarg]
+        except KeyError:
+            raise Exception
+
+    @property
+    def project(self):
+        """
+        Retrieve the project from the request.
+        """
+        if self._project is None:
+            Project = apps.get_model("projects", "Project")  # noqa
+            self._project = get_object_or_404(Project, id=self._get_project_id())
+        return self._project
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        data = self.request.data
+        if self.action in self.force_serializer_data_on:
+            data[self.write_serializer_project_field] = self._get_project_id()
+        return super().get_serializer(data=data)
+
+
+class OrganizationRelatedViewSetMixin:
+    organization_url_kwarg = "organization_code"
+    force_serializer_data_on = ["create", "update", "partial_update"]
+    write_serializer_organization_field = "organization"
+    _organization = None
+
+    def _get_organization_code(self):
+        """
+        Retrieve the organization code from the request.
+        """
+        try:
+            return self.kwargs[self.organization_url_kwarg]
+        except KeyError:
+            raise Exception
+
+    @property
+    def organization(self):
+        """
+        Retrieve the organization from the request.
+        """
+        if self._organization is None:
+            Organization = apps.get_model("organizations", "Organization")  # noqa
+            self._organization = get_object_or_404(
+                Organization, code=self._get_organization_code()
+            )
+        return self._organization
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        data = self.request.data
+        if self.action in self.force_serializer_data_on:
+            data[self.write_serializer_organization_field] = (
+                self._get_organization_code()
+            )
+        return super().get_serializer(data=data)
+
+
+class MultipleOrganizationRelatedViewSetMixin:
+    organization_url_kwarg = "organization_code"
+    force_serializer_data_on = ["create", "update", "partial_update"]
+    write_serializer_organization_field = "organizations"
+    _organization = None
+
+    def _get_organization_code(self):
+        """
+        Retrieve the organization code from the request.
+        """
+        try:
+            return self.kwargs[self.organization_url_kwarg]
+        except KeyError:
+            raise Exception
+
+    @property
+    def organization(self):
+        """
+        Retrieve the organization from the request.
+        """
+        if self._organization is None:
+            Organization = apps.get_model("organizations", "Organization")  # noqa
+            self._organization = get_object_or_404(
+                Organization, code=self._get_organization_code()
+            )
+        return self._organization
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Return the serializer instance that should be used for validating and
+        deserializing input, and for serializing output.
+        """
+        data = self.request.data
+        if self.action in self.force_serializer_data_on:
+            if self.action in ["create"]:
+                data[self.write_serializer_organization_field] = [
+                    self._get_organization_code()
+                ]
+            elif self.action in ["update", "partial_update"]:
+                instance = self.get_object()
+                data[self.write_serializer_organization_field] = list(
+                    {
+                        *instance.organizations.values_list("code", flat=True),
+                        self._get_organization_code(),
+                    }
+                )
+        return super().get_serializer(data=data)
 
 
 class DetailOnlyViewsetMixin:
