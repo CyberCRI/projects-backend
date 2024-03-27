@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import news_router_register, organization_router_register
+from apps.commons.urls import organization_router_register
 
 from .views import NewsHeaderView, NewsViewSet
 
@@ -13,9 +13,9 @@ organization_router_register(
     basename="News",
 )
 
-news_router_register(
+organization_router_register(
     router,
-    r"header",
+    r"news/(?P<news_id>[^/]+)/header",
     NewsHeaderView,
     basename="News-header",
 )

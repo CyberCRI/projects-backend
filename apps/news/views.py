@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
+from apps.commons.utils import map_action_to_permission
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.news.models import News
@@ -21,22 +22,36 @@ class NewsViewSet(viewsets.ModelViewSet):
 
     serializer_class = NewsSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["created_at", "updated_at"]
+    ordering_fields = ["updated_at"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
-    multiple_lookup_fields = [
-        (News, "id"),
-    ]
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        ReadOnly
-        | HasBasePermission("change_news", "news")
-        | HasOrganizationPermission("change_news"),
-    ]
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "news")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "news")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
+        if "organization_code" in self.kwargs:
+            return self.request.user.get_news_queryset().filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return News.objects.none()
 
-        return self.request.user.get_news_queryset()
+    def get_serializer(self, *args, **kwargs):
+        """
+        Force the usage of the organization code from the url in the serializer
+        """
+        data = self.request.data
+        if self.action in ["create", "update", "partial_update"]:
+            data["organization"] = self.kwargs["organization_code"]
+        return super().get_serializer(data=data)
 
 
 class NewsHeaderView(ImageStorageView):
@@ -48,8 +63,11 @@ class NewsHeaderView(ImageStorageView):
     ]
 
     def get_queryset(self):
-        if "news_id" in self.kwargs:
-            return Image.objects.filter(news_header__id=self.kwargs["news_id"])
+        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
+            return Image.objects.filter(
+                news_header__organization__code=self.kwargs["organization_code"],
+                news_header__id=self.kwargs["news_id"],
+            )
         return Image.objects.none()
 
     @staticmethod
@@ -61,8 +79,11 @@ class NewsHeaderView(ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image):
-        if "news_id" in self.kwargs:
-            news = News.objects.get(id=self.kwargs["news_id"])
+        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
+            news = News.objects.get(
+                id=self.kwargs["news_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
             news.header_image = image
             news.save()
             return f"/v1/organization/{self.kwargs['organization_code']}/news/{self.kwargs['news_id']}/header/{image.id}"

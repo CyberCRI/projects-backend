@@ -41,11 +41,12 @@ class NewsTestCase(JwtAPITestCase, TagTestCaseMixin):
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
-            "organizations_codes": [self.organization.code],
+            "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
             "language": random.choice(Language.values),  # nosec
             "publication_date": datetime.date.today().isoformat(),
+            "people_groups": [self.people_group.id],
         }
 
         response = self.client.post(
@@ -57,6 +58,7 @@ class NewsTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
+            self.assertEqual(content["people_groups"], payload["people_groups"])
 
 
 class UpdateNewsTestCase(JwtAPITestCase, TagTestCaseMixin):
@@ -66,7 +68,7 @@ class UpdateNewsTestCase(JwtAPITestCase, TagTestCaseMixin):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.news = NewsFactory(
-            organizations=[cls.organization], people_groups=[cls.people_group]
+            organization=cls.organization, people_groups=[cls.people_group]
         )
 
     @parameterized.expand(
@@ -131,7 +133,7 @@ class DeleteNewsTestCase(JwtAPITestCase):
     )
     def test_delete_news(self, role, expected_code):
         news = NewsFactory(
-            organizations=[self.organization], people_groups=[self.people_group]
+            organization=self.organization, people_groups=[self.people_group]
         )
         news_id = news.id
         user = self.get_parameterized_test_user(role, instances=[self.people_group])

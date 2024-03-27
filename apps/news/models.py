@@ -43,6 +43,6 @@ class News(models.Model, OrganizationRelated):
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
-    organizations = models.ManyToManyField(
+    organization = models.ManyToManyField(
         "organizations.Organization", related_name="news"
     )

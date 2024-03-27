@@ -5,14 +5,16 @@ from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.news.models import News
-from apps.organizations.serializers import OrganizationSerializer
+from apps.organizations.models import Organization
 
 
 class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
     header_image = ImageSerializer(read_only=True)
-    organizations = OrganizationSerializer(many=True, read_only=True)
+    organization = serializers.SlugRelatedField(
+        slug_field="code", queryset=Organization.objects.all()
+    )
     people_groups = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=True, required=False, queryset=PeopleGroup.objects.all()
+        many=True, queryset=PeopleGroup.objects.all()
     )
 
     # write_only
@@ -31,7 +33,7 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
             "content",
             "publication_date",
             "header_image",
-            "organizations",
+            "organization",
             "people_groups",
             "language",
             "created_at",

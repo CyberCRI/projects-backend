@@ -34,7 +34,7 @@ class CreateNewsHeaderTestCase(JwtAPITestCase):
     def test_create_news_header(self, role, expected_code):
         organization = self.organization
         news = NewsFactory(
-            organizations=[self.organization], people_groups=[self.people_group]
+            organization=self.organization, people_groups=[self.people_group]
         )
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
@@ -59,7 +59,7 @@ class UpdateNewsHeaderTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.news = NewsFactory(
-            organizations=[cls.organization],
+            organization=cls.organization,
             people_groups=[cls.people_group],
             header_image=cls.get_test_image(),
         )
@@ -111,7 +111,7 @@ class DeleteNewsHeaderTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.news = NewsFactory(
-            organizations=[cls.organization],
+            organization=cls.organization,
             people_groups=[cls.people_group],
             header_image=cls.get_test_image(),
         )
@@ -131,7 +131,7 @@ class DeleteNewsHeaderTestCase(JwtAPITestCase):
     )
     def test_delete_news_header(self, role, expected_code):
         news = NewsFactory(
-            organizations=[self.organization], people_groups=[self.people_group]
+            organization=self.organization, people_groups=[self.people_group]
         )
         news.header_image = self.get_test_image()
         news.save()

@@ -73,12 +73,12 @@ def project_router_register(
     )
 
 
-def news_router_register(
+def people_group_router_register(
     router: DefaultRouter, prefix: str, viewset: View, basename: str = None
 ):
     router.register(
         r"organization/(?P<organization_code>[^/]+)/"
-        r"news/(?P<news_id>[^/]+)/" + prefix,
+        r"people-group/(?P<people_group_id>[^/]+)/" + prefix,
         viewset,
         basename,
     )

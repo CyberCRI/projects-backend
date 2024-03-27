@@ -5,10 +5,13 @@ from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.factories import language_factory
 from apps.organizations.factories import OrganizationFactory
 
-from . import models
+from .models import News
 
 
-class SeedNewsFactory(factory.django.DjangoModelFactory):
+class NewsFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
     title = factory.Faker("sentence")
     content = factory.Faker("text")
     publication_date = timezone.now()
@@ -17,21 +20,7 @@ class SeedNewsFactory(factory.django.DjangoModelFactory):
     language = language_factory()
 
     class Meta:
-        model = models.News
-
-
-class NewsFactory(SeedNewsFactory):
-    @factory.post_generation
-    def organizations(self, create, extracted):
-        if not create:
-            return
-        if extracted:
-            for org in extracted:
-                self.organizations.add(org)
-            if len(extracted) == 0:
-                self.organizations.add(OrganizationFactory())
-        else:
-            self.organizations.add(OrganizationFactory())
+        model = News
 
     @factory.post_generation
     def people_groups(self, create, extracted):
@@ -41,6 +30,8 @@ class NewsFactory(SeedNewsFactory):
             for group in extracted:
                 self.people_groups.add(group)
             if len(extracted) == 0:
-                self.people_groups.add(PeopleGroupFactory())
+                self.people_groups.add(
+                    PeopleGroupFactory(organization=self.organization)
+                )
         else:
-            self.people_groups.add(PeopleGroupFactory())
+            self.people_groups.add(PeopleGroupFactory(organization=self.organization))
