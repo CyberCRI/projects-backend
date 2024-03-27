@@ -142,6 +142,9 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         project._change_reason = "Created project"
         project.save()
 
+    def get_serializer(data):
+        super().get_serializer(data)
+
     @transaction.atomic
     def perform_update(self, serializer: ProjectSerializer):
         project = serializer.save()
