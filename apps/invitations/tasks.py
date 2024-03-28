@@ -59,16 +59,16 @@ def _send_invitations_reminder():
         ) and invitation.expire_at < end_of_day + timedelta(days=7):
             _create_and_send_notification(
                 invitation,
-                "notifications/invitation_reminder_one_week/object",
-                "notifications/invitation_reminder_one_week/mail",
+                "invitation_reminder_one_week/object",
+                "invitation_reminder_one_week/mail",
                 context,
                 "week",
             )
         elif start_last_day >= start_of_day and start_end_day <= end_of_day:
             _create_and_send_notification(
                 invitation,
-                "notifications/invitation_reminder_last_day/object",
-                "notifications/invitation_reminder_last_day/mail",
+                "invitation_reminder_last_day/object",
+                "invitation_reminder_last_day/mail",
                 context,
                 "today",
             )
@@ -130,5 +130,5 @@ def _send_access_request_notification():
             _create_and_send_notification_for_access_request(
                 access_request_nb=len(pending_access_requests),
                 receiver=admin,
-                template_dir="notifications/pending_access_request",
+                template_dir="pending_access_request",
             )

@@ -306,15 +306,13 @@ def _send_notifications_reminder(users: dict):
                 notification, f"reminder_message_{user.language}"
             )
         if len(notifications) > 0:
-            subject, _ = render_message("notifications/reminder/object", user.language)
+            subject, _ = render_message("reminder/object", user.language)
             subject = f"\N{sparkles} {subject} \N{sparkles}"
             context = {
                 "dateOfTheDay": format_date(date.today(), locale=user.language),
                 "notifications": notifications,
                 "recipient": user,
             }
-            text, html = render_message(
-                "notifications/reminder/mail", user.language, **context
-            )
+            text, html = render_message("reminder/mail", user.language, **context)
             send_email(subject, text, [user.email], html_content=html)
             notifications.update(to_send=False)

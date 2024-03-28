@@ -185,7 +185,7 @@ msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
 
 #: apps/emailing/templates/contact/base.html:45
-#: apps/emailing/templates/notifications/base.html:45
+#: apps/notifications/templates/base.html:45
 msgid ""
 "\n"
 "          the platform made to share your projects.<br/>\n"
@@ -195,8 +195,8 @@ msgid ""
 msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
-#: apps/emailing/templates/notifications/new_application/mail.html:13
-#: apps/emailing/templates/notifications/reminder/mail.html:14
+#: apps/notifications/templates/new_application/mail.html:13
+#: apps/notifications/templates/reminder/mail.html:14
 #, python-format
 msgid ""
 "\n"
@@ -207,593 +207,6 @@ msgstr ""
 #: apps/emailing/templates/contact/contact/email_with_name.txt:2
 #, python-format
 msgid "Hello %(given_name)s,"
-msgstr ""
-
-#: apps/emailing/templates/notifications/base.html:52
-msgid ""
-"You receive this mail because you are subscribed to these notifications on "
-"Projects platform."
-msgstr ""
-
-#: apps/emailing/templates/notifications/base.html:53
-msgid "Change your notification settings here."
-msgstr ""
-
-#: apps/emailing/templates/notifications/group_member_added_other/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s added a group as member to the project %(project)s.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/group_member_added_self/mail.html:13
-#: apps/emailing/templates/notifications/member_added_self/mail.html:13
-#: apps/emailing/templates/notifications/member_updated_self/mail.html:13
-#: apps/emailing/templates/notifications/new_comment/mail.html:13
-#: apps/emailing/templates/notifications/new_reply/mail.html:13
-#: apps/emailing/templates/notifications/new_review/mail.html:13
-#: apps/emailing/templates/notifications/project_ready_for_review/mail.html:13
-#, python-format
-msgid ""
-"\n"
-"          Hello %(given_name)s,\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/group_member_added_self/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s added the group %(group)s you are part of to the "
-"team of project <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
-"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/group_member_added_self/mail.html:28
-#: apps/emailing/templates/notifications/member_added_self/mail.html:28
-#: apps/emailing/templates/notifications/member_updated_self/mail.html:28
-#: apps/emailing/templates/notifications/new_review/mail.html:35
-#: apps/emailing/templates/notifications/project_ready_for_review/mail.html:28
-#: apps/emailing/templates/notifications/reminder/mail.html:42
-msgid "Go to project"
-msgstr ""
-
-#: apps/emailing/templates/notifications/group_member_added_self/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Hello %(recipient.given_name)s, %(full_name)s added the group %(group)s you "
-"are part of to the team of project \"%(project_title)s\".\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/group_member_added_self/object.txt:2
-#, python-format, python-brace-format
-msgid ""
-"\n"
-"%(full_name)s added group {group} you are part of to project "
-"%(project_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/group_member_removed_other/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s removed a group from members.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s removed %(count)s groups from members.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.html:13
-#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.html:13
-#, python-format
-msgid ""
-"\n"
-"          Hello %(name)s,\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          A registration link you created for the group %(group_name)s will "
-"expire today.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.html:23
-#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.html:23
-#, python-format
-msgid ""
-"\n"
-"          You can create a new registration link <a class=\"lpi-link\" "
-"href=\"%(website_url)s/admin/links/list\">here</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_last_day/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Hello %(name)s, A registration link you created for the group %(group_name)s "
-"will expire today.\n"
-"You can create a new registration link here.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_last_day/object.txt:2
-msgid "Registration link to expire today"
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          A registration link you created for the group %(group_name)s will "
-"expire in a week.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_one_week/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Hello %(name)s, A registration link you created for the group %(group_name)s "
-"will expire in a week.\n"
-"You can create a new registration link here.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/invitation_reminder_one_week/object.txt:2
-msgid "Registration link to expire in one week"
-msgstr ""
-
-#: apps/emailing/templates/notifications/member_added_other/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s added a new member.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s added %(count)s new members.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/member_added_self/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s added you to the team of project <a class=\"lpi-"
-"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/member_added_self/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Hello %(recipient.given_name)s, %(full_name)s added you to the team of "
-"project \"%(project_title)s\".\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/member_added_self/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s added you to the team of project %(project_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/member_removed_other/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s removed a member.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s removed %(count)s members.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/member_updated_other/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s updated a member.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s updated %(count)s members.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/member_updated_self/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s gave you %(role)s rights in project <a class=\"lpi-"
-"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/member_updated_self/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/member_updated_self/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s gave you %(role)s rights in project %(project_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"            New access request %(request_id)s for %(org_name)s Projects "
-"platform\n"
-"            "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:13
-msgid ""
-"\n"
-"            Hello,\n"
-"            "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"            You have received a new access request for %(org_name)s Projects "
-"platform.\n"
-"            "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:27
-msgid ""
-"\n"
-"          First name:\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:34
-#, python-format
-msgid ""
-"\n"
-"          %(first_name)s\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:43
-msgid ""
-"\n"
-"          Last name:\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:50
-#, python-format
-msgid ""
-"\n"
-"          %(last_name)s\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:59
-msgid ""
-"\n"
-"          Email:\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:66
-#, python-format
-msgid ""
-"\n"
-"          %(email)s\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:75
-msgid ""
-"\n"
-"          Title:\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:82
-#, python-format
-msgid ""
-"\n"
-"          %(title)s\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:91
-msgid ""
-"\n"
-"          Message:\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:98
-#, python-format
-msgid ""
-"\n"
-"          %(message)s\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.html:107
-#, python-format
-msgid ""
-"\n"
-"          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
-"access\">request in platform</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"New access request %(request_id)s for %(org_name)s Projects platform\n"
-"Hello,\n"
-"You have received a new access request for %(org_name)s Projects platform.\n"
-"First name: %(first_name)s\n"
-"Last name: %(last_name)s\n"
-"Email: %(email)s\n"
-"Title: %(title)s\n"
-"Message:%(message)s\n"
-"See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
-"platform</a>.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_access_request/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"New access request %(request_id)s for %(org_name)s Projects platform\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_announcement/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s published a new announcement.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s published %(count)s new announcements.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/new_application/mail.html:19
-#, python-format
-msgid ""
-"\n"
-"                    applied to the announcement "
-"<strong>\"%(announcement_title)s\"</strong>\n"
-"                    of the project <a class=\"lpi-link\" "
-"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
-"                    "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.html:29
-msgid "Applicant:"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.html:30
-msgid "Email:"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.html:34
-msgid "Applicant's message:"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(application.applicant_firstname)s %(application.applicant_name)s applied "
-"to on the project: %(project_title)s For a job work of "
-"%(announcement_title)s:\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.txt:5
-#, python-format
-msgid ""
-"\n"
-"Description of the job: %(item.description|safe)s\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.txt:8
-#, python-format
-msgid ""
-"\n"
-"User's email: %(application.applicant_email)s\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/mail.txt:11
-#, python-format
-msgid ""
-"\n"
-"User message: %(application.applicant_message|safe)s\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_application/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(firstname)s %(lastname)s applied to the announcement: "
-"%(announcement_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_blogentry/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s published a new blog entry.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s published %(count)s new blog entries.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/new_comment/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s commented project <a class=\"lpi-link\" "
-"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_comment/mail.html:26
-#: apps/emailing/templates/notifications/new_reply/mail.html:26
-msgid "Comment by"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_comment/mail.html:35
-#: apps/emailing/templates/notifications/new_reply/mail.html:35
-msgid "Go to comment"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_comment/mail.txt:2
-#: apps/emailing/templates/notifications/new_comment/object.txt:2
-#: apps/emailing/templates/notifications/new_comment/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s commented project %(project_title)s.\n"
-msgid_plural ""
-"\n"
-"%(full_name)s added %(count)s comments to project %(project_title)s.\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/new_reply/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s replied to your comment on project <a class=\"lpi-"
-"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_reply/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s has replied on your comment on project %(project_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_reply/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s replied to your comment on project %(project_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_review/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s reviewed project <a class=\"lpi-link\" "
-"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_review/mail.html:26
-msgid "Review by"
-msgstr ""
-
-#: apps/emailing/templates/notifications/new_review/mail.txt:2
-#: apps/emailing/templates/notifications/new_review/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s reviewed project %(project_title)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/pending_access_request/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"Respond to one pending access request!\n"
-msgid_plural ""
-"\n"
-"Respond to %(count)s pending access requests!\n"
-msgstr[0] ""
-msgstr[1] ""
-
-#: apps/emailing/templates/notifications/project_edited/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s edited the %(updated_fields)s.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/project_ready_for_review/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"          %(full_name)s marked project <a class=\"lpi-link\" "
-"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> as ready for review.\n"
-"          "
-msgstr ""
-
-#: apps/emailing/templates/notifications/project_ready_for_review/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Hello %(recipient.given_name)s, %(full_name)s marked project "
-"%(project_title)s as ready for review.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/project_ready_for_review/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"%(full_name)s marked project %(project_title)s as ready for review.\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/reminder/mail.html:19
-#, python-format
-msgid ""
-"\n"
-"                    Here are your highlights for %(dateOfTheDay)s\n"
-"                    "
-msgstr ""
-
-#: apps/emailing/templates/notifications/reminder/mail.html:30
-msgid "Project"
-msgstr ""
-
-#: apps/emailing/templates/notifications/reminder/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Here are your highlights for %(dateOfTheDay)s\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/reminder/object.txt:2
-msgid "New highlights on Projects"
 msgstr ""
 
 #: apps/feedbacks/exceptions.py:12
@@ -1056,6 +469,593 @@ msgstr ""
 msgid "reviewer"
 msgstr ""
 
+#: apps/notifications/templates/base.html:52
+msgid ""
+"You receive this mail because you are subscribed to these notifications on "
+"Projects platform."
+msgstr ""
+
+#: apps/notifications/templates/base.html:53
+msgid "Change your notification settings here."
+msgstr ""
+
+#: apps/notifications/templates/group_member_added_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added a group as member to the project %(project)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/group_member_added_self/mail.html:13
+#: apps/notifications/templates/member_added_self/mail.html:13
+#: apps/notifications/templates/member_updated_self/mail.html:13
+#: apps/notifications/templates/new_comment/mail.html:13
+#: apps/notifications/templates/new_reply/mail.html:13
+#: apps/notifications/templates/new_review/mail.html:13
+#: apps/notifications/templates/project_ready_for_review/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(given_name)s,\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/group_member_added_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s added the group %(group)s you are part of to the "
+"team of project <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
+"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/group_member_added_self/mail.html:28
+#: apps/notifications/templates/member_added_self/mail.html:28
+#: apps/notifications/templates/member_updated_self/mail.html:28
+#: apps/notifications/templates/new_review/mail.html:35
+#: apps/notifications/templates/project_ready_for_review/mail.html:28
+#: apps/notifications/templates/reminder/mail.html:42
+msgid "Go to project"
+msgstr ""
+
+#: apps/notifications/templates/group_member_added_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s added the group %(group)s you "
+"are part of to the team of project \"%(project_title)s\".\n"
+msgstr ""
+
+#: apps/notifications/templates/group_member_added_self/object.txt:2
+#, python-format, python-brace-format
+msgid ""
+"\n"
+"%(full_name)s added group {group} you are part of to project "
+"%(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/group_member_removed_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s removed a group from members.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s removed %(count)s groups from members.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.html:13
+#: apps/notifications/templates/invitation_reminder_one_week/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(name)s,\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          A registration link you created for the group %(group_name)s will "
+"expire today.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.html:23
+#: apps/notifications/templates/invitation_reminder_one_week/mail.html:23
+#, python-format
+msgid ""
+"\n"
+"          You can create a new registration link <a class=\"lpi-link\" "
+"href=\"%(website_url)s/admin/links/list\">here</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(name)s, A registration link you created for the group %(group_name)s "
+"will expire today.\n"
+"You can create a new registration link here.\n"
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_last_day/object.txt:2
+msgid "Registration link to expire today"
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_one_week/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          A registration link you created for the group %(group_name)s will "
+"expire in a week.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_one_week/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(name)s, A registration link you created for the group %(group_name)s "
+"will expire in a week.\n"
+"You can create a new registration link here.\n"
+msgstr ""
+
+#: apps/notifications/templates/invitation_reminder_one_week/object.txt:2
+msgid "Registration link to expire in one week"
+msgstr ""
+
+#: apps/notifications/templates/member_added_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added a new member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s new members.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/member_added_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s added you to the team of project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/member_added_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s added you to the team of "
+"project \"%(project_title)s\".\n"
+msgstr ""
+
+#: apps/notifications/templates/member_added_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added you to the team of project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/member_removed_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s removed a member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s removed %(count)s members.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/member_updated_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s updated a member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s updated %(count)s members.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/member_updated_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s gave you %(role)s rights in project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/member_updated_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
+msgstr ""
+
+#: apps/notifications/templates/member_updated_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s gave you %(role)s rights in project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"            New access request %(request_id)s for %(org_name)s Projects "
+"platform\n"
+"            "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:13
+msgid ""
+"\n"
+"            Hello,\n"
+"            "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"            You have received a new access request for %(org_name)s Projects "
+"platform.\n"
+"            "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:27
+msgid ""
+"\n"
+"          First name:\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:34
+#, python-format
+msgid ""
+"\n"
+"          %(first_name)s\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:43
+msgid ""
+"\n"
+"          Last name:\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:50
+#, python-format
+msgid ""
+"\n"
+"          %(last_name)s\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:59
+msgid ""
+"\n"
+"          Email:\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:66
+#, python-format
+msgid ""
+"\n"
+"          %(email)s\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:75
+msgid ""
+"\n"
+"          Title:\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:82
+#, python-format
+msgid ""
+"\n"
+"          %(title)s\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:91
+msgid ""
+"\n"
+"          Message:\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:98
+#, python-format
+msgid ""
+"\n"
+"          %(message)s\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.html:107
+#, python-format
+msgid ""
+"\n"
+"          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
+"access\">request in platform</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+"Hello,\n"
+"You have received a new access request for %(org_name)s Projects platform.\n"
+"First name: %(first_name)s\n"
+"Last name: %(last_name)s\n"
+"Email: %(email)s\n"
+"Title: %(title)s\n"
+"Message:%(message)s\n"
+"See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
+"platform</a>.\n"
+msgstr ""
+
+#: apps/notifications/templates/new_access_request/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+msgstr ""
+
+#: apps/notifications/templates/new_announcement/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s published a new announcement.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s published %(count)s new announcements.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/new_application/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"                    applied to the announcement "
+"<strong>\"%(announcement_title)s\"</strong>\n"
+"                    of the project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"                    "
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.html:29
+msgid "Applicant:"
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.html:30
+msgid "Email:"
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.html:34
+msgid "Applicant's message:"
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s applied "
+"to on the project: %(project_title)s For a job work of "
+"%(announcement_title)s:\n"
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.txt:5
+#, python-format
+msgid ""
+"\n"
+"Description of the job: %(item.description|safe)s\n"
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.txt:8
+#, python-format
+msgid ""
+"\n"
+"User's email: %(application.applicant_email)s\n"
+msgstr ""
+
+#: apps/notifications/templates/new_application/mail.txt:11
+#, python-format
+msgid ""
+"\n"
+"User message: %(application.applicant_message|safe)s\n"
+msgstr ""
+
+#: apps/notifications/templates/new_application/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(firstname)s %(lastname)s applied to the announcement: "
+"%(announcement_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/new_blogentry/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s published a new blog entry.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s published %(count)s new blog entries.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/new_comment/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s commented project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_comment/mail.html:26
+#: apps/notifications/templates/new_reply/mail.html:26
+msgid "Comment by"
+msgstr ""
+
+#: apps/notifications/templates/new_comment/mail.html:35
+#: apps/notifications/templates/new_reply/mail.html:35
+msgid "Go to comment"
+msgstr ""
+
+#: apps/notifications/templates/new_comment/mail.txt:2
+#: apps/notifications/templates/new_comment/object.txt:2
+#: apps/notifications/templates/new_comment/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s commented project %(project_title)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s comments to project %(project_title)s.\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/new_reply/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s replied to your comment on project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_reply/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s has replied on your comment on project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/new_reply/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s replied to your comment on project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/new_review/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s reviewed project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_review/mail.html:26
+msgid "Review by"
+msgstr ""
+
+#: apps/notifications/templates/new_review/mail.txt:2
+#: apps/notifications/templates/new_review/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s reviewed project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/pending_access_request/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"Respond to one pending access request!\n"
+msgid_plural ""
+"\n"
+"Respond to %(count)s pending access requests!\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/notifications/templates/project_edited/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s edited the %(updated_fields)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/project_ready_for_review/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s marked project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> as ready for review.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/project_ready_for_review/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s marked project "
+"%(project_title)s as ready for review.\n"
+msgstr ""
+
+#: apps/notifications/templates/project_ready_for_review/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s marked project %(project_title)s as ready for review.\n"
+msgstr ""
+
+#: apps/notifications/templates/reminder/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"                    Here are your highlights for %(dateOfTheDay)s\n"
+"                    "
+msgstr ""
+
+#: apps/notifications/templates/reminder/mail.html:30
+msgid "Project"
+msgstr ""
+
+#: apps/notifications/templates/reminder/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Here are your highlights for %(dateOfTheDay)s\n"
+msgstr ""
+
+#: apps/notifications/templates/reminder/object.txt:2
+msgid "New highlights on Projects"
+msgstr ""
+
 #: apps/notifications/utils.py:233
 msgid " and "
 msgstr ""
@@ -1144,11 +1144,11 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: projects/settings/base.py:260
+#: projects/settings/base.py:261
 msgid "English"
 msgstr ""
 
-#: projects/settings/base.py:261
+#: projects/settings/base.py:262
 msgid "French"
 msgstr ""
 
