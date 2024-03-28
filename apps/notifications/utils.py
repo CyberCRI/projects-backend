@@ -137,6 +137,13 @@ class NotificationTaskManager:
         else:
             defaults["is_viewed"] = False
         if self.merge:
+            existing_notification = Notification.objects.filter(**lookup)
+            if existing_notification.count() > 1:
+                # This handles a case where new notifications are merged with ones
+                # that were created before the merge feature was added
+                existing_notification.exclude(
+                    id=existing_notification.order_by("-created").first().id
+                ).delete()
             notification, created = Notification.objects.update_or_create(
                 defaults, **lookup
             )
