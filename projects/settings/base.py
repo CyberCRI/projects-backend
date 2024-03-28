@@ -204,6 +204,7 @@ TEMPLATES = [
             BASE_DIR / "apps/accounts/templates",
             BASE_DIR / "apps/emailing/templates",
             BASE_DIR / "apps/invitations/templates",
+            BASE_DIR / "apps/notifications/templates",
             BASE_DIR / "services/keycloak/templates",
         ],
         "APP_DIRS": True,
