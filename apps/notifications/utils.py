@@ -481,6 +481,16 @@ class NewAccessRequestNotificationManager(NotificationTaskManager):
         return self.organization.admins.all()
 
 
+class PendingAccessRequestsNotificationManager(NotificationTaskManager):
+    member_setting_name = "_"  # This notification is not sent by email
+    notification_type = Notification.Types.PENDING_ACCESS_REQUESTS
+    template_dir = "pending_access_request"
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()
+
+
 class InvitationExpiresTodayNotificationManager(NotificationTaskManager):
     member_setting_name = "invitation_link_will_expire"
     notification_type = Notification.Types.INVITATION_TODAY_REMINDER

@@ -31,6 +31,7 @@ class Notification(models.Model, HasOwner):
         INVITATION_TODAY_REMINDER = "invitation_today_reminder"
         INVITATION_WEEK_REMINDER = "invitation_week_reminder"
         ACCESS_REQUEST = "access_request"
+        PENDING_ACCESS_REQUESTS = "pending_access_requests"
 
     class ExpirationTypes(models.TextChoices):
         """Different dates of expiration."""
