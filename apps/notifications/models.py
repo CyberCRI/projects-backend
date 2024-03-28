@@ -54,9 +54,6 @@ class Notification(models.Model, HasOwner):
         "organizations.Organization", on_delete=models.CASCADE, null=True
     )
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
-    invitation = models.ForeignKey(
-        "invitations.Invitation", on_delete=models.CASCADE, null=True
-    )
     access_request = models.ForeignKey(
         "invitations.AccessRequest", on_delete=models.CASCADE, null=True
     )
@@ -94,6 +91,7 @@ class NotificationSettings(models.Model, HasOwner):
     project_has_been_reviewed = models.BooleanField(default=True)
     comment_received_a_response = models.BooleanField(default=True)
     organization_has_new_access_request = models.BooleanField(default=True)
+    invitation_link_will_expire = models.BooleanField(default=True)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.user == user

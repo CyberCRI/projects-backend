@@ -1056,7 +1056,7 @@ msgstr ""
 msgid "reviewer"
 msgstr ""
 
-#: apps/notifications/utils.py:212
+#: apps/notifications/utils.py:229
 msgid " and "
 msgstr ""
 
