@@ -142,9 +142,22 @@ def send_notifications_reminder():
 
 
 def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
+    role = {
+        "owners": _("editor"),
+        "members": _("participant"),
+        "reviewers": _("reviewer"),
+    }.get(role)
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
-    new_members = [{"id": user_pk}]
+    user = ProjectUser.objects.get(pk=user_pk)
+    new_members = [
+        {
+            "id": user.id,
+            "given_name": user.given_name,
+            "family_name": user.family_name,
+            "role": str(role),
+        }
+    ]
     for manager in [AddMembersNotificationManager, AddMemberNotificationManager]:
         manager(
             sender, project, new_members=new_members
@@ -182,6 +195,8 @@ def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role:
         {
             "role": str(role),
             "id": member.id,
+            "given_name": member.given_name,
+            "family_name": member.family_name,
         }
     ]
     for manager in [UpdateMembersNotificationManager, UpdatedMemberNotificationManager]:
@@ -193,7 +208,14 @@ def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role:
 def _notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
-    deleted_members = [{"id": user_pk}]
+    user = ProjectUser.objects.get(pk=user_pk)
+    deleted_members = [
+        {
+            "id": user.id,
+            "given_name": user.given_name,
+            "family_name": user.family_name,
+        }
+    ]
     manager = DeleteMembersNotificationManager(
         sender, project, deleted_members=deleted_members
     )
@@ -203,7 +225,13 @@ def _notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
 def _notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
-    deleted_people_groups = [{"id": PeopleGroup.objects.get(pk=people_group_pk).id}]
+    people_group = PeopleGroup.objects.get(pk=people_group_pk)
+    deleted_people_groups = [
+        {
+            "id": people_group.id,
+            "name": people_group.name,
+        }
+    ]
     manager = DeleteGroupMembersNotificationManager(
         sender, project, deleted_people_groups=deleted_people_groups
     )

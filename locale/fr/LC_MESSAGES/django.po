@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-26 16:24+0000\n"
+"POT-Creation-Date: 2024-03-27 13:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1366,15 +1366,15 @@ msgstr ""
 "Votre demande d'accès à la plateforme Projects de %(org_name)s a été "
 "refusée\n"
 
-#: apps/notifications/tasks.py:174
+#: apps/notifications/tasks.py:146 apps/notifications/tasks.py:187
 msgid "editor"
 msgstr "éditeur"
 
-#: apps/notifications/tasks.py:175
+#: apps/notifications/tasks.py:147 apps/notifications/tasks.py:188
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:176
+#: apps/notifications/tasks.py:148 apps/notifications/tasks.py:189
 msgid "reviewer"
 msgstr "correcteur"
 
