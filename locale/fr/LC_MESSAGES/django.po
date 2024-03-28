@@ -1378,7 +1378,7 @@ msgstr "participant"
 msgid "reviewer"
 msgstr "correcteur"
 
-#: apps/notifications/utils.py:205
+#: apps/notifications/utils.py:212
 msgid " and "
 msgstr " et "
 
