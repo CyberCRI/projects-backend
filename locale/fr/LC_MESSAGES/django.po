@@ -548,6 +548,199 @@ msgstr ""
 "%(full_name)s vous a donné le rôle %(role)s dans le projet "
 "%(project_title)s.\n"
 
+#: apps/emailing/templates/notifications/new_access_request/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"            New access request %(request_id)s for %(org_name)s Projects "
+"platform\n"
+"            "
+msgstr ""
+"\n"
+"            Nouvelle demande d'accès %(request_id)s pour la plateforme "
+"Projects de %(org_name)s\n"
+"            "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:13
+msgid ""
+"\n"
+"            Hello,\n"
+"            "
+msgstr ""
+"\n"
+"          Bonjour,\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"            You have received a new access request for %(org_name)s Projects "
+"platform.\n"
+"            "
+msgstr ""
+"\n"
+"           Vous avez reçu une nouvelle demande d'accès pour la plateforme "
+"Projects de %(org_name)s\n"
+"    "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:27
+msgid ""
+"\n"
+"          First name:\n"
+"          "
+msgstr ""
+"\n"
+"          Prénom:\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:34
+#, python-format
+msgid ""
+"\n"
+"          %(first_name)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(first_name)s\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:43
+msgid ""
+"\n"
+"          Last name:\n"
+"          "
+msgstr ""
+"\n"
+"          Nomm de famille:\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:50
+#, python-format
+msgid ""
+"\n"
+"          %(last_name)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(last_name)s\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:59
+msgid ""
+"\n"
+"          Email:\n"
+"          "
+msgstr ""
+"\n"
+"          Email:\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:66
+#, python-format
+msgid ""
+"\n"
+"          %(email)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(email)s\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:75
+msgid ""
+"\n"
+"          Title:\n"
+"          "
+msgstr ""
+"\n"
+"          Titre:\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:82
+#, python-format
+msgid ""
+"\n"
+"          %(title)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(title)s\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:91
+msgid ""
+"\n"
+"          Message:\n"
+"          "
+msgstr ""
+"\n"
+"          Message:\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:98
+#, python-format
+msgid ""
+"\n"
+"          %(message)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(message)s\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.html:107
+#, python-format
+msgid ""
+"\n"
+"          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
+"access\">request in platform</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-"
+"access\">la requête sur la plateforme</a>.\n"
+"          "
+
+#: apps/emailing/templates/notifications/new_access_request/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+"Hello,\n"
+"You have received a new access request for %(org_name)s Projects platform.\n"
+"First name: %(first_name)s\n"
+"Last name: %(last_name)s\n"
+"Email: %(email)s\n"
+"Title: %(title)s\n"
+"Message:%(message)s\n"
+"See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
+"platform</a>.\n"
+msgstr ""
+"\n"
+"            Nouvelle demande d'accès %(request_id)s pour la plateforme "
+"Projects de %(org_name)s\n"
+"Bonjour,\n"
+"Vous avez reçu une nouvelle demande d'accès pour la plateforme Projects de "
+"%(org_name)s\n"
+"Prénom: %(first_name)s\n"
+"Nom de famille: %(last_name)s\n"
+"Email: %(email)s\n"
+"Titre: %(title)s\n"
+"Message: %(message)s\n"
+"Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">la "
+"requête sur la plateforme</a>.\n"
+
+#: apps/emailing/templates/notifications/new_access_request/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request %(request_id)s for %(org_name)s Projects platform\n"
+msgstr ""
+"\n"
+"Nouvelle demande d'accès %(request_id)s pour la plateforme Projects de "
+"%(org_name)s\n"
+
 #: apps/emailing/templates/notifications/new_announcement/reminder.txt:2
 #, python-format
 msgid ""
@@ -1098,199 +1291,6 @@ msgstr ""
 "\n"
 "Bienvenue sur la plateforme Projects de %(org_name)s\n"
 
-#: apps/invitations/templates/request_created/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"            New access request %(request_id)s for %(org_name)s Projects "
-"platform\n"
-"            "
-msgstr ""
-"\n"
-"            Nouvelle demande d'accès %(request_id)s pour la plateforme "
-"Projects de %(org_name)s\n"
-"            "
-
-#: apps/invitations/templates/request_created/mail.html:13
-msgid ""
-"\n"
-"            Hello,\n"
-"            "
-msgstr ""
-"\n"
-"          Bonjour,\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:18
-#, python-format
-msgid ""
-"\n"
-"            You have received a new access request for %(org_name)s Projects "
-"platform.\n"
-"            "
-msgstr ""
-"\n"
-"           Vous avez reçu une nouvelle demande d'accès pour la plateforme "
-"Projects de %(org_name)s\n"
-"    "
-
-#: apps/invitations/templates/request_created/mail.html:27
-msgid ""
-"\n"
-"          First name:\n"
-"          "
-msgstr ""
-"\n"
-"          Prénom:\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:34
-#, python-format
-msgid ""
-"\n"
-"          %(first_name)s\n"
-"          "
-msgstr ""
-"\n"
-"          %(first_name)s\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:43
-msgid ""
-"\n"
-"          Last name:\n"
-"          "
-msgstr ""
-"\n"
-"          Nomm de famille:\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:50
-#, python-format
-msgid ""
-"\n"
-"          %(last_name)s\n"
-"          "
-msgstr ""
-"\n"
-"          %(last_name)s\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:59
-msgid ""
-"\n"
-"          Email:\n"
-"          "
-msgstr ""
-"\n"
-"          Email:\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:66
-#, python-format
-msgid ""
-"\n"
-"          %(email)s\n"
-"          "
-msgstr ""
-"\n"
-"          %(email)s\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:75
-msgid ""
-"\n"
-"          Title:\n"
-"          "
-msgstr ""
-"\n"
-"          Titre:\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:82
-#, python-format
-msgid ""
-"\n"
-"          %(title)s\n"
-"          "
-msgstr ""
-"\n"
-"          %(title)s\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:91
-msgid ""
-"\n"
-"          Message:\n"
-"          "
-msgstr ""
-"\n"
-"          Message:\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:98
-#, python-format
-msgid ""
-"\n"
-"          %(message)s\n"
-"          "
-msgstr ""
-"\n"
-"          %(message)s\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.html:107
-#, python-format
-msgid ""
-"\n"
-"          See <a class=\"lpi-link\" href=\"%(website_url)s/request-"
-"access\">request in platform</a>.\n"
-"          "
-msgstr ""
-"\n"
-"          Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-"
-"access\">la requête sur la plateforme</a>.\n"
-"          "
-
-#: apps/invitations/templates/request_created/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"New access request %(request_id)s for %(org_name)s Projects platform\n"
-"Hello,\n"
-"You have received a new access request for %(org_name)s Projects platform.\n"
-"First name: %(first_name)s\n"
-"Last name: %(last_name)s\n"
-"Email: %(email)s\n"
-"Title: %(title)s\n"
-"Message:%(message)s\n"
-"See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
-"platform</a>.\n"
-msgstr ""
-"\n"
-"            Nouvelle demande d'accès %(request_id)s pour la plateforme "
-"Projects de %(org_name)s\n"
-"Bonjour,\n"
-"Vous avez reçu une nouvelle demande d'accès pour la plateforme Projects de "
-"%(org_name)s\n"
-"Prénom: %(first_name)s\n"
-"Nom de famille: %(last_name)s\n"
-"Email: %(email)s\n"
-"Titre: %(title)s\n"
-"Message: %(message)s\n"
-"Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">la "
-"requête sur la plateforme</a>.\n"
-
-#: apps/invitations/templates/request_created/object.txt:2
-#, python-format
-msgid ""
-"\n"
-"New access request %(request_id)s for %(org_name)s Projects platform\n"
-msgstr ""
-"\n"
-"Nouvelle demande d'accès %(request_id)s pour la plateforme Projects de "
-"%(org_name)s\n"
-
 #: apps/invitations/templates/request_declined/mail.html:8
 #, python-format
 msgid ""
@@ -1382,7 +1382,7 @@ msgstr "participant"
 msgid "reviewer"
 msgstr "correcteur"
 
-#: apps/notifications/utils.py:229
+#: apps/notifications/utils.py:233
 msgid " and "
 msgstr " et "
 

@@ -42,8 +42,12 @@ class NotificationTaskManager:
             self.project = None
         if organization:
             self.organization = organization
-        elif item and isinstance(item, OrganizationRelated):
-            self.organization = item.get_related_organizations().first()
+        elif (
+            item
+            and isinstance(item, OrganizationRelated)
+            and len(item.get_related_organizations()) > 0
+        ):
+            self.organization = item.get_related_organizations()[0]
         elif self.project:
             self.organization = self.project.organizations.first()
         else:
@@ -471,7 +475,27 @@ class NewAccessRequestNotificationManager(NotificationTaskManager):
     member_setting_name = "organization_has_new_access_request"
     notification_type = Notification.Types.ACCESS_REQUEST
     template_dir = "notifications/new_access_request"
-    send_immediately = False
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()
+
+
+class InvitationExpiresTodayNotificationManager(NotificationTaskManager):
+    member_setting_name = "invitation_link_will_expire"
+    notification_type = Notification.Types.INVITATION_TODAY_REMINDER
+    template_dir = "notifications/invitation_reminder_last_day"
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()
+
+
+class InvitationExpiresInOneWeekNotificationManager(NotificationTaskManager):
+    member_setting_name = "invitation_link_will_expire"
+    notification_type = Notification.Types.INVITATION_WEEK_REMINDER
+    template_dir = "notifications/invitation_reminder_one_week"
+    send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.organization.admins.all()
