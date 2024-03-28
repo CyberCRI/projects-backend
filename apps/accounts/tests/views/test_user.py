@@ -314,6 +314,10 @@ class AdminListUserTestCase(JwtAPITestCase):
         KeycloakService._update_user(
             str(cls.user_1.keycloak_id),
             {
+                "username": cls.user_1.email,
+                "email": cls.user_1.email,
+                "firstName": cls.user_1.given_name,
+                "lastName": cls.user_1.family_name,
                 "emailVerified": True,
                 "requiredActions": [],
             },
@@ -322,6 +326,10 @@ class AdminListUserTestCase(JwtAPITestCase):
         KeycloakService._update_user(
             str(cls.user_2.keycloak_id),
             {
+                "username": cls.user_2.email,
+                "email": cls.user_2.email,
+                "firstName": cls.user_2.given_name,
+                "lastName": cls.user_2.family_name,
                 "emailVerified": False,
                 "requiredActions": [],
             },
@@ -480,7 +488,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertApiTechnicalError(
             response,
-            "An error occurred while syncing with Keycloak : User exists with same username",
+            "An error occurred while syncing with Keycloak : User exists with same email",
         )
         self.assertFalse(ProjectUser.objects.filter(**payload).exists())
 
@@ -505,7 +513,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertApiTechnicalError(
             response,
-            "An error occurred while syncing with Keycloak : User exists with same username or email",
+            "An error occurred while syncing with Keycloak : User exists with same email",
         )
         self.assertNotEqual(
             ProjectUser.objects.get(id=user.id).email, existing_username
@@ -779,9 +787,15 @@ class MiscUserTestCase(JwtAPITestCase):
     def test_keycloak_attributes_updated(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = SeedUserFactory(language="en")
-        KeycloakService.service().update_user(
+        KeycloakService._update_user(
             user.keycloak_id,
-            {"attributes": {"attribute_1": ["value_1"], "locale": ["en"]}},
+            {
+                "username": user.email,
+                "email": user.email,
+                "firstName": user.given_name,
+                "lastName": user.family_name,
+                "attributes": {"attribute_1": ["value_1"], "locale": ["en"]},
+            },
         )
         payload = {
             "language": "fr",
