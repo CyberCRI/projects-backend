@@ -152,4 +152,68 @@ class DeleteNewsTestCase(JwtAPITestCase):
             self.assertFalse(News.objects.filter(id=news_id).exists())
 
 
-# TODO : Test custom exceptions
+class ValidatePeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.other_organization = OrganizationFactory()
+        cls.other_org_people_group = PeopleGroupFactory(
+            organization=cls.other_organization
+        )
+
+    def setUp(self):
+        super().setUp()
+
+    def test_create_news_with_people_group_in_other_organization(self):
+        user = self.get_parameterized_test_user("superadmin", instances=[])
+        self.client.force_authenticate(user=user)
+        payload = {
+            "organization": self.organization.code,
+            "title": faker.sentence(),
+            "content": faker.text(),
+            "language": "fr",
+            "publication_date": datetime.date.today().isoformat(),
+            "people_groups": [self.other_org_people_group.id],
+        }
+        response = self.client.post(
+            reverse("News-list", args=(self.organization.code,)), data=payload
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "people_groups": [
+                    "The people groups of a news must belong to the same organization"
+                ]
+            },
+        )
+
+    def test_update_news_with_people_group_in_other_organization(self):
+        people_group = PeopleGroupFactory(organization=self.organization)
+        news = NewsFactory(organization=self.organization, people_groups=[people_group])
+        user = self.get_parameterized_test_user("superadmin", instances=[])
+        self.client.force_authenticate(user=user)
+        payload = {
+            "people_groups": [self.other_org_people_group.id],
+        }
+        response = self.client.patch(
+            reverse(
+                "News-detail",
+                args=(
+                    self.organization.code,
+                    news.id,
+                ),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "people_groups": [
+                    "The people groups of a news must belong to the same organization"
+                ]
+            },
+        )

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-27 16:30+0000\n"
+"POT-Creation-Date: 2024-03-28 14:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1040,7 +1040,11 @@ msgid ""
 "declined\n"
 msgstr ""
 
-#: apps/notifications/tasks.py:146 apps/notifications/tasks.py:187
+#: apps/newsfeed/exceptions.py:7
+msgid "The people groups of a news must belong to the same organization"
+msgstr ""
+
+#: apps/notifications/tasks.py:174
 msgid "editor"
 msgstr ""
 

@@ -58,9 +58,9 @@ class UserCSVImportMixin:
         if not request.user.is_superuser:
             return HttpResponse("Unauthorized", status=403)
         response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = (
-            'attachment; filename="user_import_fields.csv"'
-        )
+        response[
+            "Content-Disposition"
+        ] = 'attachment; filename="user_import_fields.csv"'
         writer = csv.writer(response)
         rows = [
             ["name", "example", "required"],
