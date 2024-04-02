@@ -1367,10 +1367,8 @@ msgstr ""
 "refusée\n"
 
 #: apps/newsfeed/exceptions.py:9
-#, fuzzy
-#| msgid "The parent group must belong to the same organization"
 msgid "The people groups of a news must belong to the same organization"
-msgstr "Le groupe parent doit appartenir à la même organisation"
+msgstr "Les groupes d'une news doivent appartenir à la même organisation"
 
 #: apps/notifications/tasks.py:174
 msgid "editor"
