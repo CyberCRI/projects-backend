@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-28 14:45+0000\n"
+"POT-Creation-Date: 2024-04-02 08:23+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1366,7 +1366,7 @@ msgstr ""
 "Votre demande d'accès à la plateforme Projects de %(org_name)s a été "
 "refusée\n"
 
-#: apps/newsfeed/exceptions.py:7
+#: apps/newsfeed/exceptions.py:9
 #, fuzzy
 #| msgid "The parent group must belong to the same organization"
 msgid "The people groups of a news must belong to the same organization"
