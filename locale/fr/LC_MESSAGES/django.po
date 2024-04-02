@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-04 07:52+0000\n"
+"POT-Creation-Date: 2024-04-02 15:26+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -209,7 +209,7 @@ msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
 
 #: apps/emailing/templates/contact/base.html:45
-#: apps/notifications/templates/base.html:45
+#: apps/notifications/templates/notifications_base.html:45
 msgid ""
 "\n"
 "          the platform made to share your projects.<br/>\n"
@@ -334,8 +334,8 @@ msgstr "Un·e utilisateur·rice avec cette adresse email existe déjà"
 msgid "This organization does not accept access requests"
 msgstr "Cette organisation n'accepte pas les demandes d'accès"
 
-#: apps/invitations/templates/base.html:56
-#: services/keycloak/templates/base.html:56
+#: apps/invitations/templates/access_requests_base.html:56
+#: services/keycloak/templates/keycloak_base.html:56
 msgid ""
 "\n"
 "          Need any help?\n"
@@ -345,8 +345,8 @@ msgstr ""
 "          Besoin d'aide?\n"
 "          "
 
-#: apps/invitations/templates/base.html:61
-#: services/keycloak/templates/base.html:61
+#: apps/invitations/templates/access_requests_base.html:61
+#: services/keycloak/templates/keycloak_base.html:61
 msgid ""
 "\n"
 "          For questions or assistance, you can <a class=\"lpi-link\" "
@@ -362,8 +362,8 @@ msgstr ""
 "de travail (du lundi au vendredi, de 9h à 18h) aussi vite que possible.\n"
 "          "
 
-#: apps/invitations/templates/base.html:66
-#: services/keycloak/templates/base.html:66
+#: apps/invitations/templates/access_requests_base.html:66
+#: services/keycloak/templates/keycloak_base.html:66
 msgid ""
 "\n"
 "          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
@@ -375,8 +375,8 @@ msgstr ""
 "projects.lp-i.org\">visiter notre centre d'aide</a>.\n"
 "          "
 
-#: apps/invitations/templates/base.html:71
-#: services/keycloak/templates/base.html:71
+#: apps/invitations/templates/access_requests_base.html:71
+#: services/keycloak/templates/keycloak_base.html:71
 msgid ""
 "\n"
 "          We hope you'll enjoy our new platform!\n"
@@ -390,8 +390,8 @@ msgstr ""
 "          L'équipe du LPI.\n"
 "          "
 
-#: apps/invitations/templates/base.html:83
-#: services/keycloak/templates/base.html:83
+#: apps/invitations/templates/access_requests_base.html:83
+#: services/keycloak/templates/keycloak_base.html:83
 msgid ""
 "\n"
 "          Made with ❤️ by Learning Planet Institute.\n"
@@ -570,25 +570,13 @@ msgstr "Les groupes d'une news doivent appartenir à la même organisation"
 msgid "editor"
 msgstr "éditeur"
 
-#: apps/notifications/tasks.py:147 apps/notifications/tasks.py:188
+#: apps/notifications/tasks.py:155 apps/notifications/tasks.py:196
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:148 apps/notifications/tasks.py:189
+#: apps/notifications/tasks.py:156 apps/notifications/tasks.py:197
 msgid "reviewer"
 msgstr "correcteur"
-
-#: apps/notifications/templates/base.html:52
-msgid ""
-"You receive this mail because you are subscribed to these notifications on "
-"Projects platform."
-msgstr ""
-"Vous recevez cet email car vous êtes abonné·e aux notifications sur la "
-"plateforme Projects."
-
-#: apps/notifications/templates/base.html:53
-msgid "Change your notification settings here."
-msgstr "Modifiez vos préférences de notification ici."
 
 #: apps/notifications/templates/group_member_added_other/reminder.txt:2
 #, python-format
@@ -935,11 +923,11 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"          %(first_name)s\n"
+"          %(given_name)s\n"
 "          "
 msgstr ""
 "\n"
-"          %(first_name)s\n"
+"          %(given_name)s,\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:43
@@ -949,18 +937,18 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nomm de famille:\n"
+"          Nom de famille:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:50
 #, python-format
 msgid ""
 "\n"
-"          %(last_name)s\n"
+"          %(family_name)s\n"
 "          "
 msgstr ""
 "\n"
-"          %(last_name)s\n"
+"          %(family_name)s\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:59
@@ -998,11 +986,11 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"          %(title)s\n"
+"          %(job)s\n"
 "          "
 msgstr ""
 "\n"
-"          %(title)s\n"
+"          %(job)s\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:91
@@ -1046,10 +1034,10 @@ msgid ""
 "New access request %(request_id)s for %(org_name)s Projects platform\n"
 "Hello,\n"
 "You have received a new access request for %(org_name)s Projects platform.\n"
-"First name: %(first_name)s\n"
-"Last name: %(last_name)s\n"
+"First name: %(given_name)s\n"
+"Last name: %(family_name)s\n"
 "Email: %(email)s\n"
-"Title: %(title)s\n"
+"Title: %(job)s\n"
 "Message:%(message)s\n"
 "See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
 "platform</a>.\n"
@@ -1060,10 +1048,10 @@ msgstr ""
 "Bonjour,\n"
 "Vous avez reçu une nouvelle demande d'accès pour la plateforme Projects de "
 "%(org_name)s\n"
-"Prénom: %(first_name)s\n"
-"Nom de famille: %(last_name)s\n"
+"Prénom: %(given_name)s\n"
+"Nom de famille: %(family_name)s\n"
 "Email: %(email)s\n"
-"Titre: %(title)s\n"
+"Titre: %(job)s\n"
 "Message: %(message)s\n"
 "Voir <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">la "
 "requête sur la plateforme</a>.\n"
@@ -1293,6 +1281,18 @@ msgid ""
 msgstr ""
 "\n"
 "%(full_name)s a relu le projet %(project_title)s.\n"
+
+#: apps/notifications/templates/notifications_base.html:52
+msgid ""
+"You receive this mail because you are subscribed to these notifications on "
+"Projects platform."
+msgstr ""
+"Vous recevez cet email car vous êtes abonné·e aux notifications sur la "
+"plateforme Projects."
+
+#: apps/notifications/templates/notifications_base.html:53
+msgid "Change your notification settings here."
+msgstr "Modifiez vos préférences de notification ici."
 
 #: apps/notifications/templates/pending_access_request/reminder.txt:2
 #, python-format

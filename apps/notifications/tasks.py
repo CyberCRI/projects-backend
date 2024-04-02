@@ -8,7 +8,12 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
-from apps.notifications.utils import (
+from apps.invitations.models import AccessRequest
+from apps.projects.models import BlogEntry, Project
+from projects.celery import app
+
+from .models import Notification
+from .utils import (
     AddGroupMemberNotificationManager,
     AddGroupMembersNotificationManager,
     AddMemberNotificationManager,
@@ -21,16 +26,13 @@ from apps.notifications.utils import (
     DeleteGroupMembersNotificationManager,
     DeleteMembersNotificationManager,
     FollowerCommentNotificationManager,
+    NewAccessRequestNotificationManager,
     ProjectEditedNotificationManager,
     ReadyForReviewNotificationManager,
     ReviewNotificationManager,
     UpdatedMemberNotificationManager,
     UpdateMembersNotificationManager,
 )
-from apps.projects.models import BlogEntry, Project
-from projects.celery import app
-
-from .models import Notification
 
 
 @app.task
@@ -133,6 +135,12 @@ def notify_new_announcement(announcement_pk: int, by_pk: int):
 def notify_new_application(announcement_pk: int, application: Dict[str, Any]):
     """Notify members of a new application to an announcement."""
     return _notify_new_application(announcement_pk, application)
+
+
+@app.task
+def notify_new_access_request(access_request_pk: int):
+    """Notify organization owners of a new access request."""
+    return _notify_new_access_request(access_request_pk)
 
 
 @app.task
@@ -292,6 +300,21 @@ def _notify_new_application(announcement_pk: int, application: Dict[str, Any]):
     announcement = Announcement.objects.get(pk=announcement_pk)
     manager = ApplicationNotificationManager(
         None, announcement, application=application
+    )
+    manager.create_and_send_notifications()
+
+
+def _notify_new_access_request(access_request_pk: int):
+    access_request = AccessRequest.objects.get(pk=access_request_pk)
+    access_requests = [
+        {
+            "id": access_request.id,
+            "given_name": access_request.given_name,
+            "family_name": access_request.family_name,
+        }
+    ]
+    manager = NewAccessRequestNotificationManager(
+        None, access_request, access_requests=access_requests
     )
     manager.create_and_send_notifications()
 

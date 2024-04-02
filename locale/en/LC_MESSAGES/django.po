@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-04 07:52+0000\n"
+"POT-Creation-Date: 2024-04-02 15:16+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -185,7 +185,7 @@ msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
 
 #: apps/emailing/templates/contact/base.html:45
-#: apps/notifications/templates/base.html:45
+#: apps/notifications/templates/notifications_base.html:45
 msgid ""
 "\n"
 "          the platform made to share your projects.<br/>\n"
@@ -297,16 +297,16 @@ msgstr ""
 msgid "This organization does not accept access requests"
 msgstr ""
 
-#: apps/invitations/templates/base.html:56
-#: services/keycloak/templates/base.html:56
+#: apps/invitations/templates/access_requests_base.html:56
+#: services/keycloak/templates/keycloak_base.html:56
 msgid ""
 "\n"
 "          Need any help?\n"
 "          "
 msgstr ""
 
-#: apps/invitations/templates/base.html:61
-#: services/keycloak/templates/base.html:61
+#: apps/invitations/templates/access_requests_base.html:61
+#: services/keycloak/templates/keycloak_base.html:61
 msgid ""
 "\n"
 "          For questions or assistance, you can <a class=\"lpi-link\" "
@@ -316,8 +316,8 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/base.html:66
-#: services/keycloak/templates/base.html:66
+#: apps/invitations/templates/access_requests_base.html:66
+#: services/keycloak/templates/keycloak_base.html:66
 msgid ""
 "\n"
 "          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
@@ -325,8 +325,8 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/base.html:71
-#: services/keycloak/templates/base.html:71
+#: apps/invitations/templates/access_requests_base.html:71
+#: services/keycloak/templates/keycloak_base.html:71
 msgid ""
 "\n"
 "          We hope you'll enjoy our new platform!\n"
@@ -335,8 +335,8 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/invitations/templates/base.html:83
-#: services/keycloak/templates/base.html:83
+#: apps/invitations/templates/access_requests_base.html:83
+#: services/keycloak/templates/keycloak_base.html:83
 msgid ""
 "\n"
 "          Made with ❤️ by Learning Planet Institute.\n"
@@ -461,22 +461,12 @@ msgstr ""
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:147 apps/notifications/tasks.py:188
+#: apps/notifications/tasks.py:155 apps/notifications/tasks.py:196
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:148 apps/notifications/tasks.py:189
+#: apps/notifications/tasks.py:156 apps/notifications/tasks.py:197
 msgid "reviewer"
-msgstr ""
-
-#: apps/notifications/templates/base.html:52
-msgid ""
-"You receive this mail because you are subscribed to these notifications on "
-"Projects platform."
-msgstr ""
-
-#: apps/notifications/templates/base.html:53
-msgid "Change your notification settings here."
 msgstr ""
 
 #: apps/notifications/templates/group_member_added_other/reminder.txt:2
@@ -731,7 +721,7 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"          %(first_name)s\n"
+"          %(given_name)s\n"
 "          "
 msgstr ""
 
@@ -746,7 +736,7 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"          %(last_name)s\n"
+"          %(family_name)s\n"
 "          "
 msgstr ""
 
@@ -776,7 +766,7 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"          %(title)s\n"
+"          %(job)s\n"
 "          "
 msgstr ""
 
@@ -811,10 +801,10 @@ msgid ""
 "New access request %(request_id)s for %(org_name)s Projects platform\n"
 "Hello,\n"
 "You have received a new access request for %(org_name)s Projects platform.\n"
-"First name: %(first_name)s\n"
-"Last name: %(last_name)s\n"
+"First name: %(given_name)s\n"
+"Last name: %(family_name)s\n"
 "Email: %(email)s\n"
-"Title: %(title)s\n"
+"Title: %(job)s\n"
 "Message:%(message)s\n"
 "See <a class=\"lpi-link\" href=\"%(website_url)s/request-access\">request in "
 "platform</a>.\n"
@@ -988,6 +978,16 @@ msgstr ""
 msgid ""
 "\n"
 "%(full_name)s reviewed project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/notifications_base.html:52
+msgid ""
+"You receive this mail because you are subscribed to these notifications on "
+"Projects platform."
+msgstr ""
+
+#: apps/notifications/templates/notifications_base.html:53
+msgid "Change your notification settings here."
 msgstr ""
 
 #: apps/notifications/templates/pending_access_request/reminder.txt:2

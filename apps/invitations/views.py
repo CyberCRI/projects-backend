@@ -18,6 +18,7 @@ from apps.commons.permissions import (
 )
 from apps.commons.serializers import CreateListModelViewSet
 from apps.commons.utils import map_action_to_permission
+from apps.notifications.tasks import notify_new_access_request
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from keycloak import KeycloakGetError, KeycloakPostError, KeycloakPutError
@@ -126,10 +127,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        organization = instance.organization
-        admins = organization.admins.all()
-        emails = [admin.email for admin in admins]
-        instance.send_email(AccessRequest.EmailType.REQUEST_CREATED, emails)
+        notify_new_access_request.delay(instance.id)
 
     def perform_accept(self, access_request: AccessRequest):
         if access_request.organization.code != self.kwargs["organization_code"]:

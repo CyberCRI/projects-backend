@@ -5,7 +5,7 @@ from django.db import models, transaction
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group
-from apps.commons.models import HasOwner
+from apps.commons.models import HasOwner, OrganizationRelated
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from services.keycloak.interface import KeycloakService
@@ -13,7 +13,7 @@ from services.keycloak.interface import KeycloakService
 from .exceptions import InvalidEmailTypeError
 
 
-class Invitation(models.Model, HasOwner):
+class Invitation(models.Model, HasOwner, OrganizationRelated):
     organization = models.ForeignKey(
         "organizations.Organization", on_delete=models.CASCADE
     )
@@ -36,8 +36,12 @@ class Invitation(models.Model, HasOwner):
         """Get the owner of the object."""
         return self.owner
 
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return [self.organization]
 
-class AccessRequest(models.Model):
+
+class AccessRequest(models.Model, OrganizationRelated):
     """
     A request to access an organization.
     It can be created by an existing user or by a new user.
@@ -49,7 +53,6 @@ class AccessRequest(models.Model):
         DECLINED = "declined"
 
     class EmailType(models.TextChoices):
-        REQUEST_CREATED = "request_created"
         REQUEST_ACCEPTED = "request_accepted"
         REQUEST_DECLINED = "request_declined"
 

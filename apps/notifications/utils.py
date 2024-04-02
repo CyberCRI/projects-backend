@@ -28,7 +28,7 @@ class NotificationTaskManager:
     def __init__(
         self,
         sender: Optional[ProjectUser],
-        item: Optional[Union[Project, ProjectRelated]] = None,
+        item: Optional[Union[Project, ProjectRelated, OrganizationRelated]] = None,
         organization: Optional[Organization] = None,
         **kwargs,
     ):
@@ -479,6 +479,27 @@ class NewAccessRequestNotificationManager(NotificationTaskManager):
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.organization.admins.all()
+
+    def format_context_for_template(
+        self, context: Dict[str, Any], language: str
+    ) -> Dict[str, Any]:
+        if self.item.user:
+            return {
+                **context,
+                "given_name": self.item.user.given_name,
+                "family_name": self.item.user.family_name,
+                "email": self.item.user.email,
+                "job": self.item.user.job,
+                "message": self.item.message,
+            }
+        return {
+            **context,
+            "given_name": self.item.given_name,
+            "family_name": self.item.family_name,
+            "email": self.item.email,
+            "job": self.item.job,
+            "message": self.item.message,
+        }
 
 
 class PendingAccessRequestsNotificationManager(NotificationTaskManager):

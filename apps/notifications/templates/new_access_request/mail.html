@@ -5,7 +5,7 @@
 
 {% block content %}
         <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
-            {% blocktranslate with org_name=organization.name %}
+            {% blocktranslate with org_name=organization.name request_id=item.id %}
             New access request {{request_id}} for {{ org_name }} Projects platform
             {% endblocktranslate %}
         </mj-text>
@@ -31,8 +31,8 @@
       </mj-column>
       <mj-column>
         <mj-text>
-          {% blocktranslate with first_name=user.given_name %}
-          {{ first_name }}
+          {% blocktranslate %}
+          {{ given_name }}
           {% endblocktranslate %}
         </mj-text>
       </mj-column>
@@ -47,8 +47,8 @@
       </mj-column>
       <mj-column>
         <mj-text>
-          {% blocktranslate with last_name=user.family_name %}
-          {{ last_name }}
+          {% blocktranslate %}
+          {{ family_name }}
           {% endblocktranslate %}
         </mj-text>
       </mj-column>
@@ -63,7 +63,7 @@
       </mj-column>
       <mj-column>
         <mj-text>
-          {% blocktranslate with email=user.email %}
+          {% blocktranslate %}
           {{ email }}
           {% endblocktranslate %}
         </mj-text>
@@ -79,8 +79,8 @@
       </mj-column>
       <mj-column>
         <mj-text>
-          {% blocktranslate with title=user.job %}
-          {{ title }}
+          {% blocktranslate %}
+          {{ job }}
           {% endblocktranslate %}
         </mj-text>
       </mj-column>
