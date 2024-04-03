@@ -154,7 +154,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
 
     @classmethod
     def update_or_create_root(cls, organization: "Organization"):
-        root_group, _ = cls.objects.get_or_create(
+        root_group, _ = cls.objects.update_or_create(
             organization=organization,
             is_root=True,
             defaults={
