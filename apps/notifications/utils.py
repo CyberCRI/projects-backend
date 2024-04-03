@@ -517,6 +517,7 @@ class InvitationExpiresTodayNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.INVITATION_TODAY_REMINDER
     template_dir = "invitation_reminder_last_day"
     send_immediately = True
+    merge = False
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.organization.admins.all()
@@ -527,6 +528,7 @@ class InvitationExpiresInOneWeekNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.INVITATION_WEEK_REMINDER
     template_dir = "invitation_reminder_one_week"
     send_immediately = True
+    merge = False
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.organization.admins.all()

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-03 15:08+0000\n"
+"POT-Creation-Date: 2024-04-03 18:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -989,17 +989,6 @@ msgstr ""
 #: apps/notifications/templates/notifications_base.html:53
 msgid "Change your notification settings here."
 msgstr ""
-
-#: apps/notifications/templates/pending_access_request/reminder.txt:2
-#, python-format
-msgid ""
-"\n"
-"Respond to one pending access request!\n"
-msgid_plural ""
-"\n"
-"Respond to %(requests_count)s pending access requests!\n"
-msgstr[0] ""
-msgstr[1] ""
 
 #: apps/notifications/templates/project_edited/reminder.txt:2
 #, python-format
