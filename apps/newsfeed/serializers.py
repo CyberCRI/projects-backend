@@ -1,3 +1,7 @@
+from apps.accounts.models import PeopleGroup
+from apps.commons.serializers import OrganizationRelatedSerializer
+from apps.newsfeed.exceptions import InstructionPeopleGroupOrganizationError
+from apps.organizations.models import Organization
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup
@@ -6,6 +10,7 @@ from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
+from apps.newsfeed.models import Instruction, Newsfeed
 from apps.projects.serializers import ProjectLightSerializer
 
 from .exceptions import (
@@ -56,6 +61,35 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
         return value
 
 
+class InstructionSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+    organization = serializers.SlugRelatedField(
+        slug_field="code", queryset=Organization.objects.all()
+    )
+    people_groups = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=PeopleGroup.objects.all()
+    )
+
+    class Meta:
+        model = Instruction
+        fields = [
+            "id",
+            "title",
+            "content",
+            "publication_date",
+            "organization",
+            "people_groups",
+            "language",
+            "has_to_be_notified",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate_people_groups(self, value):
+        for group in value:
+            if group.organization.code != self.context.get("organization_code"):
+                raise InstructionPeopleGroupOrganizationError
+        return value
+    
 class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)
     announcement = AnnouncementSerializer(many=False, read_only=True)

@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register
 
-from .views import EventViewSet, NewsfeedViewSet, NewsHeaderView, NewsViewSet
+from .views import EventViewSet, InstructionViewSet, NewsfeedViewSet, NewsHeaderView, NewsViewSet
 
 router = DefaultRouter()
 
@@ -32,4 +32,11 @@ organization_router_register(
     r"event",
     EventViewSet,
     basename="Event",
+)
+
+organization_router_register(
+    router,
+    r"instruction",
+    InstructionViewSet,
+    basename="Instruction",
 )

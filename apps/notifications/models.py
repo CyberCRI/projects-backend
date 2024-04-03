@@ -32,6 +32,7 @@ class Notification(models.Model, HasOwner):
         INVITATION_WEEK_REMINDER = "invitation_week_reminder"
         ACCESS_REQUEST = "access_request"
         PENDING_ACCESS_REQUESTS = "pending_access_requests"
+        INSTRUCTION = "instruction"
 
     class ExpirationTypes(models.TextChoices):
         """Different dates of expiration."""
@@ -57,6 +58,9 @@ class Notification(models.Model, HasOwner):
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
     access_request = models.ForeignKey(
         "invitations.AccessRequest", on_delete=models.CASCADE, null=True
+    )
+    instruction = models.ForeignKey(
+        "newsfeed.Instruction", on_delete=models.CASCADE, null=True
     )
     is_viewed = models.BooleanField(default=False)
     to_send = models.BooleanField(default=False)

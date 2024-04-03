@@ -1,0 +1,36 @@
+{% extends "../base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+{% mjml %}
+<mjml>
+  <mj-body>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="15px">
+          {% blocktranslate with given_name=recipient.given_name %}
+          Hello {{ given_name }},
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text font-size="15px" line-height="20px">
+          {% blocktranslate %}
+          You have received a new instruction.
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        {% with project.organizations.all|first as organization %}
+        <mj-button css-class="lpi-button" href="{{ organization.website_url }}/instructions">
+          {% blocktranslate %}Go to instruction{% endblocktranslate %}
+        </mj-button>
+        {% endwith %}
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+{% endmjml %}
+{% endblock %}

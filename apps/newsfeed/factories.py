@@ -1,3 +1,6 @@
+from apps.accounts.factories import PeopleGroupFactory
+from apps.commons.factories import language_factory
+from apps.organizations.factories import OrganizationFactory
 import factory
 from django.utils import timezone
 
@@ -9,6 +12,8 @@ from apps.projects.factories import ProjectFactory
 
 from .models import Event, News, Newsfeed
 
+from . import models
+from django.utils import timezone
 
 class NewsfeedProjectFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(lambda: ProjectFactory())
@@ -38,9 +43,22 @@ class NewsFactory(factory.django.DjangoModelFactory):
     created_at = timezone.now()
     updated_at = timezone.now()
     language = language_factory()
-
     class Meta:
         model = News
+
+class InstructionFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
+    title = factory.Faker("sentence")
+    content = factory.Faker("text")
+    publication_date = timezone.now()
+    created_at = timezone.now()
+    updated_at = timezone.now()
+    language = language_factory()
+
+    class Meta:
+        model = models.Instruction
 
     @factory.post_generation
     def people_groups(self, create, extracted):

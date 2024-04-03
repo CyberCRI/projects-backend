@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate %}
+Hello {{ recipient.given_name }}, You have received a new instruction.
+{% endblocktranslate %}

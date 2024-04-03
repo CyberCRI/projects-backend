@@ -55,6 +55,48 @@ class News(models.Model, OrganizationRelated):
     def get_related_organizations(self):
         return [self.organization]
 
+class Instruction(models.Model, OrganizationRelated):
+    """Instruction isntance.
+    Attributes
+    ----------
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    title: CharField
+        Title of the instruction.
+    content: TextField
+        Content of the instruction.
+    publication_date: DateTimeField
+        Date of the instruction's publication.
+    groups: ManyToManyField
+        Groups which have access to the instruction.
+    created_at: DateTimeField
+        Date of creation of this instruction.
+    updated_at: DateTimeField
+        Date of the last change made to the instruction.
+    has_to_be_notified: BooleanField
+        If a notification has to be sent to the groups.
+    notified: BooleanField
+        If a notification has already been sent.
+    """
+
+    title = models.CharField(max_length=255, verbose_name=("title"))
+    content = models.TextField(blank=True, default="")
+    publication_date = models.DateTimeField()
+    people_groups = models.ManyToManyField("accounts.PeopleGroup", related_name="instructions")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    language = models.CharField(
+        max_length=2, choices=Language.choices, default=Language.default()
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization", related_name="instructions", on_delete=models.CASCADE
+    )
+    has_to_be_notified = models.BooleanField(default=False)
+    notified = models.BooleanField(default=False)
+    
+    def get_related_organizations(self):
+        return [self.organization]
 
 class Newsfeed(models.Model):
     """Newsfeed of the application.

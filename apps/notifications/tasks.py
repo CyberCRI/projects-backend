@@ -1,6 +1,7 @@
 from datetime import date, timedelta
 from typing import Any, Dict, Set
 
+from apps.newsfeed.models import Instruction
 from babel.dates import format_date
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -37,7 +38,13 @@ from .utils import (
     ReviewNotificationManager,
     UpdatedMemberNotificationManager,
     UpdateMembersNotificationManager,
+    send_instruction_notification_if_needed,
 )
+from apps.projects.models import BlogEntry, Project
+from projects.celery import app
+
+from .models import Notification
+from django.utils import timezone
 
 
 @app.task
@@ -166,6 +173,11 @@ def send_invitations_reminder():
     Send a reminder to org admins about invitation links that are about to expire.
     """
     _send_invitations_reminder()
+
+
+def notify_new_instruction():
+    """Notify members of a new instruction."""
+    return _notify_new_instruction()
 
 
 def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
@@ -392,3 +404,9 @@ def _send_invitations_reminder():
             sender=None, item=invitation
         )
         manager.create_and_send_notifications()
+
+
+def _notify_new_instruction():
+    instructions = Instruction.objects.all()
+    for instruction in instructions:
+        send_instruction_notification_if_needed(instruction)

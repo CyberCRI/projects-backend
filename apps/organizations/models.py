@@ -143,6 +143,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("invitation", "invitation links"),
             ("news", "news"),
             ("event", "event"),
+            ("instruction", "instructions"),
         )
         permissions = (
             ("view_stat", "Can view stats"),
@@ -177,7 +178,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             *[
                 f"{action}_{subscope}"
                 for action in ["change", "delete", "add"]
-                for subscope in ["tag", "review", "faq", "projectcategory", "news"]
+                for subscope in ["tag", "review", "faq", "projectcategory", "news", "instruction"]
             ],
         ]
         return Permission.objects.filter(content_type=self.content_type).exclude(

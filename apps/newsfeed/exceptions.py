@@ -17,3 +17,11 @@ class EventPeopleGroupOrganizationError(ValidationError):
         "The people groups of an event must belong to the same organization"
     )
     default_code = "event_people_group_organization_error"
+
+
+class InstructionPeopleGroupOrganizationError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _(
+        "The people groups of an instruction must belong to the same organization"
+    )
+    default_code = "instruction_people_group_organization_error"

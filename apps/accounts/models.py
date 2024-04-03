@@ -13,6 +13,7 @@ from django.db.models.manager import Manager
 from django.http import Http404
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
+from apps.newsfeed.models import Instruction
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from apps.accounts.utils import (
@@ -334,6 +335,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         self._people_group_queryset: Optional[QuerySet["PeopleGroup"]] = None
         self._news_queryset: Optional[QuerySet["News"]] = None
         self._event_queryset: Optional[QuerySet["Event"]] = None
+        self._instruction_queryset: Optional[QuerySet["Instruction"]] = None
 
     # AbstractUser unused fields
     username_validator = None
@@ -535,6 +537,16 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     Q(people_groups__in=groups) | Q(people_groups=None)
                 )
         return self._news_queryset.distinct().prefetch_related(*prefetch)
+    def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
+        if self._instruction_queryset is None:
+            if self.is_superuser:
+                self._instruction_queryset = Instruction.objects.all()
+            else:
+                groups = self.get_people_group_queryset()
+                self._instruction_queryset = Instruction.objects.filter(
+                    Q(people_groups__in=groups) | Q(people_groups=None)
+                )
+        return self._instruction_queryset.distinct().prefetch_related(*prefetch)
 
     def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
         if self._event_queryset is None:

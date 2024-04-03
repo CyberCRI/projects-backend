@@ -12,7 +12,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 
 from .models import Notification
-
+from django.utils import timezone
 
 class NotificationTaskManager:
     """Manage the notification tasks."""
@@ -532,3 +532,27 @@ class InvitationExpiresInOneWeekNotificationManager(NotificationTaskManager):
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.organization.admins.all()
+    
+
+def send_instruction_notification_if_needed(instruction):
+    if instruction.has_to_be_notified and not instruction.notified:
+        start_of_day = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        publication_day = instruction.publication_date.replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        if start_of_day == publication_day:
+            groups = instruction.people_groups
+            members = [group.members.all() for group in groups]
+            receivers = set(members)
+            for receiver in receivers:
+                Notification.objects.create(
+                    receiver=receiver,
+                    type="instruction",
+                    instruction=instruction,
+                )
+
+            subject, _ = render_message("notifications/instruction/object", receiver.language)
+            text, html = render_message("notifications/instruction/mail", receiver.language)
+            send_email(subject, text, [receiver.email], html_content=html)
+            instruction.notified = True
+            instruction.save()
