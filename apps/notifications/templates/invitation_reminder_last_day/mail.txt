@@ -1,5 +1,5 @@
 {% load i18n %}
-{% blocktranslate with group_name=invitation.people_group.name %}
+{% blocktranslate with group_name=item.people_group.name %}
 Hello {{ name }}, A registration link you created for the group {{ group_name}} will expire today.
 You can create a new registration link here.
 {% endblocktranslate %}

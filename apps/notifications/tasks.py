@@ -346,7 +346,7 @@ def _notify_pending_access_requests():
         )
         if access_requests.exists():
             manager = PendingAccessRequestsNotificationManager(
-                None, organization, count=access_requests.count()
+                None, organization, requests_count=access_requests.count()
             )
             manager.create_and_send_notifications()
 
@@ -384,10 +384,11 @@ def _send_invitations_reminder():
     )
     for invitation in expire_today:
         manager = InvitationExpiresTodayNotificationManager(
-            sender=None, item=invitation, invitation=invitation
+            sender=None, item=invitation
         )
         manager.create_and_send_notifications()
     for invitation in expire_in_seven_days:
         manager = InvitationExpiresInOneWeekNotificationManager(
-            sender=None, item=invitation, invitation=invitation
+            sender=None, item=invitation
         )
+        manager.create_and_send_notifications()

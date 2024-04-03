@@ -2,7 +2,7 @@ from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase
 from apps.invitations.factories import AccessRequestFactory
 from apps.invitations.models import AccessRequest
-from apps.invitations.tasks import send_access_request_notification
+from apps.notifications.tasks import notify_pending_access_requests
 from apps.notifications.models import Notification
 from apps.organizations.factories import OrganizationFactory
 
@@ -12,7 +12,6 @@ class SendAccessRequestNotificationTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.organization.admins.first().delete()  # created by factory
         cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
         cls.user_1 = UserFactory(groups=[cls.organization.get_users()])
         cls.access_requests_a = AccessRequestFactory(
@@ -29,13 +28,13 @@ class SendAccessRequestNotificationTestCase(JwtAPITestCase):
         )
 
     def test_send_access_request_notification(self):
-        send_access_request_notification()
+        notify_pending_access_requests()
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 3)
         for admin in self.admins:
             notification = notifications.get(receiver=admin)
-            self.assertEqual(notification.type, Notification.Types.ACCESS_REQUEST)
-            self.assertEqual(notification.context["access_request_nb"], 2)
+            self.assertEqual(notification.type, Notification.Types.PENDING_ACCESS_REQUESTS)
+            self.assertEqual(notification.context["requests_count"], 2)
             self.assertFalse(notification.is_viewed)
             self.assertEqual(
                 notification.reminder_message_en,
