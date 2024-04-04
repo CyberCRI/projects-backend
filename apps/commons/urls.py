@@ -71,3 +71,14 @@ def project_router_register(
         viewset,
         basename,
     )
+
+
+def people_group_router_register(
+    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+):
+    router.register(
+        r"organization/(?P<organization_code>[^/]+)/"
+        r"people-group/(?P<people_group_id>[^/]+)/" + prefix,
+        viewset,
+        basename,
+    )

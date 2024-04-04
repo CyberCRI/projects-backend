@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-27 13:21+0000\n"
+"POT-Creation-Date: 2024-04-04 07:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,19 +116,19 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:125 apps/projects/models.py:152
+#: apps/accounts/models.py:126 apps/projects/models.py:152
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:665
+#: apps/accounts/models.py:678
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:666
+#: apps/accounts/models.py:679
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:667
+#: apps/accounts/models.py:680
 msgid "Public"
 msgstr "Publique"
 
@@ -1365,6 +1365,10 @@ msgstr ""
 "\n"
 "Votre demande d'accès à la plateforme Projects de %(org_name)s a été "
 "refusée\n"
+
+#: apps/newsfeed/exceptions.py:9
+msgid "The people groups of a news must belong to the same organization"
+msgstr "Les groupes d'une news doivent appartenir à la même organisation"
 
 #: apps/notifications/tasks.py:146 apps/notifications/tasks.py:187
 msgid "editor"

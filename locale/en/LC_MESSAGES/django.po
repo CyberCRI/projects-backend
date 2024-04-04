@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-03-27 13:21+0000\n"
+"POT-Creation-Date: 2024-04-04 07:52+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,19 +112,19 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:125 apps/projects/models.py:152
+#: apps/accounts/models.py:126 apps/projects/models.py:152
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:665
+#: apps/accounts/models.py:678
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:666
+#: apps/accounts/models.py:679
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:667
+#: apps/accounts/models.py:680
 msgid "Public"
 msgstr ""
 
@@ -1038,6 +1038,10 @@ msgid ""
 "\n"
 "Your access request for the %(org_name)s Projects platform has been "
 "declined\n"
+msgstr ""
+
+#: apps/newsfeed/exceptions.py:9
+msgid "The people groups of a news must belong to the same organization"
 msgstr ""
 
 #: apps/notifications/tasks.py:146 apps/notifications/tasks.py:187
