@@ -462,6 +462,11 @@ msgid "The people groups of an event must belong to the same organization"
 msgstr ""
 
 #: apps/notifications/tasks.py:173 apps/notifications/tasks.py:214
+msgid ""
+"The people groups of an instruction must belong to the same organization"
+msgstr ""
+
+#: apps/notifications/tasks.py:155 apps/notifications/tasks.py:196
 msgid "editor"
 msgstr ""
 
