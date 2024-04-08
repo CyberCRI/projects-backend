@@ -56,7 +56,7 @@ class News(models.Model, OrganizationRelated):
         return [self.organization]
 
 class Instruction(models.Model, OrganizationRelated):
-    """Instruction isntance.
+    """Instruction instance.
     Attributes
     ----------
     ----------
@@ -83,7 +83,7 @@ class Instruction(models.Model, OrganizationRelated):
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
     publication_date = models.DateTimeField()
-    people_groups = models.ManyToManyField("accounts.PeopleGroup", related_name="instructions")
+    people_groups = models.ManyToManyField("accounts.PeopleGroup", related_name="instructions", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     language = models.CharField(

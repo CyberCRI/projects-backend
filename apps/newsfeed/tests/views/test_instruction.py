@@ -2,15 +2,15 @@ import datetime
 import random
 
 from django.urls import reverse
+from apps.newsfeed.factories import InstructionFactory
+from apps.newsfeed.models import Instruction
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
-from apps.newsfeed.factories import InstructionFactory
-from apps.newsfeed.models import Instruction
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
@@ -22,6 +22,15 @@ class CreateInstructionTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
+
+        leaders_managers = UserFactory.create_batch(2)
+        managers = UserFactory.create_batch(2)
+        leaders_members = UserFactory.create_batch(2)
+        members = UserFactory.create_batch(2)
+
+        cls.people_group.managers.add(*managers, *leaders_managers)
+        cls.people_group.members.add(*members, *leaders_members)
+        cls.people_group.leaders.add(*leaders_managers, *leaders_members)
 
     @parameterized.expand(
         [
@@ -46,10 +55,9 @@ class CreateInstructionTestCase(JwtAPITestCase):
             "content": faker.text(),
             "language": random.choice(Language.values),  # nosec
             "publication_date": datetime.date.today().isoformat(),
-            "people_groups": [self.people_group.id],
+            "people_groups_ids": [self.people_group.id],
             "has_to_be_notified": True,
         }
-
         response = self.client.post(
             reverse("Instruction-list", args=(organization.code,)), data=payload
         )
@@ -59,7 +67,7 @@ class CreateInstructionTestCase(JwtAPITestCase):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
-            self.assertEqual(content["people_groups"], payload["people_groups"])
+            self.assertEqual(content["people_groups"][0]["id"], payload["people_groups_ids"][0])
             self.assertEqual(content["has_to_be_notified"], payload["has_to_be_notified"])
 
 
@@ -178,7 +186,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             "content": faker.text(),
             "language": "fr",
             "publication_date": datetime.date.today().isoformat(),
-            "people_groups": [self.other_org_people_group.id],
+            "people_groups_ids": [self.other_org_people_group.id],
             "has_to_be_notified": True,
         }
         response = self.client.post(
@@ -189,7 +197,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {
-                "people_groups": [
+                "people_groups_ids": [
                     "The people groups of an instruction must belong to the same organization"
                 ]
             },
@@ -201,7 +209,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
         payload = {
-            "people_groups": [self.other_org_people_group.id],
+            "people_groups_ids": [self.other_org_people_group.id],
         }
         response = self.client.patch(
             reverse(
@@ -217,7 +225,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {
-                "people_groups": [
+                "people_groups_ids": [
                     "The people groups of an instruction must belong to the same organization"
                 ]
             },

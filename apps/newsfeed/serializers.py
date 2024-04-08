@@ -1,4 +1,5 @@
 from apps.accounts.models import PeopleGroup
+from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.newsfeed.exceptions import InstructionPeopleGroupOrganizationError
 from apps.organizations.models import Organization
@@ -61,13 +62,19 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
         return value
 
 
-class InstructionSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+class InstructionSerializer(OrganizationRelatedSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
-    people_groups = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=PeopleGroup.objects.all()
+    people_groups_ids = serializers.PrimaryKeyRelatedField(
+        write_only=True, 
+        many=True,
+        queryset=PeopleGroup.objects.all(),
+        source="people_groups",
+        required=False,
     )
+    people_groups = PeopleGroupLightSerializer(many=True, read_only=True)
+
 
     class Meta:
         model = Instruction
@@ -82,7 +89,19 @@ class InstructionSerializer(OrganizationRelatedSerializer, serializers.ModelSeri
             "has_to_be_notified",
             "created_at",
             "updated_at",
+            #write only
+            "people_groups_ids",
+            #read only
+            "people_groups",
         ]
+
+    def validate_people_groups_ids(self, value):
+        for group in value:
+            if not PeopleGroup.objects.filter(
+                id=group.id, organization__code=self.context.get("organization_code")
+            ).exists():
+                raise InstructionPeopleGroupOrganizationError
+        return value
 
     def validate_people_groups(self, value):
         for group in value:

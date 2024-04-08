@@ -444,6 +444,10 @@ if CELERY_ENABLED:
             "task": "services.google.tasks.retry_failed_tasks",
             "schedule": crontab(minute="*/10", hour="*"),
         },
+        "send_instruction_notification": {
+            "task": "apps.notifications.tasks.notify_new_instruction",
+            "schedule": crontab(minute=0, hour="*"),
+        },
     }
 
 # Cache settings

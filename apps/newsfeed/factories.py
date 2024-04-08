@@ -1,19 +1,13 @@
-from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.commons.factories import language_factory
 from apps.organizations.factories import OrganizationFactory
 import factory
 from django.utils import timezone
 
-from apps.accounts.factories import PeopleGroupFactory
 from apps.announcements.factories import AnnouncementFactory
-from apps.commons.factories import language_factory
-from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 
-from .models import Event, News, Newsfeed
-
-from . import models
-from django.utils import timezone
+from .models import Event, News, Newsfeed, Instruction
 
 class NewsfeedProjectFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(lambda: ProjectFactory())
@@ -58,12 +52,23 @@ class InstructionFactory(factory.django.DjangoModelFactory):
     language = language_factory()
 
     class Meta:
-        model = models.Instruction
+        model = Instruction
 
     @factory.post_generation
     def people_groups(self, create, extracted):
         if not create:
             return
+        
+        people_group = PeopleGroupFactory(organization=self.organization)
+        leaders_managers = UserFactory.create_batch(2)
+        managers = UserFactory.create_batch(2)
+        leaders_members = UserFactory.create_batch(2)
+        members = UserFactory.create_batch(2)
+
+        people_group.managers.add(*managers, *leaders_managers)
+        people_group.members.add(*members, *leaders_members)
+        people_group.leaders.add(*leaders_managers, *leaders_members)
+
         if extracted:
             if extracted == "no_people_groups":
                 return
@@ -71,7 +76,7 @@ class InstructionFactory(factory.django.DjangoModelFactory):
                 self.people_groups.add(group)
             if len(extracted) == 0:
                 self.people_groups.add(
-                    PeopleGroupFactory(organization=self.organization)
+                    people_group
                 )
         else:
             self.people_groups.add(PeopleGroupFactory(organization=self.organization))
