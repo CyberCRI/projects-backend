@@ -13,8 +13,12 @@ from apps.commons.utils import ArrayPosition, map_action_to_permission
 from apps.commons.views import ListViewSet
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
-from apps.newsfeed.models import Instruction, Newsfeed, News
-from apps.newsfeed.serializers import InstructionSerializer, NewsfeedSerializer, NewsSerializer
+from apps.newsfeed.models import Instruction, News, Newsfeed
+from apps.newsfeed.serializers import (
+    InstructionSerializer,
+    NewsfeedSerializer,
+    NewsSerializer,
+)
 from apps.organizations.permissions import HasOrganizationPermission
 
 from .models import Event, Instruction, News, Newsfeed
