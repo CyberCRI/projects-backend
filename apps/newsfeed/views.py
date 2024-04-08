@@ -13,15 +13,15 @@ from apps.commons.utils import ArrayPosition, map_action_to_permission
 from apps.commons.views import ListViewSet
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
+from apps.newsfeed.models import Instruction, Newsfeed, News
+from apps.newsfeed.serializers import InstructionSerializer, NewsfeedSerializer, NewsSerializer
 from apps.organizations.permissions import HasOrganizationPermission
-
 
 from .models import Event, Instruction, News, Newsfeed
 from .serializers import EventSerializer, InstructionSerializer, NewsfeedSerializer, NewsSerializer
 
-
 class NewsViewSet(viewsets.ModelViewSet):
-    """Main endpoints for projects."""
+    """Main endpoints for news."""
 
     serializer_class = NewsSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -52,18 +52,6 @@ class NewsViewSet(viewsets.ModelViewSet):
             **super().get_serializer_context(),
             "organization_code": self.kwargs.get("organization_code", None),
         }
-
-    def get_serializer(self, *args, **kwargs):
-        """
-        Force the usage of the organization code from the url in the serializer
-        """
-        if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
-        return super().get_serializer(*args, **kwargs)
 
 
 class NewsHeaderView(ImageStorageView):
@@ -122,6 +110,9 @@ class InstructionViewSet(viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
+    def get_serializer_class(self):
+        return self.serializer_class
+
     def get_queryset(self) -> QuerySet:
         if "organization_code" in self.kwargs:
             return self.request.user.get_instruction_queryset().filter(
@@ -135,18 +126,7 @@ class InstructionViewSet(viewsets.ModelViewSet):
             "organization_code": self.kwargs.get("organization_code", None),
         }
 
-    def get_serializer(self, *args, **kwargs):
-        """
-        Force the usage of the organization code from the url in the serializer
-        """
-        if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
-        return super().get_serializer(*args, **kwargs)
-    
+
 class NewsfeedViewSet(ListViewSet):
     serializer_class = NewsfeedSerializer
     permission_classes = [ReadOnly]

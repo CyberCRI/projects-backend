@@ -2,8 +2,6 @@ import datetime
 import random
 
 from django.urls import reverse
-from apps.newsfeed.factories import InstructionFactory
-from apps.newsfeed.models import Instruction
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
@@ -11,6 +9,8 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
+from apps.newsfeed.factories import InstructionFactory
+from apps.newsfeed.models import Instruction
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
@@ -67,8 +67,12 @@ class CreateInstructionTestCase(JwtAPITestCase):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
-            self.assertEqual(content["people_groups"][0]["id"], payload["people_groups_ids"][0])
-            self.assertEqual(content["has_to_be_notified"], payload["has_to_be_notified"])
+            self.assertEqual(
+                content["people_groups"][0]["id"], payload["people_groups_ids"][0]
+            )
+            self.assertEqual(
+                content["has_to_be_notified"], payload["has_to_be_notified"]
+            )
 
 
 class UpdateInstructionTestCase(JwtAPITestCase):
@@ -120,7 +124,9 @@ class UpdateInstructionTestCase(JwtAPITestCase):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
-            self.assertEqual(content["has_to_be_notified"], payload["has_to_be_notified"])
+            self.assertEqual(
+                content["has_to_be_notified"], payload["has_to_be_notified"]
+            )
 
 
 class DeleteInstructionTestCase(JwtAPITestCase):
@@ -205,7 +211,9 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
 
     def test_update_instruction_with_people_group_in_other_organization(self):
         people_group = PeopleGroupFactory(organization=self.organization)
-        instruction = InstructionFactory(organization=self.organization, people_groups=[people_group])
+        instruction = InstructionFactory(
+            organization=self.organization, people_groups=[people_group]
+        )
         user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
         payload = {

@@ -13,7 +13,6 @@ from django.db.models.manager import Manager
 from django.http import Http404
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from apps.newsfeed.models import Instruction
 from guardian.shortcuts import assign_perm, get_objects_for_user
 
 from apps.accounts.utils import (
@@ -29,7 +28,7 @@ from apps.commons.models import (
     PermissionsSetupModel,
 )
 from apps.misc.models import SDG, Language, WikipediaTag
-from apps.newsfeed.models import Event, News
+from apps.newsfeed.models import Instruction, News, Event
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from keycloak import KeycloakGetError
@@ -537,6 +536,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     Q(people_groups__in=groups) | Q(people_groups=None)
                 )
         return self._news_queryset.distinct().prefetch_related(*prefetch)
+
     def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
         if self._instruction_queryset is None:
             if self.is_superuser:

@@ -1,8 +1,8 @@
 from datetime import date, timedelta
 from typing import Any, Dict, Set
 
-from apps.newsfeed.models import Instruction
 from babel.dates import format_date
+from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -10,13 +10,16 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
+from apps.newsfeed.models import Instruction
+
 from apps.invitations.models import AccessRequest, Invitation
 from apps.organizations.models import Organization
 from apps.projects.models import BlogEntry, Project
 from projects.celery import app
 
 from .models import Notification
-from .utils import (
+
+from apps.notifications.utils import (
     AddGroupMemberNotificationManager,
     AddGroupMembersNotificationManager,
     AddMemberNotificationManager,
@@ -43,8 +46,6 @@ from apps.projects.models import BlogEntry, Project
 from projects.celery import app
 
 from .models import Notification
-from django.utils import timezone
-from django.conf import settings
 
 
 @app.task
@@ -410,7 +411,9 @@ def _notify_new_instruction():
     instructions = Instruction.objects.all()
     for instruction in instructions:
         if instruction.has_to_be_notified and not instruction.notified:
-            start_of_day = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+            start_of_day = timezone.now().replace(
+                hour=0, minute=0, second=0, microsecond=0
+            )
             publication_day = instruction.publication_date.replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
@@ -422,7 +425,9 @@ def _notify_new_instruction():
                         members = group.get_all_members().all()
                         receivers.update(members)
                         defaults = {
-                            f"reminder_message_{lang}": render_message("notifications/instruction/reminder", lang)[0]
+                            f"reminder_message_{lang}": render_message(
+                                "notifications/instruction/reminder", lang
+                            )[0]
                             for lang in settings.REQUIRED_LANGUAGES
                         }
                     for receiver in receivers:
@@ -436,8 +441,16 @@ def _notify_new_instruction():
                         context = {
                             "recipient": receiver,
                         }
-                        subject, _ = render_message("notifications/instruction/object", receiver.language, **context)
-                        text, html = render_message("notifications/instruction/mail", receiver.language, **context)
+                        subject, _ = render_message(
+                            "notifications/instruction/object",
+                            receiver.language,
+                            **context,
+                        )
+                        text, html = render_message(
+                            "notifications/instruction/mail",
+                            receiver.language,
+                            **context,
+                        )
                         send_email(subject, text, [receiver.email], html_content=html)
                         instruction.notified = True
                         instruction.save()

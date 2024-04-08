@@ -1,17 +1,14 @@
-from apps.accounts.models import PeopleGroup
-from apps.accounts.serializers import PeopleGroupLightSerializer
-from apps.commons.serializers import OrganizationRelatedSerializer
-from apps.newsfeed.exceptions import InstructionPeopleGroupOrganizationError
-from apps.organizations.models import Organization
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup
+from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
+from apps.newsfeed.exceptions import InstructionPeopleGroupOrganizationError
+from apps.newsfeed.models import Instruction, Newsfeed, News
 from apps.organizations.models import Organization
-from apps.newsfeed.models import Instruction, Newsfeed
 from apps.projects.serializers import ProjectLightSerializer
 
 from .exceptions import (
@@ -67,14 +64,13 @@ class InstructionSerializer(OrganizationRelatedSerializer):
         slug_field="code", queryset=Organization.objects.all()
     )
     people_groups_ids = serializers.PrimaryKeyRelatedField(
-        write_only=True, 
+        write_only=True,
         many=True,
         queryset=PeopleGroup.objects.all(),
         source="people_groups",
         required=False,
     )
     people_groups = PeopleGroupLightSerializer(many=True, read_only=True)
-
 
     class Meta:
         model = Instruction
@@ -89,9 +85,9 @@ class InstructionSerializer(OrganizationRelatedSerializer):
             "has_to_be_notified",
             "created_at",
             "updated_at",
-            #write only
+            # write only
             "people_groups_ids",
-            #read only
+            # read only
             "people_groups",
         ]
 
@@ -108,7 +104,8 @@ class InstructionSerializer(OrganizationRelatedSerializer):
             if group.organization.code != self.context.get("organization_code"):
                 raise InstructionPeopleGroupOrganizationError
         return value
-    
+
+
 class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)
     announcement = AnnouncementSerializer(many=False, read_only=True)

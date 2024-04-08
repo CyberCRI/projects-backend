@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 class News(models.Model, OrganizationRelated):
-    """News isntance.
+    """News instance.
 
     Attributes
     ----------
@@ -28,9 +28,9 @@ class News(models.Model, OrganizationRelated):
     groups: ManyToManyField
         Groups which have access to the news.
     created_at: DateTimeField
-        Date of creation of this project.
+        Date of creation of this news.
     updated_at: DateTimeField
-        Date of the last change made to the project.
+        Date of the last change made to the news.
     """
 
     title = models.CharField(max_length=255, verbose_name=("title"))
@@ -54,6 +54,7 @@ class News(models.Model, OrganizationRelated):
 
     def get_related_organizations(self):
         return [self.organization]
+
 
 class Instruction(models.Model, OrganizationRelated):
     """Instruction instance.
@@ -83,20 +84,25 @@ class Instruction(models.Model, OrganizationRelated):
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
     publication_date = models.DateTimeField()
-    people_groups = models.ManyToManyField("accounts.PeopleGroup", related_name="instructions", blank=True)
+    people_groups = models.ManyToManyField(
+        "accounts.PeopleGroup", related_name="instructions", blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
     organization = models.ForeignKey(
-        "organizations.Organization", related_name="instructions", on_delete=models.CASCADE
+        "organizations.Organization",
+        related_name="instructions",
+        on_delete=models.CASCADE,
     )
     has_to_be_notified = models.BooleanField(default=False)
     notified = models.BooleanField(default=False)
-    
+
     def get_related_organizations(self):
         return [self.organization]
+
 
 class Newsfeed(models.Model):
     """Newsfeed of the application.

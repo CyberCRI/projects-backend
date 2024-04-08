@@ -1,11 +1,11 @@
-from apps.accounts.factories import PeopleGroupFactory, UserFactory
-from apps.commons.factories import language_factory
-from apps.organizations.factories import OrganizationFactory
 import factory
 from django.utils import timezone
 
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.announcements.factories import AnnouncementFactory
 from apps.projects.factories import ProjectFactory
+from apps.commons.factories import language_factory
+from apps.organizations.factories import OrganizationFactory
 
 from .models import Event, News, Newsfeed, Instruction
 
@@ -37,8 +37,10 @@ class NewsFactory(factory.django.DjangoModelFactory):
     created_at = timezone.now()
     updated_at = timezone.now()
     language = language_factory()
+
     class Meta:
         model = News
+
 
 class InstructionFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(
@@ -58,7 +60,7 @@ class InstructionFactory(factory.django.DjangoModelFactory):
     def people_groups(self, create, extracted):
         if not create:
             return
-        
+
         people_group = PeopleGroupFactory(organization=self.organization)
         leaders_managers = UserFactory.create_batch(2)
         managers = UserFactory.create_batch(2)
@@ -75,9 +77,7 @@ class InstructionFactory(factory.django.DjangoModelFactory):
             for group in extracted:
                 self.people_groups.add(group)
             if len(extracted) == 0:
-                self.people_groups.add(
-                    people_group
-                )
+                self.people_groups.add(people_group)
         else:
             self.people_groups.add(PeopleGroupFactory(organization=self.organization))
 

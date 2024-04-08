@@ -134,6 +134,7 @@ def _send_access_request_notification():
                 template_dir="notifications/pending_access_request",
             )
 
+
 @app.task
 def send_instruction_notification():
     _send_instruction_notification()
@@ -151,7 +152,7 @@ def _create_and_send_notification_for_instruction(
         type="invitation_today_reminder",
         invitation=invitation,
     )
-  
+
     subject, _ = render_message(subject_path, invitation.owner.language)
     text, html = render_message(mail_path, invitation.owner.language, **context)
     send_email(subject, text, [invitation.owner.email], html_content=html)

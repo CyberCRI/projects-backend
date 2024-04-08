@@ -116,7 +116,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:126 apps/projects/models.py:152
+#: apps/accounts/models.py:127 apps/projects/models.py:152
 msgid "visibility"
 msgstr "visibilité"
 
@@ -570,7 +570,13 @@ msgstr "Les groupes d'une news doivent appartenir à la même organisation"
 msgid "The people groups of an event must belong to the same organization"
 msgstr "Les groupes d'une actualité doivent appartenir à la même organisation"
 
-#: apps/notifications/tasks.py:173 apps/notifications/tasks.py:214
+#: apps/newsfeed/exceptions.py:15
+msgid ""
+"The people groups of an instruction must belong to the same organization"
+msgstr "" 
+"Les groupes d'une instruction doivent appartenir à la même organisation"
+
+#: apps/notifications/tasks.py:155 apps/notifications/tasks.py:196
 msgid "editor"
 msgstr "éditeur"
 

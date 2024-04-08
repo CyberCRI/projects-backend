@@ -12,7 +12,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 
 from .models import Notification
-from django.utils import timezone
+
 
 class NotificationTaskManager:
     """Manage the notification tasks."""

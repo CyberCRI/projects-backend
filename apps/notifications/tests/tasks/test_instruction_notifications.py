@@ -1,13 +1,15 @@
+import datetime
+
+from django.core import mail
+from django.utils.timezone import make_aware
+
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.commons.test import JwtAPITestCase
-from apps.invitations.tasks import send_access_request_notification
 from apps.newsfeed.factories import InstructionFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import notify_new_instruction
 from apps.organizations.factories import OrganizationFactory
-import datetime
-from django.utils.timezone import make_aware
-from django.core import mail
+
 
 class SendInstructionNotificationTestCase(JwtAPITestCase):
     @classmethod
@@ -27,8 +29,13 @@ class SendInstructionNotificationTestCase(JwtAPITestCase):
         cls.people_group.leaders.add(*leaders_managers, *leaders_members)
 
         cls.publication_date = make_aware(datetime.datetime.now())
-        
-        cls.instruction = InstructionFactory(organization=cls.organization, people_groups=[cls.people_group], publication_date=cls.publication_date, has_to_be_notified=True)
+
+        cls.instruction = InstructionFactory(
+            organization=cls.organization,
+            people_groups=[cls.people_group],
+            publication_date=cls.publication_date,
+            has_to_be_notified=True,
+        )
 
         # INSTRUCTION 2
         cls.people_group_2 = PeopleGroupFactory(organization=cls.organization)
@@ -41,11 +48,16 @@ class SendInstructionNotificationTestCase(JwtAPITestCase):
         cls.people_group_2.managers.add(*managers_2, *leaders_managers_2)
         cls.people_group_2.members.add(*members_2, *leaders_members_2)
         cls.people_group_2.leaders.add(*leaders_managers_2, *leaders_members_2)
-        
-        cls.publication_date_2 = make_aware(datetime.datetime.now())
-        cls.instruction_2 = InstructionFactory(organization=cls.organization, people_groups=[cls.people_group_2], publication_date=cls.publication_date_2, has_to_be_notified=False)
 
-         # INSTRUCTION 3
+        cls.publication_date_2 = make_aware(datetime.datetime.now())
+        cls.instruction_2 = InstructionFactory(
+            organization=cls.organization,
+            people_groups=[cls.people_group_2],
+            publication_date=cls.publication_date_2,
+            has_to_be_notified=False,
+        )
+
+        # INSTRUCTION 3
         cls.people_group_3 = PeopleGroupFactory(organization=cls.organization)
 
         leaders_managers_3 = UserFactory.create_batch(2)
@@ -56,20 +68,24 @@ class SendInstructionNotificationTestCase(JwtAPITestCase):
         cls.people_group_2.managers.add(*managers_3, *leaders_managers_3)
         cls.people_group_2.members.add(*members_3, *leaders_members_3)
         cls.people_group_2.leaders.add(*leaders_managers_3, *leaders_members_3)
-        
-        cls.publication_date_3 = make_aware(datetime.datetime.now() + datetime.timedelta(1))
-        cls.instruction_3 = InstructionFactory(organization=cls.organization, people_groups=[cls.people_group_3], publication_date=cls.publication_date_3, has_to_be_notified=True)
+
+        cls.publication_date_3 = make_aware(
+            datetime.datetime.now() + datetime.timedelta(1)
+        )
+        cls.instruction_3 = InstructionFactory(
+            organization=cls.organization,
+            people_groups=[cls.people_group_3],
+            publication_date=cls.publication_date_3,
+            has_to_be_notified=True,
+        )
 
     def test_send_instruction_notification(self):
         notify_new_instruction()
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 8)
         self.assertEqual(len(mail.outbox), 8)
-        self.assertEqual(
-            mail.outbox[0].subject, "New instruction"
-        )
-        print("mail")
-        print(mail.outbox[0].__dict__)
+        self.assertEqual(mail.outbox[0].subject, "New instruction")
+
         group_members = self.people_group.get_all_members()
 
         for member in group_members:
