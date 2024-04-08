@@ -41,6 +41,29 @@ class NewsFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = News
 
+    @factory.post_generation
+    def people_groups(self, create, extracted):
+        if not create:
+            return
+
+        people_group = PeopleGroupFactory(organization=self.organization)
+        leaders_managers = UserFactory.create_batch(2)
+        managers = UserFactory.create_batch(2)
+        leaders_members = UserFactory.create_batch(2)
+        members = UserFactory.create_batch(2)
+
+        people_group.managers.add(*managers, *leaders_managers)
+        people_group.members.add(*members, *leaders_members)
+        people_group.leaders.add(*leaders_managers, *leaders_members)
+
+        if extracted:
+            for group in extracted:
+                self.people_groups.add(group)
+            if len(extracted) == 0:
+                self.people_groups.add(people_group)
+        else:
+            self.people_groups.add(people_group)
+
 
 class InstructionFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(
