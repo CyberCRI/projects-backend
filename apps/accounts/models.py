@@ -775,6 +775,7 @@ class AnonymousUser:
     _user_queryset = None
     _project_queryset = None
     _people_group_queryset = None
+    _news_queryset = None
 
     def __str__(self) -> str:
         return "AnonymousUser"
@@ -819,6 +820,11 @@ class AnonymousUser:
                 publication_status=Project.PublicationStatus.PUBLIC
             ).distinct()
         return self._project_queryset.prefetch_related(*prefetch)
+
+    def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
+        if self._news_queryset is None:
+            self._news_queryset = News.objects.filter(people_groups=None)
+        return self._news_queryset.distinct().prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:
