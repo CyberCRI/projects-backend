@@ -128,7 +128,6 @@ class KeycloakService:
         email_type: str,
         actions: List[str],
         redirect_uri: str,
-        lifespan: Optional[int] = None,
     ) -> str:
         """
         Get the link to execute actions on a user from the custom endpoint created in Keycloak.
@@ -149,12 +148,13 @@ class KeycloakService:
         if email_type not in cls.EmailType.values:
             raise InvalidKeycloakEmailTypeError(email_type)
         service = cls.service()
-        url = f"realms/lp/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
-        url += f"?client_id={cls.EMAIL_CLIENT_ID}"
-        url += f"&email_type={email_type}"
-        url += f"&actions={','.join(actions)}"
-        url += f"&redirect_uri={redirect_uri}"
-        url += f"&lifespan={lifespan}" if lifespan else ""
+        url = (
+            f"realms/lp/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
+            f"?client_id={cls.EMAIL_CLIENT_ID}"
+            f"&email_type={email_type}"
+            f"&actions={','.join(actions)}"
+            f"&redirect_uri={redirect_uri}"
+        )
         data_raw = service.raw_get(url)
         return raise_error_from_response(data_raw, KeycloakGetError)
 
@@ -194,7 +194,6 @@ class KeycloakService:
         email_type: str,
         actions: Optional[List[str]] = None,
         redirect_organization_code: str = "DEFAULT",
-        lifespan: Optional[int] = None,
     ) -> bool:
         """
         Send an email to a user to execute actions on his account.
@@ -219,7 +218,6 @@ class KeycloakService:
                 - if some actions are provided, they will be added to the currently required actions
             - redirect_organization_code: the code of the organization to redirect the user to after
                 executing the actions
-            - lifespan: the lifespan of the link to execute the actions, in seconds
 
         Returns:
             - True if the email was sent successfully
@@ -241,7 +239,7 @@ class KeycloakService:
         user = keycloak_account.user
         organization = Organization.objects.get(code=redirect_organization_code)
         link = cls.get_user_execute_actions_link(
-            keycloak_account, email_type, actions, organization.website_url, lifespan
+            keycloak_account, email_type, actions, organization.website_url
         )
         link = cls.format_execute_action_link_for_template(
             link, keycloak_account, organization
