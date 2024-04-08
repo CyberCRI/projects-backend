@@ -47,6 +47,8 @@ class NewsFactory(factory.django.DjangoModelFactory):
         if not create:
             return
         if extracted:
+            if extracted == "no_people_groups":
+                return
             for group in extracted:
                 self.people_groups.add(group)
             if len(extracted) == 0:

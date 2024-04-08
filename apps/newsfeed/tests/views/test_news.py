@@ -217,3 +217,33 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
                 ]
             },
         )
+
+
+class NewsTestCase(JwtAPITestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.news = NewsFactory(
+            organization=cls.organization, people_groups="no_people_groups"
+        )
+        cls.news_2 = NewsFactory(organization=cls.organization)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, 1),
+            (TestRoles.DEFAULT, 2),
+            (TestRoles.SUPERADMIN, 2),
+            (TestRoles.ORG_ADMIN, 2),
+            (TestRoles.ORG_FACILITATOR, 2),
+            (TestRoles.ORG_USER, 2),
+        ]
+    )
+    def test_list_news(self, role, expected_count):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        response = self.client.get(reverse("News-list", args=(self.organization.code,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), expected_count)
