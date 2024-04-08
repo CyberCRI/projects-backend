@@ -20,6 +20,7 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.OWNER, status.HTTP_201_CREATED),
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),

@@ -82,7 +82,7 @@ class WillBeOwner(permissions.BasePermission):
             if not user_id and "user" in request.data:
                 user_id = ProjectUser.get_main_id(request.data["user"])
             if user_id:
-                return request.user.id == user_id
+                return int(request.user.id) == int(user_id)
         return False
 
     def has_object_permission(
