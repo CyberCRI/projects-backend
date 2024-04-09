@@ -29,11 +29,11 @@
   "sslRequired": "external",
   "registrationAllowed": false,
   "registrationEmailAsUsername": false,
-  "rememberMe": false,
+  "rememberMe": true,
   "verifyEmail": false,
   "loginWithEmailAllowed": true,
   "duplicateEmailsAllowed": false,
-  "resetPasswordAllowed": false,
+  "resetPasswordAllowed": true,
   "editUsernameAllowed": true,
   "bruteForceProtected": false,
   "permanentLockout": false,
@@ -98,6 +98,15 @@
             ]
           }
         },
+        "clientRole": false,
+        "containerId": "lp",
+        "attributes": {}
+      },
+      {
+        "id": "d3a58d93-484a-4f8c-9f16-648d8b9d3951",
+        "name": "get-user-actions-links",
+        "description": "This role should be given to clients that need to access the custom rest endpoint created by the LPI that returns the execute actions link for a user. This link can then be used in reset_password or verify_email emails.",
+        "composite": false,
         "clientRole": false,
         "containerId": "lp",
         "attributes": {}
@@ -335,6 +344,20 @@
           "clientRole": true,
           "containerId": "54cc5661-04cb-4c45-97d9-ce54f3b4063f",
           "attributes": {}
+        },
+        {
+          "id": "adfb2602-335d-4bb2-bd1a-f82ea2d616ac",
+          "name": "Fetch execute actions links",
+          "description": "",
+          "composite": true,
+          "composites": {
+            "realm": [
+              "get-user-actions-links"
+            ]
+          },
+          "clientRole": true,
+          "containerId": "54cc5661-04cb-4c45-97d9-ce54f3b4063f",
+          "attributes": {}
         }
       ],
       "admin-cli": [],
@@ -350,6 +373,7 @@
           "attributes": {}
         }
       ],
+      "projects-frontend-local": [],
       "lpi-accounts-local": [],
       "account": [
         {
@@ -1148,6 +1172,12 @@
           "query-groups",
           "query-users"
         ]
+      },
+      {
+        "client": "projects-frontend-local",
+        "roles": [
+          "impersonation"
+        ]
       }
     ],
     "account": [
@@ -1264,7 +1294,9 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "redirectUris": ["*"],
+      "redirectUris": [
+        "*"
+      ],
       "webOrigins": [],
       "notBefore": 0,
       "bearerOnly": false,
@@ -1553,6 +1585,110 @@
             "access.token.claim": "true",
             "claim.name": "clientAddress",
             "jsonType.label": "String"
+          }
+        }
+      ],
+      "defaultClientScopes": [
+        "web-origins",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    },
+    {
+      "id": "25f1cd3e-279d-4cf4-9e82-999cab12de5c",
+      "clientId": "projects-frontend-local",
+      "name": "[DEV] LPI Projects frontend",
+      "description": "",
+      "rootUrl": "",
+      "adminUrl": "",
+      "baseUrl": "",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "03nfDv4dHCc97w7E4uvtdyiW4xVD6GYw",
+      "redirectUris": [
+        "https://cri.vue3-nuxt.k8s.lp-i.dev/*",
+        "*",
+        "https://cri.projects.k8s.lp-i.dev",
+        "https://profschercheurs.vue3-nuxt.k8s.lp-i.dev/*",
+        "https://localhost:8080/*",
+        "https://vue3-nuxt.k8s.lp-i.dev/*",
+        "https://localhost:8081/*",
+        "http://localhost:8080/*",
+        "https://127.0.0.1:8080/*",
+        "http://127.0.0.1:8080/*",
+        "https://projects.810.k8s.lp-i.dev/*",
+        "https://profschercheurs.projects.k8s.lp-i.dev",
+        "https://projects.k8s.lp-i.dev"
+      ],
+      "webOrigins": [
+        "+"
+      ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "saml.force.post.binding": "false",
+        "saml.multivalued.roles": "false",
+        "frontchannel.logout.session.required": "false",
+        "post.logout.redirect.uris": "+",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "saml.server.signature.keyinfo.ext": "false",
+        "use.refresh.tokens": "true",
+        "oidc.ciba.grant.enabled": "false",
+        "backchannel.logout.session.required": "false",
+        "client_credentials.use_refresh_token": "false",
+        "require.pushed.authorization.requests": "false",
+        "saml.client.signature": "false",
+        "pkce.code.challenge.method": "S256",
+        "saml.allow.ecp.flow": "false",
+        "id.token.as.detached.signature": "false",
+        "saml.assertion.signature": "false",
+        "client.secret.creation.time": "1662103689",
+        "saml.encrypt": "false",
+        "saml.server.signature": "false",
+        "exclude.session.state.from.auth.response": "false",
+        "saml.artifact.binding": "false",
+        "saml_force_name_id_format": "false",
+        "acr.loa.map": "{}",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "saml.authnstatement": "false",
+        "display.on.consent.screen": "false",
+        "token.response.type.bearer.lower-case": "false",
+        "saml.onetimeuse.condition": "false"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": false,
+      "nodeReRegistrationTimeout": -1,
+      "protocolMappers": [
+        {
+          "id": "18ce9339-5e57-4196-8c60-f5abc77352b8",
+          "name": "User pid",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "user.attribute": "pid",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "user.id",
+            "userinfo.token.claim": "true"
           }
         }
       ],
@@ -2217,6 +2353,10 @@
     "ssl": "false",
     "user": "projects@mg.lp-i.dev"
   },
+  "loginTheme": "learning-planet-institute",
+  "accountTheme": "",
+  "adminTheme": "",
+  "emailTheme": "learning-planet-institute",
   "eventsEnabled": false,
   "eventsListeners": [
     "jboss-logging"
@@ -2396,7 +2536,8 @@
     ]
   },
   "internationalizationEnabled": true,
-  "supportedLocales": [],
+  "supportedLocales": ["en", "fr"],
+  "defaultLocale": "en",
   "authenticationFlows": [
     {
       "id": "6cb6c68b-3e59-42c4-97bb-48889337886a",
@@ -3078,7 +3219,7 @@
     "oauth2DeviceCodeLifespan": "600",
     "parRequestUriLifespan": "60",
     "clientSessionMaxLifespan": "0",
-    "frontendUrl": ""
+    "frontendUrl": "http://localhost:8001"
   },
   "keycloakVersion": "18.0.0",
   "userManagedAccessAllowed": false,
