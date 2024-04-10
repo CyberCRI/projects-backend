@@ -87,14 +87,6 @@ class InstructionFactory(factory.django.DjangoModelFactory):
             return
 
         people_group = PeopleGroupFactory(organization=self.organization)
-        leaders_managers = UserFactory.create_batch(2)
-        managers = UserFactory.create_batch(2)
-        leaders_members = UserFactory.create_batch(2)
-        members = UserFactory.create_batch(2)
-
-        people_group.managers.add(*managers, *leaders_managers)
-        people_group.members.add(*members, *leaders_members)
-        people_group.leaders.add(*leaders_managers, *leaders_members)
 
         if extracted:
             if extracted == "no_people_groups":

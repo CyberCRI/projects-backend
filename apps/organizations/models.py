@@ -183,8 +183,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
                     "review",
                     "faq",
                     "projectcategory",
-                    "news",
-                    "instruction",
                 ]
             ],
         ]

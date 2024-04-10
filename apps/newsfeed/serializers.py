@@ -99,12 +99,6 @@ class InstructionSerializer(OrganizationRelatedSerializer):
                 raise InstructionPeopleGroupOrganizationError
         return value
 
-    def validate_people_groups(self, value):
-        for group in value:
-            if group.organization.code != self.context.get("organization_code"):
-                raise InstructionPeopleGroupOrganizationError
-        return value
-
 
 class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)

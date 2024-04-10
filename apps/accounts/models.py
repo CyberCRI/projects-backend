@@ -801,6 +801,7 @@ class AnonymousUser:
     _people_group_queryset = None
     _news_queryset = None
     _event_queryset = None
+    _instruction_queryset = None
 
     def __str__(self) -> str:
         return "AnonymousUser"
@@ -855,6 +856,11 @@ class AnonymousUser:
         if self._event_queryset is None:
             self._event_queryset = Event.objects.filter(people_groups=None)
         return self._event_queryset.distinct().prefetch_related(*prefetch)
+
+    def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
+        if self._instruction_queryset is None:
+            self._instruction_queryset = Instruction.objects.filter(people_groups=None)
+        return self._instruction_queryset.distinct().prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:
