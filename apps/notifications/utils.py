@@ -5,9 +5,10 @@ from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import ProjectUser
-from apps.commons.models import ProjectRelated
+from apps.commons.models import OrganizationRelated, ProjectRelated
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Follow
+from apps.organizations.models import Organization
 from apps.projects.models import Project
 
 from .models import Notification
@@ -27,15 +28,34 @@ class NotificationTaskManager:
     def __init__(
         self,
         sender: Optional[ProjectUser],
-        item: Union[Project, ProjectRelated],
+        item: Optional[Union[Project, ProjectRelated, OrganizationRelated]] = None,
+        organization: Optional[Organization] = None,
         **kwargs,
     ):
         self.sender = sender
         self.item = item
-        self.project = item if isinstance(item, Project) else item.project
+        if item and isinstance(item, Project):
+            self.project = item
+        elif item and isinstance(item, ProjectRelated):
+            self.project = item.get_related_project()
+        else:
+            self.project = None
+        if organization:
+            self.organization = organization
+        elif (
+            item
+            and isinstance(item, OrganizationRelated)
+            and len(item.get_related_organizations()) > 0
+        ):
+            self.organization = item.get_related_organizations()[0]
+        elif self.project:
+            self.organization = self.project.organizations.first()
+        else:
+            self.organization = None
         self.base_context = kwargs
         self.template_context = {
             "project": self.project,
+            "organization": self.organization,
             "by": sender,
             "item": item,
             **kwargs,
@@ -101,7 +121,7 @@ class NotificationTaskManager:
         to_send = getattr(
             recipient.notification_settings, self.member_setting_name, False
         )
-        if self.notify_followers:
+        if self.project and self.notify_followers:
             to_send &= self.project.get_all_members().filter(id=recipient.id).exists()
             to_send |= (
                 getattr(
@@ -121,6 +141,7 @@ class NotificationTaskManager:
             "sender": self.sender,
             "receiver": recipient,
             "project": self.project,
+            "organization": self.organization,
             "to_send": self.recipient_must_receive(recipient)
             and not self.send_immediately,
         }
@@ -193,7 +214,7 @@ class NotificationTaskManager:
 class ProjectEditedNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.PROJECT_UPDATED
-    template_dir = "notifications/project_edited"
+    template_dir = "project_edited"
     notify_followers = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -224,7 +245,7 @@ class ProjectEditedNotificationManager(NotificationTaskManager):
 class BlogEntryNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.BLOG_ENTRY
-    template_dir = "notifications/new_blogentry"
+    template_dir = "new_blogentry"
     notify_followers = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -241,7 +262,7 @@ class BlogEntryNotificationManager(NotificationTaskManager):
 class AnnouncementNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.ANNOUNCEMENT
-    template_dir = "notifications/new_announcement"
+    template_dir = "new_announcement"
     notify_followers = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -258,7 +279,7 @@ class AnnouncementNotificationManager(NotificationTaskManager):
 class ApplicationNotificationManager(NotificationTaskManager):
     member_setting_name = "announcement_has_new_application"
     notification_type = Notification.Types.APPLICATION
-    template_dir = "notifications/new_application"
+    template_dir = "new_application"
     notify_followers = True
     send_immediately = True
     merge = False
@@ -275,7 +296,7 @@ class ApplicationNotificationManager(NotificationTaskManager):
 class CommentNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_commented"
     notification_type = Notification.Types.COMMENT
-    template_dir = "notifications/new_comment"
+    template_dir = "new_comment"
     send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -288,7 +309,7 @@ class CommentNotificationManager(NotificationTaskManager):
 class FollowerCommentNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_commented"
     notification_type = Notification.Types.COMMENT
-    template_dir = "notifications/new_comment"
+    template_dir = "new_comment"
     notify_followers = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -303,7 +324,7 @@ class FollowerCommentNotificationManager(NotificationTaskManager):
 class CommentReplyNotificationManager(NotificationTaskManager):
     member_setting_name = "comment_received_a_response"
     notification_type = Notification.Types.REPLY
-    template_dir = "notifications/new_reply"
+    template_dir = "new_reply"
     send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -315,7 +336,7 @@ class CommentReplyNotificationManager(NotificationTaskManager):
 class ReadyForReviewNotificationManager(NotificationTaskManager):
     member_setting_name = "project_ready_for_review"
     notification_type = Notification.Types.READY_FOR_REVIEW
-    template_dir = "notifications/project_ready_for_review"
+    template_dir = "project_ready_for_review"
     send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -325,7 +346,7 @@ class ReadyForReviewNotificationManager(NotificationTaskManager):
 class ReviewNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_reviewed"
     notification_type = Notification.Types.REVIEW
-    template_dir = "notifications/new_review"
+    template_dir = "new_review"
     notify_followers = True
     send_immediately = True
 
@@ -343,7 +364,7 @@ class ReviewNotificationManager(NotificationTaskManager):
 class DeleteMembersNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.MEMBER_REMOVED
-    template_dir = "notifications/member_removed_other"
+    template_dir = "member_removed_other"
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.project.get_all_members().exclude(id=self.sender.id).distinct()
@@ -352,7 +373,7 @@ class DeleteMembersNotificationManager(NotificationTaskManager):
 class DeleteGroupMembersNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.GROUP_MEMBER_REMOVED
-    template_dir = "notifications/group_member_removed_other"
+    template_dir = "group_member_removed_other"
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.project.get_all_members().exclude(id=self.sender.id).distinct()
@@ -361,7 +382,7 @@ class DeleteGroupMembersNotificationManager(NotificationTaskManager):
 class UpdateMembersNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.MEMBER_UPDATED
-    template_dir = "notifications/member_updated_other"
+    template_dir = "member_updated_other"
 
     def get_recipients(self) -> List[ProjectUser]:
         ids = [
@@ -386,7 +407,7 @@ class UpdateMembersNotificationManager(NotificationTaskManager):
 class UpdatedMemberNotificationManager(NotificationTaskManager):
     member_setting_name = "notify_added_to_project"
     notification_type = Notification.Types.MEMBER_UPDATED_SELF
-    template_dir = "notifications/member_updated_self"
+    template_dir = "member_updated_self"
     send_immediately = (True,)
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -405,7 +426,7 @@ class UpdatedMemberNotificationManager(NotificationTaskManager):
 class AddMembersNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.MEMBER_ADDED
-    template_dir = "notifications/member_added_other"
+    template_dir = "member_added_other"
 
     def get_recipients(self) -> List[ProjectUser]:
         ids = [
@@ -418,7 +439,7 @@ class AddMembersNotificationManager(NotificationTaskManager):
 class AddMemberNotificationManager(NotificationTaskManager):
     member_setting_name = "notify_added_to_project"
     notification_type = Notification.Types.MEMBER_ADDED_SELF
-    template_dir = "notifications/member_added_self"
+    template_dir = "member_added_self"
     send_immediately = (True,)
 
     def get_recipients(self) -> List[ProjectUser]:
@@ -429,7 +450,7 @@ class AddMemberNotificationManager(NotificationTaskManager):
 class AddGroupMembersNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.GROUP_MEMBER_ADDED
-    template_dir = "notifications/group_member_added_other"
+    template_dir = "group_member_added_other"
 
     def get_recipients(self) -> List[ProjectUser]:
         ids = self.base_context["new_members"] + [
@@ -441,10 +462,73 @@ class AddGroupMembersNotificationManager(NotificationTaskManager):
 class AddGroupMemberNotificationManager(NotificationTaskManager):
     member_setting_name = "notify_added_to_project"
     notification_type = Notification.Types.GROUP_MEMBER_ADDED_SELF
-    template_dir = "notifications/group_member_added_self"
+    template_dir = "group_member_added_self"
     send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
         return ProjectUser.objects.filter(
             id__in=self.base_context["new_members"]
         ).exclude(id=self.sender.id)
+
+
+class NewAccessRequestNotificationManager(NotificationTaskManager):
+    member_setting_name = "organization_has_new_access_request"
+    notification_type = Notification.Types.ACCESS_REQUEST
+    template_dir = "new_access_request"
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()
+
+    def format_context_for_template(
+        self, context: Dict[str, Any], language: str
+    ) -> Dict[str, Any]:
+        if self.item.user:
+            return {
+                **context,
+                "given_name": self.item.user.given_name,
+                "family_name": self.item.user.family_name,
+                "email": self.item.user.email,
+                "job": self.item.user.job,
+                "message": self.item.message,
+            }
+        return {
+            **context,
+            "given_name": self.item.given_name,
+            "family_name": self.item.family_name,
+            "email": self.item.email,
+            "job": self.item.job,
+            "message": self.item.message,
+        }
+
+
+class PendingAccessRequestsNotificationManager(NotificationTaskManager):
+    member_setting_name = "_"  # This notification is not sent by email
+    notification_type = Notification.Types.PENDING_ACCESS_REQUESTS
+    template_dir = "pending_access_request"
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()
+
+
+class InvitationExpiresTodayNotificationManager(NotificationTaskManager):
+    member_setting_name = "invitation_link_will_expire"
+    notification_type = Notification.Types.INVITATION_TODAY_REMINDER
+    template_dir = "invitation_reminder_last_day"
+    send_immediately = True
+    merge = False
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()
+
+
+class InvitationExpiresInOneWeekNotificationManager(NotificationTaskManager):
+    member_setting_name = "invitation_link_will_expire"
+    notification_type = Notification.Types.INVITATION_WEEK_REMINDER
+    template_dir = "invitation_reminder_one_week"
+    send_immediately = True
+    merge = False
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.organization.admins.all()

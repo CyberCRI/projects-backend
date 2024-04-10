@@ -31,6 +31,7 @@ class Notification(models.Model, HasOwner):
         INVITATION_TODAY_REMINDER = "invitation_today_reminder"
         INVITATION_WEEK_REMINDER = "invitation_week_reminder"
         ACCESS_REQUEST = "access_request"
+        PENDING_ACCESS_REQUESTS = "pending_access_requests"
 
     class ExpirationTypes(models.TextChoices):
         """Different dates of expiration."""
@@ -50,10 +51,10 @@ class Notification(models.Model, HasOwner):
         on_delete=models.CASCADE,
         related_name="notifications_received",
     )
-    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
-    invitation = models.ForeignKey(
-        "invitations.Invitation", on_delete=models.CASCADE, null=True
+    organization = models.ForeignKey(
+        "organizations.Organization", on_delete=models.CASCADE, null=True
     )
+    project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
     access_request = models.ForeignKey(
         "invitations.AccessRequest", on_delete=models.CASCADE, null=True
     )
@@ -90,6 +91,8 @@ class NotificationSettings(models.Model, HasOwner):
     project_ready_for_review = models.BooleanField(default=True)
     project_has_been_reviewed = models.BooleanField(default=True)
     comment_received_a_response = models.BooleanField(default=True)
+    organization_has_new_access_request = models.BooleanField(default=True)
+    invitation_link_will_expire = models.BooleanField(default=True)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.user == user

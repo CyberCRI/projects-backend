@@ -1,6 +1,0 @@
-{% load i18n %}
-{% blocktranslate count counter=count %}
-Respond to one pending access request!
-{% plural %}
-Respond to {{ count }} pending access requests!
-{% endblocktranslate %}

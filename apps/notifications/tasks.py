@@ -1,14 +1,21 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Any, Dict, Set
 
 from babel.dates import format_date
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
-from apps.notifications.utils import (
+from apps.invitations.models import AccessRequest, Invitation
+from apps.organizations.models import Organization
+from apps.projects.models import BlogEntry, Project
+from projects.celery import app
+
+from .models import Notification
+from .utils import (
     AddGroupMemberNotificationManager,
     AddGroupMembersNotificationManager,
     AddMemberNotificationManager,
@@ -21,16 +28,16 @@ from apps.notifications.utils import (
     DeleteGroupMembersNotificationManager,
     DeleteMembersNotificationManager,
     FollowerCommentNotificationManager,
+    InvitationExpiresInOneWeekNotificationManager,
+    InvitationExpiresTodayNotificationManager,
+    NewAccessRequestNotificationManager,
+    PendingAccessRequestsNotificationManager,
     ProjectEditedNotificationManager,
     ReadyForReviewNotificationManager,
     ReviewNotificationManager,
     UpdatedMemberNotificationManager,
     UpdateMembersNotificationManager,
 )
-from apps.projects.models import BlogEntry, Project
-from projects.celery import app
-
-from .models import Notification
 
 
 @app.task
@@ -136,9 +143,29 @@ def notify_new_application(announcement_pk: int, application: Dict[str, Any]):
 
 
 @app.task
+def notify_new_access_request(access_request_pk: int):
+    """Notify organization owners of a new access request."""
+    return _notify_new_access_request(access_request_pk)
+
+
+@app.task
+def notify_pending_access_requests():
+    """Notify organization owners of pending access requests."""
+    _notify_pending_access_requests()
+
+
+@app.task
 def send_notifications_reminder():
     users = ProjectUser.objects.filter(notifications_received__to_send=True).distinct()
     _send_notifications_reminder(users)
+
+
+@app.task
+def send_invitations_reminder():
+    """
+    Send a reminder to org admins about invitation links that are about to expire.
+    """
+    _send_invitations_reminder()
 
 
 def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
@@ -296,6 +323,34 @@ def _notify_new_application(announcement_pk: int, application: Dict[str, Any]):
     manager.create_and_send_notifications()
 
 
+def _notify_new_access_request(access_request_pk: int):
+    access_request = AccessRequest.objects.get(pk=access_request_pk)
+    access_requests = [
+        {
+            "id": access_request.id,
+            "given_name": access_request.given_name,
+            "family_name": access_request.family_name,
+        }
+    ]
+    manager = NewAccessRequestNotificationManager(
+        None, access_request, access_requests=access_requests
+    )
+    manager.create_and_send_notifications()
+
+
+def _notify_pending_access_requests():
+    organizations = Organization.objects.all()
+    for organization in organizations:
+        access_requests = AccessRequest.objects.filter(
+            organization=organization, status=AccessRequest.Status.PENDING
+        )
+        if access_requests.exists():
+            manager = PendingAccessRequestsNotificationManager(
+                None, organization, requests_count=access_requests.count()
+            )
+            manager.create_and_send_notifications()
+
+
 def _send_notifications_reminder(users: dict):
     for user in users:
         notifications = Notification.objects.filter(
@@ -306,15 +361,34 @@ def _send_notifications_reminder(users: dict):
                 notification, f"reminder_message_{user.language}"
             )
         if len(notifications) > 0:
-            subject, _ = render_message("notifications/reminder/object", user.language)
+            subject, _ = render_message("reminder/object", user.language)
             subject = f"\N{sparkles} {subject} \N{sparkles}"
             context = {
                 "dateOfTheDay": format_date(date.today(), locale=user.language),
                 "notifications": notifications,
                 "recipient": user,
             }
-            text, html = render_message(
-                "notifications/reminder/mail", user.language, **context
-            )
+            text, html = render_message("reminder/mail", user.language, **context)
             send_email(subject, text, [user.email], html_content=html)
             notifications.update(to_send=False)
+
+
+def _send_invitations_reminder():
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    expire_today = Invitation.objects.filter(
+        expire_at__gte=today, expire_at__lt=today + timedelta(days=1)
+    )
+    expire_in_seven_days = Invitation.objects.filter(
+        expire_at__gte=today + timedelta(days=7),
+        expire_at__lt=today + timedelta(days=8),
+    )
+    for invitation in expire_today:
+        manager = InvitationExpiresTodayNotificationManager(
+            sender=None, item=invitation
+        )
+        manager.create_and_send_notifications()
+    for invitation in expire_in_seven_days:
+        manager = InvitationExpiresInOneWeekNotificationManager(
+            sender=None, item=invitation
+        )
+        manager.create_and_send_notifications()

@@ -1,7 +1,6 @@
 import json
 from unittest.mock import patch
 
-from django.core import mail
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -44,7 +43,6 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        access_request_id = content["id"]
         self.assertEqual(content["organization"], self.organization.code)
         self.assertEqual(content["status"], AccessRequest.Status.PENDING.value)
         self.assertEqual(content["email"], payload["email"])
@@ -52,12 +50,6 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(content["family_name"], payload["family_name"])
         self.assertEqual(content["job"], payload["job"])
         self.assertEqual(content["message"], payload["message"])
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(len(mail.outbox[0].to), 3)
-        self.assertEqual(
-            mail.outbox[0].subject,
-            f"New access request {access_request_id} for {self.organization.name} Projects platform",
-        )
 
     def test_create_access_request_authenticated(self):
         user = UserFactory()
@@ -75,7 +67,6 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        access_request_id = content["id"]
         self.assertEqual(content["organization"], self.organization.code)
         self.assertEqual(content["status"], AccessRequest.Status.PENDING.value)
         self.assertEqual(content["email"], user.email)
@@ -83,12 +74,6 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(content["family_name"], user.family_name)
         self.assertEqual(content["job"], user.job)
         self.assertEqual(content["message"], payload["message"])
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(len(mail.outbox[0].to), 3)
-        self.assertEqual(
-            mail.outbox[0].subject,
-            f"New access request {access_request_id} for {self.organization.name} Projects platform",
-        )
 
 
 class ListAccessRequestTestCase(JwtAPITestCase):

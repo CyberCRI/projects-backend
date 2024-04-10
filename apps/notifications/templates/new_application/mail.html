@@ -1,0 +1,42 @@
+{% extends "../notifications_base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+{% mjml %}
+<mjml>
+    <mj-body>
+        <mj-section>
+            <mj-column>
+                <mj-text font-size="15px">
+                    {% blocktranslate with given_name=recipient.given_name %}
+                    Hello {{ given_name }},
+                    {% endblocktranslate %}
+                </mj-text>
+                <mj-text font-size="15px" line-height="20px">
+                    {{ application.applicant_firstname }} {{ application.applicant_name }}
+                    {% blocktranslate with project_title=project.title announcement_title=item.title project_slug=project.slug website_url=project.organizations.first.website_url %}
+                    applied to the announcement <strong>"{{ announcement_title }}"</strong>
+                    of the project <a class="lpi-link" href="{{ website_url }}/projects/{{ project_slug }}/summary?fromNotification">{{ project_title }}</a>.
+                    {% endblocktranslate %}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+        <mj-section>
+            <mj-column border="1px solid #dddddd" border-radius="5px">
+                <mj-text padding="20px" font-size="15px" line-height="20px">
+                    <strong>{% blocktranslate %}Applicant:{% endblocktranslate %}</strong> {{ application.applicant_firstname }} {{ application.applicant_name }}<br/>
+                    <strong>{% blocktranslate %}Email:{% endblocktranslate %}</strong> <a class="lpi-link" href="mailto:{{ application.applicant_email }}">{{ application.applicant_email }}</a>
+                </mj-text>
+                <mj-divider border-width="1px" border-style="dashed" border-color="lightgrey" padding="0 20px" />
+                <mj-text padding="20px" font-size="15px" line-height="20px">
+                    <strong>{% blocktranslate %}Applicant's message:{% endblocktranslate %}</strong><br/><br/>
+                    {{ application.applicant_message|safe }}
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>
+{% endmjml %}
+{% endblock %}

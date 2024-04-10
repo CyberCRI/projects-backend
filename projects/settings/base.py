@@ -204,6 +204,7 @@ TEMPLATES = [
             BASE_DIR / "apps/accounts/templates",
             BASE_DIR / "apps/emailing/templates",
             BASE_DIR / "apps/invitations/templates",
+            BASE_DIR / "apps/notifications/templates",
             BASE_DIR / "services/keycloak/templates",
         ],
         "APP_DIRS": True,
@@ -420,7 +421,7 @@ if CELERY_ENABLED:
             "schedule": crontab(minute=0, hour=2),
         },
         "send_invitations_reminder": {
-            "task": "apps.invitations.tasks.send_invitations_reminder",
+            "task": "apps.notifications.tasks.send_invitations_reminder",
             "schedule": crontab(minute=0, hour=7),
         },
         "send_notifications_reminder": {
@@ -428,7 +429,7 @@ if CELERY_ENABLED:
             "schedule": crontab(minute=0, hour=8),
         },
         "send_access_request_notification": {
-            "task": "apps.invitations.tasks.send_access_request_notification",
+            "task": "apps.notifications.tasks.notify_pending_access_requests",
             "schedule": crontab(minute=0, hour=9),
         },
         "get_new_mixpanel_events": {
