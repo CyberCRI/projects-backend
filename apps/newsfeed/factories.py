@@ -57,6 +57,8 @@ class NewsFactory(factory.django.DjangoModelFactory):
         people_group.leaders.add(*leaders_managers, *leaders_members)
 
         if extracted:
+            if extracted == "no_people_groups":
+                return
             for group in extracted:
                 self.people_groups.add(group)
             if len(extracted) == 0:
