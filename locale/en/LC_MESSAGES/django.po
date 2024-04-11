@@ -209,6 +209,51 @@ msgstr ""
 msgid "Hello %(given_name)s,"
 msgstr ""
 
+#: apps/emailing/templates/notifications/instruction/mail.html:13
+#: apps/notifications/templates/group_member_added_self/mail.html:13
+#: apps/notifications/templates/member_added_self/mail.html:13
+#: apps/notifications/templates/member_updated_self/mail.html:13
+#: apps/notifications/templates/new_comment/mail.html:13
+#: apps/notifications/templates/new_reply/mail.html:13
+#: apps/notifications/templates/new_review/mail.html:13
+#: apps/notifications/templates/project_ready_for_review/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(given_name)s,\n"
+"          "
+msgstr ""
+
+#: apps/emailing/templates/notifications/instruction/mail.html:18
+msgid ""
+"\n"
+"          You have received a new instruction.\n"
+"          "
+msgstr ""
+
+#: apps/emailing/templates/notifications/instruction/mail.html:28
+msgid "Go to instruction"
+msgstr ""
+
+#: apps/emailing/templates/notifications/instruction/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, You have received a new instruction.\n"
+msgstr ""
+
+#: apps/emailing/templates/notifications/instruction/object.txt:2
+msgid ""
+"\n"
+"New instruction\n"
+msgstr ""
+
+#: apps/emailing/templates/notifications/instruction/reminder.txt:2
+msgid ""
+"\n"
+"You received a new instruction.\n"
+msgstr ""
+
 #: apps/feedbacks/exceptions.py:12
 msgid "You don't have the permission to comment on this project"
 msgstr ""
@@ -466,15 +511,15 @@ msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""
 
-#: apps/notifications/tasks.py:155 apps/notifications/tasks.py:196
+#: apps/notifications/tasks.py:180 apps/notifications/tasks.py:221
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:174 apps/notifications/tasks.py:215
+#: apps/notifications/tasks.py:181 apps/notifications/tasks.py:222
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:175 apps/notifications/tasks.py:216
+#: apps/notifications/tasks.py:182 apps/notifications/tasks.py:223
 msgid "reviewer"
 msgstr ""
 
@@ -488,20 +533,6 @@ msgid_plural ""
 "%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
 msgstr[0] ""
 msgstr[1] ""
-
-#: apps/notifications/templates/group_member_added_self/mail.html:13
-#: apps/notifications/templates/member_added_self/mail.html:13
-#: apps/notifications/templates/member_updated_self/mail.html:13
-#: apps/notifications/templates/new_comment/mail.html:13
-#: apps/notifications/templates/new_reply/mail.html:13
-#: apps/notifications/templates/new_review/mail.html:13
-#: apps/notifications/templates/project_ready_for_review/mail.html:13
-#, python-format
-msgid ""
-"\n"
-"          Hello %(given_name)s,\n"
-"          "
-msgstr ""
 
 #: apps/notifications/templates/group_member_added_self/mail.html:18
 #, python-format

@@ -10,15 +10,8 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
-from apps.newsfeed.models import Instruction
-
 from apps.invitations.models import AccessRequest, Invitation
-from apps.organizations.models import Organization
-from apps.projects.models import BlogEntry, Project
-from projects.celery import app
-
-from .models import Notification
-
+from apps.newsfeed.models import Instruction
 from apps.notifications.utils import (
     AddGroupMemberNotificationManager,
     AddGroupMembersNotificationManager,
@@ -42,6 +35,7 @@ from apps.notifications.utils import (
     UpdatedMemberNotificationManager,
     UpdateMembersNotificationManager,
 )
+from apps.organizations.models import Organization
 from apps.projects.models import BlogEntry, Project
 from projects.celery import app
 
