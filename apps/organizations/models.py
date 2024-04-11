@@ -142,6 +142,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("follow", "follows"),
             ("invitation", "invitation links"),
             ("news", "news"),
+            ("event", "event"),
         )
         permissions = (
             ("view_stat", "Can view stats"),

@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register
 
-from .views import NewsfeedViewSet, NewsHeaderView, NewsViewSet
+from .views import EventViewSet, NewsfeedViewSet, NewsHeaderView, NewsViewSet
 
 router = DefaultRouter()
 
@@ -25,4 +25,11 @@ organization_router_register(
     r"news/(?P<news_id>[^/]+)/header",
     NewsHeaderView,
     basename="News-header",
+)
+
+organization_router_register(
+    router,
+    r"event",
+    EventViewSet,
+    basename="Event",
 )

@@ -8,8 +8,11 @@ from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectLightSerializer
 
-from .exceptions import NewsPeopleGroupOrganizationError
-from .models import News, Newsfeed
+from .exceptions import (
+    EventPeopleGroupOrganizationError,
+    NewsPeopleGroupOrganizationError,
+)
+from .models import Event, News, Newsfeed
 
 
 class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
@@ -68,3 +71,31 @@ class NewsfeedSerializer(serializers.ModelSerializer):
             "type",
             "updated_at",
         ]
+
+
+class EventSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+    organization = serializers.SlugRelatedField(
+        slug_field="code", queryset=Organization.objects.all()
+    )
+    people_groups = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=PeopleGroup.objects.all()
+    )
+
+    class Meta:
+        model = Event
+        fields = [
+            "id",
+            "title",
+            "content",
+            "event_date",
+            "organization",
+            "people_groups",
+            "created_at",
+            "updated_at",
+        ]
+
+    def validate_people_groups(self, value):
+        for group in value:
+            if group.organization.code != self.context.get("organization_code"):
+                raise EventPeopleGroupOrganizationError
+        return value
