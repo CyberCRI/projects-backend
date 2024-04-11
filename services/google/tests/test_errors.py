@@ -109,6 +109,7 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_success(
                     user.given_name, user.family_name, "/CRI/Test"
                 ),  # user created
+                self.get_google_user_success(),  # user exists
                 self.add_user_alias_error(),  # user alias error
                 self.list_google_groups_success([]),  # user groups are fetched
                 self.add_user_to_group_success(),  # user is added to group
@@ -149,6 +150,7 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_success(
                     user.given_name, user.family_name, "/CRI/Test"
                 ),  # user created
+                self.get_google_user_success(),  # user exists
                 self.add_user_alias_success(),  # user alias created
                 self.list_google_groups_error(),  # user groups error
             ]
@@ -188,6 +190,7 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_success(
                     user.given_name, user.family_name, "/CRI/Test"
                 ),  # user created
+                self.get_google_user_success(),  # user exists
                 self.add_user_alias_success(),  # user alias created
                 self.list_google_groups_success([]),  # user groups error
                 self.add_user_to_group_error(),  # user is added to group
