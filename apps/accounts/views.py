@@ -43,7 +43,7 @@ from keycloak import (
     KeycloakPutError,
 )
 from services.google.models import GoogleAccount, GoogleGroup
-from services.google.tasks import (
+from services.google.utils import (
     create_google_account,
     create_google_group,
     suspend_google_account,

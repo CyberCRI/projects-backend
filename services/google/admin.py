@@ -75,9 +75,7 @@ class GoogleAccountAdmin(admin.ModelAdmin):
         "user__email",
         "email",
     )
-    list_filter = (
-        "organizational_unit",
-    )
+    list_filter = ("organizational_unit",)
 
     def create_in_google(self, request: HttpRequest, queryset: QuerySet[Any]):
         for account in queryset:

@@ -10,18 +10,17 @@ from services.google.factories import (
 )
 from services.google.models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 from services.google.tasks import (
-    create_google_account,
-    create_google_group,
-    create_google_group_task,
-    create_google_user_task,
-    suspend_google_account,
-    suspend_google_user_task,
-    update_google_account,
-    update_google_group,
-    update_google_group_task,
-    update_google_user_task,
+    sync_google_account_groups_task,
+    sync_google_group_members_task,
 )
 from services.google.testcases import GoogleTestCase
+from services.google.utils import (
+    create_google_account,
+    create_google_group,
+    suspend_google_account,
+    update_google_account,
+    update_google_group,
+)
 
 
 class GoogleCreateUserErrorTestCase(GoogleTestCase):
@@ -36,10 +35,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         super().setUp()
         self.client.force_authenticate(user=self.user)
 
-    @patch("services.google.tasks.create_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_account_create_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -88,10 +87,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
             self.assertEqual(error.google_account, user.google_account)
             self.assertEqual(error.retries_count, 0)
 
-    @patch("services.google.tasks.create_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_account_alias_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -108,7 +107,6 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_success(
                     user.given_name, user.family_name, "/CRI/Test"
                 ),  # user created
-                self.get_google_user_success(),  # user exists
                 self.add_user_alias_error(),  # user alias error
                 self.list_google_groups_success([]),  # user groups are fetched
                 self.add_user_to_group_success(),  # user is added to group
@@ -128,10 +126,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_account, user.google_account)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.create_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_account_sync_groups_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -148,12 +146,12 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_success(
                     user.given_name, user.family_name, "/CRI/Test"
                 ),  # user created
-                self.get_google_user_success(),  # user exists
                 self.add_user_alias_success(),  # user alias created
                 self.list_google_groups_error(),  # user groups error
             ]
         )
-        create_google_account(user, "/CRI/Test")
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_account(user, "/CRI/Test")
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=True
         )
@@ -167,10 +165,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_account, user.google_account)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.create_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_account_sync_group_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -187,13 +185,13 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_success(
                     user.given_name, user.family_name, "/CRI/Test"
                 ),  # user created
-                self.get_google_user_success(),  # user exists
                 self.add_user_alias_success(),  # user alias created
                 self.list_google_groups_success([]),  # user groups error
                 self.add_user_to_group_error(),  # user is added to group
             ]
         )
-        create_google_account(user, "/CRI/Test")
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_account(user, "/CRI/Test")
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=True
         )
@@ -220,10 +218,10 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         super().setUp()
         self.client.force_authenticate(user=self.user)
 
-    @patch("services.google.tasks.update_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_update_google_account_update_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = update_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -254,10 +252,10 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_account, google_account)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.update_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_update_google_account_sync_groups_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = update_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -273,7 +271,8 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
                 self.list_google_groups_error(),  # fetch user groups error
             ]
         )
-        update_google_account(google_account.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_account(google_account.user)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=True
         )
@@ -287,10 +286,10 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_account, google_account)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.update_google_user_task.delay")
+    @patch("services.google.tasks.sync_google_account_groups_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_update_google_account_sync_group_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = update_google_user_task
+        mocked_delay.side_effect = sync_google_account_groups_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -307,7 +306,8 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # add user to group error
             ]
         )
-        update_google_account(google_account.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_account(google_account.user)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=True
         )
@@ -334,10 +334,8 @@ class GoogleSuspendUserErrorTestCase(GoogleTestCase):
         super().setUp()
         self.client.force_authenticate(user=self.user)
 
-    @patch("services.google.tasks.suspend_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
-    def test_suspend_google_account_suspend_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = suspend_google_user_task
+    def test_suspend_google_account_suspend_error(self, mocked):
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
             groups=[self.organization.get_users(), group.people_group.get_members()]
@@ -378,10 +376,10 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         super().setUp()
         self.client.force_authenticate(user=self.user)
 
-    @patch("services.google.tasks.create_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_create_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         people_group = PeopleGroupFactory(email="", organization=self.organization)
         google_group = GoogleGroup.objects.create(people_group=people_group)
         GoogleAccountFactory(
@@ -430,10 +428,10 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
             self.assertEqual(error.google_group, google_group)
             self.assertEqual(error.retries_count, 0)
 
-    @patch("services.google.tasks.create_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_alias_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         people_group = PeopleGroupFactory(email="", organization=self.organization)
         google_group = GoogleGroup.objects.create(people_group=people_group)
         GoogleAccountFactory(
@@ -467,10 +465,10 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_group, google_group)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.create_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_sync_members_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         people_group = PeopleGroupFactory(email="", organization=self.organization)
         google_group = GoogleGroup.objects.create(people_group=people_group)
         GoogleAccountFactory(
@@ -489,7 +487,8 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
                 self.list_group_members_error(),  # group members are fetched
             ]
         )
-        create_google_group(people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_group(people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -503,10 +502,10 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_group, google_group)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.create_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_sync_member_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = create_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         people_group = PeopleGroupFactory(email="", organization=self.organization)
         google_group = GoogleGroup.objects.create(people_group=people_group)
         google_account = GoogleAccountFactory(
@@ -526,7 +525,8 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # user is added to group
             ]
         )
-        create_google_group(people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_group(people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -553,10 +553,10 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         super().setUp()
         self.client.force_authenticate(user=self.user)
 
-    @patch("services.google.tasks.update_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_update_google_group_update_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = update_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         google_group = GoogleGroupFactory(organization=self.organization)
         GoogleSyncErrorFactory(
             google_group=google_group,
@@ -584,10 +584,10 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_group, google_group)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.update_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_update_google_group_sync_members_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = update_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         google_group = GoogleGroupFactory(organization=self.organization)
         GoogleAccountFactory(
             groups=[
@@ -606,7 +606,8 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
                 self.list_group_members_error(),  # group members are fetched
             ]
         )
-        update_google_group(google_group.people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_group(google_group.people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -620,10 +621,10 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         self.assertEqual(errors[0].google_group, google_group)
         self.assertEqual(errors[0].retries_count, 0)
 
-    @patch("services.google.tasks.update_google_group_task.delay")
+    @patch("services.google.tasks.sync_google_group_members_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_update_google_group_sync_member_error(self, mocked, mocked_delay):
-        mocked_delay.side_effect = update_google_group_task
+        mocked_delay.side_effect = sync_google_group_members_task
         google_group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
             groups=[
@@ -643,7 +644,8 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # user is added to group
             ]
         )
-        update_google_group(google_group.people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_group(google_group.people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
