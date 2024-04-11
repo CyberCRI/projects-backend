@@ -3,6 +3,7 @@ from django.db import transaction
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from projects.celery import app
+from services.google.interface import GoogleService
 
 from .models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
@@ -73,6 +74,7 @@ def create_google_user_task(user_id: str):
     google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
         google_account = google_account.get()
+        GoogleService.get_user_by_email(google_account.email, 10)
         google_account.create_alias()
         google_account.sync_groups()
 

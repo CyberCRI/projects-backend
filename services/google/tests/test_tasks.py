@@ -71,6 +71,7 @@ class GoogleTasksTestCase(GoogleTestCase):
                     payload["google_organizational_unit"],
                     email_count=1,
                 ),  # user is created
+                self.get_google_user_success(),  # user is fetched
                 self.add_user_alias_success(),  # alias is added
                 self.list_google_groups_success([]),  # user groups are fetched
                 self.add_user_to_group_success(),  # user is added to group
