@@ -266,8 +266,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"           Vous avez reçu une nouvelle demande d'accès pour la plateforme "
-"Projects de %(org_name)s\n"
+"           Vous avez reçu une nouvelle instruction.\n"
 "    "
 
 #: apps/emailing/templates/notifications/instruction/mail.html:28
@@ -281,8 +280,7 @@ msgid ""
 "Hello %(recipient.given_name)s, You have received a new instruction.\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s a indiqué que le projet "
-"%(project_title)s est prêt à être relu.\n"
+"Bonjour %(recipient.given_name)s, Vous avez reçu une nouvelle instruction.\n"
 
 #: apps/emailing/templates/notifications/instruction/object.txt:2
 msgid ""
@@ -295,6 +293,8 @@ msgid ""
 "\n"
 "You received a new instruction.\n"
 msgstr ""
+"\n"
+"Vous avez reçu une nouvelle instruction.\n"
 
 #: apps/feedbacks/exceptions.py:12
 msgid "You don't have the permission to comment on this project"
