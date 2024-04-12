@@ -10,6 +10,7 @@ from apps.announcements.models import Announcement
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
 from apps.invitations.models import AccessRequest, Invitation
+from apps.newsfeed.models import Instruction
 from apps.organizations.models import Organization
 from apps.projects.models import BlogEntry, Project
 from projects.celery import app
@@ -31,6 +32,7 @@ from .utils import (
     InvitationExpiresInOneWeekNotificationManager,
     InvitationExpiresTodayNotificationManager,
     NewAccessRequestNotificationManager,
+    NewInstructionNotificationManager,
     PendingAccessRequestsNotificationManager,
     ProjectEditedNotificationManager,
     ReadyForReviewNotificationManager,
@@ -166,6 +168,11 @@ def send_invitations_reminder():
     Send a reminder to org admins about invitation links that are about to expire.
     """
     _send_invitations_reminder()
+
+
+def notify_new_instructions():
+    """Notify members of a new instruction."""
+    return _notify_new_instructions()
 
 
 def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
@@ -392,3 +399,19 @@ def _send_invitations_reminder():
             sender=None, item=invitation
         )
         manager.create_and_send_notifications()
+
+
+def _notify_new_instructions():
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    queryset = Instruction.objects.filter(
+        notified=False,
+        has_to_be_notified=True,
+        publication_date__lte=today + timedelta(days=1),
+    )
+    for instruction in queryset:
+        manager = NewInstructionNotificationManager(
+            sender=instruction.owner, item=instruction
+        )
+        manager.create_and_send_notifications()
+        instruction.notified = True
+        instruction.save()

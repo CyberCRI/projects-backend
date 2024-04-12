@@ -1,26 +1,37 @@
 import datetime
+import random
 
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.newsfeed.factories import EventFactory
-from apps.newsfeed.models import Event
+from apps.misc.models import Language
+from apps.newsfeed.factories import InstructionFactory
+from apps.newsfeed.models import Instruction
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
-class CreateEventTestCase(JwtAPITestCase):
+class CreateInstructionTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
+
+        leaders_managers = UserFactory.create_batch(2)
+        managers = UserFactory.create_batch(2)
+        leaders_members = UserFactory.create_batch(2)
+        members = UserFactory.create_batch(2)
+
+        cls.people_group.managers.add(*managers, *leaders_managers)
+        cls.people_group.members.add(*members, *leaders_members)
+        cls.people_group.leaders.add(*leaders_managers, *leaders_members)
 
     @parameterized.expand(
         [
@@ -35,7 +46,7 @@ class CreateEventTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_create_event(self, role, expected_code):
+    def test_create_instruction(self, role, expected_code):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
@@ -43,28 +54,35 @@ class CreateEventTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
-            "people_groups": [self.people_group.id],
+            "language": random.choice(Language.values),  # nosec
+            "publication_date": datetime.date.today().isoformat(),
+            "people_groups_ids": [self.people_group.id],
+            "has_to_be_notified": True,
         }
-
         response = self.client.post(
-            reverse("Event-list", args=(organization.code,)), data=payload
+            reverse("Instruction-list", args=(organization.code,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
-            self.assertEqual(content["people_groups"], payload["people_groups"])
+            self.assertEqual(content["language"], payload["language"])
+            self.assertEqual(
+                content["people_groups"][0]["id"], payload["people_groups_ids"][0]
+            )
+            self.assertEqual(
+                content["has_to_be_notified"], payload["has_to_be_notified"]
+            )
 
 
-class UpdateEventTestCase(JwtAPITestCase):
+class UpdateInstructionTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
-        cls.event = EventFactory(
+        cls.instruction = InstructionFactory(
             organization=cls.organization, people_groups=[cls.people_group]
         )
 
@@ -81,20 +99,22 @@ class UpdateEventTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_update_event(self, role, expected_code):
+    def test_update_instruction(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "language": "fr",
+            "publication_date": datetime.date.today().isoformat(),
+            "has_to_be_notified": True,
         }
         response = self.client.patch(
             reverse(
-                "Event-detail",
+                "Instruction-detail",
                 args=(
                     self.organization.code,
-                    self.event.id,
+                    self.instruction.id,
                 ),
             ),
             data=payload,
@@ -104,9 +124,13 @@ class UpdateEventTestCase(JwtAPITestCase):
             content = response.json()
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
+            self.assertEqual(content["language"], payload["language"])
+            self.assertEqual(
+                content["has_to_be_notified"], payload["has_to_be_notified"]
+            )
 
 
-class DeleteEventTestCase(JwtAPITestCase):
+class DeleteInstructionTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -126,28 +150,28 @@ class DeleteEventTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_delete_event(self, role, expected_code):
-        event = EventFactory(
+    def test_delete_instruction(self, role, expected_code):
+        instruction = InstructionFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        event_id = event.id
+        instruction_id = instruction.id
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
-                "Event-detail",
+                "Instruction-detail",
                 args=(
                     self.organization.code,
-                    event.id,
+                    instruction.id,
                 ),
             )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(Event.objects.filter(id=event_id).exists())
+            self.assertFalse(Instruction.objects.filter(id=instruction_id).exists())
 
 
-class RetrieveEventTestCase(JwtAPITestCase):
+class RetrieveInstructionTestCase(JwtAPITestCase):
 
     @classmethod
     def setUpTestData(cls) -> None:
@@ -174,8 +198,8 @@ class RetrieveEventTestCase(JwtAPITestCase):
                 )
             ],
         }
-        cls.events = {
-            key: EventFactory(organization=cls.organization, people_groups=value)
+        cls.instructions = {
+            key: InstructionFactory(organization=cls.organization, people_groups=value)
             for key, value in cls.people_groups.items()
         }
 
@@ -192,23 +216,23 @@ class RetrieveEventTestCase(JwtAPITestCase):
             (TestRoles.GROUP_MEMBER, ("none", "public", "private")),
         ]
     )
-    def test_list_event(self, role, expected_count):
+    def test_list_instructions(self, role, expected_count):
         user = self.get_parameterized_test_user(
             role, instances=self.people_groups["private"]
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Event-list", args=(self.organization.code,))
+            reverse("Instruction-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertSetEqual(
-            {event["id"] for event in content},
-            {self.events[key].id for key in expected_count},
+            {instruction["id"] for instruction in content},
+            {self.instructions[key].id for key in expected_count},
         )
 
 
-class ValidateEventTestCase(JwtAPITestCase):
+class ValidateInstructionTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -221,46 +245,48 @@ class ValidateEventTestCase(JwtAPITestCase):
     def setUp(self):
         super().setUp()
 
-    def test_create_event_with_people_group_in_other_organization(self):
-        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN, instances=[])
+    def test_create_instruction_with_people_group_in_other_organization(self):
+        user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
         payload = {
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
-            "people_groups": [self.other_org_people_group.id],
+            "language": "fr",
+            "publication_date": datetime.date.today().isoformat(),
+            "people_groups_ids": [self.other_org_people_group.id],
+            "has_to_be_notified": True,
         }
         response = self.client.post(
-            reverse("Event-list", args=(self.organization.code,)), data=payload
+            reverse("Instruction-list", args=(self.organization.code,)), data=payload
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
             {
-                "people_groups": [
-                    "The people groups of an event must belong to the same organization"
+                "people_groups_ids": [
+                    "The people groups of an instruction must belong to the same organization"
                 ]
             },
         )
 
-    def test_update_event_with_people_group_in_other_organization(self):
+    def test_update_instruction_with_people_group_in_other_organization(self):
         people_group = PeopleGroupFactory(organization=self.organization)
-        event = EventFactory(
+        instruction = InstructionFactory(
             organization=self.organization, people_groups=[people_group]
         )
-        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN, instances=[])
+        user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
         payload = {
-            "people_groups": [self.other_org_people_group.id],
+            "people_groups_ids": [self.other_org_people_group.id],
         }
         response = self.client.patch(
             reverse(
-                "Event-detail",
+                "Instruction-detail",
                 args=(
                     self.organization.code,
-                    event.id,
+                    instruction.id,
                 ),
             ),
             data=payload,
@@ -269,8 +295,8 @@ class ValidateEventTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {
-                "people_groups": [
-                    "The people groups of an event must belong to the same organization"
+                "people_groups_ids": [
+                    "The people groups of an instruction must belong to the same organization"
                 ]
             },
         )

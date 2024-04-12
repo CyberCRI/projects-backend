@@ -2,15 +2,16 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models
 
-from apps.commons.models import OrganizationRelated
+from apps.commons.models import HasOwner, OrganizationRelated
 from apps.misc.models import Language
 
 if TYPE_CHECKING:
+    from apps.accounts.models import ProjectUser
     from apps.organizations.models import Organization
 
 
 class News(models.Model, OrganizationRelated):
-    """News isntance.
+    """News instance.
 
     Attributes
     ----------
@@ -28,9 +29,9 @@ class News(models.Model, OrganizationRelated):
     groups: ManyToManyField
         Groups which have access to the news.
     created_at: DateTimeField
-        Date of creation of this project.
+        Date of creation of this news.
     updated_at: DateTimeField
-        Date of the last change made to the project.
+        Date of the last change made to the news.
     """
 
     title = models.CharField(max_length=255, verbose_name=("title"))
@@ -54,6 +55,68 @@ class News(models.Model, OrganizationRelated):
 
     def get_related_organizations(self):
         return [self.organization]
+
+
+class Instruction(models.Model, OrganizationRelated, HasOwner):
+    """Instruction instance.
+    Attributes
+    ----------
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    title: CharField
+        Title of the instruction.
+    content: TextField
+        Content of the instruction.
+    publication_date: DateTimeField
+        Date of the instruction's publication.
+    groups: ManyToManyField
+        Groups which have access to the instruction.
+    created_at: DateTimeField
+        Date of creation of this instruction.
+    updated_at: DateTimeField
+        Date of the last change made to the instruction.
+    has_to_be_notified: BooleanField
+        If a notification has to be sent to the groups.
+    notified: BooleanField
+        If a notification has already been sent.
+    """
+
+    owner = models.ForeignKey(
+        "accounts.ProjectUser",
+        related_name="owned_instructions",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
+    title = models.CharField(max_length=255, verbose_name=("title"))
+    content = models.TextField(blank=True, default="")
+    publication_date = models.DateTimeField()
+    people_groups = models.ManyToManyField(
+        "accounts.PeopleGroup", related_name="instructions", blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    language = models.CharField(
+        max_length=2, choices=Language.choices, default=Language.default()
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        related_name="instructions",
+        on_delete=models.CASCADE,
+    )
+    has_to_be_notified = models.BooleanField(default=False)
+    notified = models.BooleanField(default=False)
+
+    def get_related_organizations(self):
+        return [self.organization]
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.owner
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        return self.owner == user
 
 
 class Newsfeed(models.Model):

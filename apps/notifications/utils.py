@@ -532,3 +532,21 @@ class InvitationExpiresInOneWeekNotificationManager(NotificationTaskManager):
 
     def get_recipients(self) -> List[ProjectUser]:
         return self.organization.admins.all()
+
+
+class NewInstructionNotificationManager(NotificationTaskManager):
+    member_setting_name = "new_instruction"
+    notification_type = Notification.Types.NEW_INSTRUCTION
+    template_dir = "new_instruction"
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        if self.item.people_groups.exists():
+            return (
+                ProjectUser.objects.filter(
+                    groups__people_groups__in=self.item.people_groups.all(),
+                )
+                .exclude(id=self.sender.id)
+                .distinct()
+            )
+        return []

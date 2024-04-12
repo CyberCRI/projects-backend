@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup
+from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.files.models import Image
@@ -10,9 +11,10 @@ from apps.projects.serializers import ProjectLightSerializer
 
 from .exceptions import (
     EventPeopleGroupOrganizationError,
+    InstructionPeopleGroupOrganizationError,
     NewsPeopleGroupOrganizationError,
 )
-from .models import Event, News, Newsfeed
+from .models import Event, Instruction, News, Newsfeed
 
 
 class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
@@ -53,6 +55,47 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
         for group in value:
             if group.organization.code != self.context.get("organization_code"):
                 raise NewsPeopleGroupOrganizationError
+        return value
+
+
+class InstructionSerializer(OrganizationRelatedSerializer):
+    organization = serializers.SlugRelatedField(
+        slug_field="code", queryset=Organization.objects.all()
+    )
+    people_groups_ids = serializers.PrimaryKeyRelatedField(
+        write_only=True,
+        many=True,
+        queryset=PeopleGroup.objects.all(),
+        source="people_groups",
+        required=False,
+    )
+    people_groups = PeopleGroupLightSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Instruction
+        fields = [
+            "id",
+            "title",
+            "content",
+            "publication_date",
+            "organization",
+            "people_groups",
+            "language",
+            "has_to_be_notified",
+            "created_at",
+            "updated_at",
+            # write only
+            "people_groups_ids",
+            # read only
+            "people_groups",
+        ]
+
+    def validate_people_groups_ids(self, value):
+        for group in value:
+            if not PeopleGroup.objects.filter(
+                id=group.id, organization__code=self.context.get("organization_code")
+            ).exists():
+                raise InstructionPeopleGroupOrganizationError
         return value
 
 

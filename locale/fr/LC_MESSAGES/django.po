@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-11 13:31+0000\n"
+"POT-Creation-Date: 2024-04-12 10:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,15 +120,15 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:690
+#: apps/accounts/models.py:702
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:691
+#: apps/accounts/models.py:703
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:692
+#: apps/accounts/models.py:704
 msgid "Public"
 msgstr "Publique"
 
@@ -570,15 +570,21 @@ msgstr "Les groupes d'une news doivent appartenir à la même organisation"
 msgid "The people groups of an event must belong to the same organization"
 msgstr "Les groupes d'une actualité doivent appartenir à la même organisation"
 
-#: apps/notifications/tasks.py:173 apps/notifications/tasks.py:214
+#: apps/newsfeed/exceptions.py:25
+msgid ""
+"The people groups of an instruction must belong to the same organization"
+msgstr ""
+"Les groupes d'une instruction doivent appartenir à la même organisation"
+
+#: apps/notifications/tasks.py:180 apps/notifications/tasks.py:221
 msgid "editor"
 msgstr "éditeur"
 
-#: apps/notifications/tasks.py:174 apps/notifications/tasks.py:215
+#: apps/notifications/tasks.py:181 apps/notifications/tasks.py:222
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:175 apps/notifications/tasks.py:216
+#: apps/notifications/tasks.py:182 apps/notifications/tasks.py:223
 msgid "reviewer"
 msgstr "correcteur"
 
@@ -602,6 +608,7 @@ msgstr[1] ""
 #: apps/notifications/templates/member_added_self/mail.html:13
 #: apps/notifications/templates/member_updated_self/mail.html:13
 #: apps/notifications/templates/new_comment/mail.html:13
+#: apps/notifications/templates/new_instruction/mail.html:13
 #: apps/notifications/templates/new_reply/mail.html:13
 #: apps/notifications/templates/new_review/mail.html:13
 #: apps/notifications/templates/project_ready_for_review/mail.html:13
@@ -1221,6 +1228,43 @@ msgstr[0] ""
 msgstr[1] ""
 "\n"
 "%(full_name)s a ajouté %(count)s commentaires au projet %(project_title)s.\n"
+
+#: apps/notifications/templates/new_instruction/mail.html:18
+msgid ""
+"\n"
+"          You have received a new instruction.\n"
+"          "
+msgstr ""
+"\n"
+"           Vous avez reçu une nouvelle instruction.\n"
+"    "
+
+#: apps/notifications/templates/new_instruction/mail.html:28
+msgid "Go to instruction"
+msgstr "Voir le projet"
+
+#: apps/notifications/templates/new_instruction/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, You have received a new instruction.\n"
+msgstr ""
+"\n"
+"Bonjour %(recipient.given_name)s, Vous avez reçu une nouvelle instruction.\n"
+
+#: apps/notifications/templates/new_instruction/object.txt:2
+msgid ""
+"\n"
+"New instruction\n"
+msgstr ""
+
+#: apps/notifications/templates/new_instruction/reminder.txt:2
+msgid ""
+"\n"
+"You received a new instruction.\n"
+msgstr ""
+"\n"
+"Vous avez reçu une nouvelle instruction.\n"
 
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format
