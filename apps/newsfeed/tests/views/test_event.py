@@ -155,9 +155,24 @@ class RetrieveEventTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_groups = {
             "none": [],
-            "public": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PUBLIC)],
-            "private": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PRIVATE)],
-            "org": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.ORG)],
+            "public": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+                )
+            ],
+            "private": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+                )
+            ],
+            "org": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.ORG,
+                )
+            ],
         }
         cls.events = {
             key: EventFactory(organization=cls.organization, people_groups=value)
@@ -178,7 +193,9 @@ class RetrieveEventTestCase(JwtAPITestCase):
         ]
     )
     def test_list_event(self, role, expected_count):
-        user = self.get_parameterized_test_user(role, instances=self.people_groups["private"])
+        user = self.get_parameterized_test_user(
+            role, instances=self.people_groups["private"]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Event-list", args=(self.organization.code,))

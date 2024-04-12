@@ -161,9 +161,24 @@ class RetrieveNewsTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_groups = {
             "none": [],
-            "public": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PUBLIC)],
-            "private": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PRIVATE)],
-            "org": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.ORG)],
+            "public": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+                )
+            ],
+            "private": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+                )
+            ],
+            "org": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.ORG,
+                )
+            ],
         }
         cls.news = {
             key: NewsFactory(organization=cls.organization, people_groups=value)
@@ -184,11 +199,11 @@ class RetrieveNewsTestCase(JwtAPITestCase):
         ]
     )
     def test_list_news(self, role, expected_count):
-        user = self.get_parameterized_test_user(role, instances=self.people_groups["private"])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("News-list", args=(self.organization.code,))
+        user = self.get_parameterized_test_user(
+            role, instances=self.people_groups["private"]
         )
+        self.client.force_authenticate(user)
+        response = self.client.get(reverse("News-list", args=(self.organization.code,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertSetEqual(

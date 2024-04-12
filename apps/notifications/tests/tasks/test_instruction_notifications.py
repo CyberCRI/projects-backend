@@ -2,99 +2,85 @@ import datetime
 
 from django.core import mail
 from django.utils.timezone import make_aware
+from faker import Faker
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.commons.test import JwtAPITestCase
 from apps.newsfeed.factories import InstructionFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import notify_new_instructions
+from apps.notifications.tasks import _notify_new_instructions
 from apps.organizations.factories import OrganizationFactory
 
+faker = Faker()
 
-class SendInstructionNotificationTestCase(JwtAPITestCase):
+
+class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        # INSTRUCTION 1
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
 
-        leaders_managers = UserFactory.create_batch(2)
-        managers = UserFactory.create_batch(2)
-        leaders_members = UserFactory.create_batch(2)
-        members = UserFactory.create_batch(2)
+    def test_instruction_notification_task(self):
+        owner = UserFactory(
+            groups=[self.organization.get_admins(), self.people_group.get_leaders()]
+        )
+        notified = UserFactory(
+            groups=[self.organization.get_users(), self.people_group.get_members()]
+        )
+        not_notified = UserFactory(
+            groups=[self.organization.get_users(), self.people_group.get_members()]
+        )
+        # Disabling notification for 'not_notified'
+        not_notified.notification_settings.new_instruction = False
+        not_notified.notification_settings.save()
 
-        cls.people_group.managers.add(*managers, *leaders_managers)
-        cls.people_group.members.add(*members, *leaders_members)
-        cls.people_group.leaders.add(*leaders_managers, *leaders_members)
-
-        cls.publication_date = make_aware(datetime.datetime.now())
-
-        cls.instruction = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
-            publication_date=cls.publication_date,
+        global_instruction = InstructionFactory(
+            organization=self.organization,
+            owner=owner,
             has_to_be_notified=True,
+            notified=False,
         )
-
-        # INSTRUCTION 2
-        cls.people_group_2 = PeopleGroupFactory(organization=cls.organization)
-
-        leaders_managers_2 = UserFactory.create_batch(2)
-        managers_2 = UserFactory.create_batch(2)
-        leaders_members_2 = UserFactory.create_batch(2)
-        members_2 = UserFactory.create_batch(2)
-
-        cls.people_group_2.managers.add(*managers_2, *leaders_managers_2)
-        cls.people_group_2.members.add(*members_2, *leaders_members_2)
-        cls.people_group_2.leaders.add(*leaders_managers_2, *leaders_members_2)
-
-        cls.publication_date_2 = make_aware(datetime.datetime.now())
-        cls.instruction_2 = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group_2],
-            publication_date=cls.publication_date_2,
-            has_to_be_notified=False,
-        )
-
-        # INSTRUCTION 3
-        cls.people_group_3 = PeopleGroupFactory(organization=cls.organization)
-
-        leaders_managers_3 = UserFactory.create_batch(2)
-        managers_3 = UserFactory.create_batch(2)
-        leaders_members_3 = UserFactory.create_batch(2)
-        members_3 = UserFactory.create_batch(2)
-
-        cls.people_group_2.managers.add(*managers_3, *leaders_managers_3)
-        cls.people_group_2.members.add(*members_3, *leaders_members_3)
-        cls.people_group_2.leaders.add(*leaders_managers_3, *leaders_members_3)
-
-        cls.publication_date_3 = make_aware(
-            datetime.datetime.now() + datetime.timedelta(1)
-        )
-        cls.instruction_3 = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group_3],
-            publication_date=cls.publication_date_3,
+        group_instruction = InstructionFactory(
+            organization=self.organization,
+            people_groups=[self.people_group],
+            owner=owner,
             has_to_be_notified=True,
+            notified=False,
         )
-
-    def test_send_instruction_notification(self):
-        notify_new_instructions()
+        group_planned_instruction = InstructionFactory(
+            organization=self.organization,
+            people_groups=[self.people_group],
+            owner=owner,
+            publication_date=make_aware(
+                datetime.datetime.now() + datetime.timedelta(7)
+            ),
+            has_to_be_notified=True,
+            notified=False,
+        )
+        _notify_new_instructions()
         notifications = Notification.objects.all()
-        self.assertEqual(notifications.count(), 8)
-        self.assertEqual(len(mail.outbox), 8)
+        self.assertEqual(notifications.count(), 2)
+        for user in [notified, not_notified]:
+            notification = notifications.get(receiver=user)
+            self.assertEqual(notification.type, Notification.Types.NEW_INSTRUCTION)
+            self.assertEqual(notification.project, None)
+            self.assertEqual(notification.organization, self.organization)
+            self.assertFalse(notification.to_send)
+            self.assertFalse(notification.is_viewed)
+            self.assertEqual(notification.count, 1)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].to, [notified.email])
         self.assertEqual(mail.outbox[0].subject, "New instruction")
 
-        group_members = self.people_group.get_all_members()
+        global_instruction.refresh_from_db()
+        group_instruction.refresh_from_db()
+        group_planned_instruction.refresh_from_db()
+        self.assertTrue(global_instruction.notified)
+        self.assertTrue(group_instruction.notified)
+        self.assertFalse(group_planned_instruction.notified)
 
-        for member in group_members:
-            notification = notifications.get(receiver=member)
-            self.assertEqual(notification.type, Notification.Types.NEW_INSTRUCTION)
-            self.assertEqual(
-                notification.reminder_message_en,
-                "You received a new instruction.",
-            )
-            notify_new_instructions()
-            notifications = Notification.objects.all()
-            self.assertEqual(notifications.count(), 8)
+        _notify_new_instructions()
+        notifications = Notification.objects.all()
+        self.assertEqual(notifications.count(), 2)
+        self.assertEqual(len(mail.outbox), 1)

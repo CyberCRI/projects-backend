@@ -179,9 +179,24 @@ class RetrieveInstructionTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_groups = {
             "none": [],
-            "public": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PUBLIC)],
-            "private": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PRIVATE)],
-            "org": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.ORG)],
+            "public": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+                )
+            ],
+            "private": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+                )
+            ],
+            "org": [
+                PeopleGroupFactory(
+                    organization=cls.organization,
+                    publication_status=PeopleGroup.PublicationStatus.ORG,
+                )
+            ],
         }
         cls.instructions = {
             key: InstructionFactory(organization=cls.organization, people_groups=value)
@@ -202,7 +217,9 @@ class RetrieveInstructionTestCase(JwtAPITestCase):
         ]
     )
     def test_list_instructions(self, role, expected_count):
-        user = self.get_parameterized_test_user(role, instances=self.people_groups["private"])
+        user = self.get_parameterized_test_user(
+            role, instances=self.people_groups["private"]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Instruction-list", args=(self.organization.code,))
@@ -213,8 +230,6 @@ class RetrieveInstructionTestCase(JwtAPITestCase):
             {instruction["id"] for instruction in content},
             {self.instructions[key].id for key in expected_count},
         )
-
-
 
 
 class ValidateInstructionTestCase(JwtAPITestCase):
