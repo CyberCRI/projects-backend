@@ -28,7 +28,7 @@ from apps.commons.models import (
     PermissionsSetupModel,
 )
 from apps.misc.models import SDG, Language, WikipediaTag
-from apps.newsfeed.models import News
+from apps.newsfeed.models import Event, News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from keycloak import KeycloakGetError
@@ -333,6 +333,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         self._user_queryset: Optional[QuerySet["ProjectUser"]] = None
         self._people_group_queryset: Optional[QuerySet["PeopleGroup"]] = None
         self._news_queryset: Optional[QuerySet["News"]] = None
+        self._event_queryset: Optional[QuerySet["Event"]] = None
 
     # AbstractUser unused fields
     username_validator = None
@@ -534,6 +535,17 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     Q(people_groups__in=groups) | Q(people_groups=None)
                 )
         return self._news_queryset.distinct().prefetch_related(*prefetch)
+
+    def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
+        if self._event_queryset is None:
+            if self.is_superuser:
+                self._event_queryset = Event.objects.all()
+            else:
+                groups = self.get_people_group_queryset()
+                self._event_queryset = Event.objects.filter(
+                    Q(people_groups__in=groups) | Q(people_groups=None)
+                )
+        return self._event_queryset.distinct().prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:
@@ -776,6 +788,7 @@ class AnonymousUser:
     _project_queryset = None
     _people_group_queryset = None
     _news_queryset = None
+    _event_queryset = None
 
     def __str__(self) -> str:
         return "AnonymousUser"
@@ -825,6 +838,11 @@ class AnonymousUser:
         if self._news_queryset is None:
             self._news_queryset = News.objects.filter(people_groups=None)
         return self._news_queryset.distinct().prefetch_related(*prefetch)
+
+    def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
+        if self._event_queryset is None:
+            self._event_queryset = Event.objects.filter(people_groups=None)
+        return self._event_queryset.distinct().prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:

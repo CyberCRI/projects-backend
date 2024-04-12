@@ -15,8 +15,8 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
 
-from .models import News, Newsfeed
-from .serializers import NewsfeedSerializer, NewsSerializer
+from .models import Event, News, Newsfeed
+from .serializers import EventSerializer, NewsfeedSerializer, NewsSerializer
 
 
 class NewsViewSet(viewsets.ModelViewSet):
@@ -193,3 +193,49 @@ class NewsfeedViewSet(ListViewSet):
             .annotate(ordering=ordering)
             .order_by("ordering")
         )
+
+
+class EventViewSet(viewsets.ModelViewSet):
+    """Main endpoints for projects."""
+
+    serializer_class = EventSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["event_date"]
+    lookup_field = "id"
+    lookup_value_regex = "[^/]+"
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "event")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "newsfeed")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def get_queryset(self) -> QuerySet:
+        if "organization_code" in self.kwargs:
+            return self.request.user.get_event_queryset().filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return Event.objects.none()
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Force the usage of the organization code from the url in the serializer
+        """
+        if self.action in ["create", "update", "partial_update"]:
+            self.request.data.update(
+                {
+                    "organization": self.kwargs["organization_code"],
+                }
+            )
+        return super().get_serializer(*args, **kwargs)

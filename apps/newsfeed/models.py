@@ -1,7 +1,12 @@
+from typing import TYPE_CHECKING, List
+
 from django.db import models
 
 from apps.commons.models import OrganizationRelated
 from apps.misc.models import Language
+
+if TYPE_CHECKING:
+    from apps.organizations.models import Organization
 
 
 class News(models.Model, OrganizationRelated):
@@ -88,3 +93,41 @@ class Newsfeed(models.Model):
     type = models.CharField(
         max_length=50, choices=NewsfeedType.choices, default=NewsfeedType.PROJECT
     )
+
+
+class Event(models.Model, OrganizationRelated):
+    """News isntance.
+
+    Attributes
+    ----------
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    title: CharField
+        Title of the event.
+    content: TextField
+        Content of the event.
+    event_date: DateTimeField
+        Date of teh event' publication.
+    groups: ManyToManyField
+        Groups which have access to the event.
+    created_at: DateTimeField
+        Date of creation of this project.
+    updated_at: DateTimeField
+        Date of the last change made to the project.
+    """
+
+    title = models.CharField(max_length=255, verbose_name=("title"))
+    content = models.TextField(blank=True, default="")
+    event_date = models.DateTimeField()
+    people_groups = models.ManyToManyField(
+        "accounts.PeopleGroup", related_name="events"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    organization = models.ForeignKey(
+        "organizations.Organization", related_name="events", on_delete=models.CASCADE
+    )
+
+    def get_related_organizations(self) -> List["Organization"]:
+        return [self.organization]
