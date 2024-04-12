@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-11 13:31+0000\n"
+"POT-Creation-Date: 2024-04-12 09:19+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -120,15 +120,15 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:690
+#: apps/accounts/models.py:702
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:691
+#: apps/accounts/models.py:703
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:692
+#: apps/accounts/models.py:704
 msgid "Public"
 msgstr "Publique"
 
@@ -625,7 +625,7 @@ msgstr "Les groupes d'une news doivent appartenir à la même organisation"
 msgid "The people groups of an event must belong to the same organization"
 msgstr "Les groupes d'une actualité doivent appartenir à la même organisation"
 
-#: apps/newsfeed/exceptions.py:15
+#: apps/newsfeed/exceptions.py:25
 msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""

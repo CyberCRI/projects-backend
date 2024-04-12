@@ -3,11 +3,12 @@ from django.utils import timezone
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.announcements.factories import AnnouncementFactory
-from apps.projects.factories import ProjectFactory
 from apps.commons.factories import language_factory
 from apps.organizations.factories import OrganizationFactory
+from apps.projects.factories import ProjectFactory
 
-from .models import Event, News, Newsfeed, Instruction
+from .models import Event, Instruction, News, Newsfeed
+
 
 class NewsfeedProjectFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(lambda: ProjectFactory())

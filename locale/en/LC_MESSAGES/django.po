@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-11 13:31+0000\n"
+"POT-Creation-Date: 2024-04-12 09:19+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,15 +116,15 @@ msgstr ""
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:690
+#: apps/accounts/models.py:702
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:691
+#: apps/accounts/models.py:703
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:692
+#: apps/accounts/models.py:704
 msgid "Public"
 msgstr ""
 
@@ -506,7 +506,7 @@ msgstr ""
 msgid "The people groups of an event must belong to the same organization"
 msgstr ""
 
-#: apps/notifications/tasks.py:173 apps/notifications/tasks.py:214
+#: apps/newsfeed/exceptions.py:25
 msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""

@@ -6,16 +6,15 @@ from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
-from apps.newsfeed.exceptions import InstructionPeopleGroupOrganizationError
-from apps.newsfeed.models import Instruction, News, Newsfeed
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectLightSerializer
 
 from .exceptions import (
     EventPeopleGroupOrganizationError,
+    InstructionPeopleGroupOrganizationError,
     NewsPeopleGroupOrganizationError,
 )
-from .models import Event, News, Newsfeed
+from .models import Event, Instruction, News, Newsfeed
 
 
 class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
