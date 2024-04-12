@@ -93,10 +93,12 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.post(
-                reverse("ProjectUser-list") + f"?organization={self.organization.code}",
-                data=payload,
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    reverse("ProjectUser-list")
+                    + f"?organization={self.organization.code}",
+                    data=payload,
+                )
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             user = ProjectUser.objects.get(id=content["id"])
@@ -176,10 +178,11 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.patch(
-                reverse("ProjectUser-detail", args=(google_account.user.id,)),
-                data=payload,
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.patch(
+                    reverse("ProjectUser-detail", args=(google_account.user.id,)),
+                    data=payload,
+                )
             mocked_update_user.assert_called_once_with(google_account)
             mocked_get_user_groups.assert_called_once_with(google_account)
             mocked_remove_user_from_group.assert_called_once_with(
@@ -197,7 +200,6 @@ class GoogleTasksTestCase(GoogleTestCase):
     @patch("services.google.interface.GoogleService.service")
     def test_suspend_google_account(self, mocked, mocked_delay):
         mocked_delay.side_effect = suspend_google_user_task
-
         google_account = GoogleAccountFactory(groups=[self.organization.get_users()])
         google_id = google_account.google_id
         mocked.side_effect = self.google_side_effect(
@@ -210,9 +212,10 @@ class GoogleTasksTestCase(GoogleTestCase):
         with patch.object(
             GoogleService, "suspend_user", wraps=GoogleService.suspend_user
         ) as mocked_suspend_user:
-            response = self.client.delete(
-                reverse("ProjectUser-detail", args=(google_account.user.id,))
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.delete(
+                    reverse("ProjectUser-detail", args=(google_account.user.id,))
+                )
             mocked_suspend_user.assert_called_once_with(google_account)
             self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
             self.assertFalse(GoogleAccount.objects.filter(google_id=google_id).exists())
@@ -239,7 +242,6 @@ class GoogleTasksTestCase(GoogleTestCase):
                     email=payload["email"],
                     name=payload["name"],
                 ),  # group is created
-                self.get_google_group_success(),  # group is fetched
                 self.add_group_alias_success(),  # alias is added
                 self.list_group_members_success([]),  # group members are fetched
                 self.add_user_to_group_success(),  # user is added to group
@@ -263,10 +265,11 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.post(
-                reverse("PeopleGroup-list", args=(self.organization.code,)),
-                data=payload,
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    reverse("PeopleGroup-list", args=(self.organization.code,)),
+                    data=payload,
+                )
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             people_group = PeopleGroup.objects.get(id=content["id"])
@@ -330,10 +333,11 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.post(
-                reverse("PeopleGroup-list", args=(self.organization.code,)),
-                data=payload,
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    reverse("PeopleGroup-list", args=(self.organization.code,)),
+                    data=payload,
+                )
             self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
             content = response.json()
             self.assertEqual(
@@ -368,7 +372,6 @@ class GoogleTasksTestCase(GoogleTestCase):
                     email=f"{payload['name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}",
                     name=payload["name"],
                 ),  # group is created
-                self.get_google_group_success(),  # group is fetched
                 self.add_group_alias_success(),  # alias is added
                 self.list_group_members_success([]),  # group members are fetched
                 self.add_user_to_group_success(),  # user is added to group
@@ -392,10 +395,11 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.post(
-                reverse("PeopleGroup-list", args=(self.organization.code,)),
-                data=payload,
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.post(
+                    reverse("PeopleGroup-list", args=(self.organization.code,)),
+                    data=payload,
+                )
             self.assertEqual(response.status_code, status.HTTP_201_CREATED)
             content = response.json()
             people_group = PeopleGroup.objects.get(id=content["id"])
@@ -466,13 +470,14 @@ class GoogleTasksTestCase(GoogleTestCase):
                 wraps=GoogleService.add_user_to_group,
             ) as mocked_add_user_to_group,
         ):
-            response = self.client.patch(
-                reverse(
-                    "PeopleGroup-detail",
-                    args=(self.organization.code, google_group.people_group.id),
-                ),
-                data=payload,
-            )
+            with self.captureOnCommitCallbacks(execute=True):
+                response = self.client.patch(
+                    reverse(
+                        "PeopleGroup-detail",
+                        args=(self.organization.code, google_group.people_group.id),
+                    ),
+                    data=payload,
+                )
             mocked_update_group.assert_called_once_with(google_group)
             mocked_get_group_members.assert_called_once_with(google_group)
             mocked_remove_user_from_group.assert_called_once_with(user_1, google_group)

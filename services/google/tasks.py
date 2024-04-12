@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.db import transaction
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from projects.celery import app
@@ -18,7 +19,7 @@ def create_google_account(
         )
         google_account, error = google_account.create()
         if not error:
-            create_google_user_task.delay(user.id)
+            transaction.on_commit(lambda: create_google_user_task.delay(user.id))
         else:
             for task in [
                 GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
@@ -33,7 +34,9 @@ def update_google_account(user: ProjectUser, organizational_unit: str = None):
     if user.groups.filter(
         organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
     ).exists():
-        update_google_user_task.delay(user.id, organizational_unit)
+        transaction.on_commit(
+            lambda: update_google_user_task.delay(user.id, organizational_unit)
+        )
 
 
 def suspend_google_account(user: ProjectUser):
@@ -50,7 +53,9 @@ def create_google_group(people_group: PeopleGroup):
         )
         google_group, error = google_group.create()
         if not error:
-            create_google_group_task.delay(people_group.pk)
+            transaction.on_commit(
+                lambda: create_google_group_task.delay(people_group.pk)
+            )
         else:
             for task in [
                 GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
@@ -61,7 +66,7 @@ def create_google_group(people_group: PeopleGroup):
 
 def update_google_group(people_group: PeopleGroup):
     if people_group.organization.code == settings.GOOGLE_SYNCED_ORGANIZATION:
-        update_google_group_task.delay(people_group.pk)
+        transaction.on_commit(lambda: update_google_group_task.delay(people_group.pk))
 
 
 @app.task

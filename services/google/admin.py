@@ -69,6 +69,13 @@ class GoogleAccountAdmin(admin.ModelAdmin):
         "sync_keycloak",
         "suspend",
     ]
+    search_fields = (
+        "user__given_name",
+        "user__family_name",
+        "user__email",
+        "email",
+    )
+    list_filter = ("organizational_unit",)
 
     def create_in_google(self, request: HttpRequest, queryset: QuerySet[Any]):
         for account in queryset:

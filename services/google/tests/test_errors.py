@@ -66,7 +66,8 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.create_google_user_error(),  # user creation error
             ]
         )
-        create_google_account(user, "/CRI/Test")
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_account(user, "/CRI/Test")
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=True
         )
@@ -114,7 +115,8 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_success(),  # user is added to group
             ]
         )
-        create_google_account(user, "/CRI/Test")
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_account(user, "/CRI/Test")
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=True
         )
@@ -153,7 +155,8 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.list_google_groups_error(),  # user groups error
             ]
         )
-        create_google_account(user, "/CRI/Test")
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_account(user, "/CRI/Test")
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=True
         )
@@ -193,7 +196,8 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # user is added to group
             ]
         )
-        create_google_account(user, "/CRI/Test")
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_account(user, "/CRI/Test")
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account__user=user, solved=True
         )
@@ -240,7 +244,8 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_success(),  # user is added to group
             ]
         )
-        update_google_account(google_account.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_account(google_account.user)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=True
         )
@@ -273,7 +278,8 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
                 self.list_google_groups_error(),  # fetch user groups error
             ]
         )
-        update_google_account(google_account.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_account(google_account.user)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=True
         )
@@ -307,7 +313,8 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # add user to group error
             ]
         )
-        update_google_account(google_account.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_account(google_account.user)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=True
         )
@@ -352,7 +359,8 @@ class GoogleSuspendUserErrorTestCase(GoogleTestCase):
                 self.update_google_user_error(),  # suspend user error
             ]
         )
-        suspend_google_account(google_account.user)
+        with self.captureOnCommitCallbacks(execute=True):
+            suspend_google_account(google_account.user)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_account=google_account, solved=True
         )
@@ -408,7 +416,8 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
                 self.create_google_group_error(),  # create group error
             ]
         )
-        create_google_group(people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_group(people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -453,7 +462,8 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_success(),  # user is added to group
             ]
         )
-        create_google_group(people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_group(people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -489,7 +499,8 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
                 self.list_group_members_error(),  # group members are fetched
             ]
         )
-        create_google_group(people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_group(people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -526,7 +537,8 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # user is added to group
             ]
         )
-        create_google_group(people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            create_google_group(people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -570,7 +582,8 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_success(),  # user is added to group
             ]
         )
-        update_google_group(google_group.people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_group(google_group.people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -606,7 +619,8 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
                 self.list_group_members_error(),  # group members are fetched
             ]
         )
-        update_google_group(google_group.people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_group(google_group.people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
@@ -643,7 +657,8 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
                 self.add_user_to_group_error(),  # user is added to group
             ]
         )
-        update_google_group(google_group.people_group)
+        with self.captureOnCommitCallbacks(execute=True):
+            update_google_group(google_group.people_group)
         previous_errors = GoogleSyncErrors.objects.filter(
             google_group=google_group, solved=True
         )
