@@ -441,7 +441,7 @@ if CELERY_ENABLED:
             "schedule": crontab(minute="*/10", hour="*"),
         },
         "send_instruction_notification": {
-            "task": "apps.notifications.tasks.notify_new_instruction",
+            "task": "apps.notifications.tasks.notify_new_instructions",
             "schedule": crontab(minute=0, hour="*"),
         },
     }

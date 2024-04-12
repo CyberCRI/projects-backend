@@ -32,7 +32,7 @@ class Notification(models.Model, HasOwner):
         INVITATION_WEEK_REMINDER = "invitation_week_reminder"
         ACCESS_REQUEST = "access_request"
         PENDING_ACCESS_REQUESTS = "pending_access_requests"
-        INSTRUCTION = "instruction"
+        NEW_INSTRUCTION = "new_instruction"
 
     class ExpirationTypes(models.TextChoices):
         """Different dates of expiration."""
@@ -58,9 +58,6 @@ class Notification(models.Model, HasOwner):
     project = models.ForeignKey("projects.Project", on_delete=models.CASCADE, null=True)
     access_request = models.ForeignKey(
         "invitations.AccessRequest", on_delete=models.CASCADE, null=True
-    )
-    instruction = models.ForeignKey(
-        "newsfeed.Instruction", on_delete=models.CASCADE, null=True
     )
     is_viewed = models.BooleanField(default=False)
     to_send = models.BooleanField(default=False)
@@ -97,6 +94,7 @@ class NotificationSettings(models.Model, HasOwner):
     comment_received_a_response = models.BooleanField(default=True)
     organization_has_new_access_request = models.BooleanField(default=True)
     invitation_link_will_expire = models.BooleanField(default=True)
+    new_instruction = models.BooleanField(default=True)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return self.user == user

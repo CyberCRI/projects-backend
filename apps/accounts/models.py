@@ -849,17 +849,17 @@ class AnonymousUser:
 
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
         if self._news_queryset is None:
-            self._news_queryset = News.objects.filter(people_groups=None)
+            self._news_queryset = News.objects.filter(Q(people_groups__isnull=True) | Q(people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC))
         return self._news_queryset.distinct().prefetch_related(*prefetch)
 
     def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
         if self._event_queryset is None:
-            self._event_queryset = Event.objects.filter(people_groups=None)
+            self._event_queryset = Event.objects.filter(Q(people_groups__isnull=True) | Q(people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC))
         return self._event_queryset.distinct().prefetch_related(*prefetch)
 
     def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
         if self._instruction_queryset is None:
-            self._instruction_queryset = Instruction.objects.filter(people_groups=None)
+            self._instruction_queryset = Instruction.objects.filter(Q(people_groups__isnull=True) | Q(people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC))
         return self._instruction_queryset.distinct().prefetch_related(*prefetch)
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:

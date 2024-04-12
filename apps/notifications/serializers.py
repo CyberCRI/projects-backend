@@ -46,11 +46,14 @@ class NotificationSettingsSerializer(serializers.ModelSerializer):
         fields = (
             "notify_added_to_project",
             "announcement_published",
+            "announcement_has_new_application",
             "followed_project_has_been_edited",
             "project_has_been_commented",
             "project_has_been_edited",
             "project_ready_for_review",
             "project_has_been_reviewed",
-            "announcement_has_new_application",
             "comment_received_a_response",
+            "organization_has_new_access_request",
+            "invitation_link_will_expire",
+            "new_instruction",
         )

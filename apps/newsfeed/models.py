@@ -2,10 +2,11 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models
 
-from apps.commons.models import OrganizationRelated
+from apps.commons.models import HasOwner, OrganizationRelated
 from apps.misc.models import Language
 
 if TYPE_CHECKING:
+    from apps.accounts.models import ProjectUser
     from apps.organizations.models import Organization
 
 
@@ -56,7 +57,7 @@ class News(models.Model, OrganizationRelated):
         return [self.organization]
 
 
-class Instruction(models.Model, OrganizationRelated):
+class Instruction(models.Model, OrganizationRelated, HasOwner):
     """Instruction instance.
     Attributes
     ----------
@@ -81,6 +82,12 @@ class Instruction(models.Model, OrganizationRelated):
         If a notification has already been sent.
     """
 
+    owner = models.ForeignKey(
+        "accounts.ProjectUser",
+        related_name="owned_instructions",
+        null=True,
+        on_delete=models.SET_NULL,
+    )
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
     publication_date = models.DateTimeField()
@@ -102,6 +109,14 @@ class Instruction(models.Model, OrganizationRelated):
 
     def get_related_organizations(self):
         return [self.organization]
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.owner
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        return self.owner == user
 
 
 class Newsfeed(models.Model):

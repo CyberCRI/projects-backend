@@ -57,6 +57,18 @@ class NewsViewSet(viewsets.ModelViewSet):
             "organization_code": self.kwargs.get("organization_code", None),
         }
 
+    def get_serializer(self, *args, **kwargs):
+        """
+        Force the usage of the organization code from the url in the serializer
+        """
+        if self.action in ["create", "update", "partial_update"]:
+            self.request.data.update(
+                {
+                    "organization": self.kwargs["organization_code"],
+                }
+            )
+        return super().get_serializer(*args, **kwargs)
+
 
 class NewsHeaderView(ImageStorageView):
     permission_classes = [
@@ -114,8 +126,17 @@ class InstructionViewSet(viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    def get_serializer_class(self):
-        return self.serializer_class
+    def get_serializer(self, *args, **kwargs):
+        """
+        Force the usage of the organization code from the url in the serializer
+        """
+        if self.action in ["create", "update", "partial_update"]:
+            self.request.data.update(
+                {
+                    "organization": self.kwargs["organization_code"],
+                }
+            )
+        return super().get_serializer(*args, **kwargs)
 
     def get_queryset(self) -> QuerySet:
         if "organization_code" in self.kwargs:

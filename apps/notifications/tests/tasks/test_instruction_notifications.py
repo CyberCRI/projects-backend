@@ -7,7 +7,7 @@ from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.commons.test import JwtAPITestCase
 from apps.newsfeed.factories import InstructionFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import notify_new_instruction
+from apps.notifications.tasks import notify_new_instructions
 from apps.organizations.factories import OrganizationFactory
 
 
@@ -80,7 +80,7 @@ class SendInstructionNotificationTestCase(JwtAPITestCase):
         )
 
     def test_send_instruction_notification(self):
-        notify_new_instruction()
+        notify_new_instructions()
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 8)
         self.assertEqual(len(mail.outbox), 8)
@@ -90,11 +90,11 @@ class SendInstructionNotificationTestCase(JwtAPITestCase):
 
         for member in group_members:
             notification = notifications.get(receiver=member)
-            self.assertEqual(notification.type, Notification.Types.INSTRUCTION)
+            self.assertEqual(notification.type, Notification.Types.NEW_INSTRUCTION)
             self.assertEqual(
                 notification.reminder_message_en,
                 "You received a new instruction.",
             )
-            notify_new_instruction()
+            notify_new_instructions()
             notifications = Notification.objects.all()
             self.assertEqual(notifications.count(), 8)

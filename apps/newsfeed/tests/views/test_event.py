@@ -6,6 +6,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.newsfeed.factories import EventFactory
 from apps.newsfeed.models import Event
@@ -146,6 +147,50 @@ class DeleteEventTestCase(JwtAPITestCase):
             self.assertFalse(Event.objects.filter(id=event_id).exists())
 
 
+class RetrieveEventTestCase(JwtAPITestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.people_groups = {
+            "none": [],
+            "public": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PUBLIC)],
+            "private": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PRIVATE)],
+            "org": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.ORG)],
+        }
+        cls.events = {
+            key: EventFactory(organization=cls.organization, people_groups=value)
+            for key, value in cls.people_groups.items()
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("none", "public")),
+            (TestRoles.DEFAULT, ("none", "public")),
+            (TestRoles.SUPERADMIN, ("none", "public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("none", "public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("none", "public", "private", "org")),
+            (TestRoles.ORG_USER, ("none", "public", "org")),
+            (TestRoles.GROUP_LEADER, ("none", "public", "private")),
+            (TestRoles.GROUP_MANAGER, ("none", "public", "private")),
+            (TestRoles.GROUP_MEMBER, ("none", "public", "private")),
+        ]
+    )
+    def test_list_event(self, role, expected_count):
+        user = self.get_parameterized_test_user(role, instances=self.people_groups["private"])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("Event-list", args=(self.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {event["id"] for event in content},
+            {self.events[key].id for key in expected_count},
+        )
+
+
 class ValidateEventTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -212,35 +257,3 @@ class ValidateEventTestCase(JwtAPITestCase):
                 ]
             },
         )
-
-
-class EventTestCase(JwtAPITestCase):
-
-    @classmethod
-    def setUpTestData(cls) -> None:
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.event = EventFactory(
-            organization=cls.organization, people_groups="no_people_groups"
-        )
-        cls.event_2 = EventFactory(organization=cls.organization)
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, 1),
-            (TestRoles.DEFAULT, 2),
-            (TestRoles.SUPERADMIN, 2),
-            (TestRoles.ORG_ADMIN, 2),
-            (TestRoles.ORG_FACILITATOR, 2),
-            (TestRoles.ORG_USER, 2),
-        ]
-    )
-    def test_list_event(self, role, expected_count):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Event-list", args=(self.organization.code,))
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), expected_count)

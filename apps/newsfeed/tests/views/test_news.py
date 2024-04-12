@@ -7,6 +7,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
 from apps.newsfeed.factories import NewsFactory
@@ -152,7 +153,51 @@ class DeleteNewsTestCase(JwtAPITestCase):
             self.assertFalse(News.objects.filter(id=news_id).exists())
 
 
-class ValidatePeopleGroupTestCase(JwtAPITestCase):
+class RetrieveNewsTestCase(JwtAPITestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.people_groups = {
+            "none": [],
+            "public": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PUBLIC)],
+            "private": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PRIVATE)],
+            "org": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.ORG)],
+        }
+        cls.news = {
+            key: NewsFactory(organization=cls.organization, people_groups=value)
+            for key, value in cls.people_groups.items()
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("none", "public")),
+            (TestRoles.DEFAULT, ("none", "public")),
+            (TestRoles.SUPERADMIN, ("none", "public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("none", "public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("none", "public", "private", "org")),
+            (TestRoles.ORG_USER, ("none", "public", "org")),
+            (TestRoles.GROUP_LEADER, ("none", "public", "private")),
+            (TestRoles.GROUP_MANAGER, ("none", "public", "private")),
+            (TestRoles.GROUP_MEMBER, ("none", "public", "private")),
+        ]
+    )
+    def test_list_news(self, role, expected_count):
+        user = self.get_parameterized_test_user(role, instances=self.people_groups["private"])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("News-list", args=(self.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {news["id"] for news in content},
+            {self.news[key].id for key in expected_count},
+        )
+
+
+class ValidateNewsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -217,33 +262,3 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
                 ]
             },
         )
-
-
-class NewsTestCase(JwtAPITestCase):
-
-    @classmethod
-    def setUpTestData(cls) -> None:
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.news = NewsFactory(
-            organization=cls.organization, people_groups="no_people_groups"
-        )
-        cls.news_2 = NewsFactory(organization=cls.organization)
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, 1),
-            (TestRoles.DEFAULT, 2),
-            (TestRoles.SUPERADMIN, 2),
-            (TestRoles.ORG_ADMIN, 2),
-            (TestRoles.ORG_FACILITATOR, 2),
-            (TestRoles.ORG_USER, 2),
-        ]
-    )
-    def test_list_news(self, role, expected_count):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("News-list", args=(self.organization.code,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), expected_count)

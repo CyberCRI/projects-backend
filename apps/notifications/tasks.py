@@ -2,7 +2,6 @@ from datetime import date, timedelta
 from typing import Any, Dict, Set
 
 from babel.dates import format_date
-from django.conf import settings
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -12,7 +11,12 @@ from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
 from apps.invitations.models import AccessRequest, Invitation
 from apps.newsfeed.models import Instruction
-from apps.notifications.utils import (
+from apps.organizations.models import Organization
+from apps.projects.models import BlogEntry, Project
+from projects.celery import app
+
+from .models import Notification
+from .utils import (
     AddGroupMemberNotificationManager,
     AddGroupMembersNotificationManager,
     AddMemberNotificationManager,
@@ -28,6 +32,7 @@ from apps.notifications.utils import (
     InvitationExpiresInOneWeekNotificationManager,
     InvitationExpiresTodayNotificationManager,
     NewAccessRequestNotificationManager,
+    NewInstructionNotificationManager,
     PendingAccessRequestsNotificationManager,
     ProjectEditedNotificationManager,
     ReadyForReviewNotificationManager,
@@ -35,11 +40,6 @@ from apps.notifications.utils import (
     UpdatedMemberNotificationManager,
     UpdateMembersNotificationManager,
 )
-from apps.organizations.models import Organization
-from apps.projects.models import BlogEntry, Project
-from projects.celery import app
-
-from .models import Notification
 
 
 @app.task
@@ -170,9 +170,9 @@ def send_invitations_reminder():
     _send_invitations_reminder()
 
 
-def notify_new_instruction():
+def notify_new_instructions():
     """Notify members of a new instruction."""
-    return _notify_new_instruction()
+    return _notify_new_instructions()
 
 
 def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
@@ -401,50 +401,17 @@ def _send_invitations_reminder():
         manager.create_and_send_notifications()
 
 
-def _notify_new_instruction():
-    instructions = Instruction.objects.all()
-    for instruction in instructions:
-        if instruction.has_to_be_notified and not instruction.notified:
-            start_of_day = timezone.now().replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            publication_day = instruction.publication_date.replace(
-                hour=0, minute=0, second=0, microsecond=0
-            )
-            if start_of_day == publication_day:
-                groups = instruction.people_groups.all()
-                if groups.count() > 0:
-                    receivers = set()
-                    for group in groups:
-                        members = group.get_all_members().all()
-                        receivers.update(members)
-                        defaults = {
-                            f"reminder_message_{lang}": render_message(
-                                "notifications/instruction/reminder", lang
-                            )[0]
-                            for lang in settings.REQUIRED_LANGUAGES
-                        }
-                    for receiver in receivers:
-                        Notification.objects.create(
-                            receiver=receiver,
-                            type="instruction",
-                            instruction=instruction,
-                            **defaults,
-                        )
-
-                        context = {
-                            "recipient": receiver,
-                        }
-                        subject, _ = render_message(
-                            "notifications/instruction/object",
-                            receiver.language,
-                            **context,
-                        )
-                        text, html = render_message(
-                            "notifications/instruction/mail",
-                            receiver.language,
-                            **context,
-                        )
-                        send_email(subject, text, [receiver.email], html_content=html)
-                        instruction.notified = True
-                        instruction.save()
+def _notify_new_instructions():
+    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    queryset = Instruction.objects.filter(
+        notified=False,
+        has_to_be_notified=True,
+        publication_date__lte=today + timedelta(days=1),
+    )
+    for instruction in queryset:
+        manager = NewInstructionNotificationManager(
+            sender=instruction.owner, item=instruction
+        )
+        manager.create_and_send_notifications()
+        instruction.notified = True
+        instruction.save()

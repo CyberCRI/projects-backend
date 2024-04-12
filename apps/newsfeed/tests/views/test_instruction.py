@@ -7,6 +7,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
 from apps.newsfeed.factories import InstructionFactory
@@ -170,7 +171,53 @@ class DeleteInstructionTestCase(JwtAPITestCase):
             self.assertFalse(Instruction.objects.filter(id=instruction_id).exists())
 
 
-class ValidatePeopleGroupTestCase(JwtAPITestCase):
+class RetrieveInstructionTestCase(JwtAPITestCase):
+
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.people_groups = {
+            "none": [],
+            "public": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PUBLIC)],
+            "private": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.PRIVATE)],
+            "org": [PeopleGroupFactory(organization=cls.organization, publication_status=PeopleGroup.PublicationStatus.ORG)],
+        }
+        cls.instructions = {
+            key: InstructionFactory(organization=cls.organization, people_groups=value)
+            for key, value in cls.people_groups.items()
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("none", "public")),
+            (TestRoles.DEFAULT, ("none", "public")),
+            (TestRoles.SUPERADMIN, ("none", "public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("none", "public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("none", "public", "private", "org")),
+            (TestRoles.ORG_USER, ("none", "public", "org")),
+            (TestRoles.GROUP_LEADER, ("none", "public", "private")),
+            (TestRoles.GROUP_MANAGER, ("none", "public", "private")),
+            (TestRoles.GROUP_MEMBER, ("none", "public", "private")),
+        ]
+    )
+    def test_list_instructions(self, role, expected_count):
+        user = self.get_parameterized_test_user(role, instances=self.people_groups["private"])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("Instruction-list", args=(self.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {instruction["id"] for instruction in content},
+            {self.instructions[key].id for key in expected_count},
+        )
+
+
+
+
+class ValidateInstructionTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

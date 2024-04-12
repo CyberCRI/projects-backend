@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-12 09:19+0000\n"
+"POT-Creation-Date: 2024-04-12 10:00+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -240,61 +240,6 @@ msgstr ""
 #, python-format
 msgid "Hello %(given_name)s,"
 msgstr "Bonjour %(given_name)s,"
-
-#: apps/emailing/templates/notifications/instruction/mail.html:13
-#: apps/notifications/templates/group_member_added_self/mail.html:13
-#: apps/notifications/templates/member_added_self/mail.html:13
-#: apps/notifications/templates/member_updated_self/mail.html:13
-#: apps/notifications/templates/new_comment/mail.html:13
-#: apps/notifications/templates/new_reply/mail.html:13
-#: apps/notifications/templates/new_review/mail.html:13
-#: apps/notifications/templates/project_ready_for_review/mail.html:13
-#, python-format
-msgid ""
-"\n"
-"          Hello %(given_name)s,\n"
-"          "
-msgstr ""
-"\n"
-"          Bonjour %(given_name)s,\n"
-"          "
-
-#: apps/emailing/templates/notifications/instruction/mail.html:18
-msgid ""
-"\n"
-"          You have received a new instruction.\n"
-"          "
-msgstr ""
-"\n"
-"           Vous avez reçu une nouvelle instruction.\n"
-"    "
-
-#: apps/emailing/templates/notifications/instruction/mail.html:28
-msgid "Go to instruction"
-msgstr "Voir le projet"
-
-#: apps/emailing/templates/notifications/instruction/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Hello %(recipient.given_name)s, You have received a new instruction.\n"
-msgstr ""
-"\n"
-"Bonjour %(recipient.given_name)s, Vous avez reçu une nouvelle instruction.\n"
-
-#: apps/emailing/templates/notifications/instruction/object.txt:2
-msgid ""
-"\n"
-"New instruction\n"
-msgstr ""
-
-#: apps/emailing/templates/notifications/instruction/reminder.txt:2
-msgid ""
-"\n"
-"You received a new instruction.\n"
-msgstr ""
-"\n"
-"Vous avez reçu une nouvelle instruction.\n"
 
 #: apps/feedbacks/exceptions.py:12
 msgid "You don't have the permission to comment on this project"
@@ -658,6 +603,24 @@ msgstr[1] ""
 "\n"
 "%(full_name)s a ajouté %(count)s groupes comme membres du projet "
 "%(project)s.\n"
+
+#: apps/notifications/templates/group_member_added_self/mail.html:13
+#: apps/notifications/templates/member_added_self/mail.html:13
+#: apps/notifications/templates/member_updated_self/mail.html:13
+#: apps/notifications/templates/new_comment/mail.html:13
+#: apps/notifications/templates/new_instruction/mail.html:13
+#: apps/notifications/templates/new_reply/mail.html:13
+#: apps/notifications/templates/new_review/mail.html:13
+#: apps/notifications/templates/project_ready_for_review/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(given_name)s,\n"
+"          "
+msgstr ""
+"\n"
+"          Bonjour %(given_name)s,\n"
+"          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:18
 #, python-format
@@ -1265,6 +1228,43 @@ msgstr[0] ""
 msgstr[1] ""
 "\n"
 "%(full_name)s a ajouté %(count)s commentaires au projet %(project_title)s.\n"
+
+#: apps/notifications/templates/new_instruction/mail.html:18
+msgid ""
+"\n"
+"          You have received a new instruction.\n"
+"          "
+msgstr ""
+"\n"
+"           Vous avez reçu une nouvelle instruction.\n"
+"    "
+
+#: apps/notifications/templates/new_instruction/mail.html:28
+msgid "Go to instruction"
+msgstr "Voir le projet"
+
+#: apps/notifications/templates/new_instruction/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, You have received a new instruction.\n"
+msgstr ""
+"\n"
+"Bonjour %(recipient.given_name)s, Vous avez reçu une nouvelle instruction.\n"
+
+#: apps/notifications/templates/new_instruction/object.txt:2
+msgid ""
+"\n"
+"New instruction\n"
+msgstr ""
+
+#: apps/notifications/templates/new_instruction/reminder.txt:2
+msgid ""
+"\n"
+"You received a new instruction.\n"
+msgstr ""
+"\n"
+"Vous avez reçu une nouvelle instruction.\n"
 
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format

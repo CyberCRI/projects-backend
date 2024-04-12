@@ -178,12 +178,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             *[
                 f"{action}_{subscope}"
                 for action in ["change", "delete", "add"]
-                for subscope in [
-                    "tag",
-                    "review",
-                    "faq",
-                    "projectcategory",
-                ]
+                for subscope in ["tag", "review", "faq", "projectcategory"]
             ],
         ]
         return Permission.objects.filter(content_type=self.content_type).exclude(

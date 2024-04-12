@@ -23,8 +23,8 @@
     </mj-section>
     <mj-section>
       <mj-column>
-        {% with project.organizations.all|first as organization %}
-        <mj-button css-class="lpi-button" href="{{ organization.website_url }}/instructions">
+        {% with website_url=organization.website_url %}
+        <mj-button css-class="lpi-button" href="{{ website_url }}/instructions">
           {% blocktranslate %}Go to instruction{% endblocktranslate %}
         </mj-button>
         {% endwith %}
