@@ -64,7 +64,7 @@ spec:
       arguments:
         parameters:
         - name: message
-          value: Today's Projects backup is missing !
+          value: Today's Projects backup failed !
         - name: slackChannel
           value: {{ .Values.workflow.backups.slackChannel | quote }}
   templates:
