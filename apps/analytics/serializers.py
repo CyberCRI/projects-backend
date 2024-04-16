@@ -7,8 +7,6 @@ from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
-from .models import Stat
-
 
 class StatsOrganizationSerializer(serializers.ModelSerializer):
     logo_image = ImageSerializer(read_only=True)
@@ -60,9 +58,3 @@ class StatsSerializer(serializers.Serializer):
     by_sdg = ProjectBySDG(many=True)
     by_month = ProjectByMonth(many=True)
     top_tags = TagProjectSerializer(many=True)
-
-
-class ProjectStatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Stat
-        fields = "__all__"

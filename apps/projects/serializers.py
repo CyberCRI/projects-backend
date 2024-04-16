@@ -7,7 +7,6 @@ from rest_framework import serializers
 
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
-from apps.analytics.serializers import ProjectStatSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
 from apps.commons.serializers import (
@@ -29,9 +28,7 @@ from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSe
 from apps.notifications.tasks import notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.serializers import (
-    OrganizationLightSerializer,
     OrganizationSerializer,
-    ProjectCategoryLightSerializer,
     ProjectCategorySerializer,
     TemplateSerializer,
 )
@@ -641,50 +638,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         return value
 
     get_views = get_views_from_serializer
-
-
-class TopProjectSerializer(serializers.ModelSerializer):
-    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
-    header_image = ImageSerializer(read_only=True)
-    organizations = OrganizationLightSerializer(many=True, read_only=True)
-    views = serializers.SerializerMethodField()
-    score = serializers.SerializerMethodField()
-    stat = ProjectStatSerializer(read_only=True)
-    is_followed = serializers.SerializerMethodField(read_only=True)
-
-    class Meta:
-        model = Project
-        fields = [
-            "id",
-            "title",
-            "slug",
-            "purpose",
-            "language",
-            "organizations",
-            "header_image",
-            "categories",
-            "views",
-            "score",
-            "stat",
-            "publication_status",
-            "sdgs",
-            "life_status",
-            "is_followed",
-        ]
-
-    get_views = get_views_from_serializer
-
-    def get_score(self, project: Project) -> float:
-        return self.context["scores"][project.id]
-
-    def get_is_followed(self, project: Project) -> Dict[str, Any]:
-        if "request" in self.context:
-            user = self.context["request"].user
-            if not user.is_anonymous:
-                follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
-        return {"is_followed": False, "follow_id": None}
 
 
 class ProjectVersionSerializer(serializers.ModelSerializer):
