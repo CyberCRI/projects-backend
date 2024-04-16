@@ -420,6 +420,10 @@ if CELERY_ENABLED:
             "task": "apps.files.tasks.delete_orphan_images",
             "schedule": crontab(minute=0, hour=2),
         },
+        "calculate_projects_scores": {
+            "task": "apps.projects.tasks.calculate_projects_scores",
+            "schedule": crontab(minute=0, hour=3),
+        },
         "send_invitations_reminder": {
             "task": "apps.notifications.tasks.send_invitations_reminder",
             "schedule": crontab(minute=0, hour=7),

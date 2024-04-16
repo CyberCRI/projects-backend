@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-12 10:00+0000\n"
+"POT-Creation-Date: 2024-04-16 10:18+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:126 apps/projects/models.py:152
+#: apps/accounts/models.py:126 apps/projects/models.py:153
 msgid "visibility"
 msgstr ""
 
@@ -1141,35 +1141,35 @@ msgstr ""
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr ""
 
-#: apps/projects/models.py:136
+#: apps/projects/models.py:137
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:145
+#: apps/projects/models.py:146
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:158
+#: apps/projects/models.py:159
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:169
+#: apps/projects/models.py:170
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:176
+#: apps/projects/models.py:177
 msgid "wikipedia tags"
 msgstr ""
 
-#: apps/projects/models.py:179
+#: apps/projects/models.py:180
 msgid "organizational tags"
 msgstr ""
 
-#: apps/projects/models.py:186
+#: apps/projects/models.py:187
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:192
+#: apps/projects/models.py:193
 msgid "main category"
 msgstr ""
 
