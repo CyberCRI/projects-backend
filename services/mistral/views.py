@@ -6,11 +6,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
-from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
@@ -18,7 +19,7 @@ from apps.projects.serializers import ProjectLightSerializer
 from .models import ProjectEmbedding, UserEmbedding
 
 
-class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
+class RecommendationsViewset(GenericViewSet, MultipleIDViewsetMixin):
     filter_backends = [DjangoFilterBackend]
     ordering_fields = []
     permission_classes = [ReadOnly]
@@ -26,7 +27,22 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
     multiple_lookup_fields = [
         (Project, "project_id"),
     ]
+    queryset: QuerySet[Union[Project, ProjectUser]]
     serializer_class: Union[ProjectLightSerializer, UserLightSerializer]
+
+    def _list(self, request, *args, **kwargs):
+        """
+        Redefinition of the ListModelMixin list method to allow for pagination.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
 
     def get_user_embedding(self, user: ProjectUser) -> Optional[List[float]]:
         """
@@ -79,12 +95,24 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
             return self.get_queryset_for_project(project)
         return self.get_queryset_for_user(self.request.user)
 
-    @action(detail=False, methods=["GET"], url_path="(?P<project_id>[^/.]+)")
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="project/(?P<project_id>[^/.]+)",
+        url_name="for-project",
+    )
     def project_recommendations(self, request, *args, **kwargs):
         """
         Get recommendations for a project.
         """
-        return self.list(request, *args, **kwargs)
+        return self._list(request, *args, **kwargs)
+
+    @action(detail=False, methods=["GET"], url_path="user", url_name="for-user")
+    def user_recommendations(self, request, *args, **kwargs):
+        """
+        Get recommendations for a user.
+        """
+        return self._list(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[
@@ -102,7 +130,12 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
             ),
         ]
     )
-    @action(detail=False, methods=["GET"], url_path="(?P<project_id>[^/.]+)/random")
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="project/(?P<project_id>[^/.]+)/random",
+        url_name="random-for-project",
+    )
     def random_project_recommendations(self, request, *args, **kwargs):
         """
         Get random recommendations for a project among a pool of recommendations.
@@ -112,6 +145,7 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
         count = int(request.query_params.get("count", 4))
         pool = int(request.query_params.get("pool", 25))
         queryset = self.get_queryset()[:pool]
+        queryset = self.queryset.filter(id__in=queryset.values_list("id", flat=True))
         queryset = queryset.order_by("?")
         queryset = queryset[:count]
         serializer = self.get_serializer(queryset, many=True)
@@ -133,7 +167,12 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
             ),
         ]
     )
-    @action(detail=False, methods=["GET"], url_path="random")
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="user/random",
+        url_name="random-for-user",
+    )
     def random_user_recommendations(self, request, *args, **kwargs):
         """
         Get random recommendations for a user among a pool of recommendations.
@@ -143,6 +182,7 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
         count = int(request.query_params.get("count", 4))
         pool = int(request.query_params.get("pool", 25))
         queryset = self.get_queryset()[:pool]
+        queryset = self.queryset.filter(id__in=queryset.values_list("id", flat=True))
         queryset = queryset.order_by("?")
         queryset = queryset[:count]
         serializer = self.get_serializer(queryset, many=True)
@@ -150,6 +190,7 @@ class RecommendationsViewset(ListViewSet, MultipleIDViewsetMixin):
 
 
 class ProjectRecommendationsViewset(RecommendationsViewset):
+    queryset = Project.objects.all()
     serializer_class = ProjectLightSerializer
 
     def get_queryset_for_project(self, project: Project) -> QuerySet[Project]:
@@ -164,8 +205,6 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
             .exclude(id=project.id)
         )
         embedding = self.get_project_embedding(project)
-        if self.request.user.is_authenticated:
-            queryset = queryset.exclude(groups__users__id=self.request.user.id)
         if embedding is not None:
             return ProjectEmbedding.vector_search(embedding, queryset)
         return queryset.objects.none()
@@ -186,6 +225,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
 
 
 class UserRecommendationsViewset(RecommendationsViewset):
+    queryset = ProjectUser.objects.all()
     serializer_class = UserLightSerializer
 
     def get_queryset_for_project(self, project: Project) -> QuerySet[ProjectUser]:
@@ -202,7 +242,7 @@ class UserRecommendationsViewset(RecommendationsViewset):
         if self.request.user.is_authenticated:
             queryset = queryset.exclude(id=self.request.user.id)
         if embedding is not None:
-            return ProjectEmbedding.vector_search(embedding, queryset)
+            return UserEmbedding.vector_search(embedding, queryset)
         return queryset.objects.none()
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[ProjectUser]:
@@ -215,5 +255,5 @@ class UserRecommendationsViewset(RecommendationsViewset):
         if user.is_authenticated:
             queryset = queryset.exclude(id=user.id)
         if embedding is not None:
-            return ProjectEmbedding.vector_search(embedding, queryset)
+            return UserEmbedding.vector_search(embedding, queryset)
         return queryset

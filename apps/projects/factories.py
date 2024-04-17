@@ -6,7 +6,7 @@ from apps.commons.factories import language_factory, sdg_factory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import Organization
 
-from .models import BlogEntry, LinkedProject, Location, Project
+from .models import BlogEntry, LinkedProject, Location, Project, ProjectScore
 
 
 class SeedProjectFactory(factory.django.DjangoModelFactory):
@@ -64,6 +64,19 @@ class ProjectFactory(SeedProjectFactory):
             category = ProjectCategoryFactory(organization=self.organizations.first())
             self.main_category = category
             self.categories.add(category)
+
+
+class ProjectScoreFactory(factory.django.DjangoModelFactory):
+    project = factory.LazyFunction(
+        lambda: ProjectFactory()
+    )  # Subfactory seems to not trigger `create()`
+    completeness = factory.Faker("pyfloat", positive=True)
+    popularity = factory.Faker("pyfloat", positive=True)
+    activity = factory.Faker("pyfloat", positive=True)
+    score = factory.Faker("pyfloat", positive=True)
+
+    class Meta:
+        model = ProjectScore
 
 
 class BlogEntryFactory(factory.django.DjangoModelFactory):

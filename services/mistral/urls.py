@@ -10,11 +10,11 @@ organization_router_register(
     mistral_router,
     r"recommended-project",
     ProjectRecommendationsViewset,
-    basename="UserRecommendedProjects",
+    basename="RecommendedProjects",
 )
 organization_router_register(
     mistral_router,
     r"recommended-user",
     UserRecommendationsViewset,
-    basename="UserRecommendedUsers",
+    basename="RecommendedUsers",
 )
