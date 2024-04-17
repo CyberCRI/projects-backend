@@ -9,10 +9,6 @@ from apps.accounts.views import (
 from apps.commons.urls import DetailOnlyNestedRouter
 from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 from apps.organizations import views
-from services.mistral.views import (
-    ProjectRecommendationViewSet,
-    UserRecommendationViewSet,
-)
 
 categories_router = routers.DefaultRouter()
 categories_router.register(
@@ -57,12 +53,6 @@ organizations_nested_router.register(
 )
 organizations_nested_router.register(
     r"access-request", AccessRequestViewSet, basename="AccessRequest"
-)
-organizations_nested_router.register(
-    r"recommended-project", ProjectRecommendationViewSet, basename="RecommendedProjects"
-)
-organizations_nested_router.register(
-    r"recommended-user", UserRecommendationViewSet, basename="RecommendedUsers"
 )
 
 details_only_organizations_nested_router = DetailOnlyNestedRouter(

@@ -32,7 +32,7 @@ class Migration(migrations.Migration):
                     "project",
                     models.OneToOneField(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="_score",
+                        related_name="score",
                         to="projects.project",
                     ),
                 ),

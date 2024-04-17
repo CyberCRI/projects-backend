@@ -480,18 +480,17 @@ class Project(
             self.owners.all() | self.reviewers.all() | self.members.all()
         ).distinct()
 
-    @property
-    def score(self) -> "ProjectScore":
+    def get_or_create_score(self) -> "ProjectScore":
         score, _ = ProjectScore.objects.get_or_create(project=self)
         return score
 
     def calculate_score(self):
-        self.score.set_score()
+        self.get_or_create_score().set_score()
 
 
 class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
     project = models.OneToOneField(
-        "projects.Project", on_delete=models.CASCADE, related_name="_score"
+        "projects.Project", on_delete=models.CASCADE, related_name="score"
     )
     completeness = models.FloatField(default=0)
     popularity = models.FloatField(default=0)
