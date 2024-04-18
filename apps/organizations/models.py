@@ -14,6 +14,7 @@ from apps.commons.utils import (
     get_write_permissions_from_subscopes,
 )
 from apps.misc.models import Language, Tag, WikipediaTag
+from apps.projects.models import Project
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -125,6 +126,9 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     onboarding_enabled = models.BooleanField(default=True)
     identity_providers = models.ManyToManyField(
         "keycloak.IdentityProvider", related_name="organizations", blank=True
+    )
+    featured_projects = models.ManyToManyField(
+        Project, related_name="org_featured_projects"
     )
 
     class Meta:

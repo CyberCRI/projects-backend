@@ -16,9 +16,13 @@ from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.misc.models import Tag
 from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSerializer
+from apps.projects.models import Project
 from services.keycloak.serializers import IdentityProviderSerializer
 
-from .exceptions import OrganizationHierarchyLoopError
+from .exceptions import (
+    FeaturedProjectPermissionDeniedError,
+    OrganizationHierarchyLoopError,
+)
 from .models import Faq, Organization, ProjectCategory, Template
 
 logger = logging.getLogger(__name__)
@@ -120,6 +124,49 @@ class OrganizationRemoveTeamMembersSerializer(serializers.Serializer):
         return validated_data
 
 
+class OrganizationAddFeaturedProjectsSerializer(serializers.Serializer):
+    organization = HiddenPrimaryKeyRelatedField(
+        required=False, write_only=True, queryset=Organization.objects.all()
+    )
+    featured_projects_ids = serializers.PrimaryKeyRelatedField(
+        many=True, write_only=True, required=False, queryset=Project.objects.all()
+    )
+
+    def validate_featured_projects_ids(self, projects: List[Project]) -> List[Project]:
+        request = self.context.get("request")
+        if not all(request.user.can_see_project(project) for project in projects):
+            raise FeaturedProjectPermissionDeniedError
+        return projects
+
+    def create(self, validated_data):
+        organization = validated_data["organization"]
+        projects_ids = validated_data.get("featured_projects_ids", [])
+        projects = Project.objects.filter(
+            id__in=[project.id for project in projects_ids]
+        )
+        organization.featured_projects.add(*projects)
+        return validated_data
+
+
+class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
+    organization = HiddenPrimaryKeyRelatedField(
+        write_only=True, queryset=Organization.objects.all()
+    )
+    featured_projects_ids = serializers.PrimaryKeyRelatedField(
+        many=True, write_only=True, required=False, queryset=Project.objects.all()
+    )
+
+    def create(self, validated_data):
+        organization = validated_data["organization"]
+        projects_ids = validated_data.get("featured_projects_ids", [])
+        projects = Project.objects.filter(
+            id__in=[project.id for project in projects_ids]
+        )
+        organization.featured_projects.remove(*projects)
+        organization.save()
+        return validated_data
+
+
 class OrganizationSerializer(OrganizationRelatedSerializer):
     # read_only
     banner_image = ImageSerializer(read_only=True)
@@ -157,6 +204,14 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     dashboard_subtitle = serializers.CharField(required=True)
     google_sync_enabled = serializers.SerializerMethodField()
     team = OrganizationAddTeamMembersSerializer(required=False, write_only=True)
+    featured_projects_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        write_only=True,
+        queryset=Project.objects.all(),
+        source="featured_projects",
+        required=False,
+    )
+    featured_projects = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -186,12 +241,20 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "is_logo_visible_on_parent_dashboard",
             "google_sync_enabled",
             "identity_providers",
+            "featured_projects",
             # write_only
             "banner_image_id",
             "logo_image_id",
             "wikipedia_tags_ids",
             "team",
+            "featured_projects_ids",
         ]
+
+    def get_featured_projects(self, organization: Organization) -> List[Project]:
+        from apps.projects.serializers import ProjectLightSerializer
+
+        projects = ProjectLightSerializer(organization.featured_projects, many=True)
+        return projects.data
 
     def validate_parent_code(self, value):
         if not self.instance:
