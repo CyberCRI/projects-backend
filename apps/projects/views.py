@@ -22,7 +22,7 @@ from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -461,23 +461,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)
-
-
-class RandomProjectViewSet(ListViewSet):
-    serializer_class = ProjectLightSerializer
-    permission_classes = [ReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = ProjectFilter
-
-    def get_queryset(self):
-        organizations = Prefetch(
-            "organizations",
-            queryset=Organization.objects.select_related(
-                "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("wikipedia_tags"),
-        )
-        qs = self.request.user.get_project_queryset(organizations, "categories")
-        return qs.order_by("?")
 
 
 class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
