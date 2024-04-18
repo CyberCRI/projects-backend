@@ -28,7 +28,7 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at"]
+    ordering_fields = ["updated_at", "deadline"]
     ordering = ["updated_at"]
     permission_classes = [
         IsAuthenticatedOrReadOnly,

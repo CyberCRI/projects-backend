@@ -9,10 +9,12 @@ from .models import Announcement
 
 class AnnouncementFilter(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
+    from_date = filters.DateFilter(field_name="deadline", lookup_expr="gte")
+    to_date = filters.DateFilter(field_name="deadline", lookup_expr="lte")
 
     class Meta:
         model = Announcement
-        fields = ["organizations"]
+        fields = ["organizations", "from_date", "to_date"]
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
