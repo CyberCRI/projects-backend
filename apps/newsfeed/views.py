@@ -15,6 +15,7 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
 
+from .filters import EventFilter, InstructionFilter, NewsFilter
 from .models import Event, Instruction, News, Newsfeed
 from .serializers import (
     EventSerializer,
@@ -28,8 +29,9 @@ class NewsViewSet(viewsets.ModelViewSet):
     """Main endpoints for news."""
 
     serializer_class = NewsSerializer
+    filterset_class = NewsFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at"]
+    ordering_fields = ["updated_at", "publication_date"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 
@@ -110,8 +112,9 @@ class InstructionViewSet(viewsets.ModelViewSet):
     """Main endpoints for instructions."""
 
     serializer_class = InstructionSerializer
+    filterset_class = InstructionFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at"]
+    ordering_fields = ["updated_at", "publication_date"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 
@@ -250,6 +253,7 @@ class EventViewSet(viewsets.ModelViewSet):
     """Main endpoints for projects."""
 
     serializer_class = EventSerializer
+    filterset_class = EventFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ["event_date"]
     lookup_field = "id"
