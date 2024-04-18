@@ -14,6 +14,7 @@ from apps.commons.views import ListViewSet
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
+from services.mistral.views import UserRecommendedProjectsViewSet
 
 from .filters import EventFilter, InstructionFilter, NewsFilter
 from .models import Event, Instruction, News, Newsfeed
@@ -23,7 +24,8 @@ from .serializers import (
     NewsfeedSerializer,
     NewsSerializer,
 )
-
+import logging
+logger = logging.getLogger(__name__)
 
 class NewsViewSet(viewsets.ModelViewSet):
     """Main endpoints for news."""
@@ -155,7 +157,7 @@ class InstructionViewSet(viewsets.ModelViewSet):
         }
 
 
-class NewsfeedViewSet(ListViewSet):
+class NewsfeedViewSet(UserRecommendedProjectsViewSet, ListViewSet):
     serializer_class = NewsfeedSerializer
     permission_classes = [ReadOnly]
     filter_backends = [DjangoFilterBackend]
@@ -187,15 +189,26 @@ class NewsfeedViewSet(ListViewSet):
         return projects_index
 
     def get_queryset(self):
-        projects_ids = self.request.user.get_project_queryset()
+        projects_queryset = super().get_queryset()
+        # projects_ids = self.request.user.get_project_queryset()
 
-        projects_queryset = (
-            Newsfeed.objects.filter(project__in=projects_ids)
-            .annotate(updated_at=F("project__updated_at"))
-            .distinct()
-            .order_by("-updated_at")
-        )
+        # projects_queryset = (
+        #     Newsfeed.objects.filter(project__in=projects_ids)
+        #     .annotate(updated_at=F("project__updated_at"))
+        #     .distinct()
+        #     .order_by("-updated_at")
+        # )
 
+        # logger.error("REQUEST")
+        # logger.error(self.request)
+        # logger.error("KWARGS")
+        # logger.error(self.kwargs)
+        # logger.error("request request")
+        # logger.error(self.request._request)
+
+        # projects_queryset = UserRecommendedProjectsViewSet.get_queryset(self)
+        logger.error("recommended_projects")
+        logger.error(projects_queryset)
         announcements_queryset = (
             Newsfeed.objects.filter(type=Newsfeed.NewsfeedType.ANNOUNCEMENT)
             .annotate(updated_at=F("announcement__updated_at"))
