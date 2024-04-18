@@ -249,6 +249,32 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
             {self.announcement_1.id, self.announcement_2.id},
         )
 
+    def test_filter_from_date_with_null(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Announcement-list", args=(self.project.id,))
+            + f"?from_date_or_none={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {a["id"] for a in content},
+            {self.announcement_2.id, self.announcement_3.id, self.announcement_4.id},
+        )
+
+    def test_filter_to_date_with_null(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Announcement-list", args=(self.project.id,))
+            + f"?to_date_or_none={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {a["id"] for a in content},
+            {self.announcement_1.id, self.announcement_2.id, self.announcement_4.id},
+        )
+
     def test_order_by_deadline(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
