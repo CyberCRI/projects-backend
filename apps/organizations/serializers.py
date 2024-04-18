@@ -163,7 +163,6 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
             id__in=[project.id for project in projects_ids]
         )
         organization.featured_projects.remove(*projects)
-        organization.save()
         return validated_data
 
 
