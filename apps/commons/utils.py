@@ -62,7 +62,7 @@ def process_base64_images(request, text, upload_to, view, **kwargs):
             base64.b64decode(data[1]), name=str(f"{uuid.uuid4()}.{extension}")
         )
         image = Image(name=file.name, file=file, owner=request.user)
-        image._upload_to = lambda *args: f"{upload_to}{file.name}"  # noqa : B023
+        image._upload_to = lambda *args: f"{upload_to}{file.name}"  # noqa: B023
         image.save()
         images.append(image)
         text = text.replace(
@@ -92,7 +92,7 @@ def process_unlinked_images(instance, text):
 
 def get_test_image_file() -> File:
     """Return a dummy test image file."""
-    return File(open(f"{settings.STATIC_ROOT}/test_image.png", "rb"))  # noqa : SIM115
+    return File(open(f"{settings.STATIC_ROOT}/test_image.png", "rb"))  # noqa: SIM115
 
 
 def get_test_image() -> Image:

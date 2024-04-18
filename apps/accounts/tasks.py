@@ -119,7 +119,7 @@ def _batch_create_users(users_data, request_user_pk, update_mode="no_update"):
                 else:
                     results = _create_user_from_csv_data(request, user_data)
 
-            except Exception as e:  # noqa
+            except Exception as e:  # noqa: PIE786
                 results = {
                     "email": user_data["email"],
                     "status": "error",

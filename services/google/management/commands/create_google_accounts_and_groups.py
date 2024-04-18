@@ -28,7 +28,7 @@ class Command(BaseCommand):
                     )
                 else:
                     print(f"user,{user.email},not found,")
-            except Exception as e:  # noqa
+            except Exception as e:  # noqa: PIE786
                 print(f"user,{user.email},error,{e}")
 
         # Create groups
@@ -49,5 +49,5 @@ class Command(BaseCommand):
                     )
                 else:
                     print(f"group,{group.email},not found,")
-            except Exception as e:  # noqa
+            except Exception as e:  # noqa: PIE786
                 print(f"group,{group.email},error,{e}")

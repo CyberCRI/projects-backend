@@ -214,7 +214,7 @@ class JwtAPITestCase(APITestCase):
         image.save()
         return image
 
-    def assertApiValidationError(  # noqa : N802
+    def assertApiValidationError(  # noqa: N802
         self, response, messages: Optional[Dict[str, List[str]]] = None
     ):
         content = response.json()
@@ -222,7 +222,7 @@ class JwtAPITestCase(APITestCase):
         if messages:
             self.assertEqual(content["errors"], messages)
 
-    def assertApiPermissionError(  # noqa : N802
+    def assertApiPermissionError(  # noqa: N802
         self, response, detail: Optional[str] = None
     ):
         content = response.json()
@@ -230,7 +230,7 @@ class JwtAPITestCase(APITestCase):
         if detail:
             self.assertEqual(content["detail"], detail)
 
-    def assertApiTechnicalError(  # noqa : N802
+    def assertApiTechnicalError(  # noqa: N802
         self, response, detail: Optional[str] = None
     ):
         content = response.json()
@@ -238,7 +238,7 @@ class JwtAPITestCase(APITestCase):
         if detail:
             self.assertEqual(content["detail"], detail)
 
-    def assertApiAuthenticationError(  # noqa : N802
+    def assertApiAuthenticationError(  # noqa: N802
         self, response, detail: Optional[str] = None
     ):
         content = response.json()
@@ -324,14 +324,14 @@ class TagTestCaseMixin:
         return cls.search_wikipedia_tag_mocked_return(limit, offset)
 
 
-def skipUnlessAlgolia(decorated):  # noqa : N802
+def skipUnlessAlgolia(decorated):  # noqa: N802
     """Skip decorated tests if ennvar `TEST_ALGOLIA` has not been set to 1."""
     check = bool(int(os.getenv("TEST_ALGOLIA", 0)))
     msg = "Algolia test skipped, use envvar 'TEST_ALGOLIA=1' to test"
     return skipUnless(check, msg)(decorated)
 
 
-def skipUnlessGoogle(decorated):  # noqa : N802
+def skipUnlessGoogle(decorated):  # noqa: N802
     """Skip decorated tests if ennvar `TEST_ALGOLIA` has not been set to 1."""
     check = bool(int(os.getenv("TEST_GOOGLE", 0)))
     msg = "Google test skipped, use envvar 'TEST_GOOGLE=1' to test"

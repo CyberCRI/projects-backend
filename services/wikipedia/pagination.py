@@ -1,7 +1,7 @@
 from apps.commons.pagination import PageInfoLimitOffsetPagination
 
 
-def WikipediaPagination(count: int):  # noqa : N802
+def WikipediaPagination(count: int):  # noqa: N802
     class _WikipediaPagination(PageInfoLimitOffsetPagination):
         def get_count(self, queryset):
             return count

@@ -82,7 +82,7 @@ class OrganizationRelatedPermission(IgnoreCall):
         return []
 
 
-def HasOrganizationPermission(  # noqa : N802
+def HasOrganizationPermission(  # noqa: N802
     codename: str, app: str = "organizations"
 ) -> permissions.BasePermission:
     class _HasOrganizationPermission(

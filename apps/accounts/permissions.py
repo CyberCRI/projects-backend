@@ -9,7 +9,7 @@ from apps.accounts.models import PeopleGroup
 from apps.commons.permissions import IgnoreCall
 
 
-def HasBasePermission(  # noqa : N802
+def HasBasePermission(  # noqa: N802
     codename: str, app: str = ""
 ) -> permissions.BasePermission:
     class _HasBasePermission(permissions.BasePermission):
@@ -51,7 +51,7 @@ class PeopleGroupRelatedPermission(IgnoreCall):
         return []
 
 
-def HasPeopleGroupPermission(  # noqa : N802
+def HasPeopleGroupPermission(  # noqa: N802
     codename: str, app: str = "accounts"
 ) -> permissions.BasePermission:
     class _HasPeopleGroupPermission(

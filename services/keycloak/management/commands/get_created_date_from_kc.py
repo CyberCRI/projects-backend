@@ -17,5 +17,5 @@ class Command(BaseCommand):
                         datetime.fromtimestamp(keycloak_user["createdTimestamp"] / 1000)
                     )
                     user.save()
-            except Exception as e:  # noqa
+            except Exception as e:  # noqa: PIE786
                 print(e)

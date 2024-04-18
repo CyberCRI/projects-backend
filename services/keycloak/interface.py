@@ -364,5 +364,5 @@ class KeycloakService:
             keycloak_admin.delete_user(user_id=keycloak_account.keycloak_id)
         except KeycloakGetError:
             logger.info(
-                f"Deleted user {keycloak_account.keycloak_id} does not exist in Keycloak"  # noqa :E713
+                f"Deleted user {keycloak_account.keycloak_id} does not exist in Keycloak"  # noqa: E713
             )
