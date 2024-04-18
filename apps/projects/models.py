@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 from functools import reduce
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional
@@ -478,6 +479,81 @@ class Project(
         return (
             self.owners.all() | self.reviewers.all() | self.members.all()
         ).distinct()
+
+    def get_or_create_score(self) -> "ProjectScore":
+        score, _ = ProjectScore.objects.get_or_create(project=self)
+        return score
+
+    def calculate_score(self):
+        self.get_or_create_score().set_score()
+
+
+class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
+    project = models.OneToOneField(
+        "projects.Project", on_delete=models.CASCADE, related_name="score"
+    )
+    completeness = models.FloatField(default=0)
+    popularity = models.FloatField(default=0)
+    activity = models.FloatField(default=0)
+    score = models.FloatField(default=0)
+
+    def get_related_project(self) -> Project:
+        return self.project
+
+    def get_related_organizations(self) -> List["Organization"]:
+        return self.project.get_related_organizations()
+
+    def get_completeness(self) -> float:
+        has_ressources = self.project.links.exists() or self.project.files.exists()
+        has_blogs = self.project.blog_entries.exists()
+        has_goals = self.project.goals.exists()
+        has_location = self.project.locations.exists()
+        has_rich_content = (
+            "<img" in self.project.description
+            or "<iframe" in self.project.description
+            or any(
+                "<img" in blog_entry.content or "<iframe" in blog_entry.content
+                for blog_entry in self.project.blog_entries.all()
+            )
+        )
+        description_length = len(self.project.description)
+        blog_entries_length = sum(
+            len(blog_entry.content) + len(blog_entry.title)
+            for blog_entry in self.project.blog_entries.all()
+        )
+        return (
+            int(has_ressources)
+            + int(has_blogs)
+            + int(has_goals)
+            + int(has_location)
+            + int(has_rich_content)
+            + math.log10(1 + description_length + blog_entries_length)
+        )
+
+    def get_popularity(self) -> float:
+        follows_count = math.log(self.project.follows.count() + 1, 4)
+        views_count = math.log(self.project.get_views() + 1, 8)
+        comments_length = sum(
+            len(comment.content) for comment in self.project.comments.all()
+        )
+        return math.log10(1 + comments_length) + follows_count + views_count
+
+    def get_activity(self) -> float:
+        last_activity = self.project.updated_at
+        weeks_since_last_activity = (timezone.now() - last_activity).days / 7
+        return 10 / (1 + weeks_since_last_activity)
+
+    def set_score(self) -> "ProjectScore":
+        completeness = self.get_completeness()
+        popularity = self.get_popularity()
+        activity = self.get_activity()
+        score = completeness + popularity + activity
+        self.completeness = completeness
+        self.popularity = popularity
+        self.activity = activity
+        self.score = score
+        self.save()
+        return self
 
 
 class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):

@@ -1,38 +1,20 @@
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import organization_router_register, project_router_register
+from apps.commons.urls import organization_router_register
 
-from .views import (
-    ProjectRecommendedProjectsViewSet,
-    ProjectRecommendedUsersViewSet,
-    UserRecommendedProjectsViewSet,
-    UserRecommendedUsersViewSet,
-)
+from .views import ProjectRecommendationsViewset, UserRecommendationsViewset
 
 mistral_router = DefaultRouter()
 
 organization_router_register(
     mistral_router,
     r"recommended-project",
-    UserRecommendedProjectsViewSet,
-    basename="UserRecommendedProjects",
+    ProjectRecommendationsViewset,
+    basename="RecommendedProjects",
 )
 organization_router_register(
     mistral_router,
     r"recommended-user",
-    UserRecommendedUsersViewSet,
-    basename="UserRecommendedUsers",
-)
-
-project_router_register(
-    mistral_router,
-    r"recommended-project",
-    ProjectRecommendedProjectsViewSet,
-    basename="ProjectRecommendedProjects",
-)
-project_router_register(
-    mistral_router,
-    r"recommended-user",
-    ProjectRecommendedUsersViewSet,
-    basename="ProjectRecommendedUsers",
+    UserRecommendationsViewset,
+    basename="RecommendedUsers",
 )

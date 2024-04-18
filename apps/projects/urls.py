@@ -16,10 +16,6 @@ from . import views
 router = routers.SimpleRouter()
 
 router.register(r"location", views.ReadLocationViewSet, basename="Read-location")
-router.register(r"project/misc/top", views.ProjectTopViewSet, basename="ProjectTop")
-router.register(
-    r"project/misc/random", views.RandomProjectViewSet, basename="ProjectRandom"
-)
 
 projects_router = routers.DefaultRouter()
 projects_router.register(r"project", views.ProjectViewSet, basename="Project")

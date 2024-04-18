@@ -1,12 +1,11 @@
 import enum
 import uuid
-from typing import Dict
 
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Prefetch, Q, QuerySet
+from django.db.models import Prefetch, QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -23,7 +22,7 @@ from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -47,7 +46,6 @@ from services.mistral.models import ProjectEmbedding
 from .filters import LocationFilter, ProjectFilter
 from .models import BlogEntry, LinkedProject, Location, Project
 from .permissions import HasProjectPermission, ProjectIsNotLocked
-from .recommendations import top_project
 from .serializers import (
     BlogEntrySerializer,
     LinkedProjectSerializer,
@@ -60,7 +58,6 @@ from .serializers import (
     ProjectSerializer,
     ProjectVersionListSerializer,
     ProjectVersionSerializer,
-    TopProjectSerializer,
 )
 
 
@@ -464,68 +461,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)
-
-
-class ProjectTopViewSet(ListViewSet):
-    """Allows to retrieve the top projects."""
-
-    permission_classes = [ReadOnly]
-    project_scores: Dict[str, float]
-    serializer_class = TopProjectSerializer
-    filter_backends = [DjangoFilterBackend]
-
-    def get_queryset(self):
-        """Return a queryset sorted according to a computed score.
-
-        Additionally, set `self.project_scores` so that it can be added to the
-        serializer's context later.
-        """
-        prefetch_organizations = Prefetch(
-            "organizations",
-            queryset=Organization.objects.select_related(
-                "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("wikipedia_tags"),
-        )
-        queryset = self.request.user.get_project_queryset(
-            prefetch_organizations, "categories"
-        )
-        organizations_param = self.request.query_params.get("organizations", None)
-        organizations = None
-        if organizations_param is not None:
-            organizations_param = organizations_param.split(",")
-            organizations = Organization.objects.filter(
-                Q(code__in=organizations_param)
-                | Q(parent__code__in=organizations_param)
-            )
-            queryset = queryset.filter(
-                Q(organizations__in=organizations)
-                | Q(organizations__parent__in=organizations)
-            )
-
-        queryset, scores = top_project(queryset, organizations)
-        self.project_scores = scores
-        return queryset.distinct()
-
-    def get_serializer_context(self):
-        """Add the request and each project's score to the serializer's context."""
-        return {"request": self.request, "scores": self.project_scores}
-
-
-class RandomProjectViewSet(ListViewSet):
-    serializer_class = ProjectLightSerializer
-    permission_classes = [ReadOnly]
-    filter_backends = [DjangoFilterBackend]
-    filterset_class = ProjectFilter
-
-    def get_queryset(self):
-        organizations = Prefetch(
-            "organizations",
-            queryset=Organization.objects.select_related(
-                "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("wikipedia_tags"),
-        )
-        qs = self.request.user.get_project_queryset(organizations, "categories")
-        return qs.order_by("?")
 
 
 class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
