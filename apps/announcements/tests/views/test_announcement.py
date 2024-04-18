@@ -1,8 +1,13 @@
+import datetime
+
 from django.urls import reverse
+from django.utils.timezone import make_aware
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.announcements.factories import AnnouncementFactory
 from apps.announcements.models import Announcement
 from apps.commons.test import JwtAPITestCase, TestRoles
@@ -194,4 +199,87 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
         self.assertSetEqual(
             {a["id"] for a in content},
             {a.id for a in self.announcements.values()},
+        )
+
+
+class FilterOrderAnnouncementTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.user = UserFactory(groups=[get_superadmins_group()])
+        cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
+        cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
+        cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
+        cls.announcement_1 = AnnouncementFactory(
+            project=cls.project, deadline=cls.date_1
+        )
+        cls.announcement_2 = AnnouncementFactory(
+            project=cls.project, deadline=cls.date_2
+        )
+        cls.announcement_3 = AnnouncementFactory(
+            project=cls.project, deadline=cls.date_3
+        )
+        cls.announcement_4 = AnnouncementFactory(project=cls.project, deadline=None)
+
+    def test_filter_from_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Announcement-list", args=(self.project.id,))
+            + f"?from_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {a["id"] for a in content},
+            {self.announcement_2.id, self.announcement_3.id},
+        )
+
+    def test_filter_to_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Announcement-list", args=(self.project.id,))
+            + f"?to_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {a["id"] for a in content},
+            {self.announcement_1.id, self.announcement_2.id},
+        )
+
+    def test_order_by_deadline(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Announcement-list", args=(self.project.id,)) + "?ordering=deadline"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [a["id"] for a in content],
+            [
+                self.announcement_1.id,
+                self.announcement_2.id,
+                self.announcement_3.id,
+                self.announcement_4.id,
+            ],
+        )
+
+    def test_order_by_deadline_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Announcement-list", args=(self.project.id,))
+            + "?ordering=-deadline"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [a["id"] for a in content],
+            [
+                self.announcement_4.id,
+                self.announcement_3.id,
+                self.announcement_2.id,
+                self.announcement_1.id,
+            ],
         )

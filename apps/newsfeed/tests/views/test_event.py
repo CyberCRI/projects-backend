@@ -1,12 +1,14 @@
 import datetime
 
 from django.urls import reverse
+from django.utils.timezone import make_aware
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.newsfeed.factories import EventFactory
 from apps.newsfeed.models import Event
@@ -273,4 +275,70 @@ class ValidateEventTestCase(JwtAPITestCase):
                     "The people groups of an event must belong to the same organization"
                 ]
             },
+        )
+
+
+class FilterOrderEventTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory(groups=[get_superadmins_group()])
+        cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
+        cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
+        cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
+        cls.event_1 = EventFactory(organization=cls.organization, event_date=cls.date_1)
+        cls.event_2 = EventFactory(organization=cls.organization, event_date=cls.date_2)
+        cls.event_3 = EventFactory(organization=cls.organization, event_date=cls.date_3)
+
+    def test_filter_from_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Event-list", args=(self.organization.code,))
+            + f"?from_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {event["id"] for event in content},
+            {self.event_2.id, self.event_3.id},
+        )
+
+    def test_filter_to_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Event-list", args=(self.organization.code,))
+            + f"?to_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {event["id"] for event in content},
+            {self.event_1.id, self.event_2.id},
+        )
+
+    def test_order_by_event_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Event-list", args=(self.organization.code,))
+            + "?ordering=event_date"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [event["id"] for event in content],
+            [self.event_1.id, self.event_2.id, self.event_3.id],
+        )
+
+    def test_order_by_event_date_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Event-list", args=(self.organization.code,))
+            + "?ordering=-event_date"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [event["id"] for event in content],
+            [self.event_3.id, self.event_2.id, self.event_1.id],
         )

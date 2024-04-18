@@ -2,12 +2,14 @@ import datetime
 import random
 
 from django.urls import reverse
+from django.utils.timezone import make_aware
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
 from apps.newsfeed.factories import NewsFactory
@@ -276,4 +278,76 @@ class ValidateNewsTestCase(JwtAPITestCase):
                     "The people groups of a news must belong to the same organization"
                 ]
             },
+        )
+
+
+class FilterOrderNewsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory(groups=[get_superadmins_group()])
+        cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
+        cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
+        cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
+        cls.news_1 = NewsFactory(
+            organization=cls.organization, publication_date=cls.date_1
+        )
+        cls.news_2 = NewsFactory(
+            organization=cls.organization, publication_date=cls.date_2
+        )
+        cls.news_3 = NewsFactory(
+            organization=cls.organization, publication_date=cls.date_3
+        )
+
+    def test_filter_from_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("News-list", args=(self.organization.code,))
+            + f"?from_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {news["id"] for news in content},
+            {self.news_2.id, self.news_3.id},
+        )
+
+    def test_filter_to_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("News-list", args=(self.organization.code,))
+            + f"?to_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {news["id"] for news in content},
+            {self.news_1.id, self.news_2.id},
+        )
+
+    def test_order_by_publication_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("News-list", args=(self.organization.code,))
+            + "?ordering=publication_date"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [news["id"] for news in content],
+            [self.news_1.id, self.news_2.id, self.news_3.id],
+        )
+
+    def test_order_by_publication_date_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("News-list", args=(self.organization.code,))
+            + "?ordering=-publication_date"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [news["id"] for news in content],
+            [self.news_3.id, self.news_2.id, self.news_1.id],
         )

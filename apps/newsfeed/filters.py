@@ -4,8 +4,8 @@ from .models import Event, Instruction, News
 
 
 class EventFilter(filters.FilterSet):
-    from_date = filters.DateFilter(field_name="event_date", lookup_expr="gte")
-    to_date = filters.DateFilter(field_name="event_date", lookup_expr="lte")
+    from_date = filters.DateTimeFilter(field_name="event_date", lookup_expr="gte")
+    to_date = filters.DateTimeFilter(field_name="event_date", lookup_expr="lte")
 
     class Meta:
         model = Event
@@ -13,8 +13,8 @@ class EventFilter(filters.FilterSet):
 
 
 class InstructionFilter(filters.FilterSet):
-    from_date = filters.DateFilter(field_name="publication_date", lookup_expr="gte")
-    to_date = filters.DateFilter(field_name="publication_date", lookup_expr="lte")
+    from_date = filters.DateTimeFilter(field_name="publication_date", lookup_expr="gte")
+    to_date = filters.DateTimeFilter(field_name="publication_date", lookup_expr="lte")
 
     class Meta:
         model = Instruction
@@ -22,8 +22,8 @@ class InstructionFilter(filters.FilterSet):
 
 
 class NewsFilter(filters.FilterSet):
-    from_date = filters.DateFilter(field_name="publication_date", lookup_expr="gte")
-    to_date = filters.DateFilter(field_name="publication_date", lookup_expr="lte")
+    from_date = filters.DateTimeFilter(field_name="publication_date", lookup_expr="gte")
+    to_date = filters.DateTimeFilter(field_name="publication_date", lookup_expr="lte")
 
     class Meta:
         model = News

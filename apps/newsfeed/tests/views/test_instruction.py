@@ -2,12 +2,14 @@ import datetime
 import random
 
 from django.urls import reverse
+from django.utils.timezone import make_aware
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.models import Language
 from apps.newsfeed.factories import InstructionFactory
@@ -299,4 +301,76 @@ class ValidateInstructionTestCase(JwtAPITestCase):
                     "The people groups of an instruction must belong to the same organization"
                 ]
             },
+        )
+
+
+class FilterOrderInstructionTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory(groups=[get_superadmins_group()])
+        cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
+        cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
+        cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
+        cls.instruction_1 = InstructionFactory(
+            organization=cls.organization, publication_date=cls.date_1
+        )
+        cls.instruction_2 = InstructionFactory(
+            organization=cls.organization, publication_date=cls.date_2
+        )
+        cls.instruction_3 = InstructionFactory(
+            organization=cls.organization, publication_date=cls.date_3
+        )
+
+    def test_filter_from_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Instruction-list", args=(self.organization.code,))
+            + f"?from_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {instruction["id"] for instruction in content},
+            {self.instruction_2.id, self.instruction_3.id},
+        )
+
+    def test_filter_to_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Instruction-list", args=(self.organization.code,))
+            + f"?to_date={self.date_2.date()}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertSetEqual(
+            {instruction["id"] for instruction in content},
+            {self.instruction_1.id, self.instruction_2.id},
+        )
+
+    def test_order_by_publication_date(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Instruction-list", args=(self.organization.code,))
+            + "?ordering=publication_date"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [instruction["id"] for instruction in content],
+            [self.instruction_1.id, self.instruction_2.id, self.instruction_3.id],
+        )
+
+    def test_order_by_publication_date_reverse(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("Instruction-list", args=(self.organization.code,))
+            + "?ordering=-publication_date"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertListEqual(
+            [instruction["id"] for instruction in content],
+            [self.instruction_3.id, self.instruction_2.id, self.instruction_1.id],
         )
