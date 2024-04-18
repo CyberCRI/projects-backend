@@ -200,7 +200,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
                 organizations__code__in=get_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
-                score__activity__gte=0.1,
+                score__activity__gte=1,
             )
             .exclude(id=project.id)
         )
@@ -214,7 +214,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
             organizations__code__in=get_hierarchy_codes(
                 [self.kwargs["organization_code"]]
             ),
-            score__activity__gte=0.1,
+            score__activity__gte=1,
         )
         embedding = self.get_user_embedding(user)
         if user.is_authenticated:
