@@ -131,6 +131,8 @@ class Newsfeed(models.Model):
         Project in the newsfeed.
     announcement: ForeignKey
         Announcement in the newsfeed.
+    news: ForeignKey
+        News in the newsfeed.
     type: CharField
         Type of the object.
     """
@@ -140,6 +142,7 @@ class Newsfeed(models.Model):
 
         PROJECT = "project"
         ANNOUNCEMENT = "announcement"
+        NEWS = "news"
 
     project = models.ForeignKey(
         "projects.Project",
@@ -152,6 +155,12 @@ class Newsfeed(models.Model):
         on_delete=models.CASCADE,
         null=True,
         related_name="newsfeed_announcement",
+    )
+    news = models.ForeignKey(
+        "newsfeed.news",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="newsfeed_news",
     )
     type = models.CharField(
         max_length=50, choices=NewsfeedType.choices, default=NewsfeedType.PROJECT
