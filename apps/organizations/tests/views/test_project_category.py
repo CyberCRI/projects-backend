@@ -309,3 +309,111 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         self.assertEqual(
             template["goal_description"], original_template.goal_description
         )
+
+
+class ValidatePeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.user = UserFactory(groups=[get_superadmins_group()])
+
+    def setUp(self):
+        super().setUp()
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_parent_in_other_organization(self):
+        parent = ProjectCategoryFactory()
+        payload = {
+            "organization_code": self.organization.code,
+            "name": faker.sentence(),
+            "description": faker.text(),
+            "parent": parent.id,
+        }
+        response = self.client.post(reverse("Category-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"parent": ["The parent category must belong to the same organization"]},
+        )
+
+    def test_update_parent_in_other_organization(self):
+        category = ProjectCategoryFactory(organization=self.organization)
+        parent = ProjectCategoryFactory()
+        payload = {
+            "parent": parent.id,
+        }
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"parent": ["The parent category must belong to the same organization"]},
+        )
+
+    def test_own_parent(self):
+        category = ProjectCategoryFactory(organization=self.organization)
+        payload = {
+            "parent": category.id,
+        }
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"parent": ["You are trying to create a loop in the category's hierarchy"]},
+        )
+
+    def test_create_hierarchy_loop(self):
+        category_1 = ProjectCategoryFactory(organization=self.organization)
+        category_2 = ProjectCategoryFactory(
+            organization=self.organization, parent=category_1
+        )
+        category_3 = ProjectCategoryFactory(
+            organization=self.organization, parent=category_2
+        )
+        payload = {"parent": category_3.id}
+        response = self.client.patch(
+            reverse("Category-detail", args=(category_1.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"parent": ["You are trying to create a loop in the category's hierarchy"]},
+        )
+
+    def test_give_root_group_a_parent(self):
+        root_category = ProjectCategory.update_or_create_root(self.organization)
+        parent = ProjectCategoryFactory(organization=self.organization)
+        payload = {"parent": parent.id}
+        response = self.client.patch(
+            reverse("Category-detail", args=(root_category.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"parent": ["The root category cannot have a parent category"]},
+        )
+
+    def test_set_root_group_as_parent_with_none(self):
+        child = ProjectCategoryFactory(organization=self.organization)
+        payload = {"parent": None}
+        response = self.client.patch(
+            reverse("Category-detail", args=(child.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        child.refresh_from_db()
+        self.assertEqual(
+            child.parent,
+            ProjectCategory.update_or_create_root(self.organization),
+        )
+
+    def test_update_root_group_with_none_parent(self):
+        root = ProjectCategory.update_or_create_root(self.organization)
+        payload = {"parent": None}
+        response = self.client.patch(
+            reverse("Category-detail", args=(root.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
