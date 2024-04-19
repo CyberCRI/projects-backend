@@ -434,6 +434,11 @@ class ProjectCategory(models.Model, OrganizationRelated):
                 if categories[category_id].background_image
                 else None
             ),
+            "children": [
+                cls._get_hierarchy(categories, child)
+                for child in categories[category_id].children_ids
+                if child is not None
+            ],
         }
 
     def get_hierarchy(self):

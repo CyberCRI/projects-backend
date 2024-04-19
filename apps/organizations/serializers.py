@@ -460,7 +460,7 @@ class ProjectCategorySerializer(
 
     def validate_parent(self, value):
         organization_code = (
-            self.initial_data["organization"]
+            self.initial_data["organization_code"]
             if not self.instance
             else self.instance.organization.code
         )

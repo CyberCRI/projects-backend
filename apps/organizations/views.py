@@ -67,6 +67,16 @@ class ProjectCategoryViewSet(viewsets.ModelViewSet):
     def dispatch(self, request, *args, **kwargs):
         return super(ProjectCategoryViewSet, self).dispatch(request, *args, **kwargs)
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="hierarchy",
+        permission_classes=[ReadOnly],
+    )
+    def hierarchy(self, request, *args, **kwargs):
+        project_category = self.get_object()
+        return Response(project_category.get_hierarchy(), status=status.HTTP_200_OK)
+
 
 class ProjectCategoryBackgroundView(ImageStorageView):
     permission_classes = [
