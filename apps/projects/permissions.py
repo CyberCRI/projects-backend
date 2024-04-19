@@ -47,7 +47,7 @@ class ProjectRelatedPermission(IgnoreCall):
         return None
 
 
-def HasProjectPermission(  # noqa : N802
+def HasProjectPermission(  # noqa: N802
     codename: str, app: str = "projects"
 ) -> permissions.BasePermission:
     class _HasProjectPermission(permissions.BasePermission, ProjectRelatedPermission):

@@ -1,7 +1,7 @@
 from apps.commons.pagination import PageInfoLimitOffsetPagination
 
 
-def AlgoliaPagination(count: int = 0):  # noqa : N802
+def AlgoliaPagination(count: int = 0):  # noqa: N802
     class _AlgoliaPagination(PageInfoLimitOffsetPagination):
         def get_count(self, queryset):
             return count

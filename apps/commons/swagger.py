@@ -15,7 +15,7 @@ class CustomAutoSchema(AutoSchema):
         return operation
 
 
-class swagger_fake_value:  # noqa : N801
+class swagger_fake_value:  # noqa: N801
     """Decorator which return the given value instead of calling the function
     it decorates.
 

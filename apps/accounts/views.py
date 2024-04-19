@@ -429,7 +429,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 template_path = "execute_actions_email_not_sent.html"
             with translation.override(user.language):
                 return render(request, f"authentication/{template_path}")
-        except Exception as e:  # noqa
+        except Exception as e:  # noqa: PIE786
             with translation.override(user.language):
                 return render(
                     request,
