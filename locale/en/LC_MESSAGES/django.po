@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-04-18 12:54+0000\n"
+"POT-Creation-Date: 2024-04-19 12:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1091,6 +1091,22 @@ msgstr ""
 
 #: apps/organizations/exceptions.py:11
 msgid "You are trying to create a loop in the organization's hierarchy."
+msgstr ""
+
+#: apps/organizations/exceptions.py:24
+msgid "The root category cannot have a parent category"
+msgstr ""
+
+#: apps/organizations/exceptions.py:30
+msgid "A non-root category must have a parent category"
+msgstr ""
+
+#: apps/organizations/exceptions.py:36
+msgid "The parent category must belong to the same organization"
+msgstr ""
+
+#: apps/organizations/exceptions.py:42
+msgid "You are trying to create a loop in the category's hierarchy"
 msgstr ""
 
 #: apps/projects/exceptions.py:12

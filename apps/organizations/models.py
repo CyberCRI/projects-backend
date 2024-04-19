@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
+from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.http import Http404
@@ -391,9 +392,14 @@ class ProjectCategory(models.Model, OrganizationRelated):
         Template,
         on_delete=models.PROTECT,
         related_name="project_category",
+        null=True,
         default=None,
     )
     only_reviewer_can_publish = models.BooleanField(default=False)
+    is_root = models.BooleanField(default=False)
+    parent = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, related_name="children"
+    )
     history = HistoricalRecords()
 
     class Meta:
@@ -402,3 +408,38 @@ class ProjectCategory(models.Model, OrganizationRelated):
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
+
+    @classmethod
+    def update_or_create_root(cls, organization: "Organization"):
+        root_group, _ = cls.objects.update_or_create(
+            organization=organization,
+            is_root=True,
+            defaults={
+                "name": organization.name,
+            },
+        )
+        return root_group
+
+    @classmethod
+    def _get_hierarchy(cls, categories: dict[int, dict], category_id: int):
+        from apps.files.serializers import ImageSerializer
+
+        return {
+            "id": categories[category_id].id,
+            "name": categories[category_id].name,
+            "background_color": categories[category_id].background_color,
+            "foreground_color": categories[category_id].foreground_color,
+            "background_image": (
+                ImageSerializer(categories[category_id].background_image).data
+                if categories[category_id].background_image
+                else None
+            ),
+        }
+
+    def get_hierarchy(self):
+        # This would be better with a recursive serializer, but it doubles the query time
+        categories = ProjectCategory.objects.filter(
+            organization=self.organization.pk
+        ).annotate(children_ids=ArrayAgg("children"))
+        categories = {category.id: category for category in categories}
+        return self._get_hierarchy(categories, self.id)

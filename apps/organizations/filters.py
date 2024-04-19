@@ -8,10 +8,11 @@ from .models import Organization, ProjectCategory
 class ProjectCategoryFilter(filters.FilterSet):
     # filter by organization id with query ?organization=X
     organization = filters.CharFilter(field_name="organization__code")
+    is_root = filters.BooleanFilter(field_name="is_root")
 
     class Meta:
         model = ProjectCategory
-        fields = ["organization"]
+        fields = ["organization", "is_root"]
 
 
 class OrganizationFilter(filters.FilterSet):
