@@ -60,10 +60,12 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         Title displayed on the dashboard.
     dashboard_subtitle: CharField, optional
         Subtitle displayed on the dashboard.
-    organization_directory: ForeignKey
-        Directory containing the organization.
+    description: TextField
+        Description of the organization.
     contact_email: EmailField
         Contact email of the organization.
+    chat_url: URLField
+        Chat URL of the organization.
     language: CharField
         Main language of the organization.
     website_url: CharField
@@ -79,6 +81,19 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         Date of creation of the organization.
     updated_at: DateTimeField
         Date of the last change made to the organization.
+    parent: ForeignKey, optional
+        Parent organization.
+    groups: ManyToManyField
+        Permission groups of the organization. Default groups are:
+        - users
+        - admins
+        - facilitators
+    access_request_enabled: BooleanField
+        Whether access requests are enabled on the organization.
+    onboarding_enabled: BooleanField
+        Whether onboarding is enabled on the organization.
+    identity_providers: ManyToManyField
+        Identity providers authorized to access the organization.
     """
 
     class DefaultGroup(models.TextChoices):
@@ -105,7 +120,10 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         max_length=255,
     )
     dashboard_subtitle = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
     contact_email = models.EmailField(max_length=255)
+    chat_url = models.URLField(blank=True, max_length=255)
+    chat_button_text = models.CharField(blank=True, max_length=255)
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )

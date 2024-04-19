@@ -46,7 +46,10 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "code": faker.word(),
             "dashboard_title": faker.sentence(),
             "dashboard_subtitle": faker.sentence(),
+            "description": faker.text(),
             "contact_email": faker.email(),
+            "chat_url": faker.url(),
+            "chat_button_text": faker.word(),
             "website_url": faker.url(),
             "background_color": faker.color(),
             "logo_image_id": self.logo_image.id,
@@ -72,7 +75,10 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(
                 content["dashboard_subtitle"], payload["dashboard_subtitle"]
             )
+            self.assertEqual(content["description"], payload["description"])
             self.assertEqual(content["contact_email"], payload["contact_email"])
+            self.assertEqual(content["chat_url"], payload["chat_url"])
+            self.assertEqual(content["chat_button_text"], payload["chat_button_text"])
             self.assertEqual(content["website_url"], payload["website_url"])
             self.assertEqual(content["background_color"], payload["background_color"])
             self.assertEqual(content["logo_image"]["id"], payload["logo_image_id"])
@@ -167,7 +173,10 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "name": faker.word(),
             "dashboard_title": faker.sentence(),
             "dashboard_subtitle": faker.sentence(),
+            "description": faker.text(),
             "contact_email": faker.email(),
+            "chat_url": faker.url(),
+            "chat_button_text": faker.word(),
             "background_color": faker.color(),
             "logo_image_id": self.logo_image.id,
             "language": random.choice(Language.values),  # nosec
@@ -187,7 +196,10 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(
                 content["dashboard_subtitle"], payload["dashboard_subtitle"]
             )
+            self.assertEqual(content["description"], payload["description"])
             self.assertEqual(content["contact_email"], payload["contact_email"])
+            self.assertEqual(content["chat_url"], payload["chat_url"])
+            self.assertEqual(content["chat_button_text"], payload["chat_button_text"])
             self.assertEqual(content["background_color"], payload["background_color"])
             self.assertEqual(content["logo_image"]["id"], payload["logo_image_id"])
             self.assertEqual(content["language"], payload["language"])
