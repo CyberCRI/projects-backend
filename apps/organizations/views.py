@@ -217,12 +217,26 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         detail=True,
         methods=["GET"],
         url_path="people-groups-hierarchy",
+        url_name="people-groups-hierarchy",
         permission_classes=[ReadOnly],
     )
     def get_people_groups_hierarchy(self, request, *args, **kwargs):
         """Get the people groups hierarchy of the organization."""
         organization = self.get_object()
         root_group = PeopleGroup.update_or_create_root(organization)
+        return Response(root_group.get_hierarchy(), status=status.HTTP_200_OK)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="categories-hierarchy",
+        url_name="categories-hierarchy",
+        permission_classes=[ReadOnly],
+    )
+    def get_project_categories_hierarchy(self, request, *args, **kwargs):
+        """Get the people groups hierarchy of the organization."""
+        organization = self.get_object()
+        root_group = ProjectCategory.update_or_create_root(organization)
         return Response(root_group.get_hierarchy(), status=status.HTTP_200_OK)
 
     @extend_schema(

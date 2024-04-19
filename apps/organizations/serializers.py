@@ -1,10 +1,11 @@
 import logging
 import uuid
 from types import SimpleNamespace
-from typing import Dict, List
+from typing import Dict, List, Union
 
 from django.conf import settings
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
@@ -20,8 +21,12 @@ from apps.projects.models import Project
 from services.keycloak.serializers import IdentityProviderSerializer
 
 from .exceptions import (
+    CategoryHierarchyLoopError,
     FeaturedProjectPermissionDeniedError,
+    NonRootCategoryParentError,
     OrganizationHierarchyLoopError,
+    ParentCategoryOrganizationError,
+    RootCategoryParentError,
 )
 from .models import Faq, Organization, ProjectCategory, Template
 
@@ -371,9 +376,17 @@ class ProjectCategorySerializer(
     wikipedia_tags = WikipediaTagSerializer(many=True, read_only=True)
     organization_tags = TagSerializer(many=True, read_only=True)
     template = TemplateSerializer(required=False, allow_null=True, default=None)
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=ProjectCategory.objects.all(),
+        required=False,
+        allow_null=True,
+        write_only=True,
+    )
     # read-only
     background_image = ImageSerializer(read_only=True)
     organization = SlugRelatedField(read_only=True, slug_field="code")
+    hierarchy = serializers.SerializerMethodField()
+    children = serializers.SerializerMethodField()
     # write-only
     background_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -411,6 +424,9 @@ class ProjectCategorySerializer(
             "template",
             "wikipedia_tags",
             "only_reviewer_can_publish",
+            "parent",
+            "hierarchy",
+            "children",
             # read-only
             "background_image",
             "organization",
@@ -423,11 +439,48 @@ class ProjectCategorySerializer(
             "organization_tags_ids",
         ]
 
+    def get_hierarchy(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:
+        hierarchy = []
+        while obj.parent:
+            obj = obj.parent
+            hierarchy.append({"id": obj.id, "name": obj.name})
+        return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
+
+    def get_children(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:
+        return [
+            {"id": child.id, "name": child.name}
+            for child in obj.children.all().order_by("name")
+        ]
+
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
         if "organization" in self.validated_data:
             return [self.validated_data["organization"]]
         return []
+
+    def validate_parent(self, value):
+        organization_code = (
+            self.initial_data["organization"]
+            if not self.instance
+            else self.instance.organization.code
+        )
+        if (not value and not self.instance) or (
+            not value and self.instance and not self.instance.is_root
+        ):
+            organization = get_object_or_404(Organization, code=organization_code)
+            value = ProjectCategory.update_or_create_root(organization)
+        if value and self.instance and self.instance.is_root is True:
+            raise RootCategoryParentError
+        if not value and self.instance and self.instance.is_root is False:
+            raise NonRootCategoryParentError
+        if value and value.organization.code != organization_code:
+            raise ParentCategoryOrganizationError
+        parent = value
+        while parent is not None:
+            if self.instance == parent:
+                raise CategoryHierarchyLoopError
+            parent = parent.parent
+        return value
 
     @transaction.atomic
     def save(self, **kwargs):
