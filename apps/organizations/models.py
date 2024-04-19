@@ -126,6 +126,9 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     identity_providers = models.ManyToManyField(
         "keycloak.IdentityProvider", related_name="organizations", blank=True
     )
+    featured_projects = models.ManyToManyField(
+        "projects.Project", related_name="org_featured_projects"
+    )
 
     class Meta:
         subscopes = (
