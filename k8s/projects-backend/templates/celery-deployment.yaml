@@ -21,12 +21,8 @@ spec:
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
     spec:
       securityContext:
-        runAsNonRoot: true
-        runAsUser: 10000
-        runAsGroup: 10000
-        fsGroup: 10000
-        seccompProfile:
-          type: RuntimeDefault
+        {{- include "common.podSecurityContext.restricted" dict | nindent 8 }}
+
       containers:
       {{- with $.Values.image }}
       - image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
@@ -69,9 +65,7 @@ spec:
         resources:
           {{- .Values.celery.resources | toYaml | nindent 10 }}
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: [ALL]
+          {{- include "common.containerSecurityContext.restricted" dict | nindent 10 }}
       {{- if .Values.config.sensitive }}
         volumeMounts:
         - name: secrets
@@ -113,9 +107,7 @@ spec:
         - name: CE_BROKER_URL
           value: {{ tpl $.Values.config.nonSensitive.CELERY_BROKER_URL $ }}
         securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop: [ALL]
+          {{- include "common.containerSecurityContext.restricted" dict | nindent 10 }}
       {{- end }}
       {{- end }}
       {{- if .Values.config.sensitive }}

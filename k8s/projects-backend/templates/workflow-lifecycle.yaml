@@ -36,12 +36,7 @@ spec:
   entrypoint: create-db
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
-    runAsNonRoot: true
-    runAsUser: 10000
-    runAsGroup: 10000
-    fsGroup: 10000
-    seccompProfile:
-      type: RuntimeDefault
+    {{- include "common.podSecurityContext.restricted" dict | nindent 4 }}
   templates:
     - name: drop-db
       inputs:
