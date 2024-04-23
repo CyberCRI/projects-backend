@@ -33,6 +33,7 @@ class NewsFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     content = factory.Faker("text")
     publication_date = timezone.now()
+    visible_by_all = False
 
     class Meta:
         model = News

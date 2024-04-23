@@ -102,6 +102,7 @@ class InstructionSerializer(OrganizationRelatedSerializer):
 class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)
     announcement = AnnouncementSerializer(many=False, read_only=True)
+    news = NewsSerializer(many=False, read_only=True)
     type = serializers.CharField(max_length=50)
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -111,6 +112,7 @@ class NewsfeedSerializer(serializers.ModelSerializer):
         fields = read_only_fields + [
             "project",
             "announcement",
+            "news",
             "type",
             "updated_at",
         ]

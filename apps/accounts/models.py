@@ -533,7 +533,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             else:
                 groups = self.get_people_group_queryset()
                 self._news_queryset = News.objects.filter(
-                    Q(people_groups__in=groups) | Q(people_groups=None)
+                    Q(people_groups__in=groups) | Q(visible_by_all=True)
                 )
         return self._news_queryset.distinct().prefetch_related(*prefetch)
 
@@ -850,7 +850,7 @@ class AnonymousUser:
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
         if self._news_queryset is None:
             self._news_queryset = News.objects.filter(
-                Q(people_groups__isnull=True)
+                Q(visible_by_all=True)
                 | Q(
                     people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
                 )

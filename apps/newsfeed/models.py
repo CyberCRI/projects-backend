@@ -25,7 +25,7 @@ class News(models.Model, OrganizationRelated):
     header_image: ForeignKey
         Image in the news.
     publication_date: DateTimeField
-        Date of teh news' publication.
+        Date of the news' publication.
     groups: ManyToManyField
         Groups which have access to the news.
     created_at: DateTimeField
@@ -33,6 +33,8 @@ class News(models.Model, OrganizationRelated):
     updated_at: DateTimeField
         Date of the last change made to the news.
     """
+
+    # When we want a news to be visible by everyone, we can set visible_by_all to True. We could also have selected all the people groups, but what of the poeple who do not belong to any group?
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
@@ -52,6 +54,7 @@ class News(models.Model, OrganizationRelated):
     organization = models.ForeignKey(
         "organizations.Organization", related_name="news", on_delete=models.CASCADE
     )
+    visible_by_all = models.BooleanField(default=False)
 
     def get_related_organizations(self):
         return [self.organization]
@@ -157,7 +160,7 @@ class Newsfeed(models.Model):
         related_name="newsfeed_announcement",
     )
     news = models.ForeignKey(
-        "newsfeed.news",
+        "newsfeed.News",
         on_delete=models.CASCADE,
         null=True,
         related_name="newsfeed_news",

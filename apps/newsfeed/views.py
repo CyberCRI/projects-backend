@@ -1,8 +1,8 @@
-import logging
 import uuid
 
 from django.db.models import BigIntegerField, F, QuerySet
 from django.shortcuts import redirect
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
@@ -25,8 +25,6 @@ from .serializers import (
     NewsfeedSerializer,
     NewsSerializer,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class NewsViewSet(viewsets.ModelViewSet):
@@ -165,31 +163,6 @@ class NewsfeedViewSet(ListViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = None
 
-    announcement_pattern = {
-        0: {"index": 1, "step": 1},
-        1: {"index": 3, "step": 2},
-        2: {"index": 4, "step": 0},
-    }
-
-    project_pattern = {
-        0: {"index": 1, "step": 1},
-        1: {"index": 1, "step": 2},
-        2: {"index": 3, "step": 3},
-        3: {"index": 1, "step": 4},
-        4: {"index": 2, "step": 0},
-    }
-
-    def get_ordered_dict(self, id_list, index, pattern):
-        projects_index = {}
-        step = 0
-
-        for id_item in id_list:
-            projects_index[index] = id_item
-            index += pattern[step]["index"]
-            step = pattern[step]["step"]
-
-        return projects_index
-
     def get_queryset(self):
         projects_ids = (
             self.request.user.get_project_queryset()
@@ -201,9 +174,9 @@ class NewsfeedViewSet(ListViewSet):
         )
         projects_queryset = (
             Newsfeed.objects.filter(project__in=projects_ids)
-            .annotate(updated_at=F("project__updated_at"))
+            .annotate(date=F("project__updated_at"))
             .distinct()
-            .order_by("-updated_at")
+            .order_by("-date")
         )
 
         valid_announcements = Announcement.objects.filter(
@@ -213,20 +186,21 @@ class NewsfeedViewSet(ListViewSet):
         announcements_ids = visible_announcements.values_list("id", flat=True)
         announcements_queryset = (
             Newsfeed.objects.filter(announcement__in=announcements_ids)
-            .annotate(updated_at=F("announcement__updated_at"))
+            .annotate(date=F("announcement__updated_at"))
             .distinct()
-            .order_by("-updated_at")
+            .order_by("-date")
         )
 
         visible_news = self.request.user.get_news_queryset().filter(
-            organization__code=self.kwargs["organization_code"]
+            organization__code=self.kwargs["organization_code"],
+            publication_date__lte=timezone.now(),
         )
         news_ids = visible_news.values_list("id", flat=True)
         news_queryset = (
             Newsfeed.objects.filter(news__in=news_ids)
-            .annotate(updated_at=F("news__updated_at"))
+            .annotate(date=F("news__publication_date"))
             .distinct()
-            .order_by("-updated_at")
+            .order_by("-date")
         )
 
         projects_ids_list = [item.id for item in projects_queryset]
