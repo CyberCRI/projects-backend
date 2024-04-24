@@ -533,7 +533,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             else:
                 groups = self.get_people_group_queryset()
                 self._news_queryset = News.objects.filter(
-                    Q(people_groups__in=groups) | Q(visible_by_all=True)
+                    Q(visible_by_all=True) | Q(people_groups__in=groups)
                 )
         return self._news_queryset.distinct().prefetch_related(*prefetch)
 
