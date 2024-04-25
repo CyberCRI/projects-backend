@@ -36,7 +36,7 @@ class News(models.Model, OrganizationRelated):
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    # When we want a news to be visible by everyone, we can set visible_by_all to True. We could also have selected all the people groups, but what of the poeple who do not belong to any group?
+    # When we want a news to be visible by everyone, we can set visible_by_all to True. We could also have selected all the people groups, but what of the people who do not belong to any group?
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
