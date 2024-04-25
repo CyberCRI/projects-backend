@@ -1,7 +1,7 @@
 from django.core.management import BaseCommand
 
 from apps.announcements.models import Announcement
-from apps.newsfeed.models import Newsfeed
+from apps.newsfeed.models import News, Newsfeed
 from apps.projects.models import Project
 
 
@@ -21,5 +21,13 @@ class Command(BaseCommand):
                 defaults={
                     "announcement": announcement,
                     "type": Newsfeed.NewsfeedType.ANNOUNCEMENT,
+                },
+            )
+        for news in News.objects.all():
+            Newsfeed.objects.get_or_create(
+                news=news,
+                defaults={
+                    "news": news,
+                    "type": Newsfeed.NewsfeedType.NEWS,
                 },
             )

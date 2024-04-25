@@ -2,12 +2,14 @@ import uuid
 
 from django.db.models import BigIntegerField, F, QuerySet
 from django.shortcuts import redirect
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
+from apps.announcements.models import Announcement
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import ArrayPosition, map_action_to_permission
 from apps.commons.views import ListViewSet
@@ -161,89 +163,68 @@ class NewsfeedViewSet(ListViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = None
 
-    announcement_pattern = {
-        0: {"index": 1, "step": 1},
-        1: {"index": 3, "step": 2},
-        2: {"index": 4, "step": 0},
-    }
-
-    project_pattern = {
-        0: {"index": 1, "step": 1},
-        1: {"index": 1, "step": 2},
-        2: {"index": 3, "step": 3},
-        3: {"index": 1, "step": 4},
-        4: {"index": 2, "step": 0},
-    }
-
-    def get_ordered_dict(self, id_list, index, pattern):
-        projects_index = {}
-        step = 0
-
-        for id_item in id_list:
-            projects_index[index] = id_item
-            index += pattern[step]["index"]
-            step = pattern[step]["step"]
-
-        return projects_index
-
     def get_queryset(self):
-        projects_ids = self.request.user.get_project_queryset()
-
+        projects_ids = (
+            self.request.user.get_project_queryset()
+            .filter(
+                organizations__code=self.kwargs["organization_code"],
+                score__completeness__gt=5,
+            )
+            .values_list("id", flat=True)
+        )
         projects_queryset = (
             Newsfeed.objects.filter(project__in=projects_ids)
-            .annotate(updated_at=F("project__updated_at"))
+            .annotate(date=F("project__updated_at"))
             .distinct()
-            .order_by("-updated_at")
+            .order_by("-date")
         )
 
+        valid_announcements = Announcement.objects.filter(
+            project__deleted_at__isnull=True
+        )
+        visible_announcements = valid_announcements.select_related("project")
+        announcements_ids = visible_announcements.values_list("id", flat=True)
         announcements_queryset = (
-            Newsfeed.objects.filter(type=Newsfeed.NewsfeedType.ANNOUNCEMENT)
-            .annotate(updated_at=F("announcement__updated_at"))
+            Newsfeed.objects.filter(announcement__in=announcements_ids)
+            .annotate(date=F("announcement__updated_at"))
             .distinct()
-            .order_by("-updated_at")
+            .order_by("-date")
+        )
+
+        visible_news = self.request.user.get_news_queryset().filter(
+            organization__code=self.kwargs["organization_code"],
+            publication_date__lte=timezone.now(),
+        )
+        news_ids = visible_news.values_list("id", flat=True)
+        news_queryset = (
+            Newsfeed.objects.filter(news__in=news_ids)
+            .annotate(date=F("news__publication_date"))
+            .distinct()
+            .order_by("-date")
         )
 
         projects_ids_list = [item.id for item in projects_queryset]
         announcements_ids_list = [item.id for item in announcements_queryset]
+        news_ids_list = [item.id for item in news_queryset]
 
-        ordered_projects_dict = self.get_ordered_dict(
-            projects_ids_list, index=0, pattern=self.project_pattern
-        )
-        ordered_announcements_dict = self.get_ordered_dict(
-            announcements_ids_list, index=3, pattern=self.announcement_pattern
-        )
-
-        ordered_news_list = []
+        ordered_list = []
         x = 0
-        total_len = len(projects_ids_list) + len(announcements_ids_list)
-        appended_projects = 0
-        appended_announcements = 0
-        while x < total_len:
-            if ordered_announcements_dict.get(x):
-                ordered_news_list.append(ordered_announcements_dict[x])
-                appended_announcements += 1
-            elif ordered_projects_dict.get(x):
-                ordered_news_list.append(ordered_projects_dict[x])
-                appended_projects += 1
-            else:
-                if appended_projects < len(projects_ids_list):
-                    ordered_news_list = (
-                        ordered_news_list + projects_ids_list[appended_projects:]
-                    )
-                else:
-                    ordered_news_list = (
-                        ordered_news_list
-                        + announcements_ids_list[appended_announcements:]
-                    )
-                break
+        greatest_len = max(
+            len(projects_ids_list), len(announcements_ids_list), len(news_ids_list)
+        )
+        while x < greatest_len:
+            if x < len(announcements_ids_list):
+                ordered_list.append(announcements_ids_list[x])
+            if x < len(news_ids_list):
+                ordered_list.append(news_ids_list[x])
+            if x < len(projects_ids_list):
+                ordered_list.append(projects_ids_list[x])
             x += 1
 
-        ordering = ArrayPosition(
-            ordered_news_list, F("id"), base_field=BigIntegerField()
-        )
+        ordering = ArrayPosition(ordered_list, F("id"), base_field=BigIntegerField())
 
         return (
-            Newsfeed.objects.filter(id__in=ordered_news_list)
+            Newsfeed.objects.filter(id__in=ordered_list)
             .annotate(ordering=ordering)
             .order_by("ordering")
         )

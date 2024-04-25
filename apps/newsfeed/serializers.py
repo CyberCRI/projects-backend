@@ -47,6 +47,7 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
             "language",
             "created_at",
             "updated_at",
+            "visible_by_all",
             # write_only
             "header_image_id",
         ]
@@ -84,6 +85,7 @@ class InstructionSerializer(OrganizationRelatedSerializer):
             "has_to_be_notified",
             "created_at",
             "updated_at",
+            "visible_by_all",
             # write only
             "people_groups_ids",
             # read only
@@ -102,6 +104,7 @@ class InstructionSerializer(OrganizationRelatedSerializer):
 class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)
     announcement = AnnouncementSerializer(many=False, read_only=True)
+    news = NewsSerializer(many=False, read_only=True)
     type = serializers.CharField(max_length=50)
     updated_at = serializers.DateTimeField(read_only=True)
 
@@ -111,6 +114,7 @@ class NewsfeedSerializer(serializers.ModelSerializer):
         fields = read_only_fields + [
             "project",
             "announcement",
+            "news",
             "type",
             "updated_at",
         ]
@@ -135,6 +139,7 @@ class EventSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer
             "people_groups",
             "created_at",
             "updated_at",
+            "visible_by_all",
         ]
 
     def validate_people_groups(self, value):
