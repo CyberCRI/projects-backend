@@ -179,48 +179,68 @@ class RetrieveInstructionTestCase(JwtAPITestCase):
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.people_groups = {
-            "none": [],
-            "public": [
-                PeopleGroupFactory(
-                    organization=cls.organization,
-                    publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-                )
-            ],
-            "private": [
-                PeopleGroupFactory(
-                    organization=cls.organization,
-                    publication_status=PeopleGroup.PublicationStatus.PRIVATE,
-                )
-            ],
-            "org": [
-                PeopleGroupFactory(
-                    organization=cls.organization,
-                    publication_status=PeopleGroup.PublicationStatus.ORG,
-                )
-            ],
+        cls.data = {
+            "none": {
+                "groups": [],
+                "visible_by_all": False,
+            },
+            "all": {
+                "groups": [],
+                "visible_by_all": True,
+            },
+            "public": {
+                "groups": [
+                    PeopleGroupFactory(
+                        organization=cls.organization,
+                        publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+                    )
+                ],
+                "visible_by_all": False,
+            },
+            "private": {
+                "groups": [
+                    PeopleGroupFactory(
+                        organization=cls.organization,
+                        publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+                    )
+                ],
+                "visible_by_all": False,
+            },
+            "org": {
+                "groups": [
+                    PeopleGroupFactory(
+                        organization=cls.organization,
+                        publication_status=PeopleGroup.PublicationStatus.ORG,
+                    )
+                ],
+                "visible_by_all": False,
+            },
         }
         cls.instructions = {
-            key: InstructionFactory(organization=cls.organization, people_groups=value)
-            for key, value in cls.people_groups.items()
+            key: InstructionFactory(
+                organization=cls.organization,
+                people_groups=value["groups"],
+                visible_by_all=value["visible_by_all"],
+            )
+            for key, value in cls.data.items()
         }
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("none", "public")),
-            (TestRoles.DEFAULT, ("none", "public")),
-            (TestRoles.SUPERADMIN, ("none", "public", "private", "org")),
-            (TestRoles.ORG_ADMIN, ("none", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "public", "private", "org")),
-            (TestRoles.ORG_USER, ("none", "public", "org")),
-            (TestRoles.GROUP_LEADER, ("none", "public", "private")),
-            (TestRoles.GROUP_MANAGER, ("none", "public", "private")),
-            (TestRoles.GROUP_MEMBER, ("none", "public", "private")),
+            (TestRoles.ANONYMOUS, ("all", "public")),
+            (TestRoles.DEFAULT, ("all", "public")),
+            (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("all", "public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("all", "public", "private", "org")),
+            (TestRoles.ORG_USER, ("all", "public", "org")),
+            (TestRoles.GROUP_LEADER, ("all", "public", "private")),
+            (TestRoles.GROUP_MANAGER, ("all", "public", "private")),
+            (TestRoles.GROUP_MEMBER, ("all", "public", "private")),
         ]
     )
     def test_list_instructions(self, role, expected_count):
         user = self.get_parameterized_test_user(
-            role, instances=self.people_groups["private"]
+            role, instances=self.data["private"]["groups"]
         )
         self.client.force_authenticate(user)
         response = self.client.get(

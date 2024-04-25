@@ -51,6 +51,7 @@ class InstructionFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     content = factory.Faker("text")
     publication_date = timezone.now()
+    visible_by_all = False
 
     class Meta:
         model = Instruction
@@ -68,6 +69,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     content = factory.Faker("text")
     event_date = timezone.now()
+    visible_by_all = False
 
     class Meta:
         model = Event

@@ -544,7 +544,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             else:
                 groups = self.get_people_group_queryset()
                 self._instruction_queryset = Instruction.objects.filter(
-                    Q(people_groups__in=groups) | Q(people_groups=None)
+                    Q(visible_by_all=True) | Q(people_groups__in=groups)
                 )
         return self._instruction_queryset.distinct().prefetch_related(*prefetch)
 
@@ -555,7 +555,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             else:
                 groups = self.get_people_group_queryset()
                 self._event_queryset = Event.objects.filter(
-                    Q(people_groups__in=groups) | Q(people_groups=None)
+                    Q(visible_by_all=True) | Q(people_groups__in=groups)
                 )
         return self._event_queryset.distinct().prefetch_related(*prefetch)
 
@@ -860,7 +860,7 @@ class AnonymousUser:
     def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
         if self._event_queryset is None:
             self._event_queryset = Event.objects.filter(
-                Q(people_groups__isnull=True)
+                Q(visible_by_all=True)
                 | Q(
                     people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
                 )
@@ -870,7 +870,7 @@ class AnonymousUser:
     def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
         if self._instruction_queryset is None:
             self._instruction_queryset = Instruction.objects.filter(
-                Q(people_groups__isnull=True)
+                Q(visible_by_all=True)
                 | Q(
                     people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
                 )

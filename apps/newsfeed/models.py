@@ -32,6 +32,8 @@ class News(models.Model, OrganizationRelated):
         Date of creation of this news.
     updated_at: DateTimeField
         Date of the last change made to the news.
+    visible_by_all: BooleanField
+        If the news is visible by all the users, connected or not, member of a group or not.
     """
 
     # When we want a news to be visible by everyone, we can set visible_by_all to True. We could also have selected all the people groups, but what of the poeple who do not belong to any group?
@@ -83,6 +85,8 @@ class Instruction(models.Model, OrganizationRelated, HasOwner):
         If a notification has to be sent to the groups.
     notified: BooleanField
         If a notification has already been sent.
+    visible_by_all: BooleanField
+        If the news is visible by all the users, connected or not, member of a group or not.
     """
 
     owner = models.ForeignKey(
@@ -109,6 +113,7 @@ class Instruction(models.Model, OrganizationRelated, HasOwner):
     )
     has_to_be_notified = models.BooleanField(default=False)
     notified = models.BooleanField(default=False)
+    visible_by_all = models.BooleanField(default=False)
 
     def get_related_organizations(self):
         return [self.organization]
@@ -190,6 +195,8 @@ class Event(models.Model, OrganizationRelated):
         Date of creation of this project.
     updated_at: DateTimeField
         Date of the last change made to the project.
+    visible_by_all: BooleanField
+        If the news is visible by all the users, connected or not, member of a group or not.
     """
 
     title = models.CharField(max_length=255, verbose_name=("title"))
@@ -203,6 +210,7 @@ class Event(models.Model, OrganizationRelated):
     organization = models.ForeignKey(
         "organizations.Organization", related_name="events", on_delete=models.CASCADE
     )
+    visible_by_all = models.BooleanField(default=False)
 
     def get_related_organizations(self) -> List["Organization"]:
         return [self.organization]
