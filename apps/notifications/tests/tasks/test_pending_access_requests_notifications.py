@@ -53,7 +53,7 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
             self.assertEqual(ret["type"], Notification.Types.PENDING_ACCESS_REQUESTS)
             self.assertEqual(ret["context"]["requests_count"], 2)
             self.assertFalse(ret["is_viewed"])
-            self.assertEqual(ret["organization"], self.organization.id)
+            self.assertEqual(ret["organization"], self.organization.name)
 
     def test_merged_notifications_task(self):
         AccessRequestFactory.create_batch(

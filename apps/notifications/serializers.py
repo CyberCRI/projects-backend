@@ -3,6 +3,7 @@ from rest_framework import serializers
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.serializers import TranslatedModelSerializer
 from apps.invitations.serializers import InvitationSerializer
+from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectSuperLightSerializer
 
 from .models import Notification, NotificationSettings
@@ -25,6 +26,9 @@ class NotificationsSerializer(TranslatedModelSerializer):
     sender = UserLightSerializer(read_only=True)
     project = ProjectSuperLightSerializer(read_only=True)
     invitation = InvitationSerializer(read_only=True)
+    organization = serializers.SlugRelatedField(
+        slug_field="name", queryset=Organization.objects.all()
+    )
 
     class Meta:
         model = Notification

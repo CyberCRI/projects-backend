@@ -7,5 +7,5 @@ Last name: {{ family_name }}
 Email: {{ email }}
 Title: {{ job }}
 Message:{{ message }}
-See <a class="lpi-link" href="{{ website_url }}/request-access">request in platform</a>.
+See <a class="lpi-link" href="{{ website_url }}/admin/requests">request in platform</a>.
 {% endblocktranslate %}
