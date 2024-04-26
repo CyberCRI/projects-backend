@@ -696,22 +696,13 @@ msgid ""
 msgstr ""
 
 #: apps/notifications/templates/new_access_request/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"            New access request %(request_id)s for %(org_name)s Projects "
-"platform\n"
-"            "
-msgstr ""
-
-#: apps/notifications/templates/new_access_request/mail.html:13
 msgid ""
 "\n"
 "            Hello,\n"
 "            "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:18
+#: apps/notifications/templates/new_access_request/mail.html:13
 #, python-format
 msgid ""
 "\n"
@@ -720,14 +711,14 @@ msgid ""
 "            "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:27
+#: apps/notifications/templates/new_access_request/mail.html:22
 msgid ""
 "\n"
 "          First name:\n"
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:34
+#: apps/notifications/templates/new_access_request/mail.html:29
 #, python-format
 msgid ""
 "\n"
@@ -735,14 +726,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:43
+#: apps/notifications/templates/new_access_request/mail.html:38
 msgid ""
 "\n"
 "          Last name:\n"
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:50
+#: apps/notifications/templates/new_access_request/mail.html:45
 #, python-format
 msgid ""
 "\n"
@@ -750,14 +741,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:59
+#: apps/notifications/templates/new_access_request/mail.html:54
 msgid ""
 "\n"
 "          Email:\n"
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:66
+#: apps/notifications/templates/new_access_request/mail.html:61
 #, python-format
 msgid ""
 "\n"
@@ -765,14 +756,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:75
+#: apps/notifications/templates/new_access_request/mail.html:70
 msgid ""
 "\n"
 "          Title:\n"
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:82
+#: apps/notifications/templates/new_access_request/mail.html:77
 #, python-format
 msgid ""
 "\n"
@@ -780,14 +771,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:91
+#: apps/notifications/templates/new_access_request/mail.html:86
 msgid ""
 "\n"
 "          Message:\n"
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:98
+#: apps/notifications/templates/new_access_request/mail.html:93
 #, python-format
 msgid ""
 "\n"
@@ -795,7 +786,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/notifications/templates/new_access_request/mail.html:107
+#: apps/notifications/templates/new_access_request/mail.html:102
 #, python-format
 msgid ""
 "\n"
@@ -808,7 +799,6 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"New access request %(request_id)s for %(org_name)s Projects platform\n"
 "Hello,\n"
 "You have received a new access request for %(org_name)s Projects platform.\n"
 "First name: %(given_name)s\n"
@@ -824,7 +814,7 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"New access request %(request_id)s for %(org_name)s Projects platform\n"
+"New access request for %(org_name)s Projects platform\n"
 msgstr ""
 
 #: apps/notifications/templates/new_announcement/reminder.txt:2

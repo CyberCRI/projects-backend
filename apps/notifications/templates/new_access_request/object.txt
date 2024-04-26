@@ -1,4 +1,4 @@
 {% load i18n %}
-{% blocktranslate with org_name=organization.name request_id=item.id %}
-New access request {{request_id}} for {{ org_name }} Projects platform
+{% blocktranslate with org_name=organization.name %}
+New access request for {{ org_name }} Projects platform
 {% endblocktranslate %}

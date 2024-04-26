@@ -4,11 +4,6 @@
 {% load static %}
 
 {% block content %}
-        <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
-            {% blocktranslate with org_name=organization.name request_id=item.id %}
-            New access request {{request_id}} for {{ org_name }} Projects platform
-            {% endblocktranslate %}
-        </mj-text>
         <mj-text>
             {% blocktranslate %}
             Hello,

@@ -1,6 +1,5 @@
 {% load i18n %}
-{% blocktranslate with org_name=organization.name website_url=organization.website_url contact_email=organization.contact_email request_id=item.id %}
-New access request {{request_id}} for {{ org_name }} Projects platform
+{% blocktranslate with org_name=organization.name website_url=organization.website_url contact_email=organization.contact_email%}
 Hello,
 You have received a new access request for {{ org_name }} Projects platform.
 First name: {{ given_name }}
