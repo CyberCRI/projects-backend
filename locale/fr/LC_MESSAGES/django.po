@@ -1060,7 +1060,7 @@ msgid ""
 "New access request for %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Nouvelle demande d'accès %(request_id)s pour la plateforme Projects de "
+"Nouvelle demande d'accès pour la plateforme Projects de "
 "%(org_name)s\n"
 
 #: apps/notifications/templates/new_announcement/reminder.txt:2
