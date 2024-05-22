@@ -1,6 +1,6 @@
 import uuid
 
-from django.db.models import BigIntegerField, F, QuerySet
+from django.db.models import F, QuerySet
 from django.shortcuts import redirect
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -9,7 +9,6 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
-from apps.announcements.models import Announcement
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import ArrayPosition, map_action_to_permission
 from apps.commons.views import ListViewSet
@@ -163,71 +162,63 @@ class NewsfeedViewSet(ListViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = None
 
-    def get_queryset(self):
-        projects_ids = (
-            self.request.user.get_project_queryset()
-            .filter(
-                organizations__code=self.kwargs["organization_code"],
-                score__completeness__gt=5,
-            )
-            .values_list("id", flat=True)
-        )
-        projects_queryset = (
-            Newsfeed.objects.filter(project__in=projects_ids)
-            .annotate(date=F("project__updated_at"))
-            .distinct()
-            .order_by("-date")
-        )
-
-        valid_announcements = Announcement.objects.filter(
-            project__deleted_at__isnull=True
-        )
-        visible_announcements = valid_announcements.select_related("project")
-        announcements_ids = visible_announcements.values_list("id", flat=True)
-        announcements_queryset = (
-            Newsfeed.objects.filter(announcement__in=announcements_ids)
-            .annotate(date=F("announcement__updated_at"))
-            .distinct()
-            .order_by("-date")
-        )
-
-        visible_news = self.request.user.get_news_queryset().filter(
-            organization__code=self.kwargs["organization_code"],
-            publication_date__lte=timezone.now(),
-        )
-        news_ids = visible_news.values_list("id", flat=True)
-        news_queryset = (
-            Newsfeed.objects.filter(news__in=news_ids)
-            .annotate(date=F("news__publication_date"))
-            .distinct()
-            .order_by("-date")
-        )
-
-        projects_ids_list = [item.id for item in projects_queryset]
-        announcements_ids_list = [item.id for item in announcements_queryset]
-        news_ids_list = [item.id for item in news_queryset]
-
-        ordered_list = []
-        x = 0
-        greatest_len = max(
-            len(projects_ids_list), len(announcements_ids_list), len(news_ids_list)
-        )
-        while x < greatest_len:
-            if x < len(announcements_ids_list):
-                ordered_list.append(announcements_ids_list[x])
-            if x < len(news_ids_list):
-                ordered_list.append(news_ids_list[x])
-            if x < len(projects_ids_list):
-                ordered_list.append(projects_ids_list[x])
-            x += 1
-
-        ordering = ArrayPosition(ordered_list, F("id"), base_field=BigIntegerField())
-
+    def get_projects_queryset(self):
         return (
-            Newsfeed.objects.filter(id__in=ordered_list)
-            .annotate(ordering=ordering)
-            .order_by("ordering")
+            self.request.user.get_project_related_queryset(
+                queryset=Newsfeed.objects.filter(
+                    type=Newsfeed.NewsfeedType.PROJECT,
+                    project__deleted_at__isnull=True,
+                    project__score__completeness__gt=5,
+                    project__organizations__code=self.kwargs["organization_code"],
+                )
+            )
+            .annotate(date=F("project__updated_at"))
+            .order_by("-date")
+            .distinct()
         )
+
+    def get_announcements_queryset(self):
+        return (
+            self.request.user.get_project_related_queryset(
+                queryset=Newsfeed.objects.filter(
+                    type=Newsfeed.NewsfeedType.ANNOUNCEMENT,
+                    announcement__project__deleted_at__isnull=True,
+                    announcement__project__organizations__code=self.kwargs[
+                        "organization_code"
+                    ],
+                ),
+                project_related_field="announcement__project",
+            )
+            .annotate(date=F("announcement__updated_at"))
+            .order_by("-date")
+            .distinct()
+        )
+
+    def get_news_queryset(self):
+        return (
+            self.request.user.get_news_related_queryset(
+                queryset=Newsfeed.objects.filter(
+                    type=Newsfeed.NewsfeedType.NEWS,
+                    news__organization__code=self.kwargs["organization_code"],
+                    news__publication_date__lte=timezone.now(),
+                )
+            )
+            .annotate(date=F("news__publication_date"))
+            .order_by("-date")
+            .distinct()
+        )
+
+    def get_annotated_queryset(
+        self, queryset: QuerySet[Newsfeed]
+    ) -> QuerySet[Newsfeed]:
+        ids = [item.id for item in queryset]
+        return queryset.annotate(ordering=ArrayPosition(ids, F("id")))
+
+    def get_queryset(self):
+        announcements = self.get_annotated_queryset(self.get_announcements_queryset())
+        news = self.get_annotated_queryset(self.get_news_queryset())
+        projects = self.get_annotated_queryset(self.get_projects_queryset())
+        return (announcements | news | projects).order_by("ordering")
 
 
 class EventViewSet(viewsets.ModelViewSet):
