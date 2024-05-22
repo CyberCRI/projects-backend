@@ -2,11 +2,11 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from guardian.shortcuts import get_objects_for_user
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
@@ -320,48 +320,16 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         permission_classes=[ReadOnly],
     )
     def featured_project(self, request, *args, **kwargs):
-        from apps.projects.models import Project
-
         organization = self.get_object()
-        featured_projects = organization.featured_projects.all()
-
-        if self.request.user.is_superuser:
-            queryset = featured_projects
-        else:
-            if self.request.user.is_authenticated:
-                public_projects = featured_projects.filter(
-                    publication_status=Project.PublicationStatus.PUBLIC
-                )
-                member_projects = featured_projects.filter(
-                    id__in=[
-                        member_project["id"]
-                        for member_project in get_objects_for_user(
-                            self.request.user, "projects.view_project"
-                        )
-                    ]
-                )
-
-                org_user_projects = featured_projects.filter(
-                    publication_status=Project.PublicationStatus.ORG,
-                    organizations__in=get_objects_for_user(
-                        self.request.user, "organizations.view_org_project"
-                    ),
-                )
-                org_admin_projects = featured_projects.filter(
-                    organizations__in=get_objects_for_user(
-                        self.request.user, "organizations.view_project"
-                    )
-                )
-                qs = (
-                    public_projects.union(member_projects)
-                    .union(org_user_projects)
-                    .union(org_admin_projects)
-                )
-                queryset = Project.objects.filter(id__in=qs.values("id")).distinct()
-            else:
-                queryset = featured_projects.filter(
-                    publication_status=Project.PublicationStatus.PUBLIC
-                )
+        categories = Prefetch(
+            "categories",
+            queryset=ProjectCategory.objects.select_related("organization"),
+        )
+        queryset = (
+            self.request.user.get_project_queryset(categories)
+            .filter(org_featured_projects=organization)
+            .distinct()
+        )
         page = self.paginate_queryset(queryset)
         if page is not None:
             project_serializer = ProjectLightSerializer(

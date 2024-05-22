@@ -208,14 +208,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     dashboard_subtitle = serializers.CharField(required=True)
     google_sync_enabled = serializers.SerializerMethodField()
     team = OrganizationAddTeamMembersSerializer(required=False, write_only=True)
-    featured_projects_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Project.objects.all(),
-        source="featured_projects",
-        required=False,
-    )
-    featured_projects = serializers.SerializerMethodField()
 
     class Meta:
         model = Organization
@@ -248,20 +240,12 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "is_logo_visible_on_parent_dashboard",
             "google_sync_enabled",
             "identity_providers",
-            "featured_projects",
             # write_only
             "banner_image_id",
             "logo_image_id",
             "wikipedia_tags_ids",
             "team",
-            "featured_projects_ids",
         ]
-
-    def get_featured_projects(self, organization: Organization) -> List[Project]:
-        from apps.projects.serializers import ProjectLightSerializer
-
-        projects = ProjectLightSerializer(organization.featured_projects, many=True)
-        return projects.data
 
     def validate_parent_code(self, value):
         if not self.instance:
