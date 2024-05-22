@@ -1,6 +1,8 @@
 corsAllowedDomains:
 - projects.k8s.lp-i.dev
 - lpi-dev.cloud-iam.com # keycloak login page
+- keycloak-test.k8s.lp-i.dev # keycloak login page (in-cluster test)
+- keycloak.k8s.lp-i.dev # keycloak login page (in-cluster)
 
 config:
   nonSensitive:
