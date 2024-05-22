@@ -287,14 +287,19 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
 
     def create(self, validated_data):
         team = validated_data.pop("team", {})
+        featured_projects = validated_data.pop("featured_projects_ids", [])
         organization = super(OrganizationSerializer, self).create(validated_data)
         OrganizationAddTeamMembersSerializer().create(
             {"organization": organization, **team}
+        )
+        OrganizationAddFeaturedProjectsSerializer().create(
+            {"organization": organization, "featured_projects_ids": featured_projects}
         )
         return organization
 
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
+        validated_data.pop("featured_projects_ids", [])
         return super(OrganizationSerializer, self).update(instance, validated_data)
 
 
