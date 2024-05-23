@@ -1,6 +1,7 @@
 import uuid
+from itertools import chain, zip_longest
 
-from django.db.models import F, QuerySet
+from django.db.models import F, Q, QuerySet
 from django.shortcuts import redirect
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,7 +11,7 @@ from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
-from apps.commons.utils import ArrayPosition, map_action_to_permission
+from apps.commons.utils import map_action_to_permission
 from apps.commons.views import ListViewSet
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -168,7 +169,7 @@ class NewsfeedViewSet(ListViewSet):
                 queryset=Newsfeed.objects.filter(
                     type=Newsfeed.NewsfeedType.PROJECT,
                     project__deleted_at__isnull=True,
-                    project__score__completeness__gt=5,
+                    project__score__completeness__gte=5,
                     project__organizations__code=self.kwargs["organization_code"],
                 )
             )
@@ -187,7 +188,11 @@ class NewsfeedViewSet(ListViewSet):
                         "organization_code"
                     ],
                 ),
-                project_related_field="announcement__project",
+                project_related_name="announcement__project",
+            )
+            .filter(
+                Q(announcement__deadline__gte=timezone.now())
+                | Q(announcement__deadline__isnull=True)
             )
             .annotate(date=F("announcement__updated_at"))
             .order_by("-date")
@@ -208,17 +213,27 @@ class NewsfeedViewSet(ListViewSet):
             .distinct()
         )
 
-    def get_annotated_queryset(
-        self, queryset: QuerySet[Newsfeed]
-    ) -> QuerySet[Newsfeed]:
-        ids = [item.id for item in queryset]
-        return queryset.annotate(ordering=ArrayPosition(ids, F("id")))
+    def merge_querysets(self, *querysets: QuerySet[Newsfeed]) -> QuerySet[Newsfeed]:
+        """
+        Merge the querysets into a single queryset using a round-robin strategy.
+        The order of the querysets is preserved, as well as the order of the items in each queryset.
+
+        Example:
+        queryset_a = [a1, a2, a3]
+        queryset_b = [b1, b2, b3, b4, b5]
+        queryset_c = [c1, c2]
+
+        merge_querysets(queryset_a, queryset_b, queryset_c) returns:
+        [a1, b1, c1, a2, b2, c2, a3, b3, b4, b5]
+        """
+        merged = list(chain.from_iterable(zip_longest(*querysets, fillvalue=None)))
+        return [item for item in merged if item is not None]
 
     def get_queryset(self):
-        announcements = self.get_annotated_queryset(self.get_announcements_queryset())
-        news = self.get_annotated_queryset(self.get_news_queryset())
-        projects = self.get_annotated_queryset(self.get_projects_queryset())
-        return (announcements | news | projects).order_by("ordering")
+        announcements = self.get_announcements_queryset()
+        news = self.get_news_queryset()
+        projects = self.get_projects_queryset()
+        return self.merge_querysets(announcements, news, projects)
 
 
 class EventViewSet(viewsets.ModelViewSet):

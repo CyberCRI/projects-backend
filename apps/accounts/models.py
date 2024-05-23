@@ -921,6 +921,27 @@ class AnonymousUser:
             }
         )
 
+    def get_people_group_related_queryset(
+        self, queryset: QuerySet, people_group_related_name: str = "people_group"
+    ) -> QuerySet["PeopleGroup"]:
+        return queryset.filter(
+            **{
+                f"{people_group_related_name}__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+            }
+        )
+
+    def get_news_related_queryset(
+        self, queryset: QuerySet, news_related_name: str = "news"
+    ) -> QuerySet["News"]:
+        return queryset.filter(
+            Q(**{f"{news_related_name}__visible_by_all": True})
+            | Q(
+                **{
+                    f"{news_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+                }
+            )
+        )
+
     def can_see_project(self, project):
         return project.publication_status == Project.PublicationStatus.PUBLIC
 
