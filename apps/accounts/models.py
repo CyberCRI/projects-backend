@@ -632,6 +632,18 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     ) -> QuerySet["ProjectUser"]:
         return queryset.filter(**{f"{user_related_name}__in": self.get_user_queryset()})
 
+    def get_people_group_related_queryset(
+        self, queryset: QuerySet, people_group_related_name: str = "people_group"
+    ) -> QuerySet["PeopleGroup"]:
+        return queryset.filter(
+            **{f"{people_group_related_name}__in": self.get_people_group_queryset()}
+        )
+
+    def get_news_related_queryset(
+        self, queryset: QuerySet, news_related_name: str = "news"
+    ) -> QuerySet["News"]:
+        return queryset.filter(**{f"{news_related_name}__in": self.get_news_queryset()})
+
     def can_see_project(self, project: "Project") -> bool:
         """Return a `BasePermission` according to `linked_project`'s publication status."""
         return project in self.get_project_queryset()
@@ -907,6 +919,27 @@ class AnonymousUser:
             **{
                 f"{user_related_name}__privacy_settings__publication_status": PrivacySettings.PrivacyChoices.PUBLIC
             }
+        )
+
+    def get_people_group_related_queryset(
+        self, queryset: QuerySet, people_group_related_name: str = "people_group"
+    ) -> QuerySet["PeopleGroup"]:
+        return queryset.filter(
+            **{
+                f"{people_group_related_name}__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+            }
+        )
+
+    def get_news_related_queryset(
+        self, queryset: QuerySet, news_related_name: str = "news"
+    ) -> QuerySet["News"]:
+        return queryset.filter(
+            Q(**{f"{news_related_name}__visible_by_all": True})
+            | Q(
+                **{
+                    f"{news_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+                }
+            )
         )
 
     def can_see_project(self, project):
