@@ -35,18 +35,8 @@
     <mj-section>
       <mj-column>
         <mj-image width="250px" src="{{ public_url }}{% static 'projects_logo.png' %}"></mj-image>
-        <mj-divider border-color="#888888" border-width="2px"></mj-divider>
         <mj-text font-family="Ubuntu">
           {% block content %}{% endblock %}
-        </mj-text>
-        <mj-divider border-color="#888888" border-width="2px"></mj-divider>
-        <mj-text align="center" color="grey" font-family="Ubuntu">
-          <a class="lpi-link" href="https://projects.directory">Projects.directory</a>
-          {% blocktranslate %}
-          the platform made to share your projects.<br/>
-          Created for you by the Learning Planet Institute<br/>
-          8bis, rue Charles V, 75004 Paris, France
-          {% endblocktranslate %}
         </mj-text>
       </mj-column>
     </mj-section>

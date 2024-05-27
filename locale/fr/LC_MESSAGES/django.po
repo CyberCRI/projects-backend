@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-22 14:48+0000\n"
+"POT-Creation-Date: 2024-05-27 12:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -207,21 +207,6 @@ msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
-
-#: apps/emailing/templates/contact/base.html:45
-#: apps/notifications/templates/notifications_base.html:45
-msgid ""
-"\n"
-"          the platform made to share your projects.<br/>\n"
-"          Created for you by the Learning Planet Institute<br/>\n"
-"          8bis, rue Charles V, 75004 Paris, France\n"
-"          "
-msgstr ""
-"\n"
-"          la plateforme pour partager vos projets.<br/>\n"
-"          Créée pour vous par le Learning Planet Institute<br/>\n"
-"          8bis, rue Charles V, 75004 Paris, France\n"
-"          "
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -1329,6 +1314,20 @@ msgid ""
 msgstr ""
 "\n"
 "%(full_name)s a relu le projet %(project_title)s.\n"
+
+#: apps/notifications/templates/notifications_base.html:45
+msgid ""
+"\n"
+"          the platform made to share your projects.<br/>\n"
+"          Created for you by the Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
+"          "
+msgstr ""
+"\n"
+"          la plateforme pour partager vos projets.<br/>\n"
+"          Créée pour vous par le Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
+"          "
 
 #: apps/notifications/templates/notifications_base.html:52
 msgid ""
