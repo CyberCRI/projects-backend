@@ -1,7 +1,9 @@
+from datetime import timedelta
 from typing import List, Optional, Union
 
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework.decorators import action
@@ -234,7 +236,8 @@ class UserRecommendationsViewset(RecommendationsViewset):
             .filter(
                 groups__organizations__code__in=get_hierarchy_codes(
                     [self.kwargs["organization_code"]]
-                )
+                ),
+                last_login__gte=timezone.now() - timedelta(days=365),
             )
             .exclude(groups__projects__id=project.id)
         )
@@ -250,6 +253,7 @@ class UserRecommendationsViewset(RecommendationsViewset):
             groups__organizations__code__in=get_hierarchy_codes(
                 [self.kwargs["organization_code"]]
             ),
+            last_login__gte=timezone.now() - timedelta(days=365),
         )
         embedding = self.get_user_embedding(user)
         if user.is_authenticated:
