@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-05-22 14:48+0000\n"
+"POT-Creation-Date: 2024-05-27 12:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -182,16 +182,6 @@ msgstr ""
 #: apps/commons/fields.py:31
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
-msgstr ""
-
-#: apps/emailing/templates/contact/base.html:45
-#: apps/notifications/templates/notifications_base.html:45
-msgid ""
-"\n"
-"          the platform made to share your projects.<br/>\n"
-"          Created for you by the Learning Planet Institute<br/>\n"
-"          8bis, rue Charles V, 75004 Paris, France\n"
-"          "
 msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
@@ -1018,6 +1008,15 @@ msgstr ""
 msgid ""
 "\n"
 "%(full_name)s reviewed project %(project_title)s.\n"
+msgstr ""
+
+#: apps/notifications/templates/notifications_base.html:45
+msgid ""
+"\n"
+"          the platform made to share your projects.<br/>\n"
+"          Created for you by the Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
+"          "
 msgstr ""
 
 #: apps/notifications/templates/notifications_base.html:52
