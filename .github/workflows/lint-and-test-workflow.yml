@@ -19,7 +19,7 @@ on:
 
 jobs:
   tests:
-    runs-on: [self-hosted, m2c1-runner]
+    runs-on: backend-lint-test-runner
     steps:
       - uses: Nastaliss/get-github-app-pat@v1
         id: githubAppAuth
