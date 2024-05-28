@@ -63,7 +63,7 @@ class NewAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(notified.email, mail.outbox[0].to[0])
         self.assertEqual(
             mail.outbox[0].subject,
-            f"New access request {access_request.id} for {self.organization.name} Projects platform",
+            f"New access request for {self.organization.name} Projects platform",
         )
 
     def test_merged_notifications_task(self):
@@ -96,9 +96,9 @@ class NewAccessRequestTestCase(JwtAPITestCase):
         self.assertEqual(notified.email, mail.outbox[1].to[0])
         self.assertEqual(
             mail.outbox[0].subject,
-            f"New access request {access_requests[0].id} for {self.organization.name} Projects platform",
+            f"New access request for {self.organization.name} Projects platform",
         )
         self.assertEqual(
             mail.outbox[1].subject,
-            f"New access request {access_requests[1].id} for {self.organization.name} Projects platform",
+            f"New access request for {self.organization.name} Projects platform",
         )

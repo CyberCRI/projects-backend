@@ -4,11 +4,6 @@
 {% load static %}
 
 {% block content %}
-        <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
-            {% blocktranslate with org_name=organization.name request_id=item.id %}
-            New access request {{request_id}} for {{ org_name }} Projects platform
-            {% endblocktranslate %}
-        </mj-text>
         <mj-text>
             {% blocktranslate %}
             Hello,
@@ -105,7 +100,7 @@
       <mj-column>
         <mj-text>
           {% blocktranslate with website_url=organization.website_url %}
-          See <a class="lpi-link" href="{{ website_url }}/request-access">request in platform</a>.
+          See <a class="lpi-link" href="{{ website_url }}/admin/requests">request in platform</a>.
           {% endblocktranslate %}
         </mj-text>
 {% endblock %}
