@@ -1,6 +1,8 @@
+from datetime import timedelta
 from unittest.mock import patch
 
 from django.urls import reverse
+from django.utils import timezone
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
@@ -24,14 +26,24 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         other_user = UserFactory(
-            publication_status=PrivacySettings.PrivacyChoices.PUBLIC
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+            last_login=timezone.now(),
         )
         UserEmbeddingFactory(
             item=other_user, embedding=[*1024 * [1.0]], is_visible=True
         )
+        inactive_user = UserFactory(
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+            groups=[cls.organization.get_users()],
+            last_login=timezone.now() - timedelta(days=366),
+        )
+        UserEmbeddingFactory(
+            item=inactive_user, embedding=[*1024 * [1.0]], is_visible=True
+        )
         public_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
+            last_login=timezone.now(),
         )
         UserEmbeddingFactory(
             item=public_user, embedding=[*1024 * [0.0]], is_visible=True
@@ -39,6 +51,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         public_user_2 = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
+            last_login=timezone.now(),
         )
         UserEmbeddingFactory(
             item=public_user_2, embedding=[*768 * [0.0], *256 * [1.0]], is_visible=True
@@ -46,6 +59,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         private_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
             groups=[cls.organization.get_users()],
+            last_login=timezone.now(),
         )
         UserEmbeddingFactory(
             item=private_user, embedding=[*512 * [0.0], *512 * [1.0]], is_visible=True
@@ -53,12 +67,14 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         org_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
             groups=[cls.organization.get_users()],
+            last_login=timezone.now(),
         )
         UserEmbeddingFactory(
             item=org_user, embedding=[*256 * [0.0], *768 * [1.0]], is_visible=True
         )
         cls.users = {
             "other": other_user,
+            "inactive": inactive_user,
             "public": public_user,
             "public_2": public_user_2,
             "private": private_user,
