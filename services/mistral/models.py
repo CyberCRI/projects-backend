@@ -1,4 +1,5 @@
 import hashlib
+import numpy as np
 from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
@@ -228,3 +229,96 @@ class UserEmbedding(Embedding):
             ("Biography", description),
         ]
         return [f"{key} : {value}" for key, value in prompt if value]
+
+
+class UserProjectsEmbedding(Embedding):
+    item = models.OneToOneField(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="projects_embedding"
+    )
+    embed_if_not_visible = False
+
+    @property
+    def user(self) -> "ProjectUser":
+        return self.item
+    
+    def get_is_visible(self) -> bool:
+        return self.user.groups.filter(
+            projects__isnull=False,
+            projects__embedding__isnull=False,
+            projects__embedding__embedding__isnull=False
+        ).exists()
+
+    def get_embedding(self, summary: Optional[str] = None) -> List[float]:
+        from apps.projects.models import Project
+        # Get all the projects the user is a member of
+        member_projects = self.user.groups.filter(
+            projects__isnull=False,
+            projects__deleted_at__isnull=True,
+            projects__embedding__isnull=False,
+            projects__embedding__embedding__isnull=False,
+            name__contains=Project.DefaultGroup.MEMBERS
+        )
+        owner_projects = self.user.groups.filter(
+            projects__isnull=False,
+            projects__deleted_at__isnull=True,
+            projects__embedding__isnull=False,
+            projects__embedding__embedding__isnull=False,
+            name__contains=Project.DefaultGroup.OWNERS
+        )
+        reviewer_projects = self.user.groups.filter(
+            projects__isnull=False,
+            projects__deleted_at__isnull=True,
+            projects__embedding__isnull=False,
+            projects__embedding__embedding__isnull=False,
+            name__contains=Project.DefaultGroup.REVIEWERS
+        )
+        group_projects = self.user.groups.filter(
+            projects__isnull=False,
+            projects__deleted_at__isnull=True,
+            projects__embedding__isnull=False,
+            projects__embedding__embedding__isnull=False,
+            name__contains=Project.DefaultGroup.PEOPLE_GROUPS
+        )
+
+        member_projects = [g.projects.get() for g in member_projects]
+        owner_projects = [g.projects.get() for g in owner_projects]
+        reviewer_projects = [g.projects.get() for g in reviewer_projects]
+        group_projects = [g.projects.get() for g in group_projects]
+
+        # Calculate the weight of each type of project
+        member_projects_weight = 1 * len(member_projects)
+        owner_projects_weight = 2 * len(owner_projects)
+        reviewer_projects_weight = 1 * len(reviewer_projects)
+        group_projects_weight = 1 * len(group_projects)
+        total_weight = (member_projects_weight + owner_projects_weight + reviewer_projects_weight + group_projects_weight)
+
+        # Get the embeddings of the projects
+        member_projects_embedding = [p.embedding.embedding for p in member_projects if p.embedding and p.embedding.embedding is not None]
+        owner_projects_embedding = [p.embedding.embedding for p in owner_projects if p.embedding and p.embedding.embedding is not None]
+        reviewer_projects_embedding = [p.embedding.embedding for p in reviewer_projects if p.embedding and p.embedding.embedding is not None]
+        group_projects_embedding = [p.embedding.embedding for p in group_projects if p.embedding and p.embedding.embedding is not None]
+
+        # Calculate the average embedding of each type of project
+        average_member_projects_embedding = [sum(row)/len(row) for row in zip(*member_projects_embedding)]
+        average_owner_projects_embedding = [sum(row)/len(row) for row in zip(*owner_projects_embedding)]
+        average_reviewer_projects_embedding = [sum(row)/len(row) for row in zip(*reviewer_projects_embedding)]
+        average_group_projects_embedding = [sum(row)/len(row) for row in zip(*group_projects_embedding)]
+
+        # Calculate the sum of the weighted average embeddings
+        total_embedding = [
+            [member_projects_weight * i for i in average_member_projects_embedding],
+            [owner_projects_weight * i for i in average_owner_projects_embedding],
+            [reviewer_projects_weight * i for i in average_reviewer_projects_embedding],
+            [group_projects_weight * i for i in average_group_projects_embedding]
+        ]
+        total_embedding = [e for e in total_embedding if e != []]
+
+        # Calculate the average embedding of all the user's projects
+        return [sum(row)/total_weight for row in zip(*total_embedding)]
+
+    @transaction.atomic
+    def vectorize(self, summary: Optional[str] = None) -> "Embedding":
+        if self.set_visibility() or self.embed_if_not_visible:
+            self.embedding = self.get_embedding(summary)
+            self.save()
+        return self
