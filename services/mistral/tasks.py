@@ -4,7 +4,7 @@ from apps.accounts.models import ProjectUser
 from apps.projects.models import Project
 from projects.celery import app
 
-from .models import ProjectEmbedding, UserEmbedding
+from .models import ProjectEmbedding, UserEmbedding, UserProfileEmbedding, UserP
 
 logger = logging.getLogger(__name__)
 

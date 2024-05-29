@@ -24,6 +24,63 @@ class Embedding(models.Model):
             to set an explicit related_name
         - embed_if_not_visible: whether to embed the item if it's not visible in
             vector_search results
+
+    And the following methods:
+        - get_is_visible: a method that returns whether the item should be
+            returned in vector_search results
+        - set_embedding: a method that sets the embedding of the item and returns
+            the instance
+    """
+
+    item: models.OneToOneField
+    embed_if_not_visible: bool = False
+
+    last_update = models.DateTimeField(auto_now=True)
+    embedding = VectorField(dimensions=1024, null=True)
+    is_visible = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+    def get_is_visible(self) -> bool:
+        raise NotImplementedError()
+
+    def set_embedding(self, summary: Optional[str] = None) -> "Embedding":
+        raise NotImplementedError()
+    
+    def set_visibility(self) -> bool:
+        self.is_visible = self.get_is_visible()
+        self.save(update_fields=["is_visible"])
+        return self.is_visible
+
+    @transaction.atomic
+    def vectorize(self, summary: Optional[str] = None) -> "Embedding":
+        if self.set_visibility() or self.embed_if_not_visible:
+            return self.set_embedding(summary)
+        return self
+
+    @classmethod
+    def vector_search(
+        cls, embedding: List[float], queryset: Optional[QuerySet] = None
+    ) -> QuerySet:
+        queryset = queryset or cls.item.field.related_model.objects
+        if not queryset.model == cls.item.field.related_model:
+            raise VectorSearchWrongQuerysetError
+        related_name = cls.item.field.related_query_name()
+        return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
+            CosineDistance(f"{related_name}__embedding", embedding)
+        )
+
+
+class MistralEmbedding(Embedding):
+    """
+    Abstract class for models that store an embedding vector for another model.
+
+    To set it up, you need to define the following attributes:
+        - item: a OneToOneField to the model that will be embedded, it is advised
+            to set an explicit related_name
+        - embed_if_not_visible: whether to embed the item if it's not visible in
+            vector_search results
         - temperature: the temperature to use for the chat prompt (API default is 0.7)
         - max_tokens: the maximum number of tokens to use for the chat prompt
 
@@ -35,23 +92,13 @@ class Embedding(models.Model):
         - get_summary_chat_prompt: a method that returns the user messages for the
             chat prompt
     """
-
-    item: models.OneToOneField
-    embed_if_not_visible: bool = False
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
-
-    last_update = models.DateTimeField(auto_now=True)
     summary = models.TextField(blank=True)
-    embedding = VectorField(dimensions=1024, null=True)
-    is_visible = models.BooleanField(default=False)
     prompt_hashcode = models.CharField(max_length=64, default="")
 
     class Meta:
         abstract = True
-
-    def get_is_visible(self) -> bool:
-        raise NotImplementedError()
 
     @classmethod
     def get_summary_chat_system(cls) -> List[str]:
@@ -60,10 +107,30 @@ class Embedding(models.Model):
     def get_summary_chat_prompt(self) -> List[str]:
         raise NotImplementedError()
 
-    def set_visibility(self) -> bool:
-        self.is_visible = self.get_is_visible()
-        self.save(update_fields=["is_visible"])
-        return self.is_visible
+    def set_embedding(self, summary: Optional[str] = None) -> "Embedding":
+        prompt = self.get_summary_chat_prompt()
+        summary = summary or self.get_summary(prompt=prompt)
+        embedding = self.get_embedding(summary)
+        self.summary = summary
+        self.embedding = embedding
+        self.prompt_hashcode = self.hash_prompt(prompt)
+        self.save()
+        return self
+    
+    @transaction.atomic
+    def vectorize(self, summary: str | None = None) -> Embedding:
+        if self.prompt_hashcode != self.hash_prompt():
+            return super().vectorize(summary)
+        return self
+
+    def get_embedding(self, summary: Optional[str] = None) -> List[float]:
+        summary = summary or self.get_summary()
+        return MistralService.get_embedding(summary)
+
+    def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
+        prompt = prompt or self.get_summary_chat_prompt()
+        prompt = "\n".join(prompt)
+        return hashlib.sha256(prompt.encode()).hexdigest()
 
     def get_summary(
         self, system: Optional[List[str]] = None, prompt: Optional[List[str]] = None
@@ -80,47 +147,8 @@ class Embedding(models.Model):
         }
         return MistralService.get_chat_response(system, prompt, **kwargs)
 
-    def get_embedding(self, summary: Optional[str] = None) -> List[float]:
-        summary = summary or self.get_summary()
-        return MistralService.get_embedding(summary)
 
-    def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
-        prompt = prompt or self.get_summary_chat_prompt()
-        prompt = "\n".join(prompt)
-        return hashlib.sha256(prompt.encode()).hexdigest()
-
-    def _vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        prompt = self.get_summary_chat_prompt()
-        summary = summary or self.get_summary(prompt=prompt)
-        embedding = self.get_embedding(summary)
-        self.summary = summary
-        self.embedding = embedding
-        self.prompt_hashcode = self.hash_prompt(prompt)
-        self.save()
-        return self
-
-    @transaction.atomic
-    def vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        if (
-            self.set_visibility() or self.embed_if_not_visible
-        ) and self.prompt_hashcode != self.hash_prompt():
-            return self._vectorize(summary)
-        return self
-
-    @classmethod
-    def vector_search(
-        cls, embedding: List[float], queryset: Optional[QuerySet] = None
-    ) -> QuerySet:
-        queryset = queryset or cls.item.field.related_model.objects
-        if not queryset.model == cls.item.field.related_model:
-            raise VectorSearchWrongQuerysetError
-        related_name = cls.item.field.related_query_name()
-        return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
-            CosineDistance(f"{related_name}__embedding", embedding)
-        )
-
-
-class ProjectEmbedding(Embedding):
+class ProjectEmbedding(MistralEmbedding):
     item = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="embedding"
     )
@@ -178,9 +206,9 @@ class ProjectEmbedding(Embedding):
         return [f"{key} : {value}" for key, value in prompt if value]
 
 
-class UserEmbedding(Embedding):
+class UserProfileEmbedding(MistralEmbedding):
     item = models.OneToOneField(
-        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="embedding"
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="profile_embedding"
     )
     embed_if_not_visible = True
 
@@ -248,7 +276,7 @@ class UserProjectsEmbedding(Embedding):
             projects__embedding__embedding__isnull=False
         ).exists()
 
-    def get_embedding(self, summary: Optional[str] = None) -> List[float]:
+    def set_embedding(self, summary: Optional[str] = None) -> List[float]:
         from apps.projects.models import Project
         # Get all the projects the user is a member of
         member_projects = self.user.groups.filter(
@@ -314,11 +342,18 @@ class UserProjectsEmbedding(Embedding):
         total_embedding = [e for e in total_embedding if e != []]
 
         # Calculate the average embedding of all the user's projects
-        return [sum(row)/total_weight for row in zip(*total_embedding)]
-
-    @transaction.atomic
-    def vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        if self.set_visibility() or self.embed_if_not_visible:
-            self.embedding = self.get_embedding(summary)
-            self.save()
+        self.embedding = [sum(row)/total_weight for row in zip(*total_embedding)]
+        self.save()
         return self
+
+
+class UserEmbedding(Embedding):
+    item = models.OneToOneField(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="embedding"
+    )
+    embed_if_not_visible = True
+
+    @property
+    def user(self) -> "ProjectUser":
+        return self.item
+

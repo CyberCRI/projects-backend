@@ -6,7 +6,7 @@ from services.mistral.tasks import _vectorize_updated_objects
 
 
 class VectorizeUpdatedObjectsTest(JwtAPITestCase):
-    @patch("services.mistral.models.Embedding._vectorize")
+    @patch("services.mistral.models.Embedding.set_embedding")
     def test_vectorize_updated_objects(self, mocked_vectorize):
         mocked_vectorize.return_value = None
 
