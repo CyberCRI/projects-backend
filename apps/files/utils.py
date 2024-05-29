@@ -2,6 +2,7 @@ from io import BytesIO
 
 from django.core.files.base import ContentFile
 from PIL import Image
+from PIL.GifImagePlugin import GifImageFile
 from stdimage.utils import render_variations
 
 
@@ -11,7 +12,7 @@ def resize_and_autorotate(file_name, variations, storage):
         Image.open(f) as image,
         BytesIO() as file_buffer,
     ):
-        if not image.is_animated:
+        if not isinstance(image, GifImageFile):
             file_format = image.format
             try:
                 exif = image._getexif()
