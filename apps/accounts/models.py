@@ -532,8 +532,15 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 self._news_queryset = News.objects.all()
             else:
                 groups = self.get_people_group_queryset()
+                organizations = self.get_related_organizations()
                 self._news_queryset = News.objects.filter(
-                    Q(visible_by_all=True) | Q(people_groups__in=groups)
+                    Q(visible_by_all=True)
+                    | Q(people_groups__in=groups)
+                    | (
+                        Q(organization__in=organizations)
+                        & Q(people_groups__isnull=True)
+                        & Q(visible_by_all=False)
+                    )
                 )
         return self._news_queryset.distinct().prefetch_related(*prefetch)
 
@@ -543,8 +550,15 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 self._instruction_queryset = Instruction.objects.all()
             else:
                 groups = self.get_people_group_queryset()
+                organizations = self.get_related_organizations()
                 self._instruction_queryset = Instruction.objects.filter(
-                    Q(visible_by_all=True) | Q(people_groups__in=groups)
+                    Q(visible_by_all=True)
+                    | Q(people_groups__in=groups)
+                    | (
+                        Q(organization__in=organizations)
+                        & Q(people_groups__isnull=True)
+                        & Q(visible_by_all=False)
+                    )
                 )
         return self._instruction_queryset.distinct().prefetch_related(*prefetch)
 
@@ -554,8 +568,15 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 self._event_queryset = Event.objects.all()
             else:
                 groups = self.get_people_group_queryset()
+                organizations = self.get_related_organizations()
                 self._event_queryset = Event.objects.filter(
-                    Q(visible_by_all=True) | Q(people_groups__in=groups)
+                    Q(visible_by_all=True)
+                    | Q(people_groups__in=groups)
+                    | (
+                        Q(organization__in=organizations)
+                        & Q(people_groups__isnull=True)
+                        & Q(visible_by_all=False)
+                    )
                 )
         return self._event_queryset.distinct().prefetch_related(*prefetch)
 
