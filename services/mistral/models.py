@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
-from apps.projects.models import Project, ProjectScore
+from apps.projects.models import Project
 
 from .exceptions import VectorSearchWrongQuerysetError
 from .interface import MistralService
@@ -75,6 +75,7 @@ class Embedding(models.Model):
 class MistralEmbedding(Embedding):
     """
     Abstract class for models that store an embedding vector for another model.
+    The embedding is generated using the Mistral API.
 
     To set it up, you need to define the following attributes:
         - item: a OneToOneField to the model that will be embedded, it is advised
@@ -407,10 +408,8 @@ class UserEmbedding(Embedding):
         total_score = 0
 
         if projects_embedding.is_visible:
-            projects_scores = ProjectScore.objects.filter(
-                project__groups__users=self.user
-            )
-            projects_scores = projects_scores.values_list("score", flat=True)
+            projects = Project.objects.filter(groups__users=self.user)
+            projects_scores = [p.calculate_score() for p in projects]
             projects_score = sum(projects_scores)
             embeddings.append(
                 [e * projects_score for e in projects_embedding.embedding]
@@ -418,12 +417,10 @@ class UserEmbedding(Embedding):
             total_score += projects_score
 
         if profile_embedding.is_visible:
-            profile_score = 10  # TODO: Calculate the user's profile score
+            profile_score = 2 * self.user.calculate_score()
             embeddings.append([e * profile_score for e in profile_embedding.embedding])
             total_score += profile_score
 
-        self.embedding = [
-            sum(row) / projects_score + profile_score for row in zip(*embeddings)
-        ]
+        self.embedding = [sum(row) / total_score for row in zip(*embeddings)]
         self.save()
         return self

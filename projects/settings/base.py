@@ -424,6 +424,10 @@ if CELERY_ENABLED:
             "task": "apps.projects.tasks.calculate_projects_scores",
             "schedule": crontab(minute=0, hour=3),
         },
+        "calculate_users_scores": {
+            "task": "apps.accounts.tasks.calculate_users_scores",
+            "schedule": crontab(minute=0, hour=3),
+        },
         "send_invitations_reminder": {
             "task": "apps.notifications.tasks.send_invitations_reminder",
             "schedule": crontab(minute=0, hour=7),
