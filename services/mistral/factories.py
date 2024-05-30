@@ -4,7 +4,12 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.projects.factories import ProjectFactory
 
-from .models import ProjectEmbedding, UserEmbedding
+from .models import (
+    ProjectEmbedding,
+    UserEmbedding,
+    UserProfileEmbedding,
+    UserProjectsEmbedding,
+)
 
 faker = Faker()
 
@@ -16,6 +21,20 @@ class ProjectEmbeddingFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = ProjectEmbedding
+
+
+class UserProfileEmbeddingFactory(factory.django.DjangoModelFactory):
+    item = factory.LazyFunction(lambda: UserFactory())
+
+    class Meta:
+        model = UserProfileEmbedding
+
+
+class UserProjectsEmbeddingFactory(factory.django.DjangoModelFactory):
+    item = factory.LazyFunction(lambda: UserFactory())
+
+    class Meta:
+        model = UserProjectsEmbedding
 
 
 class UserEmbeddingFactory(factory.django.DjangoModelFactory):

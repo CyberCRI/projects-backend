@@ -4,7 +4,7 @@ from faker import Faker
 
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.commons.test import JwtAPITestCase
-from services.mistral.factories import UserEmbeddingFactory
+from services.mistral.factories import UserEmbeddingFactory, UserProfileEmbeddingFactory
 from services.mistral.testcases import MistralTestCaseMixin
 
 faker = Faker()
@@ -51,13 +51,20 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
         embedding = UserEmbeddingFactory(item=user)
         messages = [faker.sentence() for _ in range(3)]
-        vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
+        vector = [
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+        ]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
         self.assertTrue(embedding.is_visible)
-        self.assertEqual(embedding.embedding, vector)
-        self.assertNotEqual(embedding.prompt_hashcode, "")
+        self.assertEqual(
+            [round(e, 2) for e in embedding.embedding], [round(e, 2) for e in vector]
+        )
+        user.refresh_from_db()
+        self.assertIsNotNone(user.profile_embedding)
+        self.assertIsNotNone(user.projects_embedding)
+        self.assertNotEqual(user.profile_embedding.prompt_hashcode, "")
 
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
@@ -69,13 +76,20 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
         embedding = UserEmbeddingFactory(item=user)
         messages = [faker.sentence() for _ in range(3)]
-        vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
+        vector = [
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+        ]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
         self.assertTrue(embedding.is_visible)
-        self.assertEqual(embedding.embedding, vector)
-        self.assertNotEqual(embedding.prompt_hashcode, "")
+        self.assertEqual(
+            [round(e, 2) for e in embedding.embedding], [round(e, 2) for e in vector]
+        )
+        user.refresh_from_db()
+        self.assertIsNotNone(user.profile_embedding)
+        self.assertIsNotNone(user.projects_embedding)
+        self.assertNotEqual(user.profile_embedding.prompt_hashcode, "")
 
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
@@ -84,13 +98,20 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=3)
         messages = [faker.sentence() for _ in range(3)]
-        vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
+        vector = [
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+        ]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
         self.assertTrue(embedding.is_visible)
-        self.assertEqual(embedding.embedding, vector)
-        self.assertNotEqual(embedding.prompt_hashcode, "")
+        self.assertEqual(
+            [round(e, 2) for e in embedding.embedding], [round(e, 2) for e in vector]
+        )
+        user.refresh_from_db()
+        self.assertIsNotNone(user.profile_embedding)
+        self.assertIsNotNone(user.projects_embedding)
+        self.assertNotEqual(user.profile_embedding.prompt_hashcode, "")
 
     @patch("services.mistral.interface.MistralService.service.chat")
     @patch("services.mistral.interface.MistralService.service.embeddings")
@@ -99,26 +120,33 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=2)
         messages = [faker.sentence() for _ in range(3)]
-        vector = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
+        vector = [
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+        ]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
         self.assertFalse(embedding.is_visible)
-        self.assertIsNotNone(embedding.embedding)
-        self.assertNotEqual(embedding.prompt_hashcode, "")
+        self.assertEqual(
+            [round(e, 2) for e in embedding.embedding], [round(e, 2) for e in vector]
+        )
+        user.refresh_from_db()
+        self.assertIsNotNone(user.profile_embedding)
+        self.assertIsNotNone(user.projects_embedding)
+        self.assertNotEqual(user.profile_embedding.prompt_hashcode, "")
 
 
 class UserEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
     def test_get_summary_chat_system(self):
         user = UserFactory(professional_description=faker.text())
-        embedding = UserEmbeddingFactory(item=user)
+        embedding = UserProfileEmbeddingFactory(item=user)
         response = embedding.get_summary_chat_system()
         for x in response:
             self.assertIsInstance(x, str)
 
     def test_get_summary_chat_prompt(self):
         user = UserFactory(professional_description=faker.text())
-        embedding = UserEmbeddingFactory(item=user)
+        embedding = UserProfileEmbeddingFactory(item=user)
         response = embedding.get_summary_chat_prompt()
         for x in response:
             self.assertIsInstance(x, str)
@@ -129,7 +157,7 @@ class UserEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
             professional_description=faker.text(),
             personal_description=faker.text(),
         )
-        embedding = UserEmbeddingFactory(item=user)
+        embedding = UserProfileEmbeddingFactory(item=user)
         SkillFactory.create_batch(3, user=user, level=3)
         SkillFactory.create_batch(3, user=user, level=4)
         prompt_hashcode = embedding.hash_prompt()

@@ -732,11 +732,13 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         super().save(*args, **kwargs)
 
     def get_or_create_score(self) -> "UserScore":
-        score, _ = UserScore.objects.get_or_create(user=self)
+        score, created = UserScore.objects.get_or_create(user=self)
+        if created:
+            return score.set_score()
         return score
 
-    def calculate_score(self):
-        self.get_or_create_score().set_score()
+    def calculate_score(self) -> "UserScore":
+        return self.get_or_create_score().set_score()
 
 
 class UserScore(models.Model):
@@ -770,8 +772,10 @@ class UserScore(models.Model):
 
     def get_activity(self) -> float:
         last_activity = self.user.last_login
-        weeks_since_last_activity = (timezone.now() - last_activity).days / 7
-        return 5 / (1 + weeks_since_last_activity)
+        if last_activity:
+            weeks_since_last_activity = (timezone.now() - last_activity).days / 7
+            return 5 / (1 + weeks_since_last_activity)
+        return 0
 
     def set_score(self) -> "UserScore":
         completeness = self.get_completeness()

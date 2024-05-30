@@ -392,35 +392,43 @@ class UserEmbedding(Embedding):
         return self.item
 
     def get_is_visible(self) -> bool:
-        return (
-            self.user.projects_embedding.is_visible
-            or self.user.profile_embedding.is_visible
+        profile_embedding, _ = UserProfileEmbedding.objects.get_or_create(
+            item=self.user
         )
+        projects_embedding, _ = UserProjectsEmbedding.objects.get_or_create(
+            item=self.user
+        )
+        return profile_embedding.get_is_visible() or projects_embedding.get_is_visible()
 
     def set_embedding(self, summary: Optional[str] = None) -> List[float]:
-        profile_embedding = UserProfileEmbedding.objects.get_or_create(item=self.user)
-        projects_embedding = UserProjectsEmbedding.objects.get_or_create(item=self.user)
+        # Get the user's profile and projects embeddings
+        profile_embedding, _ = UserProfileEmbedding.objects.get_or_create(
+            item=self.user
+        )
+        projects_embedding, _ = UserProjectsEmbedding.objects.get_or_create(
+            item=self.user
+        )
 
+        # Vectorize the user's profile and projects
         profile_embedding = profile_embedding.vectorize()
         projects_embedding = projects_embedding.vectorize()
 
-        embeddings = []
-        total_score = 0
+        # Get the profile part of the embedding
+        profile_score = 2 * self.user.get_or_create_score().score
+        embeddings = [[e * profile_score for e in profile_embedding.embedding]]
+        total_score = profile_score
 
+        # Get the projects part of the embedding
         if projects_embedding.is_visible:
             projects = Project.objects.filter(groups__users=self.user)
-            projects_scores = [p.calculate_score() for p in projects]
+            projects_scores = [p.get_or_create_score().score for p in projects]
             projects_score = sum(projects_scores)
             embeddings.append(
                 [e * projects_score for e in projects_embedding.embedding]
             )
             total_score += projects_score
 
-        if profile_embedding.is_visible:
-            profile_score = 2 * self.user.calculate_score()
-            embeddings.append([e * profile_score for e in profile_embedding.embedding])
-            total_score += profile_score
-
+        # Calculate the average embedding
         self.embedding = [sum(row) / total_score for row in zip(*embeddings)]
         self.save()
         return self
