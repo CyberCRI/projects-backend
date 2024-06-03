@@ -291,6 +291,7 @@ class UserProjectsEmbedding(Embedding, HasWeight):
             p.get_or_create_score().score
             for p in Project.objects.filter(
                 groups__users=self.user,
+                deleted_at__isnull=True,
                 embedding__isnull=False,
                 embedding__is_visible=True,
                 embedding__embedding__isnull=False,
@@ -300,7 +301,9 @@ class UserProjectsEmbedding(Embedding, HasWeight):
     def get_is_visible(self) -> bool:
         return self.user.groups.filter(
             projects__isnull=False,
+            projects__deleted_at__isnull=True,
             projects__embedding__isnull=False,
+            projects__embedding__is_visible=True,
             projects__embedding__embedding__isnull=False,
         ).exists()
 
@@ -311,6 +314,7 @@ class UserProjectsEmbedding(Embedding, HasWeight):
                     g.projects.get()
                     for g in self.user.groups.filter(
                         projects__isnull=False,
+                        projects__deleted_at__isnull=True,
                         projects__embedding__isnull=False,
                         projects__embedding__is_visible=True,
                         projects__embedding__embedding__isnull=False,
