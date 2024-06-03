@@ -215,6 +215,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         # saving a new project in db
         project.pk = None
         project.slug = ""
+        project.publication_status = Project.PublicationStatus.PRIVATE
         project.save()
         # duplicating sub items
         foreign_keys = goals + links + files + announcements + locations
