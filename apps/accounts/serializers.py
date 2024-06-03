@@ -290,7 +290,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
 
     def get_hierarchy(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
         hierarchy = []
-        while obj.parent:
+        while obj.parent and not obj.parent.is_root:
             obj = obj.parent
             hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]

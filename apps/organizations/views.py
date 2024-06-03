@@ -46,6 +46,9 @@ class ProjectCategoryViewSet(viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
 
+    def get_queryset(self):
+        return super().get_queryset().filter(is_root=False)
+
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectcategory")
         if codename:
