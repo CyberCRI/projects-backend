@@ -481,11 +481,13 @@ class Project(
         ).distinct()
 
     def get_or_create_score(self) -> "ProjectScore":
-        score, _ = ProjectScore.objects.get_or_create(project=self)
+        score, created = ProjectScore.objects.get_or_create(project=self)
+        if created:
+            return score.set_score()
         return score
 
-    def calculate_score(self):
-        self.get_or_create_score().set_score()
+    def calculate_score(self) -> "ProjectScore":
+        return self.get_or_create_score().set_score()
 
 
 class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):

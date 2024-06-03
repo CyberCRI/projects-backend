@@ -6,17 +6,85 @@ from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
+from apps.projects.models import Project
+
 from .exceptions import VectorSearchWrongQuerysetError
 from .interface import MistralService
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
-    from apps.projects.models import Project
+
+
+class HasWeight:
+    """
+    Abstract class for models that have a weight in an average vector.
+    """
+
+    def get_weight(self) -> float:
+        raise NotImplementedError()
 
 
 class Embedding(models.Model):
     """
     Abstract class for models that store an embedding vector for another model.
+
+    To set it up, you need to define the following attributes:
+        - item: a OneToOneField to the model that will be embedded, it is advised
+            to set an explicit related_name
+        - embed_if_not_visible: whether to embed the item if it's not visible in
+            vector_search results
+
+    And the following methods:
+        - get_is_visible: a method that returns whether the item should be
+            returned in vector_search results
+        - set_embedding: a method that sets the embedding of the item and returns
+            the instance
+    """
+
+    item: models.OneToOneField
+    embed_if_not_visible: bool = False
+
+    last_update = models.DateTimeField(auto_now=True)
+    embedding = VectorField(dimensions=1024, null=True)
+    is_visible = models.BooleanField(default=False)
+
+    class Meta:
+        abstract = True
+
+    def get_is_visible(self) -> bool:
+        raise NotImplementedError()
+
+    def set_embedding(self, *args, **kwargs) -> "Embedding":
+        raise NotImplementedError()
+
+    def set_visibility(self) -> bool:
+        self.is_visible = self.get_is_visible()
+        self.save(update_fields=["is_visible"])
+        return self.is_visible
+
+    @transaction.atomic
+    def vectorize(self, *args, **kwargs) -> "Embedding":
+        if self.set_visibility() or self.embed_if_not_visible:
+            return self.set_embedding(*args, **kwargs)
+        return self
+
+    @classmethod
+    def vector_search(
+        cls, embedding: List[float], queryset: Optional[QuerySet] = None
+    ) -> QuerySet:
+        queryset = queryset or cls.item.field.related_model.objects
+        if not queryset.model == cls.item.field.related_model:
+            raise VectorSearchWrongQuerysetError
+        related_name = cls.item.field.related_query_name()
+        return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
+            CosineDistance(f"{related_name}__embedding", embedding)
+        )
+
+
+class MistralEmbedding(Embedding):
+    """
+    Abstract class for models that store an embedding vector for another model.
+    The embedding is generated using the Mistral API.
 
     To set it up, you need to define the following attributes:
         - item: a OneToOneField to the model that will be embedded, it is advised
@@ -35,22 +103,13 @@ class Embedding(models.Model):
             chat prompt
     """
 
-    item: models.OneToOneField
-    embed_if_not_visible: bool = False
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
-
-    last_update = models.DateTimeField(auto_now=True)
     summary = models.TextField(blank=True)
-    embedding = VectorField(dimensions=1024, null=True)
-    is_visible = models.BooleanField(default=False)
     prompt_hashcode = models.CharField(max_length=64, default="")
 
     class Meta:
         abstract = True
-
-    def get_is_visible(self) -> bool:
-        raise NotImplementedError()
 
     @classmethod
     def get_summary_chat_system(cls) -> List[str]:
@@ -59,10 +118,29 @@ class Embedding(models.Model):
     def get_summary_chat_prompt(self) -> List[str]:
         raise NotImplementedError()
 
-    def set_visibility(self) -> bool:
-        self.is_visible = self.get_is_visible()
-        self.save(update_fields=["is_visible"])
-        return self.is_visible
+    def set_embedding(
+        self, summary: Optional[str] = None, *args, **kwargs
+    ) -> "MistralEmbedding":
+        prompt = self.get_summary_chat_prompt()
+        summary = summary or self.get_summary(prompt=prompt)
+        self.summary = summary
+        self.embedding = MistralService.get_embedding(summary) or None
+        self.prompt_hashcode = self.hash_prompt(prompt)
+        self.save()
+        return self
+
+    @transaction.atomic
+    def vectorize(
+        self, summary: str | None = None, *args, **kwargs
+    ) -> "MistralEmbedding":
+        if self.prompt_hashcode != self.hash_prompt():
+            return super().vectorize(summary=summary, *args, **kwargs)
+        return self
+
+    def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
+        prompt = prompt or self.get_summary_chat_prompt()
+        prompt = "\n".join(prompt)
+        return hashlib.sha256(prompt.encode()).hexdigest()
 
     def get_summary(
         self, system: Optional[List[str]] = None, prompt: Optional[List[str]] = None
@@ -79,47 +157,8 @@ class Embedding(models.Model):
         }
         return MistralService.get_chat_response(system, prompt, **kwargs)
 
-    def get_embedding(self, summary: Optional[str] = None) -> List[float]:
-        summary = summary or self.get_summary()
-        return MistralService.get_embedding(summary)
 
-    def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
-        prompt = prompt or self.get_summary_chat_prompt()
-        prompt = "\n".join(prompt)
-        return hashlib.sha256(prompt.encode()).hexdigest()
-
-    def _vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        prompt = self.get_summary_chat_prompt()
-        summary = summary or self.get_summary(prompt=prompt)
-        embedding = self.get_embedding(summary)
-        self.summary = summary
-        self.embedding = embedding
-        self.prompt_hashcode = self.hash_prompt(prompt)
-        self.save()
-        return self
-
-    @transaction.atomic
-    def vectorize(self, summary: Optional[str] = None) -> "Embedding":
-        if (
-            self.set_visibility() or self.embed_if_not_visible
-        ) and self.prompt_hashcode != self.hash_prompt():
-            return self._vectorize(summary)
-        return self
-
-    @classmethod
-    def vector_search(
-        cls, embedding: List[float], queryset: Optional[QuerySet] = None
-    ) -> QuerySet:
-        queryset = queryset or cls.item.field.related_model.objects
-        if not queryset.model == cls.item.field.related_model:
-            raise VectorSearchWrongQuerysetError
-        related_name = cls.item.field.related_query_name()
-        return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
-            CosineDistance(f"{related_name}__embedding", embedding)
-        )
-
-
-class ProjectEmbedding(Embedding):
+class ProjectEmbedding(MistralEmbedding):
     item = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="embedding"
     )
@@ -177,15 +216,20 @@ class ProjectEmbedding(Embedding):
         return [f"{key} : {value}" for key, value in prompt if value]
 
 
-class UserEmbedding(Embedding):
+class UserProfileEmbedding(MistralEmbedding, HasWeight):
     item = models.OneToOneField(
-        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="embedding"
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="profile_embedding",
     )
     embed_if_not_visible = True
 
     @property
     def user(self) -> "ProjectUser":
         return self.item
+
+    def get_weight(self) -> float:
+        return 2 * self.user.get_or_create_score().score
 
     def get_is_visible(self) -> bool:
         return (
@@ -228,3 +272,118 @@ class UserEmbedding(Embedding):
             ("Biography", description),
         ]
         return [f"{key} : {value}" for key, value in prompt if value]
+
+
+class UserProjectsEmbedding(Embedding, HasWeight):
+    item = models.OneToOneField(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="projects_embedding",
+    )
+    embed_if_not_visible = False
+
+    @property
+    def user(self) -> "ProjectUser":
+        return self.item
+
+    def get_weight(self) -> float:
+        return sum(
+            p.get_or_create_score().score
+            for p in Project.objects.filter(
+                groups__users=self.user,
+                embedding__isnull=False,
+                embedding__is_visible=True,
+                embedding__embedding__isnull=False,
+            ).distinct()
+        )
+
+    def get_is_visible(self) -> bool:
+        return self.user.groups.filter(
+            projects__isnull=False,
+            projects__embedding__isnull=False,
+            projects__embedding__embedding__isnull=False,
+        ).exists()
+
+    def set_embedding(self, *args, **kwargs) -> "UserProjectsEmbedding":
+        data = [
+            {
+                "projects": [
+                    g.projects.get()
+                    for g in self.user.groups.filter(
+                        projects__isnull=False,
+                        projects__embedding__isnull=False,
+                        projects__embedding__is_visible=True,
+                        projects__embedding__embedding__isnull=False,
+                        name__contains=role,
+                    )
+                ],
+                "weight": weight,
+            }
+            for role, weight in [
+                (Project.DefaultGroup.MEMBERS, 1),
+                (Project.DefaultGroup.OWNERS, 2),
+                (Project.DefaultGroup.REVIEWERS, 1),
+                (Project.DefaultGroup.PEOPLE_GROUPS, 1),
+            ]
+        ]
+        data = [
+            {
+                "projects": [
+                    p.embedding.embedding
+                    for p in d["projects"]
+                    if p.embedding and p.embedding.embedding is not None
+                ],
+                "weight": d["weight"] * len(d["projects"]),
+            }
+            for d in data
+            if d["projects"]
+        ]
+        averages = [
+            [d["weight"] * sum(row) / len(row) for row in zip(*d["projects"])]
+            for d in data
+        ]
+        total_weight = sum(d["weight"] for d in data)
+        self.embedding = [sum(row) / total_weight for row in zip(*averages)] or None
+        self.save()
+        return self
+
+
+class UserEmbedding(Embedding):
+    item = models.OneToOneField(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="embedding"
+    )
+    embed_if_not_visible = True
+
+    @property
+    def user(self) -> "ProjectUser":
+        return self.item
+
+    def get_is_visible(self) -> bool:
+        profile_embedding, _ = UserProfileEmbedding.objects.get_or_create(
+            item=self.user
+        )
+        projects_embedding, _ = UserProjectsEmbedding.objects.get_or_create(
+            item=self.user
+        )
+        return profile_embedding.get_is_visible() or projects_embedding.get_is_visible()
+
+    def set_embedding(self, *args, **kwargs) -> "UserEmbedding":
+        profile_embedding, _ = UserProfileEmbedding.objects.get_or_create(
+            item=self.user
+        )
+        projects_embedding, _ = UserProjectsEmbedding.objects.get_or_create(
+            item=self.user
+        )
+        embeddings = [profile_embedding.vectorize(), projects_embedding.vectorize()]
+
+        total_score = 0
+        results = []
+        for embedding in embeddings:
+            if embedding.embedding is not None:
+                score = embedding.get_weight()
+                results.append([e * score for e in embedding.embedding])
+                total_score += score
+
+        self.embedding = [sum(row) / total_score for row in zip(*results)] or None
+        self.save()
+        return self

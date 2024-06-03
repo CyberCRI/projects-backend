@@ -15,6 +15,12 @@ from services.keycloak.interface import KeycloakService
 logger = logging.getLogger(__name__)
 
 
+@app.task(name="apps.accounts.tasks.calculate_users_scores")
+def calculate_users_scores():
+    for user in ProjectUser.objects.all():
+        user.calculate_score()
+
+
 @app.task
 def batch_create_users(users_data, request_user_pk, update_mode="no_update"):
     """Create users in batch."""

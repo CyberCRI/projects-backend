@@ -1,3 +1,4 @@
+import math
 import uuid
 from datetime import date
 from typing import Any, Iterable, List, Optional, Union
@@ -11,6 +12,7 @@ from django.db import models, transaction
 from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
 from django.http import Http404
+from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm, get_objects_for_user
@@ -728,6 +730,62 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     def save(self, *args, **kwargs):
         self.slug = self.get_slug()
         super().save(*args, **kwargs)
+
+    def get_or_create_score(self) -> "UserScore":
+        score, created = UserScore.objects.get_or_create(user=self)
+        if created:
+            return score.set_score()
+        return score
+
+    def calculate_score(self) -> "UserScore":
+        return self.get_or_create_score().set_score()
+
+
+class UserScore(models.Model):
+    user = models.OneToOneField(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="score"
+    )
+    completeness = models.FloatField(default=0)
+    activity = models.FloatField(default=0)
+    score = models.FloatField(default=0)
+
+    def get_completeness(self) -> float:
+        has_job = bool(self.user.job)
+        has_expert_skills = self.user.skills.filter(level=4).exists()
+        has_competent_skills = self.user.skills.filter(level=3).exists()
+        has_rich_content = (
+            "<img" in self.user.personal_description
+            or "<iframe" in self.user.personal_description
+            or "<img" in self.user.professional_description
+            or "<iframe" in self.user.professional_description
+        )
+        description_length = len(self.user.personal_description) + len(
+            self.user.professional_description
+        )
+        return (
+            int(has_job)
+            + int(has_expert_skills)
+            + int(has_competent_skills)
+            + int(has_rich_content)
+            + math.log10(1 + description_length)
+        )
+
+    def get_activity(self) -> float:
+        last_activity = self.user.last_login
+        if last_activity:
+            weeks_since_last_activity = (timezone.now() - last_activity).days / 7
+            return 5 / (1 + weeks_since_last_activity)
+        return 0
+
+    def set_score(self) -> "UserScore":
+        completeness = self.get_completeness()
+        activity = self.get_activity()
+        score = completeness + activity
+        self.completeness = completeness
+        self.activity = activity
+        self.score = score
+        self.save()
+        return self
 
 
 class PrivacySettings(models.Model, HasOwner):
