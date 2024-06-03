@@ -1,4 +1,5 @@
 import hashlib
+import itertools
 from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
@@ -158,11 +159,14 @@ class MistralEmbedding(Embedding):
         return MistralService.get_chat_response(system, prompt, **kwargs)
 
 
-class ProjectEmbedding(MistralEmbedding):
+class ProjectEmbedding(MistralEmbedding, HasWeight):
     item = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="embedding"
     )
     embed_if_not_visible = False
+
+    def get_weight(self) -> float:
+        return self.item.get_or_create_score().score
 
     @property
     def project(self) -> "Project":
@@ -309,20 +313,20 @@ class UserProjectsEmbedding(Embedding, HasWeight):
 
     def set_embedding(self, *args, **kwargs) -> "UserProjectsEmbedding":
         data = [
-            {
-                "projects": [
-                    g.projects.get()
-                    for g in self.user.groups.filter(
-                        projects__isnull=False,
-                        projects__deleted_at__isnull=True,
-                        projects__embedding__isnull=False,
-                        projects__embedding__is_visible=True,
-                        projects__embedding__embedding__isnull=False,
-                        name__contains=role,
-                    )
-                ],
-                "weight": weight,
-            }
+            [
+                {
+                    "project": group.projects.get(),
+                    "weight": weight,
+                }
+                for group in self.user.groups.filter(
+                    projects__isnull=False,
+                    projects__deleted_at__isnull=True,
+                    projects__embedding__isnull=False,
+                    projects__embedding__is_visible=True,
+                    projects__embedding__embedding__isnull=False,
+                    name__contains=role,
+                )
+            ]
             for role, weight in [
                 (Project.DefaultGroup.MEMBERS, 1),
                 (Project.DefaultGroup.OWNERS, 2),
@@ -332,22 +336,15 @@ class UserProjectsEmbedding(Embedding, HasWeight):
         ]
         data = [
             {
-                "projects": [
-                    p.embedding.embedding
-                    for p in d["projects"]
-                    if p.embedding and p.embedding.embedding is not None
-                ],
-                "weight": d["weight"] * len(d["projects"]),
+                "vector": d["project"].embedding.embedding,
+                "weight": d["weight"] * d["project"].get_or_create_score().score,
             }
-            for d in data
-            if d["projects"]
-        ]
-        averages = [
-            [d["weight"] * sum(row) / len(row) for row in zip(*d["projects"])]
-            for d in data
+            for d in list(itertools.chain.from_iterable(data))
+            if d["project"].embedding and d["project"].embedding.embedding is not None
         ]
         total_weight = sum(d["weight"] for d in data)
-        self.embedding = [sum(row) / total_weight for row in zip(*averages)] or None
+        vectors = [[i * d["weight"] for i in d["vector"]] for d in data]
+        self.embedding = [sum(row) / total_weight for row in zip(*vectors)] or None
         self.save()
         return self
 

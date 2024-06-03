@@ -37,10 +37,15 @@ class VectorizeUserProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
 
         cls.project_1 = ProjectFactory(organizations=[cls.organization])
         cls.project_2 = ProjectFactory(organizations=[cls.organization])
+        cls.project_3 = ProjectFactory(organizations=[cls.organization])
+
         cls.vector_1 = [
             round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
         cls.vector_2 = [
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+        ]
+        cls.vector_3 = [
             round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
 
@@ -53,6 +58,11 @@ class VectorizeUserProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
             item=cls.project_2,
             is_visible=True,
             embedding=cls.vector_2,
+        )
+        cls.embedding_3 = ProjectEmbeddingFactory(
+            item=cls.project_3,
+            is_visible=True,
+            embedding=cls.vector_3,
         )
 
     def test_vectorize_user_projects(self):
@@ -67,12 +77,25 @@ class VectorizeUserProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
 
     def test_vectorize_user_projects_multiple_projects(self):
         user = UserFactory(
-            groups=[self.project_1.get_members(), self.project_2.get_owners()]
+            groups=[
+                self.project_1.get_members(),
+                self.project_2.get_reviewers(),
+                self.project_3.get_owners(),
+            ]
         )
         embedding = UserProjectsEmbeddingFactory(item=user)
         embedding.vectorize()
+        score_1 = self.project_1.get_or_create_score().score
+        score_2 = self.project_2.get_or_create_score().score
+        score_3 = self.project_3.get_or_create_score().score
         average_vector = [
-            (self.vector_1[i] + 2 * self.vector_2[i]) / 3 for i in range(1024)
+            (
+                score_1 * self.vector_1[i]
+                + score_2 * self.vector_2[i]
+                + 2 * score_3 * self.vector_3[i]
+            )
+            / (score_1 + score_2 + 2 * score_3)
+            for i in range(1024)
         ]
         self.assertTrue(embedding.is_visible)
         self.assertEqual(
