@@ -599,26 +599,6 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
-    def test_give_root_group_a_parent(self):
-        organization = self.organization
-        root_people_group = PeopleGroup.objects.get(
-            organization=organization, is_root=True
-        )
-        parent = PeopleGroupFactory(organization=organization)
-        payload = {"parent": parent.id}
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail",
-                args=(organization.code, root_people_group.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertApiValidationError(
-            response,
-            {"parent": ["The root group cannot have a parent group"]},
-        )
-
     def test_set_root_group_as_parent_with_none(self):
         organization = self.organization
         child = PeopleGroupFactory(organization=organization)
@@ -636,19 +616,6 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             child.parent,
             PeopleGroup.objects.get(organization=organization, is_root=True),
         )
-
-    def test_update_root_group_with_none_parent(self):
-        organization = self.organization
-        root = PeopleGroup.objects.get(organization=organization, is_root=True)
-        payload = {"parent": None}
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-detail",
-                args=(organization.code, root.pk),
-            ),
-            payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class MiscPeopleGroupTestCase(JwtAPITestCase):

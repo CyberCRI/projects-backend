@@ -417,6 +417,10 @@ class PeopleGroupIndex(AlgoliaSplittingIndex):
         "indexLanguages": settings.REQUIRED_LANGUAGES,
     }
 
+    def should_index(self, group: PeopleGroup) -> bool:
+        """Only index non-root groups."""
+        return group.is_root is False
+
     def prepare_organization(self, group: PeopleGroup) -> List[str]:
         """Return the organizations' code for Algolia indexing."""
         return group.organization.code if group.organization else None

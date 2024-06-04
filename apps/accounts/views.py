@@ -475,7 +475,8 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 ).prefetch_related("wikipedia_tags"),
             )
             return self.request.user.get_people_group_queryset(organization).filter(
-                organization__code=self.kwargs["organization_code"]
+                organization__code=self.kwargs["organization_code"],
+                is_root=False,
             )
         return PeopleGroup.objects.none()
 

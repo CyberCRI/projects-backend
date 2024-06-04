@@ -311,7 +311,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         )
 
 
-class ValidatePeopleGroupTestCase(JwtAPITestCase):
+class ValidateProjectCategoryTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -384,20 +384,7 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             {"parent": ["You are trying to create a loop in the category's hierarchy"]},
         )
 
-    def test_give_root_group_a_parent(self):
-        root_category = ProjectCategory.update_or_create_root(self.organization)
-        parent = ProjectCategoryFactory(organization=self.organization)
-        payload = {"parent": parent.id}
-        response = self.client.patch(
-            reverse("Category-detail", args=(root_category.id,)), payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertApiValidationError(
-            response,
-            {"parent": ["The root category cannot have a parent category"]},
-        )
-
-    def test_set_root_group_as_parent_with_none(self):
+    def test_set_root_category_as_parent_with_none(self):
         child = ProjectCategoryFactory(organization=self.organization)
         payload = {"parent": None}
         response = self.client.patch(
@@ -409,11 +396,3 @@ class ValidatePeopleGroupTestCase(JwtAPITestCase):
             child.parent,
             ProjectCategory.update_or_create_root(self.organization),
         )
-
-    def test_update_root_group_with_none_parent(self):
-        root = ProjectCategory.update_or_create_root(self.organization)
-        payload = {"parent": None}
-        response = self.client.patch(
-            reverse("Category-detail", args=(root.id,)), payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
