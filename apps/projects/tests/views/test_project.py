@@ -455,7 +455,6 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             "is_shareable",
             "purpose",
             "language",
-            "publication_status",
             "life_status",
             "template",
         ]
@@ -473,7 +472,9 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             "locations",
         ]
         list_fields = ["sdgs"]
-
+        self.assertEqual(
+            duplicated_project["publication_status"], Project.PublicationStatus.PRIVATE
+        )
         for field in fields:
             self.assertEqual(duplicated_project[field], initial_project[field])
 
