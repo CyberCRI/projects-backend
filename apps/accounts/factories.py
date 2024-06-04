@@ -11,7 +11,7 @@ from services.keycloak.factories import (
     RemoteKeycloakAccountFactory,
 )
 
-from .models import PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .models import PeopleGroup, PrivacySettings, ProjectUser, Skill, UserScore
 
 faker = Faker()
 
@@ -83,6 +83,18 @@ class SeedUserFactory(UserFactory):
                 username=self.email,
                 email=self.email,
             )
+
+
+class UserScoreFactory(factory.django.DjangoModelFactory):
+    user = factory.LazyFunction(
+        lambda: UserFactory()
+    )  # Subfactory seems to not trigger `create()`
+    completeness = factory.Faker("pyfloat", positive=True)
+    activity = factory.Faker("pyfloat", positive=True)
+    score = factory.Faker("pyfloat", positive=True)
+
+    class Meta:
+        model = UserScore
 
 
 class PeopleGroupFactory(factory.django.DjangoModelFactory):

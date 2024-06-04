@@ -108,8 +108,8 @@ class VectorizeUserProfileTestCase(JwtAPITestCase, MistralTestCaseMixin):
         mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         embedding.vectorize()
         self.assertFalse(embedding.is_visible)
-        self.assertEqual(embedding.embedding, vector)
-        self.assertNotEqual(embedding.prompt_hashcode, "")
+        self.assertIsNone(embedding.embedding)
+        self.assertEqual(embedding.prompt_hashcode, "")
 
 
 class UserProfileEmbeddingTestCase(JwtAPITestCase, MistralTestCaseMixin):
