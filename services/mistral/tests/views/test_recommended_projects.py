@@ -21,6 +21,13 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         cls.other_project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
         )
+        ProjectScoreFactory(
+            project=cls.other_project,
+            completeness=10.0,
+            popularity=10.0,
+            activity=10.0,
+            score=30.0,
+        )
         ProjectEmbeddingFactory(
             item=cls.other_project, embedding=[*1024 * [1.0]], is_visible=True
         )

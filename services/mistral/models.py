@@ -32,8 +32,6 @@ class Embedding(models.Model):
     To set it up, you need to define the following attributes:
         - item: a OneToOneField to the model that will be embedded, it is advised
             to set an explicit related_name
-        - embed_if_not_visible: whether to embed the item if it's not visible in
-            vector_search results
 
     And the following methods:
         - get_is_visible: a method that returns whether the item should be
@@ -43,7 +41,6 @@ class Embedding(models.Model):
     """
 
     item: models.OneToOneField
-    embed_if_not_visible: bool = False
 
     last_update = models.DateTimeField(auto_now=True)
     embedding = VectorField(dimensions=1024, null=True)
@@ -65,8 +62,10 @@ class Embedding(models.Model):
 
     @transaction.atomic
     def vectorize(self, *args, **kwargs) -> "Embedding":
-        if self.set_visibility() or self.embed_if_not_visible:
+        if self.set_visibility():
             return self.set_embedding(*args, **kwargs)
+        self.embedding = None
+        self.save()
         return self
 
     @classmethod
@@ -90,8 +89,6 @@ class MistralEmbedding(Embedding):
     To set it up, you need to define the following attributes:
         - item: a OneToOneField to the model that will be embedded, it is advised
             to set an explicit related_name
-        - embed_if_not_visible: whether to embed the item if it's not visible in
-            vector_search results
         - temperature: the temperature to use for the chat prompt (API default is 0.7)
         - max_tokens: the maximum number of tokens to use for the chat prompt
 
@@ -122,20 +119,13 @@ class MistralEmbedding(Embedding):
     def set_embedding(
         self, summary: Optional[str] = None, *args, **kwargs
     ) -> "MistralEmbedding":
-        prompt = self.get_summary_chat_prompt()
-        summary = summary or self.get_summary(prompt=prompt)
-        self.summary = summary
-        self.embedding = MistralService.get_embedding(summary) or None
-        self.prompt_hashcode = self.hash_prompt(prompt)
-        self.save()
-        return self
-
-    @transaction.atomic
-    def vectorize(
-        self, summary: str | None = None, *args, **kwargs
-    ) -> "MistralEmbedding":
         if self.prompt_hashcode != self.hash_prompt():
-            return super().vectorize(summary=summary, *args, **kwargs)
+            prompt = self.get_summary_chat_prompt()
+            summary = summary or self.get_summary(prompt=prompt)
+            self.summary = summary
+            self.embedding = MistralService.get_embedding(summary) or None
+            self.prompt_hashcode = self.hash_prompt(prompt)
+            self.save()
         return self
 
     def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
@@ -163,7 +153,6 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
     item = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="embedding"
     )
-    embed_if_not_visible = False
 
     def get_weight(self) -> float:
         return self.item.get_or_create_score().score
@@ -226,7 +215,6 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
         on_delete=models.CASCADE,
         related_name="profile_embedding",
     )
-    embed_if_not_visible = True
 
     @property
     def user(self) -> "ProjectUser":
@@ -284,7 +272,6 @@ class UserProjectsEmbedding(Embedding, HasWeight):
         on_delete=models.CASCADE,
         related_name="projects_embedding",
     )
-    embed_if_not_visible = False
 
     @property
     def user(self) -> "ProjectUser":
@@ -353,7 +340,6 @@ class UserEmbedding(Embedding):
     item = models.OneToOneField(
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="embedding"
     )
-    embed_if_not_visible = True
 
     @property
     def user(self) -> "ProjectUser":

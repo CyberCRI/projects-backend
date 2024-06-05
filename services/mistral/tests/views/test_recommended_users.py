@@ -7,7 +7,7 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
+from apps.accounts.factories import UserFactory, UserScoreFactory
 from apps.accounts.models import PrivacySettings
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
@@ -25,49 +25,92 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        # High score public user but in a different organization
         other_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+            groups=[OrganizationFactory().get_users()],
             last_login=timezone.now(),
+        )
+        UserScoreFactory(
+            user=other_user,
+            completeness=20.0,
+            activity=5.0,
+            score=25.0,
         )
         UserEmbeddingFactory(
             item=other_user, embedding=[*1024 * [1.0]], is_visible=True
         )
+        # High score user public but inactive
         inactive_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
-            last_login=timezone.now() - timedelta(days=366),
+            last_login=timezone.now() - timedelta(days=365),
+        )
+        UserScoreFactory(
+            user=inactive_user,
+            completeness=20.0,
+            activity=0.09,
+            score=20.09,
         )
         UserEmbeddingFactory(
             item=inactive_user, embedding=[*1024 * [1.0]], is_visible=True
         )
+        # Public user with highest score
         public_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
             last_login=timezone.now(),
         )
+        UserScoreFactory(
+            user=public_user,
+            completeness=20.0,
+            activity=5.0,
+            score=25.0,
+        )
         UserEmbeddingFactory(
             item=public_user, embedding=[*1024 * [0.0]], is_visible=True
         )
+        # Public user with second highest score
         public_user_2 = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
             last_login=timezone.now(),
         )
+        UserScoreFactory(
+            user=public_user_2,
+            completeness=10.0,
+            activity=5.0,
+            score=15.0,
+        )
         UserEmbeddingFactory(
             item=public_user_2, embedding=[*768 * [0.0], *256 * [1.0]], is_visible=True
         )
+        # Private user
         private_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
             groups=[cls.organization.get_users()],
             last_login=timezone.now(),
         )
+        UserScoreFactory(
+            user=private_user,
+            completeness=20.0,
+            activity=5.0,
+            score=25.0,
+        )
         UserEmbeddingFactory(
             item=private_user, embedding=[*512 * [0.0], *512 * [1.0]], is_visible=True
         )
+        # Organization user
         org_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
             groups=[cls.organization.get_users()],
             last_login=timezone.now(),
+        )
+        UserScoreFactory(
+            user=org_user,
+            completeness=20.0,
+            activity=5.0,
+            score=25.0,
         )
         UserEmbeddingFactory(
             item=org_user, embedding=[*256 * [0.0], *768 * [1.0]], is_visible=True
@@ -88,7 +131,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ["public_2", "public"]),
+            (TestRoles.ANONYMOUS, ["public", "public_2"]),
             (TestRoles.DEFAULT, ["public_2", "public"]),
             (TestRoles.SUPERADMIN, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2", "public"]),

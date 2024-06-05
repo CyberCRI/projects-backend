@@ -1,9 +1,7 @@
-from datetime import timedelta
 from typing import List, Optional, Union
 
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
-from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework.decorators import action
@@ -202,12 +200,12 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
                 organizations__code__in=get_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
-                score__activity__gte=1,
+                score__activity__gte=1,  # 9 weeks of inactivity
             )
             .exclude(id=project.id)
         )
         embedding = self.get_project_embedding(project)
-        if embedding is not None:
+        if embedding is not None and queryset.exists():
             return ProjectEmbedding.vector_search(embedding, queryset)
         return queryset.objects.none()
 
@@ -221,7 +219,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
         embedding = self.get_user_embedding(user)
         if user.is_authenticated:
             queryset = queryset.exclude(groups__users__id=user.id)
-        if embedding is not None:
+        if embedding is not None and queryset.exists():
             return ProjectEmbedding.vector_search(embedding, queryset)
         return queryset.order_by("-score__score")
 
@@ -237,14 +235,14 @@ class UserRecommendationsViewset(RecommendationsViewset):
                 groups__organizations__code__in=get_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
-                last_login__gte=timezone.now() - timedelta(days=365),
+                score__activity__gte=0.1,  # 49 weeks of inactivity
             )
             .exclude(groups__projects__id=project.id)
         )
         embedding = self.get_project_embedding(project)
         if self.request.user.is_authenticated:
             queryset = queryset.exclude(id=self.request.user.id)
-        if embedding is not None:
+        if embedding is not None and queryset.exists():
             return UserEmbedding.vector_search(embedding, queryset)
         return queryset.objects.none()
 
@@ -253,11 +251,11 @@ class UserRecommendationsViewset(RecommendationsViewset):
             groups__organizations__code__in=get_hierarchy_codes(
                 [self.kwargs["organization_code"]]
             ),
-            last_login__gte=timezone.now() - timedelta(days=365),
+            score__activity__gte=0.1,  # 49 weeks of inactivity
         )
         embedding = self.get_user_embedding(user)
         if user.is_authenticated:
             queryset = queryset.exclude(id=user.id)
-        if embedding is not None:
+        if embedding is not None and queryset.exists():
             return UserEmbedding.vector_search(embedding, queryset)
-        return queryset
+        return queryset.order_by("-score__score")
