@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from django.db.utils import IntegrityError
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import translation
 from django.utils.decorators import method_decorator
@@ -187,6 +187,21 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         context = super().get_serializer_context()
         context.update({"request": self.request})
         return context
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        url_path="get-by-email/(?P<email>[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+)",
+        url_name="get-by-email",
+    )
+    def get_by_email(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        email = kwargs.get("email")
+        try:
+            user = get_object_or_404(queryset, email=email)
+        except Http404:
+            user = get_object_or_404(queryset, personal_email=email)
+        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
 
     @extend_schema(
         parameters=[

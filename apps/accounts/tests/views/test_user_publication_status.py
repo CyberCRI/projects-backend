@@ -339,3 +339,30 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                 for user_type in self.users.keys()
             },
         )
+
+    @parameterized.expand(
+        [
+            (TestRoles.DEFAULT, ("public", None, None)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
+            (TestRoles.ORG_USER, ("public", "org", None)),
+        ]
+    )
+    def test_get_user_by_email(self, role, expected_users):
+        organization = self.organization
+        user = self.get_parameterized_test_user(role, instances=[organization])
+        self.client.force_authenticate(user)
+        for user_type, user in self.users.items():
+            response = self.client.get(
+                reverse("ProjectUser-get-by-email", args=(user.email,))
+            )
+            response_2 = self.client.get(
+                reverse("ProjectUser-get-by-email", args=(user.personal_email,))
+            )
+            if user_type in expected_users:
+                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response_2.status_code, 200)
+            else:
+                self.assertEqual(response.status_code, 404)
+                self.assertEqual(response_2.status_code, 404)
