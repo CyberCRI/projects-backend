@@ -36,7 +36,7 @@ spec:
   entrypoint: create-db
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
-    {{- include "common.podSecurityContext.restricted" dict | nindent 4 }}
+    {{- include "common.security.podSecurityContext.restricted" dict | nindent 4 }}
   templates:
     - name: drop-db
       inputs:
