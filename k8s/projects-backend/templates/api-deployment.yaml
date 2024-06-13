@@ -32,7 +32,7 @@ spec:
                   - {{ index $.Values.backend.commonLabels "app.kubernetes.io/name" }}
               topologyKey: "kubernetes.io/hostname"
       securityContext:
-        {{- include "common.podSecurityContext.restricted" dict | nindent 8 }}
+        {{- include "common.security.podSecurityContext.restricted" dict | nindent 8 }}
       initContainers:
       {{- with $.Values.image }}
       - image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
@@ -56,7 +56,7 @@ spec:
           readOnly: true
         {{- end }}
         securityContext:
-          {{- include "common.containerSecurityContext.restricted" dict | nindent 10 }}
+          {{- include "common.security.containerSecurityContext.restricted" dict | nindent 10 }}
       containers:
       {{- with $.Values.image }}
       - image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
@@ -91,7 +91,7 @@ spec:
           readOnly: true
         {{- end }}
         securityContext:
-          {{- include "common.containerSecurityContext.restricted" dict | nindent 10 }}
+          {{- include "common.security.containerSecurityContext.restricted" dict | nindent 10 }}
       {{- if .Values.config.sensitive }}
       volumes:
       - name: secrets
