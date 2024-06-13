@@ -6,7 +6,10 @@ FRONTEND_URL = "https://localhost:8080"
 PUBLIC_URL = "http://localhost:8000"
 
 AWS_S3_ENDPOINT_URL = (
-    "http://minio:9000"  # change to "http://localhost:9000" to read from local Minio
+    # For reading images from local Minio
+    # "http://minio:9000"  # noqa: E800
+    # For posting images to local Minio
+    "http://localhost:9000"  # noqa: E800
 )
 
 GOOGLE_EMAIL_PREFIX = "fullstack"
