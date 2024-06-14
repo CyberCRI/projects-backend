@@ -26,10 +26,22 @@ class PeopleGroupFilter(filters.FilterSet):
 
 class UserFilter(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
+    current_org_role = MultiValueCharFilter(method="filter_current_org_role")
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(groups__organizations__code__in=value).distinct()
 
+    def filter_current_org_role(self, queryset, name, value):
+        """Filter users by role in the current organization."""
+        if "current_org_pk" not in self.data:
+            return queryset
+        organization_pk = self.data["current_org_pk"]
+        return queryset.filter(
+            groups__name__in=[
+                f"organization:#{organization_pk}:{role}" for role in value
+            ]
+        )
+
     class Meta:
         model = ProjectUser
-        fields = ["organizations"]
+        fields = ["organizations", "current_org_role"]

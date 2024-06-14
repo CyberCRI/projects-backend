@@ -336,6 +336,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         )
         cls.user_3 = UserFactory(groups=[cls.organization.get_users()])
         KeycloakAccount.objects.get(user=cls.user_3).delete()
+        cls.user_4 = UserFactory()
         cls.users = [
             {"user": cls.user_1, "email_verified": True},
             {"user": cls.user_2, "email_verified": False},
@@ -438,6 +439,69 @@ class AdminListUserTestCase(JwtAPITestCase):
         self.assertListEqual(
             [u["id"] for u in response.data["results"]],
             [self.user_3.id, self.user_2.id, self.user_1.id],
+        )
+
+    def test_filter_by_role_admin(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_1.id)
+
+    def test_filter_by_role_facilitator(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_2.id)
+
+    def test_filter_by_role_user(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?current_org_role=users&current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["results"]), 1)
+        self.assertEqual(content["results"][0]["id"], self.user_3.id)
+
+    def test_filter_by_multiple_roles(self):
+        self.client.force_authenticate(self.user)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?current_org_role=admins,users&current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["results"]), 2)
+        self.assertSetEqual(
+            {u["id"] for u in content["results"]},
+            {self.user_1.id, self.user_3.id},
+        )
+
+    def test_filter_by_organization(self):
+        self.client.force_authenticate(self.user)
+        other_organization = OrganizationFactory(parent=self.organization)
+        other_organization.admins.add(self.user_4)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?organizations={self.organization.code}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["results"]), 3)
+        self.assertSetEqual(
+            {u["id"] for u in content["results"]},
+            {self.user_1.id, self.user_2.id, self.user_3.id},
         )
 
 
@@ -641,7 +705,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][2]["id"], self.user_b.id)
         self.assertEqual(content["results"][3]["id"], self.user_a.id)
 
-    def filter_by_role_admin(self):
+    def test_filter_by_role_admin(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
@@ -651,7 +715,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(len(content["results"]), 1)
         self.assertEqual(content["results"][0]["id"], self.user_a.id)
 
-    def filter_by_role_facilitator(self):
+    def test_filter_by_role_facilitator(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
@@ -661,7 +725,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(len(content["results"]), 1)
         self.assertEqual(content["results"][0]["id"], self.user_b.id)
 
-    def filter_by_role_user(self):
+    def test_filter_by_role_user(self):
         response = self.client.get(
             reverse("ProjectUser-list")
             + f"?current_org_role=users&current_org_pk={self.organization.pk}"
@@ -671,15 +735,18 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(len(content["results"]), 1)
         self.assertEqual(content["results"][0]["id"], self.user_c.id)
 
-    def filter_by_role_no_role(self):
+    def test_filter_by_multiple_roles(self):
         response = self.client.get(
             reverse("ProjectUser-list")
-            + f"?current_org_role=_no_role&current_org_pk={self.organization.pk}"
+            + f"?current_org_role=admins,users&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["results"]), 1)
-        self.assertEqual(content["results"][0]["id"], self.user_d.id)
+        self.assertEqual(len(content["results"]), 2)
+        self.assertSetEqual(
+            {u["id"] for u in content["results"]},
+            {self.user_a.id, self.user_c.id},
+        )
 
     def test_filter_by_organization(self):
         other_organization = OrganizationFactory(parent=self.organization)

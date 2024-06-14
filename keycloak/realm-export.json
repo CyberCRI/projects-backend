@@ -2367,7 +2367,7 @@
   "identityProviders": [
     {
       "alias": "keycloak-dev",
-      "displayName": "",
+      "displayName": "External IDP",
       "internalId": "a3235c91-d086-46f2-95af-c3b27828b6d5",
       "providerId": "keycloak-oidc",
       "enabled": true,
