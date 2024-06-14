@@ -9,6 +9,7 @@ from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactor
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
+from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
@@ -355,17 +356,31 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        for user in self.users.values():
+        other_user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
+        users = [*self.users.values(), other_user]
+        for user in users:
             response = self.client.get(
                 reverse("ProjectUser-get-by-email", args=(user.email,))
+                + f"?current_org_pk={organization.pk}"
             )
             response_2 = self.client.get(
                 reverse("ProjectUser-get-by-email", args=(user.personal_email,))
+                + f"?current_org_pk={organization.pk}"
             )
             self.assertEqual(response.status_code, expected_code)
             self.assertEqual(response_2.status_code, expected_code)
             if expected_code == status.HTTP_200_OK:
                 content = response.json()
-                self.assertEqual(content["id"], user.id)
                 content_2 = response_2.json()
+                self.assertEqual(content["id"], user.id)
                 self.assertEqual(content_2["id"], user.id)
+                if user.id == other_user.id:
+                    self.assertEqual(content["current_org_role"], None)
+                    self.assertEqual(content_2["current_org_role"], None)
+                else:
+                    self.assertEqual(
+                        content["current_org_role"], Organization.DefaultGroup.USERS
+                    )
+                    self.assertEqual(
+                        content_2["current_org_role"], Organization.DefaultGroup.USERS
+                    )
