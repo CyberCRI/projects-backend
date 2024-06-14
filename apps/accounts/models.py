@@ -408,6 +408,9 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     def __str__(self):
         return self.get_full_name()
 
+    class Meta:
+        permissions = (("get_user_by_email", "Can retrieve a user by email"),)
+
     @property
     def keycloak_id(self) -> Optional[uuid.UUID]:
         if hasattr(self, "keycloak_account"):

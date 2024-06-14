@@ -130,47 +130,52 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
+    def annotate_organization_role(
+        self, queryset: QuerySet, organization: Organization
+    ) -> QuerySet:
+        return queryset.annotate(
+            current_org_role=Case(
+                When(
+                    pk__in=organization.admins.values_list("pk", flat=True),
+                    then=Value(Organization.DefaultGroup.ADMINS),
+                ),
+                When(
+                    pk__in=organization.facilitators.values_list("pk", flat=True),
+                    then=Value(Organization.DefaultGroup.FACILITATORS),
+                ),
+                When(
+                    pk__in=organization.users.values_list("pk", flat=True),
+                    then=Value(Organization.DefaultGroup.USERS),
+                ),
+                default=Value(None),
+            )
+        )
+
+    def annotate_keycloak_email_verified(self, queryset: QuerySet) -> QuerySet:
+        email_not_verified = KeycloakService.get_users(emailVerified=False)
+        email_not_verified = [user["id"] for user in email_not_verified]
+        return queryset.annotate(
+            email_verified=Case(
+                When(
+                    keycloak_account__isnull=True,
+                    then=Value(False),
+                ),
+                When(
+                    keycloak_account__keycloak_id__in=email_not_verified,
+                    then=Value(False),
+                ),
+                default=Value(True),
+            )
+        )
+
     def get_queryset(self):
         queryset = self.request.user.get_user_queryset()
         organization_pk = self.request.query_params.get("current_org_pk", None)
         if organization_pk is not None:
             organization = Organization.objects.get(pk=organization_pk)
-            admins = organization.admins.values_list("pk", flat=True)
-            facilitators = organization.facilitators.values_list("pk", flat=True)
-            users = organization.users.values_list("pk", flat=True)
-            queryset = queryset.annotate(
-                current_org_role=Case(
-                    When(
-                        pk__in=admins,
-                        then=Value(Organization.DefaultGroup.ADMINS),
-                    ),
-                    When(
-                        pk__in=facilitators,
-                        then=Value(Organization.DefaultGroup.FACILITATORS),
-                    ),
-                    When(
-                        pk__in=users,
-                        then=Value(Organization.DefaultGroup.USERS),
-                    ),
-                    default=Value(None),
-                )
-            )
+            queryset = self.annotate_organization_role(queryset, organization)
         if self.action == "admin_list":
-            email_not_verified = KeycloakService.get_users(emailVerified=False)
-            email_not_verified = [user["id"] for user in email_not_verified]
-            queryset = queryset.annotate(
-                email_verified=Case(
-                    When(
-                        keycloak_account__isnull=True,
-                        then=Value(False),
-                    ),
-                    When(
-                        keycloak_account__keycloak_id__in=email_not_verified,
-                        then=Value(False),
-                    ),
-                    default=Value(True),
-                )
-            )
+            queryset = self.annotate_keycloak_email_verified(queryset)
         return queryset.prefetch_related(
             "skills__wikipedia_tag",
             "groups",
@@ -188,20 +193,39 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         context.update({"request": self.request})
         return context
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="current_org_pk",
+                description="Organization id used to fetch the role of the users in the organization",
+                required=False,
+                type=str,
+            )
+        ],
+    )
     @action(
         detail=False,
         methods=["GET"],
         url_path="get-by-email/(?P<email>[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+)",
         url_name="get-by-email",
+        permission_classes=[HasBasePermission("get_user_by_email", "accounts")],
     )
     def get_by_email(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        email = kwargs.get("email")
-        try:
-            user = get_object_or_404(queryset, email=email)
-        except Http404:
-            user = get_object_or_404(queryset, personal_email=email)
-        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        queryset = ProjectUser.objects.all()
+        current_org_pk = request.query_params.get("current_org_pk", None)
+        if current_org_pk is not None:
+            organization = Organization.objects.get(pk=current_org_pk)
+            queryset = self.annotate_organization_role(queryset, organization)
+        user = queryset.filter(
+            Q(email=kwargs.get("email")) | Q(personal_email=kwargs.get("email"))
+        ).distinct()
+        if user.exists():
+            context = {
+                **self.get_serializer_context(),
+                "force_display": True,
+            }
+            return Response(UserLightSerializer(user.get(), context=context).data)
+        raise Http404
 
     @extend_schema(
         parameters=[
