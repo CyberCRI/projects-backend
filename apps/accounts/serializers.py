@@ -116,7 +116,10 @@ class UserLightSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get("request", None)
-        if request and request.user.get_user_queryset().filter(id=instance.id).exists():
+        force_display = self.context.get("force_display", False)
+        if force_display or (
+            request and request.user.get_user_queryset().filter(id=instance.id).exists()
+        ):
             return super().to_representation(instance)
         return {
             **AnonymousUser.serialize(with_permissions=False),
@@ -530,7 +533,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         request = self.context.get("request", None)
-        if request and request.user.get_user_queryset().filter(id=instance.id).exists():
+        force_display = self.context.get("force_display", False)
+        if force_display or (
+            request and request.user.get_user_queryset().filter(id=instance.id).exists()
+        ):
             return super().to_representation(instance)
         return {
             **AnonymousUser.serialize(with_permissions=False),

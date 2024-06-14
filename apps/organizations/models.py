@@ -224,6 +224,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         """
         admins = self.get_admins()
         admins.permissions.clear()
+        assign_perm("accounts.get_user_by_email", admins)
         # TODO: remove that when we have a better way to handle permissions
         assign_perm("accounts.add_projectuser", admins)
         assign_perm("accounts.change_projectuser", admins)

@@ -193,6 +193,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         methods=["GET"],
         url_path="get-by-email/(?P<email>[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+.[a-zA-Z0-9-.]+)",
         url_name="get-by-email",
+        permission_classes=[HasBasePermission("get_user_by_email", "accounts")],
     )
     def get_by_email(self, request, *args, **kwargs):
         queryset = self.get_queryset()
@@ -201,7 +202,11 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             user = get_object_or_404(queryset, email=email)
         except Http404:
             user = get_object_or_404(queryset, personal_email=email)
-        return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        context = {
+            **self.get_serializer_context(),
+            "force_display": True,
+        }
+        return Response(UserSerializer(user, context=context).data)
 
     @extend_schema(
         parameters=[

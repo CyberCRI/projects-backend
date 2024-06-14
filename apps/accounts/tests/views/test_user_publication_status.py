@@ -1,5 +1,6 @@
 from django.urls import reverse
 from parameterized import parameterized
+from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
@@ -86,9 +87,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         for user_type, user in self.users.items():
             response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
             if user_type in expected_users:
-                self.assertEqual(response.status_code, 200)
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
-                self.assertEqual(response.status_code, 404)
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     @parameterized.expand(
         [
@@ -105,7 +106,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("ProjectUser-list"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         if user:
             self.assertEqual(len(content), len(expected_users) + 1)
@@ -135,7 +136,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(len(content["team"]["members"]), len(expected_users))
         self.assertEqual(
@@ -169,7 +170,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                 ),
             )
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
@@ -195,7 +196,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Comment-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
@@ -225,7 +226,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
@@ -255,7 +256,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
@@ -287,7 +288,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Invitation-list", args=(self.organization.code,))
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
@@ -322,7 +323,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             for user_type in self.users.keys()
         }
         response = self.client.get(reverse("Notification-list"))
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
@@ -342,27 +343,29 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.DEFAULT, ("public", None, None)),
-            (TestRoles.SUPERADMIN, ("public", "private", "org")),
-            (TestRoles.ORG_ADMIN, ("public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
-            (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_get_user_by_email(self, role, expected_users):
+    def test_get_user_by_email(self, role, expected_code):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        for user_type, user in self.users.items():
+        for user in self.users.values():
             response = self.client.get(
                 reverse("ProjectUser-get-by-email", args=(user.email,))
             )
             response_2 = self.client.get(
                 reverse("ProjectUser-get-by-email", args=(user.personal_email,))
             )
-            if user_type in expected_users:
-                self.assertEqual(response.status_code, 200)
-                self.assertEqual(response_2.status_code, 200)
-            else:
-                self.assertEqual(response.status_code, 404)
-                self.assertEqual(response_2.status_code, 404)
+            self.assertEqual(response.status_code, expected_code)
+            self.assertEqual(response_2.status_code, expected_code)
+            if expected_code == status.HTTP_200_OK:
+                content = response.json()
+                self.assertEqual(content["id"], user.id)
+                content_2 = response_2.json()
+                self.assertEqual(content_2["id"], user.id)
