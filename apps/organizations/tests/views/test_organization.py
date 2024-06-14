@@ -59,6 +59,7 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "is_logo_visible_on_parent_dashboard": faker.boolean(),
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
+            "force_login_form_display": faker.boolean(),
             "wikipedia_tags_ids": wikipedia_qids,
             "parent_code": self.parent.code,
             "team": {
@@ -95,6 +96,9 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             )
             self.assertEqual(
                 content["onboarding_enabled"], payload["onboarding_enabled"]
+            )
+            self.assertEqual(
+                content["force_login_form_display"], payload["force_login_form_display"]
             )
             self.assertEqual(len(content["wikipedia_tags"]), 3)
             self.assertSetEqual(
@@ -185,6 +189,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "is_logo_visible_on_parent_dashboard": faker.boolean(),
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
+            "force_login_form_display": faker.boolean(),
             "wikipedia_tags_ids": wikipedia_qids,
         }
         response = self.client.patch(
@@ -214,6 +219,9 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             )
             self.assertEqual(
                 content["onboarding_enabled"], payload["onboarding_enabled"]
+            )
+            self.assertEqual(
+                content["force_login_form_display"], payload["force_login_form_display"]
             )
             self.assertSetEqual(
                 {t["wikipedia_qid"] for t in content["wikipedia_tags"]},

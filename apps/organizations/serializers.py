@@ -225,6 +225,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "is_logo_visible_on_parent_dashboard",
             "access_request_enabled",
             "onboarding_enabled",
+            "force_login_form_display",
             "name",
             "website_url",
             "created_at",
