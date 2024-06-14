@@ -145,6 +145,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     identity_providers = models.ManyToManyField(
         "keycloak.IdentityProvider", related_name="organizations", blank=True
     )
+    force_login_form_display = models.BooleanField(default=False)
     featured_projects = models.ManyToManyField(
         "projects.Project", related_name="org_featured_projects"
     )
