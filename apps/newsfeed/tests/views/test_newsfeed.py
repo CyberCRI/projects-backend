@@ -30,6 +30,7 @@ class NewsfeedTestCase(JwtAPITestCase):
 
         cls.organization = OrganizationFactory()
 
+        # Projects that will be returned if they are complete and visible by the user
         cls.member_project = ProjectFactory(
             publication_status=Project.PublicationStatus.PRIVATE,
             organizations=[cls.organization],
@@ -61,20 +62,47 @@ class NewsfeedTestCase(JwtAPITestCase):
         ProjectScoreFactory(project=cls.public_project, completeness=5.0)
         ProjectScoreFactory(project=cls.public_project_not_complete, completeness=4.0)
 
+        # Projects that won't be returned because they have announcements on the newsfeed's first page
+        cls.announcement_member_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
+            updated_at=cls.date_1,
+        )
+        cls.announcement_org_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations=[cls.organization],
+            updated_at=cls.date_2,
+        )
+        cls.announcement_private_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
+            updated_at=cls.date_3,
+        )
+        cls.announcement_public_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+            updated_at=cls.date_4,
+        )
+        ProjectScoreFactory(project=cls.announcement_member_project, completeness=5.0)
+        ProjectScoreFactory(project=cls.announcement_org_project, completeness=5.0)
+        ProjectScoreFactory(project=cls.announcement_private_project, completeness=5.0)
+        ProjectScoreFactory(project=cls.announcement_public_project, completeness=5.0)
+
+        # Announcements that will be returned if they are visible by the user
         cls.member_announcement = AnnouncementFactory(
-            project=cls.member_project,
+            project=cls.announcement_member_project,
             updated_at=cls.date_1,
         )
         cls.org_announcement = AnnouncementFactory(
-            project=cls.org_project,
+            project=cls.announcement_org_project,
             updated_at=cls.date_2,
         )
         cls.private_announcement = AnnouncementFactory(
-            project=cls.private_project,
+            project=cls.announcement_private_project,
             updated_at=cls.date_3,
         )
         cls.public_announcement = AnnouncementFactory(
-            project=cls.public_project,
+            project=cls.announcement_public_project,
             updated_at=cls.date_4,
         )
         cls.public_not_complete_announcement = AnnouncementFactory(
@@ -87,6 +115,7 @@ class NewsfeedTestCase(JwtAPITestCase):
             deadline=timezone.now() - timedelta(days=1),
         )
 
+        # Groups for news reserved to specific groups
         cls.public_people_group = PeopleGroupFactory(
             organization=cls.organization,
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
@@ -100,6 +129,7 @@ class NewsfeedTestCase(JwtAPITestCase):
             publication_status=PeopleGroup.PublicationStatus.ORG,
         )
 
+        # News that will be returned if they are visible by the user
         cls.all_news = NewsFactory(
             organization=cls.organization,
             people_groups=None,
@@ -261,7 +291,9 @@ class NewsfeedTestCase(JwtAPITestCase):
         ]
     )
     def test_list_projects(self, role, retrieved_newsfeed):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project, self.announcement_member_project]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Newsfeed-list", args=(self.organization.code,))
