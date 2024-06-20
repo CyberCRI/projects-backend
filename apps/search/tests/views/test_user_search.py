@@ -10,6 +10,7 @@ from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
 from apps.organizations.factories import OrganizationFactory
+from apps.search.models import SearchObject
 
 
 @skipUnlessAlgolia
@@ -55,7 +56,7 @@ class UserSearchTestCase(JwtAPITestCase):
             "private": cls.private_user,
             "org": cls.org_user,
         }
-        algolia_engine.reindex_all(ProjectUser)
+        algolia_engine.reindex_all(SearchObject)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
     @parameterized.expand(
@@ -74,43 +75,66 @@ class UserSearchTestCase(JwtAPITestCase):
             role, instances=[self.organization], owned_instance=self.private_user
         )
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("UserSearch-search", args=("algolia",)))
+        response = self.client.get(
+            reverse("Search-search", args=("algolia",))
+            + "?types=user"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_users))
+        self.assertEqual(
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER for _ in retrieved_users}
+        )
         self.assertSetEqual(
-            {user["id"] for user in content},
+            {user["user"]["id"] for user in content},
             {self.users[user].id for user in retrieved_users},
         )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("UserSearch-search", args=("algolia",))
-            + f"?organizations={self.organization_2.code}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=user"
+            + f"&organizations={self.organization_2.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        self.assertSetEqual({user["id"] for user in content}, {self.public_user_2.id})
+        self.assertEqual(
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER}
+        )
+        self.assertSetEqual({user["user"]["id"] for user in content}, {self.public_user_2.id})
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("UserSearch-search", args=("algolia",)) + "?sdgs=2"
+            reverse("Search-search", args=("algolia",))
+            + "?types=user"
+            + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        self.assertSetEqual({user["id"] for user in content}, {self.public_user_2.id})
+        self.assertEqual(
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER}
+        )
+        self.assertSetEqual({user["user"]["id"] for user in content}, {self.public_user_2.id})
 
     def test_filter_by_skills(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("UserSearch-search", args=("algolia",))
-            + f"?skills={self.skill_2.wikipedia_tag.wikipedia_qid}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=user"
+            + f"&skills={self.skill_2.wikipedia_tag.wikipedia_qid}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
-        self.assertSetEqual({user["id"] for user in content}, {self.public_user_2.id})
+        self.assertEqual(
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER}
+        )
+        self.assertSetEqual({user["user"]["id"] for user in content}, {self.public_user_2.id})

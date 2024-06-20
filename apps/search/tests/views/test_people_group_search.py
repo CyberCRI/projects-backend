@@ -10,6 +10,7 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
 from apps.organizations.factories import OrganizationFactory
+from apps.search.models import SearchObject
 
 
 @skipUnlessAlgolia
@@ -61,7 +62,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             "org": cls.org_people_group,
             "member": cls.member_people_group,
         }
-        algolia_engine.reindex_all(PeopleGroup)
+        algolia_engine.reindex_all(SearchObject)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
     @parameterized.expand(
@@ -87,37 +88,55 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("PeopleGroupSearch-search", args=("algolia",))
+            reverse("Search-search", args=("algolia",))
+            + "?types=people_group"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_groups))
+        self.assertEqual(
+            {group["type"] for group in content},
+            {SearchObject.SearchObjectType.PEOPLE_GROUP for _ in retrieved_groups}
+        )
         self.assertSetEqual(
-            {group["id"] for group in content},
+            {group["people_group"]["id"] for group in content},
             {self.groups[group].id for group in retrieved_groups},
         )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("PeopleGroupSearch-search", args=("algolia",))
-            + f"?organizations={self.organization_2.code}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=people_group"
+            + f"&organizations={self.organization_2.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {group["type"] for group in content},
+            {SearchObject.SearchObjectType.PEOPLE_GROUP}
+        )
         self.assertSetEqual(
-            {group["id"] for group in content}, {self.public_people_group_2.id}
+            {group["people_group"]["id"] for group in content},
+            {self.public_people_group_2.id}
         )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("PeopleGroupSearch-search", args=("algolia",)) + "?sdgs=1"
+            reverse("Search-search", args=("algolia",))
+            + "?types=people_group"
+            + "&sdgs=1"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {group["type"] for group in content},
+            {SearchObject.SearchObjectType.PEOPLE_GROUP}
+        )
         self.assertSetEqual(
-            {group["id"] for group in content}, {self.public_people_group_2.id}
+            {group["people_group"]["id"] for group in content},
+            {self.public_people_group_2.id}
         )

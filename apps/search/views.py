@@ -125,6 +125,8 @@ class SearchViewSet(PaginatedViewSet):
             "projects.view_public_project",
         ]
         user = self.request.user
+        if user.is_authenticated:
+            public_permissions.append(f"accounts.view_projectuser.{user.pk}")
         user_permissions = list(
             filter(
                 lambda x: any(
