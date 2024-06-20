@@ -76,15 +76,14 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
-            + "?types=user"
+            reverse("Search-search", args=("algolia",)) + "?types=user"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_users))
         self.assertEqual(
             {user["type"] for user in content},
-            {SearchObject.SearchObjectType.USER for _ in retrieved_users}
+            {SearchObject.SearchObjectType.USER for _ in retrieved_users},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content},
@@ -102,26 +101,26 @@ class UserSearchTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
-            {user["type"] for user in content},
-            {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
         )
-        self.assertSetEqual({user["user"]["id"] for user in content}, {self.public_user_2.id})
+        self.assertSetEqual(
+            {user["user"]["id"] for user in content}, {self.public_user_2.id}
+        )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
-            + "?types=user"
-            + "&sdgs=2"
+            reverse("Search-search", args=("algolia",)) + "?types=user" + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
-            {user["type"] for user in content},
-            {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
         )
-        self.assertSetEqual({user["user"]["id"] for user in content}, {self.public_user_2.id})
+        self.assertSetEqual(
+            {user["user"]["id"] for user in content}, {self.public_user_2.id}
+        )
 
     def test_filter_by_skills(self):
         self.client.force_authenticate(self.superadmin)
@@ -134,7 +133,8 @@ class UserSearchTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
-            {user["type"] for user in content},
-            {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
         )
-        self.assertSetEqual({user["user"]["id"] for user in content}, {self.public_user_2.id})
+        self.assertSetEqual(
+            {user["user"]["id"] for user in content}, {self.public_user_2.id}
+        )

@@ -23,7 +23,7 @@ class ProjectIndex:
     def should_index(project: Project) -> bool:
         """Only index not soft-deleted project."""
         return project.deleted_at is None
-    
+
     @staticmethod
     def prepare_organizations(project: Project) -> List[str]:
         """Return the organizations' code for Algolia indexing."""
@@ -73,15 +73,15 @@ class ProjectIndex:
 
         for i in range(0, len(content), TEXT_THRESHOLD):
             yield content[i : i + TEXT_THRESHOLD]
-    
+
     @staticmethod
     def prepare_title(project: Project) -> str:
         return project.title
-    
+
     @staticmethod
     def prepare_subtitle(project: Project) -> str:
         return project.purpose
-    
+
     @staticmethod
     def prepare_sdgs(project: Project) -> List[int]:
         return project.sdgs
@@ -122,7 +122,7 @@ class ProjectIndex:
             organization_tag.name
             for organization_tag in project.organization_tags.all()
         ]
-    
+
     @staticmethod
     def prepare_language(project: Project) -> str:
         return project.language
@@ -148,8 +148,6 @@ class ProjectIndex:
     def prepare_members_filter(project: Project) -> List[str]:
         """Return the members' names for Algolia indexing."""
         return list(project.get_all_members().values_list("id", flat=True))
-
-
 
 
 class UserIndex:
@@ -212,15 +210,15 @@ class UserIndex:
     @staticmethod
     def prepare_title(user: ProjectUser) -> str:
         return user.get_full_name()
-    
+
     @staticmethod
     def prepare_subtitle(user: ProjectUser) -> str:
         return user.job
-    
+
     @staticmethod
     def prepare_sdgs(user: ProjectUser) -> List[int]:
         return user.sdgs
-    
+
     @staticmethod
     def prepare_emails(user: ProjectUser) -> str:
         return [email for email in [user.email, user.personal_email] if email]
@@ -305,15 +303,14 @@ class PeopleGroupIndex:
     @staticmethod
     def prepare_title(group: PeopleGroup) -> str:
         return group.name
-    
+
     @staticmethod
     def prepare_sdgs(group: PeopleGroup) -> List[int]:
         return group.sdgs
-    
+
     @staticmethod
     def prepare_emails(group: PeopleGroup) -> str:
         return [group.email] if group.email else []
-
 
 
 @register(SearchObject)
@@ -323,19 +320,20 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
 
     This is useful to search for any object in the same query.
     """
+
     index_name = "mixed_index"
     fields = {
         "unique": (
-            # Shared (all)
+            # All
             "id",
             "type",
             "permissions",
             "organizations",
             "sdgs",
             "title",
-            # Shared (project, user)
+            # Project, User
             "subtitle",
-            # Shared (user, group)
+            # User, Group
             "emails",
             # Project
             "members",
@@ -374,7 +372,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
                 ),
                 "split": ("content",),
             },
-        )
+        ),
     }
     settings = {
         "searchableAttributes": [
@@ -382,7 +380,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "title",
             "subtitle",
             "content",
-            'sdgs',
+            "sdgs",
             "emails",
             "members",
             "categories",
@@ -391,7 +389,6 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "skills",
             "people_groups",
             "projects",
-
         ],
         "attributesForFaceting": [
             "organizations",
@@ -416,8 +413,8 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
     }
 
     def get_field_for_model(
-            self, search_object: SearchObject, method: str, default: Union[str, List[str]]
-        ) -> Union[str, List[str]]:
+        self, search_object: SearchObject, method: str, default: Union[str, List[str]]
+    ) -> Union[str, List[str]]:
         match search_object.type:
             case SearchObject.SearchObjectType.PROJECT:
                 method = getattr(ProjectIndex, method, None)
@@ -436,60 +433,66 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
 
     def prepare_permissions(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_permissions", [])
-    
+
     def prepare_organizations(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_organizations", [])
-    
+
     def prepare_sdgs(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_sdgs", [])
-    
+
     def prepare_title(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_title", "")
-    
+
     def prepare_subtitle(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_subtitle", "")
-    
+
     def prepare_emails(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_emails", "")
-    
+
     def prepare_members(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_members", [])
-    
+
     def prepare_categories(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_categories", [])
-    
+
     def prepare_wikipedia_tags(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_wikipedia_tags", [])
-    
+
     def prepare_organization_tags(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_organization_tags", [])
-    
+
     def prepare_language(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_language", "")
-    
+
     def prepare_wikipedia_tags_filter(self, search_object: SearchObject) -> List[str]:
-        return self.get_field_for_model(search_object, "prepare_wikipedia_tags_filter", [])
-    
-    def prepare_organization_tags_filter(self, search_object: SearchObject) -> List[str]:
-        return self.get_field_for_model(search_object, "prepare_organization_tags_filter", [])
-    
+        return self.get_field_for_model(
+            search_object, "prepare_wikipedia_tags_filter", []
+        )
+
+    def prepare_organization_tags_filter(
+        self, search_object: SearchObject
+    ) -> List[str]:
+        return self.get_field_for_model(
+            search_object, "prepare_organization_tags_filter", []
+        )
+
     def prepare_members_filter(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_members_filter", [])
-    
+
     def prepare_categories_filter(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_categories_filter", [])
-    
+
     def prepare_skills(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_skills", [])
-    
+
     def prepare_skills_filter(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_skills_filter", [])
-    
+
     def prepare_people_groups(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_people_groups", [])
-    
+
     def prepare_projects(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_projects", [])
-    
+
     def split_content(self, search_object: SearchObject) -> Collection[str]:
         return self.get_field_for_model(search_object, "split_content", [])

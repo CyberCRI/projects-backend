@@ -88,15 +88,14 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
-            + "?types=people_group"
+            reverse("Search-search", args=("algolia",)) + "?types=people_group"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_groups))
         self.assertEqual(
             {group["type"] for group in content},
-            {SearchObject.SearchObjectType.PEOPLE_GROUP for _ in retrieved_groups}
+            {SearchObject.SearchObjectType.PEOPLE_GROUP for _ in retrieved_groups},
         )
         self.assertSetEqual(
             {group["people_group"]["id"] for group in content},
@@ -115,11 +114,11 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {group["type"] for group in content},
-            {SearchObject.SearchObjectType.PEOPLE_GROUP}
+            {SearchObject.SearchObjectType.PEOPLE_GROUP},
         )
         self.assertSetEqual(
             {group["people_group"]["id"] for group in content},
-            {self.public_people_group_2.id}
+            {self.public_people_group_2.id},
         )
 
     def test_filter_by_sdgs(self):
@@ -134,9 +133,9 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {group["type"] for group in content},
-            {SearchObject.SearchObjectType.PEOPLE_GROUP}
+            {SearchObject.SearchObjectType.PEOPLE_GROUP},
         )
         self.assertSetEqual(
             {group["people_group"]["id"] for group in content},
-            {self.public_people_group_2.id}
+            {self.public_people_group_2.id},
         )

@@ -1,8 +1,9 @@
-from django_filters import rest_framework as filters
 from django.db.models import Q
+from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
 from apps.organizations.utils import get_hierarchy_codes
+
 from .models import SearchObject
 
 
@@ -17,7 +18,9 @@ class SearchObjectFilter(filters.FilterSet):
 
     # Project filters
     languages = MultiValueCharFilter(field_name="project__language", lookup_expr="in")
-    categories = MultiValueCharFilter(field_name="project__categories__id", lookup_expr="in")
+    categories = MultiValueCharFilter(
+        field_name="project__categories__id", lookup_expr="in"
+    )
     members = UserMultipleIDFilter(
         field_name="project__groups__users__id", lookup_expr="in", distinct=True
     )
@@ -43,7 +46,7 @@ class SearchObjectFilter(filters.FilterSet):
                 & Q(user__groups__organizations__code__in=value)
             )
         ).distinct()
-    
+
     def filter_sdgs(self, queryset, name, value):
         return queryset.filter(
             (
@@ -59,7 +62,7 @@ class SearchObjectFilter(filters.FilterSet):
                 & Q(user__sdgs__overlap=value)
             )
         ).distinct()
-    
+
     def filter_skills(self, queryset, name, value):
         return queryset.filter(
             (
@@ -69,7 +72,6 @@ class SearchObjectFilter(filters.FilterSet):
             | Q(type=SearchObject.SearchObjectType.PROJECT)
             | Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
         ).distinct()
-
 
     class Meta:
         model = SearchObject

@@ -118,15 +118,14 @@ class ProjectSearchTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
-            + "?types=project"
+            reverse("Search-search", args=("algolia",)) + "?types=project"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_projects))
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT for _ in retrieved_projects}
+            {SearchObject.SearchObjectType.PROJECT for _ in retrieved_projects},
         )
         self.assertSetEqual(
             {project["project"]["id"] for project in content},
@@ -145,28 +144,28 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
-            + "?types=project"
-            + "&sdgs=2"
+            reverse("Search-search", args=("algolia",)) + "?types=project" + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_language(self):
@@ -181,10 +180,11 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_categories(self):
@@ -199,10 +199,11 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_wikipedia_tags(self):
@@ -217,10 +218,11 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_organization_tags(self):
@@ -235,10 +237,11 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_members(self):
@@ -253,8 +256,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
         self.assertEqual(len(content), 1)
         self.assertEqual(
             {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT}
+            {SearchObject.SearchObjectType.PROJECT},
         )
         self.assertSetEqual(
-            {project["project"]["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )

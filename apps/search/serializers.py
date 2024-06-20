@@ -2,6 +2,7 @@ from typing import Any, Dict
 
 from rest_framework import serializers
 
+from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.feedbacks.models import Follow
 from apps.files.serializers import ImageSerializer
 from apps.organizations.serializers import (
@@ -10,7 +11,6 @@ from apps.organizations.serializers import (
 )
 from apps.projects.models import Project
 from apps.projects.utils import get_views_from_serializer
-from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 
 from .models import SearchObject
 

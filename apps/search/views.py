@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Dict, List
 
 from algoliasearch_django import algolia_engine
@@ -8,16 +9,14 @@ from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
 from apps.accounts.models import ProjectUser
-
 from apps.commons.utils import ArrayPosition
 from apps.commons.views import PaginatedViewSet
 
 from .filters import SearchObjectFilter
+from .models import SearchObject
 from .pagination import AlgoliaPagination
 from .serializers import SearchObjectSerializer
-from .models import SearchObject
 
-import logging
 logger = logging.getLogger(__name__)
 
 
@@ -158,7 +157,10 @@ class SearchViewSet(PaginatedViewSet):
         users = self.request.user.get_user_queryset()
 
         queryset = SearchObject.objects.filter(
-            (Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP) & Q(people_group__in=groups))
+            (
+                Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
+                & Q(people_group__in=groups)
+            )
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
         )
