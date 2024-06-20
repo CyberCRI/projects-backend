@@ -928,6 +928,26 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(content["count"], 1)
         self.assertEqual(content["results"][0]["current_org_role"], "admins")
 
+    def test_get_people_groups(self):
+        organization = OrganizationFactory()
+        people_group = PeopleGroupFactory(organization=organization)
+        other_people_group = PeopleGroupFactory()
+        user = UserFactory(
+            groups=[
+                organization.get_users(),
+                people_group.get_members(),
+                other_people_group.get_members(),
+            ]
+        )
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(user.id,))
+            + f"?current_org_pk={organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["people_groups"]), 1)
+        self.assertEqual(content["people_groups"][0]["id"], people_group.id)
+
     def test_check_permissions(self):
         user = UserFactory()
         organization = OrganizationFactory()

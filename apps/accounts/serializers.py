@@ -72,7 +72,12 @@ class UserAdminListSerializer(serializers.ModelSerializer):
         fields = read_only_fields
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        queryset = PeopleGroup.objects.filter(groups__users=user).distinct()
+        organization = self.context.get("organization", None)
+        queryset = PeopleGroup.objects.filter(
+            groups__users=user, is_root=False
+        ).distinct()
+        if organization:
+            queryset = queryset.filter(organization=organization).distinct()
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
@@ -137,11 +142,14 @@ class UserLightSerializer(serializers.ModelSerializer):
         request_user = getattr(
             self.context.get("request", None), "user", AnonymousUser()
         )
+        organization = self.context.get("organization", None)
         queryset = (
             request_user.get_people_group_queryset()
-            .filter(groups__users=user)
+            .filter(groups__users=user, is_root=False)
             .distinct()
         )
+        if organization:
+            queryset = queryset.filter(organization=organization).distinct()
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
@@ -610,11 +618,14 @@ class UserSerializer(serializers.ModelSerializer):
         request_user = getattr(
             self.context.get("request", None), "user", AnonymousUser()
         )
+        organization = self.context.get("organization", None)
         queryset = (
             request_user.get_people_group_queryset()
-            .filter(groups__users=user)
+            .filter(groups__users=user, is_root=False)
             .distinct()
         )
+        if organization:
+            queryset = queryset.filter(organization=organization).distinct()
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data

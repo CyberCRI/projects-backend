@@ -191,6 +191,10 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({"request": self.request})
+        current_org_pk = self.request.query_params.get("current_org_pk", None)
+        if current_org_pk:
+            organization = get_object_or_404(Organization, pk=current_org_pk)
+            context.update({"organization": organization})
         return context
 
     @extend_schema(
