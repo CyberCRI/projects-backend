@@ -55,4 +55,7 @@ class SearchObject(models.Model):
                 return self.people_group
             case self.SearchObjectType.USER:
                 return self.user
+            
+    def __str__(self):
+        return f"{self.type} - {self.item}"
     
