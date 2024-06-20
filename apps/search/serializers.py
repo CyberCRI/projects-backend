@@ -10,6 +10,9 @@ from apps.organizations.serializers import (
 )
 from apps.projects.models import Project
 from apps.projects.utils import get_views_from_serializer
+from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
+
+from .models import SearchObject
 
 
 class ProjectSearchSerializer(serializers.ModelSerializer):
@@ -47,3 +50,14 @@ class ProjectSearchSerializer(serializers.ModelSerializer):
                 if follow.exists():
                     return {"is_followed": True, "follow_id": follow.first().id}
         return {"is_followed": False, "follow_id": None}
+
+
+class SearchObjectSerializer(serializers.ModelSerializer):
+    project = ProjectSearchSerializer(read_only=True)
+    user = UserLightSerializer(read_only=True)
+    people_group = PeopleGroupLightSerializer(read_only=True)
+
+    class Meta:
+        model = SearchObject
+        read_only_fields = ["id", "type", "project", "user", "people_group"]
+        fields = read_only_fields
