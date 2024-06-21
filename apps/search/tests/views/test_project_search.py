@@ -14,6 +14,7 @@ from apps.misc.models import Language
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from apps.search.models import SearchObject
 
 
 @skipUnlessAlgolia
@@ -93,7 +94,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
             "org": cls.org_project,
             "member": cls.member_project,
         }
-        algolia_engine.reindex_all(Project)
+        algolia_engine.reindex_all(SearchObject)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
     @parameterized.expand(
@@ -116,100 +117,148 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_search_project(self, role, retrieved_projects):
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectSearch-search", args=("algolia",)))
+        response = self.client.get(
+            reverse("Search-search", args=("algolia",)) + "?types=project"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_projects))
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT for _ in retrieved_projects},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content},
+            {project["project"]["id"] for project in content},
             {self.projects[project].id for project in retrieved_projects},
         )
 
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",))
-            + f"?organizations={self.organization_2.code}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=project"
+            + f"&organizations={self.organization_2.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",)) + "?sdgs=2"
+            reverse("Search-search", args=("algolia",)) + "?types=project" + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_language(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",)) + "?languages=en"
+            reverse("Search-search", args=("algolia",))
+            + "?types=project"
+            + "&languages=en"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_categories(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",))
-            + f"?categories={self.category_2.id}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=project"
+            + f"&categories={self.category_2.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_wikipedia_tags(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",))
-            + f"?wikipedia_tags={self.wikipedia_tag_2.wikipedia_qid}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=project"
+            + f"&wikipedia_tags={self.wikipedia_tag_2.wikipedia_qid}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_organization_tags(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",))
-            + f"?organization_tags={self.organization_tag_2.id}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=project"
+            + f"&organization_tags={self.organization_tag_2.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
 
     def test_filter_by_members(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("ProjectSearch-search", args=("algolia",))
-            + f"?members={self.public_project_2_member.id}"
+            reverse("Search-search", args=("algolia",))
+            + "?types=project"
+            + f"&members={self.public_project_2_member.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
+        self.assertEqual(
+            {project["type"] for project in content},
+            {SearchObject.SearchObjectType.PROJECT},
+        )
         self.assertSetEqual(
-            {project["id"] for project in content}, {self.public_project_2.id}
+            {project["project"]["id"] for project in content},
+            {self.public_project_2.id},
         )
