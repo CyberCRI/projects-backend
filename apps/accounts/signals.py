@@ -21,3 +21,9 @@ def create_root_people_group(sender, instance, created, **kwargs):
 def delete_people_group_roles(sender, instance, **kwargs):
     """Delete the associated roles."""
     instance.groups.all().delete()
+
+
+@receiver(pre_delete, sender="accounts.PeopleGroup")
+def change_people_group_children_parent(sender, instance, **kwargs):
+    """Change the parent of the children groups."""
+    instance.children.update(parent=instance.parent)
