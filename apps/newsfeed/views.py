@@ -8,6 +8,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.settings import api_settings
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
@@ -233,6 +234,13 @@ class NewsfeedViewSet(ListViewSet):
         announcements = self.get_announcements_queryset()
         news = self.get_news_queryset()
         projects = self.get_projects_queryset()
+        if announcements.exists():
+            limit = self.request.query_params.get("limit", api_settings.PAGE_SIZE)
+            first_page_announcements = announcements[: ((int(limit) + 2) // 3)]
+            excluded_projects = first_page_announcements.values_list(
+                "announcement__project__id", flat=True
+            )
+            projects = projects.exclude(project__id__in=excluded_projects)
         return self.merge_querysets(announcements, news, projects)
 
 
