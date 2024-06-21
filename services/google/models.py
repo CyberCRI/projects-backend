@@ -1,5 +1,6 @@
 from typing import Optional, Tuple
 
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -226,7 +227,9 @@ class GoogleAccount(models.Model):
     )
     google_id = models.CharField(max_length=50, blank=True, default="")
     email = models.EmailField(blank=True, default="")
-    organizational_unit = models.CharField(max_length=50, default="/CRI/Admin Staff")
+    organizational_unit = models.CharField(
+        max_length=50, default=settings.GOOGLE_DEFAULT_ORG_UNIT
+    )
 
     def __str__(self):
         return self.email

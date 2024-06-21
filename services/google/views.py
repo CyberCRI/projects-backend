@@ -1,3 +1,4 @@
+from django.conf import settings
 from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -37,4 +38,9 @@ class GroupEmailAvailableView(APIView):
 class OrgUnitsView(APIView):
     @extend_schema(responses={200: {"type": "array", "items": {"type": "string"}}})
     def get(self, request):
-        return Response(GoogleService.get_org_units())
+        default_org_unit = settings.GOOGLE_DEFAULT_ORG_UNIT
+        org_units = GoogleService.get_org_units()
+        if default_org_unit and default_org_unit in org_units:
+            org_units.remove(default_org_unit)
+            org_units.insert(0, default_org_unit)
+        return Response(org_units)
