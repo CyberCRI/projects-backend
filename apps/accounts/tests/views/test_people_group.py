@@ -815,3 +815,19 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Group.objects.filter(name__in=roles_names).exists())
+
+    def test_parent_update_on_parent_delete(self):
+        main_parent = PeopleGroupFactory(organization=self.organization)
+        parent = PeopleGroupFactory(organization=self.organization, parent=main_parent)
+        child = PeopleGroupFactory(organization=self.organization, parent=parent)
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse(
+                "PeopleGroup-detail",
+                args=(parent.organization.code, parent.pk),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        child.refresh_from_db()
+        self.assertEqual(child.parent, main_parent)
