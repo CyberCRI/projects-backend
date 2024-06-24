@@ -314,7 +314,8 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def google_sync(self, instance, data, created):
         create_in_google = data.get("create_in_google", False)
         organizational_unit = data.get(
-            "google_organizational_unit", "/CRI/Admin Staff" if created else None
+            "google_organizational_unit",
+            settings.GOOGLE_DEFAULT_ORG_UNIT if created else None,
         )
         exists_in_google = GoogleAccount.objects.filter(user=instance).exists()
         if create_in_google and not exists_in_google:

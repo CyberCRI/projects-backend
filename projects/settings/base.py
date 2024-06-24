@@ -606,6 +606,7 @@ GOOGLE_SERVICE_ACCOUNT_EMAIL = "lpi.accounts@gworkspacetest.cri-paris.org"
 GOOGLE_EMAIL_PREFIX = ""
 GOOGLE_EMAIL_DOMAIN = "gworkspacetest.learningplanetinstitute.org"
 GOOGLE_EMAIL_ALIAS_DOMAIN = "gworkspacetest.cri-paris.org"
+GOOGLE_DEFAULT_ORG_UNIT = "/CRI/Admin Staff"
 
 
 ##############
