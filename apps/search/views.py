@@ -1,4 +1,3 @@
-import logging
 from typing import Any, Dict, List
 
 from algoliasearch_django import algolia_engine
@@ -8,7 +7,6 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
-from apps.accounts.models import ProjectUser
 from apps.commons.utils import ArrayPosition
 from apps.commons.views import PaginatedViewSet
 
@@ -16,8 +14,6 @@ from .filters import SearchObjectFilter
 from .models import SearchObject
 from .pagination import AlgoliaPagination
 from .serializers import SearchObjectSerializer
-
-logger = logging.getLogger(__name__)
 
 
 class SearchViewSet(PaginatedViewSet):
@@ -93,31 +89,77 @@ class SearchViewSet(PaginatedViewSet):
         ]
 
     def get_filter(self, name):
+        """
+        Get a filter from the query parameters.
+        """
         values = self.request.query_params.get(name, "")
         return values.split(",") if values else []
 
+    def get_type_specific_facet_filter(
+        self, facet_filter: List[str], filtered_type: str
+    ):
+        """
+        Make a facet filter work only on a specific type of object.
+        """
+        if facet_filter:
+            unaffected_types = [
+                object_type
+                for object_type in [
+                    SearchObject.SearchObjectType.PROJECT,
+                    SearchObject.SearchObjectType.PEOPLE_GROUP,
+                    SearchObject.SearchObjectType.USER,
+                ]
+                if object_type != filtered_type
+            ]
+            return [*facet_filter, *[f"type:{t}" for t in unaffected_types]]
+        return facet_filter
+
     def get_facet_filters(self):
+        """
+        Get all the facet filters to apply to the Algolia search.
+        """
         facet_filters = [
             [f"type:{t}" for t in self.get_filter("types")],
             [f"permissions:{p}" for p in self.get_user_permissions()],
             [f"organizations:{o}" for o in self.get_filter("organizations")],
-            [f"language:{ln}" for ln in self.get_filter("languages")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
-            [f"skills_filter:{s}" for s in self.get_filter("skills")],
-            [f"categories_filter:{c}" for c in self.get_filter("categories")],
-            [f"wikipedia_tags_filter:{t}" for t in self.get_filter("wikipedia_tags")],
-            [
-                f"organization_tags_filter:{t}"
-                for t in self.get_filter("organization_tags")
-            ],
-            [
-                f"members_filter:{m}"
-                for m in ProjectUser.get_main_ids(self.get_filter("members"))
-            ],
+            self.get_type_specific_facet_filter(
+                [f"language:{ln}" for ln in self.get_filter("languages")],
+                SearchObject.SearchObjectType.PROJECT,
+            ),
+            self.get_type_specific_facet_filter(
+                [f"skills_filter:{s}" for s in self.get_filter("skills")],
+                SearchObject.SearchObjectType.USER,
+            ),
+            self.get_type_specific_facet_filter(
+                [f"categories_filter:{c}" for c in self.get_filter("categories")],
+                SearchObject.SearchObjectType.PROJECT,
+            ),
+            self.get_type_specific_facet_filter(
+                [
+                    f"wikipedia_tags_filter:{w}"
+                    for w in self.get_filter("wikipedia_tags")
+                ],
+                SearchObject.SearchObjectType.PROJECT,
+            ),
+            self.get_type_specific_facet_filter(
+                [
+                    f"organization_tags_filter:{o}"
+                    for o in self.get_filter("organization_tags")
+                ],
+                SearchObject.SearchObjectType.PROJECT,
+            ),
+            self.get_type_specific_facet_filter(
+                [f"members_filter:{m}" for m in self.get_filter("members")],
+                SearchObject.SearchObjectType.PROJECT,
+            ),
         ]
         return [f for f in facet_filters if f]
 
     def get_user_permissions(self):
+        """
+        Get the user's permissions formatted for Algolia.
+        """
         public_permissions = [
             "accounts.view_public_peoplegroup",
             "accounts.view_public_projectuser",
@@ -151,7 +193,9 @@ class SearchViewSet(PaginatedViewSet):
         return [p.replace(":", "-") for p in public_permissions + user_permissions]
 
     def _search(self, query: str = "") -> Dict[str, Any]:
-        """Add Full-Text Search functionality thanks to Algolia."""
+        """
+        Perform a search on Algolia with the given query.
+        """
         groups = self.request.user.get_people_group_queryset()
         projects = self.request.user.get_project_queryset()
         users = self.request.user.get_user_queryset()
@@ -164,9 +208,6 @@ class SearchViewSet(PaginatedViewSet):
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
         )
-        logger.error("____________________________________________________")
-        logger.error(f"QUERYSET: {queryset.count()}")
-        logger.error("____________________________________________________")
         limit = int(self.request.query_params.get("limit", api_settings.PAGE_SIZE))
         offset = int(self.request.query_params.get("offset", 0))
 
@@ -176,19 +217,10 @@ class SearchViewSet(PaginatedViewSet):
             "hitsPerPage": limit,
             "facetFilters": self.get_facet_filters(),
         }
-        logger.error("____________________________________________________")
-        logger.error(f"PARAMS: {params}")
-        logger.error("____________________________________________________")
         response = algolia_engine.raw_search(SearchObject, query, params)
-        logger.error("____________________________________________________")
-        logger.error(f"RESPONSE: {response}")
-        logger.error("____________________________________________________")
         if response is not None:
             self.pagination_class = AlgoliaPagination(response["nbHits"])
             hits = [h["id"] for h in response["hits"]]
-            logger.error("____________________________________________________")
-            logger.error(f"HITS: {len(hits)}")
-            logger.error("____________________________________________________")
             # Return a queryset of Project sorted with `hits`.
             ordering = ArrayPosition(hits, F("id"), base_field=BigIntegerField())
             queryset = (
@@ -196,9 +228,6 @@ class SearchViewSet(PaginatedViewSet):
                 .annotate(ordering=ordering)
                 .order_by("ordering")
             )
-            logger.error("____________________________________________________")
-            logger.error(f"QUERYSET: {queryset.count()}")
-            logger.error("____________________________________________________")
         else:
             queryset = queryset.none()
         return queryset
@@ -209,6 +238,9 @@ class SearchViewSet(PaginatedViewSet):
     )
     @action(detail=False, methods=["get"], url_path="(?P<search>.+)")
     def search(self, request, *args, **kwargs):
+        """
+        Get Algolia search results by providing a query.
+        """
         query = self.kwargs["search"]
         queryset = self._search(query)
         return self.get_paginated_list(queryset)
@@ -218,5 +250,8 @@ class SearchViewSet(PaginatedViewSet):
         parameters=get_extra_api_parameters(),
     )
     def list(self, request, *args, **kwargs):
+        """
+        Get Algolia search results with an empty query.
+        """
         queryset = self._search()
         return self.get_paginated_list(queryset)
