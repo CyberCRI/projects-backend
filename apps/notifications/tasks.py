@@ -170,6 +170,7 @@ def send_invitations_reminder():
     _send_invitations_reminder()
 
 
+@app.task
 def notify_new_instructions():
     """Notify members of a new instruction."""
     return _notify_new_instructions()
