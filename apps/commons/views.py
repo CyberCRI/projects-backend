@@ -5,6 +5,10 @@ from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from apps.accounts.models import PeopleGroup
+from apps.organizations.models import Organization
+from apps.projects.models import Project
+
 from .models import HasMultipleIDs
 
 
@@ -25,6 +29,31 @@ class CreateListDestroyViewSet(
 class ListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
     A viewset that provides `list` action.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+
+class CreateListModelViewSet(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    A viewset that provides `list` and `create` actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+
+class RetrieveUpdateModelViewSet(
+    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
+    """
+    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
+    actions.
 
     To use it, override the class and set the `.queryset` and
     `.serializer_class` attributes.
@@ -113,3 +142,82 @@ class PaginatedViewSet(viewsets.ViewSet):
             queryset, many=True, context=self.get_serializer_context()
         )
         return Response(serializer.data)
+
+
+class OrganizationRelatedViewset(viewsets.ModelViewSet):
+    organization_url_kwarg = "organization_code"
+    model_organization_field = "organization"
+
+    def initial(self, request, *args, **kwargs):
+        self.organization = get_object_or_404(
+            Organization, code=kwargs[self.organization_url_kwarg]
+        )
+        return super().initial(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(**{self.model_organization_field: self.organization})
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["organization"] = self.organization
+        return context
+
+
+class ProjectRelatedViewset(viewsets.ModelViewSet):
+    organization_url_kwarg = "organization_code"
+    project_url_kwarg = "project_id"
+    model_project_field = "project"
+
+    def initial(self, request, *args, **kwargs):
+        self.organization = get_object_or_404(
+            Organization, code=kwargs[self.organization_url_kwarg]
+        )
+        self.project = get_object_or_404(
+            Project,
+            organizations__code=kwargs[self.organization_url_kwarg],
+            id=kwargs[self.project_url_kwarg],
+        )
+        return super().initial(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(**{self.model_project_field: self.project})
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["organization"] = self.organization
+        context["project"] = self.project
+        return context
+
+
+class PeopleGroupRelatedViewSet(viewsets.ModelViewSet):
+    organization_url_kwarg = "organization_code"
+    people_group_url_kwarg = "people_group_id"
+    model_people_group_field = "people_group"
+
+    def initial(self, request, *args, **kwargs):
+        self.organization = get_object_or_404(
+            Organization, code=kwargs[self.organization_url_kwarg]
+        )
+        self.people_group = get_object_or_404(
+            PeopleGroup,
+            organization__code=kwargs[self.organization_url_kwarg],
+            id=kwargs[self.people_group_url_kwarg],
+        )
+        return super().initial(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(**{self.model_people_group_field: self.people_group})
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["organization"] = self.organization
+        context["people_group"] = self.people_group
+        return context

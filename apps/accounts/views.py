@@ -27,9 +27,13 @@ from rest_framework.views import APIView
 
 from apps.commons.filters import TrigramSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.commons.serializers import EmailAddressSerializer, RetrieveUpdateModelViewSet
+from apps.commons.serializers import EmailAddressSerializer
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
+from apps.commons.views import (
+    DetailOnlyViewsetMixin,
+    MultipleIDViewsetMixin,
+    RetrieveUpdateModelViewSet,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization, ProjectCategory

@@ -16,8 +16,8 @@ from apps.commons.permissions import (
     IsOwner,
     ReadOnly,
 )
-from apps.commons.serializers import CreateListModelViewSet
 from apps.commons.utils import map_action_to_permission
+from apps.commons.views import CreateListModelViewSet
 from apps.notifications.tasks import notify_new_access_request
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission

@@ -1,47 +1,11 @@
-from typing import Collection, List, Optional
-
 from django.conf import settings
-from django.db.models import Q
 from modeltranslation.manager import get_translatable_fields_for_model
-from rest_framework import mixins, serializers, viewsets
+from rest_framework import serializers
 from rest_framework.settings import import_from_string
-
-from apps.organizations.models import Organization
-from apps.projects.models import Project
-
-
-class ProjectRelatedSerializer(serializers.ModelSerializer):
-    """Base serializer for serializers related to projects."""
-
-    def get_related_project(self) -> Optional[Project]:
-        """Retrieve the related projects"""
-        raise NotImplementedError()
-
-
-class OrganizationRelatedSerializer(serializers.ModelSerializer):
-    """Base serializer for serializers related to organizations."""
-
-    def get_related_organizations(self) -> List[Organization]:
-        """Retrieve the related organizations"""
-        raise NotImplementedError()
 
 
 class EmailAddressSerializer(serializers.Serializer):
     email = serializers.EmailField()
-
-
-class FilteredListSerializer(serializers.ListSerializer):
-    """`ListSerializer` which accepts a list of Q objects to filter the data."""
-
-    def __init__(self, *args, filters: Collection[Q] = None, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.filters = filters
-
-    def to_representation(self, data):
-        data = data.all()
-        if self.filters:
-            data = data.filter(*self.filters)
-        return super().to_representation(data)
 
 
 class LazySerializer(serializers.Serializer):
@@ -109,41 +73,60 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
         model = None
 
 
-class RetrieveUpdateModelViewSet(
-    mixins.RetrieveModelMixin, mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
-    """
-    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
-    actions.
+class ProjectRelatedSerializer(serializers.ModelSerializer):
+    """Base serializer for serializers related to projects."""
 
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
+    model_project_field = "project"
+    force_project_value = True
+    forbid_project_update = True
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_project = self.context.get("project", None)
+        self.current_organization = self.context.get("organization", None)
 
-class ReadUpdateModelViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
-    viewsets.GenericViewSet,
-):
-    """
-    A viewset that provides `retrieve`, `list`, `update` and `partial_update`
-    actions.
-
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
+    def to_internal_value(self, data):
+        if self.force_project_value:
+            data[self.model_project_field] = self.current_project
+        if self.instance and self.instance.pk and self.forbid_project_update:
+            data.pop(self.model_project_field)
+        return super().to_internal_value(data)
 
 
-class CreateListModelViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet,
-):
-    """
-    A viewset that provides `list` and `create` actions.
+class OrganizationRelatedSerializer(serializers.ModelSerializer):
+    """Base serializer for serializers related to organizations."""
 
-    To use it, override the class and set the `.queryset` and
-    `.serializer_class` attributes.
-    """
+    model_organization_field = "organization"
+    force_organization_value = True
+    forbid_organization_update = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_organization = self.context.get("organization", None)
+
+    def to_internal_value(self, data):
+        if self.force_organization_value:
+            data[self.model_organization_field] = self.current_organization
+        if self.instance and self.instance.pk and self.forbid_organization_update:
+            data.pop(self.model_organization_field)
+        return super().to_internal_value(data)
+
+
+class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
+    """Base serializer for serializers related to people groups."""
+
+    model_people_group_field = "people_group"
+    force_people_group_value = True
+    forbid_people_group_update = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_people_group = self.context.get("people_group", None)
+        self.current_organization = self.context.get("organization", None)
+
+    def to_internal_value(self, data):
+        if self.force_people_group_value:
+            data[self.model_people_group_field] = self.current_people_group
+        if self.instance and self.instance.pk and self.forbid_people_group_update:
+            data.pop(self.model_people_group_field)
+        return super().to_internal_value(data)
