@@ -408,7 +408,7 @@ class UpdatedMemberNotificationManager(NotificationTaskManager):
     member_setting_name = "notify_added_to_project"
     notification_type = Notification.Types.MEMBER_UPDATED_SELF
     template_dir = "member_updated_self"
-    send_immediately = (True,)
+    send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
         ids = [m["id"] for m in self.base_context["modified_members"]]
@@ -440,7 +440,7 @@ class AddMemberNotificationManager(NotificationTaskManager):
     member_setting_name = "notify_added_to_project"
     notification_type = Notification.Types.MEMBER_ADDED_SELF
     template_dir = "member_added_self"
-    send_immediately = (True,)
+    send_immediately = True
 
     def get_recipients(self) -> List[ProjectUser]:
         ids = [m["id"] for m in self.base_context["new_members"]]
