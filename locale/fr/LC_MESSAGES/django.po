@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-26 13:47+0000\n"
+"POT-Creation-Date: 2024-06-26 15:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -201,20 +201,9 @@ msgstr "Paramètre d'URL requis manquant."
 #: apps/commons/exceptions.py:70
 #, python-brace-format
 msgid "Missing required URL argument '{kwarg_name}' in view '{view_name}'."
-msgstr "Le paramètre d'URL requis '{kwarg_name}' est manquant dans la vue '{view_name}'."
-
-#: apps/commons/exceptions.py:77
-msgid "Missing serializer context."
-msgstr "Contexte du sérialiseur manquant."
-
-#: apps/commons/exceptions.py:82
-#, python-brace-format
-msgid ""
-"Missing required '{parameter_name}' parameter in context for "
-"'{serializer_name}'."
 msgstr ""
-"Paramètre requis '{parameter_name}' manquant dans le contexte pour "
-"'{serializer_name}'."
+"Le paramètre d'URL requis '{kwarg_name}' est manquant dans la vue "
+"'{view_name}'."
 
 #: apps/commons/fields.py:28
 msgid "This field is required."
@@ -1874,15 +1863,3 @@ msgstr "La langue n'est pas disponible"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "La langue {language} n'est pas disponible"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "            New access request %(request_id)s for %(org_name)s Projects "
-#~ "platform\n"
-#~ "            "
-#~ msgstr ""
-#~ "\n"
-#~ "            Nouvelle demande d'accès %(request_id)s pour la plateforme "
-#~ "Projects de %(org_name)s\n"
-#~ "            "

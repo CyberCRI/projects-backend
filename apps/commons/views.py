@@ -5,7 +5,7 @@ from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from apps.accounts.models import PeopleGroup
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
@@ -239,4 +239,36 @@ class PeopleGroupRelatedViewSet(viewsets.GenericViewSet):
         context = super().get_serializer_context()
         context["organization"] = self.organization
         context["people_group"] = self.people_group
+        return context
+
+
+class UserRelatedViewSet(viewsets.GenericViewSet):
+    organization_url_kwarg = "organization_code"
+    user_url_kwarg = "user_id"
+    model_user_field = "user"
+
+    def initial(self, request, *args, **kwargs):
+        if self.organization_url_kwarg not in kwargs:
+            raise MissingUrlArgument(
+                self.__class__.__name__, self.organization_url_kwarg
+            )
+        if self.user_url_kwarg not in kwargs:
+            raise MissingUrlArgument(self.__class__.__name__, self.user_url_kwarg)
+        self.organization = get_object_or_404(
+            Organization, code=kwargs[self.organization_url_kwarg]
+        )
+        self.user = get_object_or_404(
+            ProjectUser,
+            groups__organizations__code=kwargs[self.organization_url_kwarg],
+            id=kwargs[self.user_url_kwarg],
+        )
+        return super().initial(request, *args, **kwargs)
+
+    def get_queryset(self):
+        return super().get_queryset().filter(**{self.model_user_field: self.user})
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["organization"] = self.organization
+        context["user"] = self.user
         return context

@@ -1,5 +1,5 @@
 from django.urls import include, path
-from rest_framework_nested.routers import DefaultRouter, NestedSimpleRouter
+from rest_framework_nested.routers import DefaultRouter
 
 from apps.accounts.views import (
     DeleteCookieView,
@@ -8,25 +8,50 @@ from apps.accounts.views import (
     UserProfilePictureView,
     UserViewSet,
 )
+from apps.commons.urls import organization_router_register, user_router_register
 from apps.feedbacks.views import ReviewViewSet, UserFollowViewSet
 
 router = DefaultRouter()
-router.register(r"skill", SkillViewSet, basename="Skill")
-router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySettings")
+user_router_register(
+    router,
+    r"skill",
+    SkillViewSet,
+    basename="Skill",
+)
+organization_router_register(
+    router,
+    r"privacy-settings",
+    PrivacySettingsViewSet,
+    basename="PrivacySettings",
+)
+user_router_register(
+    router,
+    r"profile-picture",
+    UserProfilePictureView,
+    basename="ProfilePicture",
+)
+user_router_register(
+    router,
+    r"follow",
+    UserFollowViewSet,
+    basename="Follower",
+)
+user_router_register(
+    router,
+    r"review",
+    ReviewViewSet,
+    basename="Reviewer",
+)
 
-user_router = DefaultRouter()
-user_router.register(r"user", UserViewSet, basename="ProjectUser")
-
-nested_router = NestedSimpleRouter(user_router, r"user", lookup="user")
-nested_router.register(r"follow", UserFollowViewSet, basename="Follower")
-nested_router.register(r"review", ReviewViewSet, basename="Reviewer")
-nested_router.register(
-    r"profile-picture", UserProfilePictureView, basename="UserProfilePicture"
+organization_router_register(
+    router,
+    r"user",
+    UserViewSet,
+    basename="ProjectUser",
 )
 
 urlpatterns = [
-    path("", include(user_router.urls)),
-    path("", include(nested_router.urls)),
+    path("", include(router.urls)),
     path(
         "user/remove-authentication-cookie",
         DeleteCookieView.as_view(),

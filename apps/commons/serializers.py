@@ -3,8 +3,6 @@ from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import serializers
 from rest_framework.settings import import_from_string
 
-from .exceptions import MissingSerializerContext
-
 
 class EmailAddressSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -84,19 +82,15 @@ class ProjectRelatedSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if "project" not in self.context:
-            raise MissingSerializerContext(self.__class__.__name__, "project")
-        if "organization" not in self.context:
-            raise MissingSerializerContext(self.__class__.__name__, "organization")
-        self.current_project = self.context["project"]
-        self.current_organization = self.context["organization"]
+        self.current_project = self.context.get("project", None)
+        self.current_organization = self.context.get("organization", None)
 
     def to_internal_value(self, data):
         data = data.copy()
-        if self.force_project_value:
-            data[self.model_project_field] = self.current_project
+        if self.force_project_value and self.current_project:
+            data[self.model_project_field] = self.current_project.id
         if self.instance and self.instance.pk and self.forbid_project_update:
-            data.pop(self.model_project_field)
+            data.pop(self.model_project_field, None)
         return super().to_internal_value(data)
 
 
@@ -109,20 +103,18 @@ class OrganizationRelatedSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if "organization" not in self.context:
-            raise MissingSerializerContext(self.__class__.__name__, "organization")
-        self.current_organization = self.context["organization"]
+        self.current_organization = self.context.get("organization", None)
 
     def to_internal_value(self, data):
         data = data.copy()
-        if self.force_organization_value:
-            data[self.model_organization_field] = self.current_organization
+        if self.force_organization_value and self.current_organization:
+            data[self.model_organization_field] = self.current_organization.code
         if self.instance and self.instance.pk and self.forbid_organization_update:
-            data.pop(self.model_organization_field)
+            data.pop(self.model_organization_field, None)
         return super().to_internal_value(data)
 
 
-class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
+class PeopleGroupRelatedSerializer(serializers.ModelSerializer):
     """Base serializer for serializers related to people groups."""
 
     model_people_group_field = "people_group"
@@ -131,17 +123,34 @@ class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if "people_group" not in self.context:
-            raise MissingSerializerContext(self.__class__.__name__, "people_group")
-        if "organization" not in self.context:
-            raise MissingSerializerContext(self.__class__.__name__, "organization")
-        self.current_people_group = self.context["people_group"]
-        self.current_organization = self.context["organization"]
+        self.current_people_group = self.context.get("people_group", None)
+        self.current_organization = self.context.get("organization", None)
 
     def to_internal_value(self, data):
         data = data.copy()
-        if self.force_people_group_value:
-            data[self.model_people_group_field] = self.current_people_group
+        if self.force_people_group_value and self.current_people_group:
+            data[self.model_people_group_field] = self.current_people_group.id
         if self.instance and self.instance.pk and self.forbid_people_group_update:
-            data.pop(self.model_people_group_field)
+            data.pop(self.model_people_group_field, None)
+        return super().to_internal_value(data)
+
+
+class UserRelatedSerializer(serializers.ModelSerializer):
+    """Base serializer for serializers related to users."""
+
+    model_user_field = "user"
+    force_user_value = True
+    forbid_user_update = True
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.current_user = self.context.get("user", None)
+        self.current_organization = self.context.get("organization", None)
+
+    def to_internal_value(self, data):
+        data = data.copy()
+        if self.force_user_value and self.current_user:
+            data[self.model_user_field] = self.current_user.id
+        if self.instance and self.instance.pk and self.forbid_user_update:
+            data.pop(self.model_user_field, None)
         return super().to_internal_value(data)

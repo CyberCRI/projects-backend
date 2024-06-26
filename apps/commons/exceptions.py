@@ -70,15 +70,3 @@ class MissingUrlArgument(APIException):
             f"Missing required URL argument '{kwarg_name}' in view '{view_name}'."
         )
         super().__init__(detail=detail)
-
-
-class MissingSerializerContext(APIException):
-    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
-    default_detail = _("Missing serializer context.")
-    default_code = "missing_serializer_context"
-
-    def __init__(self, serializer_name: str, parameter_name: str):
-        detail = _(
-            f"Missing required '{parameter_name}' parameter in context for '{serializer_name}'."
-        )
-        super().__init__(detail=detail)

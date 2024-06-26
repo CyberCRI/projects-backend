@@ -3,7 +3,6 @@ from typing import Dict, List, Optional, Union
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
-from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
 
@@ -13,6 +12,10 @@ from apps.commons.fields import (
     PrivacySettingProtectedEmailField,
     PrivacySettingProtectedMethodField,
     UserMultipleIdRelatedField,
+)
+from apps.commons.serializers import (
+    OrganizationRelatedSerializer,
+    UserRelatedSerializer,
 )
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
@@ -35,7 +38,7 @@ from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Sk
 from .utils import get_default_group, get_instance_from_group
 
 
-class PrivacySettingsSerializer(serializers.ModelSerializer):
+class PrivacySettingsSerializer(UserRelatedSerializer):
     class Meta:
         model = PrivacySettings
         fields = (
@@ -48,7 +51,7 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
         )
 
 
-class UserAdminListSerializer(serializers.ModelSerializer):
+class UserAdminListSerializer(OrganizationRelatedSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
     people_groups = serializers.SerializerMethodField()
@@ -72,18 +75,16 @@ class UserAdminListSerializer(serializers.ModelSerializer):
         fields = read_only_fields
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        organization = self.context.get("organization", None)
         queryset = PeopleGroup.objects.filter(
             groups__users=user, is_root=False
         ).distinct()
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
+        queryset = queryset.filter(organization=self.current_organization).distinct()
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
 
 
-class UserLightSerializer(serializers.ModelSerializer):
+class UserLightSerializer(OrganizationRelatedSerializer):
     pronouns = serializers.CharField(required=False)
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
@@ -142,14 +143,12 @@ class UserLightSerializer(serializers.ModelSerializer):
         request_user = getattr(
             self.context.get("request", None), "user", AnonymousUser()
         )
-        organization = self.context.get("organization", None)
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
             .distinct()
         )
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
+        queryset = queryset.filter(organization=self.current_organization).distinct()
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
@@ -274,7 +273,7 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
-class PeopleGroupSerializer(serializers.ModelSerializer):
+class PeopleGroupSerializer(OrganizationRelatedSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -332,21 +331,16 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
         return super().run_validation(data)
 
     def validate_parent(self, value):
-        organization_code = (
-            self.initial_data["organization"]
-            if not self.instance
-            else self.instance.organization.code
-        )
+        organization = self.current_organization
         if (not value and not self.instance) or (
             not value and self.instance and not self.instance.is_root
         ):
-            organization = get_object_or_404(Organization, code=organization_code)
             value = PeopleGroup.update_or_create_root(organization)
         if value and self.instance and self.instance.is_root is True:
             raise RootGroupParentError
         if not value and self.instance and self.instance.is_root is False:
             raise NonRootGroupParentError
-        if value and value.organization.code != organization_code:
+        if value and value.organization.pk != organization.pk:
             raise ParentGroupOrganizationError
         parent = value
         while parent is not None:
@@ -398,7 +392,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
 
 
 @extend_schema_serializer(exclude_fields=("roles",))
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(OrganizationRelatedSerializer):
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
@@ -618,14 +612,12 @@ class UserSerializer(serializers.ModelSerializer):
         request_user = getattr(
             self.context.get("request", None), "user", AnonymousUser()
         )
-        organization = self.context.get("organization", None)
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
             .distinct()
         )
-        if organization:
-            queryset = queryset.filter(organization=organization).distinct()
+        queryset = queryset.filter(organization=self.current_organization).distinct()
         return PeopleGroupSuperLightSerializer(
             queryset, many=True, context=self.context
         ).data
@@ -688,14 +680,8 @@ class UserSerializer(serializers.ModelSerializer):
             data["roles"] = Group.objects.filter(name__in=groups_to_add)
 
         # Get default language from organization if not provided
-        organization_groups = Group.objects.filter(
-            organizations__isnull=False,
-            name__in=groups_to_add,
-        )
-        if organization_groups.exists() and "language" not in data.keys():
-            group = organization_groups.first()
-            organization = group.organizations.first()
-            data["language"] = organization.language
+        if "language" not in data.keys():
+            data["language"] = self.current_organization.language
 
         return super().to_internal_value(data)
 

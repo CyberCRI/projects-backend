@@ -32,7 +32,10 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     DetailOnlyViewset,
     MultipleIDViewset,
+    OrganizationRelatedViewset,
+    PeopleGroupRelatedViewSet,
     RetrieveUpdateModelViewSet,
+    UserRelatedViewSet,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -89,7 +92,7 @@ from .utils import (
 )
 
 
-class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
+class UserViewSet(MultipleIDViewset, OrganizationRelatedViewset, viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = "id"
     lookup_value_regex = (
@@ -174,10 +177,7 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.request.user.get_user_queryset()
-        organization_pk = self.request.query_params.get("current_org_pk", None)
-        if organization_pk is not None:
-            organization = Organization.objects.get(pk=organization_pk)
-            queryset = self.annotate_organization_role(queryset, organization)
+        queryset = self.annotate_organization_role(queryset, self.organization)
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
         return queryset.prefetch_related(
@@ -192,25 +192,6 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
             return UserAdminListSerializer
         return self.serializer_class
 
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({"request": self.request})
-        current_org_pk = self.request.query_params.get("current_org_pk", None)
-        if current_org_pk:
-            organization = get_object_or_404(Organization, pk=current_org_pk)
-            context.update({"organization": organization})
-        return context
-
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="current_org_pk",
-                description="Organization id used to fetch the role of the users in the organization",
-                required=False,
-                type=str,
-            )
-        ],
-    )
     @action(
         detail=False,
         methods=["GET"],
@@ -220,10 +201,7 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     )
     def get_by_email(self, request, *args, **kwargs):
         queryset = ProjectUser.objects.all()
-        current_org_pk = request.query_params.get("current_org_pk", None)
-        if current_org_pk is not None:
-            organization = Organization.objects.get(pk=current_org_pk)
-            queryset = self.annotate_organization_role(queryset, organization)
+        queryset = self.annotate_organization_role(queryset, self.organization)
         user = queryset.filter(
             Q(email=kwargs.get("email")) | Q(personal_email=kwargs.get("email"))
         ).distinct()
@@ -238,12 +216,6 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="current_org_pk",
-                description="Organization id used to fetch the role of the users in the organization",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
                 name="current_org_role",
                 description="Used to filter the users by role in the organization",
                 required=False,
@@ -256,12 +228,6 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
 
     @extend_schema(
         parameters=[
-            OpenApiParameter(
-                name="current_org_pk",
-                description="Organization id used to fetch the role of the users in the organization",
-                required=False,
-                type=str,
-            ),
             OpenApiParameter(
                 name="current_org_role",
                 description="Used to filter the users by role in the organization",
@@ -360,9 +326,7 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
             else:
                 instance = serializer.save()
                 email_type = KeycloakService.EmailType.ADMIN_CREATED
-                redirect_organization_code = self.request.query_params.get(
-                    "organization", "DEFAULT"
-                )
+                redirect_organization_code = self.organization.code
 
             instance = self.google_sync(instance, self.request.data, True)
             keycloak_account = KeycloakService.create_user(
@@ -412,14 +376,11 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     def force_reset_password(self, request, *args, **kwargs):
         user = self.get_object()
         if hasattr(user, "keycloak_account"):
-            redirect_organization_code = request.query_params.get(
-                "organization", "DEFAULT"
-            )
             KeycloakService.send_email(
                 keycloak_account=user.keycloak_account,
                 email_type=KeycloakService.EmailType.FORCE_RESET_PASSWORD,
                 actions=["UPDATE_PASSWORD"],
-                redirect_organization_code=redirect_organization_code,
+                redirect_organization_code=self.organization.code,
             )
             return Response({"detail": "Email sent"}, status=status.HTTP_200_OK)
         raise KeycloakAccountNotFound
@@ -458,9 +419,6 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     def refresh_keycloak_actions_link(self, request, *args, **kwargs):
         user = self.get_object()
         try:
-            redirect_organization_code = request.query_params.get(
-                "organization", "DEFAULT"
-            )
             email_type = request.query_params.get("email_type", None)
             if not email_type:
                 raise EmailTypeMissingError
@@ -469,7 +427,7 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
             email_sent = KeycloakService.send_email(
                 keycloak_account=user.keycloak_account,
                 email_type=email_type,
-                redirect_organization_code=redirect_organization_code,
+                redirect_organization_code=self.organization.code,
             )
             if email_sent:
                 template_path = "execute_actions_email_success.html"
@@ -486,7 +444,9 @@ class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
                 )
 
 
-class PeopleGroupViewSet(MultipleIDViewset, viewsets.ModelViewSet):
+class PeopleGroupViewSet(
+    MultipleIDViewset, OrganizationRelatedViewset, viewsets.ModelViewSet
+):
     queryset = PeopleGroup.objects.all()
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
@@ -515,28 +475,20 @@ class PeopleGroupViewSet(MultipleIDViewset, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         """Prefetch related models"""
-        if "organization_code" in self.kwargs:
-            organization = Prefetch(
-                "organization",
-                queryset=Organization.objects.select_related(
-                    "faq", "parent", "banner_image", "logo_image"
-                ).prefetch_related("wikipedia_tags"),
-            )
-            return self.request.user.get_people_group_queryset(organization).filter(
-                organization__code=self.kwargs["organization_code"],
-                is_root=False,
-            )
-        return PeopleGroup.objects.none()
+        organization = Prefetch(
+            "organization",
+            queryset=Organization.objects.select_related(
+                "faq", "parent", "banner_image", "logo_image"
+            ).prefetch_related("wikipedia_tags"),
+        )
+        return self.request.user.get_people_group_queryset(organization).filter(
+            organization=self.organization, is_root=False
+        )
 
     def get_serializer_class(self):
         if self.action == "list":
             return PeopleGroupLightSerializer
         return self.serializer_class
-
-    def get_serializer_context(self):
-        context = super().get_serializer_context()
-        context.update({"request": self.request})
-        return context
 
     def google_sync(self, instance, data):
         create_in_google = data.get("create_in_google", False)
@@ -549,10 +501,6 @@ class PeopleGroupViewSet(MultipleIDViewset, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         try:
-            organization = get_object_or_404(
-                Organization, code=self.kwargs["organization_code"]
-            )
-            request.data.update({"organization": organization.code})
             return super().create(request, *args, **kwargs)
         except HttpError as e:
             return Response(
@@ -819,7 +767,9 @@ class PeopleGroupViewSet(MultipleIDViewset, viewsets.ModelViewSet):
 @extend_schema(
     parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]
 )
-class PeopleGroupHeaderView(MultipleIDViewset, DetailOnlyViewset, ImageStorageView):
+class PeopleGroupHeaderView(
+    MultipleIDViewset, DetailOnlyViewset, PeopleGroupRelatedViewSet, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -828,42 +778,30 @@ class PeopleGroupHeaderView(MultipleIDViewset, DetailOnlyViewset, ImageStorageVi
         | HasOrganizationPermission("change_peoplegroup")
         | HasPeopleGroupPermission("change_peoplegroup"),
     ]
+    queryset = Image.objects.all()
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
+    model_people_group_field = "people_group_header"
     multiple_lookup_fields = [
         (PeopleGroup, "people_group_id"),
     ]
-
-    def get_queryset(self):
-        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-            return Image.objects.filter(
-                people_group_header__id=self.kwargs["people_group_id"],
-                people_group_header__organization__code=self.kwargs[
-                    "organization_code"
-                ],
-            )
-        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"people_group/header/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-            people_group = PeopleGroup.objects.get(
-                organization__code=self.kwargs["organization_code"],
-                id=self.kwargs["people_group_id"],
-            )
-            people_group.header_image = image
-            people_group.save()
-            return f"/v1/people-group/{people_group.id}/header"
-        return None
+        self.people_group.header_image = image
+        self.people_group.save()
+        return f"/v1/people-group/{self.people_group.id}/header"
 
 
 @extend_schema(
     parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]
 )
-class PeopleGroupLogoView(MultipleIDViewset, DetailOnlyViewset, ImageStorageView):
+class PeopleGroupLogoView(
+    MultipleIDViewset, DetailOnlyViewset, PeopleGroupRelatedViewSet, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -872,37 +810,25 @@ class PeopleGroupLogoView(MultipleIDViewset, DetailOnlyViewset, ImageStorageView
         | HasOrganizationPermission("change_peoplegroup")
         | HasPeopleGroupPermission("change_peoplegroup"),
     ]
+    queryset = Image.objects.all()
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
+    model_people_group_field = "people_group_logo"
     multiple_lookup_fields = [
         (PeopleGroup, "people_group_id"),
     ]
-
-    def get_queryset(self):
-        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-            return Image.objects.filter(
-                people_group_logo__id=self.kwargs["people_group_id"],
-                people_group_logo__organization__code=self.kwargs["organization_code"],
-            )
-        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"people_group/logo/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
-            people_group = PeopleGroup.objects.get(
-                organization__code=self.kwargs["organization_code"],
-                id=self.kwargs["people_group_id"],
-            )
-            people_group.logo_image = image
-            people_group.save()
-            return f"/v1/people-group/{people_group.id}/logo"
-        return None
+        self.people_group.logo_image = image
+        self.people_group.save()
+        return f"/v1/people-group/{self.people_group.id}/logo"
 
 
-class SkillViewSet(viewsets.ModelViewSet):
+class SkillViewSet(UserRelatedViewSet, viewsets.ModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     filterset_class = SkillFilter
@@ -922,18 +848,7 @@ class SkillViewSet(viewsets.ModelViewSet):
             raise SkillAlreadyAddedError
 
 
-class DeleteCookieView(views.APIView):
-    @extend_schema(request=None, responses=EmptyPayloadResponseSerializer)
-    def get(self, request, *args, **kwargs):
-        access_token = request.COOKIES.get(settings.JWT_ACCESS_TOKEN_COOKIE_NAME, None)
-        if not access_token:
-            return HttpResponse("Cookie already deleted")
-        response = HttpResponse("Cookie deleted")
-        response.delete_cookie(settings.JWT_ACCESS_TOKEN_COOKIE_NAME, samesite="None")
-        return response
-
-
-class UserProfilePictureView(MultipleIDViewset, ImageStorageView):
+class UserProfilePictureView(MultipleIDViewset, UserRelatedViewSet, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -942,31 +857,26 @@ class UserProfilePictureView(MultipleIDViewset, ImageStorageView):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
+    queryset = Image.objects.all()
     multiple_lookup_fields = [
         (ProjectUser, "user_id"),
     ]
-
-    def get_queryset(self):
-        if "user_id" in self.kwargs:
-            return Image.objects.filter(user=self.kwargs["user_id"])
-        return Image.objects.none()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
         return f"account/profile/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "user_id" in self.kwargs:
-            user = ProjectUser.objects.get(id=self.kwargs["user_id"])
-            user.profile_picture = image
-            user.save()
-            image.owner = user
-            image.save()
-            return f"/v1/user/{self.kwargs['user_id']}/profile-picture/{image.id}"
-        return None
+        self.user.profile_picture = image
+        self.user.save()
+        image.owner = self.user
+        image.save()
+        return f"/v1/user/{self.user.id}/profile-picture/{image.id}"
 
 
-class PrivacySettingsViewSet(MultipleIDViewset, RetrieveUpdateModelViewSet):
+class PrivacySettingsViewSet(
+    MultipleIDViewset, UserRelatedViewSet, RetrieveUpdateModelViewSet
+):
     """Allows getting or modifying a user's privacy settings."""
 
     permission_classes = [
@@ -977,19 +887,23 @@ class PrivacySettingsViewSet(MultipleIDViewset, RetrieveUpdateModelViewSet):
         | HasOrganizationPermission("change_projectuser"),
     ]
     serializer_class = PrivacySettingsSerializer
+    queryset = PrivacySettings.objects.all()
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
     multiple_lookup_fields = [
         (ProjectUser, "user_id"),
     ]
 
-    def get_queryset(self):
-        if "user_id" in self.kwargs:
-            qs = self.request.user.get_user_related_queryset(
-                PrivacySettings.objects.all()
-            )
-            return qs.filter(user__id=self.kwargs["user_id"])
-        return PrivacySettings.objects.none()
+
+class DeleteCookieView(views.APIView):
+    @extend_schema(request=None, responses=EmptyPayloadResponseSerializer)
+    def get(self, request, *args, **kwargs):
+        access_token = request.COOKIES.get(settings.JWT_ACCESS_TOKEN_COOKIE_NAME, None)
+        if not access_token:
+            return HttpResponse("Cookie already deleted")
+        response = HttpResponse("Cookie deleted")
+        response.delete_cookie(settings.JWT_ACCESS_TOKEN_COOKIE_NAME, samesite="None")
+        return response
 
 
 class AccessTokenView(APIView):

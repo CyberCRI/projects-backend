@@ -66,7 +66,7 @@ class CreateUserTestCase(JwtAPITestCase):
             ],
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -124,7 +124,7 @@ class CreateUserTestCase(JwtAPITestCase):
             ],
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(organization.code,)),
             data=encode_multipart(data=payload, boundary=BOUNDARY),
             content_type=MULTIPART_CONTENT,
         )
@@ -189,7 +189,7 @@ class CreateUserTestCase(JwtAPITestCase):
             token=invitation.token, token_type="Invite"
         )
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -228,7 +228,7 @@ class CreateUserTestCase(JwtAPITestCase):
             token=invitation.token, token_type="Invite"
         )
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
@@ -262,7 +262,13 @@ class UpdateUserTestCase(JwtAPITestCase):
             "sdgs": random.choices(SDG.values, k=3),  # nosec
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(self.instance.id,)),
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    self.instance.id,
+                ),
+            ),
             payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -297,7 +303,13 @@ class DeleteUserTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse("ProjectUser-detail", args=(instance.id,))
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    organization.code,
+                    instance.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -346,8 +358,7 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_list_accounts_status(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?organizations={self.organization.code}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), len(self.users))
@@ -360,8 +371,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_order_by_email_verified(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?ordering=email_verified&organizations={self.organization.code}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?ordering=email_verified"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertSetEqual(
@@ -376,8 +387,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_order_by_email_verified_reverse(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?ordering=-email_verified&organizations={self.organization.code}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?ordering=-email_verified"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertSetEqual(
@@ -392,8 +403,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_order_by_created_at(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?ordering=created_at&organizations={self.organization.code}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?ordering=created_at"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
@@ -404,8 +415,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_order_by_created_at_reverse(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?ordering=-created_at&organizations={self.organization.code}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?ordering=-created_at"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
@@ -416,10 +427,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_order_by_role(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
             + "?ordering=current_org_role"
-            + f"&organizations={self.organization.code}"
-            + f"&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
@@ -430,10 +439,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_order_by_role_reverse(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
             + "?ordering=-current_org_role"
-            + f"&organizations={self.organization.code}"
-            + f"&current_org_pk={self.organization.pk}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
@@ -444,8 +451,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_filter_by_role_admin(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?current_org_role=admins"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -455,8 +462,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_filter_by_role_facilitator(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?current_org_role=facilitators"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -466,8 +473,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_filter_by_role_user(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?current_org_role=users&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?current_org_role=users"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -477,8 +484,8 @@ class AdminListUserTestCase(JwtAPITestCase):
     def test_filter_by_multiple_roles(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?current_org_role=admins,users&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
+            + "?current_org_role=admins,users"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -493,8 +500,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         other_organization = OrganizationFactory(parent=self.organization)
         other_organization.admins.add(self.user_4)
         response = self.client.get(
-            reverse("ProjectUser-admin-list")
-            + f"?organizations={self.organization.code}"
+            reverse("ProjectUser-admin-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -546,7 +552,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "family_name": faker.last_name(),
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
+            reverse("ProjectUser-list", args=(self.organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
@@ -567,12 +573,19 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
                 "lastName": faker.last_name(),
             }
         )
-        user = SeedUserFactory()
+        user = SeedUserFactory(groups=[self.organization.get_users()])
         payload = {
             "email": existing_username,
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(user.id,)), data=payload
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            ),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
         self.assertApiTechnicalError(
@@ -587,8 +600,16 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     def test_keycloak_error_delete_user(self, mocked):
         mocked.side_effect = self.mocked_keycloak_error
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = UserFactory()
-        response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
+        user = UserFactory(groups=[self.organization.get_users()])
+        response = self.client.delete(
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiTechnicalError(
             response,
@@ -598,8 +619,16 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
 
     def test_keycloak_404_delete_user(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = UserFactory()
-        response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
+        user = UserFactory(groups=[self.organization.get_users()])
+        response = self.client.delete(
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProjectUser.objects.filter(id=user.id).exists())
 
@@ -626,7 +655,7 @@ class ValidateUserTestCase(JwtAPITestCase):
             ],
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -664,7 +693,10 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         cls.organization.users.add(cls.user_c)
 
     def test_order_by_job(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?ordering=job")
+        response = self.client.get(
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?ordering=job"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["results"][0]["id"], self.user_a.id)
@@ -673,7 +705,10 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][3]["id"], self.user_d.id)
 
     def test_order_by_job_reverse(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?ordering=-job")
+        response = self.client.get(
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?ordering=-job"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["results"][0]["id"], self.user_d.id)
@@ -683,8 +718,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
     def test_order_by_role(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?ordering=current_org_role&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?ordering=current_org_role"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -695,8 +730,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
     def test_order_by_role_reverse(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?ordering=-current_org_role&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?ordering=-current_org_role"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -707,8 +742,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
     def test_filter_by_role_admin(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=admins&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?current_org_role=admins"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -717,8 +752,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
     def test_filter_by_role_facilitator(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=facilitators&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?current_org_role=facilitators"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -727,8 +762,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
     def test_filter_by_role_user(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=users&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?current_org_role=users"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -737,8 +772,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
     def test_filter_by_multiple_roles(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?current_org_role=admins,users&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
+            + "?current_org_role=admins,users"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -752,7 +787,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         other_organization = OrganizationFactory(parent=self.organization)
         other_organization.admins.add(self.user_d)
         response = self.client.get(
-            reverse("ProjectUser-list") + f"?organizations={self.organization.code}"
+            reverse("ProjectUser-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -763,48 +798,47 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         )
 
     def test_search_by_job(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?search=ABC")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["results"][0]["id"], self.user_a.id)
-        response = self.client.get(reverse("ProjectUser-list") + "?search=DEF")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["results"][0]["id"], self.user_b.id)
-        response = self.client.get(reverse("ProjectUser-list") + "?search=GHI")
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["results"][0]["id"], self.user_c.id)
-
-    def test_search_with_current_org_pk(self):
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?search=ABC&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,)) + "?search=ABC"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["results"][0]["id"], self.user_a.id)
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?search=DEF&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,)) + "?search=DEF"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["results"][0]["id"], self.user_b.id)
         response = self.client.get(
-            reverse("ProjectUser-list")
-            + f"?search=GHI&current_org_pk={self.organization.pk}"
+            reverse("ProjectUser-list", args=(self.organization.code,)) + "?search=GHI"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["results"][0]["id"], self.user_c.id)
 
 
 class MiscUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory(language="fr")
+
     def test_notifications_count(self):
-        project = ProjectFactory()
-        user = UserFactory()
+        project = ProjectFactory(organizations=[self.organization])
+        user = UserFactory(groups=[self.organization.get_users()])
         NotificationFactory.create_batch(
             5, receiver=user, project=project, is_viewed=False
         )
         NotificationFactory(receiver=user, project=project, is_viewed=True)
         NotificationFactory(project=project)
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
+        response = self.client.get(
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["notifications"], 5)
 
@@ -813,15 +847,14 @@ class MiscUserTestCase(JwtAPITestCase):
         mocked.return_value = {}
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
-        organization = OrganizationFactory(language="fr")
         payload = {
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
-            "roles_to_add": [organization.get_users().name],
+            "roles_to_add": [self.organization.get_users().name],
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(self.organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -834,26 +867,25 @@ class MiscUserTestCase(JwtAPITestCase):
         mocked.return_value = {}
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
-        organization = OrganizationFactory(language="en")
         payload = {
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
-            "roles_to_add": [organization.get_users().name],
-            "language": "fr",
+            "roles_to_add": [self.organization.get_users().name],
+            "language": "en",
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            reverse("ProjectUser-list", args=(self.organization.code,)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.json()["language"], "fr")
+        self.assertEqual(response.json()["language"], "en")
         keycloak_user = KeycloakService.get_user(response.data["keycloak_id"])
-        self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
+        self.assertEqual(keycloak_user["attributes"]["locale"], ["en"])
 
     def test_keycloak_attributes_updated(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        user = SeedUserFactory(language="en")
+        user = SeedUserFactory(language="en", groups=[self.organization.get_users()])
         KeycloakService._update_user(
             user.keycloak_id,
             {
@@ -868,7 +900,14 @@ class MiscUserTestCase(JwtAPITestCase):
             "language": "fr",
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(user.id,)), data=payload
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            ),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["language"], "fr")
@@ -877,31 +916,29 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(keycloak_user["attributes"]["attribute_1"], ["value_1"])
 
     def test_add_organization_from_keycloak_attributes(self):
-        organization = OrganizationFactory()
         payload = {
             "username": f"{faker.uuid4()}@{faker.domain_name()}",
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "firstName": faker.first_name(),
             "lastName": faker.last_name(),
-            "attributes": {"idp_organizations": [organization.code]},
+            "attributes": {"idp_organizations": [self.organization.code]},
         }
         keycloak_id = KeycloakService._create_user(payload)
         user = ProjectUser.import_from_keycloak(keycloak_id)
         self.assertIsNotNone(user)
-        self.assertIn(user, organization.users.all())
+        self.assertIn(user, self.organization.users.all())
 
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)
         admins = UserFactory.create_batch(3)
         facilitators = UserFactory.create_batch(3)
         UserFactory.create_batch(3)
-        organization = OrganizationFactory()
-        organization.users.add(*users)
-        organization.admins.add(*admins)
-        organization.facilitators.add(*facilitators)
-        url = reverse("ProjectUser-list")
-        url += f"?current_org_pk={organization.pk}"
-        response = self.client.get(url)
+        self.organization.users.add(*users)
+        self.organization.admins.add(*admins)
+        self.organization.facilitators.add(*facilitators)
+        response = self.client.get(
+            reverse("ProjectUser-list", args=(self.organization.code,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["count"], 12)
@@ -916,32 +953,35 @@ class MiscUserTestCase(JwtAPITestCase):
                 self.assertIsNone(user["current_org_role"])
 
     def test_get_current_org_role_two_roles(self):
-        organization = OrganizationFactory()
         user = UserFactory()
-        organization.users.add(user)
-        organization.admins.add(user)
-        url = reverse("ProjectUser-list")
-        url += f"?current_org_pk={organization.pk}"
-        response = self.client.get(url)
+        self.organization.users.add(user)
+        self.organization.admins.add(user)
+        response = self.client.get(
+            reverse("ProjectUser-list", args=(self.organization.code,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["count"], 1)
         self.assertEqual(content["results"][0]["current_org_role"], "admins")
 
     def test_get_people_groups(self):
-        organization = OrganizationFactory()
-        people_group = PeopleGroupFactory(organization=organization)
+        people_group = PeopleGroupFactory(organization=self.organization)
         other_people_group = PeopleGroupFactory()
         user = UserFactory(
             groups=[
-                organization.get_users(),
+                self.organization.get_users(),
                 people_group.get_members(),
                 other_people_group.get_members(),
             ]
         )
         response = self.client.get(
-            reverse("ProjectUser-detail", args=(user.id,))
-            + f"?current_org_pk={organization.pk}"
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -949,30 +989,33 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(content["people_groups"][0]["id"], people_group.id)
 
     def test_check_permissions(self):
-        user = UserFactory()
-        organization = OrganizationFactory()
+        user = UserFactory(groups=[self.organization.get_users()])
         permissions = [
             "projects.view_project",
-            f"organizations.view_org_project.{organization.pk}",
+            f"organizations.view_org_project.{self.organization.pk}",
         ]
         response = self.client.get(
-            reverse("ProjectUser-has-permissions", args=(user.id,))
+            reverse(
+                "ProjectUser-has-permissions",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
             + f"?permissions={','.join(permissions)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertFalse(response.json()["result"])
 
-        assign_perm("organizations.view_org_project", user, organization)
-        response = self.client.get(
-            reverse("ProjectUser-has-permissions", args=(user.id,))
-            + f"?permissions={','.join(permissions)}"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.json()["result"])
-
         assign_perm("projects.view_project", user)
         response = self.client.get(
-            reverse("ProjectUser-has-permissions", args=(user.id,))
+            reverse(
+                "ProjectUser-has-permissions",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
             + f"?permissions={','.join(permissions)}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1004,7 +1047,14 @@ class MiscUserTestCase(JwtAPITestCase):
             ]
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(user.id,)), data=payload
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    organization_1.code,
+                    user.id,
+                ),
+            ),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -1050,19 +1100,41 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(user.slug, f"user-{given_name}")
 
     def test_multiple_lookups(self):
-        user = UserFactory()
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
+        user = UserFactory(groups=[self.organization.get_users()])
+        response = self.client.get(
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.id,
+                ),
+            )
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["slug"], user.slug)
         self.assertEqual(content["keycloak_id"], user.keycloak_id)
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.slug,)))
+        response = self.client.get(
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.slug,
+                ),
+            )
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], user.id)
         self.assertEqual(content["keycloak_id"], user.keycloak_id)
         response = self.client.get(
-            reverse("ProjectUser-detail", args=(user.keycloak_id,))
+            reverse(
+                "ProjectUser-detail",
+                args=(
+                    self.organization.code,
+                    user.keycloak_id,
+                ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
