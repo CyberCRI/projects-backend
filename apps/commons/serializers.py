@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.http import QueryDict
 from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import serializers
 from rest_framework.settings import import_from_string
@@ -86,11 +87,13 @@ class ProjectRelatedSerializer(serializers.ModelSerializer):
         self.current_organization = self.context.get("organization", None)
 
     def to_internal_value(self, data):
+        final_data = QueryDict(mutable=True)
+        final_data.update(data)
         if self.force_project_value:
-            data[self.model_project_field] = self.current_project
+            final_data[self.model_project_field] = self.current_project
         if self.instance and self.instance.pk and self.forbid_project_update:
-            data.pop(self.model_project_field)
-        return super().to_internal_value(data)
+            final_data.pop(self.model_project_field)
+        return super().to_internal_value(final_data)
 
 
 class OrganizationRelatedSerializer(serializers.ModelSerializer):
@@ -105,11 +108,13 @@ class OrganizationRelatedSerializer(serializers.ModelSerializer):
         self.current_organization = self.context.get("organization", None)
 
     def to_internal_value(self, data):
+        final_data = QueryDict(mutable=True)
+        final_data.update(data)
         if self.force_organization_value:
-            data[self.model_organization_field] = self.current_organization
+            final_data[self.model_organization_field] = self.current_organization
         if self.instance and self.instance.pk and self.forbid_organization_update:
-            data.pop(self.model_organization_field)
-        return super().to_internal_value(data)
+            final_data.pop(self.model_organization_field)
+        return super().to_internal_value(final_data)
 
 
 class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
@@ -125,8 +130,10 @@ class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
         self.current_organization = self.context.get("organization", None)
 
     def to_internal_value(self, data):
+        final_data = QueryDict(mutable=True)
+        final_data.update(data)
         if self.force_people_group_value:
-            data[self.model_people_group_field] = self.current_people_group
+            final_data[self.model_people_group_field] = self.current_people_group
         if self.instance and self.instance.pk and self.forbid_people_group_update:
-            data.pop(self.model_people_group_field)
-        return super().to_internal_value(data)
+            final_data.pop(self.model_people_group_field)
+        return super().to_internal_value(final_data)
