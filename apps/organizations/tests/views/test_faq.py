@@ -131,3 +131,9 @@ class DeleteFaqTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Faq.objects.filter(id=faq.id).exists())
+            new_faq = Faq.objects.filter(organization=self.organization)
+            self.assertTrue(new_faq.exists())
+            new_faq = new_faq.get()
+            self.assertEqual(new_faq.title, "")
+            self.assertEqual(new_faq.content, "")
+            self.assertEqual(new_faq.images.count(), 0)
