@@ -7,7 +7,6 @@ import requests
 from azure.core.exceptions import AzureError
 from bs4 import BeautifulSoup
 from django.conf import settings
-from django.http import QueryDict
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -107,11 +106,10 @@ class AttachmentLinkSerializer(
         ]
 
     def to_internal_value(self, data):
-        query_dict = QueryDict(mutable=True)
-        query_dict.update(data)
+        data = data.copy()
         if "site_url" in data and not re.match(r"^https?://", data.get("site_url", "")):
-            query_dict["site_url"] = f'https://{data["site_url"]}'
-        instance = super().to_internal_value(query_dict)
+            data["site_url"] = f'https://{data["site_url"]}'
+        instance = super().to_internal_value(data)
         self.get_url_metadata(instance)
         return instance
 

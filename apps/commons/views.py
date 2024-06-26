@@ -9,6 +9,7 @@ from apps.accounts.models import PeopleGroup
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
+from .exceptions import MissingUrlArgument
 from .models import HasMultipleIDs
 
 
@@ -149,6 +150,10 @@ class OrganizationRelatedViewset(viewsets.GenericViewSet):
     model_organization_field = "organization"
 
     def initial(self, request, *args, **kwargs):
+        if self.organization_url_kwarg not in kwargs:
+            raise MissingUrlArgument(
+                self.__class__.__name__, self.organization_url_kwarg
+            )
         self.organization = get_object_or_404(
             Organization, code=kwargs[self.organization_url_kwarg]
         )
@@ -173,6 +178,12 @@ class ProjectRelatedViewset(viewsets.GenericViewSet):
     model_project_field = "project"
 
     def initial(self, request, *args, **kwargs):
+        if self.organization_url_kwarg not in kwargs:
+            raise MissingUrlArgument(
+                self.__class__.__name__, self.organization_url_kwarg
+            )
+        if self.project_url_kwarg not in kwargs:
+            raise MissingUrlArgument(self.__class__.__name__, self.project_url_kwarg)
         self.organization = get_object_or_404(
             Organization, code=kwargs[self.organization_url_kwarg]
         )
@@ -199,6 +210,14 @@ class PeopleGroupRelatedViewSet(viewsets.GenericViewSet):
     model_people_group_field = "people_group"
 
     def initial(self, request, *args, **kwargs):
+        if self.organization_url_kwarg not in kwargs:
+            raise MissingUrlArgument(
+                self.__class__.__name__, self.organization_url_kwarg
+            )
+        if self.people_group_url_kwarg not in kwargs:
+            raise MissingUrlArgument(
+                self.__class__.__name__, self.people_group_url_kwarg
+            )
         self.organization = get_object_or_404(
             Organization, code=kwargs[self.organization_url_kwarg]
         )

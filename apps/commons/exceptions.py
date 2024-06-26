@@ -1,6 +1,8 @@
 from enum import Enum
 
 from django.http import Http404
+from django.utils.translation import gettext_lazy as _
+from rest_framework import status
 from rest_framework.exceptions import (
     APIException,
     AuthenticationFailed,
@@ -56,3 +58,27 @@ def projects_exception_handler(exc, context):
                 **response.data,
             }
     return response
+
+
+class MissingUrlArgument(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = _("Missing required URL argument.")
+    default_code = "missing_url_argument"
+
+    def __init__(self, view_name: str, kwarg_name: str):
+        detail = _(
+            f"Missing required URL argument '{kwarg_name}' in view '{view_name}'."
+        )
+        super().__init__(detail=detail)
+
+
+class MissingSerializerContext(APIException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+    default_detail = _("Missing serializer context.")
+    default_code = "missing_serializer_context"
+
+    def __init__(self, serializer_name: str, parameter_name: str):
+        detail = _(
+            f"Missing required '{parameter_name}' parameter in context for '{serializer_name}'."
+        )
+        super().__init__(detail=detail)

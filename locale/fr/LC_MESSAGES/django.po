@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-06-26 08:39+0000\n"
+"POT-Creation-Date: 2024-06-26 13:47+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -193,6 +193,28 @@ msgstr "Statut de publication inconnu"
 #, python-brace-format
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Statut de publication inconnu '{publication_status}'"
+
+#: apps/commons/exceptions.py:65
+msgid "Missing required URL argument."
+msgstr "Paramètre d'URL requis manquant."
+
+#: apps/commons/exceptions.py:70
+#, python-brace-format
+msgid "Missing required URL argument '{kwarg_name}' in view '{view_name}'."
+msgstr "Le paramètre d'URL requis '{kwarg_name}' est manquant dans la vue '{view_name}'."
+
+#: apps/commons/exceptions.py:77
+msgid "Missing serializer context."
+msgstr "Contexte du sérialiseur manquant."
+
+#: apps/commons/exceptions.py:82
+#, python-brace-format
+msgid ""
+"Missing required '{parameter_name}' parameter in context for "
+"'{serializer_name}'."
+msgstr ""
+"Paramètre requis '{parameter_name}' manquant dans le contexte pour "
+"'{serializer_name}'."
 
 #: apps/commons/fields.py:28
 msgid "This field is required."

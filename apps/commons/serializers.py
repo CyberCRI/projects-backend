@@ -1,8 +1,9 @@
 from django.conf import settings
-from django.http import QueryDict
 from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import serializers
 from rest_framework.settings import import_from_string
+
+from .exceptions import MissingSerializerContext
 
 
 class EmailAddressSerializer(serializers.Serializer):
@@ -83,17 +84,20 @@ class ProjectRelatedSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_project = self.context.get("project", None)
-        self.current_organization = self.context.get("organization", None)
+        if "project" not in self.context:
+            raise MissingSerializerContext(self.__class__.__name__, "project")
+        if "organization" not in self.context:
+            raise MissingSerializerContext(self.__class__.__name__, "organization")
+        self.current_project = self.context["project"]
+        self.current_organization = self.context["organization"]
 
     def to_internal_value(self, data):
-        final_data = QueryDict(mutable=True)
-        final_data.update(data)
+        data = data.copy()
         if self.force_project_value:
-            final_data[self.model_project_field] = self.current_project
+            data[self.model_project_field] = self.current_project
         if self.instance and self.instance.pk and self.forbid_project_update:
-            final_data.pop(self.model_project_field)
-        return super().to_internal_value(final_data)
+            data.pop(self.model_project_field)
+        return super().to_internal_value(data)
 
 
 class OrganizationRelatedSerializer(serializers.ModelSerializer):
@@ -105,16 +109,17 @@ class OrganizationRelatedSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_organization = self.context.get("organization", None)
+        if "organization" not in self.context:
+            raise MissingSerializerContext(self.__class__.__name__, "organization")
+        self.current_organization = self.context["organization"]
 
     def to_internal_value(self, data):
-        final_data = QueryDict(mutable=True)
-        final_data.update(data)
+        data = data.copy()
         if self.force_organization_value:
-            final_data[self.model_organization_field] = self.current_organization
+            data[self.model_organization_field] = self.current_organization
         if self.instance and self.instance.pk and self.forbid_organization_update:
-            final_data.pop(self.model_organization_field)
-        return super().to_internal_value(final_data)
+            data.pop(self.model_organization_field)
+        return super().to_internal_value(data)
 
 
 class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
@@ -126,14 +131,17 @@ class PeopleGroupRelatedSerializer(ProjectRelatedSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.current_people_group = self.context.get("people_group", None)
-        self.current_organization = self.context.get("organization", None)
+        if "people_group" not in self.context:
+            raise MissingSerializerContext(self.__class__.__name__, "people_group")
+        if "organization" not in self.context:
+            raise MissingSerializerContext(self.__class__.__name__, "organization")
+        self.current_people_group = self.context["people_group"]
+        self.current_organization = self.context["organization"]
 
     def to_internal_value(self, data):
-        final_data = QueryDict(mutable=True)
-        final_data.update(data)
+        data = data.copy()
         if self.force_people_group_value:
-            final_data[self.model_people_group_field] = self.current_people_group
+            data[self.model_people_group_field] = self.current_people_group
         if self.instance and self.instance.pk and self.forbid_people_group_update:
-            final_data.pop(self.model_people_group_field)
-        return super().to_internal_value(final_data)
+            data.pop(self.model_people_group_field)
+        return super().to_internal_value(data)
