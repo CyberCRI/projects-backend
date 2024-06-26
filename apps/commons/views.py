@@ -60,7 +60,7 @@ class RetrieveUpdateModelViewSet(
     """
 
 
-class MultipleIDViewsetMixin:
+class MultipleIDViewset(viewsets.GenericViewSet):
     multiple_lookup_fields: List[Tuple[HasMultipleIDs, str]] = []
 
     def dispatch(self, request, *args, **kwargs):
@@ -78,7 +78,7 @@ class MultipleIDViewsetMixin:
         return super().dispatch(request, *args, **kwargs)
 
 
-class DetailOnlyViewsetMixin:
+class DetailOnlyViewset(viewsets.GenericViewSet):
     def get_object(self):
         """
         Retrieve the object within the QuerySet.
@@ -90,7 +90,7 @@ class DetailOnlyViewsetMixin:
         return obj
 
 
-class PaginatedViewSet(viewsets.ViewSet):
+class PaginatedViewSet(viewsets.GenericViewSet):
     """
     A viewset that allows paginated responses for viewsets not based on models.
     """
@@ -144,7 +144,7 @@ class PaginatedViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class OrganizationRelatedViewset(viewsets.ModelViewSet):
+class OrganizationRelatedViewset(viewsets.GenericViewSet):
     organization_url_kwarg = "organization_code"
     model_organization_field = "organization"
 
@@ -167,7 +167,7 @@ class OrganizationRelatedViewset(viewsets.ModelViewSet):
         return context
 
 
-class ProjectRelatedViewset(viewsets.ModelViewSet):
+class ProjectRelatedViewset(viewsets.GenericViewSet):
     organization_url_kwarg = "organization_code"
     project_url_kwarg = "project_id"
     model_project_field = "project"
@@ -193,7 +193,7 @@ class ProjectRelatedViewset(viewsets.ModelViewSet):
         return context
 
 
-class PeopleGroupRelatedViewSet(viewsets.ModelViewSet):
+class PeopleGroupRelatedViewSet(viewsets.GenericViewSet):
     organization_url_kwarg = "organization_code"
     people_group_url_kwarg = "people_group_id"
     model_people_group_field = "people_group"

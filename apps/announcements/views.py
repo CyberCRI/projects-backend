@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import ReadOnly
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import MultipleIDViewset
 from apps.notifications.tasks import notify_new_announcement, notify_new_application
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
@@ -22,7 +22,7 @@ from .models import Announcement
 from .serializers import AnnouncementSerializer, ApplyToAnnouncementSerializer
 
 
-class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class AnnouncementViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     serializer_class = AnnouncementSerializer
     filterset_class = AnnouncementFilter
     lookup_field = "id"

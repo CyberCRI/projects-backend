@@ -11,7 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import MultipleIDViewset
 from apps.organizations.utils import get_hierarchy_codes
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
@@ -19,7 +19,7 @@ from apps.projects.serializers import ProjectLightSerializer
 from .models import ProjectEmbedding, UserEmbedding
 
 
-class RecommendationsViewset(GenericViewSet, MultipleIDViewsetMixin):
+class RecommendationsViewset(GenericViewSet, MultipleIDViewset):
     filter_backends = [DjangoFilterBackend]
     ordering_fields = []
     permission_classes = [ReadOnly]

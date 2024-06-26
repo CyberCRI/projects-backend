@@ -30,8 +30,8 @@ from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.serializers import EmailAddressSerializer
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
-    DetailOnlyViewsetMixin,
-    MultipleIDViewsetMixin,
+    DetailOnlyViewset,
+    MultipleIDViewset,
     RetrieveUpdateModelViewSet,
 )
 from apps.files.models import Image
@@ -89,7 +89,7 @@ from .utils import (
 )
 
 
-class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class UserViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = "id"
     lookup_value_regex = (
@@ -486,7 +486,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
 
 
-class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class PeopleGroupViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     queryset = PeopleGroup.objects.all()
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
@@ -819,9 +819,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 @extend_schema(
     parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]
 )
-class PeopleGroupHeaderView(
-    MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
-):
+class PeopleGroupHeaderView(MultipleIDViewset, DetailOnlyViewset, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -865,9 +863,7 @@ class PeopleGroupHeaderView(
 @extend_schema(
     parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]
 )
-class PeopleGroupLogoView(
-    MultipleIDViewsetMixin, DetailOnlyViewsetMixin, ImageStorageView
-):
+class PeopleGroupLogoView(MultipleIDViewset, DetailOnlyViewset, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -937,7 +933,7 @@ class DeleteCookieView(views.APIView):
         return response
 
 
-class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
+class UserProfilePictureView(MultipleIDViewset, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
@@ -970,7 +966,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         return None
 
 
-class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
+class PrivacySettingsViewSet(MultipleIDViewset, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's privacy settings."""
 
     permission_classes = [

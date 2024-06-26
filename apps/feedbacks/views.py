@@ -15,7 +15,7 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
+from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewset
 from apps.feedbacks.exceptions import FollowProjectPermissionDeniedError
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -35,7 +35,7 @@ from .serializers import (
 )
 
 
-class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ReviewViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_class = ReviewFilter
@@ -79,7 +79,7 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         notify_new_review.delay(review.id)
 
 
-class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
+class FollowViewSet(MultipleIDViewset, CreateListDestroyViewSet):
     serializer_class = FollowSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
@@ -158,7 +158,7 @@ class ProjectFollowViewSet(FollowViewSet):
     pass
 
 
-class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class CommentViewSet(MultipleIDViewset, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
@@ -217,7 +217,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         update_change_reason(comment.project, "Updated comment")
 
 
-class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
+class CommentImagesView(MultipleIDViewset, ImageStorageView):
     multiple_lookup_fields = [
         (Project, "project_id"),
     ]

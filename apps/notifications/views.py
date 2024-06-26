@@ -14,7 +14,7 @@ from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.views import (
     ListViewSet,
-    MultipleIDViewsetMixin,
+    MultipleIDViewset,
     RetrieveUpdateModelViewSet,
 )
 from apps.emailing.tasks import send_email_task
@@ -53,7 +53,7 @@ class NotificationsViewSet(ListViewSet):
         return response
 
 
-class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
+class NotificationSettingsViewSet(MultipleIDViewset, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's notification settings."""
 
     serializer_class = NotificationSettingsSerializer
