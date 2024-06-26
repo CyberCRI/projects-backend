@@ -6,7 +6,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, OpenApiTypes, extend_schema
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
@@ -19,7 +18,7 @@ from apps.projects.serializers import ProjectLightSerializer
 from .models import ProjectEmbedding, UserEmbedding
 
 
-class RecommendationsViewset(GenericViewSet, MultipleIDViewset):
+class RecommendationsViewset(MultipleIDViewset):
     filter_backends = [DjangoFilterBackend]
     ordering_fields = []
     permission_classes = [ReadOnly]
