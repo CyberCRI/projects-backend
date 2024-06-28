@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   build-docker:
-    uses: CyberCRI/github-workflows/.github/workflows/build-push.yaml@remove-default
+    uses: CyberCRI/github-workflows/.github/workflows/build-push.yaml@main
     with:
       registry-name: ${{ vars.DOCKER_PROD_REGISTRY }}
       image-name: projects-backend
@@ -37,7 +37,7 @@ jobs:
     needs:
       - build-docker
       - lint-and-test
-    uses: CyberCRI/github-workflows/.github/workflows/tag-deploy.yaml@remove-default
+    uses: CyberCRI/github-workflows/.github/workflows/tag-deploy.yaml@main
 
   tag-deploy-fast:
     needs:
