@@ -1,21 +1,16 @@
 name: Lint & test
 on:
   workflow_call:
-    inputs:
-      submodules-app-id:
-        type: string
-        required: false
-        description: 'The id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
-        default: '213843'
-      submodules-app-installation-id:
-        type: string
-        required: false
-        description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
-        default: '26790862'
     secrets:
       submodules-app-private-key:
         required: false
         description: 'The private-key of the app used for authentication. Only needed if `recursive-submodule-checkout` is true'
+      submodules-app-id:
+        required: false
+        description: 'The id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
+      submodules-app-installation-id:
+        required: false
+        description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
 
 jobs:
   tests:
@@ -24,8 +19,8 @@ jobs:
       - uses: Nastaliss/get-github-app-pat@v1
         id: githubAppAuth
         with:
-          app-id: ${{ inputs.submodules-app-id }}
-          app-installation-id: ${{ inputs.submodules-app-installation-id }}
+          app-id: ${{ secrets.submodules-app-id }}
+          app-installation-id: ${{ secrets.submodules-app-installation-id }}
           app-private-key: ${{ secrets.submodules-app-private-key }}
       - name: '[SUBMODULES] Checkout with submodules'
         uses: actions/checkout@v3
