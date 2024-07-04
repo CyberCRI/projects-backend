@@ -149,7 +149,7 @@ class KeycloakService:
             raise InvalidKeycloakEmailTypeError(email_type)
         service = cls.service()
         url = (
-            f"realms/lp/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
+            f"realms/{settings.KEYCLOAK_REALM}/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
             f"?client_id={cls.EMAIL_CLIENT_ID}"
             f"&email_type={email_type}"
             f"&actions={','.join(actions)}"
