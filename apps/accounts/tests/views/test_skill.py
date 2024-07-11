@@ -46,16 +46,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),
         }
-        response = self.client.post(
-            reverse(
-                "Skill-list",
-                args=(
-                    self.organization.code,
-                    instance.id,
-                ),
-            ),
-            data=payload,
-        )
+        response = self.client.post(reverse("Skill-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             self.assertEqual(response.json()["user"], instance.id)
@@ -95,15 +86,7 @@ class UpdateSkillTestCase(JwtAPITestCase):
             "level": faker.pyint(1, 4),
         }
         response = self.client.patch(
-            reverse(
-                "Skill-detail",
-                args=(
-                    self.organization.code,
-                    self.skill.user.id,
-                    self.skill.id,
-                ),
-            ),
-            data=payload,
+            reverse("Skill-detail", args=(self.skill.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -134,16 +117,7 @@ class DeleteSkillTestCase(JwtAPITestCase):
             role, instances=[organization], owned_instance=skill
         )
         self.client.force_authenticate(user)
-        response = self.client.delete(
-            reverse(
-                "Skill-detail",
-                args=(
-                    organization.code,
-                    skill.user.id,
-                    skill.id,
-                ),
-            )
-        )
+        response = self.client.delete(reverse("Skill-detail", args=(skill.id,)))
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Skill.objects.filter(id=skill.id).exists())

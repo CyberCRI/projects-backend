@@ -86,15 +86,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         for user_type, user in self.users.items():
-            response = self.client.get(
-                reverse(
-                    "ProjectUser-detail",
-                    args=(
-                        self.organization.code,
-                        user.id,
-                    ),
-                )
-            )
+            response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
             if user_type in expected_users:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
@@ -114,9 +106,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("ProjectUser-list", args=(self.organization.code,))
-        )
+        response = self.client.get(reverse("ProjectUser-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         if user:
@@ -370,22 +360,11 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         users = [*self.users.values(), other_user]
         for user in users:
             response = self.client.get(
-                reverse(
-                    "ProjectUser-get-by-email",
-                    args=(
-                        organization.code,
-                        user.email,
-                    ),
-                )
+                reverse("ProjectUser-get-by-email", args=(user.email,))
+                + f"?current_org_pk={organization.pk}"
             )
             response_2 = self.client.get(
-                reverse(
-                    "ProjectUser-get-by-email",
-                    args=(
-                        organization.code,
-                        user.personal_email,
-                    ),
-                )
+                reverse("ProjectUser-get-by-email", args=(user.personal_email,))
                 + f"?current_org_pk={organization.pk}"
             )
             self.assertEqual(response.status_code, expected_code)

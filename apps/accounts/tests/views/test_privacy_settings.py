@@ -48,13 +48,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(
-                "PrivacySettings-detail",
-                args=(
-                    self.organization.code,
-                    instance.id,
-                ),
-            )
+            reverse("PrivacySettings-detail", args=(instance.id,))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -88,13 +82,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(
-                "PrivacySettings-detail",
-                args=(
-                    self.organization.code,
-                    instance.id,
-                ),
-            )
+            reverse("PrivacySettings-detail", args=(instance.id,))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -128,13 +116,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(
-                "PrivacySettings-detail",
-                args=(
-                    self.organization.code,
-                    instance.id,
-                ),
-            )
+            reverse("PrivacySettings-detail", args=(instance.id,))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -187,13 +169,7 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
             ]
         }
         response = self.client.patch(
-            reverse(
-                "PrivacySettings-detail",
-                args=(
-                    self.organization.code,
-                    self.instance.id,
-                ),
-            ),
+            reverse("PrivacySettings-detail", args=(self.instance.id,)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
