@@ -11,6 +11,12 @@ on:
       submodules-app-installation-id:
         required: false
         description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
+      registry-username:
+        required: true
+        description: 'The username on the registry'
+      registry-password:
+        required: true
+        description: 'The password on the registry'
     inputs:
       registry-name:
         type: string
@@ -47,6 +53,9 @@ jobs:
           - 15500:15500
       keycloak:
         image: ${{ inputs.registry-name }}/${{inputs.keycloak-image-name}}:${{ inputs.keycloak-image-tag }}
+        credentials:
+          username: ${{ secrets.registry-username }}
+          password: ${{ secrets.registry-password }}
         ports:
           - 8001:8080
         env:
