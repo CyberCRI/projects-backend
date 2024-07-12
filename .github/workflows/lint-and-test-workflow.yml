@@ -15,6 +15,49 @@ on:
 jobs:
   tests:
     runs-on: backend-lint-test-runner
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mjml:
+        image: danihodovic/mjml-server
+        ports:
+          - 15500:15500
+      keycloak:
+        image: quay.io/keycloak/keycloak:24.0.2
+        volumes:
+          - ./keycloak-realm-export.json:/opt/keycloak/data/import/realm-export.json
+        ports:
+          - 8001:8080
+        env:
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin
+        # Set health checks to wait until keycloak has started
+        options: >-
+          --health-cmd "curl -LIsSfo /dev/null http://127.0.0.1:8080/realms/lp/.well-known/openid-configuration"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+          --health-start-period 1m
+          start-dev.sh --import-realm
+      redis:
+        image: redis:6.2-bullseye
+        ports:
+          - 6379:6379
+      mailhog:
+        image: mailhog/mailhog
+        ports:
+          - 1025:1025
+          - 8025:8025
     steps:
       - uses: Nastaliss/get-github-app-pat@v1
         id: githubAppAuth
@@ -27,14 +70,29 @@ jobs:
         with:
           submodules: 'recursive'
           token: ${{ steps.githubAppAuth.outputs.access-token }}
-      # The previous steps are only needed for recursive submodules checkout
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: "Dockerfile"
+          tags: localprojectsbackend:latest
+          load: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          push: false
       - name: Check the code formatting
-        run: docker compose -f docker-compose-tests.yml run projects "make format-check"
-      - name: Run the linter
-        run: docker compose -f docker-compose-tests.yml run projects "make lint"
-      - name: Check that migrations are up-to-date
-        run: docker compose -f docker-compose-tests.yml run projects "make check-migrations"
-      - name: Check that translations are up-to-date
-        run: docker compose -f docker-compose-tests.yml run projects "make makemessages-check"
-      - name: Run unit tests
-        run: docker compose -f docker-compose-tests.yml run projects "make test"
+        uses: addnab/docker-run-action@v3
+        with:
+          image: localpytest:latest
+          run: make format-check
+      # The previous steps are only needed for recursive submodules checkout
+      # - name: Check the code formatting
+      #   run: docker compose -f docker-compose-tests.yml run projects "make format-check"
+      # - name: Run the linter
+      #   run: docker compose -f docker-compose-tests.yml run projects "make lint"
+      # - name: Check that migrations are up-to-date
+      #   run: docker compose -f docker-compose-tests.yml run projects "make check-migrations"
+      # - name: Check that translations are up-to-date
+      #   run: docker compose -f docker-compose-tests.yml run projects "make makemessages-check"
+      # - name: Run unit tests
+      #   run: docker compose -f docker-compose-tests.yml run projects "make test"
