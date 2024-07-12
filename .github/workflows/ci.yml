@@ -27,7 +27,7 @@ jobs:
       registry-password: ${{ secrets.DOCKER_PROD_PASSWORD }}
 
   build-keycloak-image:
-    uses: ./.github/workflows/build-keycloak-image.yml
+    uses: CyberCRI/github-workflows/.github/workflows/build-push.yaml@main
     with:
       registry-name: ${{ vars.DOCKER_PROD_REGISTRY }}
       image-name: projects-backend-keycloak
