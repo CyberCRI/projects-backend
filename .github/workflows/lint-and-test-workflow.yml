@@ -61,13 +61,6 @@ jobs:
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
-        # Set health checks to wait until keycloak has started
-        options: >-
-          --health-cmd "curl -LIsSfo /dev/null http://127.0.0.1:8080/realms/lp/.well-known/openid-configuration"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-          --health-start-period 1m
       redis:
         image: redis:6.2-bullseye
         ports:
