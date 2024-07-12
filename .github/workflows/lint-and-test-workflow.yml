@@ -33,10 +33,7 @@ jobs:
         ports:
           - 15500:15500
       keycloak:
-        image: quay.io/keycloak/keycloak:24.0.2
-        volumes:
-          - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
-          - ./keycloak/entrypoint.sh:/opt/keycloak/bin/entrypoint.sh
+        image: ghcr.io/cybercri/projects-back:keycloak
         ports:
           - 8001:8080
         env:
@@ -49,7 +46,6 @@ jobs:
           --health-timeout 5s
           --health-retries 10
           --health-start-period 1m
-          --entrypoint "/opt/keycloak/bin/entrypoint.sh"
       redis:
         image: redis:6.2-bullseye
         ports:

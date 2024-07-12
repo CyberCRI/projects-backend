@@ -26,6 +26,12 @@ jobs:
       registry-username: ${{ secrets.DOCKER_PROD_USERNAME }}
       registry-password: ${{ secrets.DOCKER_PROD_PASSWORD }}
 
+  build-keyloack-image:
+    uses: ./.github/workflows/build-keycloak-image.yml
+    secrets:
+      submodules-app-private-key: ${{ secrets.INFRA_BOT_APP_PRIVATE_KEY }}
+      submodules-app-id: ${{ secrets.INFRA_BOT_APP_ID }}
+      submodules-app-installation-id: ${{ secrets.INFRA_BOT_APP_INSTALLATION_ID }}
 
   lint-and-test:
     uses: ./.github/workflows/lint-and-test-workflow.yml
@@ -33,10 +39,12 @@ jobs:
       submodules-app-private-key: ${{ secrets.INFRA_BOT_APP_PRIVATE_KEY }}
       submodules-app-id: ${{ secrets.INFRA_BOT_APP_ID }}
       submodules-app-installation-id: ${{ secrets.INFRA_BOT_APP_INSTALLATION_ID }}
+    needs:
+    - build-docker
   tag-deploy:
     needs:
-      - build-docker
-      - lint-and-test
+    - build-docker
+    - lint-and-test
     uses: CyberCRI/github-workflows/.github/workflows/tag-deploy.yaml@main
 
   tag-deploy-fast:
