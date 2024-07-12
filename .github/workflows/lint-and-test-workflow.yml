@@ -87,6 +87,8 @@ jobs:
         with:
           context: .
           file: "Dockerfile"
+          build-args: |
+            EXPORT_FLAG=--dev
           tags: localprojectsbackend:latest
           load: true
           cache-from: type=gha
