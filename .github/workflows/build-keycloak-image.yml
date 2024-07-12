@@ -25,7 +25,11 @@ jobs:
           app-id: ${{ secrets.submodules-app-id }}
           app-installation-id: ${{ secrets.submodules-app-installation-id }}
           app-private-key: ${{ secrets.submodules-app-private-key }}
-      - uses: actions/checkout@v3
+      - name: '[SUBMODULES] Checkout with submodules'
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ steps.githubAppAuth.outputs.access-token }}
       - uses: docker/setup-buildx-action@v2
       - uses: docker/login-action@v2
         with:
@@ -39,7 +43,7 @@ jobs:
           images: ghcr.io/cybercri/projects-backend
           tags: type=raw,value=keycloak
       - name: Build and push
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           push: true
           pull: true

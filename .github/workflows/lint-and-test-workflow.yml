@@ -11,6 +11,19 @@ on:
       submodules-app-installation-id:
         required: false
         description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
+    inputs:
+      registry-name:
+        type: string
+        required: true
+        description: 'The name of the registry to push the image to'
+      keycloak-image-name:
+        type: string
+        required: true
+        description: 'The name of the keycloak image'
+      keycloak-image-tag:
+        type: string
+        required: true
+        description: 'The tag of the keycloak image'
 
 jobs:
   tests:
@@ -33,7 +46,7 @@ jobs:
         ports:
           - 15500:15500
       keycloak:
-        image: ghcr.io/cybercri/projects-back:keycloak
+        image: ${{ inputs.registry-name }}/${{inputs.keycloak-image-name}}:${{ inputs.keycloak-image-tag }}
         ports:
           - 8001:8080
         env:
