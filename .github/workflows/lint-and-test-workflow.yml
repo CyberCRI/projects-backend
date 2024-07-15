@@ -86,8 +86,8 @@ jobs:
           - 1025:1025
           - 8025:8025
     steps:
-    - name: Check the code formatting
-      run: ls
+    - name: test
+      run: ls; pwd; whoami
     - name: Check the code formatting
       run: make format-check
     - name: Run the linter
