@@ -95,27 +95,12 @@ jobs:
           cache-to: type=gha,mode=max
           push: false
       - name: Check the code formatting
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localprojectsbackend:latest
-          run: make format-check
+        run: docker run localprojectsbackend:latest make format-check
       - name: Run the linter
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localprojectsbackend:latest
-          run: make lint
+        run: docker run localprojectsbackend:latest make lint
       - name: Check that migrations are up-to-date
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localprojectsbackend:latest
-          run: make check-migrations
+        run: docker run localprojectsbackend:latest make check-migrations
       - name: Check that translations are up-to-date
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localprojectsbackend:latest
-          run: make makemessages-check
+        run: docker run localprojectsbackend:latest make makemessages-check
       - name: Run unit tests
-        uses: addnab/docker-run-action@v3
-        with:
-          image: localprojectsbackend:latest
-          run: make test
+        run: docker run localprojectsbackend:latest make test
