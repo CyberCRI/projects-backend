@@ -42,6 +42,9 @@ on:
 jobs:
   tests:
     runs-on: backend-lint-test-runner
+    defaults:
+      run:
+        working-directory: /app
     container:
       image: ${{ inputs.registry-name }}/${{ inputs.backend-image-name }}:${{ inputs.backend-image-tag }}
       credentials:
