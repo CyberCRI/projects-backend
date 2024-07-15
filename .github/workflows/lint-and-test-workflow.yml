@@ -95,12 +95,12 @@ jobs:
           cache-to: type=gha,mode=max
           push: false
       - name: Check the code formatting
-        run: docker run localprojectsbackend:latest make format-check
+        run: docker run --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make format-check
       - name: Run the linter
-        run: docker run localprojectsbackend:latest make lint
+        run: docker run --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make lint
       - name: Check that migrations are up-to-date
-        run: docker run localprojectsbackend:latest make check-migrations
+        run: docker run --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make check-migrations
       - name: Check that translations are up-to-date
-        run: docker run localprojectsbackend:latest make makemessages-check
+        run: docker run --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make makemessages-check
       - name: Run unit tests
-        run: docker run localprojectsbackend:latest make test
+        run: docker run --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make test
