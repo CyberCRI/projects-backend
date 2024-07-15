@@ -53,6 +53,8 @@ jobs:
       registry-name: ${{ vars.DOCKER_PROD_REGISTRY }}
       keycloak-image-name: projects-backend-keycloak
       keycloak-image-tag: ${{ github.sha }}
+      backend-image-name: projects-backend
+      backend-image-tag: ${{ github.sha }}
     needs:
     - build-docker
     - build-keycloak-image
