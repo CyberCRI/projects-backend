@@ -1,6 +1,6 @@
 FROM python:3.12-slim AS builder
 
-ARG EXPORT_FLAG=
+ARG EXPORT_FLAG=--dev
 
 RUN pip install --upgrade pip poetry
 
