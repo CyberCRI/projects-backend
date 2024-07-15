@@ -30,10 +30,25 @@ on:
         type: string
         required: true
         description: 'The tag of the keycloak image'
+      backend-image-name:
+        type: string
+        required: true
+        description: 'The name of the backend image'
+      backend-image-tag:
+        type: string
+        required: true
+        description: 'The tag of the backend image'
 
 jobs:
   tests:
     runs-on: backend-lint-test-runner
+    container:
+      image: ${{ vars.registry-name }}/${{ vars.backend-image-name }}/${{ vars.backend-image-tag }}
+      credentials:
+        username: ${{ secrets.registry-username }}
+        password: ${{ secrets.registry-password }}
+      env:
+        DJANGO_SETTINGS_MODULE: projects.settings.local
     services:
       postgres:
         image: postgres:14
@@ -71,36 +86,13 @@ jobs:
           - 1025:1025
           - 8025:8025
     steps:
-      - uses: Nastaliss/get-github-app-pat@v1
-        id: githubAppAuth
-        with:
-          app-id: ${{ secrets.submodules-app-id }}
-          app-installation-id: ${{ secrets.submodules-app-installation-id }}
-          app-private-key: ${{ secrets.submodules-app-private-key }}
-      - name: '[SUBMODULES] Checkout with submodules'
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-          token: ${{ steps.githubAppAuth.outputs.access-token }}
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: "Dockerfile"
-          build-args: |
-            EXPORT_FLAG=--dev
-          tags: localprojectsbackend:latest
-          load: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          push: false
       - name: Check the code formatting
-        run: docker run -v "/var/run/docker.sock":"/var/run/docker.sock" --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make format-check
+        run: make format-check
       - name: Run the linter
-        run: docker run -v "/var/run/docker.sock":"/var/run/docker.sock" --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make lint
+        run: make lint
       - name: Check that migrations are up-to-date
-        run: docker run -v "/var/run/docker.sock":"/var/run/docker.sock" --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make check-migrations
+        run: make check-migrations
       - name: Check that translations are up-to-date
-        run: docker run -v "/var/run/docker.sock":"/var/run/docker.sock" --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make makemessages-check
+        run: make makemessages-check
       - name: Run unit tests
-        run: docker run -v "/var/run/docker.sock":"/var/run/docker.sock" --env DJANGO_SETTINGS_MODULE=projects.settings.local localprojectsbackend:latest make test
+        run: make test

@@ -54,6 +54,7 @@ jobs:
       keycloak-image-name: projects-backend-keycloak
       keycloak-image-tag: ${{ github.sha }}
     needs:
+    - build-docker
     - build-keycloak-image
   tag-deploy:
     needs:
