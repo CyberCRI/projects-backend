@@ -43,7 +43,7 @@ jobs:
   tests:
     runs-on: backend-lint-test-runner
     container:
-      image: ${{ vars.registry-name }}/${{ vars.backend-image-name }}/${{ vars.backend-image-tag }}
+      image: ${{ vars.registry-name }}/${{ vars.backend-image-name }}:${{ vars.backend-image-tag }}
       credentials:
         username: ${{ secrets.registry-username }}
         password: ${{ secrets.registry-password }}
