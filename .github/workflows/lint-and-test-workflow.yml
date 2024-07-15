@@ -52,6 +52,7 @@ jobs:
         password: ${{ secrets.registry-password }}
       env:
         DJANGO_SETTINGS_MODULE: projects.settings.local
+      options: --user root
     services:
       postgres:
         image: postgres:14
