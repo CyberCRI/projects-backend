@@ -1,6 +1,7 @@
 import unicodedata
 
-from django.db.models import Func, Q, QuerySet
+from django.db.models import Func, QuerySet
+from django.db.models.constants import LOOKUP_SEP
 from django_filters import filters
 from rest_framework.filters import SearchFilter
 
@@ -37,13 +38,11 @@ class UnaccentSearchFilter(SearchFilter):
         text = unicodedata.normalize("NFD", text.lower())
         return str(text.encode("ascii", "ignore").decode("utf-8"))
 
-    def filter_queryset(self, request, queryset, view):
-        search_fields = self.get_search_fields(view, request)
-        search_terms = self.get_search_terms(request)
-        if search_fields and search_terms:
-            search_term = self.text_to_ascii(search_terms[0])
-            query = Q()
-            for field in search_fields:
-                query |= Q(**{f"{field}__unaccent__icontains": search_term})
-            return queryset.filter(query)
-        return queryset
+    def construct_search(self, field_name):
+        lookup = self.lookup_prefixes.get(field_name[0])
+        if lookup:
+            field_name = field_name[1:]
+        else:
+            lookup = "icontains"
+        lookup = f"unaccent__{lookup}"
+        return LOOKUP_SEP.join([field_name, lookup])
