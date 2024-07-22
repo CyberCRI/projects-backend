@@ -5,7 +5,7 @@ from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.filters import TrigramSearchFilter
+from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import map_action_to_permission
 from apps.misc import filters, models, serializers
@@ -15,7 +15,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 class WikipediaTagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.WikipediaTagSerializer
     filter_backends = (
-        TrigramSearchFilter,
+        UnaccentSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
     )
@@ -39,7 +39,7 @@ class WikipediaTagViewSet(viewsets.ModelViewSet):
 class TagViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.TagSerializer
     filter_backends = (
-        TrigramSearchFilter,
+        UnaccentSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
     )

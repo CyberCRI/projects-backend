@@ -270,6 +270,3 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
         if "project_id" in self.kwargs:
             return f"/v1/project/{self.kwargs['project_id']}/comment-image/{image.id}"
         return None
-
-    class Meta:
-        additional_actions = ("image",)
