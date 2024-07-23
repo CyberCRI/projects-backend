@@ -1,5 +1,3 @@
-import unicodedata
-
 from django.db.models import Func, QuerySet
 from django.db.models.constants import LOOKUP_SEP
 from django_filters import filters
@@ -32,17 +30,8 @@ class UnaccentSearchFilter(SearchFilter):
     class PostgresUnaccent(Func):
         function = "UNACCENT"
 
-    @staticmethod
-    def text_to_ascii(text):
-        """Convert a text to ASCII."""
-        text = unicodedata.normalize("NFD", text.lower())
-        return str(text.encode("ascii", "ignore").decode("utf-8"))
-
-    def construct_search(self, field_name):
-        lookup = self.lookup_prefixes.get(field_name[0])
-        if lookup:
-            field_name = field_name[1:]
-        else:
-            lookup = "icontains"
-        lookup = f"unaccent__{lookup}"
-        return LOOKUP_SEP.join([field_name, lookup])
+    def construct_search(self, field_name, queryset):
+        lookup = super().construct_search(field_name, queryset)
+        lookup = lookup.split(LOOKUP_SEP)
+        lookup.insert(len(lookup) - 1, "unaccent")
+        return LOOKUP_SEP.join(lookup)
