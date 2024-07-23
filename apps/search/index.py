@@ -331,6 +331,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "organizations",
             "sdgs",
             "title",
+            "has_organization",
             # Project, User
             "subtitle",
             # User, Group
@@ -361,6 +362,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
                     "organizations",
                     "permissions",
                     "sdgs",
+                    "has_organization",
                     # Project
                     "language",
                     "categories_filter",
@@ -393,6 +395,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
         "attributesForFaceting": [
             "organizations",
             "type",
+            "filterOnly(has_organization)",
             "filterOnly(sdgs)",
             "filterOnly(permissions)",
             "filterOnly(language)",
@@ -442,6 +445,11 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
 
     def prepare_title(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_title", "")
+
+    def prepare_has_organization(self, search_object: SearchObject) -> bool:
+        return bool(
+            self.get_field_for_model(search_object, "prepare_organizations", [])
+        )
 
     def prepare_subtitle(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_subtitle", "")
