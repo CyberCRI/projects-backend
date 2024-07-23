@@ -22,6 +22,12 @@ class UserSearchTestCase(JwtAPITestCase):
         cls.organization_2 = OrganizationFactory()
         ProjectUser.objects.all().delete()  # Delete users created by the factories
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+        cls.no_org_user = UserFactory(
+            given_name="algolia",
+            publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
+            sdgs=[2],
+            groups=[],
+        )
         cls.public_user_1 = UserFactory(
             given_name="algolia",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
