@@ -119,6 +119,7 @@ class SearchViewSet(PaginatedViewSet):
         Get all the facet filters to apply to the Algolia search.
         """
         facet_filters = [
+            ["has_organization:true"],
             [f"type:{t}" for t in self.get_filter("types")],
             [f"permissions:{p}" for p in self.get_user_permissions()],
             [f"organizations:{o}" for o in self.get_filter("organizations")],

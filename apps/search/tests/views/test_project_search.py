@@ -31,7 +31,14 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.wikipedia_tag_2 = WikipediaTagFactory()
         cls.organization_tag_2 = TagFactory(organization=cls.organization_2)
         Project.objects.all().delete()  # Delete projects created by the factories
-
+        cls.no_organization_project = ProjectFactory(
+            title="algolia",
+            publication_status=Project.PublicationStatus.PUBLIC,
+            sdgs=[2],
+            language=Language.EN,
+            organizations=[cls.organization],
+        )
+        cls.no_organization_project.organizations.set([])
         cls.public_project_1 = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PUBLIC,

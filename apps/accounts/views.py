@@ -25,7 +25,7 @@ from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
-from apps.commons.filters import TrigramSearchFilter
+from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.serializers import EmailAddressSerializer, RetrieveUpdateModelViewSet
 from apps.commons.utils import map_action_to_permission
@@ -99,7 +99,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
     parser_classes = (JSONParser, UserMultipartParser)
     filter_backends = (
-        TrigramSearchFilter,
+        UnaccentSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
     )
@@ -489,7 +489,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     search_fields = ["name"]
     filter_backends = (
-        TrigramSearchFilter,
+        UnaccentSearchFilter,
         DjangoFilterBackend,
         OrderingFilter,
     )
