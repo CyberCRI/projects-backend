@@ -181,6 +181,24 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             "groups",
         )
 
+    def get_object(self):
+        """
+        Returns the object the view is displaying.
+
+        Overridden to add the organization role to the user if they have logged in
+        through an IdP for the first time.
+
+        This would be better if it was done during authentication but it slows down
+        every authenticated request instead of just this one.
+
+        This might cause some issues on the first login, because some other requests
+        might be made before this one and the organization role would not be added yet.
+        """
+        instance: ProjectUser = super().get_object()
+        if self.request.user.is_authenticated and instance.id == self.request.user.id:
+            instance = instance.add_idp_organizations()
+        return instance
+
     def get_serializer_class(self):
         if self.action == "list":
             return UserLightSerializer
