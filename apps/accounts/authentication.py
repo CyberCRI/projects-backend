@@ -48,10 +48,9 @@ class AdminAuthentication(ModelBackend):
         validated_token = BearerToken(token["access_token"])
         user_id = validated_token[api_settings.USER_ID_CLAIM]
         try:
-            user = ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+            return ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except ProjectUser.DoesNotExist:
             return ProjectUser.import_from_keycloak(user_id)
-        return user
 
 
 class ProjectJWTAuthentication(JWTAuthentication):
