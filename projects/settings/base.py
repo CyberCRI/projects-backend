@@ -193,6 +193,8 @@ if cors_allowed_domains:
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOW_HEADERS = list(default_headers) + [
     "cache-control",  # Used by People frontend
+    "sentry-trace",  # Used by Sentry
+    "baggage",  # Used by Sentry
 ]
 ROOT_URLCONF = "projects.urls"
 
