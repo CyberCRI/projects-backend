@@ -11,30 +11,94 @@ on:
       submodules-app-installation-id:
         required: false
         description: 'The installation id of the app used for authentication. Only needed if `recursive-submodule-checkout` is true.'
+      registry-username:
+        required: true
+        description: 'The username on the registry'
+      registry-password:
+        required: true
+        description: 'The password on the registry'
+    inputs:
+      registry-name:
+        type: string
+        required: true
+        description: 'The name of the registry to push the image to'
+      keycloak-image-name:
+        type: string
+        required: true
+        description: 'The name of the keycloak image'
+      keycloak-image-tag:
+        type: string
+        required: true
+        description: 'The tag of the keycloak image'
+      backend-image-name:
+        type: string
+        required: true
+        description: 'The name of the backend image'
+      backend-image-tag:
+        type: string
+        required: true
+        description: 'The tag of the backend image'
 
 jobs:
   tests:
     runs-on: backend-lint-test-runner
+    defaults:
+      run:
+        working-directory: /app
+    container:
+      image: ${{ inputs.registry-name }}/${{ inputs.backend-image-name }}:${{ inputs.backend-image-tag }}
+      credentials:
+        username: ${{ secrets.registry-username }}
+        password: ${{ secrets.registry-password }}
+      env:
+        DJANGO_SETTINGS_MODULE: projects.settings.local
+      options: --user root
+    services:
+      postgres:
+        image: pgvector/pgvector:pg14
+        env:
+          POSTGRES_PASSWORD: password
+        ports:
+          - 5432:5432
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      mjml:
+        image: danihodovic/mjml-server
+        ports:
+          - 15500:15500
+      keycloak:
+        image: ${{ inputs.registry-name }}/${{inputs.keycloak-image-name}}:${{ inputs.keycloak-image-tag }}
+        credentials:
+          username: ${{ secrets.registry-username }}
+          password: ${{ secrets.registry-password }}
+        ports:
+          - 8001:8080
+        env:
+          KEYCLOAK_ADMIN: admin
+          KEYCLOAK_ADMIN_PASSWORD: admin
+      redis:
+        image: redis:6.2-bullseye
+        ports:
+          - 6379:6379
+      mailhog:
+        image: mailhog/mailhog
+        ports:
+          - 1025:1025
+          - 8025:8025
     steps:
-      - uses: Nastaliss/get-github-app-pat@v1
-        id: githubAppAuth
-        with:
-          app-id: ${{ secrets.submodules-app-id }}
-          app-installation-id: ${{ secrets.submodules-app-installation-id }}
-          app-private-key: ${{ secrets.submodules-app-private-key }}
-      - name: '[SUBMODULES] Checkout with submodules'
-        uses: actions/checkout@v3
-        with:
-          submodules: 'recursive'
-          token: ${{ steps.githubAppAuth.outputs.access-token }}
-      # The previous steps are only needed for recursive submodules checkout
-      - name: Check the code formatting
-        run: docker compose -f docker-compose-tests.yml run projects "make format-check"
-      - name: Run the linter
-        run: docker compose -f docker-compose-tests.yml run projects "make lint"
-      - name: Check that migrations are up-to-date
-        run: docker compose -f docker-compose-tests.yml run projects "make check-migrations"
-      - name: Check that translations are up-to-date
-        run: docker compose -f docker-compose-tests.yml run projects "make makemessages-check"
-      - name: Run unit tests
-        run: docker compose -f docker-compose-tests.yml run projects "make test"
+    - name: test
+      run: ls; pwd; whoami
+    - name: Check the code formatting
+      run: make format-check
+    - name: Run the linter
+      run: make lint
+    - name: Check that migrations are up-to-date
+      run: make check-migrations
+    - name: Check that translations are up-to-date
+      run: make makemessages-check
+    - name: Run unit tests
+      run: make test

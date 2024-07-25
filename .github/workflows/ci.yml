@@ -26,6 +26,20 @@ jobs:
       registry-username: ${{ secrets.DOCKER_PROD_USERNAME }}
       registry-password: ${{ secrets.DOCKER_PROD_PASSWORD }}
 
+  build-keycloak-image:
+    uses: CyberCRI/github-workflows/.github/workflows/build-push.yaml@main
+    with:
+      registry-name: ${{ vars.DOCKER_PROD_REGISTRY }}
+      image-name: projects-backend-keycloak
+      image-tag: ${{ github.sha }}
+      recursive-submodule-checkout: true
+      file: Dockerfile.keycloak
+    secrets:
+      submodules-app-private-key: ${{ secrets.INFRA_BOT_APP_PRIVATE_KEY }}
+      submodules-app-id: ${{ secrets.INFRA_BOT_APP_ID }}
+      submodules-app-installation-id: ${{ secrets.INFRA_BOT_APP_INSTALLATION_ID }}
+      registry-username: ${{ secrets.DOCKER_PROD_USERNAME }}
+      registry-password: ${{ secrets.DOCKER_PROD_PASSWORD }}
 
   lint-and-test:
     uses: ./.github/workflows/lint-and-test-workflow.yml
@@ -33,10 +47,21 @@ jobs:
       submodules-app-private-key: ${{ secrets.INFRA_BOT_APP_PRIVATE_KEY }}
       submodules-app-id: ${{ secrets.INFRA_BOT_APP_ID }}
       submodules-app-installation-id: ${{ secrets.INFRA_BOT_APP_INSTALLATION_ID }}
+      registry-username: ${{ secrets.DOCKER_PROD_USERNAME }}
+      registry-password: ${{ secrets.DOCKER_PROD_PASSWORD }}
+    with:
+      registry-name: ${{ vars.DOCKER_PROD_REGISTRY }}
+      keycloak-image-name: projects-backend-keycloak
+      keycloak-image-tag: ${{ github.sha }}
+      backend-image-name: projects-backend
+      backend-image-tag: ${{ github.sha }}
+    needs:
+    - build-docker
+    - build-keycloak-image
   tag-deploy:
     needs:
-      - build-docker
-      - lint-and-test
+    - build-docker
+    - lint-and-test
     uses: CyberCRI/github-workflows/.github/workflows/tag-deploy.yaml@main
 
   tag-deploy-fast:
