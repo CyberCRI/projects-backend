@@ -476,6 +476,17 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         )
         return user
 
+    def add_idp_organizations(self) -> "ProjectUser":
+        keycloak_user = KeycloakService.get_user(self.keycloak_id)
+        organizations_codes = keycloak_user.get("attributes", {}).get(
+            "idp_organizations", []
+        )
+        organizations = Organization.objects.filter(
+            code__in=organizations_codes
+        ).exclude(groups__users=self)
+        self.groups.add(*[o.get_users() for o in organizations])
+        return self
+
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self == user
