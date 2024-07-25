@@ -48,14 +48,9 @@ class AdminAuthentication(ModelBackend):
         validated_token = BearerToken(token["access_token"])
         user_id = validated_token[api_settings.USER_ID_CLAIM]
         try:
-            user: ProjectUser = ProjectUser.objects.get(
-                **{api_settings.USER_ID_FIELD: user_id}
-            )
+            return ProjectUser.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except ProjectUser.DoesNotExist:
             return ProjectUser.import_from_keycloak(user_id)
-        else:
-            user.add_idp_organizations()
-        return user
 
 
 class ProjectJWTAuthentication(JWTAuthentication):
@@ -113,13 +108,9 @@ class ProjectJWTAuthentication(JWTAuthentication):
         except KeyError:
             raise InvalidTokenError
         try:
-            user: ProjectUser = self.user_model.objects.get(
-                **{api_settings.USER_ID_FIELD: user_id}
-            )
+            user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except self.user_model.DoesNotExist:
             return self._create_user(validated_token)
-        else:
-            user.add_idp_organizations()
 
         if not user.is_active:
             raise InactiveUserError

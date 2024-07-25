@@ -903,7 +903,9 @@ class MiscUserTestCase(JwtAPITestCase):
             "attributes": {"idp_organizations": [organization_2.code]},
         }
         KeycloakService._update_user(user_1.keycloak_id, payload_1)
-        user_1 = user_1.add_idp_organizations()
+        self.client.force_authenticate(user_1)
+        self.client.get(reverse("ProjectUser-detail", args=(user_1.id,)))
+        user_1.refresh_from_db()
         self.assertIn(user_1, organization_1.users.all())
         self.assertIn(user_1, organization_2.users.all())
 
@@ -918,7 +920,9 @@ class MiscUserTestCase(JwtAPITestCase):
             "attributes": {"idp_organizations": [organization_2.code]},
         }
         KeycloakService._update_user(user_2.keycloak_id, payload_2)
-        user_2 = user_2.add_idp_organizations()
+        self.client.force_authenticate(user_2)
+        self.client.get(reverse("ProjectUser-detail", args=(user_2.id,)))
+        user_2.refresh_from_db()
         self.assertIn(user_2, organization_1.users.all())
         self.assertIn(user_2, organization_2.admins.all())
 
