@@ -890,6 +890,38 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertIsNotNone(user)
         self.assertIn(user, organization.users.all())
 
+    def test_add_organization_from_keycloak_attributes_existing_user(self):
+        organization_1 = OrganizationFactory()
+        organization_2 = OrganizationFactory()
+
+        user_1 = SeedUserFactory(groups=[organization_1.get_users()])
+        payload_1 = {
+            "username": user_1.email,
+            "email": user_1.email,
+            "firstName": user_1.given_name,
+            "lastName": user_1.family_name,
+            "attributes": {"idp_organizations": [organization_2.code]},
+        }
+        KeycloakService._update_user(user_1.keycloak_id, payload_1)
+        user_1 = user_1.add_idp_organizations()
+        self.assertIn(user_1, organization_1.users.all())
+        self.assertIn(user_1, organization_2.users.all())
+
+        user_2 = SeedUserFactory(
+            groups=[organization_1.get_users(), organization_2.get_admins()]
+        )
+        payload_2 = {
+            "username": user_2.email,
+            "email": user_2.email,
+            "firstName": user_2.given_name,
+            "lastName": user_2.family_name,
+            "attributes": {"idp_organizations": [organization_2.code]},
+        }
+        KeycloakService._update_user(user_2.keycloak_id, payload_2)
+        user_2 = user_2.add_idp_organizations()
+        self.assertIn(user_2, organization_1.users.all())
+        self.assertIn(user_2, organization_2.admins.all())
+
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)
         admins = UserFactory.create_batch(3)
