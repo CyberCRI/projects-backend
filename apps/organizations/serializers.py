@@ -372,6 +372,7 @@ class ProjectCategorySerializer(
     organization = SlugRelatedField(read_only=True, slug_field="code")
     hierarchy = serializers.SerializerMethodField()
     children = serializers.SerializerMethodField()
+    projects_count = serializers.SerializerMethodField()
     # write-only
     background_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -412,6 +413,7 @@ class ProjectCategorySerializer(
             "parent",
             "hierarchy",
             "children",
+            "projects_count",
             # read-only
             "background_image",
             "organization",
@@ -436,6 +438,9 @@ class ProjectCategorySerializer(
             {"id": child.id, "name": child.name}
             for child in obj.children.all().order_by("name")
         ]
+
+    def get_projects_count(self, obj: ProjectCategory) -> int:
+        return obj.projects.count()
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
@@ -530,9 +535,20 @@ class ProjectCategorySerializer(
 
 
 class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
+    projects_count = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectCategory
-        fields = ["id", "name", "background_color", "foreground_color"]
+        fields = [
+            "id",
+            "name",
+            "background_color",
+            "foreground_color",
+            "projects_count",
+        ]
+
+    def get_projects_count(self, obj: ProjectCategory) -> int:
+        return obj.projects.count()
 
     def get_related_organizations(self) -> List[Organization]:
         self.is_valid(raise_exception=True)
