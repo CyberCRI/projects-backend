@@ -863,6 +863,8 @@ class Skill(models.Model, HasOwner):
     level = models.SmallIntegerField()
     level_to_reach = models.SmallIntegerField()
     category = models.CharField(max_length=255, blank=True, default="")
+    can_mentor = models.BooleanField(default=False)
+    needs_mentor = models.BooleanField(default=False)
 
     class Meta:
         constraints = [
