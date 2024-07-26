@@ -85,8 +85,8 @@ def people_group_router_register(
 
 
 def user_router_register(
-        router: DefaultRouter, prefix: str, viewset: View, basename: str = None
-    ):
+    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+):
     router.register(
         r"organization/(?P<organization_code>[^/]+)/"
         r"user/(?P<user_id>[^/]+)/" + prefix,

@@ -859,7 +859,9 @@ class Skill(models.Model, HasOwner):
     type = models.CharField(
         max_length=8, choices=SkillType.choices, default=SkillType.SKILL.value
     )
-    wikipedia_tag = models.ForeignKey(WikipediaTag, on_delete=models.CASCADE, related_name="skills")
+    wikipedia_tag = models.ForeignKey(
+        WikipediaTag, on_delete=models.CASCADE, related_name="skills"
+    )
     level = models.SmallIntegerField()
     level_to_reach = models.SmallIntegerField()
     category = models.CharField(max_length=255, blank=True, default="")
