@@ -178,13 +178,13 @@ class UserLightSerializer(serializers.ModelSerializer):
         return SkillSerializer(
             user.skills.filter(type=Skill.SkillType.SKILL), many=True
         ).data
-    
+
     def get_needs_mentoring_on(self, user: ProjectUser) -> List[Dict]:
         if getattr(user, "needs_mentoring_on", None):
             skills = Skill.objects.filter(id__in=user.needs_mentoring_on)
             return SkillSerializer(skills, many=True).data
         return []
-    
+
     def get_can_mentor_on(self, user: ProjectUser) -> List[Dict]:
         if getattr(user, "can_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.can_mentor_on)

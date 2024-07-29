@@ -2,7 +2,7 @@ from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register, user_router_register
 
-from .views import UserMentorshipViewset, OrganizationMentorshipViewset
+from .views import OrganizationMentorshipViewset, UserMentorshipViewset
 
 router = DefaultRouter()
 

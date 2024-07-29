@@ -17,12 +17,14 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        
+
         cls.public_public_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        cls.public_public_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.PUBLIC
+        cls.public_public_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.PUBLIC
+        )
         cls.public_public_user.privacy_settings.save()
 
         # Add another user with the same privacy settings, but with only one skill
@@ -31,56 +33,72 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        cls.public_public_user_2.privacy_settings.skills = PrivacySettings.PrivacyChoices.PUBLIC
+        cls.public_public_user_2.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.PUBLIC
+        )
         cls.public_public_user_2.privacy_settings.save()
 
         cls.private_public_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
         )
-        cls.private_public_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.PUBLIC
+        cls.private_public_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.PUBLIC
+        )
         cls.private_public_user.privacy_settings.save()
 
         cls.org_public_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
         )
-        cls.org_public_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.PUBLIC
+        cls.org_public_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.PUBLIC
+        )
         cls.org_public_user.privacy_settings.save()
 
         cls.public_private_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        cls.public_private_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.HIDE
+        cls.public_private_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.HIDE
+        )
         cls.public_private_user.privacy_settings.save()
 
         cls.private_private_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
         )
-        cls.private_private_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.HIDE
+        cls.private_private_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.HIDE
+        )
         cls.private_private_user.privacy_settings.save()
 
         cls.org_private_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
         )
-        cls.org_private_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.HIDE
+        cls.org_private_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.HIDE
+        )
         cls.org_private_user.privacy_settings.save()
 
         cls.public_org_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        cls.public_org_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.ORGANIZATION
+        cls.public_org_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.ORGANIZATION
+        )
         cls.public_org_user.privacy_settings.save()
 
         cls.private_org_user = UserFactory(
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
         )
-        cls.private_org_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.ORGANIZATION
+        cls.private_org_user.privacy_settings.skills = (
+            PrivacySettings.PrivacyChoices.ORGANIZATION
+        )
         cls.private_org_user.privacy_settings.save()
 
         cls.other_user = UserFactory(
@@ -110,7 +128,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
         cls.mentoree_skill_2 = WikipediaTagFactory()
 
         cls.other_skill = WikipediaTagFactory()
-        
+
         for user_type, user in cls.users.items():
             if user_type == "other":
                 SkillFactory(user=user, wikipedia_tag=cls.mentor_skill_1)
@@ -120,9 +138,13 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
                 SkillFactory(user=user, wikipedia_tag=cls.other_skill)
             elif user_type == "public_public_2":
                 SkillFactory(user=user, wikipedia_tag=cls.mentor_skill_1)
-                SkillFactory(user=user, wikipedia_tag=cls.mentor_skill_2, can_mentor=True)
+                SkillFactory(
+                    user=user, wikipedia_tag=cls.mentor_skill_2, can_mentor=True
+                )
                 SkillFactory(user=user, wikipedia_tag=cls.mentoree_skill_1)
-                SkillFactory(user=user, wikipedia_tag=cls.mentoree_skill_2, needs_mentor=True)
+                SkillFactory(
+                    user=user, wikipedia_tag=cls.mentoree_skill_2, needs_mentor=True
+                )
                 SkillFactory(user=user, wikipedia_tag=cls.other_skill)
             else:
                 SkillFactory(
@@ -138,8 +160,6 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
                     user=user, wikipedia_tag=cls.mentoree_skill_2, needs_mentor=True
                 )
                 SkillFactory(user=user, wikipedia_tag=cls.other_skill)
-        
-
 
     @parameterized.expand(
         [
@@ -165,7 +185,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
         self.assertEqual(content[0]["mentors_count"], skill_2_mentors)
         self.assertEqual(content[1]["id"], self.mentor_skill_1.id)
         self.assertEqual(content[1]["mentors_count"], skill_1_mentors)
-        
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, 1, 2),

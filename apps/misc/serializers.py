@@ -16,7 +16,14 @@ class WikipediaTagSerializer(TranslatedModelSerializer):
 
     class Meta:
         model = WikipediaTag
-        fields = ["id", "name", "wikipedia_qid", "description", "mentors_count", "mentorees_count"]
+        fields = [
+            "id",
+            "name",
+            "wikipedia_qid",
+            "description",
+            "mentors_count",
+            "mentorees_count",
+        ]
         lookup_field = "wikipedia_qid"
 
 

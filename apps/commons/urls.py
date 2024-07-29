@@ -57,9 +57,7 @@ class DetailOnlyNestedRouter(NestedMixin, DefaultRouter):
 def organization_router_register(
     router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    prefix = (
-        r"organization/(?P<organization_code>[^/]+)"
-    )
+    prefix = r"organization/(?P<organization_code>[^/]+)"
     if path:
         prefix += "/" + path
     router.register(prefix, viewset, basename)
@@ -69,8 +67,7 @@ def project_router_register(
     router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
     prefix = (
-        r"organization/(?P<organization_code>[^/]+)/"
-        r"project/(?P<project_id>[^/]+)"
+        r"organization/(?P<organization_code>[^/]+)/" r"project/(?P<project_id>[^/]+)"
     )
     if path:
         prefix += "/" + path
@@ -92,10 +89,7 @@ def people_group_router_register(
 def user_router_register(
     router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    prefix = (
-        r"organization/(?P<organization_code>[^/]+)/"
-        r"user/(?P<user_id>[^/]+)"
-    )
+    prefix = r"organization/(?P<organization_code>[^/]+)/" r"user/(?P<user_id>[^/]+)"
     if path:
         prefix += "/" + path
     router.register(prefix, viewset, basename)
