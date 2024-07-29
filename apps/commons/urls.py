@@ -55,41 +55,47 @@ class DetailOnlyNestedRouter(NestedMixin, DefaultRouter):
 
 
 def organization_router_register(
-    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+    router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    router.register(
-        r"organization/(?P<organization_code>[^/]+)/" + prefix, viewset, basename
+    prefix = (
+        r"organization/(?P<organization_code>[^/]+)"
     )
+    if path:
+        prefix += "/" + path
+    router.register(prefix, viewset, basename)
 
 
 def project_router_register(
-    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+    router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    router.register(
+    prefix = (
         r"organization/(?P<organization_code>[^/]+)/"
-        r"project/(?P<project_id>[^/]+)/" + prefix,
-        viewset,
-        basename,
+        r"project/(?P<project_id>[^/]+)"
     )
+    if path:
+        prefix += "/" + path
+    router.register(prefix, viewset, basename)
 
 
 def people_group_router_register(
-    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+    router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    router.register(
+    prefix = (
         r"organization/(?P<organization_code>[^/]+)/"
-        r"people-group/(?P<people_group_id>[^/]+)/" + prefix,
-        viewset,
-        basename,
+        r"people-group/(?P<people_group_id>[^/]+)"
     )
+    if path:
+        prefix += "/" + path
+    router.register(prefix, viewset, basename)
 
 
 def user_router_register(
-    router: DefaultRouter, prefix: str, viewset: View, basename: str = None
+    router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    router.register(
+    prefix = (
         r"organization/(?P<organization_code>[^/]+)/"
-        r"user/(?P<user_id>[^/]+)/" + prefix,
-        viewset,
-        basename,
+        r"user/(?P<user_id>[^/]+)"
     )
+    if path:
+        prefix += "/" + path
+    router.register(prefix, viewset, basename)
