@@ -48,6 +48,22 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
         )
 
 
+class SkillLightSerializer(serializers.ModelSerializer):
+    wikipedia_tag = TagRelatedField(read_only=True)
+
+    class Meta:
+        model = Skill
+        read_only_fields = [
+            "id",
+            "wikipedia_tag",
+            "level",
+            "level_to_reach",
+            "category",
+            "type",
+        ]
+        fields = read_only_fields
+
+
 class UserAdminListSerializer(serializers.ModelSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
@@ -95,6 +111,8 @@ class UserLightSerializer(serializers.ModelSerializer):
     skills = PrivacySettingProtectedMethodField(
         privacy_field="skills", default_value=[]
     )
+    needs_mentoring_on = serializers.SerializerMethodField()
+    can_mentor_on = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjectUser
@@ -116,6 +134,8 @@ class UserLightSerializer(serializers.ModelSerializer):
             "people_groups",
             "created_at",
             "skills",
+            "needs_mentoring_on",
+            "can_mentor_on",
         ]
         fields = read_only_fields
 
@@ -158,6 +178,18 @@ class UserLightSerializer(serializers.ModelSerializer):
         return SkillSerializer(
             user.skills.filter(type=Skill.SkillType.SKILL), many=True
         ).data
+    
+    def get_needs_mentoring_on(self, user: ProjectUser) -> List[Dict]:
+        if getattr(user, "needs_mentoring_on", None):
+            skills = Skill.objects.filter(id__in=user.needs_mentoring_on)
+            return SkillSerializer(skills, many=True).data
+        return []
+    
+    def get_can_mentor_on(self, user: ProjectUser) -> List[Dict]:
+        if getattr(user, "can_mentor_on", None):
+            skills = Skill.objects.filter(id__in=user.can_mentor_on)
+            return SkillSerializer(skills, many=True).data
+        return []
 
 
 class PeopleGroupSuperLightSerializer(serializers.ModelSerializer):

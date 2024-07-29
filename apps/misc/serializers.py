@@ -11,9 +11,12 @@ from .models import Tag, WikipediaTag
 
 
 class WikipediaTagSerializer(TranslatedModelSerializer):
+    mentors_count = serializers.IntegerField(required=False, read_only=True)
+    mentorees_count = serializers.IntegerField(required=False, read_only=True)
+
     class Meta:
         model = WikipediaTag
-        fields = ["id", "name", "wikipedia_qid", "description"]
+        fields = ["id", "name", "wikipedia_qid", "description", "mentors_count", "mentorees_count"]
         lookup_field = "wikipedia_qid"
 
 
