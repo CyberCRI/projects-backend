@@ -4,22 +4,45 @@ from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 
-from apps.accounts.models import ProjectUser, Skill
+from apps.accounts.models import ProjectUser, Skill, PrivacySettings
+from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin, PaginatedViewSet
 from apps.misc.models import WikipediaTag
+from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
-
-from .serializers import UserMentorshipSerializer, WikipediaTagMentorshipSerializer
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):
-    serializer_class = WikipediaTagMentorshipSerializer
+    serializer_class = WikipediaTagSerializer
     permission_classes = [ReadOnly]
 
     def get_organization(self) -> Organization:
         organization_code = self.kwargs["organization_code"]
         return get_object_or_404(Organization, code=organization_code)
+    
+    def get_user_queryset(self):
+        organization = self.get_organization()
+        request_user = self.request.user
+        user_queryset = self.request.user.get_user_queryset().filter(
+            id__in=organization.get_all_members().values_list("id", flat=True)
+        )
+        if request_user.is_authenticated:
+            if request_user.is_superuser or request_user in (organization.admins.all() | organization.facilitators.all()):
+                return user_queryset
+            if request_user in organization.get_all_members():
+                return user_queryset.filter(
+                    Q(
+                        privacy_settings__skills__in=[
+                            PrivacySettings.PrivacyChoices.ORGANIZATION,
+                            PrivacySettings.PrivacyChoices.PUBLIC,
+                        ]
+                    )
+                    | Q(id=request_user.id)
+                )
+        return user_queryset.filter(
+            privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
+        )
 
     @extend_schema(
         parameters=[
@@ -38,19 +61,18 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         ]
     )
     @action(
-        detail=True,
+        detail=False,
         methods=["GET"],
         url_path="mentored-skill",
+        url_name="mentored-skill",
         permission_classes=[ReadOnly],
     )
     def mentored_skill(self, request, *args, **kwargs):
         """
         Get all skills in current organization that have at least one mentor.
         """
-        organization = self.get_organization()
         skills = Skill.objects.filter(
-            user__in=organization.get_all_members(),
-            can_mentor=True,
+            user__in=self.get_user_queryset(), can_mentor=True
         ).distinct()
         wikipedia_tags = (
             WikipediaTag.objects.filter(skills__in=skills)
@@ -81,19 +103,18 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         ]
     )
     @action(
-        detail=True,
+        detail=False,
         methods=["GET"],
         url_path="mentoree-skill",
+        url_name="mentoree-skill",
         permission_classes=[ReadOnly],
     )
     def mentoree_skill(self, request, *args, **kwargs):
         """
         Get all skills in current organization that have at least one person who wants to be mentored.
         """
-        organization = self.get_organization()
         skills = Skill.objects.filter(
-            user__in=organization.get_all_members(),
-            needs_mentor=True,
+            user__in=self.get_user_queryset(), needs_mentor=True
         ).distinct()
         wikipedia_tags = (
             WikipediaTag.objects.filter(skills__in=skills)
@@ -109,7 +130,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
 
 
 class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
-    serializer_class = UserMentorshipSerializer
+    serializer_class = UserLightSerializer
     permission_classes = [ReadOnly]
     multiple_lookup_fields = [
         (ProjectUser, "user_id"),
@@ -123,6 +144,29 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         organization = self.get_organization()
         user_id = self.kwargs["user_id"]
         return get_object_or_404(organization.get_all_members(), id=user_id)
+
+    
+    def get_user_queryset(self):
+        organization = self.get_organization()
+        request_user = self.request.user
+        user_queryset = self.request.user.get_user_queryset().filter(
+            id__in=organization.get_all_members().values_list("id", flat=True)
+        )
+        if request_user.is_authenticated:
+            if request_user.is_superuser or request_user in (organization.admins.all() | organization.facilitators.all()):
+                return user_queryset
+            if request_user in organization.get_all_members():
+                return user_queryset.filter(
+                    Q(
+                        privacy_settings__skills__in=[
+                            PrivacySettings.PrivacyChoices.ORGANIZATION,
+                            PrivacySettings.PrivacyChoices.PUBLIC,
+                        ]
+                    )
+                )
+        return user_queryset.filter(
+            privacy_settings__skills=PrivacySettings.PrivacyChoices.PUBLIC
+        )
 
     @extend_schema(
         parameters=[
@@ -141,23 +185,23 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         ]
     )
     @action(
-        detail=True,
+        detail=False,
         methods=["GET"],
-        url_path="/user/(?P<user_id>[^/]+)/mentoree-candidate",
+        url_path="mentoree-candidate",
+        url_name="mentoree-candidate",
         permission_classes=[ReadOnly],
     )
-    def potential_mentoree(self, request, *args, **kwargs):
+    def mentoree_candidate(self, request, *args, **kwargs):
         """
         Get all users in current organization that have at least one skill that could be mentored by the user.
         """
-        user = self.get_user()
-        organization = self.get_organization()
+        user = get_object_or_404(self.request.user.get_user_queryset(), id=self.kwargs["user_id"])
         user_mentored_skills = WikipediaTag.objects.filter(
             user=user,
             skills__can_mentor=True,
         ).distinct()
         mentorees_skills = Skill.objects.filter(
-            user__in=organization.get_all_members(),
+            user__in=self.get_user_queryset(),
             needs_mentor=True,
             wikipedia_tag__in=user_mentored_skills,
         ).distinct()
@@ -190,23 +234,23 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         ]
     )
     @action(
-        detail=True,
+        detail=False,
         methods=["GET"],
-        url_path="/user/(?P<user_id>[^/]+)/mentor-candidate",
+        url_path="mentor-candidate",
+        url_name="mentor-candidate",
         permission_classes=[ReadOnly],
     )
-    def potential_mentor(self, request, *args, **kwargs):
+    def mentor_candidate(self, request, *args, **kwargs):
         """
         Get all users in current organization that have at least one skill that could be mentored by the user.
         """
-        user = self.get_user()
-        organization = self.get_organization()
+        user = get_object_or_404(self.request.user.get_user_queryset(), id=self.kwargs["user_id"])
         user_mentoree_skills = WikipediaTag.objects.filter(
-            user=user,
+            skills__user=user,
             skills__needs_mentor=True,
         ).distinct()
         mentors_skills = Skill.objects.filter(
-            user__in=organization.get_all_members(),
+            user__in=self.get_user_queryset(),
             can_mentor=True,
             wikipedia_tag__in=user_mentoree_skills,
         ).distinct()
