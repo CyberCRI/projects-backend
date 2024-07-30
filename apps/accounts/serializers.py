@@ -111,7 +111,7 @@ class UserLightSerializer(serializers.ModelSerializer):
     skills = PrivacySettingProtectedMethodField(
         privacy_field="skills", default_value=[]
     )
-    needs_mentoring_on = serializers.SerializerMethodField()
+    needs_mentor_on = serializers.SerializerMethodField()
     can_mentor_on = serializers.SerializerMethodField()
 
     class Meta:
@@ -134,7 +134,7 @@ class UserLightSerializer(serializers.ModelSerializer):
             "people_groups",
             "created_at",
             "skills",
-            "needs_mentoring_on",
+            "needs_mentor_on",
             "can_mentor_on",
         ]
         fields = read_only_fields
@@ -179,9 +179,9 @@ class UserLightSerializer(serializers.ModelSerializer):
             user.skills.filter(type=Skill.SkillType.SKILL), many=True
         ).data
 
-    def get_needs_mentoring_on(self, user: ProjectUser) -> List[Dict]:
-        if getattr(user, "needs_mentoring_on", None):
-            skills = Skill.objects.filter(id__in=user.needs_mentoring_on)
+    def get_needs_mentor_on(self, user: ProjectUser) -> List[Dict]:
+        if getattr(user, "needs_mentor_on", None):
+            skills = Skill.objects.filter(id__in=user.needs_mentor_on)
             return SkillSerializer(skills, many=True).data
         return []
 

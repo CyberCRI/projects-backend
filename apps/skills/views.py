@@ -202,7 +202,7 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
             self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
         )
         user_mentored_skills = WikipediaTag.objects.filter(
-            user=user,
+            skills__user=user,
             skills__can_mentor=True,
         ).distinct()
         mentorees_skills = Skill.objects.filter(
@@ -211,7 +211,7 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
             wikipedia_tag__in=user_mentored_skills,
         ).distinct()
         users = ProjectUser.objects.filter(skills__in=mentorees_skills).annotate(
-            needs_mentoring_on=ArrayAgg(
+            needs_mentor_on=ArrayAgg(
                 "skills",
                 filter=Q(
                     skills__needs_mentor=True,
