@@ -90,7 +90,7 @@ class WikibaseItemViewset(ViewSet):
             )
             .distinct()
             .annotate(
-                usage=Count("skill", distinct=True)
+                usage=Count("skills", distinct=True)
                 + Count("projects", distinct=True)
                 + Count("organization", distinct=True)
                 + Count("project_categories", distinct=True)
