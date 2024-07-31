@@ -7,7 +7,7 @@ from django.db.models import QuerySet
 from django.utils.html import strip_tags
 
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
-from apps.organizations.utils import get_hierarchy_codes
+from apps.organizations.utils import get_above_hierarchy_codes
 from apps.projects.models import Project
 from apps.search.models import SearchObject
 
@@ -27,7 +27,7 @@ class ProjectIndex:
     @staticmethod
     def prepare_organizations(project: Project) -> List[str]:
         """Return the organizations' code for Algolia indexing."""
-        return get_hierarchy_codes(
+        return get_above_hierarchy_codes(
             [o.code for o in project.get_related_organizations()]
         )
 

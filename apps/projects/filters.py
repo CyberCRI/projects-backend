@@ -6,7 +6,7 @@ from django_filters import rest_framework as filters
 
 from apps.accounts.models import ProjectUser
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
-from apps.organizations.utils import get_hierarchy_codes
+from apps.organizations.utils import get_below_hierarchy_codes
 
 from .models import Location, Project
 
@@ -28,7 +28,7 @@ class ProjectFilterMixin(filters.FilterSet):
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
-            organizations__code__in=get_hierarchy_codes(value)
+            organizations__code__in=get_below_hierarchy_codes(value)
         ).distinct()
 
 
@@ -88,5 +88,5 @@ class LocationFilter(filters.FilterSet):
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
-            project__organizations__code__in=get_hierarchy_codes(value)
+            project__organizations__code__in=get_below_hierarchy_codes(value)
         ).distinct()
