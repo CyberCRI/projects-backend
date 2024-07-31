@@ -2,7 +2,7 @@ from django.db.models import Q
 from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
-from apps.organizations.utils import get_hierarchy_codes
+from apps.organizations.utils import get_below_hierarchy_codes
 
 from .models import SearchObject
 
@@ -23,7 +23,7 @@ class SearchObjectFilter(filters.FilterSet):
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
-            Q(project__organizations__code__in=get_hierarchy_codes(value))
+            Q(project__organizations__code__in=get_below_hierarchy_codes(value))
             | Q(people_group__organization__code__in=value)
             | Q(user__groups__organizations__code__in=value)
         ).distinct()

@@ -36,7 +36,7 @@ from apps.notifications.tasks import (
 )
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.organizations.utils import get_hierarchy_codes
+from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
@@ -458,7 +458,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             raise OrganizationsParameterMissing
         threshold = int(request.query_params.get("threshold", 5))
         queryset = self.request.user.get_project_queryset().filter(
-            organizations__code__in=get_hierarchy_codes(organizations)
+            organizations__code__in=get_below_hierarchy_codes(organizations)
         )
         queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)

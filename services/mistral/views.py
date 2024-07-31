@@ -12,7 +12,7 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin
-from apps.organizations.utils import get_hierarchy_codes
+from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 
@@ -88,7 +88,7 @@ class RecommendationsViewset(GenericViewSet, MultipleIDViewsetMixin):
             project = get_object_or_404(
                 self.request.user.get_project_queryset(),
                 id=self.kwargs["project_id"],
-                organizations__code__in=get_hierarchy_codes(
+                organizations__code__in=get_below_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
             )
@@ -197,7 +197,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
         queryset = (
             self.request.user.get_project_queryset()
             .filter(
-                organizations__code__in=get_hierarchy_codes(
+                organizations__code__in=get_below_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
                 score__activity__gte=1,  # 9 weeks of inactivity
@@ -211,7 +211,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[Project]:
         queryset = user.get_project_queryset().filter(
-            organizations__code__in=get_hierarchy_codes(
+            organizations__code__in=get_below_hierarchy_codes(
                 [self.kwargs["organization_code"]]
             ),
             score__activity__gte=1,
@@ -232,7 +232,7 @@ class UserRecommendationsViewset(RecommendationsViewset):
         queryset = (
             self.request.user.get_user_queryset()
             .filter(
-                groups__organizations__code__in=get_hierarchy_codes(
+                groups__organizations__code__in=get_below_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
                 score__activity__gte=0.1,  # 49 weeks of inactivity
@@ -248,7 +248,7 @@ class UserRecommendationsViewset(RecommendationsViewset):
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[ProjectUser]:
         queryset = user.get_user_queryset().filter(
-            groups__organizations__code__in=get_hierarchy_codes(
+            groups__organizations__code__in=get_below_hierarchy_codes(
                 [self.kwargs["organization_code"]]
             ),
             score__activity__gte=0.1,  # 49 weeks of inactivity
