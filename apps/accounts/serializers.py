@@ -48,22 +48,6 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
         )
 
 
-class SkillLightSerializer(serializers.ModelSerializer):
-    wikipedia_tag = TagRelatedField(read_only=True)
-
-    class Meta:
-        model = Skill
-        read_only_fields = [
-            "id",
-            "wikipedia_tag",
-            "level",
-            "level_to_reach",
-            "category",
-            "type",
-        ]
-        fields = read_only_fields
-
-
 class UserAdminListSerializer(serializers.ModelSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
@@ -175,9 +159,7 @@ class UserLightSerializer(serializers.ModelSerializer):
         ).data
 
     def get_skills(self, user: ProjectUser) -> List[Dict]:
-        return SkillSerializer(
-            user.skills.filter(type=Skill.SkillType.SKILL), many=True
-        ).data
+        return SkillLightSerializer(user.skills.all(), many=True).data
 
     def get_needs_mentor_on(self, user: ProjectUser) -> List[Dict]:
         if getattr(user, "needs_mentor_on", None):
@@ -469,9 +451,6 @@ class UserSerializer(serializers.ModelSerializer):
     skills = PrivacySettingProtectedMethodField(
         privacy_field="skills", default_value=[]
     )
-    hobbies = PrivacySettingProtectedMethodField(
-        privacy_field="skills", default_value=[]
-    )
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
     )
@@ -536,7 +515,6 @@ class UserSerializer(serializers.ModelSerializer):
             "notifications",
             "privacy_settings",
             "skills",
-            "hobbies",
             "profile_picture",
             "id",
             "language",
@@ -632,14 +610,7 @@ class UserSerializer(serializers.ModelSerializer):
         return user.get_instance_permissions_representations()
 
     def get_skills(self, user: ProjectUser) -> List[Dict]:
-        return SkillSerializer(
-            user.skills.filter(type=Skill.SkillType.SKILL), many=True
-        ).data
-
-    def get_hobbies(self, user: ProjectUser) -> List[Dict]:
-        return SkillSerializer(
-            user.skills.filter(type=Skill.SkillType.HOBBY), many=True
-        ).data
+        return SkillLightSerializer(user.skills.all(), many=True).data
 
     def get_profile_picture(self, user: ProjectUser) -> Optional[Dict]:
         if user.profile_picture is None:
@@ -740,6 +711,24 @@ class EmptyPayloadResponseSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         pass
+
+
+class SkillLightSerializer(serializers.ModelSerializer):
+    wikipedia_tag = TagRelatedField(read_only=True)
+
+    class Meta:
+        model = Skill
+        read_only_fields = [
+            "id",
+            "wikipedia_tag",
+            "level",
+            "level_to_reach",
+            "category",
+            "type",
+            "can_mentor",
+            "needs_mentor",
+        ]
+        fields = read_only_fields
 
 
 class SkillSerializer(serializers.ModelSerializer):
