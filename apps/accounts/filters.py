@@ -27,6 +27,10 @@ class PeopleGroupFilter(filters.FilterSet):
 class UserFilter(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
     current_org_role = MultiValueCharFilter(method="filter_current_org_role")
+    can_mentor = filters.BooleanFilter(method="filter_can_mentor")
+    needs_mentor = filters.BooleanFilter(method="filter_needs_mentor")
+    can_mentor_on = MultiValueCharFilter(method="filter_can_mentor_on")
+    needs_mentor_on = MultiValueCharFilter(method="filter_needs_mentor_on")
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(groups__organizations__code__in=value).distinct()
@@ -42,6 +46,29 @@ class UserFilter(filters.FilterSet):
             ]
         )
 
+    def filter_can_mentor(self, queryset, name, value):
+        return queryset.filter(skills__can_mentor=value).distinct()
+
+    def filter_needs_mentor(self, queryset, name, value):
+        return queryset.filter(skills__needs_mentor=value).distinct()
+
+    def filter_can_mentor_on(self, queryset, name, value):
+        return queryset.filter(
+            skills__can_mentor=True, skills__wikipedia_tag__wikipedia_qid__in=value
+        ).distinct()
+
+    def filter_needs_mentor_on(self, queryset, name, value):
+        return queryset.filter(
+            skills__needs_mentor=True, skills__wikipedia_tag__wikipedia_qid__in=value
+        ).distinct()
+
     class Meta:
         model = ProjectUser
-        fields = ["organizations", "current_org_role"]
+        fields = [
+            "organizations",
+            "current_org_role",
+            "can_mentor",
+            "needs_mentor",
+            "can_mentor_on",
+            "needs_mentor_on",
+        ]

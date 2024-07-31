@@ -11,11 +11,17 @@ from guardian.shortcuts import assign_perm
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    SkillFactory,
+    UserFactory,
+)
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.invitations.factories import InvitationFactory
+from apps.misc.factories import WikipediaTagFactory
 from apps.misc.models import SDG
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
@@ -662,6 +668,20 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         cls.organization.admins.add(cls.user_a)
         cls.organization.facilitators.add(cls.user_b)
         cls.organization.users.add(cls.user_c)
+        cls.wikipedia_tag_1 = WikipediaTagFactory()
+        cls.wikipedia_tag_2 = WikipediaTagFactory()
+        SkillFactory(
+            user=cls.user_a, wikipedia_tag=cls.wikipedia_tag_1, can_mentor=True
+        )
+        SkillFactory(
+            user=cls.user_b, wikipedia_tag=cls.wikipedia_tag_2, can_mentor=True
+        )
+        SkillFactory(
+            user=cls.user_c, wikipedia_tag=cls.wikipedia_tag_1, needs_mentor=True
+        )
+        SkillFactory(
+            user=cls.user_d, wikipedia_tag=cls.wikipedia_tag_2, needs_mentor=True
+        )
 
     def test_order_by_job(self):
         response = self.client.get(reverse("ProjectUser-list") + "?ordering=job")
@@ -792,6 +812,48 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["results"][0]["id"], self.user_c.id)
+
+    def test_filter_can_mentor(self):
+        response = self.client.get(reverse("ProjectUser-list") + "?can_mentor=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 2)
+        self.assertSetEqual(
+            {u["id"] for u in response.json()["results"]},
+            {self.user_a.id, self.user_b.id},
+        )
+
+    def test_filter_needs_mentor(self):
+        response = self.client.get(reverse("ProjectUser-list") + "?needs_mentor=true")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 2)
+        self.assertSetEqual(
+            {u["id"] for u in response.json()["results"]},
+            {self.user_c.id, self.user_d.id},
+        )
+
+    def test_filter_can_mentor_on(self):
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?can_mentor_on={self.wikipedia_tag_1.wikipedia_qid},{self.wikipedia_tag_2.wikipedia_qid}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 2)
+        self.assertSetEqual(
+            {u["id"] for u in response.json()["results"]},
+            {self.user_a.id, self.user_b.id},
+        )
+
+    def test_filter_needs_mentor_on(self):
+        response = self.client.get(
+            reverse("ProjectUser-list")
+            + f"?needs_mentor_on={self.wikipedia_tag_1.wikipedia_qid},{self.wikipedia_tag_2.wikipedia_qid}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["results"]), 2)
+        self.assertSetEqual(
+            {u["id"] for u in response.json()["results"]},
+            {self.user_c.id, self.user_d.id},
+        )
 
 
 class MiscUserTestCase(JwtAPITestCase):

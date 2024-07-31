@@ -251,6 +251,32 @@ class UserIndex:
         """Return the skills' qids for Algolia filtering."""
         return [skill.wikipedia_tag.wikipedia_qid for skill in user.skills.all()]
 
+    @staticmethod
+    def prepare_can_mentor_filter(user: ProjectUser) -> bool:
+        """Return the skills' qids for Algolia filtering."""
+        return user.skills.filter(can_mentor=True).exists()
+
+    @staticmethod
+    def prepare_needs_mentor_filter(user: ProjectUser) -> bool:
+        """Return the skills' qids for Algolia filtering."""
+        return user.skills.filter(needs_mentor=True).exists()
+
+    @staticmethod
+    def prepare_can_mentor_on_filter(user: ProjectUser) -> List[str]:
+        """Return the skills' qids for Algolia filtering."""
+        return [
+            skill.wikipedia_tag.wikipedia_qid
+            for skill in user.skills.filter(can_mentor=True)
+        ]
+
+    @staticmethod
+    def prepare_needs_mentor_on_filter(user: ProjectUser) -> List[str]:
+        """Return the skills' qids for Algolia filtering."""
+        return [
+            skill.wikipedia_tag.wikipedia_qid
+            for skill in user.skills.filter(needs_mentor=True)
+        ]
+
 
 class PeopleGroupIndex:
     @staticmethod
@@ -351,6 +377,10 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "skills_filter",
             "people_groups",
             "projects",
+            "can_mentor_filter",
+            "needs_mentor_filter",
+            "can_mentor_on_filter",
+            "needs_mentor_on_filter",
         ),
         "multiple": (
             {
@@ -371,6 +401,10 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
                     "organization_tags_filter",
                     # User
                     "skills_filter",
+                    "can_mentor_filter",
+                    "needs_mentor_filter",
+                    "can_mentor_on_filter",
+                    "needs_mentor_on_filter",
                 ),
                 "split": ("content",),
             },
@@ -404,6 +438,10 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "filterOnly(wikipedia_tags_filter)",
             "filterOnly(organization_tags_filter)",
             "filterOnly(skills_filter)",
+            "filterOnly(can_mentor_filter)",
+            "filterOnly(needs_mentor_filter)",
+            "filterOnly(can_mentor_on_filter)",
+            "filterOnly(needs_mentor_on_filter)",
         ],
         "paginationLimitedTo": 5000,
         "hitsPerPage": 10,
@@ -495,6 +533,24 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
 
     def prepare_skills_filter(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_skills_filter", [])
+
+    def prepare_can_mentor_filter(self, search_object: SearchObject) -> bool:
+        return self.get_field_for_model(search_object, "prepare_can_mentor_filter", [])
+
+    def prepare_needs_mentor_filter(self, search_object: SearchObject) -> bool:
+        return self.get_field_for_model(
+            search_object, "prepare_needs_mentor_filter", []
+        )
+
+    def prepare_can_mentor_on_filter(self, search_object: SearchObject) -> List[str]:
+        return self.get_field_for_model(
+            search_object, "prepare_can_mentor_on_filter", []
+        )
+
+    def prepare_needs_mentor_on_filter(self, search_object: SearchObject) -> List[str]:
+        return self.get_field_for_model(
+            search_object, "prepare_needs_mentor_on_filter", []
+        )
 
     def prepare_people_groups(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_people_groups", [])

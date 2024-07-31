@@ -133,6 +133,25 @@ class SearchViewSet(PaginatedViewSet):
                 SearchObject.SearchObjectType.USER,
             ),
             self.get_type_specific_facet_filter(
+                [f"can_mentor_filter:{s}" for s in self.get_filter("can_mentor")],
+                SearchObject.SearchObjectType.USER,
+            ),
+            self.get_type_specific_facet_filter(
+                [f"needs_mentor_filter:{s}" for s in self.get_filter("needs_mentor")],
+                SearchObject.SearchObjectType.USER,
+            ),
+            self.get_type_specific_facet_filter(
+                [f"can_mentor_on_filter:{s}" for s in self.get_filter("can_mentor_on")],
+                SearchObject.SearchObjectType.USER,
+            ),
+            self.get_type_specific_facet_filter(
+                [
+                    f"needs_mentor_on_filter:{s}"
+                    for s in self.get_filter("needs_mentor_on")
+                ],
+                SearchObject.SearchObjectType.USER,
+            ),
+            self.get_type_specific_facet_filter(
                 [f"categories_filter:{c}" for c in self.get_filter("categories")],
                 SearchObject.SearchObjectType.PROJECT,
             ),
