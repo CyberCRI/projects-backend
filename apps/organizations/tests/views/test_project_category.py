@@ -10,6 +10,7 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import ProjectCategory
+from apps.projects.factories import ProjectFactory
 
 faker = Faker()
 
@@ -69,6 +70,9 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.projects = ProjectFactory.create_batch(
+            3, organizations=[cls.organization], categories=[cls.category]
+        )
 
     @parameterized.expand(
         [
@@ -84,6 +88,7 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         content = response.json()
         self.assertEqual(content["count"], 1)
         self.assertEqual(content["results"][0]["id"], self.category.id)
+        self.assertEqual(content["results"][0]["projects_count"], 3)
 
     @parameterized.expand(
         [
@@ -98,6 +103,7 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.category.id)
+        self.assertEqual(content["projects_count"], 3)
 
 
 class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
