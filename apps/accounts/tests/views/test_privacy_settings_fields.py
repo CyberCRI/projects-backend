@@ -43,11 +43,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.assertEqual(data["profile_picture"]["id"], user.profile_picture.id)
         self.assertEqual(
             {skill["id"] for skill in data["skills"]},
-            {skill.id for skill in user.skills.filter(type=Skill.SkillType.SKILL)},
-        )
-        self.assertEqual(
-            {skill["id"] for skill in data["hobbies"]},
-            {skill.id for skill in user.skills.filter(type=Skill.SkillType.HOBBY)},
+            {skill.id for skill in user.skills.all()},
         )
 
     def assert_fields_hidden(self, data):
@@ -62,7 +58,6 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.assertIsNone(data["website"])
         self.assertIsNone(data["profile_picture"])
         self.assertEqual(data["skills"], [])
-        self.assertEqual(data["hobbies"], [])
 
     @parameterized.expand(
         [

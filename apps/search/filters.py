@@ -14,6 +14,10 @@ class SearchObjectFilter(filters.FilterSet):
     sdgs = MultiValueCharFilter(method="filter_sdgs")
     # User filters
     skills = MultiValueCharFilter(method="filter_skills")
+    can_mentor = filters.BooleanFilter(method="filter_can_mentor")
+    needs_mentor = filters.BooleanFilter(method="filter_needs_mentor")
+    can_mentor_on = MultiValueCharFilter(method="filter_can_mentor_on")
+    needs_mentor_on = MultiValueCharFilter(method="filter_needs_mentor_on")
     # Project filters
     languages = MultiValueCharFilter(method="filter_languages")
     categories = MultiValueCharFilter(method="filter_categories")
@@ -41,7 +45,7 @@ class SearchObjectFilter(filters.FilterSet):
             SearchObject.SearchObjectType.PEOPLE_GROUP,
         ]
         return queryset.filter(
-            Q(people_group__skills__wikipedia_tag__wikipedia_qid__in=value)
+            Q(user__skills__wikipedia_tag__wikipedia_qid__in=value)
             | Q(type__in=unaffected_types)
         ).distinct()
 
@@ -91,6 +95,50 @@ class SearchObjectFilter(filters.FilterSet):
             Q(project__organization_tags__id__in=value) | Q(type__in=unaffected_types)
         ).distinct()
 
+    def filter_can_mentor(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+        ]
+        return queryset.filter(
+            Q(user__skills__can_mentor=value) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_needs_mentor(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+        ]
+        return queryset.filter(
+            Q(user__skills__needs_mentor=value) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_can_mentor_on(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+        ]
+        return queryset.filter(
+            Q(
+                user__skills__can_mentor=True,
+                user__skills__wikipedia_tag__wikipedia_qid__in=value,
+            )
+            | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_needs_mentor_on(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+        ]
+        return queryset.filter(
+            Q(
+                user__skills__needs_mentor=True,
+                user__skills__wikipedia_tag__wikipedia_qid__in=value,
+            )
+            | Q(type__in=unaffected_types)
+        ).distinct()
+
     class Meta:
         model = SearchObject
         fields = [
@@ -103,4 +151,8 @@ class SearchObjectFilter(filters.FilterSet):
             "skills",
             "wikipedia_tags",
             "organization_tags",
+            "can_mentor",
+            "needs_mentor",
+            "can_mentor_on",
+            "needs_mentor_on",
         ]

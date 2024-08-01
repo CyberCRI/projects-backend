@@ -36,6 +36,7 @@ from apps.newsfeed.urls import router as newsfeed_router
 from apps.notifications.urls import router as notifications_router
 from apps.projects.urls import router as projects_router
 from apps.search.urls import router as search_router
+from apps.skills.urls import router as skills_router
 from services.mistral.urls import mistral_router
 from services.wikipedia.urls import router as wikipedia_router
 
@@ -55,6 +56,7 @@ router.extend(search_router)
 router.extend(wikipedia_router)
 router.extend(mistral_router)
 router.extend(newsfeed_router)
+router.extend(skills_router)
 
 urlpatterns_v1 = [
     path("", include(router.urls)),
