@@ -55,6 +55,7 @@ class News(models.Model, OrganizationRelated):
         "organizations.Organization", related_name="news", on_delete=models.CASCADE
     )
     visible_by_all = models.BooleanField(default=False)
+    images = models.ManyToManyField("files.Image", related_name="news")
 
     def get_related_organizations(self):
         return [self.organization]
@@ -112,6 +113,7 @@ class Instruction(models.Model, OrganizationRelated, HasOwner):
     has_to_be_notified = models.BooleanField(default=False)
     notified = models.BooleanField(default=False)
     visible_by_all = models.BooleanField(default=False)
+    images = models.ManyToManyField("files.Image", related_name="instructions")
 
     def get_related_organizations(self):
         return [self.organization]
@@ -209,6 +211,7 @@ class Event(models.Model, OrganizationRelated):
         "organizations.Organization", related_name="events", on_delete=models.CASCADE
     )
     visible_by_all = models.BooleanField(default=False)
+    images = models.ManyToManyField("files.Image", related_name="events")
 
     def get_related_organizations(self) -> List["Organization"]:
         return [self.organization]

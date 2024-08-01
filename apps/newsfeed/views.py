@@ -28,136 +28,6 @@ from .serializers import (
 )
 
 
-class NewsViewSet(viewsets.ModelViewSet):
-    """Main endpoints for news."""
-
-    serializer_class = NewsSerializer
-    filterset_class = NewsFilter
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at", "publication_date"]
-    lookup_field = "id"
-    lookup_value_regex = "[^/]+"
-
-    def get_permissions(self):
-        codename = map_action_to_permission(self.action, "news")
-        if codename:
-            self.permission_classes = [
-                IsAuthenticatedOrReadOnly,
-                ReadOnly
-                | HasBasePermission(codename, "newsfeed")
-                | HasOrganizationPermission(codename),
-            ]
-        return super().get_permissions()
-
-    def get_queryset(self) -> QuerySet:
-        if "organization_code" in self.kwargs:
-            return self.request.user.get_news_queryset().filter(
-                organization__code=self.kwargs["organization_code"]
-            )
-        return News.objects.none()
-
-    def get_serializer_context(self):
-        return {
-            **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code", None),
-        }
-
-    def get_serializer(self, *args, **kwargs):
-        """
-        Force the usage of the organization code from the url in the serializer
-        """
-        if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
-        return super().get_serializer(*args, **kwargs)
-
-
-class NewsHeaderView(ImageStorageView):
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        ReadOnly
-        | HasBasePermission("change_news", "newsfeed")
-        | HasOrganizationPermission("change_news"),
-    ]
-
-    def get_queryset(self):
-        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
-            return Image.objects.filter(
-                news_header__organization__code=self.kwargs["organization_code"],
-                news_header__id=self.kwargs["news_id"],
-            )
-        return Image.objects.none()
-
-    @staticmethod
-    def upload_to(instance, filename) -> str:
-        return f"news/header/{uuid.uuid4()}#{instance.name}"
-
-    def retrieve(self, request, *args, **kwargs):
-        image = self.get_object()
-        return redirect(image.file.url)
-
-    def add_image_to_model(self, image):
-        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
-            news = News.objects.get(
-                id=self.kwargs["news_id"],
-                organization__code=self.kwargs["organization_code"],
-            )
-            news.header_image = image
-            news.save()
-            return f"/v1/organization/{self.kwargs['organization_code']}/news/{self.kwargs['news_id']}/header/{image.id}"
-        return None
-
-
-class InstructionViewSet(viewsets.ModelViewSet):
-    """Main endpoints for instructions."""
-
-    serializer_class = InstructionSerializer
-    filterset_class = InstructionFilter
-    filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at", "publication_date"]
-    lookup_field = "id"
-    lookup_value_regex = "[^/]+"
-
-    def get_permissions(self):
-        codename = map_action_to_permission(self.action, "instruction")
-        if codename:
-            self.permission_classes = [
-                IsAuthenticatedOrReadOnly,
-                ReadOnly
-                | HasBasePermission(codename, "newsfeed")
-                | HasOrganizationPermission(codename),
-            ]
-        return super().get_permissions()
-
-    def get_serializer(self, *args, **kwargs):
-        """
-        Force the usage of the organization code from the url in the serializer
-        """
-        if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
-        return super().get_serializer(*args, **kwargs)
-
-    def get_queryset(self) -> QuerySet:
-        if "organization_code" in self.kwargs:
-            return self.request.user.get_instruction_queryset().filter(
-                organization__code=self.kwargs["organization_code"]
-            )
-        return Instruction.objects.none()
-
-    def get_serializer_context(self):
-        return {
-            **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code", None),
-        }
-
-
 class NewsfeedViewSet(ListViewSet):
     serializer_class = NewsfeedSerializer
     permission_classes = [ReadOnly]
@@ -244,6 +114,212 @@ class NewsfeedViewSet(ListViewSet):
         return self.merge_querysets(announcements, news, projects)
 
 
+class NewsViewSet(viewsets.ModelViewSet):
+    """Main endpoints for news."""
+
+    serializer_class = NewsSerializer
+    filterset_class = NewsFilter
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "publication_date"]
+    lookup_field = "id"
+    lookup_value_regex = "[^/]+"
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "news")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "newsfeed")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def get_queryset(self) -> QuerySet:
+        if "organization_code" in self.kwargs:
+            return self.request.user.get_news_queryset().filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return News.objects.none()
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Force the usage of the organization code from the url in the serializer
+        """
+        if self.action in ["create", "update", "partial_update"]:
+            self.request.data.update(
+                {
+                    "organization": self.kwargs["organization_code"],
+                }
+            )
+        return super().get_serializer(*args, **kwargs)
+
+
+class NewsHeaderView(ImageStorageView):
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReadOnly
+        | HasBasePermission("change_news", "newsfeed")
+        | HasOrganizationPermission("change_news"),
+    ]
+
+    def get_queryset(self):
+        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
+            return Image.objects.filter(
+                news_header__organization__code=self.kwargs["organization_code"],
+                news_header__id=self.kwargs["news_id"],
+            )
+        return Image.objects.none()
+
+    @staticmethod
+    def upload_to(instance, filename) -> str:
+        return f"news/header/{uuid.uuid4()}#{instance.name}"
+
+    def retrieve(self, request, *args, **kwargs):
+        image = self.get_object()
+        return redirect(image.file.url)
+
+    def add_image_to_model(self, image):
+        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
+            news = News.objects.get(
+                id=self.kwargs["news_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
+            news.header_image = image
+            news.save()
+            return f"/v1/organization/{self.kwargs['organization_code']}/news/{self.kwargs['news_id']}/header/{image.id}"
+        return None
+
+
+class NewsImagesView(ImageStorageView):
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReadOnly
+        | HasBasePermission("change_news", "newsfeed")
+        | HasOrganizationPermission("change_news"),
+    ]
+
+    def get_queryset(self):
+        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
+            return self.request.user.get_news_related_queryset(
+                Image.objects.filter(
+                    news__organization__code=self.kwargs["organization_code"],
+                    news__id=self.kwargs["news_id"],
+                )
+            )
+        return Image.objects.none()
+
+    @staticmethod
+    def upload_to(instance, filename) -> str:
+        return f"news/images/{uuid.uuid4()}#{instance.name}"
+
+    def retrieve(self, request, *args, **kwargs):
+        image = self.get_object()
+        return redirect(image.file.url)
+
+    def add_image_to_model(self, image):
+        if "news_id" in self.kwargs and "organization_code" in self.kwargs:
+            news = News.objects.get(
+                id=self.kwargs["news_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
+            news.images.add(image)
+            news.save()
+            return f"/v1/organization/{self.kwargs['organization_code']}/news/{self.kwargs['news_id']}/image/{image.id}"
+        return None
+
+
+class InstructionViewSet(viewsets.ModelViewSet):
+    """Main endpoints for instructions."""
+
+    serializer_class = InstructionSerializer
+    filterset_class = InstructionFilter
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ["updated_at", "publication_date"]
+    lookup_field = "id"
+    lookup_value_regex = "[^/]+"
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "instruction")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "newsfeed")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def get_serializer(self, *args, **kwargs):
+        """
+        Force the usage of the organization code from the url in the serializer
+        """
+        if self.action in ["create", "update", "partial_update"]:
+            self.request.data.update(
+                {
+                    "organization": self.kwargs["organization_code"],
+                }
+            )
+        return super().get_serializer(*args, **kwargs)
+
+    def get_queryset(self) -> QuerySet:
+        if "organization_code" in self.kwargs:
+            return self.request.user.get_instruction_queryset().filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return Instruction.objects.none()
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
+
+
+class InstructionImagesView(ImageStorageView):
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReadOnly
+        | HasBasePermission("change_instruction", "newsfeed")
+        | HasOrganizationPermission("change_instruction"),
+    ]
+
+    def get_queryset(self):
+        if "instruction_id" in self.kwargs and "organization_code" in self.kwargs:
+            return self.request.user.get_instruction_related_queryset(
+                Image.objects.filter(
+                    instructions__organization__code=self.kwargs["organization_code"],
+                    instructions__id=self.kwargs["instruction_id"],
+                )
+            )
+        return Image.objects.none()
+
+    @staticmethod
+    def upload_to(instance, filename) -> str:
+        return f"instructions/images/{uuid.uuid4()}#{instance.name}"
+
+    def retrieve(self, request, *args, **kwargs):
+        image = self.get_object()
+        return redirect(image.file.url)
+
+    def add_image_to_model(self, image):
+        if "instruction_id" in self.kwargs and "organization_code" in self.kwargs:
+            instruction = Instruction.objects.get(
+                id=self.kwargs["instruction_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
+            instruction.images.add(image)
+            instruction.save()
+            return f"/v1/organization/{self.kwargs['organization_code']}/instruction/{self.kwargs['instruction_id']}/image/{image.id}"
+        return None
+
+
 class EventViewSet(viewsets.ModelViewSet):
     """Main endpoints for projects."""
 
@@ -289,3 +365,41 @@ class EventViewSet(viewsets.ModelViewSet):
                 }
             )
         return super().get_serializer(*args, **kwargs)
+
+
+class EventImagesView(ImageStorageView):
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReadOnly
+        | HasBasePermission("change_event", "newsfeed")
+        | HasOrganizationPermission("change_event"),
+    ]
+
+    def get_queryset(self):
+        if "event_id" in self.kwargs and "organization_code" in self.kwargs:
+            return self.request.user.get_event_related_queryset(
+                Image.objects.filter(
+                    events__organization__code=self.kwargs["organization_code"],
+                    events__id=self.kwargs["event_id"],
+                )
+            )
+        return Image.objects.none()
+
+    @staticmethod
+    def upload_to(instance, filename) -> str:
+        return f"events/images/{uuid.uuid4()}#{instance.name}"
+
+    def retrieve(self, request, *args, **kwargs):
+        image = self.get_object()
+        return redirect(image.file.url)
+
+    def add_image_to_model(self, image):
+        if "event_id" in self.kwargs and "organization_code" in self.kwargs:
+            event = Event.objects.get(
+                id=self.kwargs["event_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
+            event.images.add(image)
+            event.save()
+            return f"/v1/organization/{self.kwargs['organization_code']}/event/{self.kwargs['event_id']}/image/{image.id}"
+        return None
