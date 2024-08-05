@@ -1047,6 +1047,30 @@ class AnonymousUser:
             )
         )
 
+    def get_instruction_related_queryset(
+        self, queryset: QuerySet, instruction_related_name: str = "instruction"
+    ) -> QuerySet["Instruction"]:
+        return queryset.filter(
+            Q(**{f"{instruction_related_name}__visible_by_all": True})
+            | Q(
+                **{
+                    f"{instruction_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+                }
+            )
+        )
+
+    def get_event_related_queryset(
+        self, queryset: QuerySet, event_related_name: str = "event"
+    ) -> QuerySet["Event"]:
+        return queryset.filter(
+            Q(**{f"{event_related_name}__visible_by_all": True})
+            | Q(
+                **{
+                    f"{event_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+                }
+            )
+        )
+
     def can_see_project(self, project):
         return project.publication_status == Project.PublicationStatus.PUBLIC
 

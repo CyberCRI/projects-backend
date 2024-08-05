@@ -10,6 +10,54 @@ if TYPE_CHECKING:
     from apps.organizations.models import Organization
 
 
+class Newsfeed(models.Model):
+    """Newsfeed of the application.
+
+    Attributes
+    ----------
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    project: ForeignKey
+        Project in the newsfeed.
+    announcement: ForeignKey
+        Announcement in the newsfeed.
+    news: ForeignKey
+        News in the newsfeed.
+    type: CharField
+        Type of the object.
+    """
+
+    class NewsfeedType(models.TextChoices):
+        """Type of the news in the newsfeed."""
+
+        PROJECT = "project"
+        ANNOUNCEMENT = "announcement"
+        NEWS = "news"
+
+    project = models.ForeignKey(
+        "projects.Project",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="newsfeed_project",
+    )
+    announcement = models.ForeignKey(
+        "announcements.Announcement",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="newsfeed_announcement",
+    )
+    news = models.ForeignKey(
+        "newsfeed.News",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="newsfeed_news",
+    )
+    type = models.CharField(
+        max_length=50, choices=NewsfeedType.choices, default=NewsfeedType.PROJECT
+    )
+
+
 class News(models.Model, OrganizationRelated):
     """News instance.
 
@@ -125,54 +173,6 @@ class Instruction(models.Model, OrganizationRelated, HasOwner):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self.owner == user
-
-
-class Newsfeed(models.Model):
-    """Newsfeed of the application.
-
-    Attributes
-    ----------
-    ----------
-    id: Charfield
-        UUID4 used as the model's PK.
-    project: ForeignKey
-        Project in the newsfeed.
-    announcement: ForeignKey
-        Announcement in the newsfeed.
-    news: ForeignKey
-        News in the newsfeed.
-    type: CharField
-        Type of the object.
-    """
-
-    class NewsfeedType(models.TextChoices):
-        """Type of the news in the newsfeed."""
-
-        PROJECT = "project"
-        ANNOUNCEMENT = "announcement"
-        NEWS = "news"
-
-    project = models.ForeignKey(
-        "projects.Project",
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="newsfeed_project",
-    )
-    announcement = models.ForeignKey(
-        "announcements.Announcement",
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="newsfeed_announcement",
-    )
-    news = models.ForeignKey(
-        "newsfeed.News",
-        on_delete=models.CASCADE,
-        null=True,
-        related_name="newsfeed_news",
-    )
-    type = models.CharField(
-        max_length=50, choices=NewsfeedType.choices, default=NewsfeedType.PROJECT
-    )
 
 
 class Event(models.Model, OrganizationRelated):

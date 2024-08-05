@@ -296,7 +296,8 @@ class InstructionImagesView(ImageStorageView):
                 Image.objects.filter(
                     instructions__organization__code=self.kwargs["organization_code"],
                     instructions__id=self.kwargs["instruction_id"],
-                )
+                ),
+                instruction_related_name="instructions",
             )
         return Image.objects.none()
 
@@ -381,7 +382,8 @@ class EventImagesView(ImageStorageView):
                 Image.objects.filter(
                     events__organization__code=self.kwargs["organization_code"],
                     events__id=self.kwargs["event_id"],
-                )
+                ),
+                event_related_name="events",
             )
         return Image.objects.none()
 
