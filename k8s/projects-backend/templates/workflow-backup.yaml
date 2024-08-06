@@ -35,6 +35,8 @@ spec:
           parameters:
           - name: storage_container_name
             value: {{ .Values.workflow.backups.storageContainerName }}
+          - name: storage_account_name
+            value: {{ .Values.workflow.backups.storageAccountName }}
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: WorkflowTemplate
@@ -83,6 +85,8 @@ spec:
           parameters:
           - name: storage_container_name
             value: {{ .Values.workflow.backups.storageContainerName }}
+          - name: storage_account_name
+            value: {{ .Values.workflow.backups.storageAccountName }}
           - name: database
             value: {{ .Values.config.nonSensitive.POSTGRES_DB }}
 {{- if .Values.workflow.backups.checkPresence.cron.enabled}}
