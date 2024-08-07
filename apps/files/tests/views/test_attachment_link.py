@@ -297,3 +297,15 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_create_link_from_same_site(self, mocked):
+        mocked.return_value = MockResponse()
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        payload = {"site_url": f"{self.url}/path", "project_id": self.project.id}
+        response = self.client.post(
+            reverse("AttachmentLink-list", args=(self.project.id,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
