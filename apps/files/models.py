@@ -216,6 +216,12 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
             return [self.people_group_header.get().organization]
         if self.news_header.exists():
             return [self.news_header.get().organization]
+        if self.news.exists():
+            return [self.news.get().organization]
+        if self.instructions.exists():
+            return [self.instructions.get().organization]
+        if self.events.exists():
+            return [self.events.get().organization]
         return []
 
     def get_related_project(self) -> Optional["Project"]:
