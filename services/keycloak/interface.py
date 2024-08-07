@@ -36,8 +36,6 @@ class KeycloakService:
     Keycloak API service.
     """
 
-    EMAIL_CLIENT_ID = "admin-cli"
-
     class EmailType(models.TextChoices):
         """
         Types of emails sent to users.
@@ -140,7 +138,7 @@ class KeycloakService:
             "expiration": 1701311686,
             "redirect_uri": "https://projects.learningplanetinstitute.org",
             "actions": ["UPDATE_PASSWORD", "VERIFY_EMAIL"],
-            "client_id": "admin-cli"
+            "client_id": "projects-frontend"
         }
         """
         if settings.ENVIRONMENT == "test":
@@ -150,7 +148,7 @@ class KeycloakService:
         service = cls.service()
         url = (
             f"realms/{settings.KEYCLOAK_REALM}/custom/user/{keycloak_account.keycloak_id}/execute-actions-token/"
-            f"?client_id={cls.EMAIL_CLIENT_ID}"
+            f"?client_id={settings.KEYCLOAK_FRONTEND_CLIENT_ID}"
             f"&email_type={email_type}"
             f"&actions={','.join(actions)}"
             f"&redirect_uri={redirect_uri}"
