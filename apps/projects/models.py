@@ -236,6 +236,8 @@ class Project(
     def get_slug(self) -> str:
         if self.slug == "":
             raw_slug = slugify(self.title[0:46])
+            if len(raw_slug) == 0:
+                raw_slug = "project-0"
             if len(raw_slug) <= 8:
                 raw_slug = f"project-{raw_slug}"  # Prevent clashes with ids
             slug = raw_slug
