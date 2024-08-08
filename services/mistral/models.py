@@ -1,5 +1,6 @@
 import hashlib
 import itertools
+import traceback
 from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
@@ -23,6 +24,21 @@ class HasWeight:
 
     def get_weight(self) -> float:
         raise NotImplementedError()
+
+
+class EmbeddingError(models.Model):
+    """
+    Model to store errors that occurred during the generation of an embedding.
+    """
+
+    item_type = models.CharField(max_length=255)
+    item_id = models.CharField(max_length=255)
+    error = models.CharField(max_length=255)
+    traceback = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self) -> str:
+        return f"Error for {self.item_type} {self.item_id}: {self.error}"
 
 
 class Embedding(models.Model):
@@ -62,10 +78,18 @@ class Embedding(models.Model):
 
     @transaction.atomic
     def vectorize(self, *args, **kwargs) -> "Embedding":
-        if self.set_visibility():
-            return self.set_embedding(*args, **kwargs)
-        self.embedding = None
-        self.save()
+        try:
+            if self.set_visibility():
+                return self.set_embedding(*args, **kwargs)
+            self.embedding = None
+            self.save()
+        except Exception as e:  # noqa: PIE786
+            EmbeddingError.objects.create(
+                item_type=self.item.__class__.__name__,
+                item_id=self.item.id,
+                error=e.__class__.__name__,
+                traceback=traceback.format_exc(),
+            )
         return self
 
     @classmethod
