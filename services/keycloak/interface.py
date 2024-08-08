@@ -374,7 +374,7 @@ class KeycloakService:
     @classmethod
     def get_client(cls, client_id: str):
         return cls.service().get_client(client_id)
-        
+
     @classmethod
     def update_client(cls, client_id: str, payload: Dict[str, Union[str, bool]]):
         return cls.service().update_client(client_id, payload)

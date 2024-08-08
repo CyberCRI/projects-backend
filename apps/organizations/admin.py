@@ -1,5 +1,5 @@
-from django.contrib import admin
 from django.conf import settings
+from django.contrib import admin
 
 from services.keycloak.interface import KeycloakService
 
@@ -32,7 +32,9 @@ class OrganizationAdmin(admin.ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         if obj.website_url:
-            client_id = KeycloakService.get_client_id(settings.KEYCLOAK_FRONTEND_CLIENT_ID)
+            client_id = KeycloakService.get_client_id(
+                settings.KEYCLOAK_FRONTEND_CLIENT_ID
+            )
             data = KeycloakService.get_client(client_id)
             redirect_uris = data.get("redirectUris", [])
             if obj.website_url not in redirect_uris:

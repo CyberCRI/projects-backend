@@ -104,9 +104,33 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         ADMINS = "admins"
         FACILITATORS = "facilitators"
 
+    code = models.CharField(max_length=50, unique=True)
+    website_url = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
+    dashboard_title = models.CharField(max_length=255)
+    dashboard_subtitle = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    contact_email = models.EmailField(max_length=255, blank=True)
+    parent = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        related_name="children",
+        null=True,
+        blank=True,
+    )
+
     background_color = models.CharField(max_length=9, blank=True)
-    images = models.ManyToManyField("files.Image", related_name="organizations", blank=True)
+    chat_url = models.URLField(blank=True, max_length=255)
+    chat_button_text = models.CharField(blank=True, max_length=255)
+    language = models.CharField(
+        max_length=2, choices=Language.choices, default=Language.default()
+    )
+
+    onboarding_enabled = models.BooleanField(default=True)
+    is_logo_visible_on_parent_dashboard = models.BooleanField(default=True)
+    access_request_enabled = models.BooleanField(default=True)
+    force_login_form_display = models.BooleanField(default=False)
+
     banner_image = models.ForeignKey(
         "files.Image",
         on_delete=models.SET_NULL,
@@ -114,41 +138,29 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         related_name="organization_banner",
     )
     logo_image = models.ForeignKey(
-        "files.Image", on_delete=models.PROTECT, related_name="organization_logo"
+        "files.Image",
+        on_delete=models.PROTECT,
+        related_name="organization_logo",
     )
-    code = models.CharField(max_length=50, unique=True)
-    dashboard_title = models.CharField(
-        max_length=255,
+    images = models.ManyToManyField(
+        "files.Image", related_name="organizations", blank=True
     )
-    dashboard_subtitle = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    contact_email = models.EmailField(max_length=255, blank=True)
-    chat_url = models.URLField(blank=True, max_length=255)
-    chat_button_text = models.CharField(blank=True, max_length=255)
-    language = models.CharField(
-        max_length=2, choices=Language.choices, default=Language.default()
-    )
-    website_url = models.CharField(max_length=255)
+
     faq = models.OneToOneField(
         Faq, on_delete=models.SET_NULL, null=True, related_name="organization"
     )
-    is_logo_visible_on_parent_dashboard = models.BooleanField(default=True)
-    wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    parent = models.ForeignKey(
-        "self", on_delete=models.SET_NULL, related_name="children", null=True, blank=True
-    )
-    groups = models.ManyToManyField(Group, related_name="organizations")
-    access_request_enabled = models.BooleanField(default=True)
-    onboarding_enabled = models.BooleanField(default=True)
     identity_providers = models.ManyToManyField(
         "keycloak.IdentityProvider", related_name="organizations", blank=True
     )
-    force_login_form_display = models.BooleanField(default=False)
     featured_projects = models.ManyToManyField(
         "projects.Project", related_name="org_featured_projects", blank=True
     )
+    wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
+
+    groups = models.ManyToManyField(Group, related_name="organizations")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         subscopes = (
