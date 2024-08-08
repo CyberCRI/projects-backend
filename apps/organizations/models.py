@@ -14,7 +14,7 @@ from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
-from apps.misc.models import Language, Tag, WikipediaTag
+from apps.misc.models import Language
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -105,8 +105,8 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         FACILITATORS = "facilitators"
 
     name = models.CharField(max_length=255)
-    background_color = models.CharField(blank=True, max_length=9)
-    images = models.ManyToManyField("files.Image", related_name="organizations")
+    background_color = models.CharField(max_length=9, blank=True)
+    images = models.ManyToManyField("files.Image", related_name="organizations", blank=True)
     banner_image = models.ForeignKey(
         "files.Image",
         on_delete=models.SET_NULL,
@@ -122,22 +122,22 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     )
     dashboard_subtitle = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    contact_email = models.EmailField(max_length=255)
+    contact_email = models.EmailField(max_length=255, blank=True)
     chat_url = models.URLField(blank=True, max_length=255)
     chat_button_text = models.CharField(blank=True, max_length=255)
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
-    website_url = models.CharField(blank=True, max_length=255)
+    website_url = models.CharField(max_length=255)
     faq = models.OneToOneField(
         Faq, on_delete=models.SET_NULL, null=True, related_name="organization"
     )
     is_logo_visible_on_parent_dashboard = models.BooleanField(default=True)
-    wikipedia_tags = models.ManyToManyField(WikipediaTag)
+    wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     parent = models.ForeignKey(
-        "self", null=True, on_delete=models.SET_NULL, related_name="children"
+        "self", on_delete=models.SET_NULL, related_name="children", null=True, blank=True
     )
     groups = models.ManyToManyField(Group, related_name="organizations")
     access_request_enabled = models.BooleanField(default=True)
@@ -147,7 +147,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     )
     force_login_form_display = models.BooleanField(default=False)
     featured_projects = models.ManyToManyField(
-        "projects.Project", related_name="org_featured_projects"
+        "projects.Project", related_name="org_featured_projects", blank=True
     )
 
     class Meta:
@@ -387,9 +387,11 @@ class ProjectCategory(models.Model, OrganizationRelated):
     is_reviewable = models.BooleanField(default=True)
     order_index = models.SmallIntegerField(default=0)
     wikipedia_tags = models.ManyToManyField(
-        WikipediaTag, related_name="project_categories"
+        "misc.WikipediaTag", related_name="project_categories"
     )
-    organization_tags = models.ManyToManyField(Tag)
+    organization_tags = models.ManyToManyField(
+        "misc.Tag", related_name="project_categories"
+    )
     template = models.OneToOneField(
         Template,
         on_delete=models.PROTECT,
