@@ -207,7 +207,7 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         self.assertEqual(previous_errors.count(), 1)
         self.assertEqual(errors.count(), 1)
         self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
-        self.assertEqual(errors[0].google_group, group)
+        self.assertIsNone(errors[0].google_group)
         self.assertEqual(errors[0].google_account, user.google_account)
         self.assertEqual(errors[0].retries_count, 0)
 
@@ -324,7 +324,7 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         self.assertEqual(previous_errors.count(), 1)
         self.assertEqual(errors.count(), 1)
         self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
-        self.assertEqual(errors[0].google_group, group)
+        self.assertIsNone(errors[0].google_group)
         self.assertEqual(errors[0].google_account, google_account)
         self.assertEqual(errors[0].retries_count, 0)
 
@@ -520,7 +520,7 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = create_google_group_task
         people_group = PeopleGroupFactory(email="", organization=self.organization)
         google_group = GoogleGroup.objects.create(people_group=people_group)
-        google_account = GoogleAccountFactory(
+        GoogleAccountFactory(
             groups=[self.organization.get_users(), people_group.get_members()]
         )
         GoogleSyncErrorFactory(
@@ -548,7 +548,7 @@ class GoogleCreateGroupErrorTestCase(GoogleTestCase):
         self.assertEqual(previous_errors.count(), 1)
         self.assertEqual(errors.count(), 1)
         self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
-        self.assertEqual(errors[0].google_account, google_account)
+        self.assertIsNone(errors[0].google_account)
         self.assertEqual(errors[0].google_group, google_group)
         self.assertEqual(errors[0].retries_count, 0)
 
@@ -639,7 +639,7 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
     def test_update_google_group_sync_member_error(self, mocked, mocked_delay):
         mocked_delay.side_effect = update_google_group_task
         google_group = GoogleGroupFactory(organization=self.organization)
-        google_account = GoogleAccountFactory(
+        GoogleAccountFactory(
             groups=[
                 self.organization.get_users(),
                 google_group.people_group.get_members(),
@@ -668,6 +668,6 @@ class GoogleUpdateGroupErrorTestCase(GoogleTestCase):
         self.assertEqual(previous_errors.count(), 1)
         self.assertEqual(errors.count(), 1)
         self.assertEqual(errors[0].on_task, GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
-        self.assertEqual(errors[0].google_account, google_account)
+        self.assertIsNone(errors[0].google_account)
         self.assertEqual(errors[0].google_group, google_group)
         self.assertEqual(errors[0].retries_count, 0)
