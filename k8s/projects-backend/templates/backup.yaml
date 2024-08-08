@@ -1,0 +1,16 @@
+{{
+    include "common.backups.psql"
+    ( dict
+        "resourcePrefix" .Values.fullName
+        "destinationStorageAccountName" .Values.workflow.backups.storageAccountName
+        "destinationContainerName" .Values.workflow.backups.storageContainerName
+        "sourceDatabaseName" .Values.config.nonSensitive.POSTGRES_DB
+        "serviceAccountName" .Values.workflow.rbac.serviceAccountName
+        "root" .
+        "slackNotify" true
+        "slackChannel" .Values.workflow.backups.slackChannel
+        "cronEnabled" .Values.workflow.backups.backup.cron.enabled
+        "cronBackupSchedule" .Values.workflow.backups.backup.cron.schedule
+        "cronCheckPresenceSchedule" .Values.workflow.backups.checkPresence.cron.schedule
+    )
+}}
