@@ -675,6 +675,20 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     ) -> QuerySet["News"]:
         return queryset.filter(**{f"{news_related_name}__in": self.get_news_queryset()})
 
+    def get_instruction_related_queryset(
+        self, queryset: QuerySet, instruction_related_name: str = "instruction"
+    ) -> QuerySet["Instruction"]:
+        return queryset.filter(
+            **{f"{instruction_related_name}__in": self.get_instruction_queryset()}
+        )
+
+    def get_event_related_queryset(
+        self, queryset: QuerySet, event_related_name: str = "event"
+    ) -> QuerySet["Event"]:
+        return queryset.filter(
+            **{f"{event_related_name}__in": self.get_event_queryset()}
+        )
+
     def can_see_project(self, project: "Project") -> bool:
         """Return a `BasePermission` according to `linked_project`'s publication status."""
         return project in self.get_project_queryset()
@@ -1029,6 +1043,30 @@ class AnonymousUser:
             | Q(
                 **{
                     f"{news_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+                }
+            )
+        )
+
+    def get_instruction_related_queryset(
+        self, queryset: QuerySet, instruction_related_name: str = "instruction"
+    ) -> QuerySet["Instruction"]:
+        return queryset.filter(
+            Q(**{f"{instruction_related_name}__visible_by_all": True})
+            | Q(
+                **{
+                    f"{instruction_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
+                }
+            )
+        )
+
+    def get_event_related_queryset(
+        self, queryset: QuerySet, event_related_name: str = "event"
+    ) -> QuerySet["Event"]:
+        return queryset.filter(
+            Q(**{f"{event_related_name}__visible_by_all": True})
+            | Q(
+                **{
+                    f"{event_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
                 }
             )
         )
