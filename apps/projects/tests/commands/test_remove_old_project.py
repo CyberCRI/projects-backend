@@ -18,13 +18,13 @@ class CommandsTestCase(JwtAPITestCase):
         projects_to_delete = ProjectFactory.create_batch(
             3,
             organizations=[organization],
-            deleted_at=timezone.now()
+            deleted_at=timezone.localtime(timezone.now())
             - timedelta(days=settings.DELETED_PROJECT_RETENTION_DAYS + 1),
         )
         projects_to_keep = ProjectFactory.create_batch(
             3,
             organizations=[organization],
-            deleted_at=timezone.now()
+            deleted_at=timezone.localtime(timezone.now())
             - timedelta(days=settings.DELETED_PROJECT_RETENTION_DAYS - 1),
         )
         roles = [g.name for g in Group.objects.filter(projects__in=projects_to_delete)]

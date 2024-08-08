@@ -29,7 +29,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         other_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[OrganizationFactory().get_users()],
-            last_login=timezone.now(),
+            last_login=timezone.localtime(timezone.now()),
         )
         UserScoreFactory(
             user=other_user,
@@ -44,7 +44,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         inactive_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
-            last_login=timezone.now() - timedelta(days=365),
+            last_login=timezone.localtime(timezone.now()) - timedelta(days=365),
         )
         UserScoreFactory(
             user=inactive_user,
@@ -59,7 +59,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         public_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
-            last_login=timezone.now(),
+            last_login=timezone.localtime(timezone.now()),
         )
         UserScoreFactory(
             user=public_user,
@@ -74,7 +74,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         public_user_2 = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
-            last_login=timezone.now(),
+            last_login=timezone.localtime(timezone.now()),
         )
         UserScoreFactory(
             user=public_user_2,
@@ -89,7 +89,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         private_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
             groups=[cls.organization.get_users()],
-            last_login=timezone.now(),
+            last_login=timezone.localtime(timezone.now()),
         )
         UserScoreFactory(
             user=private_user,
@@ -104,7 +104,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         org_user = UserFactory(
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
             groups=[cls.organization.get_users()],
-            last_login=timezone.now(),
+            last_login=timezone.localtime(timezone.now()),
         )
         UserScoreFactory(
             user=org_user,

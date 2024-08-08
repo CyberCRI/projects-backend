@@ -112,7 +112,7 @@ class NewsfeedTestCase(JwtAPITestCase):
         cls.expired_announcement = AnnouncementFactory(
             project=cls.public_project,
             updated_at=cls.date_1 - timedelta(days=1),
-            deadline=timezone.now() - timedelta(days=1),
+            deadline=timezone.localtime(timezone.now()) - timedelta(days=1),
         )
 
         # Groups for news reserved to specific groups
@@ -158,7 +158,7 @@ class NewsfeedTestCase(JwtAPITestCase):
             organization=cls.organization,
             people_groups=None,
             visible_by_all=True,
-            publication_date=timezone.now() + timedelta(days=1),
+            publication_date=timezone.localtime(timezone.now()) + timedelta(days=1),
         )
         cls.newsfeed = {
             # announcements

@@ -81,7 +81,7 @@ class ProjectJWTAuthentication(JWTAuthentication):
             return self.get_invitation_user(raw_token), raw_token
         validated_token = self.get_validated_token(raw_token)
         user, token = self.get_user(validated_token), validated_token
-        user.last_login = timezone.now()
+        user.last_login = timezone.localtime(timezone.now())
         user.save()
         self._reassign_users_groups_permissions(user)
         return user, token

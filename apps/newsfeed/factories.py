@@ -32,7 +32,7 @@ class NewsFactory(factory.django.DjangoModelFactory):
     )  # Subfactory seems to not trigger `create()`
     title = factory.Faker("sentence")
     content = factory.Faker("text")
-    publication_date = timezone.now()
+    publication_date = timezone.localtime(timezone.now())
     visible_by_all = False
 
     class Meta:
@@ -50,7 +50,7 @@ class InstructionFactory(factory.django.DjangoModelFactory):
     )  # Subfactory seems to not trigger `create()`
     title = factory.Faker("sentence")
     content = factory.Faker("text")
-    publication_date = timezone.now()
+    publication_date = timezone.localtime(timezone.now())
     visible_by_all = False
 
     class Meta:
@@ -68,7 +68,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     )  # Subfactory seems to not trigger `create()`
     title = factory.Faker("sentence")
     content = factory.Faker("text")
-    event_date = timezone.now()
+    event_date = timezone.localtime(timezone.now())
     visible_by_all = False
 
     class Meta:

@@ -62,7 +62,7 @@ class NewsfeedViewSet(ListViewSet):
                 project_related_name="announcement__project",
             )
             .filter(
-                Q(announcement__deadline__gte=timezone.now())
+                Q(announcement__deadline__gte=timezone.localtime(timezone.now()))
                 | Q(announcement__deadline__isnull=True)
             )
             .annotate(date=F("announcement__updated_at"))
@@ -76,7 +76,7 @@ class NewsfeedViewSet(ListViewSet):
                 queryset=Newsfeed.objects.filter(
                     type=Newsfeed.NewsfeedType.NEWS,
                     news__organization__code=self.kwargs["organization_code"],
-                    news__publication_date__lte=timezone.now(),
+                    news__publication_date__lte=timezone.localtime(timezone.now()),
                 )
             )
             .annotate(date=F("news__publication_date"))

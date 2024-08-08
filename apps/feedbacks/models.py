@@ -149,7 +149,7 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
 
     @transaction.atomic
     def soft_delete(self, by: "ProjectUser"):
-        self.deleted_at = timezone.now()
+        self.deleted_at = timezone.localtime(timezone.now())
         self.deleted_by = by
         self.save()
         if hasattr(self.project, "stat"):

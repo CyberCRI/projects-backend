@@ -28,8 +28,8 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     chat_button_text = factory.Faker("text", max_nb_chars=50)
     logo_image = factory.LazyFunction(get_test_image)
     website_url = factory.Faker("url")
-    created_at = factory.LazyFunction(timezone.now)
-    updated_at = factory.LazyFunction(timezone.now)
+    created_at = timezone.localtime(timezone.now())
+    updated_at = timezone.localtime(timezone.now())
     parent = None
 
     @classmethod
