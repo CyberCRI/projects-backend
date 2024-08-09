@@ -930,6 +930,13 @@ class MiscProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization], title=title)
         self.assertEqual(project.slug, "my-amazing-test-project-2")
 
+    def test_blank_raw_slug(self):
+        title = "."
+        project = ProjectFactory(
+            organizations=[self.organization], title=title, deleted_at=now()
+        )
+        self.assertEqual(project.slug, "project-0")
+
     def test_multiple_lookups(self):
         project = ProjectFactory(
             organizations=[self.organization],
