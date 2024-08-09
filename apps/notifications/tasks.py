@@ -382,7 +382,9 @@ def _send_notifications_reminder(users: dict):
 
 
 def _send_invitations_reminder():
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = timezone.localtime(timezone.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
     expire_today = Invitation.objects.filter(
         expire_at__gte=today, expire_at__lt=today + timedelta(days=1)
     )
@@ -403,7 +405,9 @@ def _send_invitations_reminder():
 
 
 def _notify_new_instructions():
-    today = timezone.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    today = timezone.localtime(timezone.now()).replace(
+        hour=0, minute=0, second=0, microsecond=0
+    )
     queryset = Instruction.objects.filter(
         notified=False,
         has_to_be_notified=True,

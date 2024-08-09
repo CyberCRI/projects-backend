@@ -795,7 +795,9 @@ class UserScore(models.Model):
     def get_activity(self) -> float:
         last_activity = self.user.last_login
         if last_activity:
-            weeks_since_last_activity = (timezone.now() - last_activity).days / 7
+            weeks_since_last_activity = (
+                timezone.localtime(timezone.now()) - last_activity
+            ).days / 7
             return 5 / (1 + weeks_since_last_activity)
         return 0
 

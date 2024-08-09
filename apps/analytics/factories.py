@@ -17,7 +17,7 @@ class StatFactory(factory.django.DjangoModelFactory):
     goals = 0
     versions = 0
     description_length = 0
-    last_update = factory.LazyFunction(timezone.now)
+    last_update = timezone.localtime(timezone.now())
 
     class Meta:
         model = Stat

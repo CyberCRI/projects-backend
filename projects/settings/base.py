@@ -269,13 +269,13 @@ LOCALE_PATHS = (BASE_DIR / "locale",)
 
 REQUIRED_LANGUAGES = [code for code, _ in LANGUAGES]
 
-TIME_ZONE = "UTC"
+USE_TZ = True
+
+TIME_ZONE = "Europe/Paris"
 
 USE_I18N = True
 
 USE_L10N = True
-
-USE_TZ = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -438,13 +438,13 @@ if CELERY_ENABLED:
             "task": "apps.notifications.tasks.send_invitations_reminder",
             "schedule": crontab(minute=0, hour=7),
         },
-        "send_notifications_reminder": {
-            "task": "apps.notifications.tasks.send_notifications_reminder",
-            "schedule": crontab(minute=0, hour=8),
-        },
         "send_access_request_notification": {
             "task": "apps.notifications.tasks.notify_pending_access_requests",
             "schedule": crontab(minute=0, hour=9),
+        },
+        "send_notifications_reminder": {
+            "task": "apps.notifications.tasks.send_notifications_reminder",
+            "schedule": crontab(minute=0, hour=18),
         },
         "get_new_mixpanel_events": {
             "task": "services.mixpanel.tasks.get_new_mixpanel_events",

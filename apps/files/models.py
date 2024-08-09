@@ -172,7 +172,9 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
             for f in cls._meta.get_fields()
             if isinstance(f, ForeignObjectRel)
         }
-        threshold = timezone.now() - datetime.timedelta(seconds=threshold)
+        threshold = timezone.localtime(timezone.now()) - datetime.timedelta(
+            seconds=threshold
+        )
         return Image.objects.filter(created_at__lt=threshold, **filters)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:

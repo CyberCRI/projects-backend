@@ -16,7 +16,7 @@ class DeleteOrphanImagesTestCase(JwtAPITestCase):
         linked = self.get_test_image()
         linked_outdated = self.get_test_image()
 
-        date = timezone.now() - timedelta(
+        date = timezone.localtime(timezone.now()) - timedelta(
             seconds=settings.IMAGE_ORPHAN_THRESHOLD_SECONDS
         )
         orphan_outdated.created_at = date
