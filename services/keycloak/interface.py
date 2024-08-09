@@ -364,3 +364,15 @@ class KeycloakService:
             logger.info(
                 f"Deleted user {keycloak_account.keycloak_id} does not exist in Keycloak"  # noqa: E713
             )
+
+    @classmethod
+    def get_client_id(cls, client_name: str):
+        return cls.service().get_client_id(client_name)
+
+    @classmethod
+    def get_client(cls, client_id: str):
+        return cls.service().get_client(client_id)
+
+    @classmethod
+    def update_client(cls, client_id: str, payload: Dict[str, Union[str, bool]]):
+        return cls.service().update_client(client_id, payload)
