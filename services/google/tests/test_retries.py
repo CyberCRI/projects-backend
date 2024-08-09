@@ -206,45 +206,6 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             self.assertEqual(error.retries_count, 1)
             self.assertEqual(error.error, "Updated error")
 
-    @parameterized.expand(
-        [
-            (
-                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-                "services.google.interface.GoogleService.get_user_groups",
-            ),
-            (
-                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-                "services.google.interface.GoogleService.get_group_members",
-            ),
-        ]
-    )
-    def test_retry_failure_increment_account_and_group_tasks(
-        self, failed_task, mocked_task
-    ):
-        error = GoogleSyncErrorFactory(
-            google_group=self.google_group,
-            google_account=self.google_account,
-            on_task=failed_task,
-            solved=False,
-            retries_count=0,
-            error="Initial error",
-        )
-        with (
-            patch(mocked_task) as mocked_get,
-            patch(
-                "services.google.interface.GoogleService.add_user_to_group"
-            ) as mocked_add,
-        ):
-            mocked_get.side_effect = self.return_object_side_effect([])
-            mocked_add.side_effect = self.raise_error_side_effect
-            retry_failed_tasks()
-            mocked_get.assert_called_once()
-            mocked_add.assert_called_once()
-            error.refresh_from_db()
-            self.assertFalse(error.solved)
-            self.assertEqual(error.retries_count, 1)
-            self.assertEqual(error.error, "Updated error")
-
 
 class GoogleRetryErrorsSolvedTestCase(GoogleTestCase):
     @classmethod

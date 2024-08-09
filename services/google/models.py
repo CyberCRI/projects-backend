@@ -107,18 +107,12 @@ class GoogleGroup(models.Model):
             )
         return super().save(*args, **kwargs)
 
-    def update_or_create_error(
-        self,
-        on_task: str,
-        error: Optional[Exception] = None,
-        google_account: Optional["GoogleAccount"] = None,
-    ):
+    def update_or_create_error(self, on_task: str, error: Optional[Exception] = None):
         defaults = {"solved": error is None}
         if error is not None:
             defaults["error"] = str(error)
         error, created = GoogleSyncErrors.objects.update_or_create(
             google_group=self,
-            google_account=google_account,
             on_task=on_task,
             solved=False,
             defaults=defaults,
@@ -194,29 +188,19 @@ class GoogleGroup(models.Model):
         try:
             GoogleService.add_user_to_group(google_user, self)
         except Exception as e:  # noqa: PIE786
-            self.update_or_create_error(
-                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e, google_user
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
         else:
             if is_retry:
-                self.update_or_create_error(
-                    GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-                    google_account=google_user,
-                )
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
 
     def remove_member(self, google_user: "GoogleAccount", is_retry: bool = False):
         try:
             GoogleService.remove_user_from_group(google_user, self)
         except Exception as e:  # noqa: PIE786
-            self.update_or_create_error(
-                GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e, google_user
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS, e)
         else:
             if is_retry:
-                self.update_or_create_error(
-                    GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
-                    google_account=google_user,
-                )
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS)
 
 
 class GoogleAccount(models.Model):
@@ -259,13 +243,11 @@ class GoogleAccount(models.Model):
         self,
         on_task: str,
         error: Optional[Exception] = None,
-        google_group: Optional["GoogleGroup"] = None,
     ):
         defaults = {"solved": error is None}
         if error is not None:
             defaults["error"] = error
         error, created = GoogleSyncErrors.objects.update_or_create(
-            google_group=google_group,
             google_account=self,
             on_task=on_task,
             solved=False,
@@ -351,26 +333,16 @@ class GoogleAccount(models.Model):
         try:
             GoogleService.add_user_to_group(self, google_group)
         except Exception as e:  # noqa: PIE786
-            self.update_or_create_error(
-                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e, google_group
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
         else:
             if is_retry:
-                self.update_or_create_error(
-                    GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-                    google_group=google_group,
-                )
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
 
     def remove_group(self, google_group: "GoogleGroup", is_retry: bool = False):
         try:
             GoogleService.remove_user_from_group(self, google_group)
         except Exception as e:  # noqa: PIE786
-            self.update_or_create_error(
-                GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e, google_group
-            )
+            self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS, e)
         else:
             if is_retry:
-                self.update_or_create_error(
-                    GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS,
-                    google_group=google_group,
-                )
+                self.update_or_create_error(GoogleSyncErrors.OnTaskChoices.SYNC_GROUPS)
