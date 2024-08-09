@@ -28,7 +28,9 @@ class PostDeployProcess(models.Model):
         ordering = ["priority"]
 
     def run_task(self):
-        return self._tasks[self.task_name].run()
+        result = self._tasks[self.task_name].run()
+        self.task_id = result.id
+        self.save()
 
     @classmethod
     def recreate_processes(cls):
@@ -74,9 +76,7 @@ class PostDeployProcess(models.Model):
         )
         for process in sorted(processes_to_run, key=lambda x: x.priority):
             process.refresh_from_db()
-            result = process.run_task()
-            process.task_id = result.id
-            process.save()
+            process.run_task()
 
     @property
     def progress(self):
