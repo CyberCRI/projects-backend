@@ -76,13 +76,13 @@ class Embedding(models.Model):
         self.save(update_fields=["is_visible"])
         return self.is_visible
 
-    @transaction.atomic
     def vectorize(self, *args, **kwargs) -> "Embedding":
         try:
-            if self.set_visibility():
-                return self.set_embedding(*args, **kwargs)
-            self.embedding = None
-            self.save()
+            with transaction.atomic():
+                if self.set_visibility():
+                    return self.set_embedding(*args, **kwargs)
+                self.embedding = None
+                self.save()
         except Exception as e:  # noqa: PIE786
             EmbeddingError.objects.create(
                 item_type=self.item.__class__.__name__,
