@@ -12,6 +12,7 @@ from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
 from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
+from apps.search.tasks import update_or_create_user_search_object_task
 
 
 @skipUnlessAlgolia
@@ -78,6 +79,9 @@ class UserSearchTestCase(JwtAPITestCase):
             "private": cls.private_user,
             "org": cls.org_user,
         }
+        # Create search objects manually because celery tasks are not executed in tests
+        for user in cls.users.values():
+            update_or_create_user_search_object_task(user.pk)
         algolia_engine.reindex_all(SearchObject)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
