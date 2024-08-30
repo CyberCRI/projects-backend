@@ -4,7 +4,10 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
-from .models import Embedding, ProjectEmbedding, UserEmbedding
+from apps.accounts.models import ProjectUser
+from apps.projects.models import Project
+
+from .models import Embedding, EmbeddingError, ProjectEmbedding, UserEmbedding
 
 
 class EmbeddingAdmin(admin.ModelAdmin):
@@ -56,5 +59,29 @@ class ProjectEmbeddingAdmin(EmbeddingAdmin):
         return item.title
 
 
+class EmbeddingErrorAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "link_to_item",
+        "error",
+        "created_at",
+    )
+    list_filter = ("error",)
+
+    def link_to_item(self, item: EmbeddingError) -> str:
+        if item.item_type == Project.__name__:
+            admin_page = reverse("admin:projects_project_change", args=(item.item_id,))
+        elif item.item_type == ProjectUser.__name__:
+            admin_page = reverse(
+                "admin:accounts_projectuser_change", args=(item.item_id,)
+            )
+        else:
+            return None
+        return mark_safe(f'<a href="{admin_page}">{item.item_type}: {item.item_id}</a>')
+
+    link_to_item.short_description = "Item"
+
+
 admin.site.register(UserEmbedding, UserEmbeddingAdmin)
 admin.site.register(ProjectEmbedding, ProjectEmbeddingAdmin)
+admin.site.register(EmbeddingError, EmbeddingErrorAdmin)
