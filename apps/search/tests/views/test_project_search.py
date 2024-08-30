@@ -15,6 +15,7 @@ from apps.organizations.factories import OrganizationFactory, ProjectCategoryFac
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
+from apps.search.tasks import update_or_create_project_search_object_task
 
 
 @skipUnlessAlgolia
@@ -101,6 +102,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
             "org": cls.org_project,
             "member": cls.member_project,
         }
+        # Create search objects manually because celery tasks are not executed in tests
+        for project in cls.projects.values():
+            update_or_create_project_search_object_task(project.pk)
         algolia_engine.reindex_all(SearchObject)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 

@@ -11,6 +11,7 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
+from apps.search.tasks import update_or_create_people_group_search_object_task
 
 
 @skipUnlessAlgolia
@@ -62,6 +63,9 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             "org": cls.org_people_group,
             "member": cls.member_people_group,
         }
+        # Create search objects manually because celery tasks are not executed in tests
+        for group in cls.groups.values():
+            update_or_create_people_group_search_object_task(group.pk)
         algolia_engine.reindex_all(SearchObject)
         time.sleep(10)  # reindexing is asynchronous, wait for it to finish
 
