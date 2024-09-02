@@ -12,6 +12,6 @@ class UserCannotMentorError(APIException):
 
 
 class UserDoesNotNeedMentorError(APIException):
-    status_code = status.HTTP_404_NOT_FOUND
+    status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("This user does not need a mentor for this skill")
     default_code = "user_does_not_need_mentor"
