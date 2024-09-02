@@ -457,8 +457,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if not organizations:
             raise OrganizationsParameterMissing
         threshold = int(request.query_params.get("threshold", 5))
-        queryset = self.request.user.get_project_queryset().filter(
-            organizations__code__in=get_below_hierarchy_codes(organizations)
+        queryset = (
+            self.request.user.get_project_queryset()
+            .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
+            .exclude(id=project.id)
         )
         queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)
