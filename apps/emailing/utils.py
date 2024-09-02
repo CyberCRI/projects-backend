@@ -1,5 +1,6 @@
 import logging
 import smtplib
+from typing import List, Optional, Union
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -11,11 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 def send_email(
-    subject, text_content, to, from_email=settings.EMAIL_HOST_USER, html_content=None
+    subject: str,
+    text_content: str,
+    to: List[str],
+    from_email: str = settings.EMAIL_HOST_USER,
+    html_content: Optional[str] = None,
+    reply_to: Optional[List[str]] = None,
 ):
     try:
         message = EmailMultiAlternatives(
-            subject, text_content, from_email=from_email, to=to
+            subject, text_content, from_email=from_email, to=to, reply_to=reply_to
         )
         if html_content is not None:
             message.attach_alternative(html_content, "text/html")
@@ -25,13 +31,13 @@ def send_email(
 
 
 def send_email_with_attached_file(
-    subject,
-    text_content,
-    to,
-    file,
-    file_type,
-    from_email=settings.EMAIL_HOST_USER,
-    html_content=None,
+    subject: str,
+    text_content: str,
+    to: List[str],
+    file: Union[str, bytes],
+    file_type: str,
+    from_email: str = settings.EMAIL_HOST_USER,
+    html_content: Optional[str] = None,
 ):
     try:
         message = EmailMultiAlternatives(
