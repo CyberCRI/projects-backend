@@ -338,6 +338,10 @@ class PeopleGroupIndex:
     def prepare_emails(group: PeopleGroup) -> str:
         return [group.email] if group.email else []
 
+    @staticmethod
+    def prepare_is_root(group: PeopleGroup) -> bool:
+        return group.is_root
+
 
 @register(SearchObject)
 class SearchObjectIndex(AlgoliaSplittingIndex):
@@ -381,6 +385,8 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "needs_mentor_filter",
             "can_mentor_on_filter",
             "needs_mentor_on_filter",
+            # Group
+            "is_root",
         ),
         "multiple": (
             {
@@ -405,6 +411,8 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
                     "needs_mentor_filter",
                     "can_mentor_on_filter",
                     "needs_mentor_on_filter",
+                    # PeopleGroup
+                    "is_root",
                 ),
                 "split": ("content",),
             },
@@ -430,6 +438,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "organizations",
             "type",
             "filterOnly(has_organization)",
+            "filterOnly(is_root)",
             "filterOnly(sdgs)",
             "filterOnly(permissions)",
             "filterOnly(language)",
@@ -489,6 +498,9 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             self.get_field_for_model(search_object, "prepare_organizations", [])
         )
 
+    def prepare_is_root(self, search_object: SearchObject) -> bool:
+        return self.get_field_for_model(search_object, "prepare_is_root", False)
+
     def prepare_subtitle(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_subtitle", "")
 
@@ -535,11 +547,13 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
         return self.get_field_for_model(search_object, "prepare_skills_filter", [])
 
     def prepare_can_mentor_filter(self, search_object: SearchObject) -> bool:
-        return self.get_field_for_model(search_object, "prepare_can_mentor_filter", [])
+        return self.get_field_for_model(
+            search_object, "prepare_can_mentor_filter", False
+        )
 
     def prepare_needs_mentor_filter(self, search_object: SearchObject) -> bool:
         return self.get_field_for_model(
-            search_object, "prepare_needs_mentor_filter", []
+            search_object, "prepare_needs_mentor_filter", False
         )
 
     def prepare_can_mentor_on_filter(self, search_object: SearchObject) -> List[str]:

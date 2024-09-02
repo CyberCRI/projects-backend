@@ -120,6 +120,7 @@ class SearchViewSet(PaginatedViewSet):
         """
         facet_filters = [
             ["has_organization:true"],
+            ["is_root:false"],
             [f"type:{t}" for t in self.get_filter("types")],
             [f"permissions:{p}" for p in self.get_user_permissions()],
             [f"organizations:{o}" for o in self.get_filter("organizations")],
