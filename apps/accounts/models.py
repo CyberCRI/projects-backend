@@ -883,6 +883,7 @@ class Skill(models.Model, HasOwner):
     category = models.CharField(max_length=255, blank=True, default="")
     can_mentor = models.BooleanField(default=False)
     needs_mentor = models.BooleanField(default=False)
+    comment = models.TextField(blank=True, default="")
 
     class Meta:
         constraints = [

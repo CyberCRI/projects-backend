@@ -745,6 +745,8 @@ class SkillSerializer(serializers.ModelSerializer):
             "level_to_reach",
             "category",
             "type",
+            "can_mentor",
+            "needs_mentor",
         ]
 
 

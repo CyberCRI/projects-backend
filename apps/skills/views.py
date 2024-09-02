@@ -288,11 +288,11 @@ class MentorshipContactViewset(viewsets.ViewSet):
         organization_code = self.kwargs["organization_code"]
         return get_object_or_404(Organization, code=organization_code)
 
-    def get_skill(self, can_mentor: bool = True, needs_mentor: bool = True):
+    def get_skill(self):
         organization = self.get_organization()
         skill_id = self.kwargs["skill_id"]
         return get_object_or_404(
-            Skill, id=skill_id, user__in=organization.get_all_members()
+            Skill, id=int(skill_id), user__in=organization.get_all_members()
         )
 
     def get_skill_name(self, skill: Skill, language: str):

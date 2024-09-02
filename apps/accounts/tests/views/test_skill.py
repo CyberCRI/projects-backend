@@ -45,6 +45,9 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
             "wikipedia_tag": wikipedia_qid,
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),
+            "needs_mentor": faker.pybool(),
+            "can_mentor": faker.pybool(),
+            "comment": faker.text(),
         }
         response = self.client.post(reverse("Skill-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
@@ -57,6 +60,9 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(
                 response.json()["level_to_reach"], payload["level_to_reach"]
             )
+            self.assertEqual(response.json()["needs_mentor"], payload["needs_mentor"])
+            self.assertEqual(response.json()["can_mentor"], payload["can_mentor"])
+            self.assertEqual(response.json()["comment"], payload["comment"])
 
 
 class UpdateSkillTestCase(JwtAPITestCase):
@@ -84,6 +90,10 @@ class UpdateSkillTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {
             "level": faker.pyint(1, 4),
+            "level_to_reach": faker.pyint(1, 4),
+            "needs_mentor": faker.pybool(),
+            "can_mentor": faker.pybool(),
+            "comment": faker.text(),
         }
         response = self.client.patch(
             reverse("Skill-detail", args=(self.skill.id,)), data=payload
@@ -91,6 +101,12 @@ class UpdateSkillTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             self.assertEqual(response.json()["level"], payload["level"])
+            self.assertEqual(
+                response.json()["level_to_reach"], payload["level_to_reach"]
+            )
+            self.assertEqual(response.json()["needs_mentor"], payload["needs_mentor"])
+            self.assertEqual(response.json()["can_mentor"], payload["can_mentor"])
+            self.assertEqual(response.json()["comment"], payload["comment"])
 
 
 class DeleteSkillTestCase(JwtAPITestCase):

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:00+0200\n"
+"POT-Creation-Date: 2024-09-02 15:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1510,22 +1510,11 @@ msgstr "Cet·te utilisateur·ice ne peut pas être mentor·e pour cette compéte
 
 #: apps/skills/exceptions.py:16
 msgid "This user does not need a mentor for this skill"
-msgstr "Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
-
-#: apps/skills/templates/contact_mentor/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"    Would you mentor me in %(skill)s?\n"
-"    "
 msgstr ""
-"\n"
-"    Voulez-vous être mon mentor en %(skill)s?\n"
-"    "
+"Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
 
-
-#: apps/skills/templates/contact_mentor/mail.html:16
-#: apps/skills/templates/contact_mentoree/mail.html:16
+#: apps/skills/templates/contact_mentor/mail.html:14
+#: apps/skills/templates/contact_mentoree/mail.html:14
 msgid ""
 "\n"
 "    Reply\n"
@@ -1536,17 +1525,18 @@ msgstr ""
 "    "
 
 #: apps/skills/templates/contact_mentor/mail.txt:2
+#: apps/skills/templates/contact_mentoree/mail.txt:2
 #, python-format
 msgid ""
 "\n"
-"Would you mentor me in %(skill)s?\n"
+"%(title)s\n"
 "\n"
 "%(content)s\n"
 "\n"
 "Reply : %(reply_to)s\n"
 msgstr ""
 "\n"
-"Voulez-vous être mon mentor en %(skill)s?\n"
+"%(title)s\n"
 "\n"
 "%(content)s\n"
 "\n"
@@ -1561,41 +1551,14 @@ msgstr ""
 "\n"
 "Accepteriez-vous de mentorer %(mentoree_name)s ?\n"
 
-#: apps/skills/templates/contact_mentoree/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"    Do you want to be mentored in %(skill)s?\n"
-"    "
-msgstr ""
-"\n"
-"    Voulez-vous être mentoré·e en %(skill)s?\n"
-
-#: apps/skills/templates/contact_mentoree/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Do you want to be mentored in %(skill)s?\n"
-"\n"
-"%(content)s\n"
-"\n"
-"Reply : %(reply_to)s\n"
-msgstr ""
-"\n"
-"Voulez-vous être mentoré·e en %(skill)s?\n"
-"\n"
-"%(content)s\n"
-"\n"
-"Répondre : %(reply_to)s\n"
-
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
 msgid ""
 "\n"
-"%(mentor_name)s wants to mentor you in %(skill)s.\n"
+"%(mentor_name)s wants to mentor you.\n"
 msgstr ""
 "\n"
-"%(mentor_name)s propose de vous mentorer en %(skill)s.\n"
+"%(mentor_name)s propose de vous mentorer.\n"
 
 #: apps/skills/templates/mentorship_base.html:56
 msgid ""
@@ -1610,13 +1573,13 @@ msgstr ""
 #: apps/skills/templates/mentorship_base.html:61
 msgid ""
 "\n"
-"          <a class=\"lpi-link\" href=\"\">Check ou guide</a> with tips and "
+"          <a class=\"lpi-link\" href=\"\">Check our guide</a> with tips and "
 "proposals to make the most of your mentorship experience.\n"
 "          "
 msgstr ""
 "\n"
-"          <a class=\"lpi-link\" href=\"\">Consultez notre guide</a> avec quelques "
-"conseils et des propositions de déroulés.\n"
+"          <a class=\"lpi-link\" href=\"\">Consultez notre guide</a> avec "
+"quelques conseils et des propositions de déroulés.\n"
 
 #: projects/settings/base.py:265
 msgid "English"
@@ -1967,15 +1930,3 @@ msgstr "La langue n'est pas disponible"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "La langue {language} n'est pas disponible"
-
-#, python-format
-#~ msgid ""
-#~ "\n"
-#~ "            New access request %(request_id)s for %(org_name)s Projects "
-#~ "platform\n"
-#~ "            "
-#~ msgstr ""
-#~ "\n"
-#~ "            Nouvelle demande d'accès %(request_id)s pour la plateforme "
-#~ "Projects de %(org_name)s\n"
-#~ "            "

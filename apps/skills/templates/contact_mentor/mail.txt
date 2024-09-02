@@ -1,6 +1,6 @@
 {% load i18n %}
 {% blocktranslate %}
-Would you mentor me in {{ skill }}?
+{{ title }}
 
 {{ content }}
 

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 14:00+0200\n"
+"POT-Creation-Date: 2024-09-02 15:06+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1187,16 +1187,8 @@ msgstr ""
 msgid "This user does not need a mentor for this skill"
 msgstr ""
 
-#: apps/skills/templates/contact_mentor/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"    Would you mentor me in %(skill)s?\n"
-"    "
-msgstr ""
-
-#: apps/skills/templates/contact_mentor/mail.html:16
-#: apps/skills/templates/contact_mentoree/mail.html:16
+#: apps/skills/templates/contact_mentor/mail.html:14
+#: apps/skills/templates/contact_mentoree/mail.html:14
 msgid ""
 "\n"
 "    Reply\n"
@@ -1204,10 +1196,11 @@ msgid ""
 msgstr ""
 
 #: apps/skills/templates/contact_mentor/mail.txt:2
+#: apps/skills/templates/contact_mentoree/mail.txt:2
 #, python-format
 msgid ""
 "\n"
-"Would you mentor me in %(skill)s?\n"
+"%(title)s\n"
 "\n"
 "%(content)s\n"
 "\n"
@@ -1221,30 +1214,11 @@ msgid ""
 "Would you mentor %(mentoree_name)s ?\n"
 msgstr ""
 
-#: apps/skills/templates/contact_mentoree/mail.html:8
-#, python-format
-msgid ""
-"\n"
-"    Do you want to be mentored in %(skill)s?\n"
-"    "
-msgstr ""
-
-#: apps/skills/templates/contact_mentoree/mail.txt:2
-#, python-format
-msgid ""
-"\n"
-"Do you want to be mentored in %(skill)s?\n"
-"\n"
-"%(content)s\n"
-"\n"
-"Reply : %(reply_to)s\n"
-msgstr ""
-
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
 msgid ""
 "\n"
-"%(mentor_name)s wants to mentor you in %(skill)s.\n"
+"%(mentor_name)s wants to mentor you.\n"
 msgstr ""
 
 #: apps/skills/templates/mentorship_base.html:56
@@ -1257,7 +1231,7 @@ msgstr ""
 #: apps/skills/templates/mentorship_base.html:61
 msgid ""
 "\n"
-"          <a class=\"lpi-link\" href=\"\">Check ou guide</a> with tips and "
+"          <a class=\"lpi-link\" href=\"\">Check our guide</a> with tips and "
 "proposals to make the most of your mentorship experience.\n"
 "          "
 msgstr ""
