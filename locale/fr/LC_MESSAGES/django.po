@@ -1581,6 +1581,7 @@ msgstr ""
 "\n"
 "          <a class=\"lpi-link\" href=\"\">Consultez notre guide</a> avec "
 "quelques conseils et des propositions de déroulés.\n"
+"          "
 
 #: projects/settings/base.py:265
 msgid "English"
