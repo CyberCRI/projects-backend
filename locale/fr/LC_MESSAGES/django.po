@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-08-30 15:08+0200\n"
+"POT-Creation-Date: 2024-09-02 14:00+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -376,6 +376,7 @@ msgstr ""
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:83
+#: apps/skills/templates/mentorship_base.html:71
 #: services/keycloak/templates/keycloak_base.html:83
 msgid ""
 "\n"
@@ -1503,11 +1504,125 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: projects/settings/base.py:264
+#: apps/skills/exceptions.py:10
+msgid "This user cannot be a mentor for this skill"
+msgstr "Cet·te utilisateur·ice ne peut pas être mentor·e pour cette compétence"
+
+#: apps/skills/exceptions.py:16
+msgid "This user does not need a mentor for this skill"
+msgstr "Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
+
+#: apps/skills/templates/contact_mentor/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Would you mentor me in %(skill)s?\n"
+"    "
+msgstr ""
+"\n"
+"    Voulez-vous être mon mentor en %(skill)s?\n"
+"    "
+
+
+#: apps/skills/templates/contact_mentor/mail.html:16
+#: apps/skills/templates/contact_mentoree/mail.html:16
+msgid ""
+"\n"
+"    Reply\n"
+"    "
+msgstr ""
+"\n"
+"    Répondre\n"
+"    "
+
+#: apps/skills/templates/contact_mentor/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Would you mentor me in %(skill)s?\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(reply_to)s\n"
+msgstr ""
+"\n"
+"Voulez-vous être mon mentor en %(skill)s?\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Répondre : %(reply_to)s\n"
+
+#: apps/skills/templates/contact_mentor/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Would you mentor %(mentoree_name)s ?\n"
+msgstr ""
+"\n"
+"Accepteriez-vous de mentorer %(mentoree_name)s ?\n"
+
+#: apps/skills/templates/contact_mentoree/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Do you want to be mentored in %(skill)s?\n"
+"    "
+msgstr ""
+"\n"
+"    Voulez-vous être mentoré·e en %(skill)s?\n"
+
+#: apps/skills/templates/contact_mentoree/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s?\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(reply_to)s\n"
+msgstr ""
+"\n"
+"Voulez-vous être mentoré·e en %(skill)s?\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Répondre : %(reply_to)s\n"
+
+#: apps/skills/templates/contact_mentoree/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s wants to mentor you in %(skill)s.\n"
+msgstr ""
+"\n"
+"%(mentor_name)s propose de vous mentorer en %(skill)s.\n"
+
+#: apps/skills/templates/mentorship_base.html:56
+msgid ""
+"\n"
+"          Need advice on mentorship?\n"
+"          "
+msgstr ""
+"\n"
+"          Besoin de conseils sur le mentorat?\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:61
+msgid ""
+"\n"
+"          <a class=\"lpi-link\" href=\"\">Check ou guide</a> with tips and "
+"proposals to make the most of your mentorship experience.\n"
+"          "
+msgstr ""
+"\n"
+"          <a class=\"lpi-link\" href=\"\">Consultez notre guide</a> avec quelques "
+"conseils et des propositions de déroulés.\n"
+
+#: projects/settings/base.py:265
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:265
+#: projects/settings/base.py:266
 msgid "French"
 msgstr "Français"
 

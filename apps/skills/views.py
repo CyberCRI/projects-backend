@@ -295,26 +295,24 @@ class MentorshipContactViewset(viewsets.ViewSet):
             Skill, id=skill_id, user__in=organization.get_all_members()
         )
 
-    def send_email(
-        self, template_folder: str, receiver: ProjectUser, sender: ProjectUser, **kwargs
-    ):
-        subject, _ = render_message(
-            template_name=f"{template_folder}/object",
-            language=receiver.language,
-            receiver=receiver,
-            sender=sender,
-            **kwargs,
+    def get_skill_name(self, skill: Skill, language: str):
+        return getattr(
+            skill.wikipedia_tag, f"name_{language}", skill.wikipedia_tag.name
         )
-        text, html = render_message(
-            f"{template_folder}/mail",
-            language=receiver.language,
-            receiver=receiver,
-            sender=sender,
+
+    def send_email(self, template_folder: str, skill: Skill, **kwargs):
+        language = skill.user.language
+        kwargs = {
+            "sender": self.request.user,
+            "receiver": skill.user,
+            "skill": self.get_skill_name(skill, language),
             **kwargs,
-        )
+        }
+        subject, _ = render_message(f"{template_folder}/object", language, **kwargs)
+        text, html = render_message(f"{template_folder}/mail", language, **kwargs)
         reply_to = kwargs["reply_to"]
         send_email(
-            subject, text, [receiver.email], html_content=html, reply_to=[reply_to]
+            subject, text, [skill.user.email], html_content=html, reply_to=[reply_to]
         )
 
     @extend_schema(request=MentorshipContactSerializer, responses={204: None})
@@ -334,9 +332,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
             raise UserCannotMentorError
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.send_email(
-            "contact_mentor", skill.user, self.request.user, **serializer.validated_data
-        )
+        self.send_email("contact_mentor", skill, **serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(request=MentorshipContactSerializer, responses={204: None})
@@ -356,10 +352,5 @@ class MentorshipContactViewset(viewsets.ViewSet):
             raise UserDoesNotNeedMentorError
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.send_email(
-            "contact_mentoree",
-            skill.user,
-            self.request.user,
-            **serializer.validated_data,
-        )
+        self.send_email("contact_mentoree", skill, **serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)

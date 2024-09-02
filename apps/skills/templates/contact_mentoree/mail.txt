@@ -1,0 +1,8 @@
+{% load i18n %}
+{% blocktranslate %}
+Do you want to be mentored in {{ skill }}?
+
+{{ content }}
+
+Reply : {{ reply_to }}
+{% endblocktranslate %}
