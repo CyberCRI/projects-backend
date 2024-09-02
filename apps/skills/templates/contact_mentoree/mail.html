@@ -1,0 +1,18 @@
+{% extends "../mentorship_base_no_guide.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+    {{ title }}
+</mj-text>
+<mj-text>
+    {{ content|safe }}
+</mj-text>
+<mj-button css-class="lpi-button" href="mailto:{{ reply_to }}">
+    {% blocktranslate %}
+    Reply
+    {% endblocktranslate %}
+</mj-button>
+{% endblock %}

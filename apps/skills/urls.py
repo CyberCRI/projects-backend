@@ -2,7 +2,11 @@ from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register, user_router_register
 
-from .views import OrganizationMentorshipViewset, UserMentorshipViewset
+from .views import (
+    MentorshipContactViewset,
+    OrganizationMentorshipViewset,
+    UserMentorshipViewset,
+)
 
 router = DefaultRouter()
 
@@ -18,4 +22,11 @@ user_router_register(
     r"",
     UserMentorshipViewset,
     basename="UserMentorship",
+)
+
+organization_router_register(
+    router,
+    r"skill/(?P<skill_id>\d+)",
+    MentorshipContactViewset,
+    basename="MentorshipContact",
 )

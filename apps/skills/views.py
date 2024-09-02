@@ -2,15 +2,22 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from apps.accounts.models import PrivacySettings, ProjectUser, Skill
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin, PaginatedViewSet
+from apps.emailing.utils import render_message, send_email
 from apps.misc.models import WikipediaTag
 from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
+
+from .exceptions import UserCannotMentorError, UserDoesNotNeedMentorError
+from .serializers import MentorshipContactSerializer
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):
@@ -272,3 +279,78 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
             )
         )
         return self.get_paginated_list(users)
+
+
+class MentorshipContactViewset(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def get_organization(self):
+        organization_code = self.kwargs["organization_code"]
+        return get_object_or_404(Organization, code=organization_code)
+
+    def get_skill(self):
+        organization = self.get_organization()
+        skill_id = self.kwargs["skill_id"]
+        return get_object_or_404(
+            Skill, id=int(skill_id), user__in=organization.get_all_members()
+        )
+
+    def get_skill_name(self, skill: Skill, language: str):
+        return getattr(
+            skill.wikipedia_tag, f"name_{language}", skill.wikipedia_tag.name
+        )
+
+    def send_email(self, template_folder: str, skill: Skill, **kwargs):
+        language = skill.user.language
+        kwargs = {
+            "sender": self.request.user,
+            "receiver": skill.user,
+            "skill": self.get_skill_name(skill, language),
+            **kwargs,
+        }
+        subject, _ = render_message(f"{template_folder}/object", language, **kwargs)
+        text, html = render_message(f"{template_folder}/mail", language, **kwargs)
+        reply_to = kwargs["reply_to"]
+        send_email(
+            subject, text, [skill.user.email], html_content=html, reply_to=[reply_to]
+        )
+
+    @extend_schema(request=MentorshipContactSerializer, responses={204: None})
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="contact-mentor",
+        url_name="contact-mentor",
+        permission_classes=[IsAuthenticated],
+    )
+    def contact_mentor(self, request, *args, **kwargs):
+        """
+        Contact a mentor for help.
+        """
+        skill = self.get_skill()
+        if not skill.can_mentor:
+            raise UserCannotMentorError
+        serializer = MentorshipContactSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.send_email("contact_mentor", skill, **serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(request=MentorshipContactSerializer, responses={204: None})
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="contact-mentoree",
+        url_name="contact-mentoree",
+        permission_classes=[IsAuthenticated],
+    )
+    def contact_mentoree(self, request, *args, **kwargs):
+        """
+        Contact a mentoree for help.
+        """
+        skill = self.get_skill()
+        if not skill.needs_mentor:
+            raise UserDoesNotNeedMentorError
+        serializer = MentorshipContactSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.send_email("contact_mentoree", skill, **serializer.validated_data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
