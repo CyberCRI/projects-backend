@@ -727,6 +727,7 @@ class SkillLightSerializer(serializers.ModelSerializer):
             "type",
             "can_mentor",
             "needs_mentor",
+            "comment",
         ]
         fields = read_only_fields
 
@@ -747,6 +748,7 @@ class SkillSerializer(serializers.ModelSerializer):
             "type",
             "can_mentor",
             "needs_mentor",
+            "comment",
         ]
 
 
