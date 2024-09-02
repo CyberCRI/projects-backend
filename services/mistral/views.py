@@ -200,7 +200,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
                 organizations__code__in=get_below_hierarchy_codes(
                     [self.kwargs["organization_code"]]
                 ),
-                score__activity__gte=1,  # 9 weeks of inactivity
+                score__activity__gte=0.37,  # 6 months of inactivity
             )
             .exclude(id=project.id)
         )
