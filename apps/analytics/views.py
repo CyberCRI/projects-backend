@@ -15,7 +15,6 @@ from apps.misc.models import SDG, WikipediaTag
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
-from .exceptions import UnknownPublicationStatusError
 from .serializers import StatsSerializer
 
 
