@@ -1,4 +1,4 @@
-FROM python:3.12-slim@sha256:59c7332a4a24373861c4a5f0eec2c92b87e3efeb8ddef011744ef9a751b1d11c AS builder
+FROM python:3.12-slim AS builder
 
 ARG EXPORT_FLAG=--dev
 
@@ -9,7 +9,7 @@ COPY pyproject.toml poetry.toml poetry.lock ./
 RUN poetry export -f requirements.txt $EXPORT_FLAG --without-hashes --output /tmp/requirements.txt
 
 
-FROM python:3.12-slim@sha256:59c7332a4a24373861c4a5f0eec2c92b87e3efeb8ddef011744ef9a751b1d11c
+FROM python:3.12-slim
 
 RUN apt-get update && \
   apt upgrade -y
