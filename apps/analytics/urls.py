@@ -1,4 +1,5 @@
 from rest_framework_nested import routers
+
 from apps.commons.urls import organization_router_register
 
 from .views import StatsViewSet

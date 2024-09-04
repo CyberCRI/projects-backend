@@ -1,8 +1,8 @@
 from collections import Counter, defaultdict
 
 from django.db.models import Count, Q
-from django.shortcuts import get_object_or_404
 from django.db.models.functions import TruncMonth
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins
@@ -63,7 +63,9 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
 
         if current_organization not in authorized_organizations:
             return Response(
-                {"detail": "You do not have the permission to view the analytics for this organization."},
+                {
+                    "detail": "You do not have the permission to view the analytics for this organization."
+                },
                 status=403,
             )
         # Number of project by organization
