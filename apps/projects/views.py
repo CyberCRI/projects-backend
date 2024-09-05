@@ -44,7 +44,7 @@ from apps.projects.exceptions import (
 from services.mistral.models import ProjectEmbedding
 
 from .filters import LocationFilter, ProjectFilter
-from .models import BlogEntry, LinkedProject, Location, Project
+from .models import BlogEntry, LinkedProject, Location, Project, ProjectMessage
 from .permissions import HasProjectPermission, ProjectIsNotLocked
 from .serializers import (
     BlogEntrySerializer,
@@ -794,3 +794,25 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ProjectSerializer(project, context=context).data,
             status=status.HTTP_200_OK,
         )
+
+
+class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+    serializer_class = ProjectSerializer
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    permission_classes = [
+        IsAuthenticated,
+        HasBasePermission("change_project", "projects")
+        | HasOrganizationPermission("change_project")
+        | HasProjectPermission("change_project"),
+    ]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
+
+    def get_queryset(self):
+        if "project_id" in self.kwargs:
+            return self.request.user.get_project_related_queryset(
+                ProjectMessage.objects.filter(project=self.kwargs["project_id"])
+            )
+        return ProjectMessage.objects.none()

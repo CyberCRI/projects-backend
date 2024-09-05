@@ -694,3 +694,54 @@ class Location(models.Model, ProjectRelated, OrganizationRelated):
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
+
+
+class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
+    """
+    A message in a project.
+    
+    Attributes
+    ----------
+    project: ForeignKey projects.Project
+        Project this message belong to.
+    author: ForeignKey accounts.ProjectUser
+        Author of the message.
+    reply_on: ForeignKey self
+        Message this one is replying to (if any).
+    content: TextField
+        Content of the message.
+    created_at: DateTimeField
+        Date of creation of this message.
+    updated_at: DateTimeField
+        Date of the last change made to the message.
+    deleted_at: DateTimeField
+        Date the message was soft-deleted.
+    images: ManyToManyField files.Image
+        Images used by the message.
+    """
+    project = HistoricForeignKey(
+        "projects.Project", on_delete=models.CASCADE, related_name="messages",
+    )
+    author = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="project_messages",
+    )
+    reply_on = models.ForeignKey(
+        "self",
+        on_delete=models.CASCADE,
+        default=None,
+        null=True,
+        related_name="replies",
+    )
+    content = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    deleted_at = models.DateTimeField(null=True, default=None)
+    images = models.ManyToManyField("files.Image", related_name="project_messages")
+
+    def __str__(self):
+        return f"Project message from {self.author} on {self.project}"
+    
+    class Meta:
+        ordering = ["-created_at"]
