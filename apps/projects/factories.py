@@ -6,7 +6,14 @@ from apps.commons.factories import language_factory, sdg_factory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import Organization
 
-from .models import BlogEntry, LinkedProject, Location, Project, ProjectScore, ProjectMessage
+from .models import (
+    BlogEntry,
+    LinkedProject,
+    Location,
+    Project,
+    ProjectMessage,
+    ProjectScore,
+)
 
 
 class SeedProjectFactory(factory.django.DjangoModelFactory):

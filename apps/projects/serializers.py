@@ -8,7 +8,12 @@ from rest_framework import serializers
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
-from apps.commons.fields import HiddenPrimaryKeyRelatedField, RecursiveField, UserMultipleIdRelatedField, WritableSerializerMethodField
+from apps.commons.fields import (
+    HiddenPrimaryKeyRelatedField,
+    RecursiveField,
+    UserMultipleIdRelatedField,
+    WritableSerializerMethodField,
+)
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
@@ -772,6 +777,7 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
             "history_change_reason",
             "updated_fields",
         ]
+
 
 class ProjectMessageSerializer(serializers.ModelSerializer):
     content = WritableSerializerMethodField(write_field=serializers.CharField())

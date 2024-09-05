@@ -857,7 +857,5 @@ class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def add_image_to_model(self, image, *args, **kwargs):
         if "project_id" in self.kwargs:
-            return (
-                f"/v1/project/{self.kwargs['project_id']}/project-message-image/{image.id}"
-            )
+            return f"/v1/project/{self.kwargs['project_id']}/project-message-image/{image.id}"
         return None

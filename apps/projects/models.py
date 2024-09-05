@@ -699,7 +699,7 @@ class Location(models.Model, ProjectRelated, OrganizationRelated):
 class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
     """
     A message in a project.
-    
+
     Attributes
     ----------
     project: ForeignKey projects.Project
@@ -719,8 +719,11 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
     images: ManyToManyField files.Image
         Images used by the message.
     """
+
     project = HistoricForeignKey(
-        "projects.Project", on_delete=models.CASCADE, related_name="messages",
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="messages",
     )
     author = models.ForeignKey(
         "accounts.ProjectUser",
@@ -742,7 +745,7 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
 
     def __str__(self):
         return f"Project message from {self.author} on {self.project}"
-    
+
     class Meta:
         ordering = ["-created_at"]
 
