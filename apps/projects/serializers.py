@@ -788,13 +788,9 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
     images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     # write_only
-    project = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=Project.objects.all(), source="project"
-    )
     reply_on = serializers.PrimaryKeyRelatedField(
         write_only=True,
         queryset=Comment.objects.all(),
-        source="reply_on",
         required=False,
         allow_null=True,
     )
@@ -808,7 +804,6 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
             "updated_at",
             "deleted_at",
             # write_only
-            "project",
             "reply_on",
             # read only
             "replies",
@@ -840,6 +835,5 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
                 project_id=self.instance.project.id,
             )
             self.validated_data["content"] = text
-            instance.images.add(*images)
-        instance = super().save(**kwargs)
-        return instance
+            self.instance.images.add(*images)
+        return super().save(**kwargs)

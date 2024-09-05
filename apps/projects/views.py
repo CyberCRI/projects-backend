@@ -818,7 +818,7 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        serializer.save(author=self.request.user, project_id=self.kwargs["project_id"])
 
     def perform_destroy(self, instance: ProjectMessage):
         instance.soft_delete(self.request.user)
