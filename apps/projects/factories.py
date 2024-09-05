@@ -6,7 +6,7 @@ from apps.commons.factories import language_factory, sdg_factory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import Organization
 
-from .models import BlogEntry, LinkedProject, Location, Project, ProjectScore
+from .models import BlogEntry, LinkedProject, Location, Project, ProjectScore, ProjectMessage
 
 
 class SeedProjectFactory(factory.django.DjangoModelFactory):
@@ -120,3 +120,15 @@ class SeedProjectOrganizationFactory(factory.django.DjangoModelFactory):
 
     organization = factory.fuzzy.FuzzyChoice(Organization.objects.filter())
     project = factory.fuzzy.FuzzyChoice(Project.objects.filter())
+
+
+class ProjectMessageFactory(factory.django.DjangoModelFactory):
+    project = factory.LazyFunction(
+        lambda: ProjectFactory()
+    )  # Subfactory seems to not trigger `create()`
+    author = factory.SubFactory(UserFactory)
+    content = factory.Faker("text")
+    reply_on = None
+
+    class Meta:
+        model = ProjectMessage
