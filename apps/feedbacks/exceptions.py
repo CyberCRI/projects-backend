@@ -40,13 +40,13 @@ class FollowProjectPermissionDeniedError(PermissionDenied):
 # Validation errors
 
 
-class ReplyOnReplyError(ValidationError):
+class CommentReplyOnReplyError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("You cannot reply to a reply")
-    default_code = "reply_on_reply_error"
+    default_code = "comment_reply_on_reply_error"
 
 
-class ReplyToSelfError(ValidationError):
+class CommentReplyToSelfError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("A comment cannot be a reply to itself")
-    default_code = "reply_to_self_error"
+    default_code = "comment_reply_to_self_error"
