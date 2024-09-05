@@ -745,3 +745,7 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
     
     class Meta:
         ordering = ["-created_at"]
+
+    def soft_delete(self):
+        self.deleted_at = timezone.localtime(timezone.now())
+        self.save()

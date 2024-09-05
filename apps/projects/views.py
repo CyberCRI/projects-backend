@@ -53,6 +53,7 @@ from .serializers import (
     ProjectAddLinkedProjectSerializer,
     ProjectAddTeamMembersSerializer,
     ProjectLightSerializer,
+    ProjectMessageSerializer,
     ProjectRemoveLinkedProjectSerializer,
     ProjectRemoveTeamMembersSerializer,
     ProjectSerializer,
@@ -797,7 +798,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
-    serializer_class = ProjectSerializer
+    serializer_class = ProjectMessageSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     permission_classes = [
@@ -812,7 +813,51 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-            return self.request.user.get_project_related_queryset(
-                ProjectMessage.objects.filter(project=self.kwargs["project_id"])
-            )
+            # get_project_related_queryset is not needed because the publication_status is not checked here
+            return ProjectMessage.objects.filter(project=self.kwargs["project_id"])
         return ProjectMessage.objects.none()
+
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+    def perform_destroy(self, instance: ProjectMessage):
+        instance.soft_delete(self.request.user)
+
+
+class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
+    permission_classes = [
+        IsAuthenticated,
+        IsOwner
+        | HasBasePermission("change_project", "projects")
+        | HasOrganizationPermission("change_project")
+        | HasProjectPermission("change_project"),
+    ]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
+
+    def get_queryset(self):
+        if "project_id" in self.kwargs:
+            qs = Image.objects.filter(
+                project_messages__project=self.kwargs["project_id"]
+            )
+            # Retrieve images before message is posted
+            if self.request.user.is_authenticated:
+                qs = qs | Image.objects.filter(owner=self.request.user)
+            return qs.distinct()
+        return Image.objects.none()
+
+    @staticmethod
+    def upload_to(instance, filename) -> str:
+        return f"project_messages/images/{uuid.uuid4()}#{instance.name}"
+
+    def retrieve(self, request, *args, **kwargs):
+        image = self.get_object()
+        return redirect(image.file.url)
+
+    def add_image_to_model(self, image, *args, **kwargs):
+        if "project_id" in self.kwargs:
+            return (
+                f"/v1/project/{self.kwargs['project_id']}/project-message-image/{image.id}"
+            )
+        return None
