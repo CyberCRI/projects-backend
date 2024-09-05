@@ -2,19 +2,20 @@ from collections import Counter, defaultdict
 
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from guardian.shortcuts import get_objects_for_user
 from rest_framework import mixins
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
+from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
 from apps.misc.models import SDG, WikipediaTag
 from apps.organizations.models import Organization
+from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 
-from .exceptions import UnknownPublicationStatusError
 from .serializers import StatsSerializer
 
 
@@ -27,51 +28,34 @@ from .serializers import StatsSerializer
             enum=[
                 Project.PublicationStatus.PUBLIC,
                 Project.PublicationStatus.PRIVATE,
+                Project.PublicationStatus.ORG,
                 "all",
             ],
         )
     ]
 )
 class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
-    permission_classes = [ReadOnly]
+    permission_classes = [
+        ReadOnly,
+        HasBasePermission("view_stat")
+        | HasOrganizationPermission("view_stat", "organizations"),
+    ]
     serializer_class = StatsSerializer
 
+    def get_organization(self) -> Organization:
+        organization_code = self.kwargs["organization_code"]
+        return get_object_or_404(Organization, code=organization_code)
+
     def get_queryset(self):
-        """Retrieve only `Organizations` the user has the `stats:list` permission of."""
-        if self.request.user.is_authenticated and self.request.user.has_perm(
-            "analytics.view_stat"
-        ):
-            return Organization.objects.all()
-        if self.request.user.is_authenticated:
-            return get_objects_for_user(self.request.user, "organizations.view_stat")
-        return Organization.objects.none()
-
-    def list(self, request: Request, *args, **kwargs) -> Response:
-        organizations = self.get_queryset()
-        if organizations.count() == 0:
-            return Response(
-                {"detail": "You do not have the permission to view the analytics."},
-                status=403,
-            )
+        current_organization = self.get_organization()
         publication_status = self.request.query_params.get("publication_status", "all")
-        if publication_status not in [
-            Project.PublicationStatus.PUBLIC,
-            Project.PublicationStatus.PRIVATE,
-            "all",
-        ]:
-            raise UnknownPublicationStatusError(publication_status=publication_status)
-
-        # Number of project by organization
-        count = Count("projects")
-        if publication_status != "all":
-            count.filter = Q(projects__publication_status=publication_status)
-        organizations = organizations.annotate(project_count=count)
-
-        # Retrieve all the projects used for the stats
-        projects = Project.objects.filter(organizations__in=organizations)
+        projects = Project.objects.all()
         if publication_status != "all":
             projects = projects.filter(publication_status=publication_status)
-        projects = projects.distinct()
+        return projects.filter(organizations__in=[current_organization]).distinct()
+
+    def list(self, request: Request, *args, **kwargs) -> Response:
+        projects = self.get_queryset()
 
         # Number of project per SDG
         by_sdg = [
@@ -82,26 +66,24 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         by_month = defaultdict(lambda: {"created_count": 0, "updated_count": 0})
         # Number of project created each month
         created_by_month = projects.annotate(month=TruncMonth("created_at"))
-        created_by_month = Counter([m.month for m in created_by_month])
+        created_by_month = Counter([project.month for project in created_by_month])
         for month, count in created_by_month.items():
             by_month[month.date()]["created_count"] += count
 
         # Number of project updated each month
         updated_by_month = projects.annotate(month=TruncMonth("updated_at"))
-        updated_by_month = Counter([m.month for m in updated_by_month])
+        updated_by_month = Counter([project.month for project in updated_by_month])
         for month, count in updated_by_month.items():
             by_month[month.date()]["updated_count"] += count
 
         # Top ten wikipedia_tags
-        q = Q(projects__in=projects)
         wikipedia_tags = WikipediaTag.objects.annotate(
-            project_count=Count("projects", filter=q)
+            project_count=Count("projects", filter=Q(projects__in=projects))
         ).order_by("-project_count")[:10]
 
         by_month = [{**{"month": k}, **v} for k, v in by_month.items()]
         serializer = StatsSerializer(
             {
-                "by_organization": organizations,
                 "by_sdg": by_sdg,
                 "by_month": by_month,
                 "top_tags": wikipedia_tags,

@@ -54,7 +54,6 @@ class TagProjectSerializer(TranslatedModelSerializer):
 
 
 class StatsSerializer(serializers.Serializer):
-    by_organization = StatsOrganizationSerializer(many=True)
     by_sdg = ProjectBySDG(many=True)
     by_month = ProjectByMonth(many=True)
     top_tags = TagProjectSerializer(many=True)

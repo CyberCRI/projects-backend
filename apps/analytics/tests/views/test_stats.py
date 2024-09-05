@@ -63,7 +63,7 @@ class RetrieveStatsTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
@@ -74,17 +74,12 @@ class RetrieveStatsTestCase(JwtAPITestCase):
     def test_retrieve_stats(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.organization_1])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Stats-list"))
+        response = self.client.get(
+            reverse("Stats-list", args=(self.organization_1.code,))
+        )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            by_organization = content["by_organization"]
-            by_organization_1 = [
-                o for o in by_organization if o["id"] == self.organization_1.id
-            ]
-            by_organization_2 = [
-                o for o in by_organization if o["id"] == self.organization_2.id
-            ]
             by_month = content["by_month"]
             by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())]
             by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())]
@@ -93,61 +88,23 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
             by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
             by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
-            top_tags = content["top_tags"]
-            if role == TestRoles.SUPERADMIN:
-                self.assertEqual(len(by_organization), 2)
-                self.assertEqual(by_organization_1[0]["project_count"], 3)
-                self.assertEqual(by_organization_2[0]["project_count"], 2)
+            self.assertEqual(len(by_month), 3)
+            self.assertEqual(by_month_1[0]["created_count"], 2)
+            self.assertEqual(by_month_1[0]["updated_count"], 1)
+            self.assertEqual(by_month_2[0]["created_count"], 1)
+            self.assertEqual(by_month_2[0]["updated_count"], 0)
+            self.assertEqual(by_month_3[0]["created_count"], 0)
+            self.assertEqual(by_month_3[0]["updated_count"], 2)
 
-                self.assertEqual(len(by_month), 3)
-                self.assertEqual(by_month_1[0]["created_count"], 2)
-                self.assertEqual(by_month_1[0]["updated_count"], 1)
-                self.assertEqual(by_month_2[0]["created_count"], 1)
-                self.assertEqual(by_month_2[0]["updated_count"], 0)
-                self.assertEqual(by_month_3[0]["created_count"], 1)
-                self.assertEqual(by_month_3[0]["updated_count"], 3)
+            self.assertEqual(len(by_sdg), 3)
+            self.assertEqual(by_sdg_1[0]["project_count"], 1)
+            self.assertEqual(by_sdg_2[0]["project_count"], 2)
+            self.assertEqual(by_sdg_3[0]["project_count"], 1)
 
-                self.assertEqual(len(by_sdg), 3)
-                self.assertEqual(by_sdg_1[0]["project_count"], 1)
-                self.assertEqual(by_sdg_2[0]["project_count"], 3)
-                self.assertEqual(by_sdg_3[0]["project_count"], 1)
-
-                self.assertEqual(len(top_tags), 3)
-                self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
-                self.assertEqual(content["top_tags"][0]["project_count"], 3)
-                self.assertIn(
-                    content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk]
-                )
-                self.assertEqual(content["top_tags"][1]["project_count"], 1)
-                self.assertIn(
-                    content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk]
-                )
-                self.assertEqual(content["top_tags"][2]["project_count"], 1)
-            else:
-                self.assertEqual(len(by_organization), 1)
-                self.assertEqual(by_organization_1[0]["project_count"], 3)
-
-                self.assertEqual(len(by_month), 3)
-                self.assertEqual(by_month_1[0]["created_count"], 2)
-                self.assertEqual(by_month_1[0]["updated_count"], 1)
-                self.assertEqual(by_month_2[0]["created_count"], 1)
-                self.assertEqual(by_month_2[0]["updated_count"], 0)
-                self.assertEqual(by_month_3[0]["created_count"], 0)
-                self.assertEqual(by_month_3[0]["updated_count"], 2)
-
-                self.assertEqual(len(by_sdg), 3)
-                self.assertEqual(by_sdg_1[0]["project_count"], 1)
-                self.assertEqual(by_sdg_2[0]["project_count"], 2)
-                self.assertEqual(by_sdg_3[0]["project_count"], 1)
-
-                self.assertEqual(len(content["top_tags"]), 3)
-                self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
-                self.assertEqual(content["top_tags"][0]["project_count"], 2)
-                self.assertIn(
-                    content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk]
-                )
-                self.assertEqual(content["top_tags"][1]["project_count"], 1)
-                self.assertIn(
-                    content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk]
-                )
-                self.assertEqual(content["top_tags"][2]["project_count"], 1)
+            self.assertEqual(len(content["top_tags"]), 3)
+            self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
+            self.assertEqual(content["top_tags"][0]["project_count"], 2)
+            self.assertIn(content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk])
+            self.assertEqual(content["top_tags"][1]["project_count"], 1)
+            self.assertIn(content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk])
+            self.assertEqual(content["top_tags"][2]["project_count"], 1)
