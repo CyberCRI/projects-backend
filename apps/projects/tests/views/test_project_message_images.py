@@ -7,41 +7,62 @@ from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.files.models import Image
 from apps.organizations.factories import OrganizationFactory
+from apps.projects.factories import ProjectFactory, ProjectMessageFactory
+from apps.projects.models import Project
 
 faker = Faker()
 
 
-class RetrieveOrganizationImageTestCase(JwtAPITestCase):
+class RetrieveProjectMessageImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.image = cls.get_test_image()
-        cls.organization.images.add(cls.image)
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.owner = UserFactory()
+        cls.project_message = ProjectMessageFactory(project=cls.project)
+        cls.image = cls.get_test_image(owner=cls.owner)
+        cls.project_message.images.add(cls.image)
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_302_FOUND),
+            (TestRoles.OWNER, status.HTTP_302_FOUND),
+            (TestRoles.ORG_ADMIN, status.HTTP_302_FOUND),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_302_FOUND),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_302_FOUND),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_302_FOUND),
         ]
     )
-    def test_retrieve_organization_image(self, role):
-        user = self.get_parameterized_test_user(role, instances=[])
+    def test_retrieve_project_message_image(self, role, expected_code):
+        user = self.get_parameterized_test_user(
+            role, instances=[self.project], owned_instance=self.image
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
-                "Organization-images-detail",
-                args=(self.organization.code, self.image.id),
-            )
+                "ProjectMessage-images-detail", args=(self.project.id, self.image.id)
+            ),
         )
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        self.assertEqual(response.status_code, expected_code)
 
 
-class CreateOrganizationImageTestCase(JwtAPITestCase):
+class CreateProjectMessageImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
 
     @parameterized.expand(
         [
@@ -51,14 +72,17 @@ class CreateOrganizationImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]
     )
-    def test_create_organization_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+    def test_create_project_message_image(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {"file": self.get_test_image_file()}
         response = self.client.post(
-            reverse("Organization-images-list", args=(self.organization.code,)),
+            reverse("ProjectMessage-images-list", args=(self.project.id,)),
             data=payload,
             format="multipart",
         )
@@ -69,20 +93,25 @@ class CreateOrganizationImageTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["static_url"] + "/",
                 reverse(
-                    "Organization-images-detail",
-                    args=(self.organization.code, content["id"]),
+                    "ProjectMessage-images-detail",
+                    args=(self.project.id, content["id"]),
                 ),
             )
 
 
-class UpdateOrganizationTestCase(JwtAPITestCase):
+class UpdateProjectMessageImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.project_message = ProjectMessageFactory(project=cls.project)
         cls.owner = UserFactory()
         cls.image = cls.get_test_image(owner=cls.owner)
-        cls.organization.images.add(cls.image)
+        cls.project_message.images.add(cls.image)
 
     @parameterized.expand(
         [
@@ -93,11 +122,14 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
     )
-    def test_update_organization_image(self, role, expected_code):
+    def test_update_project_message_image(self, role, expected_code):
         user = self.get_parameterized_test_user(
-            role, instances=[self.organization], owned_instance=self.image
+            role, instances=[self.project], owned_instance=self.image
         )
         self.client.force_authenticate(user)
         payload = {
@@ -109,8 +141,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         }
         response = self.client.patch(
             reverse(
-                "Organization-images-detail",
-                args=(self.organization.code, self.image.id),
+                "ProjectMessage-images-detail",
+                args=(self.project.id, self.image.id),
             ),
             data=payload,
             format="multipart",
@@ -125,11 +157,16 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
-class DeleteOrganizationImageTestCase(JwtAPITestCase):
+class DeleteProjectMessageImageTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.project_message = ProjectMessageFactory(project=cls.project)
         cls.owner = UserFactory()
 
     @parameterized.expand(
@@ -141,19 +178,22 @@ class DeleteOrganizationImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
         ]
     )
-    def test_delete_organization_image(self, role, expected_code):
+    def test_delete_project_message_image(self, role, expected_code):
         image = self.get_test_image(owner=self.owner)
-        self.organization.images.add(image)
+        self.project_message.images.add(image)
         user = self.get_parameterized_test_user(
-            role, instances=[self.organization], owned_instance=image
+            role, instances=[self.project], owned_instance=image
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
-                "Organization-images-detail",
-                args=(self.organization.code, image.id),
+                "ProjectMessage-images-detail",
+                args=(self.project.id, image.id),
             ),
         )
         self.assertEqual(response.status_code, expected_code)

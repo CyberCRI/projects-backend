@@ -11,7 +11,11 @@ from apps.organizations.factories import (
     OrganizationFactory,
     ProjectCategoryFactory,
 )
-from apps.projects.factories import BlogEntryFactory, ProjectFactory
+from apps.projects.factories import (
+    BlogEntryFactory,
+    ProjectFactory,
+    ProjectMessageFactory,
+)
 
 faker = Faker()
 
@@ -180,3 +184,30 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["template"]["images"]), 4)
+
+    def test_create_project_message_content(self):
+        text = self.create_text_to_process()
+        self.client.force_authenticate(self.user)
+        project = self.project
+        payload = {
+            "content": text,
+        }
+        response = self.client.post(
+            reverse("ProjectMessage-list", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(len(response.json()["images"]), 2)
+
+    def test_update_project_message_content(self):
+        text = self.create_text_to_process()
+        self.client.force_authenticate(self.user)
+        project_message = ProjectMessageFactory(project=self.project)
+        payload = {"content": text}
+        response = self.client.patch(
+            reverse(
+                "ProjectMessage-detail", args=(self.project.id, project_message.id)
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.json()["images"]), 2)

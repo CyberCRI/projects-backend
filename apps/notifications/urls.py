@@ -1,8 +1,6 @@
 from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from apps.projects.urls import nested_router as project_nested_router
-
 from . import views
 
 router = SimpleRouter()
@@ -17,5 +15,4 @@ router.register(
 
 urlpatterns = [
     path(r"", include(router.urls)),
-    path(r"", include(project_nested_router.urls)),
 ]

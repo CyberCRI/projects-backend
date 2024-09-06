@@ -17,8 +17,8 @@ from apps.projects.models import Project
 
 from .exceptions import (
     CommentProjectPermissionDeniedError,
-    ReplyOnReplyError,
-    ReplyToSelfError,
+    CommentReplyOnReplyError,
+    CommentReplyToSelfError,
 )
 from .models import Comment, Follow, Review
 
@@ -158,9 +158,9 @@ class CommentSerializer(
 
     def validate_reply_on_id(self, reply_on: Comment):
         if reply_on.reply_on_id is not None:
-            raise ReplyOnReplyError
+            raise CommentReplyOnReplyError
         if self.instance and self.instance.pk == reply_on.pk:
-            raise ReplyToSelfError
+            raise CommentReplyToSelfError
         return reply_on
 
     def validate_project_id(self, project: Project):

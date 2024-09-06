@@ -8,7 +8,12 @@ from rest_framework import serializers
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
-from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
+from apps.commons.fields import (
+    HiddenPrimaryKeyRelatedField,
+    RecursiveField,
+    UserMultipleIdRelatedField,
+    WritableSerializerMethodField,
+)
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
@@ -38,10 +43,12 @@ from .exceptions import (
     LinkProjectToSelfError,
     OnlyReviewerCanChangeStatusError,
     ProjectCategoryOrganizationError,
+    ProjectMessageReplyOnReplyError,
+    ProjectMessageReplyToSelfError,
     ProjectWithNoOrganizationError,
     RemoveLastProjectOwnerError,
 )
-from .models import BlogEntry, LinkedProject, Location, Project
+from .models import BlogEntry, LinkedProject, Location, Project, ProjectMessage
 from .utils import compute_project_changes, get_views_from_serializer
 
 
@@ -770,3 +777,61 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
             "history_change_reason",
             "updated_fields",
         ]
+
+
+class ProjectMessageSerializer(serializers.ModelSerializer):
+    content = WritableSerializerMethodField(write_field=serializers.CharField())
+    reply_on = serializers.PrimaryKeyRelatedField(
+        queryset=ProjectMessage.objects.all(),
+        required=False,
+        allow_null=True,
+    )
+
+    # read_only
+    project = serializers.PrimaryKeyRelatedField(read_only=True)
+    author = UserLightSerializer(read_only=True)
+    replies = RecursiveField(read_only=True, many=True)
+    images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = ProjectMessage
+        fields = [
+            "id",
+            "content",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+            "reply_on",
+            # read only
+            "project",
+            "author",
+            "replies",
+            "images",
+        ]
+
+    def get_content(self, message: ProjectMessage) -> str:
+        return "<deleted message>" if message.deleted_at else message.content
+
+    def validate_reply_on(self, reply_on: ProjectMessage):
+        if reply_on.reply_on is not None:
+            raise ProjectMessageReplyOnReplyError
+        if self.instance and self.instance.pk == reply_on.pk:
+            raise ProjectMessageReplyToSelfError
+        return reply_on
+
+    @transaction.atomic
+    def save(self, **kwargs):
+        if "content" in self.validated_data:
+            if not self.instance:
+                super().save(**kwargs)
+            text, images = process_text(
+                self.context["request"],
+                self.instance,
+                self.validated_data["content"],
+                "project_messages/images/",
+                "ProjectMessage-images-detail",
+                project_id=self.instance.project.id,
+            )
+            self.validated_data["content"] = text
+            self.instance.images.add(*images)
+        return super().save(**kwargs)

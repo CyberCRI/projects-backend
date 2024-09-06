@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-02 15:17+0200\n"
+"POT-Creation-Date: 2024-09-05 16:54+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -245,7 +245,7 @@ msgstr "Vous n'avez pas la permission de suivre ce projet"
 msgid "You don't have the permission to follow this project : {project_title}"
 msgstr "Vous n'avez pas la permission de suivre ce projet : {project_title}"
 
-#: apps/feedbacks/exceptions.py:45
+#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:102
 msgid "You cannot reply to a reply"
 msgstr "Vous ne pouvez pas répondre à une réponse"
 
@@ -652,8 +652,8 @@ msgid ""
 "%(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a ajouté le groupe %(group)s dont vous faites partie à l'équipe "
-"du projet %(project_title)s.\n"
+"%(full_name)s a ajouté le groupe %(group)s dont vous faites partie à "
+"l'équipe du projet %(project_title)s.\n"
 
 #: apps/notifications/templates/group_member_removed_other/reminder.txt:2
 #, python-format
@@ -1472,6 +1472,10 @@ msgstr "Un projet ne peut pas être lié à lui-même"
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
+
+#: apps/projects/exceptions.py:108
+msgid "A message cannot be a reply to itself"
+msgstr "Un message ne peut pas être une réponse à lui-même"
 
 #: apps/projects/models.py:137
 msgid "title"

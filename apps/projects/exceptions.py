@@ -95,3 +95,15 @@ class LinkProjectToSelfError(ValidationError):
             else self.default_detail
         )
         super().__init__(detail={"project_id": [detail]})
+
+
+class ProjectMessageReplyOnReplyError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("You cannot reply to a reply")
+    default_code = "project_message_reply_on_reply_error"
+
+
+class ProjectMessageReplyToSelfError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("A message cannot be a reply to itself")
+    default_code = "project_message_reply_to_self_error"
