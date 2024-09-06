@@ -50,8 +50,8 @@ class CreatePeopleGroupHeaderTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["static_url"] + "/",
                 reverse(
-                    "PeopleGroup-header-detail",
-                    args=(organization.code, people_group.id, content["id"]),
+                    "PeopleGroup-header-list",
+                    args=(organization.code, people_group.id),
                 ),
             )
 

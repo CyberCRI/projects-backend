@@ -50,8 +50,8 @@ class CreatePeopleGroupLogoTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["static_url"] + "/",
                 reverse(
-                    "PeopleGroup-logo-detail",
-                    args=(organization.code, people_group.id, content["id"]),
+                    "PeopleGroup-logo-list",
+                    args=(organization.code, people_group.id),
                 ),
             )
 
