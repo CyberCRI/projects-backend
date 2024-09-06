@@ -872,7 +872,7 @@ class PeopleGroupHeaderView(
             )
             people_group.header_image = image
             people_group.save()
-            return f"/v1/people-group/{people_group.id}/header"
+            return f"/v1/organization/{people_group.organization.code}/people-group/{people_group.id}/header"
         return None
 
 
@@ -916,7 +916,7 @@ class PeopleGroupLogoView(
             )
             people_group.logo_image = image
             people_group.save()
-            return f"/v1/people-group/{people_group.id}/logo"
+            return f"/v1/organization/{people_group.organization.code}/people-group/{people_group.id}/logo"
         return None
 
 
