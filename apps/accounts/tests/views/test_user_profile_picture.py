@@ -47,6 +47,13 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertIsNotNone(content["static_url"])
+            self.assertEqual(
+                content["static_url"] + "/",
+                reverse(
+                    "UserProfilePicture-detail",
+                    args=(instance.id, content["id"]),
+                ),
+            )
 
 
 class UpdateUserProfilePictureTestCase(JwtAPITestCase):

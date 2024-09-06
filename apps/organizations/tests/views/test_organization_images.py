@@ -64,7 +64,15 @@ class CreateOrganizationImageTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
-            self.assertIsNotNone(response.json()["static_url"])
+            content = response.json()
+            self.assertIsNotNone(content["static_url"])
+            self.assertEqual(
+                content["static_url"] + "/",
+                reverse(
+                    "Organization-images-detail",
+                    args=(self.organization.code, content["id"]),
+                ),
+            )
 
 
 class UpdateOrganizationTestCase(JwtAPITestCase):

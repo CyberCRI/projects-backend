@@ -122,7 +122,15 @@ class CreateCommentImageTestCase(JwtAPITestCase):
             )
             if publication_status in created_images:
                 self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-                self.assertIsNotNone(response.json()["static_url"])
+                content = response.json()
+                self.assertIsNotNone(content["static_url"])
+                self.assertEqual(
+                    content["static_url"] + "/",
+                    reverse(
+                        "Comment-images-detail",
+                        args=(project.id, content["id"]),
+                    ),
+                )
             else:
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
