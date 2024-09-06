@@ -781,19 +781,17 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
 
 class ProjectMessageSerializer(serializers.ModelSerializer):
     content = WritableSerializerMethodField(write_field=serializers.CharField())
-
-    # read_only
-    author = UserLightSerializer(read_only=True)
-    replies = RecursiveField(read_only=True, many=True)
-    images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
-
-    # write_only
     reply_on = serializers.PrimaryKeyRelatedField(
-        write_only=True,
-        queryset=Comment.objects.all(),
+        queryset=ProjectMessage.objects.all(),
         required=False,
         allow_null=True,
     )
+
+    # read_only
+    project = serializers.PrimaryKeyRelatedField(read_only=True)
+    author = UserLightSerializer(read_only=True)
+    replies = RecursiveField(read_only=True, many=True)
+    images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 
     class Meta:
         model = ProjectMessage
@@ -803,16 +801,16 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "deleted_at",
-            # write_only
             "reply_on",
             # read only
-            "replies",
+            "project",
             "author",
+            "replies",
             "images",
         ]
 
     def get_content(self, message: ProjectMessage) -> str:
-        return "<deleted comment>" if message.deleted_at else message.content
+        return "<deleted message>" if message.deleted_at else message.content
 
     def validate_reply_on(self, reply_on: ProjectMessage):
         if reply_on.reply_on is not None:

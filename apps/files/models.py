@@ -155,7 +155,7 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
     )
 
     @classmethod
-    def get_orphan_images(cls, threshold: int = None) -> QuerySet:
+    def get_orphan_images(cls, threshold: Optional[int] = None) -> QuerySet:
         """Return a QuerySet containing all the orphan images.
 
         Parameters
@@ -224,6 +224,8 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
             return [self.instructions.get().organization]
         if self.events.exists():
             return [self.events.get().organization]
+        if self.project_messages.exists():
+            return self.project_messages.get().project.organizations.all()
         return []
 
     def get_related_project(self) -> Optional["Project"]:
@@ -231,9 +233,11 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
         Project = apps.get_model("projects", "Project")  # noqa
         return (
             Project.objects.filter(
-                (Q(header_image=self) | Q(images=self))
+                Q(header_image=self)
+                | Q(images=self)
                 | Q(blog_entries__images=self)
                 | Q(comments__images=self)
+                | Q(messages__images=self)
             )
             .distinct()
             .get()

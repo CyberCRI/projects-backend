@@ -746,6 +746,14 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
     def __str__(self):
         return f"Project message from {self.author} on {self.project}"
 
+    def get_related_project(self) -> "Project":
+        """Return the projects related to this model."""
+        return self.project
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return self.project.get_related_organizations()
+
     class Meta:
         ordering = ["-created_at"]
 

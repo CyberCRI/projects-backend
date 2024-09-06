@@ -814,14 +814,17 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             # get_project_related_queryset is not needed because the publication_status is not checked here
-            return ProjectMessage.objects.filter(project=self.kwargs["project_id"])
+            queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
+            if self.action in ["retrieve", "list"]:
+                return queryset.exclude(reply_on__isnull=False)
+            return queryset
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user, project_id=self.kwargs["project_id"])
 
     def perform_destroy(self, instance: ProjectMessage):
-        instance.soft_delete(self.request.user)
+        instance.soft_delete()
 
 
 class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
