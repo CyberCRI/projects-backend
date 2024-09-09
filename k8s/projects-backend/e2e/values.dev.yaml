@@ -18,9 +18,6 @@ workflow:
       nonSensitive:
         ORIGIN_POSTGRES_DB: dev_projects
 
-celery:
-  enabled: false
-
 hostname: api-e2e.projects.k8s.lp-i.dev
 
 backend:
