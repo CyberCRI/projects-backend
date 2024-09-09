@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-05 16:54+0200\n"
+"POT-Creation-Date: 2024-09-09 10:53+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1587,11 +1587,11 @@ msgstr ""
 "quelques conseils et des propositions de déroulés.\n"
 "          "
 
-#: projects/settings/base.py:265
+#: projects/settings/base.py:266
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:266
+#: projects/settings/base.py:267
 msgid "French"
 msgstr "Français"
 

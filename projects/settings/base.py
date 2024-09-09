@@ -16,6 +16,7 @@ import re
 from pathlib import Path
 from socket import gethostbyname_ex, gethostname
 
+from celery.schedules import crontab
 from corsheaders.defaults import default_headers
 from django.db.models import options
 from django.utils.translation import gettext_lazy as _
@@ -403,63 +404,58 @@ AZURE_CACHE_CONTROL = f"private,max-age={AZURE_URL_EXPIRATION_SECS},must-revalid
 #   CELERY   #
 ##############
 
-CELERY_ENABLED = os.getenv("CELERY_ENABLED", "True").lower() == "true"
-
-if CELERY_ENABLED:
-    from celery.schedules import crontab
-
-    CELERY_WORKER_SEND_TASK_EVENTS = True
-    CELERY_TASK_SEND_SENT_EVENT = True
-    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
-    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
-    CELERY_TIMEZONE = TIME_ZONE
-    CELERY_TASK_TRACK_STARTED = True
-    CELERY_BEAT_SCHEDULE = {
-        "remove-old-project-24hours": {
-            "task": "apps.projects.tasks.remove_old_projects",
-            "schedule": crontab(minute=0, hour=0),
-        },
-        "vectorize_updated_objects": {
-            "task": "services.mistral.tasks.vectorize_updated_objects",
-            "schedule": crontab(minute=0, hour=1),
-        },
-        "delete-orphan-images": {
-            "task": "apps.files.tasks.delete_orphan_images",
-            "schedule": crontab(minute=0, hour=2),
-        },
-        "calculate_projects_scores": {
-            "task": "apps.projects.tasks.calculate_projects_scores",
-            "schedule": crontab(minute=0, hour=3),
-        },
-        "calculate_users_scores": {
-            "task": "apps.accounts.tasks.calculate_users_scores",
-            "schedule": crontab(minute=0, hour=3),
-        },
-        "send_invitations_reminder": {
-            "task": "apps.notifications.tasks.send_invitations_reminder",
-            "schedule": crontab(minute=0, hour=7),
-        },
-        "send_access_request_notification": {
-            "task": "apps.notifications.tasks.notify_pending_access_requests",
-            "schedule": crontab(minute=0, hour=9),
-        },
-        "send_notifications_reminder": {
-            "task": "apps.notifications.tasks.send_notifications_reminder",
-            "schedule": crontab(minute=0, hour=18),
-        },
-        "get_new_mixpanel_events": {
-            "task": "services.mixpanel.tasks.get_new_mixpanel_events",
-            "schedule": crontab(minute="*/2", hour="*"),
-        },
-        "retry_google_failed_tasks": {
-            "task": "services.google.tasks.retry_failed_tasks",
-            "schedule": crontab(minute="*/10", hour="*"),
-        },
-        "send_instruction_notification": {
-            "task": "apps.notifications.tasks.notify_new_instructions",
-            "schedule": crontab(minute=0, hour="*"),
-        },
-    }
+CELERY_WORKER_SEND_TASK_EVENTS = True
+CELERY_TASK_SEND_SENT_EVENT = True
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BEAT_SCHEDULE = {
+    "remove-old-project-24hours": {
+        "task": "apps.projects.tasks.remove_old_projects",
+        "schedule": crontab(minute=0, hour=0),
+    },
+    "vectorize_updated_objects": {
+        "task": "services.mistral.tasks.vectorize_updated_objects",
+        "schedule": crontab(minute=0, hour=1),
+    },
+    "delete-orphan-images": {
+        "task": "apps.files.tasks.delete_orphan_images",
+        "schedule": crontab(minute=0, hour=2),
+    },
+    "calculate_projects_scores": {
+        "task": "apps.projects.tasks.calculate_projects_scores",
+        "schedule": crontab(minute=0, hour=3),
+    },
+    "calculate_users_scores": {
+        "task": "apps.accounts.tasks.calculate_users_scores",
+        "schedule": crontab(minute=0, hour=3),
+    },
+    "send_invitations_reminder": {
+        "task": "apps.notifications.tasks.send_invitations_reminder",
+        "schedule": crontab(minute=0, hour=7),
+    },
+    "send_access_request_notification": {
+        "task": "apps.notifications.tasks.notify_pending_access_requests",
+        "schedule": crontab(minute=0, hour=9),
+    },
+    "send_notifications_reminder": {
+        "task": "apps.notifications.tasks.send_notifications_reminder",
+        "schedule": crontab(minute=0, hour=18),
+    },
+    "get_new_mixpanel_events": {
+        "task": "services.mixpanel.tasks.get_new_mixpanel_events",
+        "schedule": crontab(minute="*/2", hour="*"),
+    },
+    "retry_google_failed_tasks": {
+        "task": "services.google.tasks.retry_failed_tasks",
+        "schedule": crontab(minute="*/10", hour="*"),
+    },
+    "send_instruction_notification": {
+        "task": "apps.notifications.tasks.notify_new_instructions",
+        "schedule": crontab(minute=0, hour="*"),
+    },
+}
 
 # Cache settings
 CACHES = {
