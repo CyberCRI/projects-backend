@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup, ProjectUser
@@ -8,11 +9,13 @@ from apps.invitations.models import AccessRequest
 from apps.organizations.models import Organization
 
 from .exceptions import (
-    InvitationOrganizationAccessRequestDisabledError,
+    AccessRequestDisabledError,
+    AccessRequestForEmailAlreadyExistsError,
+    AccessRequestForUserAlreadyExistsError,
+    AccessRequestUserAlreadyExistsError,
+    AccessRequestUserAlreadyMemberError,
     InvitationOrganizationChangeError,
-    InvitationUserAlreadyExistsError,
-    InvitationUserAlreadyMemberError,
-    PeopleGroupOrganizationError,
+    InvitationPeopleGroupOrganizationError,
 )
 from .models import Invitation
 
@@ -41,7 +44,7 @@ class InvitationSerializer(OrganizationRelatedSerializer):
         if not PeopleGroup.objects.filter(
             id=value.id, organization__code=self.context.get("organization_code")
         ).exists():
-            raise PeopleGroupOrganizationError
+            raise InvitationPeopleGroupOrganizationError
         return value
 
     def validate_organization(self, value):
@@ -77,8 +80,16 @@ class AccessRequestSerializer(serializers.ModelSerializer):
     def validate_email(self, value: str) -> str:
         if self.initial_data.get("user"):
             return ""
-        if ProjectUser.objects.filter(email=value).exists():
-            raise InvitationUserAlreadyExistsError
+        if ProjectUser.objects.filter(
+            Q(email=value) | Q(personal_email=value)
+        ).exists():
+            raise AccessRequestUserAlreadyExistsError
+        if AccessRequest.objects.filter(
+            organization__code=self.initial_data.get("organization"),
+            status=AccessRequest.Status.PENDING,
+            email=value,
+        ).exists():
+            raise AccessRequestForEmailAlreadyExistsError
         return value
 
     def validate_given_name(self, value: str) -> str:
@@ -98,16 +109,22 @@ class AccessRequestSerializer(serializers.ModelSerializer):
 
     def validate_user(self, value: ProjectUser) -> ProjectUser:
         if value:
-            organization = self.initial_data.get("organization")
+            organization_code = self.initial_data.get("organization")
             if Organization.objects.filter(
-                code=organization, groups__users=value
+                code=organization_code, groups__users=value
             ).exists():
-                raise InvitationUserAlreadyMemberError
+                raise AccessRequestUserAlreadyMemberError
+            if AccessRequest.objects.filter(
+                organization__code=organization_code,
+                status=AccessRequest.Status.PENDING,
+                user=value,
+            ).exists():
+                raise AccessRequestForUserAlreadyExistsError
         return value
 
     def validate_organization(self, value: Organization) -> Organization:
         if not value.access_request_enabled:
-            raise InvitationOrganizationAccessRequestDisabledError
+            raise AccessRequestDisabledError
         return value
 
     def to_representation(self, instance):

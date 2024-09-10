@@ -323,6 +323,26 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
                     {"VERIFY_EMAIL", "UPDATE_PASSWORD"},
                 )
 
+    def test_accept_access_requests_with_other_requests(self):
+        access_request = AccessRequestFactory(organization=self.organization)
+        access_request_2 = AccessRequestFactory(email=access_request.email)
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        payload = {
+            "access_requests": [access_request.id],
+        }
+        response = self.client.post(
+            reverse("AccessRequest-accept", args=(self.organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        access_request.refresh_from_db()
+        access_request_2.refresh_from_db()
+        self.assertEqual(access_request.status, AccessRequest.Status.ACCEPTED)
+        self.assertEqual(access_request_2.status, AccessRequest.Status.PENDING)
+        user = ProjectUser.objects.filter(email=access_request.email)
+        self.assertTrue(user.exists())
+        self.assertEqual(access_request_2.user, user.get())
+
 
 class DeclineAccessRequestTestCase(JwtAPITestCase):
     @classmethod
@@ -455,6 +475,39 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {"email": ["A user with this email already exists"]},
+        )
+
+    def test_create_duplicate_access_request_anonymous(self):
+        access_request = AccessRequestFactory(organization=self.organization)
+        payload = {
+            "email": access_request.email,
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+            "job": faker.sentence(),
+            "message": faker.text(),
+        }
+        response = self.client.post(
+            reverse("AccessRequest-list", args=(self.organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"email": ["An access request for this email already exists"]},
+        )
+
+    def test_create_duplicate_access_request_for_user(self):
+        user = UserFactory()
+        AccessRequestFactory(organization=self.organization, user=user)
+        self.client.force_authenticate(user)
+        response = self.client.post(
+            reverse("AccessRequest-list", args=(self.organization.code,)),
+            data={},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"user": ["An access request for this user already exists"]},
         )
 
     def test_accept_access_requests_from_different_organization(self):
