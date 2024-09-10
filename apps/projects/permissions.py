@@ -15,7 +15,7 @@ from .models import Project
 
 class ProjectRelatedPermission(IgnoreCall):
     def get_related_project(
-        self, request: Request, view: GenericViewSet, obj: Model = None
+        self, request: Request, view: GenericViewSet, obj: Optional[Model] = None
     ) -> Optional[Project]:
         if view.get_queryset().model == Project:
             pk = view.kwargs.get(view.lookup_url_kwarg) or view.kwargs.get(

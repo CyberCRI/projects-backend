@@ -39,6 +39,7 @@ from apps.organizations.serializers import (
 )
 
 from .exceptions import (
+    AddProjectToOrganizationPermissionError,
     EmptyProjectDescriptionError,
     LinkProjectToSelfError,
     OnlyReviewerCanChangeStatusError,
@@ -595,12 +596,24 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         )
         return super(ProjectSerializer, self).update(instance, validated_data)
 
-    def validate_organizations_codes(self, value):
+    def validate_organizations_codes(self, value: List[Organization]):
         if len(value) < 1:
             raise ProjectWithNoOrganizationError
+        request = self.context.get("request", None)
+        if request:
+            organizations_to_add = (
+                [o for o in value if o not in self.instance.organizations.all()]
+                if self.instance
+                else value
+            )
+            if not all(
+                request.user.has_perm("organizations.add_project", organization)
+                for organization in organizations_to_add
+            ):
+                raise AddProjectToOrganizationPermissionError
         return value
 
-    def validate_publication_status(self, value):
+    def validate_publication_status(self, value: str):
         request = self.context["request"]
         user = request.user
         if (
