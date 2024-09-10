@@ -356,6 +356,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
         "unique": (
             # All
             "id",
+            "last_update",
             "type",
             "permissions",
             "organizations",
@@ -394,6 +395,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
                 "commons": (  # IDs and attributes for faceting
                     # Shared
                     "id",
+                    "last_update",
                     "type",
                     "organizations",
                     "permissions",
@@ -477,6 +479,9 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
         if method is None:
             return default
         return method(search_object.item)
+
+    def prepare_last_update(self, search_object: SearchObject) -> str:
+        return search_object.last_update
 
     def prepare_type(self, search_object: SearchObject) -> str:
         return search_object.type
