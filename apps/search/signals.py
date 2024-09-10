@@ -36,7 +36,7 @@ def update_search_object_on_user_privacy_settings_save(
 @receiver(m2m_changed, sender=ProjectUser.groups.through)
 def update_search_object_on_user_role_change(sender, instance, action, **kwargs):
     """Create the associated search object at user's creation."""
-    if action in ["post_add", "post_remove"]:
+    if isinstance(instance, ProjectUser) and action in ["post_add", "post_remove"]:
         update_or_create_user_search_object_task.delay(instance.pk)
 
 
@@ -54,7 +54,7 @@ def update_search_object_on_project_organization_change(
     sender, instance, action, **kwargs
 ):
     """Create the associated search object at project's creation."""
-    if action in ["post_add", "post_remove"]:
+    if isinstance(instance, Project) and action in ["post_add", "post_remove"]:
         update_or_create_project_search_object_task.delay(instance.pk)
 
 

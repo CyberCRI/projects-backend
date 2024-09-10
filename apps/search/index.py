@@ -454,6 +454,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "filterOnly(can_mentor_on_filter)",
             "filterOnly(needs_mentor_on_filter)",
         ],
+        "customRanking": ["desc(last_update)"],
         "paginationLimitedTo": 5000,
         "hitsPerPage": 10,
         "attributeForDistinct": "id",
@@ -481,7 +482,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
         return method(search_object.item)
 
     def prepare_last_update(self, search_object: SearchObject) -> str:
-        return search_object.last_update
+        return search_object.last_update.timestamp()
 
     def prepare_type(self, search_object: SearchObject) -> str:
         return search_object.type

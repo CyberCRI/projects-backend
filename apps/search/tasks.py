@@ -14,7 +14,7 @@ def update_or_create_user_search_object_task(instance_pk):
     search_object, _ = SearchObject.objects.update_or_create(
         user=user,
         type=SearchObject.SearchObjectType.USER,
-        defaults={"updated_at": timezone.localtime(timezone.now())},
+        defaults={"last_update": timezone.localtime(timezone.now())},
     )
     search_object.save()
 
@@ -26,7 +26,7 @@ def update_or_create_project_search_object_task(instance_pk):
     search_object, _ = SearchObject.objects.update_or_create(
         project=project,
         type=SearchObject.SearchObjectType.PROJECT,
-        defaults={"updated_at": timezone.localtime(timezone.now())},
+        defaults={"last_update": timezone.localtime(timezone.now())},
     )
     search_object.save()
 
@@ -38,6 +38,6 @@ def update_or_create_people_group_search_object_task(instance_pk):
     search_object, _ = SearchObject.objects.update_or_create(
         people_group=people_group,
         type=SearchObject.SearchObjectType.PEOPLE_GROUP,
-        defaults={"updated_at": timezone.localtime(timezone.now())},
+        defaults={"last_update": timezone.localtime(timezone.now())},
     )
     search_object.save()
