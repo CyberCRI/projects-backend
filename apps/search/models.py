@@ -45,6 +45,7 @@ class SearchObject(models.Model):
         related_name="search_object",
     )
     type = models.CharField(max_length=50, choices=SearchObjectType.choices)
+    last_update = models.DateTimeField(null=True)
 
     @property
     def item(self):
