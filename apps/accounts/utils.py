@@ -47,9 +47,7 @@ def decode_token(request: Request) -> Optional[Dict[str, Any]]:
 
 
 def get_default_group_permissions():
-    return Permission.objects.filter(
-        codename__in=["add_project", "add_follow", "add_comment"]
-    )
+    return Permission.objects.filter(codename__in=["add_follow", "add_comment"])
 
 
 def get_superadmins_group_permissions():

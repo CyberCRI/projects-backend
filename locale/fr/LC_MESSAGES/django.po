@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-10 16:09+0200\n"
+"POT-Creation-Date: 2024-09-10 17:57+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -245,7 +245,7 @@ msgstr "Vous n'avez pas la permission de suivre ce projet"
 msgid "You don't have the permission to follow this project : {project_title}"
 msgstr "Vous n'avez pas la permission de suivre ce projet : {project_title}"
 
-#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:102
+#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:110
 msgid "You cannot reply to a reply"
 msgstr "Vous ne pouvez pas répondre à une réponse"
 
@@ -1440,31 +1440,35 @@ msgstr "Vous n'avez pas la permission de lier ce projet"
 msgid "You don't have the permission to link this project : {project_title}"
 msgstr "Vous n'avez pas la permission de lier ce projet : {project_title}"
 
-#: apps/projects/exceptions.py:29
+#: apps/projects/exceptions.py:27
+msgid "You do not have the rights to add a project in this organization"
+msgstr "Vous ne pouvez pas ajouter de projet dans cette organisation"
+
+#: apps/projects/exceptions.py:37
 msgid "The organizations parameter is mandatory"
 msgstr "Le paramètre organizations est obligatoire."
 
-#: apps/projects/exceptions.py:35
+#: apps/projects/exceptions.py:43
 msgid "The project does not belong to any of the given organizations"
 msgstr "Le projet n'appartient à aucune des organisations données"
 
-#: apps/projects/exceptions.py:56
+#: apps/projects/exceptions.py:64
 msgid "You cannot remove all the owners of a project"
 msgstr "Vous ne pouvez pas supprimer tou·te·s les éditeur·ices d'un projet"
 
-#: apps/projects/exceptions.py:62
+#: apps/projects/exceptions.py:70
 msgid "A project must belong to at least one organization"
 msgstr "Un projet doit appartenir à au moins une organisation"
 
-#: apps/projects/exceptions.py:68
+#: apps/projects/exceptions.py:76
 msgid "Only a reviewer can change this project's status"
 msgstr "Seul un correcteur peut modifier le statut de ce projet."
 
-#: apps/projects/exceptions.py:74
+#: apps/projects/exceptions.py:82
 msgid "You cannot empty the description of a project"
 msgstr "Vous ne pouvez pas vider la description d'un projet"
 
-#: apps/projects/exceptions.py:81
+#: apps/projects/exceptions.py:89
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
@@ -1472,16 +1476,16 @@ msgstr ""
 "Un projet ne peut pas être dans une catégorie si elle n'appartient pas à "
 "l'une des organisations du projet"
 
-#: apps/projects/exceptions.py:88
+#: apps/projects/exceptions.py:96
 msgid "A project can't be linked to itself"
 msgstr "Un projet ne peut pas être lié à lui-même"
 
-#: apps/projects/exceptions.py:93
+#: apps/projects/exceptions.py:101
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 
-#: apps/projects/exceptions.py:108
+#: apps/projects/exceptions.py:116
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 

@@ -45,7 +45,7 @@ class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_201_CREATED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
@@ -875,6 +875,9 @@ class ValidateProjectTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.organization_2 = OrganizationFactory()
+        cls.category_2 = ProjectCategoryFactory(organization=cls.organization_2)
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     def test_update_without_organization(self):
@@ -910,6 +913,49 @@ class ValidateProjectTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response, {"users": ["You cannot remove all the owners of a project"]}
         )
+
+    def test_create_project_in_organization_with_no_rights(self):
+        user = UserFactory(groups=[self.organization.get_users()])
+        self.client.force_authenticate(user)
+        payload = {
+            "title": faker.sentence(),
+            "organizations_codes": [self.organization.code, self.organization_2.code],
+            "project_categories_ids": [self.category.id, self.category_2.id],
+        }
+        response = self.client.post(reverse("Project-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertApiPermissionError(
+            response, "You do not have the rights to add a project in this organization"
+        )
+
+    def test_add_project_to_organization_with_no_rights(self):
+        project = ProjectFactory(organizations=[self.organization])
+        user = UserFactory(groups=[self.organization.get_users(), project.get_owners()])
+        self.client.force_authenticate(user)
+        payload = {
+            "organizations_codes": [self.organization.code, self.organization_2.code],
+        }
+        response = self.client.patch(
+            reverse("Project-detail", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertApiPermissionError(
+            response, "You do not have the rights to add a project in this organization"
+        )
+
+    def test_update_project_with_two_organizations(self):
+        project = ProjectFactory(organizations=[self.organization, self.organization_2])
+        user = UserFactory(groups=[self.organization.get_users(), project.get_owners()])
+        self.client.force_authenticate(user)
+        payload = {
+            "title": faker.sentence(),
+        }
+        response = self.client.patch(
+            reverse("Project-detail", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["title"], payload["title"])
 
 
 class MiscProjectTestCase(JwtAPITestCase):

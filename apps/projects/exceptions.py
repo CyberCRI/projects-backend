@@ -21,6 +21,14 @@ class LinkedProjectPermissionDeniedError(PermissionDenied):
         super().__init__(detail=detail)
 
 
+class AddProjectToOrganizationPermissionError(PermissionDenied):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = _(
+        "You do not have the rights to add a project in this organization"
+    )
+    default_code = "add_project_to_organization_permission_error"
+
+
 # Technical errors
 
 
