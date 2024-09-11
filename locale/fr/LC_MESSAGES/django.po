@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-09 10:53+0200\n"
+"POT-Creation-Date: 2024-09-10 16:09+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -318,6 +318,14 @@ msgstr "Un·e utilisateur·rice avec cette adresse email existe déjà"
 #: apps/invitations/exceptions.py:53
 msgid "This organization does not accept access requests"
 msgstr "Cette organisation n'accepte pas les demandes d'accès"
+
+#: apps/invitations/exceptions.py:59
+msgid "An access request for this email already exists"
+msgstr "Une demande d'accès pour cette adresse email existe déjà"
+
+#: apps/invitations/exceptions.py:65
+msgid "An access request for this user already exists"
+msgstr "Une demande d'accès pour cet·te utilisateur·rice existe déjà"
 
 #: apps/invitations/templates/access_requests_base.html:56
 #: services/keycloak/templates/keycloak_base.html:56

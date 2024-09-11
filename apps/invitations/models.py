@@ -151,6 +151,10 @@ class AccessRequest(models.Model, OrganizationRelated):
             keycloak_account = KeycloakService.create_user(self.user)
             self.status = AccessRequest.Status.ACCEPTED
             self.save()
+            # Update other pending access requests with the same email
+            AccessRequest.objects.filter(
+                user__isnull=True, email=self.email, status=AccessRequest.Status.PENDING
+            ).update(user=self.user)
         KeycloakService.send_email(
             keycloak_account=keycloak_account,
             email_type=KeycloakService.EmailType.ADMIN_CREATED,

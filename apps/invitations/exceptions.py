@@ -24,7 +24,7 @@ class InvalidEmailTypeError(APIException):
 # Validation errors
 
 
-class PeopleGroupOrganizationError(ValidationError):
+class InvitationPeopleGroupOrganizationError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("People group must belong to the invitation's organization")
     default_code = "people_group_organization_error"
@@ -36,19 +36,31 @@ class InvitationOrganizationChangeError(ValidationError):
     default_code = "invitation_organization_change_error"
 
 
-class InvitationUserAlreadyMemberError(ValidationError):
+class AccessRequestUserAlreadyMemberError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("This user is already a member of this organization")
     default_code = "invitation_user_already_member_error"
 
 
-class InvitationUserAlreadyExistsError(ValidationError):
+class AccessRequestUserAlreadyExistsError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("A user with this email already exists")
     default_code = "invitation_user_already_exists_error"
 
 
-class InvitationOrganizationAccessRequestDisabledError(ValidationError):
+class AccessRequestDisabledError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("This organization does not accept access requests")
     default_code = "invitation_organization_access_request_disabled_error"
+
+
+class AccessRequestForEmailAlreadyExistsError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("An access request for this email already exists")
+    default_code = "invitation_for_email_already_exists_error"
+
+
+class AccessRequestForUserAlreadyExistsError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("An access request for this user already exists")
+    default_code = "invitation_for_user_already_exists_error"
