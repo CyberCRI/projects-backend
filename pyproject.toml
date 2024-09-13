@@ -11,7 +11,7 @@ boto3 = "^1.18.59"
 bs4 = "^0.0.1"
 celery = { extras = ["redis"], version = "^5.2.1" }
 cryptography = "^43.0.1"
-Django = "^4.2.14"
+Django = "^4.2.15"
 django-cleanup = "^6.0.0"
 django-cors-headers = "^3.10.0"
 django-extensions = "^3.1.5"
