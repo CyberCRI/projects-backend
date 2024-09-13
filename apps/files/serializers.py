@@ -144,6 +144,15 @@ class AttachmentLinkSerializer(
             project_id = self.instance.project.id
         if (
             project_id
+            and self.instance
+            and self.Meta.model.objects.filter(project=project_id, site_url=site_url)
+            .exclude(id=self.instance.id)
+            .exists()
+        ):
+            raise DuplicatedLinkError
+        if (
+            project_id
+            and not self.instance
             and self.Meta.model.objects.filter(
                 project=project_id, site_url=site_url
             ).exists()
@@ -246,6 +255,15 @@ class AttachmentFileSerializer(
             project_id = self.instance.project.id
         if (
             project_id
+            and self.instance
+            and self.Meta.model.objects.filter(project=project_id, hashcode=hashcode)
+            .exclude(id=self.instance.id)
+            .exists()
+        ):
+            raise DuplicatedFileError
+        if (
+            project_id
+            and not self.instance
             and self.Meta.model.objects.filter(
                 project=project_id, hashcode=hashcode
             ).exists()
