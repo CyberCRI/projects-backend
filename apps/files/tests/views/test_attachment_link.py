@@ -271,6 +271,16 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             },
         )
 
+    def test_update_with_same_link(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        payload = {"site_url": self.url}
+        response = self.client.patch(
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_change_link_project(self):
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)

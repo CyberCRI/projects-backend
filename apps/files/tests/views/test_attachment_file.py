@@ -259,6 +259,25 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
             },
         )
 
+    def test_update_with_same_file(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        project = self.project
+        file = AttachmentFileFactory(project=project)
+        payload = {
+            "file": SimpleUploadedFile(
+                "test_attachment_file.txt",
+                file.file.read(),
+                content_type="text/plain",
+            )
+        }
+        response = self.client.patch(
+            reverse("AttachmentFile-detail", args=(project.id, file.id)),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
     def test_change_file_project(self):
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
