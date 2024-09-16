@@ -6,7 +6,7 @@ from .interface import EscoService
 from .models import EscoOccupation, EscoSkill, EscoUpdateError
 
 
-def create_missing_skills(cls) -> list[EscoSkill]:
+def create_missing_skills() -> list[EscoSkill]:
     skills_data = EscoService.get_all_objects("skill")
     created_skills = []
     for skill_data in skills_data:
@@ -16,7 +16,7 @@ def create_missing_skills(cls) -> list[EscoSkill]:
     return created_skills
 
 
-def create_missing_occupations(cls) -> list[EscoOccupation]:
+def create_missing_occupations() -> list[EscoOccupation]:
     occupations_data = EscoService.get_all_objects("occupation")
     created_occupations = []
     for occupation_data in occupations_data:
