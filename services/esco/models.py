@@ -29,7 +29,7 @@ class EscoSkill(models.Model):
     )
 
     def __str__(self):
-        return f"EscoSkill: {self.title}"
+        return self.title
 
 
 class EscoOccupation(models.Model):
@@ -45,4 +45,4 @@ class EscoOccupation(models.Model):
     )
 
     def __str__(self):
-        return f"EscoOccupation: {self.title}"
+        return self.title
