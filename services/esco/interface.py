@@ -7,7 +7,9 @@ class EscoService:
 
     @classmethod
     def get_object_from_uri(cls, object_type: str, object_uri: str):
-        response = requests.get(f"{cls.ESCO_API_URL}/{object_type}?uri={object_uri}")
+        response = requests.get(
+            f"{cls.ESCO_API_URL}/resource/{object_type}?uri={object_uri}"
+        )
         response.raise_for_status()
         return response.json()
 
