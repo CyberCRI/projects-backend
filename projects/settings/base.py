@@ -432,6 +432,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.accounts.tasks.calculate_users_scores",
         "schedule": crontab(minute=0, hour=3),
     },
+    "update_esco_data": {
+        "task": "services.esco.tasks.update_esco_data_task",
+        "schedule": crontab(minute=0, hour=4),
+    },
     "send_invitations_reminder": {
         "task": "apps.notifications.tasks.send_invitations_reminder",
         "schedule": crontab(minute=0, hour=7),
