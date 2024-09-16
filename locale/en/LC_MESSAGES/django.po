@@ -1253,11 +1253,11 @@ msgid ""
 "          "
 msgstr ""
 
-#: projects/settings/base.py:266
+#: projects/settings/base.py:267
 msgid "English"
 msgstr ""
 
-#: projects/settings/base.py:267
+#: projects/settings/base.py:268
 msgid "French"
 msgstr ""
 

@@ -1599,11 +1599,11 @@ msgstr ""
 "quelques conseils et des propositions de déroulés.\n"
 "          "
 
-#: projects/settings/base.py:266
+#: projects/settings/base.py:267
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:267
+#: projects/settings/base.py:268
 msgid "French"
 msgstr "Français"
 

@@ -129,26 +129,27 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.announcements",
     "apps.commons",
+    "apps.deploys",
+    "apps.emailing",
     "apps.feedbacks",
     "apps.files",
     "apps.goals",
     "apps.healthcheck",
+    "apps.invitations",
     "apps.misc",
+    "apps.newsfeed",
     "apps.notifications",
     "apps.organizations",
     "apps.projects",
-    "apps.invitations",
     "apps.search",
-    "apps.deploys",
-    "apps.emailing",
-    "apps.newsfeed",
     "apps.skills",
     # services
-    "services.keycloak",
-    "services.mixpanel",
+    "services.esco",
     "services.google",
-    "services.wikipedia",
+    "services.keycloak",
     "services.mistral",
+    "services.mixpanel",
+    "services.wikipedia",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
@@ -617,3 +618,10 @@ GOOGLE_DEFAULT_ORG_UNIT = "/CRI/Admin Staff"
 ##############
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
+
+
+##############
+#    ESCO    #
+##############
+
+ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")
