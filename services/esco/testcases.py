@@ -1,8 +1,6 @@
 from typing import Dict, List, Optional, Union
 
 from faker import Faker
-from requests import Response
-from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase
 from services.esco.models import EscoOccupation, EscoSkill
@@ -164,14 +162,5 @@ class EscoTestCase(JwtAPITestCase):
             },
         }
 
-    def requests_get_error_return_value(
-        self,
-        status_code: int = status.HTTP_400_BAD_REQUEST,
-        reason: str = "",
-        url: str = "",
-    ) -> Response:
-        response = Response()
-        response.status_code = status_code
-        response.reason = reason or faker.sentence()
-        response.url = url or faker.url()
-        return response
+    def raise_exception_side_effect(self, *args, **kwargs):
+        raise Exception()
