@@ -28,7 +28,7 @@ def create_missing_occupations() -> list[EscoOccupation]:
     return created_occupations
 
 
-def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
+def _update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
     data = EscoService.get_object_from_uri("skill", esco_skill.uri)
     default_title = ""
     default_description = ""
@@ -44,7 +44,7 @@ def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
             default_description = description
             esco_skill.description = default_description
     esco_skill.save()
-    parents = data.get("_links", {}).get("broaderSkills", [])
+    parents = data.get("_links", {}).get("broaderSkill", [])
     essential_for_skills = data.get("_links", {}).get("isEssentialForSkill", [])
     optional_for_skills = data.get("_links", {}).get("isOptionalForSkill", [])
     parents_uris = list(
@@ -70,7 +70,7 @@ def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
     return esco_skill
 
 
-def update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
+def _update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
     data = EscoService.get_object_from_uri("occupation", esco_occupation.uri)
     default_title = ""
     default_description = ""
@@ -113,28 +113,38 @@ def update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
     return esco_occupation
 
 
+def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
+    try:
+        return _update_skill_data(esco_skill)
+    except Exception as e:  # noqa: PIE786
+        EscoUpdateError.objects.create(
+            item_type=EscoSkill.__name__,
+            item_id=esco_skill.id,
+            error=e.__class__.__name__,
+            traceback=traceback.format_exc(),
+        )
+    return esco_skill
+
+
+def update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
+    try:
+        return _update_occupation_data(esco_occupation)
+    except Exception as e:  # noqa: PIE786
+        EscoUpdateError.objects.create(
+            item_type=EscoOccupation.__name__,
+            item_id=esco_occupation.id,
+            error=e.__class__.__name__,
+            traceback=traceback.format_exc(),
+        )
+    return esco_occupation
+
+
 def update_esco_data(force_update: bool = False):
     new_skills = create_missing_skills()
     new_occupations = create_missing_occupations()
     skills = EscoSkill.objects.all() if force_update else new_skills
     occupations = EscoOccupation.objects.all() if force_update else new_occupations
     for skill in skills:
-        try:
-            update_skill_data(skill)
-        except Exception as e:  # noqa: PIE786
-            EscoUpdateError.objects.create(
-                item_type=EscoSkill.__name__,
-                item_id=skill.id,
-                error=e.__class__.__name__,
-                traceback=traceback.format_exc(),
-            )
+        update_skill_data(skill)
     for occupation in occupations:
-        try:
-            update_occupation_data(occupation)
-        except Exception as e:  # noqa: PIE786
-            EscoUpdateError.objects.create(
-                item_type=EscoOccupation.__name__,
-                item_id=occupation.id,
-                error=e.__class__.__name__,
-                traceback=traceback.format_exc(),
-            )
+        update_occupation_data(occupation)
