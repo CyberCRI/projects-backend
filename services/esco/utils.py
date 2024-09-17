@@ -30,11 +30,19 @@ def create_missing_occupations() -> list[EscoOccupation]:
 
 def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
     data = EscoService.get_object_from_uri("skill", esco_skill.uri)
+    default_title = ""
+    default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
         title = data.get("preferredLabel", {}).get(language, "")
         description = data.get("description", {}).get(language, {}).get("literal", "")
         setattr(esco_skill, f"title_{language}", title)
         setattr(esco_skill, f"description_{language}", description)
+        if default_title == "":
+            default_title = title
+            esco_skill.title = default_title
+        if default_description == "":
+            default_description = description
+            esco_skill.description = default_description
     esco_skill.save()
     parents = data.get("_links", {}).get("broaderSkills", [])
     essential_for_skills = data.get("_links", {}).get("isEssentialForSkill", [])
@@ -64,16 +72,24 @@ def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
 
 def update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
     data = EscoService.get_object_from_uri("occupation", esco_occupation.uri)
+    default_title = ""
+    default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
         titles = data.get("alternativeTerms", {}).get(language, [])
         title = list(filter(lambda x: "male" in x["roles"], titles))
-        if title:
+        if title and language == "fr":
             title = title[0]["label"]
         else:
             title = data.get("preferredLabel", {}).get(language, "")
         description = data.get("description", {}).get(language, {}).get("literal", "")
         setattr(esco_occupation, f"title_{language}", title)
         setattr(esco_occupation, f"description_{language}", description)
+        if default_title == "":
+            default_title = title
+            esco_occupation.title = default_title
+        if default_description == "":
+            default_description = description
+            esco_occupation.description = default_description
     esco_occupation.save()
     parents = data.get("_links", {}).get("broaderOccupation", [])
     essential_skills = data.get("_links", {}).get("hasEssentialSkill", [])
