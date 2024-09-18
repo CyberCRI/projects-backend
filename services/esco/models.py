@@ -20,7 +20,9 @@ class EscoSkill(models.Model):
     uri = models.URLField(max_length=2048, unique=True)
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    parents = models.ManyToManyField("self", blank=True)
+    parents = models.ManyToManyField(
+        "self", related_name="children", symmetrical=False, blank=True
+    )
     essential_skills = models.ManyToManyField(
         "self", related_name="essential_for_skills", symmetrical=False, blank=True
     )
@@ -36,7 +38,9 @@ class EscoOccupation(models.Model):
     uri = models.URLField(max_length=2048, unique=True)
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    parents = models.ManyToManyField("self", blank=True)
+    parents = models.ManyToManyField(
+        "self", related_name="children", symmetrical=False, blank=True
+    )
     essential_skills = models.ManyToManyField(
         "esco.EscoSkill", related_name="essential_for_occupations", blank=True
     )
