@@ -15,6 +15,21 @@ class EscoSkillFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = EscoSkill
 
+    @factory.post_generation
+    def parents(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.parents.add(*extracted)
+
+    @factory.post_generation
+    def essential_skills(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.essential_skills.add(*extracted)
+
+    @factory.post_generation
+    def optional_skills(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.optional_skills.add(*extracted)
+
 
 class EscoOccupationFactory(factory.django.DjangoModelFactory):
     uri = factory.Faker("url")
@@ -27,3 +42,18 @@ class EscoOccupationFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = EscoOccupation
+
+    @factory.post_generation
+    def parents(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.parents.add(*extracted)
+
+    @factory.post_generation
+    def essential_skills(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.essential_skills.add(*extracted)
+
+    @factory.post_generation
+    def optional_skills(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.optional_skills.add(*extracted)
