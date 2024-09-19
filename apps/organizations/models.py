@@ -165,6 +165,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     class Meta:
         subscopes = (
             ("project", "projects"),
+            ("projectmessage", "project messages"),
             ("projectuser", "users"),
             ("peoplegroup", "groups"),
         )

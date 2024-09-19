@@ -36,7 +36,7 @@ class RetrieveProjectMessageImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, status.HTTP_302_FOUND),
             (TestRoles.ORG_FACILITATOR, status.HTTP_302_FOUND),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_302_FOUND),
             (TestRoles.PROJECT_OWNER, status.HTTP_302_FOUND),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_302_FOUND),
         ]
@@ -72,7 +72,7 @@ class CreateProjectMessageImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]
@@ -123,8 +123,8 @@ class UpdateProjectMessageImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_update_project_message_image(self, role, expected_code):
@@ -179,8 +179,8 @@ class DeleteProjectMessageImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_delete_project_message_image(self, role, expected_code):

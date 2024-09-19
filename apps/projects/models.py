@@ -19,6 +19,7 @@ from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.commons.models import (
     HasMultipleIDs,
+    HasOwner,
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
@@ -206,6 +207,8 @@ class Project(
             ("follow", "project's follows"),
         )
         permissions = (
+            ("view_projectmessage", "Can view project messages"),
+            ("add_projectmessage", "Can add project messages"),
             ("lock_project", "Can lock and unlock a project"),
             ("duplicate_project", "Can duplicate a project"),
             ("change_locked_project", "Can update a locked project"),
@@ -378,7 +381,11 @@ class Project(
     def get_default_members_permissions(self) -> Iterable[Permission]:
         return Permission.objects.filter(
             content_type=self.content_type,
-            codename="view_project",
+            codename__in=[
+                "view_project",
+                "view_projectmessage",
+                "add_projectmessage",
+            ],
         )
 
     def setup_permissions(self, user: Optional["ProjectUser"] = None):
@@ -696,7 +703,7 @@ class Location(models.Model, ProjectRelated, OrganizationRelated):
         return self.project.get_related_organizations()
 
 
-class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner):
     """
     A message in a project.
 
@@ -760,3 +767,11 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated):
     def soft_delete(self):
         self.deleted_at = timezone.localtime(timezone.now())
         self.save()
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.author
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        return self.author == user
