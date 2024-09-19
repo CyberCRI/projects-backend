@@ -482,6 +482,8 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
         return method(search_object.item)
 
     def prepare_last_update(self, search_object: SearchObject) -> str:
+        if search_object.last_update is None:
+            return 0
         return search_object.last_update.timestamp()
 
     def prepare_type(self, search_object: SearchObject) -> str:
