@@ -801,15 +801,21 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ProjectMessageSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    permission_classes = [
-        IsAuthenticated,
-        HasBasePermission("change_project", "projects")
-        | HasOrganizationPermission("change_project")
-        | HasProjectPermission("change_project"),
-    ]
     multiple_lookup_fields = [
         (Project, "project_id"),
     ]
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "projectmessage")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticated,
+                IsOwner
+                | HasBasePermission(codename, "projects")
+                | HasOrganizationPermission(codename)
+                | HasProjectPermission(codename),
+            ]
+        return super().get_permissions()
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -828,16 +834,21 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
-    permission_classes = [
-        IsAuthenticated,
-        IsOwner
-        | HasBasePermission("change_project", "projects")
-        | HasOrganizationPermission("change_project")
-        | HasProjectPermission("change_project"),
-    ]
     multiple_lookup_fields = [
         (Project, "project_id"),
     ]
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "projectmessage")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticated,
+                IsOwner
+                | HasBasePermission(codename, "projects")
+                | HasOrganizationPermission(codename)
+                | HasProjectPermission(codename),
+            ]
+        return super().get_permissions()
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
