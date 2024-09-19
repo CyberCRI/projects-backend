@@ -15,6 +15,8 @@ from .interface import MistralService
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
+    from apps.misc.models import WikipediaTag
+    from services.esco.models import EscoOccupation, EscoSkill
 
 
 class HasWeight:
@@ -397,4 +399,82 @@ class UserEmbedding(Embedding):
 
         self.embedding = [sum(row) / total_score for row in zip(*results)] or None
         self.save()
+        return self
+
+
+class EscoSkillEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "esco.EscoSkill", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    @property
+    def skill(self) -> "EscoSkill":
+        return self.item
+
+    def get_is_visible(self) -> bool:
+        return bool(self.skill.description) or bool(self.skill.title)
+
+    def set_embedding(self, *args, **kwargs) -> "EscoSkillEmbedding":
+        prompt = [
+            self.skill.title,
+            self.skill.description,
+        ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self
+
+
+class EscoOccupationEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "esco.EscoOccupation", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    @property
+    def occupation(self) -> "EscoOccupation":
+        return self.item
+
+    def get_is_visible(self) -> bool:
+        return bool(self.occupation.description) or bool(self.occupation.title)
+
+    def set_embedding(self, *args, **kwargs) -> "EscoOccupationEmbedding":
+        prompt = [
+            self.occupation.title,
+            self.occupation.description,
+        ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self
+
+
+class WikipediaTagEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "misc.WikipediaTag", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    @property
+    def wikipedia_tag(self) -> "WikipediaTag":
+        return self.item
+
+    def get_is_visible(self) -> bool:
+        return bool(self.wikipedia_tag.description) or bool(self.wikipedia_tag.name)
+
+    def set_embedding(self, *args, **kwargs) -> "WikipediaTagEmbedding":
+        prompt = [
+            self.wikipedia_tag.name_en,
+            self.wikipedia_tag.description_en,
+        ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
         return self
