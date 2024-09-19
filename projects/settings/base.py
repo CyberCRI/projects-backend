@@ -129,7 +129,6 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.announcements",
     "apps.commons",
-    "apps.deploys",
     "apps.emailing",
     "apps.feedbacks",
     "apps.files",
@@ -150,6 +149,8 @@ INSTALLED_APPS = [
     "services.mistral",
     "services.mixpanel",
     "services.wikipedia",
+    # permissions erros if deploys is not last
+    "apps.deploys",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
