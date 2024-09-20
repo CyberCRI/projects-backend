@@ -5,6 +5,7 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.projects.models import Project
 
 from .tasks import (
+    delete_project_search_object_task,
     update_or_create_people_group_search_object_task,
     update_or_create_project_search_object_task,
     update_or_create_user_search_object_task,
@@ -50,7 +51,10 @@ def update_search_object_on_user_role_change(sender, instance, action, **kwargs)
 def update_search_object_on_project_save(sender, instance, created, **kwargs):
     """Create the associated search object at project's creation."""
     if isinstance(instance, Project):
-        update_or_create_project_search_object_task.delay(instance.pk)
+        if instance.deleted_at is not None:
+            delete_project_search_object_task.delay(instance.pk)
+        else:
+            update_or_create_project_search_object_task.delay(instance.pk)
 
 
 @receiver(m2m_changed, sender=Project.organizations.through)

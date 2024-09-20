@@ -38,6 +38,16 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         project = ProjectFactory(id=content["id"])
         signal.assert_called_with(project.pk)
 
+    @patch("apps.search.tasks.delete_project_search_object_task.delay")
+    def test_signal_called_on_project_deletion(self, signal):
+        project = ProjectFactory(organizations=[self.organization])
+        self.client.force_authenticate(self.superadmin)
+        response = self.client.delete(
+            reverse("Project-detail", args=(project.pk,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        signal.assert_called_with(project.pk)
+
     @patch("apps.search.tasks.update_or_create_project_search_object_task.delay")
     def test_signal_called_on_project_update(self, signal):
         self.client.force_authenticate(self.superadmin)
