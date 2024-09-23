@@ -52,6 +52,7 @@ pymediawiki = "^0.7.4"
 pgvector = "^0.2.4"
 mistralai = "^0.0.12"
 setuptools = "^74.1.1"
+pymupdf = "^1.24.10"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.3"
