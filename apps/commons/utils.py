@@ -2,8 +2,10 @@ import base64
 import itertools
 import re
 import uuid
-from typing import Optional
+from io import BytesIO
+from typing import List, Optional, Tuple
 
+import pymupdf
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -137,3 +139,27 @@ def map_action_to_permission(action: str, codename: str) -> Optional[str]:
         "partial_update": f"change_{codename}",
         "destroy": f"delete_{codename}",
     }.get(action, None)
+
+
+def extract_text_from_pdf_page(pdf_data: pymupdf.Document, page: int) -> str:
+    return pdf_data[page].get_text()
+
+
+def extract_images_from_pdf_page(
+    pdf_data: pymupdf.Document, page: int
+) -> List[BytesIO]:
+    images = []
+    extracted = pdf_data[page].get_images() or []
+    for image in extracted:
+        data = pdf_data.extract_image(image[0])
+        images.append(BytesIO(data.get("image")))
+    return images
+
+
+def extract_pdf_data(pdf_data: pymupdf.Document) -> Tuple[str, List[BytesIO]]:
+    images = []
+    text = ""
+    for page in range(pdf_data.page_count):
+        images += extract_images_from_pdf_page(pdf_data, page)
+        text += extract_text_from_pdf_page(pdf_data, page)
+    return text, images
