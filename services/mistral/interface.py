@@ -1,21 +1,20 @@
 from typing import List
 
 from django.conf import settings
-from mistralai.client import MistralClient
-from mistralai.models.chat_completion import ChatMessage
+from mistralai import Mistral
 
 
 class MistralService:
-    service = MistralClient(api_key=settings.MISTRAL_API_KEY)
+    service = Mistral(api_key=settings.MISTRAL_API_KEY)
 
     @classmethod
     def get_chat_response(cls, system: List[str], prompt: List[str], **kwargs) -> str:
         """
         Get the chat response from Mistral API.
         """
-        system = [ChatMessage(role="system", content=message) for message in system]
-        prompt = [ChatMessage(role="user", content=message) for message in prompt]
-        response = cls.service.chat(
+        system = [{"content": message, "role": "system"} for message in system]
+        prompt = [{"content": message, "role": "user"} for message in prompt]
+        response = cls.service.chat.complete(
             model="mistral-small", messages=system + prompt, **kwargs
         )
         return "\n".join([choice.message.content for choice in response.choices])
@@ -25,8 +24,8 @@ class MistralService:
         """
         Get the prompt's vector in 1024 dimensions from Mistral API.
         """
-        response = cls.service.embeddings(
+        response = cls.service.embeddings.create(
             model="mistral-embed",
-            input=[prompt],
+            inputs=[prompt],
         )
         return response.data[0].embedding
