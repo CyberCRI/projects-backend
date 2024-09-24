@@ -30,14 +30,14 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
-    @patch("apps.search.tasks.update_or_create_user_search_object_task.delay")
+    @patch("apps.search.tasks._update_or_create_user_search_object_task")
     def test_signal_called_on_user_creation(self, signal, email_mock):
         email_mock.return_value = {}
         self.client.force_authenticate(self.superadmin)
         payload = {
             "email": faker.email(),
-            "first_name": faker.first_name(),
-            "last_name": faker.last_name(),
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
             "roles_to_add": [self.organization.get_users().name],
         }
         response = self.client.post(
@@ -54,8 +54,8 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.client.force_authenticate(self.superadmin)
         payload = {
             "email": faker.email(),
-            "first_name": faker.first_name(),
-            "last_name": faker.last_name(),
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
         }
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(self.user.id,)),

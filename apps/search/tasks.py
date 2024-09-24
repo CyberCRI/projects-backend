@@ -9,6 +9,10 @@ from .models import SearchObject
 
 @app.task(name="apps.search.tasks.update_or_create_user_search_object")
 def update_or_create_user_search_object_task(instance_pk):
+    _update_or_create_user_search_object_task(instance_pk)
+
+
+def _update_or_create_user_search_object_task(instance_pk):
     """Create the associated search object at people group's creation."""
     user = ProjectUser.objects.get(pk=instance_pk)
     search_object, _ = SearchObject.objects.update_or_create(
@@ -21,6 +25,10 @@ def update_or_create_user_search_object_task(instance_pk):
 
 @app.task(name="apps.search.tasks.update_or_create_project_search_object")
 def update_or_create_project_search_object_task(instance_pk):
+    _update_or_create_project_search_object_task(instance_pk)
+
+
+def _update_or_create_project_search_object_task(instance_pk):
     """Create the associated search object at people group's creation."""
     project = Project.objects.get(pk=instance_pk)
     search_object, _ = SearchObject.objects.update_or_create(
@@ -33,6 +41,10 @@ def update_or_create_project_search_object_task(instance_pk):
 
 @app.task(name="apps.search.tasks.delete_project_search_object")
 def delete_project_search_object_task(instance_pk):
+    _delete_project_search_object_task(instance_pk)
+
+
+def _delete_project_search_object_task(instance_pk):
     """Delete the associated search object at project's deletion."""
     search_object = SearchObject.objects.filter(project__pk=instance_pk)
     if search_object.exists():
@@ -41,6 +53,10 @@ def delete_project_search_object_task(instance_pk):
 
 @app.task(name="apps.search.tasks.update_or_create_people_group_search_object")
 def update_or_create_people_group_search_object_task(instance_pk):
+    _update_or_create_people_group_search_object_task(instance_pk)
+
+
+def _update_or_create_people_group_search_object_task(instance_pk):
     """Create the associated search object at people group's creation."""
     people_group = PeopleGroup.objects.get(pk=instance_pk)
     search_object, _ = SearchObject.objects.update_or_create(
