@@ -4,7 +4,8 @@ from typing import Dict
 from unittest.mock import patch
 
 from django.urls import reverse
-from django.utils.timezone import make_aware, now
+from django.utils import timezone
+from django.utils.timezone import make_aware
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
@@ -968,7 +969,9 @@ class MiscProjectTestCase(JwtAPITestCase):
     def test_get_slug(self):
         title = "My AMazing TeST ProjeCT !"
         project = ProjectFactory(
-            organizations=[self.organization], title=title, deleted_at=now()
+            organizations=[self.organization],
+            title=title,
+            deleted_at=timezone.localtime(timezone.now()),
         )
         self.assertEqual(project.slug, "my-amazing-test-project")
         project = ProjectFactory(organizations=[self.organization], title=title)
@@ -979,7 +982,9 @@ class MiscProjectTestCase(JwtAPITestCase):
     def test_blank_raw_slug(self):
         title = "."
         project = ProjectFactory(
-            organizations=[self.organization], title=title, deleted_at=now()
+            organizations=[self.organization],
+            title=title,
+            deleted_at=timezone.localtime(timezone.now()),
         )
         self.assertEqual(project.slug, "project-0")
 
