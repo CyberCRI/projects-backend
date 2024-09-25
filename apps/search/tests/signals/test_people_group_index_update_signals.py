@@ -21,7 +21,7 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    @patch("apps.search.tasks.update_or_create_people_group_search_object_task.delay")
+    @patch("apps.search.tasks._update_or_create_people_group_search_object_task")
     def test_signal_called_on_people_group_creation(self, signal):
         self.client.force_authenticate(self.superadmin)
         payload = {

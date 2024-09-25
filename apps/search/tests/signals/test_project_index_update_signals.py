@@ -23,7 +23,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         cls.project = ProjectFactory(organizations=[cls.organization], with_owner=True)
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    @patch("apps.search.tasks.update_or_create_project_search_object_task.delay")
+    @patch("apps.search.tasks._update_or_create_project_search_object_task")
     def test_signal_called_on_project_creation(self, signal):
         self.client.force_authenticate(self.superadmin)
         payload = {
