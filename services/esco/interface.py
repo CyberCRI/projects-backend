@@ -31,7 +31,7 @@ class EscoService:
             results = content.get("_embedded", {}).get("results", [])
             results = [
                 {
-                    "type": result.get("className", ""),
+                    "type": object_type,
                     "uri": result.get("uri", ""),
                 }
                 for result in results

@@ -16,7 +16,7 @@ from .interface import MistralService
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
     from apps.misc.models import WikipediaTag
-    from services.esco.models import EscoOccupation, EscoSkill
+    from services.esco.models import EscoTag
 
 
 class HasWeight:
@@ -402,48 +402,22 @@ class UserEmbedding(Embedding):
         return self
 
 
-class EscoSkillEmbedding(MistralEmbedding):
+class EscoTagEmbedding(MistralEmbedding):
     item = models.OneToOneField(
-        "esco.EscoSkill", on_delete=models.CASCADE, related_name="embedding"
+        "esco.EscoTag", on_delete=models.CASCADE, related_name="embedding"
     )
 
     @property
-    def skill(self) -> "EscoSkill":
+    def tag(self) -> "EscoTag":
         return self.item
 
     def get_is_visible(self) -> bool:
         return bool(self.skill.description) or bool(self.skill.title)
 
-    def set_embedding(self, *args, **kwargs) -> "EscoSkillEmbedding":
+    def set_embedding(self, *args, **kwargs) -> "EscoTagEmbedding":
         prompt = [
-            self.skill.title,
-            self.skill.description,
-        ]
-        prompt_hashcode = self.hash_prompt(prompt)
-        if self.prompt_hashcode != prompt_hashcode:
-            prompt = "\n\n".join(prompt)
-            self.embedding = MistralService.get_embedding(prompt)
-            self.prompt_hashcode = prompt_hashcode
-            self.save()
-        return self
-
-
-class EscoOccupationEmbedding(MistralEmbedding):
-    item = models.OneToOneField(
-        "esco.EscoOccupation", on_delete=models.CASCADE, related_name="embedding"
-    )
-
-    @property
-    def occupation(self) -> "EscoOccupation":
-        return self.item
-
-    def get_is_visible(self) -> bool:
-        return bool(self.occupation.description) or bool(self.occupation.title)
-
-    def set_embedding(self, *args, **kwargs) -> "EscoOccupationEmbedding":
-        prompt = [
-            self.occupation.title,
-            self.occupation.description,
+            self.tag.title,
+            self.tag.description,
         ]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:

@@ -24,18 +24,9 @@ class Skill(models.Model, HasOwner):
     wikipedia_tag = models.ForeignKey(
         "misc.WikipediaTag", on_delete=models.CASCADE, related_name="skills_v2"
     )
-    esco_skill = models.ForeignKey(
-        "esco.EscoSkill", on_delete=models.CASCADE, related_name="skills_v2"
+    esco_tag = models.ForeignKey(
+        "esco.EscoTag", on_delete=models.CASCADE, related_name="skills_v2"
     )
-    esco_occupation = models.ForeignKey(
-        "esco.EscoOccupation",
-        on_delete=models.CASCADE,
-        related_name="skills_v2",
-        blank=True,
-        null=True,
-    )
-    esco_skill_distance = models.FloatField()
-    esco_occupation_distance = models.FloatField()
     level = models.SmallIntegerField()
     level_to_reach = models.SmallIntegerField()
     category = models.CharField(max_length=255, blank=True, default="")
@@ -50,3 +41,6 @@ class Skill(models.Model, HasOwner):
     def get_owner(self):
         """Get the owner of the object."""
         return self.user
+
+    class Meta:
+        abstract = True

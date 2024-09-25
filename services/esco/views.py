@@ -2,20 +2,13 @@ from rest_framework import viewsets
 
 from apps.commons.permissions import ReadOnly
 
-from .filters import EscoOccupationFilter, EscoSkillFilter
-from .models import EscoOccupation, EscoSkill
-from .serializers import EscoOccupationSerializer, EscoSkillSerializer
+from .filters import EscoTagFilter
+from .models import EscoTag
+from .serializers import EscoTagSerializer
 
 
-class EscoSkillViewSet(viewsets.ReadOnlyModelViewSet):
+class EscoTagViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = [ReadOnly]
-    queryset = EscoSkill.objects.all()
-    filterset_class = EscoSkillFilter
-    serializer_class = EscoSkillSerializer
-
-
-class EscoOccupationViewSet(viewsets.ReadOnlyModelViewSet):
-    permission_classes = [ReadOnly]
-    queryset = EscoOccupation.objects.all()
-    filterset_class = EscoOccupationFilter
-    serializer_class = EscoOccupationSerializer
+    queryset = EscoTag.objects.all()
+    filterset_class = EscoTagFilter
+    serializer_class = EscoTagSerializer

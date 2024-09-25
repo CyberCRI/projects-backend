@@ -3,17 +3,17 @@ from typing import Dict, List, Optional, Union
 from faker import Faker
 
 from apps.commons.test import JwtAPITestCase
-from services.esco.models import EscoOccupation, EscoSkill
+from services.esco.models import EscoTag
 
 faker = Faker()
 
 
 class EscoTestCase(JwtAPITestCase):
     def search_skills_return_value(self, uris: List[str]) -> List[Dict[str, str]]:
-        return [{"type": "Skill", "uri": uri} for uri in uris]
+        return [{"type": "skill", "uri": uri} for uri in uris]
 
     def search_occupations_return_value(self, uris: List[str]) -> List[Dict[str, str]]:
-        return [{"type": "Occupation", "uri": uri} for uri in uris]
+        return [{"type": "occupation", "uri": uri} for uri in uris]
 
     @classmethod
     def get_skill_return_value(
@@ -23,9 +23,9 @@ class EscoTestCase(JwtAPITestCase):
         title_fr: str = "",
         description_en: str = "",
         description_fr: str = "",
-        broader_skills: Optional[List[EscoSkill]] = None,
-        essential_for_skills: Optional[List[EscoSkill]] = None,
-        optional_for_skills: Optional[List[EscoSkill]] = None,
+        broader_skills: Optional[List[EscoTag]] = None,
+        essential_for_skills: Optional[List[EscoTag]] = None,
+        optional_for_skills: Optional[List[EscoTag]] = None,
     ) -> Dict[str, Union[str, Dict]]:
         uri = uri or faker.url()
         title_en = title_en or faker.sentence()
@@ -94,9 +94,9 @@ class EscoTestCase(JwtAPITestCase):
         title_fr: str = "",
         description_en: str = "",
         description_fr: str = "",
-        broader_occupations: Optional[List[EscoOccupation]] = None,
-        essential_skills: Optional[List[EscoSkill]] = None,
-        optional_skills: Optional[List[EscoSkill]] = None,
+        broader_occupations: Optional[List[EscoTag]] = None,
+        essential_skills: Optional[List[EscoTag]] = None,
+        optional_skills: Optional[List[EscoTag]] = None,
     ) -> Dict[str, Union[str, Dict]]:
         uri = uri or faker.url()
         title_en = title_en or faker.sentence()

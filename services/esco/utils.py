@@ -3,33 +3,25 @@ import traceback
 from django.conf import settings
 
 from .interface import EscoService
-from .models import EscoOccupation, EscoSkill, EscoUpdateError
+from .models import EscoTag, EscoUpdateError
 
 
-def create_missing_skills() -> list[EscoSkill]:
-    skills_data = EscoService.get_all_objects("skill")
-    created_skills = []
-    for skill_data in skills_data:
-        skill, created = EscoSkill.objects.get_or_create(uri=skill_data["uri"])
-        if created:
-            created_skills.append(skill)
-    return created_skills
-
-
-def create_missing_occupations() -> list[EscoOccupation]:
-    occupations_data = EscoService.get_all_objects("occupation")
-    created_occupations = []
-    for occupation_data in occupations_data:
-        occupation, created = EscoOccupation.objects.get_or_create(
-            uri=occupation_data["uri"]
+def create_missing_tags() -> list[EscoTag]:
+    skills_data = EscoService.get_all_objects(EscoTag.EscoTagType.SKILL)
+    occupations_data = EscoService.get_all_objects(EscoTag.EscoTagType.OCCUPATION)
+    created_tags = []
+    for tag_data in skills_data + occupations_data:
+        tag, created = EscoTag.objects.get_or_create(
+            uri=tag_data["uri"],
+            type=tag_data["type"],
         )
         if created:
-            created_occupations.append(occupation)
-    return created_occupations
+            created_tags.append(tag)
+    return created_tags
 
 
-def _update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
-    data = EscoService.get_object_from_uri("skill", esco_skill.uri)
+def _update_skill_data(esco_skill: EscoTag) -> EscoTag:
+    data = EscoService.get_object_from_uri(esco_skill.type, esco_skill.uri)
     default_title = ""
     default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
@@ -45,33 +37,25 @@ def _update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
             esco_skill.description = default_description
     esco_skill.save()
     parents = data.get("_links", {}).get("broaderSkill", [])
-    essential_for_skills = data.get("_links", {}).get("isEssentialForSkill", [])
-    optional_for_skills = data.get("_links", {}).get("isOptionalForSkill", [])
+    essential_for = data.get("_links", {}).get("isEssentialForSkill", [])
+    optional_for = data.get("_links", {}).get("isOptionalForSkill", [])
     parents_uris = list(
         filter(lambda x: x != "", [parent.get("uri", "") for parent in parents])
     )
-    essential_for_skills_uris = list(
-        filter(
-            lambda x: x != "", [skill.get("uri", "") for skill in essential_for_skills]
-        )
+    essential_for_uris = list(
+        filter(lambda x: x != "", [skill.get("uri", "") for skill in essential_for])
     )
-    optional_for_skills_uris = list(
-        filter(
-            lambda x: x != "", [skill.get("uri", "") for skill in optional_for_skills]
-        )
+    optional_for_uris = list(
+        filter(lambda x: x != "", [skill.get("uri", "") for skill in optional_for])
     )
-    esco_skill.parents.set(EscoSkill.objects.filter(uri__in=parents_uris))
-    esco_skill.essential_for_skills.set(
-        EscoSkill.objects.filter(uri__in=essential_for_skills_uris)
-    )
-    esco_skill.optional_for_skills.set(
-        EscoSkill.objects.filter(uri__in=optional_for_skills_uris)
-    )
+    esco_skill.parents.set(EscoTag.objects.filter(uri__in=parents_uris))
+    esco_skill.essential_for.set(EscoTag.objects.filter(uri__in=essential_for_uris))
+    esco_skill.optional_for.set(EscoTag.objects.filter(uri__in=optional_for_uris))
     return esco_skill
 
 
-def _update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
-    data = EscoService.get_object_from_uri("occupation", esco_occupation.uri)
+def _update_occupation_data(esco_occupation: EscoTag) -> EscoTag:
+    data = EscoService.get_object_from_uri(esco_occupation.type, esco_occupation.uri)
     default_title = ""
     default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
@@ -103,48 +87,34 @@ def _update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
     optional_skills_uris = list(
         filter(lambda x: x != "", [skill.get("uri", "") for skill in optional_skills])
     )
-    esco_occupation.parents.set(EscoOccupation.objects.filter(uri__in=parents_uris))
+    esco_occupation.parents.set(EscoTag.objects.filter(uri__in=parents_uris))
     esco_occupation.essential_skills.set(
-        EscoSkill.objects.filter(uri__in=essential_skills_uris)
+        EscoTag.objects.filter(uri__in=essential_skills_uris)
     )
     esco_occupation.optional_skills.set(
-        EscoSkill.objects.filter(uri__in=optional_skills_uris)
+        EscoTag.objects.filter(uri__in=optional_skills_uris)
     )
     return esco_occupation
 
 
-def update_skill_data(esco_skill: EscoSkill) -> EscoSkill:
+def update_tag_data(esco_tag: EscoTag) -> EscoTag:
     try:
-        return _update_skill_data(esco_skill)
+        if esco_tag.type == EscoTag.EscoTagType.SKILL:
+            return _update_skill_data(esco_tag)
+        if esco_tag.type == EscoTag.EscoTagType.OCCUPATION:
+            return _update_occupation_data(esco_tag)
     except Exception as e:  # noqa: PIE786
         EscoUpdateError.objects.create(
-            item_type=EscoSkill.__name__,
-            item_id=esco_skill.id,
+            item_type=esco_tag.type,
+            item_id=esco_tag.id,
             error=e.__class__.__name__,
             traceback=traceback.format_exc(),
         )
-    return esco_skill
-
-
-def update_occupation_data(esco_occupation: EscoOccupation) -> EscoOccupation:
-    try:
-        return _update_occupation_data(esco_occupation)
-    except Exception as e:  # noqa: PIE786
-        EscoUpdateError.objects.create(
-            item_type=EscoOccupation.__name__,
-            item_id=esco_occupation.id,
-            error=e.__class__.__name__,
-            traceback=traceback.format_exc(),
-        )
-    return esco_occupation
+    return esco_tag
 
 
 def update_esco_data(force_update: bool = False):
-    new_skills = create_missing_skills()
-    new_occupations = create_missing_occupations()
-    skills = EscoSkill.objects.all() if force_update else new_skills
-    occupations = EscoOccupation.objects.all() if force_update else new_occupations
-    for skill in skills:
-        update_skill_data(skill)
-    for occupation in occupations:
-        update_occupation_data(occupation)
+    new_tags = create_missing_tags()
+    tags = EscoTag.objects.all() if force_update else new_tags
+    for tag in tags:
+        update_tag_data(tag)

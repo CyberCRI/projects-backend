@@ -2,55 +2,60 @@ from unittest.mock import patch
 
 from faker import Faker
 
-from services.esco.factories import EscoOccupationFactory, EscoSkillFactory
-from services.esco.models import EscoOccupation, EscoSkill, EscoUpdateError
+from services.esco.factories import EscoTagFactory
+from services.esco.models import EscoTag, EscoUpdateError
 from services.esco.testcases import EscoTestCase
-from services.esco.utils import (
-    create_missing_occupations,
-    create_missing_skills,
-    update_occupation_data,
-    update_skill_data,
-)
+from services.esco.utils import create_missing_tags, update_tag_data
 
 faker = Faker()
 
 
 class EscoServiceTestCase(EscoTestCase):
     @patch("services.esco.interface.EscoService.get_all_objects")
-    def test_create_missing_skills(self, mocked):
-        existing_skill = EscoSkillFactory()
-        uris = [existing_skill.uri, *[faker.uri() for _ in range(5)]]
-        mocked.return_value = self.search_skills_return_value(uris)
-        created_skills = create_missing_skills()
-        self.assertEqual(len(created_skills), 5)
-        skills = EscoSkill.objects.filter(uri__in=uris)
-        self.assertEqual(len(skills), 6)
-
-    @patch("services.esco.interface.EscoService.get_all_objects")
-    def test_create_missing_occupations(self, mocked):
-        existing_occupation = EscoOccupationFactory()
-        uris = [existing_occupation.uri, *[faker.uri() for _ in range(5)]]
-        mocked.return_value = self.search_occupations_return_value(uris)
-        created_occupations = create_missing_occupations()
-        self.assertEqual(len(created_occupations), 5)
-        occupations = EscoOccupation.objects.filter(uri__in=uris)
-        self.assertEqual(len(occupations), 6)
+    def test_create_missing_tags(self, mocked):
+        existing_skill = EscoTagFactory(type=EscoTag.EscoTagType.SKILL)
+        existing_occupation = EscoTagFactory(type=EscoTag.EscoTagType.OCCUPATION)
+        skills_uris = [existing_skill.uri, *[f"{faker.uri()}{i}/{i}" for i in range(5)]]
+        occupations_uris = [
+            existing_occupation.uri,
+            *[f"{faker.uri()}{i}/{i}" for i in range(5)],
+        ]
+        mocked.side_effect = [
+            self.search_skills_return_value(skills_uris),
+            self.search_occupations_return_value(occupations_uris),
+        ]
+        created_tags = create_missing_tags()
+        self.assertEqual(len(created_tags), 10)
+        skills = EscoTag.objects.filter(
+            uri__in=skills_uris, type=EscoTag.EscoTagType.SKILL
+        )
+        self.assertEqual(skills.count(), 6)
+        occupations = EscoTag.objects.filter(
+            uri__in=occupations_uris, type=EscoTag.EscoTagType.OCCUPATION
+        )
+        self.assertEqual(occupations.count(), 6)
 
     @patch("services.esco.interface.EscoService.get_object_from_uri")
     def test_update_skill_data(self, mocked):
-        skill = EscoSkillFactory()
+        skill = EscoTagFactory(type=EscoTag.EscoTagType.SKILL)
         data = {
             "uri": skill.uri,
             "title_en": faker.sentence(),
             "title_fr": faker.sentence(),
             "description_en": faker.text(),
             "description_fr": faker.text(),
-            "broader_skills": EscoSkillFactory.create_batch(2),
-            "essential_for_skills": EscoSkillFactory.create_batch(2),
-            "optional_for_skills": EscoSkillFactory.create_batch(2),
+            "broader_skills": EscoTagFactory.create_batch(
+                2, type=EscoTag.EscoTagType.SKILL
+            ),
+            "essential_for_skills": EscoTagFactory.create_batch(
+                2, type=EscoTag.EscoTagType.SKILL
+            ),
+            "optional_for_skills": EscoTagFactory.create_batch(
+                2, type=EscoTag.EscoTagType.SKILL
+            ),
         }
         mocked.return_value = self.get_skill_return_value(**data)
-        updated_skill = update_skill_data(skill)
+        updated_skill = update_tag_data(skill)
         self.assertEqual(updated_skill.title, data["title_en"])
         self.assertEqual(updated_skill.title_en, data["title_en"])
         self.assertEqual(updated_skill.title_fr, data["title_fr"])
@@ -62,29 +67,35 @@ class EscoServiceTestCase(EscoTestCase):
             {skill.uri for skill in data["broader_skills"]},
         )
         self.assertSetEqual(
-            {skill.uri for skill in updated_skill.essential_for_skills.all()},
+            {skill.uri for skill in updated_skill.essential_for.all()},
             {skill.uri for skill in data["essential_for_skills"]},
         )
         self.assertSetEqual(
-            {skill.uri for skill in updated_skill.optional_for_skills.all()},
+            {skill.uri for skill in updated_skill.optional_for.all()},
             {skill.uri for skill in data["optional_for_skills"]},
         )
 
     @patch("services.esco.interface.EscoService.get_object_from_uri")
     def test_update_occupation_data(self, mocked):
-        occupation = EscoOccupationFactory()
+        occupation = EscoTagFactory(type=EscoTag.EscoTagType.OCCUPATION)
         data = {
             "uri": occupation.uri,
             "title_en": faker.sentence(),
             "title_fr": faker.sentence(),
             "description_en": faker.text(),
             "description_fr": faker.text(),
-            "broader_occupations": EscoOccupationFactory.create_batch(2),
-            "essential_skills": EscoSkillFactory.create_batch(2),
-            "optional_skills": EscoSkillFactory.create_batch(2),
+            "broader_occupations": EscoTagFactory.create_batch(
+                2, type=EscoTag.EscoTagType.OCCUPATION
+            ),
+            "essential_skills": EscoTagFactory.create_batch(
+                2, type=EscoTag.EscoTagType.SKILL
+            ),
+            "optional_skills": EscoTagFactory.create_batch(
+                2, type=EscoTag.EscoTagType.SKILL
+            ),
         }
         mocked.return_value = self.get_occupation_return_value(**data)
-        updated_occupation = update_occupation_data(occupation)
+        updated_occupation = update_tag_data(occupation)
         self.assertEqual(updated_occupation.title, data["title_en"])
         self.assertEqual(updated_occupation.title_en, data["title_en"])
         self.assertEqual(updated_occupation.title_fr, data["title_fr"])
@@ -106,20 +117,24 @@ class EscoServiceTestCase(EscoTestCase):
 
     @patch("services.esco.utils._update_skill_data")
     def test_update_skill_data_error(self, mocked):
-        skill = EscoSkillFactory()
+        skill = EscoTagFactory(type=EscoTag.EscoTagType.SKILL)
         mocked.side_effect = self.raise_exception_side_effect
-        update_skill_data(skill)
+        update_tag_data(skill)
         error = EscoUpdateError.objects.filter(
-            item_type="EscoSkill", item_id=int(skill.id), error="Exception"
+            item_type=EscoTag.EscoTagType.SKILL,
+            item_id=int(skill.id),
+            error="Exception",
         )
         self.assertTrue(error.exists())
 
     @patch("services.esco.utils._update_occupation_data")
     def test_update_occupation_data_error(self, mocked):
-        occupation = EscoOccupationFactory()
+        occupation = EscoTagFactory(type=EscoTag.EscoTagType.OCCUPATION)
         mocked.side_effect = self.raise_exception_side_effect
-        update_occupation_data(occupation)
+        update_tag_data(occupation)
         error = EscoUpdateError.objects.filter(
-            item_type="EscoOccupation", item_id=int(occupation.id), error="Exception"
+            item_type=EscoTag.EscoTagType.OCCUPATION,
+            item_id=int(occupation.id),
+            error="Exception",
         )
         self.assertTrue(error.exists())
