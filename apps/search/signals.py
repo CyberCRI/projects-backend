@@ -53,8 +53,8 @@ def update_search_object_on_user_role_change(sender, instance, action, **kwargs)
 @receiver(post_save, sender="projects.Project")
 def update_search_object_on_project_save(sender, instance, created, **kwargs):
     """Create the associated search object at project's creation."""
-    if isinstance(instance, Project) and instance.deleted_at is None:
-        if created:
+    if isinstance(instance, Project):
+        if created and instance.deleted_at is None:
             update_or_create_project_search_object_task(instance.pk)
         else:
             if instance.deleted_at is not None:
