@@ -1,23 +1,56 @@
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Q
+from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.accounts.models import PrivacySettings, ProjectUser, Skill
 from apps.accounts.serializers import UserLightSerializer
+from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin, PaginatedViewSet
 from apps.emailing.utils import render_message, send_email
 from apps.misc.models import WikipediaTag
 from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
+from apps.organizations.permissions import HasOrganizationPermission
 
-from .exceptions import UserCannotMentorError, UserDoesNotNeedMentorError
-from .serializers import MentorshipContactSerializer
+
+from .exceptions import SkillAlreadyAddedError, UserCannotMentorError, UserDoesNotNeedMentorError
+from .serializers import MentorshipContactSerializer, SkillSerializer
+
+
+class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReadOnly
+        | IsOwner
+        | WillBeOwner
+        | HasBasePermission("change_projectuser", "accounts")
+        | HasOrganizationPermission("change_projectuser"),
+    ]
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id"),
+    ]
+
+    def get_queryset(self):
+        if "user_id" in self.kwargs:
+            return self.queryset.filter(user_id=self.kwargs["user_id"])
+        return self.queryset.none()
+
+    def create(self, request, *args, **kwargs):
+        try:
+            return super().create(request, *args, **kwargs)
+        except IntegrityError:
+            raise SkillAlreadyAddedError
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):

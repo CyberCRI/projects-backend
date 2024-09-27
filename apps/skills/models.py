@@ -56,7 +56,7 @@ class Tag(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     organization = models.ForeignKey(
-        "organizations.Organization", on_delete=models.SET_NULL, null=True
+        "organizations.Organization", on_delete=models.SET_NULL, null=True, related_name="tags_v2"
     )
     external_id = models.CharField(max_length=2048, unique=True)
 
@@ -142,6 +142,3 @@ class Skill(models.Model, HasOwner):
     def get_owner(self):
         """Get the owner of the object."""
         return self.user
-
-    class Meta:
-        abstract = True

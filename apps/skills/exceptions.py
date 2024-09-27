@@ -15,3 +15,9 @@ class UserDoesNotNeedMentorError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("This user does not need a mentor for this skill")
     default_code = "user_does_not_need_mentor"
+
+
+class SkillAlreadyAddedError(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = _("You already have this skill in your profile")
+    default_code = "skill_already_added"

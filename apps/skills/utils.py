@@ -4,6 +4,7 @@ from enum import Enum
 from django.conf import settings
 
 from services.esco.interface import EscoService
+from services.wikipedia.interface import WikipediaService
 from .models import Tag
 
 logger = logging.getLogger(__name__)
@@ -79,3 +80,28 @@ def update_esco_data(force_update: bool = False):
     tags = Tag.objects.filter(type=Tag.TagType.ESCO) if force_update else new_tags
     for tag in tags:
         update_tag_data(tag)
+
+
+def update_or_create_wikipedia_tag(wikipedia_qid: str) -> dict:
+    """
+    Update or create a WikipediaTag instance.
+    """
+    data = WikipediaService.get_by_id(wikipedia_qid)
+    for language in ["en", *settings.REQUIRED_LANGUAGES]:
+        if not data.get("name_en", None):
+            data["name_en"] = data.get(f"name_{language}", "")
+        if not data.get("description_en", None):
+            data["description_en"] = data.get(f"description_{language}", "")
+    wikipedia_qid = data.pop("wikipedia_qid")
+    tag, _ = Tag.objects.update_or_create(
+        type=Tag.TagType.WIKIPEDIA,
+        external_id=wikipedia_qid,
+        defaults=data,
+    )
+    return tag
+
+
+def update_wikipedia_data():
+    wikipedia_tags = Tag.objects.filter(type=Tag.TagType.WIKIPEDIA)
+    for tag in wikipedia_tags:
+        update_or_create_wikipedia_tag(tag.external_id)

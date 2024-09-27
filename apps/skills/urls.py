@@ -5,10 +5,18 @@ from apps.commons.urls import organization_router_register, user_router_register
 from .views import (
     MentorshipContactViewset,
     OrganizationMentorshipViewset,
+    SkillViewSet,
     UserMentorshipViewset,
 )
 
 router = DefaultRouter()
+
+user_router_register(
+    router,
+    r"skill",
+    SkillViewSet,
+    basename="Skill"
+)
 
 organization_router_register(
     router,

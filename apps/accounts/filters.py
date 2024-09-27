@@ -2,13 +2,7 @@ from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter
 
-from .models import PeopleGroup, ProjectUser, Skill
-
-
-class SkillFilter(filters.FilterSet):
-    class Meta:
-        model = Skill
-        fields = ["user"]
+from .models import PeopleGroup, ProjectUser
 
 
 class PeopleGroupFilter(filters.FilterSet):
