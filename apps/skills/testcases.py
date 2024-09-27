@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Union
 from faker import Faker
 
 from apps.commons.test import JwtAPITestCase
-from services.esco.models import EscoTag
+from .models import Tag
 
 faker = Faker()
 
@@ -23,9 +23,9 @@ class EscoTestCase(JwtAPITestCase):
         title_fr: str = "",
         description_en: str = "",
         description_fr: str = "",
-        broader_skills: Optional[List[EscoTag]] = None,
-        essential_for_skills: Optional[List[EscoTag]] = None,
-        optional_for_skills: Optional[List[EscoTag]] = None,
+        broader_skills: Optional[List[Tag]] = None,
+        essential_for_skills: Optional[List[Tag]] = None,
+        optional_for_skills: Optional[List[Tag]] = None,
     ) -> Dict[str, Union[str, Dict]]:
         uri = uri or faker.url()
         title_en = title_en or faker.sentence()
@@ -58,8 +58,8 @@ class EscoTestCase(JwtAPITestCase):
                 },
                 "broaderSkill": [
                     {
-                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.uri}&language=en",
-                        "uri": skill.uri,
+                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.external_id}&language=en",
+                        "uri": skill.external_id,
                         "title": skill.title,
                         "skillType": "http://data.europa.eu/esco/skill-type/skill",
                     }
@@ -67,8 +67,8 @@ class EscoTestCase(JwtAPITestCase):
                 ],
                 "isOptionalForSkill": [
                     {
-                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.uri}&language=en",
-                        "uri": skill.uri,
+                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.external_id}&language=en",
+                        "uri": skill.external_id,
                         "title": skill.title,
                         "skillType": "http://data.europa.eu/esco/skill-type/skill",
                     }
@@ -76,8 +76,8 @@ class EscoTestCase(JwtAPITestCase):
                 ],
                 "isEssentialForSkill": [
                     {
-                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.uri}&language=en",
-                        "uri": skill.uri,
+                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.external_id}&language=en",
+                        "uri": skill.external_id,
                         "title": skill.title,
                         "skillType": "http://data.europa.eu/esco/skill-type/skill",
                     }
@@ -94,9 +94,9 @@ class EscoTestCase(JwtAPITestCase):
         title_fr: str = "",
         description_en: str = "",
         description_fr: str = "",
-        broader_occupations: Optional[List[EscoTag]] = None,
-        essential_skills: Optional[List[EscoTag]] = None,
-        optional_skills: Optional[List[EscoTag]] = None,
+        broader_occupations: Optional[List[Tag]] = None,
+        essential_skills: Optional[List[Tag]] = None,
+        optional_skills: Optional[List[Tag]] = None,
     ) -> Dict[str, Union[str, Dict]]:
         uri = uri or faker.url()
         title_en = title_en or faker.sentence()
@@ -135,8 +135,8 @@ class EscoTestCase(JwtAPITestCase):
                 },
                 "hasEssentialSkill": [
                     {
-                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.uri}&language=en",
-                        "uri": skill.uri,
+                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.external_id}&language=en",
+                        "uri": skill.external_id,
                         "title": skill.title,
                         "skillType": "http://data.europa.eu/esco/skill-type/skill",
                     }
@@ -144,8 +144,8 @@ class EscoTestCase(JwtAPITestCase):
                 ],
                 "hasOptionalSkill": [
                     {
-                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.uri}&language=en",
-                        "uri": skill.uri,
+                        "href": f"https://ec.europa.eu/esco/api/resource/skill?uri={skill.external_id}&language=en",
+                        "uri": skill.external_id,
                         "title": skill.title,
                         "skillType": "http://data.europa.eu/esco/skill-type/skill",
                     }
@@ -153,14 +153,11 @@ class EscoTestCase(JwtAPITestCase):
                 ],
                 "broaderOccupation": [
                     {
-                        "href": f"https://ec.europa.eu/esco/api/resource/occupation?uri={occupation.uri}&language=en",
-                        "uri": occupation.uri,
+                        "href": f"https://ec.europa.eu/esco/api/resource/occupation?uri={occupation.external_id}&language=en",
+                        "uri": occupation.external_id,
                         "title": occupation.title,
                     }
                     for occupation in broader_occupations
                 ],
             },
         }
-
-    def raise_exception_side_effect(self, *args, **kwargs):
-        raise Exception()

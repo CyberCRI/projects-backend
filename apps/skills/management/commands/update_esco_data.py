@@ -1,6 +1,6 @@
 from django.core.management import BaseCommand
 
-from services.esco.utils import update_esco_data
+from apps.skills.utils import update_esco_data
 
 
 class Command(BaseCommand):

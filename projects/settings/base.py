@@ -434,7 +434,7 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(minute=0, hour=3),
     },
     "update_esco_data": {
-        "task": "services.esco.tasks.update_esco_data_task",
+        "task": "apps.skills.tasks.update_esco_data_task",
         "schedule": crontab(minute=0, hour=4),
     },
     "send_invitations_reminder": {
