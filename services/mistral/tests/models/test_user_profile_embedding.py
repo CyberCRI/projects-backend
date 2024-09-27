@@ -43,8 +43,8 @@ class UserEmbeddingVisibilityTestCase(JwtAPITestCase):
 
 
 class VectorizeUserProfileTestCase(JwtAPITestCase, MistralTestCaseMixin):
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_with_personal_description(self, mocked_embeddings, mocked_chat):
         user = UserFactory(
             personal_description=faker.text(), professional_description=""
@@ -59,8 +59,8 @@ class VectorizeUserProfileTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(embedding.embedding, vector)
         self.assertNotEqual(embedding.prompt_hashcode, "")
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_with_professional_description(
         self, mocked_embeddings, mocked_chat
     ):
@@ -81,8 +81,8 @@ class VectorizeUserProfileTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(embedding.embedding, vector)
         self.assertNotEqual(embedding.prompt_hashcode, "")
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_with_skills(self, mocked_embeddings, mocked_chat):
         user = UserFactory(personal_description="", professional_description="")
         embedding = UserProfileEmbeddingFactory(item=user)
@@ -96,8 +96,8 @@ class VectorizeUserProfileTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(embedding.embedding, vector)
         self.assertNotEqual(embedding.prompt_hashcode, "")
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_not_visible(self, mocked_embeddings, mocked_chat):
         user = UserFactory(personal_description="", professional_description="")
         embedding = UserProfileEmbeddingFactory(item=user)

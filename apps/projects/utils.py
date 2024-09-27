@@ -1,9 +1,12 @@
 from typing import Any, Dict, Tuple, TypeVar
 
+import pymupdf
 from rest_framework import serializers
 from rest_framework.utils import model_meta
 
+from apps.commons.utils import extract_pdf_data
 from apps.organizations.models import Organization
+from services.mistral.interface import MistralService
 
 from .models import Project
 
@@ -61,3 +64,34 @@ def compute_project_changes(
             changes[attr] = (old, new)
 
     return changes
+
+
+def create_project_from_pdf(pdf_data: pymupdf.Document) -> Project:
+    """Create a Project instance from a PDF file.
+
+    Parameters
+    ----------
+    pdf_data : pymupdf.Document
+        The PDF file to be converted into a Project instance.
+
+    Returns
+    -------
+    Project
+        The Project instance created from the PDF file.
+    """
+    text, images = extract_pdf_data(pdf_data)
+    system = [
+        "CONTEXT : Our user provides a PDF file with the following extracted text.",
+        "OBJECTIVE : We want to turn that text into a project's description.",
+        "STYLE: Similar to the one used in the original text.",
+        "LANGUAGE: Same as the original text.",
+        "AUDIENCE : People that don't know the project and will want to learn about it.",
+        """
+        RESPONSE : A json object with the following keys:
+            - title (str): The title of the project.
+            - description (str): The description of the project.
+        """,
+        "IMPORTANT : DO NOT MAKE UP ANY FACTS, EVEN IF IT MEANS RETURNING VERY LITTLE INFORMATION.",
+    ]
+    prompt = [text]
+    return MistralService.get_json_chat_response(system=system, prompt=prompt)
