@@ -31,13 +31,11 @@ from apps.accounts.views import AccessTokenView
 from apps.analytics.urls import router as analytics_router
 from apps.announcements.urls import router as announcements_router
 from apps.commons.urls import ExtendedRouter
-from apps.misc.urls import router as misc_router
 from apps.newsfeed.urls import router as newsfeed_router
 from apps.notifications.urls import router as notifications_router
 from apps.projects.urls import router as projects_router
 from apps.search.urls import router as search_router
 from apps.skills.urls import router as skills_router
-from services.esco.urls import router as esco_router
 from services.mistral.urls import mistral_router
 from services.wikipedia.urls import router as wikipedia_router
 
@@ -48,7 +46,6 @@ def redirect_to_swagger(request):
 
 router = ExtendedRouter()
 router.extend(accounts_router)
-router.extend(misc_router)
 router.extend(projects_router)
 router.extend(announcements_router)
 router.extend(analytics_router)
@@ -58,7 +55,6 @@ router.extend(wikipedia_router)
 router.extend(mistral_router)
 router.extend(newsfeed_router)
 router.extend(skills_router)
-router.extend(esco_router)
 
 urlpatterns_v1 = [
     path("", include(router.urls)),
