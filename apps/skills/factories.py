@@ -1,7 +1,9 @@
 import factory
 from faker import Faker
 
-from .models import Tag
+from apps.accounts.factories import UserFactory
+
+from .models import Skill, Tag
 
 faker = Faker()
 
@@ -30,3 +32,13 @@ class TagFactory(factory.django.DjangoModelFactory):
             self.external_id = f"{ESCO_BASE_URI}/{self.secondary_type}/{faker.uuid4()}"
         if self.type == Tag.TagType.WIKIPEDIA:
             self.external_id = f"Q{self.id}{faker.pyint()}"
+
+
+class SkillFactory(factory.django.DjangoModelFactory):
+    user = factory.SubFactory(UserFactory)
+    tag = factory.SubFactory(TagFactory)
+    level = factory.Faker("random_digit")
+    level_to_reach = factory.Faker("random_digit")
+
+    class Meta:
+        model = Skill

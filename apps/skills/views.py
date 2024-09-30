@@ -158,7 +158,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         skills = Skill.objects.filter(
             user__in=self.get_user_queryset(), needs_mentor=True
         ).distinct()
-        wikipedia_tags = (
+        tags = (
             Tag.objects.filter(skills__in=skills)
             .annotate(
                 mentorees_count=Count(
@@ -168,7 +168,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
             .order_by("-mentorees_count")
             .distinct()
         )
-        return self.get_paginated_list(wikipedia_tags)
+        return self.get_paginated_list(tags)
 
 
 class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
@@ -248,14 +248,14 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         mentorees_skills = Skill.objects.filter(
             user__in=self.get_user_queryset(),
             needs_mentor=True,
-            wikipedia_tag__in=user_mentored_skills,
+            tag__in=user_mentored_skills,
         ).distinct()
         users = ProjectUser.objects.filter(skills__in=mentorees_skills).annotate(
             needs_mentor_on=ArrayAgg(
                 "skills",
                 filter=Q(
                     skills__needs_mentor=True,
-                    skills__wikipedia_tag__in=user_mentored_skills,
+                    skills__tag__in=user_mentored_skills,
                 ),
                 distinct=True,
             )
@@ -299,14 +299,14 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         mentors_skills = Skill.objects.filter(
             user__in=self.get_user_queryset(),
             can_mentor=True,
-            wikipedia_tag__in=user_mentoree_skills,
+            tag__in=user_mentoree_skills,
         ).distinct()
         users = ProjectUser.objects.filter(skills__in=mentors_skills).annotate(
             can_mentor_on=ArrayAgg(
                 "skills",
                 filter=Q(
                     skills__can_mentor=True,
-                    skills__wikipedia_tag__in=user_mentoree_skills,
+                    skills__tag__in=user_mentoree_skills,
                 ),
                 distinct=True,
             )

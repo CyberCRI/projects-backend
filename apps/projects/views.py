@@ -100,10 +100,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             "organizations",
             queryset=Organization.objects.select_related(
                 "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("wikipedia_tags"),
+            ).prefetch_related("tags"),
         )
         return self.request.user.get_project_queryset(
-            "wikipedia_tags",
+            "tags",
             "goals",
             "follows",
             "follows",

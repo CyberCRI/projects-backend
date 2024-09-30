@@ -75,7 +75,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     is_logo_visible_on_parent_dashboard: BooleanField
         Whether to show or hide the organization's logo on the main
         organization's portal.
-    wikipedia_tags: ManyToManyField
+    tags: ManyToManyField
         Tags this organization is referred to.
     created_at: DateTimeField
         Date of creation of the organization.
@@ -379,7 +379,7 @@ class ProjectCategory(models.Model, OrganizationRelated):
         Whether the category is reviewable or not.
     order_index: SmallIntegerField
         Position of the category in the list.
-    wikipedia_tags: ManyToManyField
+    tags: ManyToManyField
         Tags visible in the category.
     template: OneToOneField, optional
         Template used by the category.

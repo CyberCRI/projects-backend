@@ -91,8 +91,7 @@ class ProjectIndex:
         """Prefetch relations to speed-up indexing."""
         return self.model.objects.filter(deleted_at=None).prefetch_related(
             "categories",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "blog_entries",
             "organizations",
         )
@@ -111,17 +110,9 @@ class ProjectIndex:
         return [category.name for category in project.categories.all()]
 
     @staticmethod
-    def prepare_wikipedia_tags(project: Project) -> List[str]:
-        """Return the wikipedia tags' names for Algolia indexing."""
-        return [wikipedia_tag.name for wikipedia_tag in project.wikipedia_tags.all()]
-
-    @staticmethod
-    def prepare_organization_tags(project: Project) -> List[str]:
-        """Return the organization tags' names for Algolia indexing."""
-        return [
-            organization_tag.name
-            for organization_tag in project.organization_tags.all()
-        ]
+    def prepare_tags(project: Project) -> List[str]:
+        """Return the tags' names for Algolia indexing."""
+        return [tag.name for tag in project.tags.all()]
 
     @staticmethod
     def prepare_language(project: Project) -> str:
@@ -129,20 +120,13 @@ class ProjectIndex:
 
     @staticmethod
     def prepare_categories_filter(project: Project) -> List[str]:
-        """Return the wikipedia tags' names for Algolia indexing."""
+        """Return the categores' ids for Algolia indexing."""
         return list(project.categories.all().values_list("id", flat=True))
 
     @staticmethod
-    def prepare_wikipedia_tags_filter(project: Project) -> List[str]:
-        """Return the wikipedia tags' names for Algolia indexing."""
-        return list(
-            project.wikipedia_tags.all().values_list("wikipedia_qid", flat=True)
-        )
-
-    @staticmethod
-    def prepare_organization_tags_filter(project: Project) -> List[str]:
-        """Return the organization tags' names for Algolia indexing."""
-        return list(project.organization_tags.all().values_list("id", flat=True))
+    def prepare_tags_filter(project: Project) -> List[str]:
+        """Return the tags' names for Algolia indexing."""
+        return list(project.tags.all().values_list("id", flat=True))
 
     @staticmethod
     def prepare_members_filter(project: Project) -> List[str]:
@@ -364,11 +348,9 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             # Project
             "members",
             "categories",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "language",
-            "wikipedia_tags_filter",
-            "organization_tags_filter",
+            "tags_filter",
             "members_filter",
             "categories_filter",
             # User
@@ -399,8 +381,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
                     "language",
                     "categories_filter",
                     "members_filter",
-                    "wikipedia_tags_filter",
-                    "organization_tags_filter",
+                    "tags_filter",
                     # User
                     "skills_filter",
                     "can_mentor_filter",
@@ -424,8 +405,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "emails",
             "members",
             "categories",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "skills",
             "people_groups",
             "projects",
@@ -440,8 +420,7 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
             "filterOnly(language)",
             "filterOnly(categories_filter)",
             "filterOnly(members_filter)",
-            "filterOnly(wikipedia_tags_filter)",
-            "filterOnly(organization_tags_filter)",
+            "filterOnly(tags_filter)",
             "filterOnly(skills_filter)",
             "filterOnly(can_mentor_filter)",
             "filterOnly(needs_mentor_filter)",
@@ -515,26 +494,14 @@ class SearchObjectIndex(AlgoliaSplittingIndex):
     def prepare_categories(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_categories", [])
 
-    def prepare_wikipedia_tags(self, search_object: SearchObject) -> List[str]:
-        return self.get_field_for_model(search_object, "prepare_wikipedia_tags", [])
-
-    def prepare_organization_tags(self, search_object: SearchObject) -> List[str]:
-        return self.get_field_for_model(search_object, "prepare_organization_tags", [])
+    def prepare_tags(self, search_object: SearchObject) -> List[str]:
+        return self.get_field_for_model(search_object, "prepare_tags", [])
 
     def prepare_language(self, search_object: SearchObject) -> str:
         return self.get_field_for_model(search_object, "prepare_language", "")
 
-    def prepare_wikipedia_tags_filter(self, search_object: SearchObject) -> List[str]:
-        return self.get_field_for_model(
-            search_object, "prepare_wikipedia_tags_filter", []
-        )
-
-    def prepare_organization_tags_filter(
-        self, search_object: SearchObject
-    ) -> List[str]:
-        return self.get_field_for_model(
-            search_object, "prepare_organization_tags_filter", []
-        )
+    def prepare_tags_filter(self, search_object: SearchObject) -> List[str]:
+        return self.get_field_for_model(search_object, "prepare_tags_filter", [])
 
     def prepare_members_filter(self, search_object: SearchObject) -> List[str]:
         return self.get_field_for_model(search_object, "prepare_members_filter", [])

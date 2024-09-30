@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -11,6 +9,7 @@ from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import ProjectCategory
 from apps.projects.factories import ProjectFactory
+from apps.skills.factories import TagFactory
 
 faker = Faker()
 
@@ -20,6 +19,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.tags = TagFactory.create_batch(3, organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -31,17 +31,14 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_project_category(self, role, expected_code, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
+    def test_create_project_category(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "organization_code": self.organization.code,
             "name": faker.sentence(),
             "description": faker.text(),
-            "wikipedia_tags_ids": wikipedia_qids,
+            "tags_ids": [t.id for t in self.tags],
             "order_index": faker.pyint(0, 10),
             "background_color": faker.color(),
             "foreground_color": faker.color(),
@@ -55,8 +52,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["name"], payload["name"])
             self.assertEqual(content["description"], payload["description"])
             self.assertSetEqual(
-                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-                set(wikipedia_qids),
+                {t["id"] for t in content["tags"]}, set(payload["tags_ids"])
             )
             self.assertEqual(content["order_index"], payload["order_index"])
             self.assertEqual(content["background_color"], payload["background_color"])
@@ -123,16 +119,14 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     def test_update_project_category(self, role, expected_code, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
+        tags = TagFactory.create_batch(3, organization=self.organization)
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "name": faker.sentence(),
             "description": faker.text(),
-            "wikipedia_tags_ids": wikipedia_qids,
+            "tags_ids": [t.id for t in tags],
             "order_index": faker.pyint(0, 10),
             "background_color": faker.color(),
             "foreground_color": faker.color(),
@@ -147,8 +141,7 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["name"], payload["name"])
             self.assertEqual(content["description"], payload["description"])
             self.assertSetEqual(
-                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-                set(wikipedia_qids),
+                {t["id"] for t in content["tags"]}, {t.id for t in tags}
             )
             self.assertEqual(content["order_index"], payload["order_index"])
             self.assertEqual(content["background_color"], payload["background_color"])

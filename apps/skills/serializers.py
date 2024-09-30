@@ -68,7 +68,7 @@ class SkillLightSerializer(serializers.ModelSerializer):
         model = Skill
         read_only_fields = [
             "id",
-            "wikipedia_tag",
+            "tag",
             "level",
             "level_to_reach",
             "category",
@@ -89,7 +89,7 @@ class SkillSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "user",
-            "wikipedia_tag",
+            "tag",
             "level",
             "level_to_reach",
             "category",

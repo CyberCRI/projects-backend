@@ -1,7 +1,6 @@
 import datetime
 import random
 from typing import Dict
-from unittest.mock import patch
 
 from django.urls import reverse
 from django.utils import timezone
@@ -13,20 +12,20 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.announcements.factories import AnnouncementFactory
+from apps.commons.models import SDG, Language
 from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
 from apps.goals.factories import GoalFactory
-from apps.misc.factories import TagFactory, WikipediaTagFactory
-from apps.misc.models import SDG, Language
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
 from apps.projects.models import Project
+from apps.skills.factories import TagFactory
 
 faker = Faker()
 
 
-class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
+class CreateProjectTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -38,10 +37,7 @@ class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
         cls.people_groups = PeopleGroupFactory.create_batch(
             2, organization=cls.organization
         )
-        cls.organization_tags = TagFactory.create_batch(
-            3, organization=cls.organization
-        )
-        cls.wikipedia_tags = WikipediaTagFactory.create_batch(3)
+        cls.tags = TagFactory.create_batch(3)
 
     @parameterized.expand(
         [
@@ -53,9 +49,7 @@ class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_201_CREATED),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_project(self, role, expected_code, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+    def test_create_project(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
@@ -71,8 +65,7 @@ class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
             "project_categories_ids": [self.category.id],
-            "organization_tags_ids": [t.id for t in self.organization_tags],
-            "wikipedia_tags_ids": [t.wikipedia_qid for t in self.wikipedia_tags],
+            "tags_ids": [t.id for t in self.tags],
             "images_ids": [],
             "team": {
                 "members": [m.id for m in self.members],
@@ -104,12 +97,8 @@ class CreateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
                 set(payload["project_categories_ids"]),
             )
             self.assertEqual(
-                {t["id"] for t in content["organization_tags"]},
-                set(payload["organization_tags_ids"]),
-            )
-            self.assertEqual(
-                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-                set(payload["wikipedia_tags_ids"]),
+                {t["id"] for t in content["tags"]},
+                set(payload["tags_ids"]),
             )
             self.assertEqual(
                 {u["id"] for u in content["team"]["members"]},
@@ -139,10 +128,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             is_reviewable=True,
             only_reviewer_can_publish=True,
         )
-        cls.organization_tags = TagFactory.create_batch(
-            3, organization=cls.organization
-        )
-        cls.wikipedia_tags = WikipediaTagFactory.create_batch(3)
+        cls.tags = TagFactory.create_batch(3)
         cls.project = ProjectFactory(organizations=[cls.organization])
 
     @parameterized.expand(
@@ -158,9 +144,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_project(self, role, expected_code, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+    def test_update_project(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
@@ -174,12 +158,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             ),  # nosec
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
-            "organization_tags_ids": [
-                random.choice(self.organization_tags).id  # nosec
-            ],
-            "wikipedia_tags_ids": [
-                random.choice(self.wikipedia_tags).wikipedia_qid  # nosec
-            ],
+            "tags_ids": [random.choice(self.tags).id],  # nosec
         }
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.id,)), data=payload
@@ -198,12 +177,8 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["life_status"], payload["life_status"])
             self.assertEqual(content["sdgs"], payload["sdgs"])
             self.assertEqual(
-                {t["id"] for t in content["organization_tags"]},
-                set(payload["organization_tags_ids"]),
-            )
-            self.assertEqual(
-                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-                set(payload["wikipedia_tags_ids"]),
+                {t["id"] for t in content["tags"]},
+                set(payload["tags_ids"]),
             )
 
     @parameterized.expand(
@@ -430,6 +405,8 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         AttachmentLinkFactory.create_batch(3, project=cls.project)
         AttachmentFileFactory.create_batch(3, project=cls.project)
         AnnouncementFactory.create_batch(3, project=cls.project)
+        tags = TagFactory.create_batch(3)
+        cls.project.tags.set(tags)
         images = [cls.get_test_image() for _ in range(3)]
         cls.project.images.set(images)
         cls.project.description = "\n".join(
@@ -461,8 +438,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         ]
         many_to_many_fields = [
             "categories",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "linked_projects",
         ]
         related_fields = [
@@ -642,9 +618,9 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         cls.category_1 = ProjectCategoryFactory(organization=cls.organization_1)
         cls.category_2 = ProjectCategoryFactory(organization=cls.organization_2)
         cls.category_3 = ProjectCategoryFactory(organization=cls.organization_3)
-        cls.tag_1 = WikipediaTagFactory()
-        cls.tag_2 = WikipediaTagFactory()
-        cls.tag_3 = WikipediaTagFactory()
+        cls.tag_1 = TagFactory()
+        cls.tag_2 = TagFactory()
+        cls.tag_3 = TagFactory()
         cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
         cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
         cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
@@ -673,9 +649,9 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             sdgs=[3, 4],
             life_status=Project.LifeStatus.COMPLETED,
         )
-        cls.project_1.wikipedia_tags.add(cls.tag_1, cls.tag_2)
-        cls.project_2.wikipedia_tags.add(cls.tag_2, cls.tag_3)
-        cls.project_3.wikipedia_tags.add(cls.tag_3)
+        cls.project_1.tags.add(cls.tag_1, cls.tag_2)
+        cls.project_2.tags.add(cls.tag_2, cls.tag_3)
+        cls.project_3.tags.add(cls.tag_3)
         cls.user_1 = UserFactory(
             groups=[cls.project_1.get_owners(), cls.project_2.get_reviewers()]
         )
@@ -762,8 +738,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
 
     def test_filter_by_tags(self):
         response = self.client.get(
-            reverse("Project-list")
-            + f"?wikipedia_tags={self.tag_1.wikipedia_qid},{self.tag_2.wikipedia_qid}"
+            reverse("Project-list") + f"?tags={self.tag_1.id},{self.tag_2.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
         content = response.json()

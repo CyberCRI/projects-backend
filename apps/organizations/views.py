@@ -42,7 +42,7 @@ class ProjectCategoryViewSet(viewsets.ModelViewSet):
     organization_code_lookup = "organization__code"
     queryset = ProjectCategory.objects.select_related(
         "organization", "template"
-    ).prefetch_related("wikipedia_tags")
+    ).prefetch_related("tags")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
 
@@ -148,7 +148,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     organization_code_lookup = "code"
     queryset = Organization.objects.select_related(
         "faq", "parent", "banner_image", "logo_image"
-    ).prefetch_related("wikipedia_tags")
+    ).prefetch_related("tags")
     lookup_field = "code"
     lookup_value_regex = "[a-zA-Z0-9_-]+"
 

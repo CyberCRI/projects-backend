@@ -77,7 +77,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         for month, count in updated_by_month.items():
             by_month[month.date()]["updated_count"] += count
 
-        # Top ten wikipedia_tags
+        # Top ten tags
         tags = Tag.objects.annotate(
             project_count=Count("projects", filter=Q(projects__in=projects))
         ).order_by("-project_count")[:10]

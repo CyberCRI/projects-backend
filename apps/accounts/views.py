@@ -171,7 +171,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
         return queryset.prefetch_related(
-            "skills__wikipedia_tag",
+            "skills__tag",
             "groups",
         )
 
@@ -528,7 +528,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 "organization",
                 queryset=Organization.objects.select_related(
                     "faq", "parent", "banner_image", "logo_image"
-                ).prefetch_related("wikipedia_tags"),
+                ).prefetch_related("tags"),
             )
             return self.request.user.get_people_group_queryset(organization).filter(
                 organization__code=self.kwargs["organization_code"],

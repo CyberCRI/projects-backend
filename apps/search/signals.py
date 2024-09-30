@@ -87,23 +87,8 @@ def update_search_object_on_project_category_change(sender, instance, action, **
         update_or_create_project_search_object_task.delay(instance.pk)
 
 
-@receiver(m2m_changed, sender=Project.wikipedia_tags.through)
-def update_search_object_on_project_wikipedia_tags_change(
-    sender, instance, action, **kwargs
-):
-    """Create the associated search object at project's creation."""
-    if (
-        isinstance(instance, Project)
-        and action in ["post_add", "post_remove"]
-        and instance.deleted_at is None
-    ):
-        update_or_create_project_search_object_task.delay(instance.pk)
-
-
-@receiver(m2m_changed, sender=Project.organization_tags.through)
-def update_search_object_on_project_organization_tags_change(
-    sender, instance, action, **kwargs
-):
+@receiver(m2m_changed, sender=Project.tags.through)
+def update_search_object_on_project_tags_change(sender, instance, action, **kwargs):
     """Create the associated search object at project's creation."""
     if (
         isinstance(instance, Project)

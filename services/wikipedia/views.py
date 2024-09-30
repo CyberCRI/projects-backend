@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 from apps.commons.permissions import ReadOnly
-from apps.misc.models import WikipediaTag
+from apps.skills.models import Tag
 
 from .interface import WikipediaService
 from .pagination import WikipediaPagination
@@ -84,7 +84,7 @@ class WikibaseItemViewset(ViewSet):
         limit = int(self.request.query_params.get("limit", 5))
         search = self.request.query_params.get("query", "")
         queryset = (
-            WikipediaTag.objects.filter(
+            Tag.objects.filter(
                 Q(**{f"name_{language}__unaccent__istartswith": search})
                 | Q(**{f"name_{language}__unaccent__icontains": f" {search}"})
             )
