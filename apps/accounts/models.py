@@ -872,7 +872,7 @@ class Skill(models.Model, HasOwner):
         HOBBY = "hobby"
 
     user = models.ForeignKey(
-        ProjectUser, on_delete=models.CASCADE, related_name="skills"
+        ProjectUser, on_delete=models.CASCADE, related_name="old_skills"
     )
     type = models.CharField(
         max_length=8, choices=SkillType.choices, default=SkillType.SKILL.value
