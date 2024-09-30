@@ -59,7 +59,7 @@ class Tag(models.Model):
         "organizations.Organization",
         on_delete=models.SET_NULL,
         null=True,
-        related_name="tags",
+        related_name="custom_tags",
     )
     external_id = models.CharField(max_length=2048, unique=True)
 
@@ -109,7 +109,7 @@ class TagClassification(models.Model):
     is_public = models.BooleanField(default=False)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    tags = models.ManyToManyField("skills.Tag", related_name="classifications")
+    tags = models.ManyToManyField("skills.Tag", related_name="tag_classifications")
 
     def __str__(self):
         return f"Tags classification - {self.title}"
