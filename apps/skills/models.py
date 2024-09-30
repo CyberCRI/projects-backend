@@ -59,7 +59,7 @@ class Tag(models.Model):
         "organizations.Organization",
         on_delete=models.SET_NULL,
         null=True,
-        related_name="tags_v2",
+        related_name="tags",
     )
     external_id = models.CharField(max_length=2048, unique=True)
 
@@ -123,7 +123,7 @@ class Skill(models.Model, HasOwner):
         HOBBY = "hobby"
 
     user = models.ForeignKey(
-        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="skills_v2"
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="skills"
     )
     type = models.CharField(
         max_length=8, choices=SkillType.choices, default=SkillType.SKILL.value

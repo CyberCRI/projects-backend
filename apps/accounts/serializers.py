@@ -159,7 +159,7 @@ class UserLightSerializer(serializers.ModelSerializer):
         ).data
 
     def get_skills(self, user: ProjectUser) -> List[Dict]:
-        return SkillLightSerializer(user.skills_v2.all(), many=True).data
+        return SkillLightSerializer(user.skills.all(), many=True).data
 
     def get_needs_mentor_on(self, user: ProjectUser) -> List[Dict]:
         if getattr(user, "needs_mentor_on", None):

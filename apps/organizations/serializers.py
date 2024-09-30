@@ -175,7 +175,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     faq = FaqSerializer(many=False, read_only=True)
-    tags = TagSerializer(many=True, read_only=True, source="tags_v2")
+    tags = TagSerializer(many=True, read_only=True, source="tags")
     children = SlugRelatedField(
         many=True,
         read_only=True,
@@ -200,7 +200,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
         write_only=True, queryset=Image.objects.all(), source="logo_image"
     )
     tags_ids = TagRelatedField(
-        many=True, write_only=True, source="tags_v2", required=False
+        many=True, write_only=True, source="tags", required=False
     )
     dashboard_title = serializers.CharField(required=True)
     dashboard_subtitle = serializers.CharField(required=True)

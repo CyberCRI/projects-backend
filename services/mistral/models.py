@@ -250,7 +250,7 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
         return (
             len(self.user.personal_description) > 10
             or len(self.user.professional_description) > 10
-            or self.user.skills_v2.filter(level__gte=3).exists()
+            or self.user.skills.filter(level__gte=3).exists()
         )
 
     @classmethod
@@ -266,11 +266,11 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
         ]
 
     def get_summary_chat_prompt(self) -> List[str]:
-        expert_skills = self.user.skills_v2.filter(level=4).values_list(
+        expert_skills = self.user.skills.filter(level=4).values_list(
             "tag__name", flat=True
         )
         expert_skills = ", ".join(expert_skills) if expert_skills else ""
-        competent_skills = self.user.skills_v2.filter(level=3).values_list(
+        competent_skills = self.user.skills.filter(level=3).values_list(
             "tag__name", flat=True
         )
         competent_skills = ", ".join(competent_skills) if competent_skills else ""
