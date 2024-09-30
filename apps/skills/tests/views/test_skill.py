@@ -5,7 +5,7 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.models import Skill
+from apps.skills.models import Skill
 from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.skills.factories import SkillFactory, UserFactory

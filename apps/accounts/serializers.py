@@ -19,6 +19,7 @@ from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer
 
 from .exceptions import (
@@ -31,7 +32,7 @@ from .exceptions import (
     UserRoleAssignmentError,
     UserRolePermissionDeniedError,
 )
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
 from .utils import get_default_group, get_instance_from_group
 
 

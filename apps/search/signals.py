@@ -24,7 +24,7 @@ def update_search_object_on_user_save(sender, instance, created, **kwargs):
             update_or_create_user_search_object_task.delay(instance.pk)
 
 
-@receiver(post_save, sender="accounts.Skill")
+@receiver(post_save, sender="skills.Skill")
 def update_search_object_on_user_skill_save(sender, instance, created, **kwargs):
     """Create the associated search object at user's creation."""
     if isinstance(instance.user, ProjectUser):
