@@ -9,12 +9,11 @@ from django.http import Http404
 from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords
 
-from apps.commons.models import OrganizationRelated, PermissionsSetupModel
+from apps.commons.models import Language, OrganizationRelated, PermissionsSetupModel
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
-from apps.misc.models import Language
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -156,6 +155,9 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         "projects.Project", related_name="org_featured_projects", blank=True
     )
     wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
+    tags = models.ManyToManyField(
+        "skills.Tag", related_name="organizations", blank=True
+    )
 
     groups = models.ManyToManyField(Group, related_name="organizations")
 
@@ -400,11 +402,15 @@ class ProjectCategory(models.Model, OrganizationRelated):
     )
     is_reviewable = models.BooleanField(default=True)
     order_index = models.SmallIntegerField(default=0)
+    # TODO: Skill update - remove wikipedia_tags and organization_tags
     wikipedia_tags = models.ManyToManyField(
         "misc.WikipediaTag", related_name="project_categories"
     )
     organization_tags = models.ManyToManyField(
         "misc.Tag", related_name="project_categories"
+    )
+    tags = models.ManyToManyField(
+        "skills.Tag", related_name="project_categories", blank=True
     )
     template = models.OneToOneField(
         Template,

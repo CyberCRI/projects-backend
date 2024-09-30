@@ -28,8 +28,6 @@ from apps.files.serializers import (
     ImageSerializer,
 )
 from apps.goals.serializers import GoalSerializer
-from apps.misc.models import Tag, WikipediaTag
-from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSerializer
 from apps.notifications.tasks import notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.serializers import (
@@ -37,6 +35,8 @@ from apps.organizations.serializers import (
     ProjectCategorySerializer,
     TemplateSerializer,
 )
+from apps.skills.models import Tag
+from apps.skills.serializers import TagRelatedField, TagSerializer
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -419,8 +419,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
     categories = ProjectCategorySerializer(many=True, read_only=True)
     last_comment = serializers.SerializerMethodField(read_only=True)
     organizations = OrganizationSerializer(many=True, read_only=True)
-    wikipedia_tags = WikipediaTagSerializer(many=True, read_only=True)
-    organization_tags = TagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True, read_only=True)
     goals = GoalSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
@@ -456,15 +455,8 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         many=True,
         required=True,
     )
-    wikipedia_tags_ids = TagRelatedField(
-        many=True, write_only=True, source="wikipedia_tags", required=False
-    )
-    organization_tags_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Tag.objects.all(),
-        source="organization_tags",
-        required=False,
+    tags_ids = TagRelatedField(
+        many=True, write_only=True, source="tags", required=False
     )
     images_ids = serializers.PrimaryKeyRelatedField(
         many=True,
@@ -499,8 +491,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "categories",
             "last_comment",
             "organizations",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "goals",
             "reviews",
             "locations",
@@ -517,8 +508,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "project_categories_ids",
             "header_image_id",
             "organizations_codes",
-            "wikipedia_tags_ids",
-            "organization_tags_ids",
+            "tags_ids",
             "images_ids",
             "team",
         ]
@@ -664,8 +654,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField(read_only=True)
     project_id = serializers.SerializerMethodField(read_only=True)
     categories = serializers.SerializerMethodField(read_only=True)
-    wikipedia_tags = serializers.SerializerMethodField(read_only=True)
-    organization_tags = serializers.SerializerMethodField(read_only=True)
+    tags = serializers.SerializerMethodField(read_only=True)
     members = serializers.SerializerMethodField(read_only=True)
     comments = serializers.SerializerMethodField(read_only=True)
     linked_projects = serializers.SerializerMethodField(read_only=True)
@@ -704,17 +693,8 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_wikipedia_tags(version) -> List[str]:
-        tags_ids = version.wikipedia_tags.all().values_list(
-            "wikipediatag_id", flat=True
-        )
-        return WikipediaTag.objects.filter(id__in=tags_ids).values_list(
-            "name", flat=True
-        )
-
-    @staticmethod
-    def get_organization_tags(version) -> List[str]:
-        tags_ids = version.organization_tags.all().values_list("tag_id", flat=True)
+    def get_tags(version) -> List[str]:
+        tags_ids = version.tags.all().values_list("tag_id", flat=True)
         return Tag.objects.filter(id__in=tags_ids).values_list("name", flat=True)
 
     @staticmethod

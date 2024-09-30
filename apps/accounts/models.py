@@ -24,12 +24,14 @@ from apps.accounts.utils import (
     get_superadmins_group,
 )
 from apps.commons.models import (
+    SDG,
     HasMultipleIDs,
     HasOwner,
+    Language,
     OrganizationRelated,
     PermissionsSetupModel,
 )
-from apps.misc.models import SDG, Language, WikipediaTag
+from apps.misc.models import WikipediaTag
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -773,8 +775,8 @@ class UserScore(models.Model):
 
     def get_completeness(self) -> float:
         has_job = bool(self.user.job)
-        has_expert_skills = self.user.skills.filter(level=4).exists()
-        has_competent_skills = self.user.skills.filter(level=3).exists()
+        has_expert_skills = self.user.skills_v2.filter(level=4).exists()
+        has_competent_skills = self.user.skills_v2.filter(level=3).exists()
         has_rich_content = (
             "<img" in self.user.personal_description
             or "<iframe" in self.user.personal_description

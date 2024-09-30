@@ -1,7 +1,5 @@
 from django.core.management import BaseCommand
-from django.template.defaultfilters import pluralize
 
-from apps.skills.models import Tag
 from apps.skills.utils import update_wikipedia_data
 
 

@@ -11,12 +11,7 @@ from .views import (
 
 router = DefaultRouter()
 
-user_router_register(
-    router,
-    r"skill",
-    SkillViewSet,
-    basename="Skill"
-)
+user_router_register(router, r"skill", SkillViewSet, basename="Skill")
 
 organization_router_register(
     router,

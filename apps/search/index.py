@@ -244,38 +244,32 @@ class UserIndex:
     @staticmethod
     def prepare_skills(user: ProjectUser) -> List[str]:
         """Return the skills' names for Algolia indexing."""
-        return [skill.wikipedia_tag.name for skill in user.skills.all()]
+        return [skill.tag.title for skill in user.skills_v2.all()]
 
     @staticmethod
     def prepare_skills_filter(user: ProjectUser) -> List[str]:
         """Return the skills' qids for Algolia filtering."""
-        return [skill.wikipedia_tag.wikipedia_qid for skill in user.skills.all()]
+        return [skill.tag.id for skill in user.skills_v2.all()]
 
     @staticmethod
     def prepare_can_mentor_filter(user: ProjectUser) -> bool:
         """Return the skills' qids for Algolia filtering."""
-        return user.skills.filter(can_mentor=True).exists()
+        return user.skills_v2.filter(can_mentor=True).exists()
 
     @staticmethod
     def prepare_needs_mentor_filter(user: ProjectUser) -> bool:
         """Return the skills' qids for Algolia filtering."""
-        return user.skills.filter(needs_mentor=True).exists()
+        return user.skills_v2.filter(needs_mentor=True).exists()
 
     @staticmethod
     def prepare_can_mentor_on_filter(user: ProjectUser) -> List[str]:
         """Return the skills' qids for Algolia filtering."""
-        return [
-            skill.wikipedia_tag.wikipedia_qid
-            for skill in user.skills.filter(can_mentor=True)
-        ]
+        return [skill.tag.id for skill in user.skills_v2.filter(can_mentor=True)]
 
     @staticmethod
     def prepare_needs_mentor_on_filter(user: ProjectUser) -> List[str]:
         """Return the skills' qids for Algolia filtering."""
-        return [
-            skill.wikipedia_tag.wikipedia_qid
-            for skill in user.skills.filter(needs_mentor=True)
-        ]
+        return [skill.tag.id for skill in user.skills_v2.filter(needs_mentor=True)]
 
 
 class PeopleGroupIndex:

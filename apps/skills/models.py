@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from django.db import models
 
 from apps.commons.models import HasOwner
-from services.wikipedia.interface import WikipediaService
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -12,13 +11,13 @@ if TYPE_CHECKING:
 class Tag(models.Model):
     """
     Tag model to store tags from different sources.
-    Current sources are : 
+    Current sources are :
     - Wikipedia : tags are retrieved from the wikidata API when the user creates a tag
     - ESCO : tags come from the ESCO API and are updated automatically by the system
     - Custom : tags created by the administrators
 
     Tags are used to create skills and hobbies for users, and to classify projects.
-    
+
     Attributes
     ----------
     type: Charfield
@@ -34,6 +33,7 @@ class Tag(models.Model):
     external_id: Charfield
         The ID of the tag in the external source. For custum tags, we use a UUID.
     """
+
     class TagType(models.TextChoices):
         """Main type of a tag."""
 
@@ -51,18 +51,21 @@ class Tag(models.Model):
         max_length=255, choices=TagType.choices, default=TagType.CUSTOM.value
     )
     secondary_type = models.CharField(
-        max_length=255, choices=SecondaryTagType.choices, null=True
+        max_length=255, choices=SecondaryTagType.choices, blank=True
     )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     organization = models.ForeignKey(
-        "organizations.Organization", on_delete=models.SET_NULL, null=True, related_name="tags_v2"
+        "organizations.Organization",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="tags_v2",
     )
     external_id = models.CharField(max_length=2048, unique=True)
 
     def __str__(self):
         return f"{self.type.capitalize()} Tag - {self.title}"
-    
+
     # @classmethod
     # def type_search(cls, tag_type: str, query: str, language: str = "en", limit: int = 100, offset: int = 0):
     #     if tag_type not in cls.TagType.values:

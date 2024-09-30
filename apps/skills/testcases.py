@@ -3,6 +3,7 @@ from typing import Dict, List, Optional, Union
 from faker import Faker
 
 from apps.commons.test import JwtAPITestCase
+
 from .models import Tag
 
 faker = Faker()

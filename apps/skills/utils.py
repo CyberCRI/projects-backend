@@ -1,10 +1,10 @@
 import logging
-from enum import Enum
 
 from django.conf import settings
 
 from services.esco.interface import EscoService
 from services.wikipedia.interface import WikipediaService
+
 from .models import Tag
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,9 @@ def create_missing_tags() -> list[Tag]:
 
 
 def _update_skill_data(esco_skill: Tag) -> Tag:
-    data = EscoService.get_object_from_uri(esco_skill.secondary_type, esco_skill.external_id)
+    data = EscoService.get_object_from_uri(
+        esco_skill.secondary_type, esco_skill.external_id
+    )
     default_title = ""
     default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
@@ -43,7 +45,9 @@ def _update_skill_data(esco_skill: Tag) -> Tag:
 
 
 def _update_occupation_data(esco_occupation: Tag) -> Tag:
-    data = EscoService.get_object_from_uri(esco_occupation.secondary_type, esco_occupation.external_id)
+    data = EscoService.get_object_from_uri(
+        esco_occupation.secondary_type, esco_occupation.external_id
+    )
     default_title = ""
     default_description = ""
     for language in settings.REQUIRED_LANGUAGES:

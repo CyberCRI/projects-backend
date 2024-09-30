@@ -7,6 +7,7 @@ from apps.accounts.models import ProjectUser
 from apps.commons.fields import UserMultipleIdRelatedField
 from apps.commons.serializers import TranslatedModelSerializer
 from apps.skills.utils import update_or_create_wikipedia_tag
+
 from .models import Skill, Tag
 
 
@@ -18,12 +19,14 @@ class TagSerializer(TranslatedModelSerializer):
         if value != Tag.TagType.CUSTOM:
             raise serializers.ValidationError("Only custom tags can be created.")
         return value
-    
+
     def validate_secondary_type(self, value: str) -> str:
         if value:
-            raise serializers.ValidationError("Secondary type is not allowed for custom tags.")
+            raise serializers.ValidationError(
+                "Secondary type is not allowed for custom tags."
+            )
         return value
-    
+
     def validate(self, attrs: dict) -> dict:
         if self.instance and self.instance.type != Tag.TagType.CUSTOM:
             raise serializers.ValidationError("Only custom tags can be updated.")
@@ -33,8 +36,7 @@ class TagSerializer(TranslatedModelSerializer):
         model = Tag
         read_only_fields = [
             "type",
-            "secondary_type"
-            "mentors_count",
+            "secondary_type" "mentors_count",
             "mentorees_count",
         ]
         fields = read_only_fields + [
@@ -52,8 +54,8 @@ class TagRelatedField(serializers.RelatedField):
     def to_representation(self, instance: Tag) -> dict:
         return TagSerializer(instance).data
 
-    def to_internal_value(self, id: int) -> Tag:
-        tag = Tag.objects.get(id=id)
+    def to_internal_value(self, tag_id: int) -> Tag:
+        tag = Tag.objects.get(id=tag_id)
         if tag.type == Tag.TagType.WIKIPEDIA:
             return update_or_create_wikipedia_tag(tag.external_id)
         return tag
@@ -96,6 +98,7 @@ class SkillSerializer(serializers.ModelSerializer):
             "needs_mentor",
             "comment",
         ]
+
 
 class MentorshipContactSerializer(serializers.Serializer):
     title = serializers.CharField(max_length=255)

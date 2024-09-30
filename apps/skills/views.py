@@ -8,22 +8,22 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-
-from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.accounts.models import PrivacySettings, ProjectUser, Skill
-from apps.accounts.serializers import UserLightSerializer
+from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.permissions import ReadOnly
+from apps.accounts.serializers import UserLightSerializer
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.views import MultipleIDViewsetMixin, PaginatedViewSet
 from apps.emailing.utils import render_message, send_email
-from apps.misc.models import WikipediaTag
-from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 
-
-from .exceptions import SkillAlreadyAddedError, UserCannotMentorError, UserDoesNotNeedMentorError
-from .serializers import MentorshipContactSerializer, SkillSerializer
+from .exceptions import (
+    SkillAlreadyAddedError,
+    UserCannotMentorError,
+    UserDoesNotNeedMentorError,
+)
+from .models import Skill, Tag
+from .serializers import MentorshipContactSerializer, SkillSerializer, TagSerializer
 
 
 class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
@@ -54,7 +54,7 @@ class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):
-    serializer_class = WikipediaTagSerializer
+    serializer_class = TagSerializer
     permission_classes = [ReadOnly]
 
     def get_organization(self) -> Organization:
@@ -116,8 +116,8 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         skills = Skill.objects.filter(
             user__in=self.get_user_queryset(), can_mentor=True
         ).distinct()
-        wikipedia_tags = (
-            WikipediaTag.objects.filter(skills__in=skills)
+        tags = (
+            Tag.objects.filter(skills__in=skills)
             .annotate(
                 mentors_count=Count(
                     "skills__user", filter=Q(skills__can_mentor=True), distinct=True
@@ -126,7 +126,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
             .order_by("-mentors_count")
             .distinct()
         )
-        return self.get_paginated_list(wikipedia_tags)
+        return self.get_paginated_list(tags)
 
     @extend_schema(
         parameters=[
@@ -159,7 +159,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
             user__in=self.get_user_queryset(), needs_mentor=True
         ).distinct()
         wikipedia_tags = (
-            WikipediaTag.objects.filter(skills__in=skills)
+            Tag.objects.filter(skills__in=skills)
             .annotate(
                 mentorees_count=Count(
                     "skills__user", filter=Q(skills__needs_mentor=True), distinct=True
@@ -241,7 +241,7 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         user = get_object_or_404(
             self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
         )
-        user_mentored_skills = WikipediaTag.objects.filter(
+        user_mentored_skills = Tag.objects.filter(
             skills__user=user,
             skills__can_mentor=True,
         ).distinct()
@@ -292,7 +292,7 @@ class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
         user = get_object_or_404(
             self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
         )
-        user_mentoree_skills = WikipediaTag.objects.filter(
+        user_mentoree_skills = Tag.objects.filter(
             skills__user=user,
             skills__needs_mentor=True,
         ).distinct()
@@ -329,9 +329,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
         )
 
     def get_skill_name(self, skill: Skill, language: str):
-        return getattr(
-            skill.wikipedia_tag, f"name_{language}", skill.wikipedia_tag.name
-        )
+        return getattr(skill.tag, f"name_{language}", skill.tag.name)
 
     def send_email(self, template_folder: str, skill: Skill, **kwargs):
         language = skill.user.language

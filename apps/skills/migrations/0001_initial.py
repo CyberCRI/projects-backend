@@ -45,7 +45,7 @@ class Migration(migrations.Migration):
                     models.CharField(
                         choices=[("skill", "Skill"), ("occupation", "Occupation")],
                         max_length=255,
-                        null=True,
+                        blank=True,
                     ),
                 ),
                 ("title", models.CharField(max_length=255)),

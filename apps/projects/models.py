@@ -18,14 +18,16 @@ from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.commons.models import (
+    SDG,
     HasMultipleIDs,
     HasOwner,
+    Language,
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
 )
 from apps.commons.utils import get_write_permissions_from_subscopes
-from apps.misc.models import SDG, Language, Tag, WikipediaTag
+from apps.misc.models import Tag, WikipediaTag
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -174,12 +176,14 @@ class Project(
     organizations = models.ManyToManyField(
         "organizations.Organization", related_name="projects"
     )
+    # TODO : Skill update remove wikipedia_tags and organization_tags
     wikipedia_tags = models.ManyToManyField(
         WikipediaTag, related_name="projects", verbose_name=_("wikipedia tags")
     )
     organization_tags = models.ManyToManyField(
         Tag, verbose_name=_("organizational tags")
     )
+    tags = models.ManyToManyField("skills.Tag", related_name="projects", blank=True)
     sdgs = ArrayField(
         models.PositiveSmallIntegerField(choices=SDG.choices),
         len(SDG),
@@ -196,7 +200,7 @@ class Project(
     groups = models.ManyToManyField(Group, related_name="projects")
     history = HistoricalRecords(
         related_name="archive",
-        m2m_fields=[wikipedia_tags, organization_tags, categories],
+        m2m_fields=[tags, wikipedia_tags, organization_tags, categories],
     )
     objects = SoftDeleteManager()
 
