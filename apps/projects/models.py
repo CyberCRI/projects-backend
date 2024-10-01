@@ -198,10 +198,7 @@ class Project(
         verbose_name=_("main category"),
     )
     groups = models.ManyToManyField(Group, related_name="projects")
-    history = HistoricalRecords(
-        related_name="archive",
-        m2m_fields=[tags, wikipedia_tags, organization_tags, categories],
-    )
+    history = HistoricalRecords(related_name="archive")
     objects = SoftDeleteManager()
 
     class Meta:
