@@ -183,7 +183,12 @@ class Project(
     organization_tags = models.ManyToManyField(
         Tag, verbose_name=_("organizational tags")
     )
-    tags = models.ManyToManyField("skills.Tag", related_name="projects", blank=True)
+    tags = models.ManyToManyField(
+        "skills.Tag",
+        related_name="projects",
+        blank=True,
+        db_table="projects_project_skills_tags",  # avoid conflicts with old Tag model
+    )
     sdgs = ArrayField(
         models.PositiveSmallIntegerField(choices=SDG.choices),
         len(SDG),

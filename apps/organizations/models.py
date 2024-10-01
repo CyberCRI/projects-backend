@@ -156,7 +156,11 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     )
     wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
     tags = models.ManyToManyField(
-        "skills.Tag", related_name="organizations", blank=True
+        "skills.Tag",
+        related_name="organizations",
+        blank=True,
+        db_table="coucoucocucoucou_tags_skills_org_org",
+        db_column="coucou_tag_id",
     )
 
     groups = models.ManyToManyField(Group, related_name="organizations")
@@ -410,7 +414,10 @@ class ProjectCategory(models.Model, OrganizationRelated):
         "misc.Tag", related_name="project_categories"
     )
     tags = models.ManyToManyField(
-        "skills.Tag", related_name="project_categories", blank=True
+        "skills.Tag",
+        related_name="project_categories",
+        blank=True,
+        db_table="organizations_organization_skills_tags",  # avoid conflicts with old Tag model
     )
     template = models.OneToOneField(
         Template,
