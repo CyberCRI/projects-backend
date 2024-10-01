@@ -11,18 +11,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name="historicalproject_categories",
-            name="history",
-        ),
-        migrations.RemoveField(
-            model_name="historicalproject_categories",
-            name="project",
-        ),
-        migrations.RemoveField(
-            model_name="historicalproject_categories",
-            name="projectcategory",
-        ),
-        migrations.RemoveField(
             model_name="historicalproject_organization_tags",
             name="history",
         ),
@@ -45,9 +33,6 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name="historicalproject_wikipedia_tags",
             name="wikipediatag",
-        ),
-        migrations.DeleteModel(
-            name="HistoricalProject_categories",
         ),
         migrations.DeleteModel(
             name="HistoricalProject_organization_tags",
