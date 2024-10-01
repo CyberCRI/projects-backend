@@ -211,12 +211,13 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         tag = TagFactory()
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "user": self.user.id,
             "tag": tag.id,
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),
         }
-        response = self.client.post(reverse("Skill-list"), data=payload)
+        response = self.client.post(
+            reverse("Skill-list", args=(self.user.id,)), data=payload
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         signal.assert_called_with(self.user.pk)
 
@@ -228,7 +229,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
             "can_mentor": True,
         }
         response = self.client.patch(
-            reverse("Skill-detail", args=(skill.id,)),
+            reverse("Skill-detail", args=(self.user.id, skill.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

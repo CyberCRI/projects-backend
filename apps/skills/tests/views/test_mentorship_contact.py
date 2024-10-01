@@ -4,10 +4,11 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import SkillFactory, UserFactory
+from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
+from apps.skills.factories import SkillFactory
 
 faker = Faker()
 

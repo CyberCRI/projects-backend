@@ -161,13 +161,6 @@ class SearchViewSet(PaginatedViewSet):
                 SearchObject.SearchObjectType.PROJECT,
             ),
             self.get_type_specific_facet_filter(
-                [
-                    f"organization_tags_filter:{o}"
-                    for o in self.get_filter("organization_tags")
-                ],
-                SearchObject.SearchObjectType.PROJECT,
-            ),
-            self.get_type_specific_facet_filter(
                 [f"members_filter:{m}" for m in self.get_filter("members")],
                 SearchObject.SearchObjectType.PROJECT,
             ),

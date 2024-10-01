@@ -65,7 +65,7 @@ class CreateProjectTestCase(JwtAPITestCase):
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
             "project_categories_ids": [self.category.id],
-            "tags_ids": [t.id for t in self.tags],
+            "tags": [t.id for t in self.tags],
             "images_ids": [],
             "team": {
                 "members": [m.id for m in self.members],
@@ -98,7 +98,7 @@ class CreateProjectTestCase(JwtAPITestCase):
             )
             self.assertEqual(
                 {t["id"] for t in content["tags"]},
-                set(payload["tags_ids"]),
+                set(payload["tags"]),
             )
             self.assertEqual(
                 {u["id"] for u in content["team"]["members"]},
@@ -158,7 +158,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             ),  # nosec
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
-            "tags_ids": [random.choice(self.tags).id],  # nosec
+            "tags": [random.choice(self.tags).id],  # nosec
         }
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.id,)), data=payload
@@ -178,7 +178,7 @@ class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["sdgs"], payload["sdgs"])
             self.assertEqual(
                 {t["id"] for t in content["tags"]},
-                set(payload["tags_ids"]),
+                set(payload["tags"]),
             )
 
     @parameterized.expand(

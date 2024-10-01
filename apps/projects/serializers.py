@@ -36,7 +36,7 @@ from apps.organizations.serializers import (
     TemplateSerializer,
 )
 from apps.skills.models import Tag
-from apps.skills.serializers import TagRelatedField, TagSerializer
+from apps.skills.serializers import TagRelatedField
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -413,13 +413,13 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
 
 class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
     team = ProjectAddTeamMembersSerializer(required=False, source="*")
+    tags = TagRelatedField(many=True, required=False)
 
     # read_only
     header_image = ImageSerializer(read_only=True)
     categories = ProjectCategorySerializer(many=True, read_only=True)
     last_comment = serializers.SerializerMethodField(read_only=True)
     organizations = OrganizationSerializer(many=True, read_only=True)
-    tags = TagSerializer(many=True, read_only=True)
     goals = GoalSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
@@ -455,9 +455,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         many=True,
         required=True,
     )
-    tags_ids = TagRelatedField(
-        many=True, write_only=True, source="tags", required=False
-    )
     images_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         write_only=True,
@@ -486,12 +483,12 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "updated_at",
             "deleted_at",
             "template",
+            "tags",
             # read only
             "header_image",
             "categories",
             "last_comment",
             "organizations",
-            "tags",
             "goals",
             "reviews",
             "locations",
@@ -508,7 +505,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "project_categories_ids",
             "header_image_id",
             "organizations_codes",
-            "tags_ids",
             "images_ids",
             "team",
         ]

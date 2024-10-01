@@ -118,4 +118,4 @@
 #                 self.tag_5.name,
 #             ],
 #         )
-#         self.assertSetEqual(set(content[5:]), {tag.name for tag in self.unused_tags})
+#         self.assertSetEqual(set(content[5:]), {tag.title for tag in self.unused_tags})

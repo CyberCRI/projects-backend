@@ -38,7 +38,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             "organization_code": self.organization.code,
             "name": faker.sentence(),
             "description": faker.text(),
-            "tags_ids": [t.id for t in self.tags],
+            "tags": [t.id for t in self.tags],
             "order_index": faker.pyint(0, 10),
             "background_color": faker.color(),
             "foreground_color": faker.color(),
@@ -52,7 +52,7 @@ class CreateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(content["name"], payload["name"])
             self.assertEqual(content["description"], payload["description"])
             self.assertSetEqual(
-                {t["id"] for t in content["tags"]}, set(payload["tags_ids"])
+                {t["id"] for t in content["tags"]}, set(payload["tags"])
             )
             self.assertEqual(content["order_index"], payload["order_index"])
             self.assertEqual(content["background_color"], payload["background_color"])
@@ -119,14 +119,14 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    def test_update_project_category(self, role, expected_code, mocked):
+    def test_update_project_category(self, role, expected_code):
         tags = TagFactory.create_batch(3, organization=self.organization)
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "name": faker.sentence(),
             "description": faker.text(),
-            "tags_ids": [t.id for t in tags],
+            "tags": [t.id for t in tags],
             "order_index": faker.pyint(0, 10),
             "background_color": faker.color(),
             "foreground_color": faker.color(),

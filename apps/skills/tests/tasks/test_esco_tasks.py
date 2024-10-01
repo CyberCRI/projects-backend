@@ -19,9 +19,12 @@ class EscoServiceTestCase(EscoTestCase):
         existing_occupation = TagFactory(
             type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.OCCUPATION
         )
-        skills_uris = [existing_skill.uri, *[f"{faker.uri()}{i}/{i}" for i in range(5)]]
+        skills_uris = [
+            existing_skill.external_id,
+            *[f"{faker.uri()}{i}/{i}" for i in range(5)],
+        ]
         occupations_uris = [
-            existing_occupation.uri,
+            existing_occupation.external_id,
             *[f"{faker.uri()}{i}/{i}" for i in range(5)],
         ]
         mocked.side_effect = [
@@ -31,13 +34,13 @@ class EscoServiceTestCase(EscoTestCase):
         created_tags = create_missing_tags()
         self.assertEqual(len(created_tags), 10)
         skills = Tag.objects.filter(
-            uri__in=skills_uris,
+            external_id__in=skills_uris,
             type=Tag.TagType.ESCO,
             secondary_type=Tag.SecondaryTagType.SKILL,
         )
         self.assertEqual(skills.count(), 6)
         occupations = Tag.objects.filter(
-            uri__in=occupations_uris,
+            external_id__in=occupations_uris,
             type=Tag.TagType.ESCO,
             secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )

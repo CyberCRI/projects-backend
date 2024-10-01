@@ -135,19 +135,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
     def test_signal_called_on_new_tags(self, signal):
         self.client.force_authenticate(self.superadmin)
         tag = TagFactory()
-        payload = {"tags_ids": [tag.id]}
-        response = self.client.patch(
-            reverse("Project-detail", args=(self.project.pk,)),
-            payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        signal.assert_called_with(self.project.pk)
-
-    @patch("apps.search.tasks.update_or_create_project_search_object_task.delay")
-    def test_signal_called_on_new_organization_tags(self, signal):
-        self.client.force_authenticate(self.superadmin)
-        tag = TagFactory(organization=self.organization)
-        payload = {"organizations_tags_ids": [tag.id]}
+        payload = {"tags": [tag.id]}
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.pk,)),
             payload,

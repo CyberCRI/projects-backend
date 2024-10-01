@@ -87,7 +87,7 @@ class WikipediaService:
             raise WikibaseAPIException(response.status_code)
         content = response.json()["entities"][wikipedia_qid]
         names = {
-            f"name_{language}": content["labels"][language]["value"]
+            f"title_{language}": content["labels"][language]["value"]
             for language in settings.REQUIRED_LANGUAGES
             if language in content["labels"]
         }

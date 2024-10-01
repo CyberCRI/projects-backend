@@ -16,7 +16,7 @@ from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.projects.models import Project
-from apps.skills.serializers import TagRelatedField, TagSerializer
+from apps.skills.serializers import TagRelatedField
 from services.keycloak.serializers import IdentityProviderSerializer
 
 from .exceptions import (
@@ -175,7 +175,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     faq = FaqSerializer(many=False, read_only=True)
-    tags = TagSerializer(many=True, read_only=True, source="tags")
+    tags = TagRelatedField(many=True, required=False)
     children = SlugRelatedField(
         many=True,
         read_only=True,
@@ -198,9 +198,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     )
     logo_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Image.objects.all(), source="logo_image"
-    )
-    tags_ids = TagRelatedField(
-        many=True, write_only=True, source="tags", required=False
     )
     dashboard_title = serializers.CharField(required=True)
     dashboard_subtitle = serializers.CharField(required=True)
@@ -228,12 +225,11 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "website_url",
             "created_at",
             "updated_at",
+            "tags",
             # read_only
             "banner_image",
             "logo_image",
             "faq",
-            "tags",
-            "tags",
             "children",
             "parent_code",
             "is_logo_visible_on_parent_dashboard",
@@ -242,7 +238,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             # write_only
             "banner_image_id",
             "logo_image_id",
-            "tags_ids",
             "team",
         ]
 
@@ -356,7 +351,6 @@ class TemplateSerializer(OrganizationRelatedSerializer):
 class ProjectCategorySerializer(
     OrganizationRelatedSerializer, serializers.ModelSerializer
 ):
-    tags = TagSerializer(many=True, read_only=True)
     template = TemplateSerializer(required=False, allow_null=True, default=None)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=ProjectCategory.objects.all(),
@@ -364,6 +358,7 @@ class ProjectCategorySerializer(
         allow_null=True,
         write_only=True,
     )
+    tags = TagRelatedField(many=True, required=False)
     # read-only
     background_image = ImageSerializer(read_only=True)
     organization = SlugRelatedField(read_only=True, slug_field="code")
@@ -383,9 +378,6 @@ class ProjectCategorySerializer(
         source="organization",
         queryset=Organization.objects.all(),
     )
-    tags_ids = TagRelatedField(
-        many=True, write_only=True, source="tags", required=False
-    )
 
     class Meta:
         model = ProjectCategory
@@ -403,14 +395,13 @@ class ProjectCategorySerializer(
             "hierarchy",
             "children",
             "projects_count",
+            "tags",
             # read-only
             "background_image",
             "organization",
-            "tags",
             # write-only
             "background_image_id",
             "organization_code",
-            "tags_ids",
         ]
 
     def get_hierarchy(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:

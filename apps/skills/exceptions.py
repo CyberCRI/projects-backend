@@ -5,6 +5,12 @@ from rest_framework.exceptions import APIException
 # Technical errors
 
 
+class UserIDIsNotProvidedError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("User ID must be provided through url")
+    default_code = "user_id_is_not_provided"
+
+
 class UserCannotMentorError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("This user cannot be a mentor for this skill")

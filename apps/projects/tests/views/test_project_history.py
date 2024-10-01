@@ -523,7 +523,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .count()
         )
         tag = TagFactory()
-        payload = {"tags_ids": [tag.id]}
+        payload = {"tags": [tag.id]}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -540,31 +540,3 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         self.assertEqual(version["history_change_reason"], "Updated: tags")
         self.assertIn(tag.title, version["tags"])
-
-    def test_update_organization_tags(self):
-        organization = OrganizationFactory()
-        tag = TagFactory(organization=organization)
-        project = ProjectFactory(organizations=[organization])
-        self.client.force_authenticate(self.user)
-        initial_count = (
-            HistoricalProject.objects.filter(id=project.id)
-            .exclude(history_change_reason=None)
-            .count()
-        )
-        payload = {"organization_tags_ids": [tag.id]}
-        self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
-        history = HistoricalProject.objects.filter(history_relation__id=project.id)
-        latest_version = history.order_by("-history_date").first()
-        response = self.client.get(
-            reverse("Project-versions-detail", args=(project.id, latest_version.pk))
-        )
-        version = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            HistoricalProject.objects.filter(id=project.id)
-            .exclude(history_change_reason=None)
-            .count(),
-            initial_count + 1,
-        )
-        self.assertEqual(version["history_change_reason"], "Updated: organization_tags")
-        self.assertIn(tag.name, version["organization_tags"])

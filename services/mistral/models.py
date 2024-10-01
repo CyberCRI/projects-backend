@@ -218,7 +218,7 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
         else:
             content = ""
         if self.project.tags.exists():
-            tags = [tag.name_en or tag.name_fr for tag in self.project.tags.all()]
+            tags = [tag.title_en or tag.title_fr for tag in self.project.tags.all()]
             tags = [tag for tag in tags if tag]
             key_concepts = ", ".join(tags)
         else:
@@ -267,11 +267,11 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
 
     def get_summary_chat_prompt(self) -> List[str]:
         expert_skills = self.user.skills.filter(level=4).values_list(
-            "tag__name", flat=True
+            "tag__title", flat=True
         )
         expert_skills = ", ".join(expert_skills) if expert_skills else ""
         competent_skills = self.user.skills.filter(level=3).values_list(
-            "tag__name", flat=True
+            "tag__title", flat=True
         )
         competent_skills = ", ".join(competent_skills) if competent_skills else ""
         description = "\n".join(

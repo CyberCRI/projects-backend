@@ -112,7 +112,7 @@ class ProjectIndex:
     @staticmethod
     def prepare_tags(project: Project) -> List[str]:
         """Return the tags' names for Algolia indexing."""
-        return [tag.name for tag in project.tags.all()]
+        return [tag.title for tag in project.tags.all()]
 
     @staticmethod
     def prepare_language(project: Project) -> str:

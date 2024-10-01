@@ -1,6 +1,10 @@
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import organization_router_register, user_router_register
+from apps.commons.urls import (
+    organization_router_register,
+    organization_user_router_register,
+    user_router_register,
+)
 
 from .views import (
     MentorshipContactViewset,
@@ -20,7 +24,7 @@ organization_router_register(
     basename="OrganizationMentorship",
 )
 
-user_router_register(
+organization_user_router_register(
     router,
     r"",
     UserMentorshipViewset,

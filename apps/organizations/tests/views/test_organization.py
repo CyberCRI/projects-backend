@@ -58,7 +58,7 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
-            "tags_ids": [t.id for t in self.tags],
+            "tags": [t.id for t in self.tags],
             "parent_code": self.parent.code,
             "team": {
                 "users": [u.id for u in self.users],
@@ -186,7 +186,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
-            "tags_ids": [t.id for t in self.tags],
+            "tags": [t.id for t in self.tags],
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(self.organization.code,)), data=payload

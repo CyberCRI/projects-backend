@@ -281,7 +281,7 @@ class TagTestCaseMixin:
                         "labels": {
                             language: {
                                 "language": language,
-                                "value": f"name_{language}_{self.wikipedia_qid}",
+                                "value": f"title_{language}_{self.wikipedia_qid}",
                             }
                             for language in self.languages
                         },

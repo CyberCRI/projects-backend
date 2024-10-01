@@ -1,13 +1,12 @@
-from unittest.mock import patch
-
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
 from apps.organizations.factories import OrganizationFactory
-from apps.skills.factories import SkillFactory, UserFactory
+from apps.skills.factories import SkillFactory, TagFactory
 from apps.skills.models import Skill
 
 faker = Faker()
@@ -18,6 +17,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.tag = TagFactory()
 
     @parameterized.expand(
         [
@@ -30,10 +30,7 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_skill(self, role, expected_code, mocked):
-        wikipedia_qid = self.get_random_wikipedia_qid()
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
+    def test_create_skill(self, role, expected_code):
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
@@ -41,21 +38,20 @@ class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
         )
         self.client.force_authenticate(user)
         payload = {
-            "user": instance.id,
-            "wikipedia_tag": wikipedia_qid,
+            "tag": self.tag.id,
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),
             "needs_mentor": faker.pybool(),
             "can_mentor": faker.pybool(),
             "comment": faker.text(),
         }
-        response = self.client.post(reverse("Skill-list"), data=payload)
+        response = self.client.post(
+            reverse("Skill-list", args=(instance.id,)), data=payload
+        )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             self.assertEqual(response.json()["user"], instance.id)
-            self.assertEqual(
-                response.json()["wikipedia_tag"]["wikipedia_qid"], wikipedia_qid
-            )
+            self.assertEqual(response.json()["tag"]["id"], payload["tag"])
             self.assertEqual(response.json()["level"], payload["level"])
             self.assertEqual(
                 response.json()["level_to_reach"], payload["level_to_reach"]
@@ -71,6 +67,7 @@ class UpdateSkillTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.skill = SkillFactory()
+        cls.other_user = UserFactory()
 
     @parameterized.expand(
         [
@@ -89,6 +86,7 @@ class UpdateSkillTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         payload = {
+            "user": self.other_user.id,  # check if this field is ignored
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),
             "needs_mentor": faker.pybool(),
@@ -96,10 +94,12 @@ class UpdateSkillTestCase(JwtAPITestCase):
             "comment": faker.text(),
         }
         response = self.client.patch(
-            reverse("Skill-detail", args=(self.skill.id,)), data=payload
+            reverse("Skill-detail", args=(self.skill.user.id, self.skill.id)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
+            self.assertEqual(response.json()["user"], self.skill.user.id)
             self.assertEqual(response.json()["level"], payload["level"])
             self.assertEqual(
                 response.json()["level_to_reach"], payload["level_to_reach"]
@@ -133,7 +133,9 @@ class DeleteSkillTestCase(JwtAPITestCase):
             role, instances=[organization], owned_instance=skill
         )
         self.client.force_authenticate(user)
-        response = self.client.delete(reverse("Skill-detail", args=(skill.id,)))
+        response = self.client.delete(
+            reverse("Skill-detail", args=(skill.user.id, skill.id))
+        )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Skill.objects.filter(id=skill.id).exists())

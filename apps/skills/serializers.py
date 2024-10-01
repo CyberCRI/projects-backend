@@ -3,7 +3,6 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
 from apps.commons.fields import UserMultipleIdRelatedField
 from apps.commons.serializers import TranslatedModelSerializer
 from apps.skills.utils import update_or_create_wikipedia_tag
@@ -36,7 +35,8 @@ class TagSerializer(TranslatedModelSerializer):
         model = Tag
         read_only_fields = [
             "type",
-            "secondary_type" "mentors_count",
+            "secondary_type",
+            "mentors_count",
             "mentorees_count",
         ]
         fields = read_only_fields + [
@@ -81,7 +81,7 @@ class SkillLightSerializer(serializers.ModelSerializer):
 
 
 class SkillSerializer(serializers.ModelSerializer):
-    user = UserMultipleIdRelatedField(queryset=ProjectUser.objects.all())
+    user = UserMultipleIdRelatedField(read_only=True)
     tag = TagRelatedField()
 
     class Meta:

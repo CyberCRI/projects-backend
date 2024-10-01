@@ -21,6 +21,7 @@ from .exceptions import (
     SkillAlreadyAddedError,
     UserCannotMentorError,
     UserDoesNotNeedMentorError,
+    UserIDIsNotProvidedError,
 )
 from .models import Skill, Tag
 from .serializers import MentorshipContactSerializer, SkillSerializer, TagSerializer
@@ -51,6 +52,13 @@ class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
             return super().create(request, *args, **kwargs)
         except IntegrityError:
             raise SkillAlreadyAddedError
+
+    def perform_create(self, serializer):
+        if "user_id" in self.kwargs:
+            user = get_object_or_404(ProjectUser, id=self.kwargs["user_id"])
+            serializer.save(user=user)
+        else:
+            raise UserIDIsNotProvidedError
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):
@@ -329,7 +337,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
         )
 
     def get_skill_name(self, skill: Skill, language: str):
-        return getattr(skill.tag, f"name_{language}", skill.tag.name)
+        return getattr(skill.tag, f"name_{language}", skill.tag.title)
 
     def send_email(self, template_folder: str, skill: Skill, **kwargs):
         language = skill.user.language

@@ -42,8 +42,8 @@ class UnaccentSearchTestCase(JwtAPITestCase):
             self.assertEqual(content[0]["id"], people_group.id)
 
     def test_tag_unaccent_search(self):
-        tag = TagFactory(name_en="abc", name_fr="ééé")
-        TagFactory(name_en="abc", name_fr="abc")
+        tag = TagFactory(title_en="abc", title_fr="ééé")
+        TagFactory(title_en="abc", title_fr="abc")
         for query in ["ééé", "èèè", "êêê", "ëëë", "eee"]:
             response = self.client.get(
                 reverse("Tag-list") + f"?search={query}",
