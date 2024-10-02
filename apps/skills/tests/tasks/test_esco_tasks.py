@@ -45,7 +45,9 @@ class EscoServiceTestCase(EscoTestCase):
             secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )
         self.assertEqual(occupations.count(), 6)
-        classification = TagClassification.get_or_create_esco_classification()
+        classification = TagClassification.get_or_create_default_classification(
+            classification_type=TagClassification.TagClassificationType.ESCO
+        )
         for tag in created_tags:
             self.assertIn(tag, classification.tags.all())
 

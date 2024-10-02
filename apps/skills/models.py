@@ -142,22 +142,18 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
             return "slug"
 
     @classmethod
-    def get_or_create_wikipedia_classification(cls):
+    def get_or_create_default_classification(
+        cls, classification_type: str
+    ) -> "TagClassification":
+        if (
+            classification_type not in cls.TagClassificationType.values
+            or classification_type == cls.TagClassificationType.CUSTOM
+        ):
+            raise ValueError("Invalid classification type")
         classification, _ = cls.objects.get_or_create(
-            type=cls.TagClassificationType.WIKIPEDIA,
+            type=classification_type,
             defaults={
-                "title": cls.TagClassificationType.WIKIPEDIA.capitalize(),
-                "is_public": True,
-            },
-        )
-        return classification
-
-    @classmethod
-    def get_or_create_esco_classification(cls):
-        classification, _ = cls.objects.get_or_create(
-            type=cls.TagClassificationType.ESCO,
-            defaults={
-                "title": cls.TagClassificationType.ESCO.capitalize(),
+                "title": classification_type.capitalize(),
                 "is_public": True,
             },
         )

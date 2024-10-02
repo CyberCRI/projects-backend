@@ -16,7 +16,12 @@ from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import UserLightSerializer
 from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.commons.views import MultipleIDViewsetMixin, PaginatedViewSet
+from apps.commons.utils import map_action_to_permission
+from apps.commons.views import (
+    MultipleIDViewsetMixin,
+    PaginatedViewSet,
+    WriteOnlyModelViewSet,
+)
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
@@ -39,7 +44,7 @@ from .serializers import (
 from .utils import update_or_create_wikipedia_tags
 
 
-class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
+class SkillViewSet(WriteOnlyModelViewSet, MultipleIDViewsetMixin):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     permission_classes = [
@@ -81,6 +86,14 @@ class TagClassificationViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
     ]
 
     def get_permissions(self):
+        codename = map_action_to_permission(self.action, "tagclassification")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "organizations")
+                | HasOrganizationPermission(codename),
+            ]
         return super().get_permissions()
 
     def get_serializer_context(self):
@@ -110,7 +123,6 @@ class TagClassificationViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
 
 
 class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
-    permission_classes = [ReadOnly]
     serializer_class = TagSerializer
     search_fields = [
         *[f"title_{language}" for language in settings.REQUIRED_LANGUAGES],
@@ -126,6 +138,14 @@ class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
     ]
 
     def get_permissions(self):
+        codename = map_action_to_permission(self.action, "tag")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "organizations")
+                | HasOrganizationPermission(codename),
+            ]
         return super().get_permissions()
 
     def get_queryset(self):
@@ -172,7 +192,9 @@ class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
         """
         List all pages returned from wikipedia with a text query
         """
-        wikipedia = TagClassification.get_or_create_wikipedia_classification()
+        wikipedia = TagClassification.get_or_create_default_classification(
+            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+        )
         if (
             self.request.query_params.get("search", None)
             and self.kwargs.get("tag_classification_id", None)

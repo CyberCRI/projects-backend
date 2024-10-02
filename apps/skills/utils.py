@@ -23,7 +23,9 @@ def create_missing_tags() -> list[Tag]:
         )
         if created:
             created_tags.append(tag)
-    classification = TagClassification.get_or_create_esco_classification()
+    classification = TagClassification.get_or_create_default_classification(
+        classification_type=TagClassification.TagClassificationType.ESCO
+    )
     classification.tags.add(*created_tags)
     return created_tags
 
@@ -93,7 +95,9 @@ def update_or_create_wikipedia_tags(wikipedia_qids: List[str]) -> List[Tag]:
             ],
         ],
     )
-    classification = TagClassification.get_or_create_wikipedia_classification()
+    classification = TagClassification.get_or_create_default_classification(
+        classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+    )
     classification.tags.add(*tags)
     return tags
 

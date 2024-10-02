@@ -15,7 +15,9 @@ class WikipediaServiceTestCase(WikipediaTestCase):
         wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
         mocked.return_value = self.get_wikipedia_tags_mocked_return(wikipedia_qids)
         update_or_create_wikipedia_tags(wikipedia_qids)
-        classification = TagClassification.get_or_create_wikipedia_classification()
+        classification = TagClassification.get_or_create_default_classification(
+            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+        )
         classification_tags = classification.tags.all()
         for wikipedia_qid in wikipedia_qids:
             tag = Tag.objects.get(external_id=wikipedia_qid)
@@ -34,7 +36,9 @@ class WikipediaServiceTestCase(WikipediaTestCase):
             wikipedia_qids, en=False
         )
         update_or_create_wikipedia_tags(wikipedia_qids)
-        classification = TagClassification.get_or_create_wikipedia_classification()
+        classification = TagClassification.get_or_create_default_classification(
+            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+        )
         classification_tags = classification.tags.all()
         for wikipedia_qid in wikipedia_qids:
             tag = Tag.objects.get(external_id=wikipedia_qid)

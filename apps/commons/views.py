@@ -31,6 +31,20 @@ class ListViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     """
 
 
+class WriteOnlyModelViewSet(
+    mixins.CreateModelMixin,
+    mixins.UpdateModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """
+    A viewset that provides `create` and `update` actions.
+
+    To use it, override the class and set the `.queryset` and
+    `.serializer_class` attributes.
+    """
+
+
 class MultipleIDViewsetMixin:
     multiple_lookup_fields: List[Tuple[HasMultipleIDs, str]] = []
 
