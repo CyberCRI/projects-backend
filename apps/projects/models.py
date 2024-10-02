@@ -736,7 +736,7 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
         Images used by the message.
     """
 
-    project = HistoricForeignKey(
+    project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
         related_name="messages",
