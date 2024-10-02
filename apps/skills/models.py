@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from django.db import models
+from django.utils.text import slugify
 
-from apps.commons.models import HasOwner
+from apps.commons.models import HasMultipleIDs, HasOwner
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -66,46 +67,32 @@ class Tag(models.Model):
     def __str__(self):
         return f"{self.type.capitalize()} Tag - {self.title}"
 
-    # @classmethod
-    # def type_search(cls, tag_type: str, query: str, language: str = "en", limit: int = 100, offset: int = 0):
-    #     if tag_type not in cls.TagType.values:
-    #         raise ValueError(f"Invalid type for Tag type_search : {tag_type}")
-    #     if hasattr(cls, f"{tag_type}_search"):
-    #         return getattr(cls, f"{tag_type}_search")(query, language, limit, offset)
-    #     return cls.objects.filter(
-    #         Q(type=tag_type),
-    #         Q(**{f"title_{language}__icontains": query})
-    #         | Q(**{f"description_{language}__icontains": query})
-    #     )[offset:offset + limit]
 
-    # @classmethod
-    # def wikipedia_search(cls, query: str, language: str = "en", limit: int = 100, offset: int = 0):
-    #     response = WikipediaService.search(query, language, limit, offset)
-    #     tags = cls.objects.bulk_create(
-    #         [
-    #             cls(
-    #                 **{
-    #                     "type": cls.TagType.WIKIPEDIA,
-    #                     f"title_{language}": item.get("name", ""),
-    #                     f"description_{language}": item.get("description", ""),
-    #                     "external_id": item.get("wikipedia_qid", ""),
-    #                 }
-    #             )
-    #             for item in response["results"]
-    #         ],
-    #         update_conflicts=True,
-    #         unique_fields=["external_id"],
-    #         update_fields=[f"title_{language}", f"description_{language}"]
-    #     )
-
-
-class TagClassification(models.Model):
+class TagClassification(models.Model, HasMultipleIDs):
     """
     Subset of tags that can be used as Skills, Hobbies or Project tags.
     Users are allowed to create their own tags and classifications.
-
     """
 
+    class TagClassificationType(models.TextChoices):
+        """Main type of a tag."""
+
+        WIKIPEDIA = "wikipedia"
+        ESCO = "esco"
+        CUSTOM = "custom"
+
+    type = models.CharField(
+        max_length=255,
+        choices=TagClassificationType.choices,
+        default=TagClassificationType.CUSTOM.value,
+    )
+    slug = models.SlugField(unique=True)
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="tag_classifications",
+    )
     is_public = models.BooleanField(default=False)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -113,6 +100,56 @@ class TagClassification(models.Model):
 
     def __str__(self):
         return f"Tags classification - {self.title}"
+
+    def get_slug(self) -> str:
+        if self.slug == "":
+            title = self.title
+            if title == "":
+                title = "tag-classification"
+            raw_slug = slugify(title[0:46])
+            try:
+                int(raw_slug)
+                raw_slug = f"tag-classification-{raw_slug}"  # Prevent clashes with IDs
+            except ValueError:
+                pass
+            slug = raw_slug
+            same_slug_count = 0
+            while TagClassification.objects.filter(slug=slug).exists():
+                same_slug_count += 1
+                slug = f"{raw_slug}-{same_slug_count}"
+            return slug
+        return self.slug
+
+    @classmethod
+    def get_id_field_name(cls, object_id: Any) -> str:
+        """Get the name of the field which contains the given ID."""
+        try:
+            int(object_id)
+            return "id"
+        except ValueError:
+            return "slug"
+
+    @classmethod
+    def get_or_create_wikipedia_classification(cls):
+        classification, _ = cls.objects.get_or_create(
+            type=cls.TagClassificationType.WIKIPEDIA,
+            defaults={
+                "title": cls.TagClassificationType.WIKIPEDIA.capitalize(),
+                "is_public": True,
+            },
+        )
+        return classification
+
+    @classmethod
+    def get_or_create_esco_classification(cls):
+        classification, _ = cls.objects.get_or_create(
+            type=cls.TagClassificationType.ESCO,
+            defaults={
+                "title": cls.TagClassificationType.ESCO.capitalize(),
+                "is_public": True,
+            },
+        )
+        return classification
 
 
 class Skill(models.Model, HasOwner):

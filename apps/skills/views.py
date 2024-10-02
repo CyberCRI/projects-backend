@@ -1,21 +1,26 @@
+from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db.models import Count, Q
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import UserLightSerializer
+from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.views import MultipleIDViewsetMixin, PaginatedViewSet
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
+from services.wikipedia.interface import WikipediaService
 
 from .exceptions import (
     SkillAlreadyAddedError,
@@ -23,8 +28,10 @@ from .exceptions import (
     UserDoesNotNeedMentorError,
     UserIDIsNotProvidedError,
 )
-from .models import Skill, Tag
+from .models import Skill, Tag, TagClassification
+from .pagination import WikipediaPagination
 from .serializers import MentorshipContactSerializer, SkillSerializer, TagSerializer
+from .utils import update_or_create_wikipedia_tags
 
 
 class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
@@ -59,6 +66,137 @@ class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
             serializer.save(user=user)
         else:
             raise UserIDIsNotProvidedError
+
+
+class TagViewSet(viewsets.ModelViewSet):
+    permission_classes = [ReadOnly]
+    serializer_class = TagSerializer
+    # search_fields = [
+    #     *[f"title_{language}" for language in settings.REQUIRED_LANGUAGES],
+    #     *[f"description_{language}" for language in settings.REQUIRED_LANGUAGES],
+    # ]
+    search_fields = ["title", "description"]
+    filter_backends = (
+        UnaccentSearchFilter,
+        DjangoFilterBackend,
+        OrderingFilter,
+    )
+    multiple_lookup_fields = [
+        (TagClassification, "tag_classification_id"),
+    ]
+
+    def get_permissions(self):
+        return super().get_permissions()
+
+    def get_queryset(self):
+        queryset = Tag.objects.all()
+        organization_code = self.kwargs.get("organization_code", None)
+        classification_id = self.kwargs.get("tag_classification_id", None)
+        if organization_code:
+            queryset = queryset.filter(organization__code=organization_code)
+        if classification_id:
+            queryset = queryset.filter(tag_classifications__id__in=[classification_id])
+        return queryset
+
+    def perform_create(self, serializer: TagSerializer):
+        """
+        Add the organization to the tag"""
+        organization_code = self.kwargs.get("organization_code", None)
+        classification_id = self.kwargs.get("tag_classification_id", None)
+        if organization_code:
+            organization = get_object_or_404(Organization, code=organization_code)
+            serializer.save(organization=organization)
+        if classification_id:
+            classification = get_object_or_404(TagClassification, id=classification_id)
+            instance = serializer.save(organization=classification.organization)
+            classification.tags.add(instance)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="language",
+                description="Choose the language you want for your results (en or fr), default to en.",
+                required=False,
+                type=str,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """
+        List all pages returned from wikipedia with a text query
+        """
+        wikipedia = TagClassification.get_or_create_wikipedia_classification()
+        if (
+            self.request.query_params.get("search", None)
+            and self.kwargs.get("tag_classification_id", None)
+            and self.kwargs["tag_classification_id"] == wikipedia.id
+        ):
+            return self.wikipedia_search(request)
+        return super().list(request, *args, **kwargs)
+
+    def wikipedia_search(self, request):
+        params = {
+            "query": str(self.request.query_params.get("search", "")),
+            "language": str(self.request.query_params.get("language", "en")),
+            "limit": int(self.request.query_params.get("limit", 100)),
+            "offset": int(self.request.query_params.get("offset", 0)),
+        }
+        wikipedia_qids, next_items = WikipediaService.search(**params)
+        queryset = update_or_create_wikipedia_tags(wikipedia_qids)
+        count = next_items + len(queryset)
+        paginator = WikipediaPagination(count=count)()
+        page = paginator.paginate_queryset(queryset, request, view=self)
+        serializer = self.serializer_class(page, many=True)
+        return paginator.get_paginated_response(data=serializer.data)
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="search",
+                description="Search for a specific page name in the Wikipedia database.",
+                required=True,
+                type=str,
+                many=False,
+            ),
+            OpenApiParameter(
+                name="language",
+                description="Choose the language you want for your results (en or fr), default to en.",
+                required=False,
+                type=str,
+                many=False,
+            ),
+            OpenApiParameter(
+                name="limit",
+                description="Maximum number of results in response, default to 5.",
+                required=False,
+                type=int,
+                many=False,
+            ),
+        ],
+        responses={200: {"type": "array", "items": {"type": "string"}}},
+    )
+    @action(detail=False, methods=["GET"])
+    def autocomplete(self, request, *args, **kwargs):
+        language = self.request.query_params.get("language", "en")
+        limit = int(self.request.query_params.get("limit", 5))
+        search = self.request.query_params.get("query", "")
+        queryset = (
+            self.get_queryset()
+            .filter(
+                Q(**{f"name_{language}__unaccent__istartswith": search})
+                | Q(**{f"name_{language}__unaccent__icontains": f" {search}"})
+            )
+            .distinct()
+            .annotate(
+                usage=Count("skills", distinct=True)
+                + Count("projects", distinct=True)
+                + Count("organization", distinct=True)
+                + Count("project_categories", distinct=True)
+            )
+            .order_by("-usage")[:limit]
+        )
+        data = queryset.values_list(f"name_{language}", flat=True)
+        return Response(data)
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):

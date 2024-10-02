@@ -5,7 +5,6 @@ from rest_framework import serializers
 
 from apps.commons.fields import UserMultipleIdRelatedField
 from apps.commons.serializers import TranslatedModelSerializer
-from apps.skills.utils import update_or_create_wikipedia_tag
 
 from .models import Skill, Tag
 
@@ -55,10 +54,7 @@ class TagRelatedField(serializers.RelatedField):
         return TagSerializer(instance).data
 
     def to_internal_value(self, tag_id: int) -> Tag:
-        tag = Tag.objects.get(id=tag_id)
-        if tag.type == Tag.TagType.WIKIPEDIA:
-            return update_or_create_wikipedia_tag(tag.external_id)
-        return tag
+        return Tag.objects.get(id=tag_id)
 
 
 class SkillLightSerializer(serializers.ModelSerializer):

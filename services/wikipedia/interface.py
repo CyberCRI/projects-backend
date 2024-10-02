@@ -1,3 +1,5 @@
+from typing import Dict, List, Optional, Tuple
+
 import requests
 from django.conf import settings
 from mediawiki import MediaWiki
@@ -21,13 +23,6 @@ class WikipediaService:
         return getattr(cls, f"service_{language}")
 
     @classmethod
-    def autocomplete(cls, query: str, language: str = "en", limit: int = 5) -> list:
-        """
-        Get the autocomplete data from the Wikimedia API.
-        """
-        return cls.service(language).prefixsearch(query, results=limit)
-
-    @classmethod
     def wbsearchentities(
         cls, query: str, language: str, limit: int, offset: int
     ) -> list:
@@ -47,57 +42,88 @@ class WikipediaService:
         return requests.get(cls.MEDIAWIKI_API_URL, params)
 
     @classmethod
-    def wbgetentities(cls, wikipedia_qid: str) -> list:
+    def wbgetentities(cls, wikipedia_qids: List[str]) -> requests.Response:
         """
-        Get the data from the Wikimedia API.
+        Get the data for multiple Wikipedia Tags from the Wikimedia API.
         """
-        params = {"action": "wbgetentities", "format": "json", "ids": [wikipedia_qid]}
+        params = {"action": "wbgetentities", "format": "json", "ids": wikipedia_qids}
         return requests.get(cls.MEDIAWIKI_API_URL, params)
+
+    @classmethod
+    def _set_default_language_title_and_description(
+        cls, tag_data: Dict[str, str], default_language: str = "en"
+    ) -> Dict[str, str]:
+        """
+        Make sure that the default language title and description are set in
+        the tag data used to update or create the tag.
+        """
+        default_title = f"title_{default_language}"
+        default_description = f"description_{default_language}"
+        if not tag_data.get(default_title, None) or not tag_data.get(
+            default_description, None
+        ):
+            for language in settings.REQUIRED_LANGUAGES:
+                if not tag_data.get(default_title, None):
+                    tag_data[default_title] = tag_data.get(f"title_{language}", "")
+                if not tag_data.get(default_description, None):
+                    tag_data[default_description] = tag_data.get(
+                        f"description_{language}", ""
+                    )
+        return tag_data
+
+    @classmethod
+    def get_by_ids(cls, wikipedia_qids: List[str]) -> List[Dict[str, str]]:
+        """
+        Get and format the data for multiple Wikipedia Tags from the Wikimedia API.
+        """
+        response = cls.wbgetentities(wikipedia_qids)
+        if response.status_code != status.HTTP_200_OK:
+            raise WikibaseAPIException(response.status_code)
+        content = response.json()["entities"]
+        tags_data = [
+            {
+                "external_id": wikipedia_qid,
+                **{
+                    f"title_{language}": content[wikipedia_qid]["labels"][language][
+                        "value"
+                    ]
+                    for language in settings.REQUIRED_LANGUAGES
+                    if language in content[wikipedia_qid]["labels"]
+                },
+                **{
+                    f"description_{language}": content[wikipedia_qid]["descriptions"][
+                        language
+                    ]["value"]
+                    for language in settings.REQUIRED_LANGUAGES
+                    if language in content[wikipedia_qid]["descriptions"]
+                },
+            }
+            for wikipedia_qid in wikipedia_qids
+        ]
+        return [
+            cls._set_default_language_title_and_description(tag_data)
+            for tag_data in tags_data
+        ]
+
+    @classmethod
+    def get_by_id(cls, wikipedia_qid: str) -> dict:
+        """
+        Get and format the data for a single Wikipedia Tag from the Wikimedia API.
+        """
+        entities = cls.get_by_ids([wikipedia_qid])
+        return entities[0] if entities else None
 
     @classmethod
     def search(
         cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
-    ) -> list:
+    ) -> Tuple[List[Dict[str, str]], Optional[int]]:
         """
-        Search the data from the Wikimedia API.
+        Search Tags and get formatted data from the Wikimedia API.
         """
         response = cls.wbsearchentities(query, language, limit, offset)
         if response.status_code != status.HTTP_200_OK:
             raise WikibaseAPIException(response.status_code)
         content = response.json()
-        return {
-            "results": [
-                {
-                    "wikipedia_qid": item.get("id", ""),
-                    "name": item.get("label", ""),
-                    "description": item.get("description", ""),
-                }
-                for item in content.get("search", [])
-            ],
-            "search_continue": content.get("search-continue", None),
-        }
-
-    @classmethod
-    def get_by_id(cls, wikipedia_qid: str) -> dict:
-        """
-        Get the data from the Wikimedia API.
-        """
-        response = cls.wbgetentities(wikipedia_qid)
-        if response.status_code != status.HTTP_200_OK:
-            raise WikibaseAPIException(response.status_code)
-        content = response.json()["entities"][wikipedia_qid]
-        names = {
-            f"title_{language}": content["labels"][language]["value"]
-            for language in settings.REQUIRED_LANGUAGES
-            if language in content["labels"]
-        }
-        descriptions = {
-            f"description_{language}": content["descriptions"][language]["value"]
-            for language in settings.REQUIRED_LANGUAGES
-            if language in content["descriptions"]
-        }
-        return {
-            "wikipedia_qid": wikipedia_qid,
-            **names,
-            **descriptions,
-        }
+        next_items = content.get("search-continue", None) or 0
+        wikipedia_qids = [item.get("id", "") for item in content.get("search", [])]
+        return wikipedia_qids, next_items

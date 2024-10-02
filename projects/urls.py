@@ -37,7 +37,6 @@ from apps.projects.urls import router as projects_router
 from apps.search.urls import router as search_router
 from apps.skills.urls import router as skills_router
 from services.mistral.urls import mistral_router
-from services.wikipedia.urls import router as wikipedia_router
 
 
 def redirect_to_swagger(request):
@@ -51,7 +50,6 @@ router.extend(announcements_router)
 router.extend(analytics_router)
 router.extend(notifications_router)
 router.extend(search_router)
-router.extend(wikipedia_router)
 router.extend(mistral_router)
 router.extend(newsfeed_router)
 router.extend(skills_router)

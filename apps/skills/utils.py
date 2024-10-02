@@ -1,11 +1,12 @@
 import logging
+from typing import List
 
 from django.conf import settings
 
 from services.esco.interface import EscoService
 from services.wikipedia.interface import WikipediaService
 
-from .models import Tag
+from .models import Tag, TagClassification
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +23,8 @@ def create_missing_tags() -> list[Tag]:
         )
         if created:
             created_tags.append(tag)
+    classification = TagClassification.get_or_create_esco_classification()
+    classification.tags.add(*created_tags)
     return created_tags
 
 
@@ -29,19 +32,11 @@ def _update_skill_data(esco_skill: Tag) -> Tag:
     data = EscoService.get_object_from_uri(
         esco_skill.secondary_type, esco_skill.external_id
     )
-    default_title = ""
-    default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
         title = data.get("preferredLabel", {}).get(language, "")
         description = data.get("description", {}).get(language, {}).get("literal", "")
         setattr(esco_skill, f"title_{language}", title)
         setattr(esco_skill, f"description_{language}", description)
-        if default_title == "":
-            default_title = title
-            esco_skill.title = default_title
-        if default_description == "":
-            default_description = description
-            esco_skill.description = default_description
     esco_skill.save()
     return esco_skill
 
@@ -50,8 +45,6 @@ def _update_occupation_data(esco_occupation: Tag) -> Tag:
     data = EscoService.get_object_from_uri(
         esco_occupation.secondary_type, esco_occupation.external_id
     )
-    default_title = ""
-    default_description = ""
     for language in settings.REQUIRED_LANGUAGES:
         titles = data.get("alternativeTerms", {}).get(language, [])
         title = list(filter(lambda x: "male" in x["roles"], titles))
@@ -62,12 +55,6 @@ def _update_occupation_data(esco_occupation: Tag) -> Tag:
         description = data.get("description", {}).get(language, {}).get("literal", "")
         setattr(esco_occupation, f"title_{language}", title)
         setattr(esco_occupation, f"description_{language}", description)
-        if default_title == "":
-            default_title = title
-            esco_occupation.title = default_title
-        if default_description == "":
-            default_description = description
-            esco_occupation.description = default_description
     esco_occupation.save()
     return esco_occupation
 
@@ -90,26 +77,29 @@ def update_esco_data(force_update: bool = False):
         update_tag_data(tag)
 
 
-def update_or_create_wikipedia_tag(wikipedia_qid: str) -> dict:
-    """
-    Update or create a WikipediaTag instance.
-    """
-    data = WikipediaService.get_by_id(wikipedia_qid)
-    for language in ["en", *settings.REQUIRED_LANGUAGES]:
-        if not data.get("title_en", None):
-            data["title_en"] = data.get(f"title_{language}", "")
-        if not data.get("description_en", None):
-            data["description_en"] = data.get(f"description_{language}", "")
-    wikipedia_qid = data.pop("wikipedia_qid")
-    tag, _ = Tag.objects.update_or_create(
-        type=Tag.TagType.WIKIPEDIA,
-        external_id=wikipedia_qid,
-        defaults=data,
+def update_or_create_wikipedia_tags(wikipedia_qids: List[str]) -> List[Tag]:
+    data = WikipediaService.get_by_ids(wikipedia_qids)
+    tags = Tag.objects.bulk_create(
+        [Tag(type=Tag.TagType.WIKIPEDIA, **item) for item in data],
+        update_conflicts=True,
+        unique_fields=["external_id"],
+        update_fields=[
+            "title",
+            "description",
+            *[
+                f"{field}_{language}"
+                for field in ["title", "description"]
+                for language in settings.REQUIRED_LANGUAGES
+            ],
+        ],
     )
-    return tag
+    classification = TagClassification.get_or_create_wikipedia_classification()
+    classification.tags.add(*tags)
+    return tags
 
 
 def update_wikipedia_data():
-    wikipedia_tags = Tag.objects.filter(type=Tag.TagType.WIKIPEDIA)
-    for tag in wikipedia_tags:
-        update_or_create_wikipedia_tag(tag.external_id)
+    wikipedia_qids = Tag.objects.filter(type=Tag.TagType.WIKIPEDIA).values_list(
+        "external_id", flat=True
+    )
+    update_or_create_wikipedia_tags(wikipedia_qids)

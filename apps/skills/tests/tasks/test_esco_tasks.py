@@ -3,7 +3,7 @@ from unittest.mock import patch
 from faker import Faker
 
 from apps.skills.factories import TagFactory
-from apps.skills.models import Tag
+from apps.skills.models import Tag, TagClassification
 from apps.skills.testcases import EscoTestCase
 from apps.skills.utils import create_missing_tags, update_tag_data
 
@@ -45,6 +45,9 @@ class EscoServiceTestCase(EscoTestCase):
             secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )
         self.assertEqual(occupations.count(), 6)
+        classification = TagClassification.get_or_create_esco_classification()
+        for tag in created_tags:
+            self.assertIn(tag, classification.tags.all())
 
     @patch("services.esco.interface.EscoService.get_object_from_uri")
     def test_update_skill_data(self, mocked):
