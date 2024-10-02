@@ -88,14 +88,14 @@ class TagViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        queryset = Tag.objects.all()
         organization_code = self.kwargs.get("organization_code", None)
         classification_id = self.kwargs.get("tag_classification_id", None)
         if organization_code:
-            queryset = queryset.filter(organization__code=organization_code)
-        if classification_id:
-            queryset = queryset.filter(tag_classifications__id__in=[classification_id])
-        return queryset
+            queryset = Tag.objects.filter(organization__code=organization_code)
+            if classification_id:
+                queryset = queryset.filter(tag_classifications__id__in=[classification_id])
+            return queryset
+        return Tag.objects.none()
 
     def perform_create(self, serializer: TagSerializer):
         """
@@ -104,11 +104,10 @@ class TagViewSet(viewsets.ModelViewSet):
         classification_id = self.kwargs.get("tag_classification_id", None)
         if organization_code:
             organization = get_object_or_404(Organization, code=organization_code)
-            serializer.save(organization=organization)
-        if classification_id:
-            classification = get_object_or_404(TagClassification, id=classification_id)
-            instance = serializer.save(organization=classification.organization)
-            classification.tags.add(instance)
+            instance = serializer.save(organization=organization)
+            if classification_id:
+                classification = get_object_or_404(TagClassification, id=classification_id)
+                classification.tags.add(instance)
 
     @extend_schema(
         parameters=[

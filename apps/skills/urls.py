@@ -23,7 +23,7 @@ organization_router_register(
     basename="OrganizationTag",
 )
 
-router.register(
+organization_router_register(
     r"tag-classification/(?P<tag_classification_id>\d+)/tag",
     TagViewSet,
     basename="ClassificationTag",

@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 
 # Technical errors
 
@@ -27,3 +27,24 @@ class SkillAlreadyAddedError(APIException):
     status_code = status.HTTP_409_CONFLICT
     default_detail = _("You already have this skill in your profile")
     default_code = "skill_already_added"
+
+
+# Validation errors
+
+
+class CreateWrongTypeTagError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Only custom tags can be created")
+    default_code = "create_wrong_type_tag"
+
+
+class UpdateWrongTypeTagError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Only custom tags can be updated")
+    default_code = "update_wrong_type_tag"
+
+
+class CustomTagSecondaryTypeError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Secondary type is not allowed for custom tags")
+    default_code = "custom_tag_secondary_type"

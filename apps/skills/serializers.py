@@ -6,6 +6,11 @@ from rest_framework import serializers
 from apps.commons.fields import UserMultipleIdRelatedField
 from apps.commons.serializers import TranslatedModelSerializer
 
+from .exceptions import (
+    CreateWrongTypeTagError,
+    CustomTagSecondaryTypeError,
+    UpdateWrongTypeTagError
+)
 from .models import Skill, Tag
 
 
@@ -15,19 +20,17 @@ class TagSerializer(TranslatedModelSerializer):
 
     def validate_type(self, value: str) -> str:
         if value != Tag.TagType.CUSTOM:
-            raise serializers.ValidationError("Only custom tags can be created.")
+            raise CreateWrongTypeTagError
         return value
 
     def validate_secondary_type(self, value: str) -> str:
         if value:
-            raise serializers.ValidationError(
-                "Secondary type is not allowed for custom tags."
-            )
+            raise CustomTagSecondaryTypeError
         return value
 
     def validate(self, attrs: dict) -> dict:
         if self.instance and self.instance.type != Tag.TagType.CUSTOM:
-            raise serializers.ValidationError("Only custom tags can be updated.")
+            raise UpdateWrongTypeTagError
         return super().validate(attrs)
 
     class Meta:
