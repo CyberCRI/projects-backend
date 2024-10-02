@@ -24,6 +24,7 @@ organization_router_register(
 )
 
 organization_router_register(
+    router,
     r"tag-classification/(?P<tag_classification_id>\d+)/tag",
     TagViewSet,
     basename="ClassificationTag",

@@ -159,8 +159,12 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         "skills.Tag",
         related_name="organizations",
         blank=True,
-        db_table="coucoucocucoucou_tags_skills_org_org",
-        db_column="coucou_tag_id",
+        db_table="organizations_organization_skills_tags",
+    )
+    enabled_tag_classifications = models.ManyToManyField(
+        "skills.TagClassification",
+        related_name="enabled_organizations",
+        blank=True,
     )
 
     groups = models.ManyToManyField(Group, related_name="organizations")
@@ -177,6 +181,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         )
         write_only_subscopes = (
             ("tag", "tags"),
+            ("tagclassification", "tag classifications"),
             ("faq", "faqs"),
             ("projectcategory", "project categories"),
             ("review", "reviews"),
@@ -417,7 +422,7 @@ class ProjectCategory(models.Model, OrganizationRelated):
         "skills.Tag",
         related_name="project_categories",
         blank=True,
-        db_table="organizations_organization_skills_tags",  # avoid conflicts with old Tag model
+        db_table="organizations_projectcategory_skills_tags",  # avoid conflicts with old Tag model
     )
     template = models.OneToOneField(
         Template,

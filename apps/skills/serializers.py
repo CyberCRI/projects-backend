@@ -6,46 +6,70 @@ from rest_framework import serializers
 from apps.commons.fields import UserMultipleIdRelatedField
 from apps.commons.serializers import TranslatedModelSerializer
 
-from .exceptions import (
-    CreateWrongTypeTagError,
-    CustomTagSecondaryTypeError,
-    UpdateWrongTypeTagError
-)
-from .models import Skill, Tag
+from .exceptions import UpdateWrongTypeTagClassificationError, UpdateWrongTypeTagError
+from .models import Skill, Tag, TagClassification
+
+
+class TagClassificationSerializer(serializers.ModelSerializer):
+    organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
+    is_owned = serializers.SerializerMethodField()
+    is_enabled = serializers.SerializerMethodField()
+
+    def get_is_owned(self, tag_classification: TagClassification) -> bool:
+        organization = self.context.get("organization", None)
+        return organization and tag_classification.organization == organization
+
+    def get_is_enabled(self, tag_classification: TagClassification) -> bool:
+        organization = self.context.get("organization", None)
+        return (
+            organization
+            and tag_classification in organization.enabled_tag_classifications
+        )
+
+    class Meta:
+        model = TagClassification
+        read_only_fields = [
+            "id",
+            "type",
+            "slug",
+            "organization",
+            "is_owned",
+            "is_enabled",
+        ]
+        fields = read_only_fields + [
+            "title",
+            "description",
+            "is_public",
+        ]
+
+    def validate(self, attrs: dict) -> dict:
+        if self.instance and self.instance.type != Tag.TagType.CUSTOM:
+            raise UpdateWrongTypeTagClassificationError
+        return super().validate(attrs)
 
 
 class TagSerializer(TranslatedModelSerializer):
     mentors_count = serializers.IntegerField(required=False, read_only=True)
     mentorees_count = serializers.IntegerField(required=False, read_only=True)
 
-    def validate_type(self, value: str) -> str:
-        if value != Tag.TagType.CUSTOM:
-            raise CreateWrongTypeTagError
-        return value
-
-    def validate_secondary_type(self, value: str) -> str:
-        if value:
-            raise CustomTagSecondaryTypeError
-        return value
-
-    def validate(self, attrs: dict) -> dict:
-        if self.instance and self.instance.type != Tag.TagType.CUSTOM:
-            raise UpdateWrongTypeTagError
-        return super().validate(attrs)
-
     class Meta:
         model = Tag
         read_only_fields = [
+            "id",
             "type",
             "secondary_type",
             "mentors_count",
             "mentorees_count",
         ]
         fields = read_only_fields + [
-            "id",
             "title",
             "description",
         ]
+
+    def validate(self, attrs: dict) -> dict:
+        if self.instance and self.instance.type != Tag.TagType.CUSTOM:
+            raise UpdateWrongTypeTagError
+        return super().validate(attrs)
 
 
 @extend_schema_field(OpenApiTypes.STR)

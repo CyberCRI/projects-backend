@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING, Any
 from django.db import models
 from django.utils.text import slugify
 
-from apps.commons.models import HasMultipleIDs, HasOwner
+from apps.commons.models import HasMultipleIDs, HasOwner, OrganizationRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
-class Tag(models.Model):
+class Tag(models.Model, OrganizationRelated):
     """
     Tag model to store tags from different sources.
     Current sources are :
@@ -67,8 +67,14 @@ class Tag(models.Model):
     def __str__(self):
         return f"{self.type.capitalize()} Tag - {self.title}"
 
+    def get_related_organizations(self):
+        """Return the organizations related to this model."""
+        if self.type == self.TagType.CUSTOM:
+            return [self.organization]
+        return []
 
-class TagClassification(models.Model, HasMultipleIDs):
+
+class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     """
     Subset of tags that can be used as Skills, Hobbies or Project tags.
     Users are allowed to create their own tags and classifications.
@@ -100,6 +106,12 @@ class TagClassification(models.Model, HasMultipleIDs):
 
     def __str__(self):
         return f"Tags classification - {self.title}"
+
+    def get_related_organizations(self):
+        """Return the organizations related to this model."""
+        if self.type == self.TagClassificationType.CUSTOM:
+            return [self.organization]
+        return []
 
     def get_slug(self) -> str:
         if self.slug == "":

@@ -30,7 +30,12 @@ from .exceptions import (
 )
 from .models import Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
-from .serializers import MentorshipContactSerializer, SkillSerializer, TagSerializer
+from .serializers import (
+    MentorshipContactSerializer,
+    SkillSerializer,
+    TagClassificationSerializer,
+    TagSerializer,
+)
 from .utils import update_or_create_wikipedia_tags
 
 
@@ -68,7 +73,43 @@ class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
             raise UserIDIsNotProvidedError
 
 
-class TagViewSet(viewsets.ModelViewSet):
+class TagClassificationViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
+    permission_classes = [ReadOnly]
+    serializer_class = TagClassificationSerializer
+    multiple_lookup_fields = [
+        (TagClassification, "id"),
+    ]
+
+    def get_permissions(self):
+        return super().get_permissions()
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        organization_code = self.kwargs.get("organization_code", None)
+        if organization_code:
+            organization = get_object_or_404(Organization, code=organization_code)
+            context["current_organization"] = organization
+        return context
+
+    def get_queryset(self):
+        organization_code = self.kwargs.get("organization_code", None)
+        if organization_code:
+            return TagClassification.objects.filter(
+                Q(organization__code=organization_code) | Q(is_public=True)
+            ).distinct()
+        return TagClassification.objects.none()
+
+    def perform_create(self, serializer: TagClassificationSerializer):
+        organization_code = self.kwargs.get("organization_code", None)
+        if organization_code:
+            organization = get_object_or_404(Organization, code=organization_code)
+            serializer.save(
+                organization=organization,
+                type=TagClassification.TagClassificationType.CUSTOM,
+            )
+
+
+class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
     permission_classes = [ReadOnly]
     serializer_class = TagSerializer
     search_fields = [
@@ -93,7 +134,9 @@ class TagViewSet(viewsets.ModelViewSet):
         if organization_code:
             queryset = Tag.objects.filter(organization__code=organization_code)
             if classification_id:
-                queryset = queryset.filter(tag_classifications__id__in=[classification_id])
+                queryset = queryset.filter(
+                    tag_classifications__id__in=[classification_id]
+                )
             return queryset
         return Tag.objects.none()
 
@@ -104,9 +147,15 @@ class TagViewSet(viewsets.ModelViewSet):
         classification_id = self.kwargs.get("tag_classification_id", None)
         if organization_code:
             organization = get_object_or_404(Organization, code=organization_code)
-            instance = serializer.save(organization=organization)
+            instance = serializer.save(
+                organization=organization,
+                type=Tag.TagType.CUSTOM,
+                secondary_type=None,
+            )
             if classification_id:
-                classification = get_object_or_404(TagClassification, id=classification_id)
+                classification = get_object_or_404(
+                    TagClassification, id=classification_id
+                )
                 classification.tags.add(instance)
 
     @extend_schema(

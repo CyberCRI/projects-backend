@@ -5,6 +5,6 @@ from .models import Tag
 
 
 @register(Tag)
-class EscoTagTranslationOptions(TranslationOptions):
+class TagTranslationOptions(TranslationOptions):
     fields = ("title", "description")
     required_languages = settings.REQUIRED_LANGUAGES

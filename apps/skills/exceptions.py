@@ -32,19 +32,13 @@ class SkillAlreadyAddedError(APIException):
 # Validation errors
 
 
-class CreateWrongTypeTagError(ValidationError):
-    status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _("Only custom tags can be created")
-    default_code = "create_wrong_type_tag"
-
-
 class UpdateWrongTypeTagError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Only custom tags can be updated")
     default_code = "update_wrong_type_tag"
 
 
-class CustomTagSecondaryTypeError(ValidationError):
+class UpdateWrongTypeTagClassificationError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _("Secondary type is not allowed for custom tags")
-    default_code = "custom_tag_secondary_type"
+    default_detail = _("Only custom tags classifications can be updated")
+    default_code = "update_wrong_type_tag_classification"
