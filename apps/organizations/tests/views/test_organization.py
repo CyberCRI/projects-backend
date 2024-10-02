@@ -10,7 +10,7 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import Language
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
@@ -20,7 +20,7 @@ from apps.skills.factories import TagFactory
 faker = Faker()
 
 
-class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
+class CreateOrganizationTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -150,7 +150,7 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][0]["code"], self.organization.code)
 
 
-class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
+class UpdateOrganizationTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

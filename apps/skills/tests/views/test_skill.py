@@ -4,7 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.skills.factories import SkillFactory, TagFactory
 from apps.skills.models import Skill
@@ -12,7 +12,7 @@ from apps.skills.models import Skill
 faker = Faker()
 
 
-class CreateSkillTestCase(JwtAPITestCase, TagTestCaseMixin):
+class CreateSkillTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

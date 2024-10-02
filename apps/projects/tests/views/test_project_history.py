@@ -5,7 +5,7 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import LinkedProjectFactory, ProjectFactory
@@ -17,7 +17,7 @@ faker = Faker()
 HistoricalProject = apps.get_model("projects", "HistoricalProject")
 
 
-class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
+class ProjectHistoryTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()

@@ -691,7 +691,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     @staticmethod
     def get_tags(version) -> List[str]:
         tags_ids = version.tags.all().values_list("tag_id", flat=True)
-        return Tag.objects.filter(id__in=tags_ids).values_list("name", flat=True)
+        return Tag.objects.filter(id__in=tags_ids).values_list("title", flat=True)
 
     @staticmethod
     def get_members(version) -> List[str]:

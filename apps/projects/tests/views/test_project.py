@@ -13,7 +13,7 @@ from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.announcements.factories import AnnouncementFactory
 from apps.commons.models import SDG, Language
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
 from apps.goals.factories import GoalFactory
@@ -118,7 +118,7 @@ class CreateProjectTestCase(JwtAPITestCase):
             )
 
 
-class UpdateProjectTestCase(JwtAPITestCase, TagTestCaseMixin):
+class UpdateProjectTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()

@@ -6,7 +6,7 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
@@ -15,7 +15,7 @@ from apps.skills.factories import TagFactory
 faker = Faker()
 
 
-class ProjectIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
+class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()

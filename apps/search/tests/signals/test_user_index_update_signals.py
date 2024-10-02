@@ -7,7 +7,7 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
@@ -17,7 +17,7 @@ from apps.skills.factories import SkillFactory, TagFactory
 faker = Faker()
 
 
-class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
+class UserIndexUpdateSignalTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
