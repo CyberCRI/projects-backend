@@ -1,7 +1,6 @@
 import base64
 import logging
 import os
-import random
 import uuid
 from typing import Dict, List, Optional
 from unittest import skipUnless, util
@@ -10,7 +9,6 @@ from django.conf import settings
 from django.core.files import File
 from django.db import models
 from faker import Faker
-from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from apps.accounts.authentication import BearerToken

@@ -4,10 +4,16 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.commons.test import JwtAPITestCase
+from apps.organizations.factories import OrganizationFactory
 from apps.skills.factories import TagFactory
 
 
 class UnaccentSearchTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     def test_user_unaccent_search(self):
         user = UserFactory(
             given_name="ééé", family_name="aaa", email="aaa@aaa.aaa", job="aaa"
@@ -24,16 +30,18 @@ class UnaccentSearchTestCase(JwtAPITestCase):
 
     def test_people_group_unaccent_search(self):
         people_group = PeopleGroupFactory(
-            name="ééé", publication_status=PeopleGroup.PublicationStatus.PUBLIC
+            name="ééé",
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=self.organization,
         )
         PeopleGroupFactory(
             name="abc",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-            organization=people_group.organization,
+            organization=self.organization,
         )
         for query in ["ééé", "èèè", "êêê", "ëëë", "eee"]:
             response = self.client.get(
-                reverse("PeopleGroup-list", args=(people_group.organization.code,))
+                reverse("PeopleGroup-list", args=(self.organization.code,))
                 + f"?search={query}",
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -42,11 +50,12 @@ class UnaccentSearchTestCase(JwtAPITestCase):
             self.assertEqual(content[0]["id"], people_group.id)
 
     def test_tag_unaccent_search(self):
-        tag = TagFactory(title_en="abc", title_fr="ééé")
-        TagFactory(title_en="abc", title_fr="abc")
+        tag = TagFactory(title_en="abc", title_fr="ééé", organization=self.organization)
+        TagFactory(title_en="abc", title_fr="abc", organization=self.organization)
         for query in ["ééé", "èèè", "êêê", "ëëë", "eee"]:
             response = self.client.get(
-                reverse("Tag-list") + f"?search={query}",
+                reverse("OrganizationTag-list", args=(self.organization.code,))
+                + f"?search={query}"
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]

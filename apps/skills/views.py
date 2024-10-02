@@ -71,11 +71,10 @@ class SkillViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
 class TagViewSet(viewsets.ModelViewSet):
     permission_classes = [ReadOnly]
     serializer_class = TagSerializer
-    # search_fields = [
-    #     *[f"title_{language}" for language in settings.REQUIRED_LANGUAGES],
-    #     *[f"description_{language}" for language in settings.REQUIRED_LANGUAGES],
-    # ]
-    search_fields = ["title", "description"]
+    search_fields = [
+        *[f"title_{language}" for language in settings.REQUIRED_LANGUAGES],
+        *[f"description_{language}" for language in settings.REQUIRED_LANGUAGES],
+    ]
     filter_backends = (
         UnaccentSearchFilter,
         DjangoFilterBackend,

@@ -78,6 +78,19 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("wikipedia", "Wikipedia"),
+                            ("esco", "Esco"),
+                            ("custom", "Custom"),
+                        ],
+                        default="custom",
+                        max_length=255,
+                    ),
+                ),
+                ("slug", models.SlugField(unique=True)),
                 ("is_public", models.BooleanField(default=False)),
                 ("title", models.CharField(max_length=255)),
                 ("description", models.TextField(blank=True)),
@@ -85,6 +98,15 @@ class Migration(migrations.Migration):
                     "tags",
                     models.ManyToManyField(
                         related_name="tag_classifications", to="skills.tag"
+                    ),
+                ),
+                (
+                    "organization",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="tag_classifications",
+                        to="organizations.organization",
                     ),
                 ),
             ],

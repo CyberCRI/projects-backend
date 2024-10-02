@@ -10,10 +10,24 @@ from .views import (
     MentorshipContactViewset,
     OrganizationMentorshipViewset,
     SkillViewSet,
+    TagViewSet,
     UserMentorshipViewset,
 )
 
 router = DefaultRouter()
+
+organization_router_register(
+    router,
+    r"tag",
+    TagViewSet,
+    basename="OrganizationTag",
+)
+
+router.register(
+    r"tag-classification/(?P<tag_classification_id>\d+)/tag",
+    TagViewSet,
+    basename="ClassificationTag",
+)
 
 user_router_register(router, r"skill", SkillViewSet, basename="Skill")
 

@@ -81,12 +81,12 @@ class TagClassification(models.Model, HasMultipleIDs):
         ESCO = "esco"
         CUSTOM = "custom"
 
+    slug = models.SlugField(unique=True)
     type = models.CharField(
         max_length=255,
         choices=TagClassificationType.choices,
         default=TagClassificationType.CUSTOM.value,
     )
-    slug = models.SlugField(unique=True)
     organization = models.ForeignKey(
         "organizations.Organization",
         on_delete=models.SET_NULL,
