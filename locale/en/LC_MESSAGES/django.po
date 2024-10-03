@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-03 14:27+0200\n"
+"POT-Creation-Date: 2024-10-03 15:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1208,11 +1208,11 @@ msgstr ""
 msgid "You already have this skill in your profile"
 msgstr ""
 
-#: apps/skills/exceptions.py:37
+#: apps/skills/exceptions.py:34
 msgid "Only custom tags can be updated"
 msgstr ""
 
-#: apps/skills/exceptions.py:43
+#: apps/skills/exceptions.py:40
 msgid "Only custom tags classifications can be updated"
 msgstr ""
 

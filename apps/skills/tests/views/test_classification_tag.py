@@ -6,6 +6,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
@@ -35,10 +36,7 @@ class CreateClassificationTagTestCase(JwtAPITestCase):
     )
     def test_create_tag(self, role, expected_code):
         organization = self.organization
-        instance = UserFactory(groups=[organization.get_users()])
-        user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance
-        )
+        user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
             "title_fr": faker.sentence(),
@@ -221,7 +219,7 @@ class RetrieveClassificationTagTestCase(JwtAPITestCase):
         self.assertEqual(content["description"], tag.description_en)
 
 
-class SearchTagsTestCase(WikipediaTestCase):
+class SearchClassificationTagTestCase(WikipediaTestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -364,7 +362,7 @@ class SearchTagsTestCase(WikipediaTestCase):
         )
 
 
-class AutocompleteTagTestCase(JwtAPITestCase):
+class AutocompleteClassificationTagTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -494,3 +492,26 @@ class AutocompleteTagTestCase(JwtAPITestCase):
             ],
         )
         self.assertSetEqual(set(content[5:]), {tag.title for tag in self.unused_tags})
+
+
+class ValidateClassificationTagTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
+    def test_update_non_custom_tag(self):
+        tag = TagFactory(organization=self.organization, type=Tag.TagType.ESCO)
+        self.client.force_authenticate(self.superadmin)
+        payload = {
+            "title_fr": faker.sentence(),
+        }
+        response = self.client.patch(
+            reverse("OrganizationTag-detail", args=(self.organization.code, tag.id)),
+            payload,
+        )
+        self.assertApiTechnicalError(
+            response,
+            "Only custom tags can be updated",
+        )

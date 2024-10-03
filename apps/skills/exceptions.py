@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import APIException, ValidationError
+from rest_framework.exceptions import APIException
 
 # Technical errors
 
@@ -29,16 +29,13 @@ class SkillAlreadyAddedError(APIException):
     default_code = "skill_already_added"
 
 
-# Validation errors
-
-
-class UpdateWrongTypeTagError(ValidationError):
+class UpdateWrongTypeTagError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Only custom tags can be updated")
     default_code = "update_wrong_type_tag"
 
 
-class UpdateWrongTypeTagClassificationError(ValidationError):
+class UpdateWrongTypeTagClassificationError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Only custom tags classifications can be updated")
     default_code = "update_wrong_type_tag_classification"
