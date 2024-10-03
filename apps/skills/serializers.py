@@ -38,14 +38,14 @@ class TagClassificationSerializer(serializers.ModelSerializer):
     is_enabled = serializers.SerializerMethodField()
 
     def get_is_owned(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("organization", None)
+        organization = self.context.get("current_organization", None)
         return organization and tag_classification.organization == organization
 
     def get_is_enabled(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("organization", None)
+        organization = self.context.get("current_organization", None)
         return (
             organization
-            and tag_classification in organization.enabled_tag_classifications
+            and tag_classification in organization.enabled_tag_classifications.all()
         )
 
     class Meta:
@@ -120,7 +120,7 @@ class TagClassificationAddTagsSerializer(serializers.Serializer):
     )
 
     def validate_tags(self, tags: List[Tag]) -> List[Tag]:
-        organization = self.context.get("organization", None)
+        organization = self.context.get("current_organization", None)
         if organization and any(
             (tag.organization and tag.organization != organization) for tag in tags
         ):

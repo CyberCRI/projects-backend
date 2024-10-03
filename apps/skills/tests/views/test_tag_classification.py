@@ -191,6 +191,16 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
             cls.wikipedia_classification,
             cls.esco_classification,
         ]
+        cls.owned_tags = [
+            cls.public_tag_classification,
+            cls.private_tag_classification,
+            cls.enabled_tag_classification,
+        ]
+        cls.enabled_tags = [
+            cls.enabled_tag_classification,
+            cls.other_organization_enabled_public_tag_classification,
+            cls.other_organization_enabled_private_tag_classification,
+        ]
 
     @parameterized.expand(
         [
@@ -218,6 +228,19 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
             ),
             set(tag_classification["id"] for tag_classification in content),
         )
+        for tag in content:
+            if tag["id"] in [
+                tag_classification.id for tag_classification in self.owned_tags
+            ]:
+                self.assertTrue(tag["is_owned"])
+            else:
+                self.assertFalse(tag["is_owned"])
+            if tag["id"] in [
+                tag_classification.id for tag_classification in self.enabled_tags
+            ]:
+                self.assertTrue(tag["is_enabled"])
+            else:
+                self.assertFalse(tag["is_enabled"])
 
     @parameterized.expand(
         [
