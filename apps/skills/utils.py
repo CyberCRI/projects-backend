@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import Dict, List
 
 from django.conf import settings
 
@@ -11,7 +11,7 @@ from .models import Tag, TagClassification
 logger = logging.getLogger(__name__)
 
 
-def create_missing_tags() -> list[Tag]:
+def create_missing_esco_tags() -> list[Tag]:
     skills_data = EscoService.get_all_objects(Tag.SecondaryTagType.SKILL)
     occupations_data = EscoService.get_all_objects(Tag.SecondaryTagType.OCCUPATION)
     created_tags = []
@@ -30,7 +30,7 @@ def create_missing_tags() -> list[Tag]:
     return created_tags
 
 
-def _update_skill_data(esco_skill: Tag) -> Tag:
+def _update_esco_skill_data(esco_skill: Tag) -> Tag:
     data = EscoService.get_object_from_uri(
         esco_skill.secondary_type, esco_skill.external_id
     )
@@ -43,7 +43,7 @@ def _update_skill_data(esco_skill: Tag) -> Tag:
     return esco_skill
 
 
-def _update_occupation_data(esco_occupation: Tag) -> Tag:
+def _update_esco_occupation_data(esco_occupation: Tag) -> Tag:
     data = EscoService.get_object_from_uri(
         esco_occupation.secondary_type, esco_occupation.external_id
     )
@@ -61,40 +61,66 @@ def _update_occupation_data(esco_occupation: Tag) -> Tag:
     return esco_occupation
 
 
-def update_tag_data(esco_tag: Tag) -> Tag:
+def update_esco_tag_data(esco_tag: Tag) -> Tag:
     try:
         if esco_tag.secondary_type == Tag.SecondaryTagType.SKILL:
-            return _update_skill_data(esco_tag)
+            return _update_esco_skill_data(esco_tag)
         if esco_tag.secondary_type == Tag.SecondaryTagType.OCCUPATION:
-            return _update_occupation_data(esco_tag)
+            return _update_esco_occupation_data(esco_tag)
     except Exception as e:  # noqa: PIE786
         logger.error(f"Error updating ESCO tag {esco_tag.external_id}: {e}")
     return esco_tag
 
 
 def update_esco_data(force_update: bool = False):
-    new_tags = create_missing_tags()
+    new_tags = create_missing_esco_tags()
     tags = Tag.objects.filter(type=Tag.TagType.ESCO) if force_update else new_tags
     for tag in tags:
-        update_tag_data(tag)
+        update_esco_tag_data(tag)
+
+
+def set_default_language_title_and_description(
+    tag_data: Dict[str, str], default_language: str = "en"
+) -> Dict[str, str]:
+    """
+    Make sure that the default language title and description are set in
+    the tag data used to update or create the tag.
+    """
+    default_title = f"title_{default_language}"
+    default_description = f"description_{default_language}"
+    fallback_title = "title"
+    fallback_description = "description"
+
+    if not tag_data.get(default_title, None) or not tag_data.get(
+        default_description, None
+    ):
+        for language in settings.REQUIRED_LANGUAGES:
+            if not tag_data.get(default_title, None):
+                tag_data[default_title] = tag_data.get(f"title_{language}", "")
+            if not tag_data.get(default_description, None):
+                tag_data[default_description] = tag_data.get(
+                    f"description_{language}", ""
+                )
+
+    if not tag_data.get(fallback_title, None):
+        tag_data[fallback_title] = tag_data[default_title]
+    if not tag_data.get(fallback_description, None):
+        tag_data[fallback_description] = tag_data[default_description]
+    return tag_data
 
 
 def update_or_create_wikipedia_tags(wikipedia_qids: List[str]) -> List[Tag]:
     data = WikipediaService.get_by_ids(wikipedia_qids)
-    tags = Tag.objects.bulk_create(
-        [Tag(type=Tag.TagType.WIKIPEDIA, **item) for item in data],
-        update_conflicts=True,
-        unique_fields=["external_id"],
-        update_fields=[
-            "title",
-            "description",
-            *[
-                f"{field}_{language}"
-                for field in ["title", "description"]
-                for language in settings.REQUIRED_LANGUAGES
-            ],
-        ],
-    )
+    data = [set_default_language_title_and_description(tag) for tag in data]
+    tags = []
+    for tag in data:
+        external_id = tag.pop("external_id")
+        tag, _ = Tag.objects.update_or_create(
+            external_id=external_id,
+            type=Tag.TagType.WIKIPEDIA,
+            defaults=tag,
+        )
+        tags.append(tag)
     classification = TagClassification.get_or_create_default_classification(
         classification_type=TagClassification.TagClassificationType.WIKIPEDIA
     )

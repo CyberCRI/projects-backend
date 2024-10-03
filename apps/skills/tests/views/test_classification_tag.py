@@ -1,121 +1,496 @@
-# from unittest.mock import patch
+from unittest.mock import patch
 
-# from django.urls import reverse
-# from faker import Faker
-# from rest_framework import status
+from django.urls import reverse
+from faker import Faker
+from parameterized import parameterized
+from rest_framework import status
 
-# from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
-# from apps.skills.factories import TagFactory
-# from apps.organizations.factories import OrganizationFactory
-# from apps.projects.factories import ProjectFactory
+from apps.accounts.factories import UserFactory
+from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
+from apps.projects.factories import ProjectFactory
+from apps.skills.factories import TagClassificationFactory, TagFactory
+from apps.skills.models import Tag, TagClassification
+from apps.skills.testcases import WikipediaTestCase
 
-# faker = Faker()
-
-
-# class SearchWikipediaTagTestCase(JwtAPITestCase, TagTestCaseMixin):
-#     @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
-#     def test_search_tags(self, mocked):
-#         mocked.side_effect = self.search_wikipedia_tag_mocked_side_effect
-#         response = self.client.get(
-#             reverse("WikibaseItem-list") + f"?query={faker.word()}"
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         content = response.json()["results"]
-#         self.assertEqual(len(content), 100)
-#         result = content[0]
-#         for key in ["wikipedia_qid", "name", "description"]:
-#             self.assertIn(key, result)
-
-#     @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
-#     def test_search_tags_pagination(self, mocked):
-#         mocked.side_effect = self.search_wikipedia_tag_mocked_side_effect
-#         response = self.client.get(
-#             reverse("WikibaseItem-list") + f"?query={faker.word()}&limit=10"
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         content = response.json()
-#         self.assertIn("limit=10", content["next"])
-#         self.assertIn("offset=10", content["next"])
-#         self.assertEqual(len(content["results"]), 10)
+faker = Faker()
 
 
-# class AutocompleteWikipediaTagTestCase(JwtAPITestCase):
-#     @classmethod
-#     def setUpTestData(cls) -> None:
-#         super().setUpTestData()
-#         cls.query = faker.word()
+class CreateClassificationTagTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
 
-#         cls.organization = OrganizationFactory()
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_create_tag(self, role, expected_code):
+        organization = self.organization
+        instance = UserFactory(groups=[organization.get_users()])
+        user = self.get_parameterized_test_user(
+            role, instances=[organization], owned_instance=instance
+        )
+        self.client.force_authenticate(user)
+        payload = {
+            "title_fr": faker.sentence(),
+            "title_en": faker.sentence(),
+            "description_fr": faker.text(),
+            # description_en uses the same value as description_fr if not provided
+        }
+        response = self.client.post(
+            reverse(
+                "ClassificationTag-list",
+                args=(
+                    self.organization.code,
+                    self.tag_classification.id,
+                ),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            self.assertEqual(content["title_fr"], payload["title_fr"])
+            self.assertEqual(content["title_en"], payload["title_en"])
+            self.assertEqual(content["title"], payload["title_en"])
+            self.assertEqual(content["description_fr"], payload["description_fr"])
+            self.assertEqual(content["description_en"], payload["description_fr"])
+            self.assertEqual(content["description"], payload["description_fr"])
+            tag = Tag.objects.get(id=content["id"])
+            self.assertEqual(tag.organization, organization)
+            self.assertIn(self.tag_classification, tag.tag_classifications.all())
 
-#         # Projects to which the tags are attached for ordering
-#         cls.project_1 = ProjectFactory(organizations=[cls.organization])
-#         cls.project_2 = ProjectFactory(organizations=[cls.organization])
-#         cls.project_3 = ProjectFactory(organizations=[cls.organization])
-#         cls.project_4 = ProjectFactory(organizations=[cls.organization])
-#         cls.project_5 = ProjectFactory(organizations=[cls.organization])
 
-#         # First tags returned by the autocomplete endpoint
-#         cls.tag_1 = WikipediaTagFactory(name_en=cls.query)
-#         cls.tag_2 = WikipediaTagFactory(name_en=f"{cls.query} abcd")
-#         cls.tag_3 = WikipediaTagFactory(name_en=f"{cls.query}_abcd")
-#         cls.tag_4 = WikipediaTagFactory(name_en=f"{cls.query}abcd")
-#         cls.tag_5 = WikipediaTagFactory(name_en=f"abcd {cls.query}")
+class UpdateClassificationTagTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.tag = TagFactory(organization=cls.organization)
+        cls.tag_classification = TagClassificationFactory(
+            organization=cls.organization, tags=[cls.tag]
+        )
 
-#         # Other tags returned by the autocomplete endpoint
-#         cls.unused_tags = []
-#         for _ in range(5):
-#             cls.unused_tags.append(
-#                 WikipediaTagFactory(name_en=cls.query + faker.word())
-#             )
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_tag(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        payload = {
+            "title_fr": faker.sentence(),
+            "title_en": faker.sentence(),
+            "description_fr": faker.text(),
+            "description_en": faker.text(),
+        }
+        response = self.client.patch(
+            reverse(
+                "ClassificationTag-detail",
+                args=(self.organization.code, self.tag_classification.id, self.tag.id),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            self.assertEqual(content["title_fr"], payload["title_fr"])
+            self.assertEqual(content["title_en"], payload["title_en"])
+            self.assertEqual(content["title"], payload["title_en"])
+            self.assertEqual(content["description_fr"], payload["description_fr"])
+            self.assertEqual(content["description_en"], payload["description_en"])
+            self.assertEqual(content["description"], payload["description_en"])
 
-#         # Other tags not returned by the autocomplete endpoint
-#         not_returned = WikipediaTagFactory(name_en=f"abcd{cls.query}")
-#         WikipediaTagFactory.create_batch(5)
 
-#         # Attach tags to projects
-#         cls.project_1.wikipedia_tags.add(
-#             cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, cls.tag_5, not_returned
-#         )
-#         cls.project_2.wikipedia_tags.add(
-#             cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, not_returned
-#         )
-#         cls.project_3.wikipedia_tags.add(cls.tag_1, cls.tag_2, cls.tag_3, not_returned)
-#         cls.project_4.wikipedia_tags.add(cls.tag_1, cls.tag_2, not_returned)
-#         cls.project_5.wikipedia_tags.add(cls.tag_1, not_returned)
+class DeleteClassificationTagTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
 
-#     def test_autocomplete_default_limit(self):
-#         response = self.client.get(
-#             reverse("WikibaseItem-autocomplete") + f"?query={self.query}"
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         content = response.json()
-#         self.assertEqual(len(content), 5)
-#         self.assertListEqual(
-#             content,
-#             [
-#                 self.tag_1.name,
-#                 self.tag_2.name,
-#                 self.tag_3.name,
-#                 self.tag_4.name,
-#                 self.tag_5.name,
-#             ],
-#         )
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_delete_tag(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        tag = TagFactory(organization=self.organization)
+        self.tag_classification.tags.add(tag)
+        response = self.client.delete(
+            reverse(
+                "ClassificationTag-detail",
+                args=(self.organization.code, self.tag_classification.id, tag.id),
+            ),
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            self.assertFalse(Tag.objects.filter(id=tag.id).exists())
 
-#     def test_autocomplete_custom_limit(self):
-#         response = self.client.get(
-#             reverse("WikibaseItem-autocomplete") + f"?query={self.query}&limit=10"
-#         )
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         content = response.json()
-#         self.assertEqual(len(content), 10)
-#         self.assertListEqual(
-#             content[:5],
-#             [
-#                 self.tag_1.name,
-#                 self.tag_2.name,
-#                 self.tag_3.name,
-#                 self.tag_4.name,
-#                 self.tag_5.name,
-#             ],
-#         )
-#         self.assertSetEqual(set(content[5:]), {tag.title for tag in self.unused_tags})
+
+class RetrieveClassificationTagTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.tags = TagFactory.create_batch(5, organization=cls.organization)
+        cls.unclassified_tags = TagFactory.create_batch(
+            5, organization=cls.organization
+        )
+        cls.other_classification_tags = TagFactory.create_batch(
+            5, organization=cls.organization
+        )
+        cls.tag_classification = TagClassificationFactory(
+            organization=cls.organization, tags=cls.tags
+        )
+        cls.other_tag_classification = TagClassificationFactory(
+            organization=cls.organization, tags=cls.other_classification_tags
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_list_tags(self, role):
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-list",
+                args=(
+                    self.organization.code,
+                    self.tag_classification.id,
+                ),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), len(self.tags))
+        self.assertSetEqual(
+            {tag["id"] for tag in content},
+            {tag.id for tag in self.tags},
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_retrieve_tag(self, role):
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        tag = self.tags[0]
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-detail",
+                args=(self.organization.code, self.tag_classification.id, tag.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["title_fr"], tag.title_fr)
+        self.assertEqual(content["title_en"], tag.title_en)
+        self.assertEqual(content["title"], tag.title_en)
+        self.assertEqual(content["description_fr"], tag.description_fr)
+        self.assertEqual(content["description_en"], tag.description_en)
+        self.assertEqual(content["description"], tag.description_en)
+
+
+class SearchTagsTestCase(WikipediaTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.query = faker.word()
+        cls.tags = [
+            TagFactory(organization=cls.organization, title_en=f"{cls.query} {i}")
+            for i in range(5)
+        ]
+        cls.tag_classification = TagClassificationFactory(
+            organization=cls.organization, tags=cls.tags
+        )
+
+        cls.existing_wikipedia_tags = [
+            TagFactory(type=Tag.TagType.WIKIPEDIA, title_en=f"{cls.query} {i}")
+            for i in range(5)
+        ]
+        cls.existing_not_returned_wikipedia_tags = [
+            TagFactory(type=Tag.TagType.WIKIPEDIA, title_en=f"abcd {cls.query} {i}")
+            for i in range(5, 10)
+        ]
+        cls.wikipedia_tag_classification = (
+            TagClassification.get_or_create_default_classification(
+                classification_type=TagClassification.TagClassificationType.WIKIPEDIA,
+            )
+        )
+        cls.wikipedia_tag_classification.tags.add(
+            *cls.existing_wikipedia_tags, *cls.existing_not_returned_wikipedia_tags
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_search_tags(self, role):
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-list",
+                args=(
+                    self.organization.code,
+                    self.tag_classification.id,
+                ),
+            )
+            + f"?search={self.query}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), len(self.tags))
+        self.assertSetEqual(
+            {tag["id"] for tag in content},
+            {tag.id for tag in self.tags},
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
+    @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
+    def test_search_wikipedia_tags(self, role, mocked_search, mocked_get):
+        existing_tags_qids = [tag.external_id for tag in self.existing_wikipedia_tags]
+        new_tags_qids = [self.get_random_wikipedia_qid() for _ in range(95)]
+        wikipedia_qids = existing_tags_qids + new_tags_qids
+        mocked_search.side_effect = (
+            self.search_wikipedia_tag_mocked_side_effect_with_given_ids(wikipedia_qids)
+        )
+        mocked_get.return_value = self.get_wikipedia_tags_mocked_side_effect(
+            wikipedia_qids
+        )
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-list",
+                args=(
+                    self.organization.code,
+                    self.wikipedia_tag_classification.id,
+                ),
+            )
+            + f"?search={self.query}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 100)
+        queryset = Tag.objects.filter(
+            type=Tag.TagType.WIKIPEDIA, external_id__in=wikipedia_qids
+        )
+        self.assertEqual(queryset.count(), len(content))
+        self.assertSetEqual(
+            {tag["id"] for tag in content}, {tag.id for tag in queryset}
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
+    @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
+    def test_search_wikipedia_tags_pagination(self, role, mocked_search, mocked_get):
+        existing_tags_qids = [tag.external_id for tag in self.existing_wikipedia_tags]
+        new_tags_qids = [self.get_random_wikipedia_qid() for _ in range(5)]
+        wikipedia_qids = existing_tags_qids + new_tags_qids
+        mocked_search.side_effect = (
+            self.search_wikipedia_tag_mocked_side_effect_with_given_ids(wikipedia_qids)
+        )
+        mocked_get.return_value = self.get_wikipedia_tags_mocked_side_effect(
+            wikipedia_qids
+        )
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-list",
+                args=(
+                    self.organization.code,
+                    self.wikipedia_tag_classification.id,
+                ),
+            )
+            + f"?search={self.query}&limit=10"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertIn("limit=10", content["next"])
+        self.assertIn("offset=10", content["next"])
+        self.assertEqual(len(content["results"]), 10)
+        queryset = Tag.objects.filter(
+            type=Tag.TagType.WIKIPEDIA, external_id__in=wikipedia_qids
+        )
+        self.assertEqual(queryset.count(), len(content["results"]))
+        self.assertSetEqual(
+            {tag["id"] for tag in content["results"]}, {tag.id for tag in queryset}
+        )
+
+
+class AutocompleteTagTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
+        cls.query = faker.word()
+        cls.tag_1 = TagFactory(organization=cls.organization, title_en=cls.query)
+        cls.tag_2 = TagFactory(
+            organization=cls.organization, title_en=f"{cls.query} abcd"
+        )
+        cls.tag_3 = TagFactory(
+            organization=cls.organization, title_en=f"{cls.query}_abcd"
+        )
+        cls.tag_4 = TagFactory(
+            organization=cls.organization, title_en=f"{cls.query}abcd"
+        )
+        cls.tag_5 = TagFactory(
+            organization=cls.organization, title_en=f"abcd {cls.query}"
+        )
+
+        # Projects to which the tags are attached for ordering
+        cls.project_1 = ProjectFactory(organizations=[cls.organization])
+        cls.project_2 = ProjectFactory(organizations=[cls.organization])
+        cls.project_3 = ProjectFactory(organizations=[cls.organization])
+        cls.project_4 = ProjectFactory(organizations=[cls.organization])
+        cls.project_5 = ProjectFactory(organizations=[cls.organization])
+
+        # Other tags returned by the autocomplete endpoint
+        cls.unused_tags = [
+            TagFactory(organization=cls.organization, title_en=f"{cls.query} {i}")
+            for i in range(5)
+        ]
+
+        # Other tags not returned by the autocomplete endpoint
+        not_returned = [
+            TagFactory(title_en=f"abcd{cls.query}"),
+            *TagFactory.create_batch(5),
+        ]
+
+        cls.tag_classification = TagClassificationFactory(
+            organization=cls.organization,
+            tags=[
+                cls.tag_1,
+                cls.tag_2,
+                cls.tag_3,
+                cls.tag_4,
+                cls.tag_5,
+                *cls.unused_tags,
+                *not_returned,
+            ],
+        )
+
+        # Attach tags to projects
+        cls.project_1.tags.add(
+            cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, cls.tag_5, *not_returned
+        )
+        cls.project_2.tags.add(
+            cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, *not_returned
+        )
+        cls.project_3.tags.add(cls.tag_1, cls.tag_2, cls.tag_3, *not_returned)
+        cls.project_4.tags.add(cls.tag_1, cls.tag_2, *not_returned)
+        cls.project_5.tags.add(cls.tag_1, *not_returned)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_autocomplete_default_limit(self, role):
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-autocomplete",
+                args=(
+                    self.organization.code,
+                    self.tag_classification.id,
+                ),
+            )
+            + f"?search={self.query}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content), 5)
+        self.assertListEqual(
+            content,
+            [
+                self.tag_1.title_en,
+                self.tag_2.title_en,
+                self.tag_3.title_en,
+                self.tag_4.title_en,
+                self.tag_5.title_en,
+            ],
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS,),
+            (TestRoles.DEFAULT,),
+        ]
+    )
+    def test_autocomplete_custom_limit(self, role):
+        user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-autocomplete",
+                args=(
+                    self.organization.code,
+                    self.tag_classification.id,
+                ),
+            )
+            + f"?query={self.query}&limit=10"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content), 10)
+        self.assertListEqual(
+            content[:5],
+            [
+                self.tag_1.title_en,
+                self.tag_2.title_en,
+                self.tag_3.title_en,
+                self.tag_4.title_en,
+                self.tag_5.title_en,
+            ],
+        )
+        self.assertSetEqual(set(content[5:]), {tag.title for tag in self.unused_tags})

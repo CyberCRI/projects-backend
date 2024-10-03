@@ -5,7 +5,7 @@ from faker import Faker
 from apps.skills.factories import TagFactory
 from apps.skills.models import Tag, TagClassification
 from apps.skills.testcases import EscoTestCase
-from apps.skills.utils import create_missing_tags, update_tag_data
+from apps.skills.utils import create_missing_esco_tags, update_esco_tag_data
 
 faker = Faker()
 
@@ -31,7 +31,7 @@ class EscoServiceTestCase(EscoTestCase):
             self.search_skills_return_value(skills_uris),
             self.search_occupations_return_value(occupations_uris),
         ]
-        created_tags = create_missing_tags()
+        created_tags = create_missing_esco_tags()
         self.assertEqual(len(created_tags), 10)
         skills = Tag.objects.filter(
             external_id__in=skills_uris,
@@ -64,7 +64,7 @@ class EscoServiceTestCase(EscoTestCase):
             "description_fr": faker.text(),
         }
         mocked.return_value = self.get_skill_return_value(**data)
-        updated_skill = update_tag_data(skill)
+        updated_skill = update_esco_tag_data(skill)
         self.assertEqual(updated_skill.title, data["title_en"])
         self.assertEqual(updated_skill.title_en, data["title_en"])
         self.assertEqual(updated_skill.title_fr, data["title_fr"])
@@ -85,7 +85,7 @@ class EscoServiceTestCase(EscoTestCase):
             "description_fr": faker.text(),
         }
         mocked.return_value = self.get_occupation_return_value(**data)
-        updated_occupation = update_tag_data(occupation)
+        updated_occupation = update_esco_tag_data(occupation)
         self.assertEqual(updated_occupation.title, data["title_en"])
         self.assertEqual(updated_occupation.title_en, data["title_en"])
         self.assertEqual(updated_occupation.title_fr, data["title_fr"])

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-19 16:37+0200\n"
+"POT-Creation-Date: 2024-10-03 14:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,69 +62,65 @@ msgid "Permission not found"
 msgstr ""
 
 #: apps/accounts/exceptions.py:87
-msgid "You already have this skill in your profile"
-msgstr ""
-
-#: apps/accounts/exceptions.py:93
 msgid "An error occurred while syncing with Keycloak"
 msgstr ""
 
-#: apps/accounts/exceptions.py:98
+#: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 
-#: apps/accounts/exceptions.py:108
+#: apps/accounts/exceptions.py:102
 msgid "An error occurred while syncing with Google"
 msgstr ""
 
-#: apps/accounts/exceptions.py:113
+#: apps/accounts/exceptions.py:107
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 
-#: apps/accounts/exceptions.py:126
+#: apps/accounts/exceptions.py:120
 msgid "The organization of a group cannot be changed"
 msgstr ""
 
-#: apps/accounts/exceptions.py:132
+#: apps/accounts/exceptions.py:126
 msgid "The root group cannot have a parent group"
 msgstr ""
 
-#: apps/accounts/exceptions.py:138
+#: apps/accounts/exceptions.py:132
 msgid "A non-root group must have a parent group"
 msgstr ""
 
-#: apps/accounts/exceptions.py:144
+#: apps/accounts/exceptions.py:138
 msgid "The parent group must belong to the same organization"
 msgstr ""
 
-#: apps/accounts/exceptions.py:150
+#: apps/accounts/exceptions.py:144
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr ""
 
-#: apps/accounts/exceptions.py:156
+#: apps/accounts/exceptions.py:150
 msgid "You cannot assign this role to a user"
 msgstr ""
 
-#: apps/accounts/exceptions.py:161
+#: apps/accounts/exceptions.py:155
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:128 apps/projects/models.py:154
+#: apps/accounts/models.py:130 apps/projects/models.py:156
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:817
+#: apps/accounts/models.py:819
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:818
+#: apps/accounts/models.py:820
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:819
+#: apps/accounts/models.py:821
 msgid "Public"
 msgstr ""
 
@@ -1164,44 +1160,60 @@ msgstr ""
 msgid "A message cannot be a reply to itself"
 msgstr ""
 
-#: apps/projects/models.py:138
+#: apps/projects/models.py:140
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:147
+#: apps/projects/models.py:149
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:160
+#: apps/projects/models.py:162
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:171
+#: apps/projects/models.py:173
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:178
+#: apps/projects/models.py:181
 msgid "wikipedia tags"
 msgstr ""
 
-#: apps/projects/models.py:181
+#: apps/projects/models.py:184
 msgid "organizational tags"
 msgstr ""
 
-#: apps/projects/models.py:188
+#: apps/projects/models.py:197
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:194
+#: apps/projects/models.py:203
 msgid "main category"
 msgstr ""
 
 #: apps/skills/exceptions.py:10
-msgid "This user cannot be a mentor for this skill"
+msgid "User ID must be provided through url"
 msgstr ""
 
 #: apps/skills/exceptions.py:16
+msgid "This user cannot be a mentor for this skill"
+msgstr ""
+
+#: apps/skills/exceptions.py:22
 msgid "This user does not need a mentor for this skill"
+msgstr ""
+
+#: apps/skills/exceptions.py:28
+msgid "You already have this skill in your profile"
+msgstr ""
+
+#: apps/skills/exceptions.py:37
+msgid "Only custom tags can be updated"
+msgstr ""
+
+#: apps/skills/exceptions.py:43
+msgid "Only custom tags classifications can be updated"
 msgstr ""
 
 #: apps/skills/templates/contact_mentor/mail.html:14

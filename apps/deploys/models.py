@@ -34,7 +34,7 @@ class PostDeployProcess(models.Model):
 
     @classmethod
     def recreate_processes(cls):
-        if settings.ENVIRONMENT == "test":
+        if settings.ENVIRONMENT in ["test", "local", "fullstack"]:
             cls._tasks = {
                 key: value for key, value in cls._tasks.items() if value.run_in_tests
             }

@@ -50,28 +50,6 @@ class WikipediaService:
         return requests.get(cls.MEDIAWIKI_API_URL, params)
 
     @classmethod
-    def _set_default_language_title_and_description(
-        cls, tag_data: Dict[str, str], default_language: str = "en"
-    ) -> Dict[str, str]:
-        """
-        Make sure that the default language title and description are set in
-        the tag data used to update or create the tag.
-        """
-        default_title = f"title_{default_language}"
-        default_description = f"description_{default_language}"
-        if not tag_data.get(default_title, None) or not tag_data.get(
-            default_description, None
-        ):
-            for language in settings.REQUIRED_LANGUAGES:
-                if not tag_data.get(default_title, None):
-                    tag_data[default_title] = tag_data.get(f"title_{language}", "")
-                if not tag_data.get(default_description, None):
-                    tag_data[default_description] = tag_data.get(
-                        f"description_{language}", ""
-                    )
-        return tag_data
-
-    @classmethod
     def get_by_ids(cls, wikipedia_qids: List[str]) -> List[Dict[str, str]]:
         """
         Get and format the data for multiple Wikipedia Tags from the Wikimedia API.
@@ -80,7 +58,7 @@ class WikipediaService:
         if response.status_code != status.HTTP_200_OK:
             raise WikibaseAPIException(response.status_code)
         content = response.json()["entities"]
-        tags_data = [
+        return [
             {
                 "external_id": wikipedia_qid,
                 **{
@@ -99,10 +77,6 @@ class WikipediaService:
                 },
             }
             for wikipedia_qid in wikipedia_qids
-        ]
-        return [
-            cls._set_default_language_title_and_description(tag_data)
-            for tag_data in tags_data
         ]
 
     @classmethod

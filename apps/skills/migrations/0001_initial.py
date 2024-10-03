@@ -43,8 +43,8 @@ class Migration(migrations.Migration):
                 (
                     "secondary_type",
                     models.CharField(
-                        blank=True,
-                        choices=[("skill", "Skill"), ("occupation", "Occupation")],
+                        choices=[("skill", "Skill"), ("occupation", "Occupation"), ("tag", "Tag")],
+                        default="tag",
                         max_length=255,
                     ),
                 ),

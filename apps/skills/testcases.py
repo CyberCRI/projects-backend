@@ -170,7 +170,7 @@ class WikipediaTestCase(JwtAPITestCase):
     class QueryWikipediaMockResponse:
         status_code = status.HTTP_200_OK
 
-        def __init__(self, limit: int, offset: int):
+        def __init__(self, limit: int, offset: int, wikipedia_qids: List[str] = None):
             self.results = [
                 {
                     "id": WikipediaTestCase.get_random_wikipedia_qid(),
@@ -180,6 +180,20 @@ class WikipediaTestCase(JwtAPITestCase):
                 for _ in range(limit)
             ]
             self.search_continue = offset + limit
+            if wikipedia_qids is not None:
+                if not isinstance(wikipedia_qids, list) or not all(
+                    isinstance(wikipedia_qid, str) for wikipedia_qid in wikipedia_qids
+                ):
+                    raise ValueError("wikipedia_qids must be a list of strings")
+                self.results = [
+                    {
+                        "id": wikipedia_qid,
+                        "label": f"title_{wikipedia_qid}",
+                        "description": f"description_{wikipedia_qid}",
+                    }
+                    for wikipedia_qid in wikipedia_qids[offset : offset + limit]
+                ] + self.results
+                self.results = self.results[:limit]
 
         def json(self):
             return {"search": self.results, "search-continue": self.search_continue}
@@ -230,8 +244,10 @@ class WikipediaTestCase(JwtAPITestCase):
         return cls.GetWikipediaTagsMocked(wikipedia_qids, en, fr)
 
     @classmethod
-    def search_wikipedia_tag_mocked_return(cls, limit: int, offset: int):
-        return cls.QueryWikipediaMockResponse(limit, offset)
+    def search_wikipedia_tag_mocked_return(
+        cls, limit: int, offset: int, wikipedia_qids: List[str] = None
+    ):
+        return cls.QueryWikipediaMockResponse(limit, offset, wikipedia_qids)
 
     @classmethod
     def get_wikipedia_tags_mocked_side_effect(cls, wikipedia_qids: List[str]):
@@ -242,3 +258,14 @@ class WikipediaTestCase(JwtAPITestCase):
         cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
     ):
         return cls.search_wikipedia_tag_mocked_return(limit, offset)
+
+    @classmethod
+    def search_wikipedia_tag_mocked_side_effect_with_given_ids(
+        cls, given_ids: List[str]
+    ):
+        def side_effect(
+            query: str, language: str = "en", limit: int = 10, offset: int = 0
+        ):
+            return cls.search_wikipedia_tag_mocked_return(limit, offset, given_ids)
+
+        return side_effect

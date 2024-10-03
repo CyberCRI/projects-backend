@@ -2,8 +2,9 @@ import factory
 from faker import Faker
 
 from apps.accounts.factories import UserFactory
+from apps.organizations.factories import OrganizationFactory
 
-from .models import Skill, Tag
+from .models import Skill, Tag, TagClassification
 
 faker = Faker()
 
@@ -35,6 +36,24 @@ class TagFactory(factory.django.DjangoModelFactory):
                 )
             if self.type == Tag.TagType.WIKIPEDIA:
                 self.external_id = f"Q{self.id}{faker.pyint()}"
+
+
+class TagClassificationFactory(factory.django.DjangoModelFactory):
+    type = TagClassification.TagClassificationType.CUSTOM
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
+    title = factory.Faker("sentence")
+    description = factory.Faker("text")
+
+    class Meta:
+        model = TagClassification
+
+    @factory.post_generation
+    def tags(self, create, extracted, **kwargs):
+        if not create:
+            return
+        self.tags.add(*(extracted if extracted else []))
 
 
 class SkillFactory(factory.django.DjangoModelFactory):

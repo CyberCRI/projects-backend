@@ -41,7 +41,10 @@ from .serializers import (
     TagClassificationSerializer,
     TagSerializer,
 )
-from .utils import update_or_create_wikipedia_tags
+from .utils import (
+    set_default_language_title_and_description,
+    update_or_create_wikipedia_tags,
+)
 
 
 class SkillViewSet(WriteOnlyModelViewSet, MultipleIDViewsetMixin):
@@ -150,31 +153,38 @@ class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
 
     def get_queryset(self):
         organization_code = self.kwargs.get("organization_code", None)
-        classification_id = self.kwargs.get("tag_classification_id", None)
+        tag_classification_id = self.kwargs.get("tag_classification_id", None)
         if organization_code:
             queryset = Tag.objects.filter(organization__code=organization_code)
-            if classification_id:
+            if tag_classification_id:
                 queryset = queryset.filter(
-                    tag_classifications__id__in=[classification_id]
+                    tag_classifications__id__in=[tag_classification_id]
                 )
             return queryset
         return Tag.objects.none()
 
+    def create(self, request, *args, **kwargs):
+        data = set_default_language_title_and_description(request.data)
+        self.request.data.update(data)
+        request.data.update(data)
+        return super().create(request, *args, **kwargs)
+
     def perform_create(self, serializer: TagSerializer):
         """
-        Add the organization to the tag"""
+        Add the organization to the tag
+        """
         organization_code = self.kwargs.get("organization_code", None)
-        classification_id = self.kwargs.get("tag_classification_id", None)
+        tag_classification_id = self.kwargs.get("tag_classification_id", None)
         if organization_code:
             organization = get_object_or_404(Organization, code=organization_code)
             instance = serializer.save(
                 organization=organization,
                 type=Tag.TagType.CUSTOM,
-                secondary_type=None,
+                secondary_type=Tag.SecondaryTagType.TAG,
             )
-            if classification_id:
+            if tag_classification_id:
                 classification = get_object_or_404(
-                    TagClassification, id=classification_id
+                    TagClassification, id=tag_classification_id
                 )
                 classification.tags.add(instance)
 
@@ -198,7 +208,7 @@ class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
         if (
             self.request.query_params.get("search", None)
             and self.kwargs.get("tag_classification_id", None)
-            and self.kwargs["tag_classification_id"] == wikipedia.id
+            and int(self.kwargs["tag_classification_id"]) == int(wikipedia.id)
         ):
             return self.wikipedia_search(request)
         return super().list(request, *args, **kwargs)
@@ -248,23 +258,23 @@ class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
     def autocomplete(self, request, *args, **kwargs):
         language = self.request.query_params.get("language", "en")
         limit = int(self.request.query_params.get("limit", 5))
-        search = self.request.query_params.get("query", "")
+        search = self.request.query_params.get("search", "")
         queryset = (
             self.get_queryset()
             .filter(
-                Q(**{f"name_{language}__unaccent__istartswith": search})
-                | Q(**{f"name_{language}__unaccent__icontains": f" {search}"})
+                Q(**{f"title_{language}__unaccent__istartswith": search})
+                | Q(**{f"title_{language}__unaccent__icontains": f" {search}"})
             )
             .distinct()
             .annotate(
                 usage=Count("skills", distinct=True)
                 + Count("projects", distinct=True)
-                + Count("organization", distinct=True)
+                + Count("organizations", distinct=True)
                 + Count("project_categories", distinct=True)
             )
             .order_by("-usage")[:limit]
         )
-        data = queryset.values_list(f"name_{language}", flat=True)
+        data = queryset.values_list(f"title_{language}", flat=True)
         return Response(data)
 
 
@@ -544,7 +554,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
         )
 
     def get_skill_name(self, skill: Skill, language: str):
-        return getattr(skill.tag, f"name_{language}", skill.tag.title)
+        return getattr(skill.tag, f"title_{language}", skill.tag.title)
 
     def send_email(self, template_folder: str, skill: Skill, **kwargs):
         language = skill.user.language

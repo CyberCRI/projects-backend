@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
-from django.db import models
+from django.db import models, transaction
 from django.utils.text import slugify
 
 from apps.commons.models import HasMultipleIDs, HasOwner, OrganizationRelated
@@ -47,12 +47,15 @@ class Tag(models.Model, OrganizationRelated):
 
         SKILL = "skill"
         OCCUPATION = "occupation"
+        TAG = "tag"
 
     type = models.CharField(
         max_length=255, choices=TagType.choices, default=TagType.CUSTOM.value
     )
     secondary_type = models.CharField(
-        max_length=255, choices=SecondaryTagType.choices, blank=True
+        max_length=255,
+        choices=SecondaryTagType.choices,
+        default=SecondaryTagType.TAG.value,
     )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
@@ -131,6 +134,11 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
                 slug = f"{raw_slug}-{same_slug_count}"
             return slug
         return self.slug
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        self.slug = self.get_slug()
+        super().save(*args, **kwargs)
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
