@@ -44,10 +44,11 @@ from apps.projects.exceptions import (
 from services.mistral.models import ProjectEmbedding
 
 from .filters import LocationFilter, ProjectFilter
-from .models import BlogEntry, LinkedProject, Location, Project, ProjectMessage
+from .models import BlogEntry, Goal, LinkedProject, Location, Project, ProjectMessage
 from .permissions import HasProjectPermission, ProjectIsNotLocked
 from .serializers import (
     BlogEntrySerializer,
+    GoalSerializer,
     LinkedProjectSerializer,
     LocationSerializer,
     ProjectAddLinkedProjectSerializer,
@@ -607,6 +608,29 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 f"/v1/project/{self.kwargs['project_id']}/blog-entry-image/{image.id}"
             )
         return None
+
+
+class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+    serializer_class = GoalSerializer
+    filter_backends = [DjangoFilterBackend]
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ReadOnly
+        | HasBasePermission("change_project", "projects")
+        | HasOrganizationPermission("change_project")
+        | HasProjectPermission("change_project"),
+    ]
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
+
+    def get_queryset(self) -> QuerySet:
+        if "project_id" in self.kwargs:
+            qs = self.request.user.get_project_related_queryset(Goal.objects.all())
+            return qs.filter(project=self.kwargs["project_id"])
+        return Goal.objects.none()
 
 
 class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):

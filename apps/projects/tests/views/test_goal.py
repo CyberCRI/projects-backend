@@ -4,11 +4,9 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.goals.factories import GoalFactory
-from apps.goals.models import Goal
 from apps.organizations.factories import OrganizationFactory
-from apps.projects.factories import ProjectFactory
-from apps.projects.models import Project
+from apps.projects.factories import GoalFactory, ProjectFactory
+from apps.projects.models import Goal, Project
 
 faker = Faker()
 

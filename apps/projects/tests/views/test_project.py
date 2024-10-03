@@ -16,9 +16,8 @@ from apps.commons.models import SDG, Language
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
-from apps.goals.factories import GoalFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
-from apps.projects.factories import BlogEntryFactory, ProjectFactory
+from apps.projects.factories import BlogEntryFactory, GoalFactory, ProjectFactory
 from apps.projects.models import Project
 from apps.skills.factories import TagFactory
 

@@ -27,7 +27,6 @@ from apps.files.serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
-from apps.goals.serializers import GoalSerializer
 from apps.notifications.tasks import notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.serializers import (
@@ -49,7 +48,7 @@ from .exceptions import (
     ProjectWithNoOrganizationError,
     RemoveLastProjectOwnerError,
 )
-from .models import BlogEntry, LinkedProject, Location, Project, ProjectMessage
+from .models import BlogEntry, Goal, LinkedProject, Location, Project, ProjectMessage
 from .utils import compute_project_changes, get_views_from_serializer
 
 
@@ -110,6 +109,37 @@ class BlogEntrySerializer(
             )
             instance.refresh_from_db()
         return super(BlogEntrySerializer, self).update(instance, validated_data)
+
+    def get_related_organizations(self) -> List[Organization]:
+        """Retrieve the related organizations"""
+        if "project" in self.validated_data:
+            return self.validated_data["project"].get_related_organizations()
+        return []
+
+    def get_related_project(self) -> Optional[Project]:
+        """Retrieve the related projects"""
+        if "project" in self.validated_data:
+            return self.validated_data["project"]
+        return None
+
+
+class GoalSerializer(
+    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+):
+    project_id = serializers.PrimaryKeyRelatedField(
+        many=False, write_only=True, queryset=Project.objects.all(), source="project"
+    )
+
+    class Meta:
+        model = Goal
+        fields = [
+            "id",
+            "title",
+            "description",
+            "deadline_at",
+            "status",
+            "project_id",
+        ]
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
