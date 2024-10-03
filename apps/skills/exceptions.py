@@ -1,6 +1,6 @@
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 
 # Technical errors
 
@@ -39,3 +39,12 @@ class UpdateWrongTypeTagClassificationError(APIException):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Only custom tags classifications can be updated")
     default_code = "update_wrong_type_tag_classification"
+
+
+# Validation errors
+
+
+class TagFromWrongOrganizationError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Tags must belong to the classification's organization")
+    default_code = "tag_from_wrong_organization"

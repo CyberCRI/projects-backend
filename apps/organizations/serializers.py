@@ -16,7 +16,10 @@ from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.projects.models import Project
-from apps.skills.serializers import TagRelatedField
+from apps.skills.serializers import (
+    TagClassificationMultipleIdRelatedField,
+    TagRelatedField,
+)
 from services.keycloak.serializers import IdentityProviderSerializer
 
 from .exceptions import (
@@ -171,6 +174,9 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class OrganizationSerializer(OrganizationRelatedSerializer):
+    enabled_tag_classifications = TagClassificationMultipleIdRelatedField(
+        many=True, required=False
+    )
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
@@ -226,6 +232,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "created_at",
             "updated_at",
             "tags",
+            "enabled_tag_classifications",
             # read_only
             "banner_image",
             "logo_image",

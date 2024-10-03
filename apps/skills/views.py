@@ -38,6 +38,8 @@ from .pagination import WikipediaPagination
 from .serializers import (
     MentorshipContactSerializer,
     SkillSerializer,
+    TagClassificationAddTagsSerializer,
+    TagClassificationRemoveTagsSerializer,
     TagClassificationSerializer,
     TagSerializer,
 )
@@ -123,6 +125,50 @@ class TagClassificationViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
                 organization=organization,
                 type=TagClassification.TagClassificationType.CUSTOM,
             )
+
+    @extend_schema(request=TagClassificationAddTagsSerializer, responses={204: None})
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="add-tags",
+        url_name="add-tags",
+        permission_classes=[
+            IsAuthenticated,
+            HasBasePermission("change_tagclassification", "skills")
+            | HasOrganizationPermission("change_tagclassification"),
+        ],
+    )
+    def add_tags(self, request, *args, **kwargs):
+        tag_classification = self.get_object()
+        serializer = TagClassificationAddTagsSerializer(
+            data={"tag_classification": tag_classification.pk, **request.data},
+            context=self.get_serializer_context(),
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @extend_schema(request=TagClassificationRemoveTagsSerializer, responses={204: None})
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="remove-tags",
+        url_name="remove-tags",
+        permission_classes=[
+            IsAuthenticated,
+            HasBasePermission("change_tagclassification", "skills")
+            | HasOrganizationPermission("change_tagclassification"),
+        ],
+    )
+    def remove_tags(self, request, *args, **kwargs):
+        tag_classification = self.get_object()
+        serializer = TagClassificationRemoveTagsSerializer(
+            data={"tag_classification": tag_classification.pk, **request.data},
+            context=self.get_serializer_context(),
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):

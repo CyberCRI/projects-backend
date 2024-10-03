@@ -15,7 +15,8 @@ from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
-from apps.skills.factories import TagFactory
+from apps.skills.factories import TagClassificationFactory, TagFactory
+from apps.skills.models import TagClassification
 
 faker = Faker()
 
@@ -30,6 +31,9 @@ class CreateOrganizationTestCase(JwtAPITestCase):
         cls.facilitators = UserFactory.create_batch(2)
         cls.admins = UserFactory.create_batch(2)
         cls.tags = TagFactory.create_batch(2)
+        cls.tag_classification = TagClassification.get_or_create_default_classification(
+            TagClassification.TagClassificationType.WIKIPEDIA
+        )
 
     @parameterized.expand(
         [
@@ -65,6 +69,7 @@ class CreateOrganizationTestCase(JwtAPITestCase):
                 "admins": [a.id for a in self.admins],
                 "facilitators": [f.id for f in self.facilitators],
             },
+            "enabled_tag_classifications": [self.tag_classification.id],
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
@@ -102,6 +107,10 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             self.assertSetEqual(
                 {t["id"] for t in content["tags"]},
                 {t.id for t in self.tags},
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["enabled_tag_classifications"]},
+                {self.tag_classification.id},
             )
             organization = Organization.objects.get(code=payload["code"])
             for user in self.users:
@@ -157,6 +166,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.logo_image = cls.get_test_image()
         cls.tags = TagFactory.create_batch(2)
+        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -187,6 +197,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
             "tags": [t.id for t in self.tags],
+            "enabled_tag_classifications": [self.tag_classification.id],
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(self.organization.code,)), data=payload
@@ -222,6 +233,10 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             self.assertSetEqual(
                 {t["id"] for t in content["tags"]},
                 {t.id for t in self.tags},
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["enabled_tag_classifications"]},
+                {self.tag_classification.id},
             )
 
 
@@ -538,3 +553,26 @@ class MiscOrganizationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Group.objects.filter(name__in=roles_names).exists())
+
+    def test_add_enabled_tag_classifications_with_slug(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        organization = OrganizationFactory()
+        tag_classification = TagClassificationFactory(organization=organization)
+        tag_classification_2 = TagClassificationFactory(organization=organization)
+        payload = {
+            "enabled_tag_classifications": [
+                tag_classification.slug,
+                tag_classification_2.id,
+            ]
+        }
+        response = self.client.patch(
+            reverse("Organization-detail", args=(organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(
+            {c["id"] for c in content["enabled_tag_classifications"]},
+            {tag_classification.id, tag_classification_2.id},
+        )

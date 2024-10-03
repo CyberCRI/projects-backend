@@ -170,7 +170,7 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
 
 class Skill(models.Model, HasOwner):
     class SkillType(models.TextChoices):
-        """Visibility setting of a project."""
+        """Main type of a skill."""
 
         SKILL = "skill"
         HOBBY = "hobby"

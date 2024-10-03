@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-03 15:02+0200\n"
+"POT-Creation-Date: 2024-10-03 17:34+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -190,7 +190,7 @@ msgstr "Statut de publication inconnu"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Statut de publication inconnu '{publication_status}'"
 
-#: apps/commons/fields.py:28
+#: apps/commons/fields.py:28 apps/skills/serializers.py:84
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
@@ -199,7 +199,7 @@ msgstr "Ce champ est obligatoire."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 
-#: apps/commons/fields.py:31
+#: apps/commons/fields.py:31 apps/skills/serializers.py:89
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
@@ -1542,6 +1542,15 @@ msgstr "Seuls les tags personnalisés peuvent être mis à jour"
 msgid "Only custom tags classifications can be updated"
 msgstr ""
 "Seules les classifications de tags personnalisés peuvent être mises à jour"
+
+#: apps/skills/exceptions.py:49
+msgid "Tags must belong to the classification's organization"
+msgstr "Les tags doivent appartenir à l'organisation de la classification"
+
+#: apps/skills/serializers.py:86
+#, python-brace-format
+msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
+msgstr "identifiant invalide \"{tag_classification_id}\" - cet objet n'existe pas."
 
 #: apps/skills/templates/contact_mentor/mail.html:14
 #: apps/skills/templates/contact_mentoree/mail.html:14

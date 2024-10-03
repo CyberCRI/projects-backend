@@ -168,18 +168,20 @@ class RetrieveOrganizationTagTestCase(JwtAPITestCase):
     def test_retrieve_tag(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
-        tag = self.tags[0]
-        response = self.client.get(
-            reverse("OrganizationTag-detail", args=(self.organization.code, tag.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["title_fr"], tag.title_fr)
-        self.assertEqual(content["title_en"], tag.title_en)
-        self.assertEqual(content["title"], tag.title_en)
-        self.assertEqual(content["description_fr"], tag.description_fr)
-        self.assertEqual(content["description_en"], tag.description_en)
-        self.assertEqual(content["description"], tag.description_en)
+        for tag in self.tags:
+            response = self.client.get(
+                reverse(
+                    "OrganizationTag-detail", args=(self.organization.code, tag.id)
+                ),
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = response.json()
+            self.assertEqual(content["title_fr"], tag.title_fr)
+            self.assertEqual(content["title_en"], tag.title_en)
+            self.assertEqual(content["title"], tag.title_en)
+            self.assertEqual(content["description_fr"], tag.description_fr)
+            self.assertEqual(content["description_en"], tag.description_en)
+            self.assertEqual(content["description"], tag.description_en)
 
 
 class SearchOrganizationTagTestCase(JwtAPITestCase):

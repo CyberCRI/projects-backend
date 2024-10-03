@@ -10,11 +10,19 @@ from .views import (
     MentorshipContactViewset,
     OrganizationMentorshipViewset,
     SkillViewSet,
+    TagClassificationViewSet,
     TagViewSet,
     UserMentorshipViewset,
 )
 
 router = DefaultRouter()
+
+organization_router_register(
+    router,
+    r"tag-classification",
+    TagClassificationViewSet,
+    basename="TagClassification",
+)
 
 organization_router_register(
     router,
