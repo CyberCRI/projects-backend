@@ -74,12 +74,51 @@ class RetrieveStatsTestCase(JwtAPITestCase):
     def test_retrieve_stats(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.organization_1])
         self.client.force_authenticate(user)
-        response = self.client.get(
+        response_org_1 = self.client.get(
             reverse("Stats-list", args=(self.organization_1.code,))
         )
-        self.assertEqual(response.status_code, expected_code)
+        response_org_2 = self.client.get(
+            reverse("Stats-list", args=(self.organization_2.code,))
+        )
+
+        self.assertEqual(response_org_1.status_code, expected_code)
+        self.assertEqual(response_org_2.status_code, expected_code)
+
         if expected_code == status.HTTP_200_OK:
-            content = response.json()
+            content = response_org_1.json()
+            total = content["total"]
+            by_month = content["by_month"]
+            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())][0]
+            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())][0]
+            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())][0]
+            by_sdg = [s for s in content["by_sdg"] if s["project_count"] > 0]
+            by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
+            by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
+            by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
+
+            self.assertEqual(total, 3)
+            self.assertEqual(len(by_month), 3)
+            self.assertEqual(by_month_1["created_count"], 2)
+            self.assertEqual(by_month_1["updated_count"], 1)
+            self.assertEqual(by_month_2["created_count"], 1)
+            self.assertEqual(by_month_2["updated_count"], 0)
+            self.assertEqual(by_month_3["created_count"], 0)
+            self.assertEqual(by_month_3["updated_count"], 2)
+
+            self.assertEqual(len(by_sdg), 3)
+            self.assertEqual(by_sdg_1["project_count"], 1)
+            self.assertEqual(by_sdg_2["project_count"], 2)
+            self.assertEqual(by_sdg_3["project_count"], 1)
+
+            self.assertEqual(len(content["top_tags"]), 3)
+            self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
+            self.assertEqual(content["top_tags"][0]["project_count"], 2)
+            self.assertIn(content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk])
+            self.assertEqual(content["top_tags"][1]["project_count"], 1)
+            self.assertIn(content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk])
+            self.assertEqual(content["top_tags"][2]["project_count"], 1)
+
+            content = response_org_2.json()
             total = content["total"]
             by_month = content["by_month"]
             by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())]
@@ -90,24 +129,20 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
             by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
 
-            self.assertEqual(total, 4)
+            self.assertEqual(total, 1)
             self.assertEqual(len(by_month), 3)
-            self.assertEqual(by_month_1[0]["created_count"], 2)
-            self.assertEqual(by_month_1[0]["updated_count"], 1)
-            self.assertEqual(by_month_2[0]["created_count"], 1)
+            self.assertEqual(by_month_1[0]["created_count"], 0)
+            self.assertEqual(by_month_1[0]["updated_count"], 0)
+            self.assertEqual(by_month_2[0]["created_count"], 0)
             self.assertEqual(by_month_2[0]["updated_count"], 0)
-            self.assertEqual(by_month_3[0]["created_count"], 0)
-            self.assertEqual(by_month_3[0]["updated_count"], 2)
+            self.assertEqual(by_month_3[0]["created_count"], 1)
+            self.assertEqual(by_month_3[0]["updated_count"], 1)
 
             self.assertEqual(len(by_sdg), 3)
-            self.assertEqual(by_sdg_1[0]["project_count"], 1)
-            self.assertEqual(by_sdg_2[0]["project_count"], 2)
-            self.assertEqual(by_sdg_3[0]["project_count"], 1)
+            self.assertEqual(by_sdg_1[0]["project_count"], 0)
+            self.assertEqual(by_sdg_2[0]["project_count"], 1)
+            self.assertEqual(by_sdg_3[0]["project_count"], 0)
 
-            self.assertEqual(len(content["top_tags"]), 3)
+            self.assertEqual(len(content["top_tags"]), 1)
             self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
-            self.assertEqual(content["top_tags"][0]["project_count"], 2)
-            self.assertIn(content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk])
-            self.assertEqual(content["top_tags"][1]["project_count"], 1)
-            self.assertIn(content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk])
-            self.assertEqual(content["top_tags"][2]["project_count"], 1)
+            self.assertEqual(content["top_tags"][0]["project_count"], 1)
