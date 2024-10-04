@@ -2,15 +2,16 @@ from rest_framework import serializers
 
 from apps.commons.serializers import TranslatedModelSerializer
 from apps.files.serializers import ImageSerializer
-from apps.misc.models import WikipediaTag
-from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from apps.skills.models import Tag
+from apps.skills.serializers import TagSerializer
 
 
 class StatsOrganizationSerializer(serializers.ModelSerializer):
     logo_image = ImageSerializer(read_only=True)
-    wikipedia_tags = WikipediaTagSerializer(many=True, read_only=True)
+    # TODO : Skill update
+    tags = TagSerializer(many=True, read_only=True)
     project_count = serializers.IntegerField()
 
     class Meta:
@@ -25,7 +26,7 @@ class StatsOrganizationSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "logo_image",
-            "wikipedia_tags",
+            "tags",
             "project_count",
         ]
 
@@ -48,9 +49,8 @@ class TagProjectSerializer(TranslatedModelSerializer):
     project_count = serializers.IntegerField()
 
     class Meta:
-        model = WikipediaTag
-        fields = ["id", "name", "wikipedia_qid", "projects", "project_count"]
-        lookup_field = "wikipedia_qid"
+        model = Tag
+        fields = ["id", "title", "projects", "project_count"]
 
 
 class StatsSerializer(serializers.Serializer):

@@ -15,9 +15,11 @@ from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
-from apps.misc.models import Tag
-from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSerializer
 from apps.projects.models import Project
+from apps.skills.serializers import (
+    TagClassificationMultipleIdRelatedField,
+    TagRelatedField,
+)
 from services.keycloak.serializers import IdentityProviderSerializer
 
 from .exceptions import (
@@ -172,12 +174,14 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class OrganizationSerializer(OrganizationRelatedSerializer):
+    enabled_tag_classifications = TagClassificationMultipleIdRelatedField(
+        many=True, required=False
+    )
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     faq = FaqSerializer(many=False, read_only=True)
-    wikipedia_tags = WikipediaTagSerializer(many=True, read_only=True)
-    tags = TagSerializer(many=True, read_only=True, source="tag_set")
+    tags = TagRelatedField(many=True, required=False)
     children = SlugRelatedField(
         many=True,
         read_only=True,
@@ -200,9 +204,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     )
     logo_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Image.objects.all(), source="logo_image"
-    )
-    wikipedia_tags_ids = TagRelatedField(
-        many=True, write_only=True, source="wikipedia_tags", required=False
     )
     dashboard_title = serializers.CharField(required=True)
     dashboard_subtitle = serializers.CharField(required=True)
@@ -230,12 +231,12 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "website_url",
             "created_at",
             "updated_at",
+            "tags",
+            "enabled_tag_classifications",
             # read_only
             "banner_image",
             "logo_image",
             "faq",
-            "wikipedia_tags",
-            "tags",
             "children",
             "parent_code",
             "is_logo_visible_on_parent_dashboard",
@@ -244,7 +245,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             # write_only
             "banner_image_id",
             "logo_image_id",
-            "wikipedia_tags_ids",
             "team",
         ]
 
@@ -358,8 +358,6 @@ class TemplateSerializer(OrganizationRelatedSerializer):
 class ProjectCategorySerializer(
     OrganizationRelatedSerializer, serializers.ModelSerializer
 ):
-    wikipedia_tags = WikipediaTagSerializer(many=True, read_only=True)
-    organization_tags = TagSerializer(many=True, read_only=True)
     template = TemplateSerializer(required=False, allow_null=True, default=None)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=ProjectCategory.objects.all(),
@@ -367,6 +365,7 @@ class ProjectCategorySerializer(
         allow_null=True,
         write_only=True,
     )
+    tags = TagRelatedField(many=True, required=False)
     # read-only
     background_image = ImageSerializer(read_only=True)
     organization = SlugRelatedField(read_only=True, slug_field="code")
@@ -386,16 +385,6 @@ class ProjectCategorySerializer(
         source="organization",
         queryset=Organization.objects.all(),
     )
-    wikipedia_tags_ids = TagRelatedField(
-        many=True, write_only=True, source="wikipedia_tags", required=False
-    )
-    organization_tags_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Tag.objects.all(),
-        source="organization_tags",
-        required=False,
-    )
 
     class Meta:
         model = ProjectCategory
@@ -408,22 +397,18 @@ class ProjectCategorySerializer(
             "is_reviewable",
             "order_index",
             "template",
-            "wikipedia_tags",
             "only_reviewer_can_publish",
             "parent",
             "hierarchy",
             "children",
             "projects_count",
+            "tags",
             # read-only
             "background_image",
             "organization",
-            "wikipedia_tags",
-            "organization_tags",
             # write-only
             "background_image_id",
             "organization_code",
-            "wikipedia_tags_ids",
-            "organization_tags_ids",
         ]
 
     def get_hierarchy(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:

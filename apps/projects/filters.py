@@ -18,12 +18,7 @@ class ProjectFilterMixin(filters.FilterSet):
     members = UserMultipleIDFilter(
         field_name="groups__users__id", lookup_expr="in", distinct=True
     )
-    wikipedia_tags = MultiValueCharFilter(
-        field_name="wikipedia_tags__wikipedia_qid", lookup_expr="in"
-    )
-    organization_tags = MultiValueCharFilter(
-        field_name="organization_tags__id", lookup_expr="in"
-    )
+    tags = MultiValueCharFilter(field_name="tags__id", lookup_expr="in")
     sdgs = MultiValueCharFilter(field_name="sdgs", lookup_expr="overlap")
 
     def filter_organizations(self, queryset, name, value):
@@ -52,8 +47,7 @@ class ProjectFilter(ProjectFilterMixin):
             "languages",
             "members",
             "sdgs",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "member_role",
             "life_status",
             "created_at",

@@ -8,6 +8,8 @@ from apps.accounts.utils import (
     get_superadmins_group_permissions,
 )
 from apps.commons.models import PermissionsSetupModel
+from apps.skills.models import TagClassification
+from apps.skills.utils import update_esco_data, update_wikipedia_data
 from projects.celery import app
 
 
@@ -52,3 +54,22 @@ def remove_duplicated_roles():
     for permissions_setup_model in permissions_setup_models:
         for instance in permissions_setup_model.objects.all():
             instance.remove_duplicated_roles()
+
+
+@app.task
+def default_tag_classifications():
+    for classification_type in TagClassification.TagClassificationType.values:
+        if classification_type != TagClassification.TagClassificationType.CUSTOM:
+            TagClassification.get_or_create_default_classification(
+                classification_type=classification_type
+            )
+
+
+@app.task
+def update_wikipedia_tags_data():
+    update_wikipedia_data()
+
+
+@app.task
+def update_esco_tags_data():
+    update_esco_data()

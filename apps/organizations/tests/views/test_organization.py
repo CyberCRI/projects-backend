@@ -1,5 +1,4 @@
 import random
-from unittest.mock import patch
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -10,17 +9,19 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin, TestRoles
-from apps.misc.models import Language
+from apps.commons.models import Language
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from apps.skills.factories import TagClassificationFactory, TagFactory
+from apps.skills.models import TagClassification
 
 faker = Faker()
 
 
-class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
+class CreateOrganizationTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -29,6 +30,10 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
         cls.users = UserFactory.create_batch(2)
         cls.facilitators = UserFactory.create_batch(2)
         cls.admins = UserFactory.create_batch(2)
+        cls.tags = TagFactory.create_batch(2)
+        cls.tag_classification = TagClassification.get_or_create_default_classification(
+            TagClassification.TagClassificationType.WIKIPEDIA
+        )
 
     @parameterized.expand(
         [
@@ -37,10 +42,7 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_create_organization(self, role, expected_code, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
+    def test_create_organization(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         payload = {
@@ -60,13 +62,14 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
-            "wikipedia_tags_ids": wikipedia_qids,
+            "tags": [t.id for t in self.tags],
             "parent_code": self.parent.code,
             "team": {
                 "users": [u.id for u in self.users],
                 "admins": [a.id for a in self.admins],
                 "facilitators": [f.id for f in self.facilitators],
             },
+            "enabled_tag_classifications": [self.tag_classification.id],
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
@@ -100,10 +103,14 @@ class CreateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             self.assertEqual(
                 content["force_login_form_display"], payload["force_login_form_display"]
             )
-            self.assertEqual(len(content["wikipedia_tags"]), 3)
+            self.assertEqual(len(content["tags"]), 2)
             self.assertSetEqual(
-                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-                set(wikipedia_qids),
+                {t["id"] for t in content["tags"]},
+                {t.id for t in self.tags},
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["enabled_tag_classifications"]},
+                {self.tag_classification.id},
             )
             organization = Organization.objects.get(code=payload["code"])
             for user in self.users:
@@ -152,12 +159,14 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][0]["code"], self.organization.code)
 
 
-class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
+class UpdateOrganizationTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.logo_image = cls.get_test_image()
+        cls.tags = TagFactory.create_batch(2)
+        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -169,10 +178,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_organization(self, role, expected_code, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qids = [self.get_random_wikipedia_qid() for _ in range(3)]
+    def test_update_organization(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
@@ -190,7 +196,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
-            "wikipedia_tags_ids": wikipedia_qids,
+            "tags": [t.id for t in self.tags],
+            "enabled_tag_classifications": [self.tag_classification.id],
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(self.organization.code,)), data=payload
@@ -224,8 +231,12 @@ class UpdateOrganizationTestCase(JwtAPITestCase, TagTestCaseMixin):
                 content["force_login_form_display"], payload["force_login_form_display"]
             )
             self.assertSetEqual(
-                {t["wikipedia_qid"] for t in content["wikipedia_tags"]},
-                set(wikipedia_qids),
+                {t["id"] for t in content["tags"]},
+                {t.id for t in self.tags},
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["enabled_tag_classifications"]},
+                {self.tag_classification.id},
             )
 
 
@@ -542,3 +553,26 @@ class MiscOrganizationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Group.objects.filter(name__in=roles_names).exists())
+
+    def test_add_enabled_tag_classifications_with_slug(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        organization = OrganizationFactory()
+        tag_classification = TagClassificationFactory(organization=organization)
+        tag_classification_2 = TagClassificationFactory(organization=organization)
+        payload = {
+            "enabled_tag_classifications": [
+                tag_classification.slug,
+                tag_classification_2.id,
+            ]
+        }
+        response = self.client.patch(
+            reverse("Organization-detail", args=(organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(
+            {c["id"] for c in content["enabled_tag_classifications"]},
+            {tag_classification.id, tag_classification_2.id},
+        )
