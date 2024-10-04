@@ -80,6 +80,7 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
+            total = content["total"]
             by_month = content["by_month"]
             by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())]
             by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())]
@@ -88,6 +89,8 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
             by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
             by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
+
+            self.assertEqual(total, 4)
             self.assertEqual(len(by_month), 3)
             self.assertEqual(by_month_1[0]["created_count"], 2)
             self.assertEqual(by_month_1[0]["updated_count"], 1)

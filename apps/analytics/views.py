@@ -84,6 +84,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         by_month = [{**{"month": k}, **v} for k, v in by_month.items()]
         serializer = StatsSerializer(
             {
+                "total": projects.count(),
                 "by_sdg": by_sdg,
                 "by_month": by_month,
                 "top_tags": wikipedia_tags,
