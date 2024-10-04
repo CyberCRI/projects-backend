@@ -88,13 +88,19 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             content = response_org_1.json()
             total = content["total"]
             by_month = content["by_month"]
-            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())][0]
-            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())][0]
-            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())][0]
+            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())][
+                0
+            ]
+            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())][
+                0
+            ]
+            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())][
+                0
+            ]
             by_sdg = [s for s in content["by_sdg"] if s["project_count"] > 0]
-            by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
-            by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
-            by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
+            by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1][0]
+            by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2][0]
+            by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3][0]
 
             self.assertEqual(total, 3)
             self.assertEqual(len(by_month), 3)
@@ -121,27 +127,33 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             content = response_org_2.json()
             total = content["total"]
             by_month = content["by_month"]
-            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())]
-            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())]
-            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())]
+            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())][
+                0
+            ]
+            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())][
+                0
+            ]
+            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())][
+                0
+            ]
             by_sdg = [s for s in content["by_sdg"] if s["project_count"] > 0]
-            by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
-            by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2]
-            by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3]
+            by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1][0]
+            by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2][0]
+            by_sdg_3 = [s for s in by_sdg if s["sdg"] == 3][0]
 
             self.assertEqual(total, 1)
             self.assertEqual(len(by_month), 3)
-            self.assertEqual(by_month_1[0]["created_count"], 0)
-            self.assertEqual(by_month_1[0]["updated_count"], 0)
-            self.assertEqual(by_month_2[0]["created_count"], 0)
-            self.assertEqual(by_month_2[0]["updated_count"], 0)
-            self.assertEqual(by_month_3[0]["created_count"], 1)
-            self.assertEqual(by_month_3[0]["updated_count"], 1)
+            self.assertEqual(by_month_1["created_count"], 0)
+            self.assertEqual(by_month_1["updated_count"], 0)
+            self.assertEqual(by_month_2["created_count"], 0)
+            self.assertEqual(by_month_2["updated_count"], 0)
+            self.assertEqual(by_month_3["created_count"], 1)
+            self.assertEqual(by_month_3["updated_count"], 1)
 
             self.assertEqual(len(by_sdg), 3)
-            self.assertEqual(by_sdg_1[0]["project_count"], 0)
-            self.assertEqual(by_sdg_2[0]["project_count"], 1)
-            self.assertEqual(by_sdg_3[0]["project_count"], 0)
+            self.assertEqual(by_sdg_1["project_count"], 0)
+            self.assertEqual(by_sdg_2["project_count"], 1)
+            self.assertEqual(by_sdg_3["project_count"], 0)
 
             self.assertEqual(len(content["top_tags"]), 1)
             self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
