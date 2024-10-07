@@ -57,3 +57,4 @@ class StatsSerializer(serializers.Serializer):
     by_sdg = ProjectBySDG(many=True)
     by_month = ProjectByMonth(many=True)
     top_tags = TagProjectSerializer(many=True)
+    total = serializers.IntegerField()
