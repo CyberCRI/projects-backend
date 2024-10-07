@@ -79,7 +79,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         # Top ten wikipedia_tags
         wikipedia_tags = WikipediaTag.objects.annotate(
             project_count=Count("projects", filter=Q(projects__in=projects))
-        ).order_by("-project_count")[:10]
+        ).filter(project_count__gt=0).order_by("-project_count")[:10]
 
         by_month = [{**{"month": k}, **v} for k, v in by_month.items()]
         serializer = StatsSerializer(
