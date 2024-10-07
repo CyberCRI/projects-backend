@@ -82,7 +82,9 @@ class RetrieveStatsTestCase(JwtAPITestCase):
     )
     def test_retrieve_stats(self, role, expected_code):
 
-        user = self.get_parameterized_test_user(role, instances=[self.organization_1, self.organization_2])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization_1, self.organization_2]
+        )
         self.client.force_authenticate(user)
         response_org_1 = self.client.get(
             reverse("Stats-list", args=(self.organization_1.code,))
