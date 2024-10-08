@@ -7,7 +7,6 @@ from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.analytics.factories import StatFactory
 from apps.commons.test import JwtAPITestCase
-from apps.files.models import AttachmentType
 from apps.goals.models import Goal
 
 faker = Faker()
@@ -129,7 +128,6 @@ class StatsTestCase(JwtAPITestCase):
                 content_type="text/plain",
             ),
             "mime": "text/plain",
-            "attachment_type": AttachmentType.FILE,
         }
         response = self.client.post(
             reverse("AttachmentFile-list", args=(self.project.id,)),

@@ -8,7 +8,6 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.files.enums import AttachmentLinkCategory
 from apps.files.factories import AttachmentLinkFactory
 from apps.files.models import AttachmentLink
 from apps.organizations.factories import OrganizationFactory
@@ -57,7 +56,6 @@ class CreateAttachmentLinkTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            self.assertEqual(content["attachment_type"], "link")
             self.assertEqual(content["site_url"], payload["site_url"])
             self.assertEqual(content["preview_image_url"], mocked_response.image)
             self.assertEqual(content["site_name"], mocked_response.site_name)
@@ -69,9 +67,7 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.project = ProjectFactory(organizations=[cls.organization])
-        cls.link = AttachmentLinkFactory(
-            project=cls.project, category=AttachmentLinkCategory.OTHER
-        )
+        cls.link = AttachmentLinkFactory(project=cls.project)
 
     @parameterized.expand(
         [
@@ -89,7 +85,7 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
     def test_update_attachment_link(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {"category": AttachmentLinkCategory.TOOL}
+        payload = {"title": faker.word()}
         response = self.client.patch(
             reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
             data=payload,
@@ -97,7 +93,7 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
-            self.assertEqual(content["category"], payload["category"])
+            self.assertEqual(content["title"], payload["title"])
 
 
 class DeleteAttachmentLinkTestCase(JwtAPITestCase):
