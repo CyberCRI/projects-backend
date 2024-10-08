@@ -6,12 +6,7 @@ from faker import Faker
 
 from apps.projects.factories import ProjectFactory
 
-from .models import (
-    AttachmentFile,
-    AttachmentLink,
-    AttachmentLinkCategory,
-    AttachmentType,
-)
+from .models import AttachmentFile, AttachmentLink
 
 faker = Faker()
 
@@ -29,7 +24,6 @@ class AttachmentFileFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`
-    attachment_type = AttachmentType.FILE
     file = factory.django.FileField(
         filename="file.dat", from_func=get_random_binary_file
     )
@@ -50,8 +44,6 @@ class AttachmentLinkFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`
-    attachment_type = AttachmentType.LINK
-    category = AttachmentLinkCategory.OTHER
     preview_image_url = factory.Faker("url")
     site_name = factory.Faker("text", max_nb_chars=255)
     site_url = factory.Faker("url")

@@ -41,7 +41,7 @@ class ChangeFileProjectError(ValidationError):
 class ChangeLinkProjectError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("You can't change the project of a link")
-    default_code = "change_file_attachment_type_error"
+    default_code = "change_link_project_error"
 
 
 # Technical errors

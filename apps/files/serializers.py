@@ -25,7 +25,7 @@ from .exceptions import (
     DuplicatedLinkError,
     FileTooLargeError,
 )
-from .models import AttachmentFile, AttachmentLink, AttachmentType, Image
+from .models import AttachmentFile, AttachmentLink, Image
 
 
 # From https://github.com/glemmaPaul/django-stdimage-serializer (however the repo is not maintained anymore)
@@ -90,8 +90,6 @@ class AttachmentLinkSerializer(
         fields = [
             "id",
             "project_id",
-            "attachment_type",
-            "category",
             "description",
             "site_url",
             "preview_image_url",
@@ -134,7 +132,6 @@ class AttachmentLinkSerializer(
         instance["preview_image_url"] = self.find_preview_image_url(
             soup, instance.get("site_url")
         )
-        instance["attachment_type"] = self.find_attachment_type(soup)
 
     def validate_site_url(self, site_url):
         project_id = None
@@ -193,22 +190,6 @@ class AttachmentLinkSerializer(
         except Exception:  # noqa: PIE786
             return ""
 
-    @staticmethod
-    def find_attachment_type(soup):
-        if soup.find(
-            lambda tag: (
-                "property" in tag.attrs and tag.attrs["property"] == "og:video:type"
-            )
-        ):
-            return AttachmentType.VIDEO
-        if soup.find(
-            lambda tag: (
-                "property" in tag.attrs and tag.attrs["property"] == "og:image:type"
-            )
-        ):
-            return AttachmentType.IMAGE
-        return AttachmentType.LINK
-
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
@@ -233,7 +214,6 @@ class AttachmentFileSerializer(
             "file",
             "title",
             "description",
-            "attachment_type",
             "mime",
             "hashcode",
         ]

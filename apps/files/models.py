@@ -10,7 +10,6 @@ from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
 from apps.commons.models import HasOwner, OrganizationRelated, ProjectRelated
-from apps.files.enums import AttachmentLinkCategory, AttachmentType
 from apps.files.utils import resize_and_autorotate
 
 if TYPE_CHECKING:
@@ -40,20 +39,12 @@ def attachment_link_preview_path(instance, filename: str):
 
 def attachment_directory_path(instance, filename: str):
     date_part = f"{datetime.datetime.today():%Y-%m-%d}"
-    return f"project/attachments/{instance.project.pk}/{instance.attachment_type}/{date_part}-{filename}"
+    return f"project/attachments/{instance.project.pk}/{date_part}-{filename}"
 
 
 class AttachmentLink(models.Model, ProjectRelated, OrganizationRelated):
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="links"
-    )
-    attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.LINK
-    )
-    category = models.CharField(
-        max_length=50,
-        choices=AttachmentLinkCategory.choices,
-        default=AttachmentLinkCategory.OTHER,
     )
     description = models.TextField(blank=True)
     preview_image_url = models.URLField(
@@ -90,9 +81,6 @@ class AttachmentLink(models.Model, ProjectRelated, OrganizationRelated):
 class AttachmentFile(models.Model, ProjectRelated, OrganizationRelated):
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="files"
-    )
-    attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.FILE
     )
     file = models.FileField(upload_to=attachment_directory_path)
     mime = models.CharField(max_length=100)

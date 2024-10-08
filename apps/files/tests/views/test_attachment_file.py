@@ -8,7 +8,7 @@ from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.files.factories import AttachmentFileFactory
-from apps.files.models import AttachmentFile, AttachmentType
+from apps.files.models import AttachmentFile
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
@@ -48,7 +48,6 @@ class CreateAttachmentFileTestCase(JwtAPITestCase):
                 b"test attachment file",
                 content_type="text/plain",
             ),
-            "attachment_type": AttachmentType.FILE,
             "project_id": project.id,
         }
         response = self.client.post(
@@ -208,7 +207,6 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
         payload = {
             "mime": "text/plain",
             "title": faker.text(max_nb_chars=50),
-            "attachment_type": AttachmentType.FILE,
             "project_id": project.id,
             "file": SimpleUploadedFile(
                 "test_attachment_file.txt",
@@ -301,7 +299,6 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
         payload = {
             "mime": "text/plain",
             "title": faker.text(max_nb_chars=50),
-            "attachment_type": AttachmentType.FILE,
             "project_id": project.id,
             "file": SimpleUploadedFile(
                 "test_attachment_file.txt",
