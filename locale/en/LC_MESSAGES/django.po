@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-09-19 14:28+0200\n"
+"POT-Creation-Date: 2024-10-09 14:47+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -334,8 +334,7 @@ msgid ""
 msgstr ""
 
 #: apps/invitations/templates/access_requests_base.html:83
-#: apps/skills/templates/mentorship_base.html:71
-#: apps/skills/templates/mentorship_base_no_guide.html:57
+#: apps/skills/templates/mentorship_base.html:208
 #: services/keycloak/templates/keycloak_base.html:83
 msgid ""
 "\n"
@@ -1238,18 +1237,230 @@ msgid ""
 "%(mentor_name)s wants to mentor you.\n"
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:56
+#: apps/skills/templates/mentorship_base.html:57
 msgid ""
 "\n"
-"          Need advice on mentorship?\n"
+"          Mentoring guide : advice for mentors and mentorees\n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:61
+#: apps/skills/templates/mentorship_base.html:62
 msgid ""
 "\n"
-"          <a class=\"lpi-link\" href=\"\">Check our guide</a> with tips and "
-"proposals to make the most of your mentorship experience.\n"
+"          Dear Mentors and Mentorees, 👩‍🏫👨‍🎓\n"
+"          <br/>\n"
+"          First of all, the Projects team would like to warmly congratulate "
+"you for embarking on your mentorship journey. It’s sure to be filled with "
+"exciting discoveries and achievements!\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:69
+msgid ""
+"\n"
+"          🌟 To get started\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:74
+msgid ""
+"\n"
+"          We encourage you to watch this video to learn more about the roles "
+"of both mentor and mentoree.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:79
+msgid ""
+"\n"
+"          Watch video\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:84
+msgid ""
+"\n"
+"          In brief : \n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:89
+msgid ""
+"\n"
+"          - <strong>A mentor</strong> serves as a supportive guide who "
+"<strong>listens attentively, asks thoughtful questions, and offers direction "
+"without dictating decisions.</strong> By fostering a trusting environment "
+"that promotes open communication, the mentor assists the mentoree in making "
+"progress.\n"
+"          <br/>\n"
+"          - <strong>For mentorees,</strong> it's crucial to clearly "
+"<strong>define your needs and goals</strong>. You are <strong>the primary "
+"agent of your own development</strong>, applying your mentor's guidance to "
+"achieve your objectives.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:97
+msgid ""
+"\n"
+"          📅 Mentoring structures :\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:102
+msgid ""
+"\n"
+"          Here are a few suggested structures for your mentoring sessions. "
+"Make them your own and adjust each meeting to suit the needs and "
+"availability of everyone involved.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:107
+msgid ""
+"\n"
+"          🔹 <strong>Single session</strong> : Ideal for a quick, one-hour "
+"boost. This could be for feedback on a project, help with an important "
+"decision, or specific advice.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:112
+msgid ""
+"\n"
+"          🔹 <strong>Three one-hour sessions</strong> : Great for diving "
+"deeper into a problem. Here’s a possible breakdown:\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:117
+msgid ""
+"\n"
+"              - 👂 <strong>Session 1</strong> : Understand the issue and "
+"provide initial suggestions.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:122
+msgid ""
+"\n"
+"              - 📚 <strong>Session 2</strong> : Share research and set clear "
+"goals.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:127
+msgid ""
+"\n"
+"              - 🌟 <strong>Session 3</strong> : Review progress and adjust "
+"the approach.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:132
+msgid ""
+"\n"
+"          🔹 <strong>Year-long mentoring (2 hours/month)</strong> : Perfect "
+"for long-term guidance. A typical session might look like this:\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:137
+msgid ""
+"\n"
+"              - 🏅 <strong>Progress review</strong> : Discuss achievements "
+"and new challenges.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:142
+msgid ""
+"\n"
+"              - 🎯 <strong>Goals</strong> : Set 2-3 objectives to work on "
+"before the next session.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:147
+msgid ""
+"\n"
+"              - 📖 <strong>Resources</strong> : Share helpful content "
+"(videos, articles, etc.) to explore between sessions.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:152
+msgid ""
+"\n"
+"              - 🗓️ <strong>Next session</strong> : Schedule the upcoming "
+"meeting.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:158
+msgid ""
+"\n"
+"          ✅ Tips for successful mentoring :\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:163
+msgid ""
+"\n"
+"          📝 <strong>Prepare for each session :</strong> Think about the "
+"topics you want to discuss, goals you want to achieve, and any questions you "
+"have.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:168
+msgid ""
+"\n"
+"          🤝 <strong>Be open and honest :</strong> Building trust requires "
+"transparency.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:173
+msgid ""
+"\n"
+"          👂 <strong>Practice active listening :</strong> Ask questions and "
+"rephrase to confirm you’ve understood.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:178
+msgid ""
+"\n"
+"          🎯 <strong>Set clear goals</strong> after each session.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:183
+msgid ""
+"\n"
+"          📬 <strong>Share useful resources</strong> between meetings to "
+"enhance learning.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:188
+msgid ""
+"\n"
+"          📆 <strong>Always schedule the next session</strong> to maintain "
+"progress.\n"
+"          "
+msgstr ""
+
+#: apps/skills/templates/mentorship_base.html:194
+msgid ""
+"\n"
+"          We hope these tips help you better navigate your mentorship "
+"experience ! Thank you all, and happy mentoring ✨\n"
+"          <br/>\n"
+"          Best regards,\n"
+"          <br/>\n"
+"          The Projects team\n"
 "          "
 msgstr ""
 
