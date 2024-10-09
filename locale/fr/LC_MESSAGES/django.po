@@ -1584,6 +1584,7 @@ msgid ""
 msgstr ""
 "\n"
 "          Guide du mentorat : conseils pour les mentor·es et les mentoré·es\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:62
 msgid ""
@@ -1598,7 +1599,9 @@ msgstr ""
 "\n"
 "          Chères mentor·es et mentoré·es, 👩‍🏫👨‍🎓\n"
 "          <br/>\n"
-"          L’équipe Projects tient tout d'abord à vous féliciter chaleureusement de vous être engagé·e·s dans cette aventure de mentorat. Elle promet d'être riche en découvertes et en succès !\n"
+"          L’équipe Projects tient tout d'abord à vous féliciter chaleureusement de "
+"vous être engagé·e·s dans cette aventure de mentorat. Elle promet d'être riche en "
+"découvertes et en succès !\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:69
@@ -1641,6 +1644,7 @@ msgid ""
 msgstr ""
 "\n"
 "          En résumé : \n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:89
 msgid ""
