@@ -17,7 +17,6 @@ from apps.misc.serializers import WikipediaTagSerializer
 from apps.organizations.models import Organization
 
 from .exceptions import UserCannotMentorError, UserDoesNotNeedMentorError
-from .models import MentorshipContact
 from .serializers import MentorshipContactSerializer
 
 
@@ -314,16 +313,6 @@ class MentorshipContactViewset(viewsets.ViewSet):
         reply_to = kwargs["reply_to"]
         send_email(
             subject, text, [skill.user.email], html_content=html, reply_to=[reply_to]
-        )
-        contact_type = {
-            "contact_mentor": MentorshipContact.ContactTypeChoices.MENTOR_REQUEST,
-            "contact_mentoree": MentorshipContact.ContactTypeChoices.MENTOREE_REQUEST,
-        }.get(template_folder)
-        MentorshipContact.objects.create(
-            sender=self.request.user,
-            receiver=skill.user,
-            old_skill=skill,
-            contact_type=contact_type,
         )
 
     @extend_schema(request=MentorshipContactSerializer, responses={204: None})

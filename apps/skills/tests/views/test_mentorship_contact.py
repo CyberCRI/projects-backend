@@ -8,7 +8,6 @@ from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
-from apps.skills.models import MentorshipContact
 
 faker = Faker()
 
@@ -53,14 +52,6 @@ class MentorshipContactTestCase(JwtAPITestCase):
             self.assertIn(payload["title"], email.body)
             self.assertIn(payload["content"], email.body)
             self.assertIn(payload["reply_to"], email.body)
-            mentorship_contact = MentorshipContact.objects.filter(
-                sender=user,
-                receiver=self.mentor,
-                old_skill=self.mentor_skill,
-                contact_type=MentorshipContact.ContactTypeChoices.MENTOR_REQUEST,
-            )
-            self.assertTrue(mentorship_contact.exists())
-            self.assertTrue(mentorship_contact.count() == 1)
 
     @parameterized.expand(
         [
@@ -92,14 +83,6 @@ class MentorshipContactTestCase(JwtAPITestCase):
             self.assertIn(payload["title"], email.body)
             self.assertIn(payload["content"], email.body)
             self.assertIn(payload["reply_to"], email.body)
-            mentorship_contact = MentorshipContact.objects.filter(
-                sender=user,
-                receiver=self.mentoree,
-                old_skill=self.mentoree_skill,
-                contact_type=MentorshipContact.ContactTypeChoices.MENTOREE_REQUEST,
-            )
-            self.assertTrue(mentorship_contact.exists())
-            self.assertTrue(mentorship_contact.count() == 1)
 
 
 class ValidateMentorshipContactTestCase(JwtAPITestCase):
