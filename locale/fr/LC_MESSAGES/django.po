@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-03 17:34+0200\n"
+"POT-Creation-Date: 2024-10-11 15:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1427,6 +1427,10 @@ msgstr "La catégorie parente doit appartenir à la même organisation"
 msgid "You are trying to create a loop in the category's hierarchy"
 msgstr "Vous essayez de créer une boucle dans la hiérarchie des catégories"
 
+#: apps/organizations/exceptions.py:48
+msgid "You must choose a default tag classification that is enabled"
+msgstr "La classification de tags par défaut doit être activée sur le portail"
+
 #: apps/projects/exceptions.py:12
 msgid "You don't have the permission to link this project"
 msgstr "Vous n'avez pas la permission de lier ce projet"
@@ -1550,7 +1554,8 @@ msgstr "Les tags doivent appartenir à l'organisation de la classification"
 #: apps/skills/serializers.py:86
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
-msgstr "identifiant invalide \"{tag_classification_id}\" - cet objet n'existe pas."
+msgstr ""
+"identifiant invalide \"{tag_classification_id}\" - cet objet n'existe pas."
 
 #: apps/skills/templates/contact_mentor/mail.html:14
 #: apps/skills/templates/contact_mentoree/mail.html:14

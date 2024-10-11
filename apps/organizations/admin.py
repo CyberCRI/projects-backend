@@ -28,6 +28,7 @@ class OrganizationAdmin(admin.ModelAdmin):
         "tags",
         "identity_providers",
         "featured_projects",
+        "enabled_tag_classifications",
     )
 
     def save_model(self, request, obj, form, change):

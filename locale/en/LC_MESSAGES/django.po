@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-03 17:34+0200\n"
+"POT-Creation-Date: 2024-10-11 15:21+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1102,6 +1102,10 @@ msgstr ""
 
 #: apps/organizations/exceptions.py:42
 msgid "You are trying to create a loop in the category's hierarchy"
+msgstr ""
+
+#: apps/organizations/exceptions.py:48
+msgid "You must choose a default tag classification that is enabled"
 msgstr ""
 
 #: apps/projects/exceptions.py:12

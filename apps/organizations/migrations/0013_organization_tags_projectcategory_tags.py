@@ -31,6 +31,17 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.AddField(
+            model_name="organization",
+            name="default_tag_classification",
+            field=models.ForeignKey(
+                blank=True,
+                null=True,
+                on_delete=models.deletion.SET_NULL,
+                related_name="default_organizations",
+                to="skills.tagclassification",
+            ),
+        ),
+        migrations.AddField(
             model_name="projectcategory",
             name="tags",
             field=models.ManyToManyField(

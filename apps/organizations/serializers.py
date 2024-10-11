@@ -5,6 +5,7 @@ from typing import Dict, List, Union
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
@@ -16,6 +17,7 @@ from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.projects.models import Project
+from apps.skills.models import TagClassification
 from apps.skills.serializers import (
     TagClassificationMultipleIdRelatedField,
     TagRelatedField,
@@ -24,6 +26,7 @@ from services.keycloak.serializers import IdentityProviderSerializer
 
 from .exceptions import (
     CategoryHierarchyLoopError,
+    DefaultTagClassificationIsNotEnabledError,
     FeaturedProjectPermissionDeniedError,
     NonRootCategoryParentError,
     OrganizationHierarchyLoopError,
@@ -177,11 +180,12 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     enabled_tag_classifications = TagClassificationMultipleIdRelatedField(
         many=True, required=False
     )
+    default_tag_classification = TagClassificationMultipleIdRelatedField(required=False)
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     faq = FaqSerializer(many=False, read_only=True)
-    tags = TagRelatedField(many=True, required=False)
+    tags = TagRelatedField(many=True)
     children = SlugRelatedField(
         many=True,
         read_only=True,
@@ -233,6 +237,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "updated_at",
             "tags",
             "enabled_tag_classifications",
+            "default_tag_classification",
             # read_only
             "banner_image",
             "logo_image",
@@ -256,6 +261,23 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             if self.instance == parent:
                 raise OrganizationHierarchyLoopError
             parent = parent.parent
+        return value
+
+    def validate_default_tag_classification(self, value):
+        if not self.instance or "default_tag_classification" in self.initial_data:
+            enabled_tag_classifications = self.initial_data.get(
+                "enabled_tag_classifications", []
+            )
+            enabled_tag_classifications = TagClassification.objects.filter(
+                Q(id__in=enabled_tag_classifications)
+                | Q(slug__in=enabled_tag_classifications)
+            ).distinct()
+        elif self.instance:
+            enabled_tag_classifications = (
+                self.instance.enabled_tag_classifications.all()
+            )
+        if value and value not in enabled_tag_classifications:
+            raise DefaultTagClassificationIsNotEnabledError
         return value
 
     def get_related_organizations(self) -> Organization:

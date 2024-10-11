@@ -166,6 +166,13 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         related_name="enabled_organizations",
         blank=True,
     )
+    default_tag_classification = models.ForeignKey(
+        "skills.TagClassification",
+        related_name="default_organizations",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     groups = models.ManyToManyField(Group, related_name="organizations")
 

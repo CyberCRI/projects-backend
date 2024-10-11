@@ -375,3 +375,52 @@ class ValidateTagClassificationTestCase(JwtAPITestCase):
             response,
             {"tags": ["Tags must belong to the classification's organization"]},
         )
+
+
+class MiscTagClassificationTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
+    def test_get_slug(self):
+        title = "My AMazing TaG ClassIFicatIOn !"
+        tag_classification = TagClassificationFactory(
+            title=title, organization=self.organization
+        )
+        self.assertEqual(tag_classification.slug, "my-amazing-tag-classification")
+        tag_classification = TagClassificationFactory(
+            title=title, organization=self.organization
+        )
+        self.assertEqual(tag_classification.slug, "my-amazing-tag-classification-1")
+        tag_classification = TagClassificationFactory(
+            title=title, organization=self.organization
+        )
+        self.assertEqual(tag_classification.slug, "my-amazing-tag-classification-2")
+        tag_classification = TagClassificationFactory(
+            title="123", organization=self.organization
+        )
+        self.assertTrue(
+            tag_classification.slug.startswith("tag-classification-"),
+            tag_classification.slug,
+        )
+
+    def test_multiple_lookups(self):
+        tag_classification = TagClassificationFactory(organization=self.organization)
+        response = self.client.get(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, tag_classification.id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["slug"], tag_classification.slug)
+        response = self.client.get(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, tag_classification.slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], tag_classification.id)
