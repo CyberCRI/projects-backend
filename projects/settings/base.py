@@ -417,6 +417,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.projects.tasks.remove_old_projects",
         "schedule": crontab(minute=0, hour=0),
     },
+    "remove_old_project_versions": {
+        "task": "apps.projects.tasks.remove_old_project_versions",
+        "schedule": crontab(minute=0, hour=0),
+    },
     "vectorize_updated_objects": {
         "task": "services.mistral.tasks.vectorize_updated_objects",
         "schedule": crontab(minute=0, hour=1),
@@ -543,6 +547,9 @@ MAX_FILE_SIZE = 10
 
 # Hard Delete Project Time in days
 DELETED_PROJECT_RETENTION_DAYS = 0
+
+# Project versions retention in days
+PROJECT_VERSIONS_RETENTION_DAYS = 30
 
 # Authentication cookie name
 JWT_ACCESS_TOKEN_COOKIE_NAME = "jwt_access_token"  # nosec

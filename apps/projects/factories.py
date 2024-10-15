@@ -1,4 +1,6 @@
 import factory
+from django.apps import apps
+from django.utils import timezone
 from factory.fuzzy import FuzzyChoice, FuzzyInteger
 
 from apps.accounts.factories import UserFactory
@@ -72,6 +74,18 @@ class ProjectFactory(SeedProjectFactory):
             category = ProjectCategoryFactory(organization=self.organizations.first())
             self.main_category = category
             self.categories.add(category)
+
+
+class ProjectHistoryFactory(factory.django.DjangoModelFactory):
+    history_relation = factory.LazyFunction(
+        lambda: ProjectFactory()
+    )  # Subfactory seems to not trigger `create()`
+    history_date = timezone.localtime(timezone.now())
+    created_at = timezone.localtime(timezone.now())
+    updated_at = timezone.localtime(timezone.now())
+
+    class Meta:
+        model = apps.get_model("projects", "HistoricalProject")
 
 
 class ProjectScoreFactory(factory.django.DjangoModelFactory):
