@@ -120,6 +120,7 @@ redis:
 instance: main # By default, the instance of the backend is the main one
 
 workflow:
+  resourceName: '{{tpl .Values.fullName $}}-workflow'
   rbac:
     executorClusterRoleName: executor
     serviceAccountName: workflow
@@ -139,4 +140,11 @@ workflow:
         enabled: false
         schedule: '0 9 * * Tue-Sat' # Backup yesterday's data, so tuesday-saturday to backup monday-friday
     storageAccountName: criparisprodprodbackup
+  databaseWorkflowTemplate:
+    name: database
+    dropDb:
+      templateName: drop-db
+    createDb:
+      templateName: create-db
+
 runMigrations: true

@@ -1,9 +1,10 @@
 {{- if .Values.workflow.lifecycle.enabled}}
+{{ $resourceName := (tpl $.Values.workflow.resourceName .) }}
 ---
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+  name: {{ $resourceName }}
   labels:
     {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
 data:
@@ -17,7 +18,7 @@ data:
 apiVersion: v1
 kind: Secret
 metadata:
-  name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
+  name: {{ $resourceName }}
   labels:
     {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
 stringData:
@@ -38,68 +39,46 @@ spec:
   securityContext:
     {{- include "common.security.podSecurityContext.restricted" dict | nindent 4 }}
   templates:
-    - name: drop-db
-      inputs:
-        parameters:
+  - name: drop-db
+    inputs:
+      parameters:
+        - name: dry_run
+          value: "true"
+          enum:
+          - 'true'
+          - 'false'
+        - name: force_disconnect
+          value: "false"
+          enum:
+          - 'true'
+          - 'false'
+    steps:
+    - - name: drop-db
+        templateRef:
+          clusterScope: true
+          name: {{ .Values.workflow.databaseWorkflowTemplate.name }}
+          template: {{ .Values.workflow.databaseWorkflowTemplate.dropDb.templateName }}
+        arguments:
+          parameters:
           - name: dry_run
-            value: "true"
-            enum:
-            - 'true'
-            - 'false'
+            value: {{ print "{{inputs.parameters.dry_run}}" | quote }}
           - name: force_disconnect
-            value: "false"
-            enum:
-            - 'true'
-            - 'false'
-      container:
-      {{- with $.Values.image }}
-        image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
-      {{- end }}
-        args: ["make", "dropdb"]
-        env:
-        - name: DRY_RUN
-          value: {{ print "{{inputs.parameters.dry_run}}" | quote }}
-        - name: FORCE_DISCONNECT
-          value: {{ print "{{inputs.parameters.force_disconnect}}" | quote }}
-        envFrom:
-        - configMapRef:
-            name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
-        volumeMounts:
-        - name: secrets
-          mountPath: "/secrets"
-          readOnly: true
-      volumes:
-      - name: secrets
-        secret:
-          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
-    - name: create-db
-      inputs:
-        parameters:
-          - name: dry_run
-            value: "true"
-            enum:
-            - 'true'
-            - 'false'
-      container:
-      {{- with $.Values.image }}
-        image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
-      {{- end }}
-        args: ["make", "createdb"]
-        env:
-        - name: DRY_RUN
-          value: {{ print "{{inputs.parameters.dry_run}}" | quote}}
-        envFrom:
-        - configMapRef:
-            name: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
-        volumeMounts:
-        - name: secrets
-          mountPath: "/secrets"
-          readOnly: true
-
-      volumes:
-      {{- if .Values.config.sensitive }}
-      - name: secrets
-        secret:
-          secretName: {{ printf "%s-workflow" (tpl $.Values.fullName $) }}
-      {{- end }}
+            value: {{ print "{{inputs.parameters.force_disconnect}}" | quote }}
+          - name: environmentSecretName
+            value: {{ $resourceName }}
+          - name: environmentConfigmapName
+            value: {{ $resourceName }}
+  - name: create-db
+    steps:
+    - - name: create-db
+        templateRef:
+          clusterScope: true
+          name: {{ .Values.workflow.databaseWorkflowTemplate.name }}
+          template: {{ .Values.workflow.databaseWorkflowTemplate.createDb.templateName }}
+        arguments:
+          parameters:
+          - name: environmentSecretName
+            value: {{ $resourceName }}
+          - name: environmentConfigmapName
+            value: {{ $resourceName }}
 {{- end }}
