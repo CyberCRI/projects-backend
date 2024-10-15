@@ -64,11 +64,11 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         cls.tag_1 = TagFactory()
         cls.tag_2 = TagFactory()
         cls.tag_3 = TagFactory()
-        cls.project_1.wikipedia_tags.add(cls.tag_1)
-        cls.project_2.wikipedia_tags.add(cls.tag_1, cls.tag_2)
-        cls.project_3.wikipedia_tags.add(cls.tag_3)
-        cls.project_4.wikipedia_tags.add(cls.tag_1)
-        cls.project_5.wikipedia_tags.add(cls.tag_1)
+        cls.project_1.tags.add(cls.tag_1)
+        cls.project_2.tags.add(cls.tag_1, cls.tag_2)
+        cls.project_3.tags.add(cls.tag_3)
+        cls.project_4.tags.add(cls.tag_1)
+        cls.project_5.tags.add(cls.tag_1)
 
     @parameterized.expand(
         [

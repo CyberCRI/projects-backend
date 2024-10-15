@@ -49,7 +49,7 @@ from .utils import (
 )
 
 
-class SkillViewSet(WriteOnlyModelViewSet, MultipleIDViewsetMixin):
+class SkillViewSet(MultipleIDViewsetMixin, WriteOnlyModelViewSet):
     queryset = Skill.objects.all()
     serializer_class = SkillSerializer
     permission_classes = [
@@ -83,9 +83,10 @@ class SkillViewSet(WriteOnlyModelViewSet, MultipleIDViewsetMixin):
             raise UserIDIsNotProvidedError
 
 
-class TagClassificationViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
+class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     permission_classes = [ReadOnly]
     serializer_class = TagClassificationSerializer
+    lookup_field = "id"
     multiple_lookup_fields = [
         (TagClassification, "id"),
     ]
@@ -171,7 +172,7 @@ class TagClassificationViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class TagViewSet(viewsets.ModelViewSet, MultipleIDViewsetMixin):
+class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = TagSerializer
     search_fields = [
         *[f"title_{language}" for language in settings.REQUIRED_LANGUAGES],
@@ -442,7 +443,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         return self.get_paginated_list(tags)
 
 
-class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
+class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
     serializer_class = UserLightSerializer
     permission_classes = [ReadOnly]
     multiple_lookup_fields = [

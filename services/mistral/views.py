@@ -19,7 +19,7 @@ from apps.projects.serializers import ProjectLightSerializer
 from .models import ProjectEmbedding, UserEmbedding
 
 
-class RecommendationsViewset(GenericViewSet, MultipleIDViewsetMixin):
+class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
     ordering_fields = []
     permission_classes = [ReadOnly]
