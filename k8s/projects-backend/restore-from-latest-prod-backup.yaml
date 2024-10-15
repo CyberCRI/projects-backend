@@ -1,0 +1,10 @@
+workflow:
+  lifecycle:
+    enabled: true
+    config:
+      nonSensitive:
+        ORIGIN_POSTGRES_DB: null
+        STRATEGY: from_latest_backup
+        RCLONE_CONFIG_DEST_ACCOUNT: criparisprodprodbackup
+        RCLONE_DESTINATION_NAME: dest
+        STORAGE_CONTAINER_NAME: projects-backups
