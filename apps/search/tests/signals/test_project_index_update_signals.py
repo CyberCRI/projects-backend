@@ -6,16 +6,16 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
-from apps.misc.factories import TagFactory
+from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from apps.skills.factories import TagFactory
 
 faker = Faker()
 
 
-class ProjectIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
+class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -131,25 +131,11 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         signal.assert_called_with(self.project.pk)
 
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     @patch("apps.search.tasks.update_or_create_project_search_object_task.delay")
-    def test_signal_called_on_new_wikipedia_tags(self, signal, wikipedia_mock):
-        wikipedia_mock.side_effect = self.get_wikipedia_tag_mocked_side_effect
+    def test_signal_called_on_new_tags(self, signal):
         self.client.force_authenticate(self.superadmin)
-        wikipedia_tag = self.get_random_wikipedia_qid()
-        payload = {"wikipedia_tags": [wikipedia_tag]}
-        response = self.client.patch(
-            reverse("Project-detail", args=(self.project.pk,)),
-            payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        signal.assert_called_with(self.project.pk)
-
-    @patch("apps.search.tasks.update_or_create_project_search_object_task.delay")
-    def test_signal_called_on_new_organization_tags(self, signal):
-        self.client.force_authenticate(self.superadmin)
-        tag = TagFactory(organization=self.organization)
-        payload = {"organizations_tags_ids": [tag.id]}
+        tag = TagFactory()
+        payload = {"tags": [tag.id]}
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.pk,)),
             payload,

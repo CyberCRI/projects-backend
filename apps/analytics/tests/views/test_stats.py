@@ -6,10 +6,10 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from apps.skills.factories import TagFactory
 
 
 class RetrieveStatsTestCase(JwtAPITestCase):
@@ -61,14 +61,14 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         Project.objects.filter(pk=cls.project_5.pk).update(
             created_at=cls.date_2, updated_at=cls.date_2
         )
-        cls.tag_1 = WikipediaTagFactory()
-        cls.tag_2 = WikipediaTagFactory()
-        cls.tag_3 = WikipediaTagFactory()
-        cls.project_1.wikipedia_tags.add(cls.tag_1)
-        cls.project_2.wikipedia_tags.add(cls.tag_1, cls.tag_2)
-        cls.project_3.wikipedia_tags.add(cls.tag_3)
-        cls.project_4.wikipedia_tags.add(cls.tag_1)
-        cls.project_5.wikipedia_tags.add(cls.tag_1)
+        cls.tag_1 = TagFactory()
+        cls.tag_2 = TagFactory()
+        cls.tag_3 = TagFactory()
+        cls.project_1.tags.add(cls.tag_1)
+        cls.project_2.tags.add(cls.tag_1, cls.tag_2)
+        cls.project_3.tags.add(cls.tag_3)
+        cls.project_4.tags.add(cls.tag_1)
+        cls.project_5.tags.add(cls.tag_1)
 
     @parameterized.expand(
         [

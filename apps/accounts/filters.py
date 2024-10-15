@@ -2,13 +2,7 @@ from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter
 
-from .models import PeopleGroup, ProjectUser, Skill
-
-
-class SkillFilter(filters.FilterSet):
-    class Meta:
-        model = Skill
-        fields = ["user"]
+from .models import PeopleGroup, ProjectUser
 
 
 class PeopleGroupFilter(filters.FilterSet):
@@ -54,12 +48,12 @@ class UserFilter(filters.FilterSet):
 
     def filter_can_mentor_on(self, queryset, name, value):
         return queryset.filter(
-            skills__can_mentor=True, skills__wikipedia_tag__wikipedia_qid__in=value
+            skills__can_mentor=True, skills__tag__id__in=value
         ).distinct()
 
     def filter_needs_mentor_on(self, queryset, name, value):
         return queryset.filter(
-            skills__needs_mentor=True, skills__wikipedia_tag__wikipedia_qid__in=value
+            skills__needs_mentor=True, skills__tag__id__in=value
         ).distinct()
 
     class Meta:

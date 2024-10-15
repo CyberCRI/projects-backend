@@ -5,6 +5,6 @@ from .models import Notification
 
 
 @register(Notification)
-class TagTranslationOptions(TranslationOptions):
+class NotificationTranslationOptions(TranslationOptions):
     fields = ("reminder_message",)
     required_languages = settings.REQUIRED_LANGUAGES

@@ -25,9 +25,10 @@ class OrganizationAdmin(admin.ModelAdmin):
         "contact_email",
     )
     filter_horizontal = (
-        "wikipedia_tags",
+        "tags",
         "identity_providers",
         "featured_projects",
+        "enabled_tag_classifications",
     )
 
     def save_model(self, request, obj, form, change):

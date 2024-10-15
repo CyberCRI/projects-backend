@@ -9,11 +9,11 @@ from apps.feedbacks.views import (
     ReviewViewSet,
 )
 from apps.files.views import AttachmentFileViewSet, AttachmentLinkViewSet
-from apps.goals.views import GoalViewSet
 
 from .views import (
     BlogEntryImagesView,
     BlogEntryViewSet,
+    GoalViewSet,
     HistoricalProjectViewSet,
     LinkedProjectViewSet,
     LocationViewSet,

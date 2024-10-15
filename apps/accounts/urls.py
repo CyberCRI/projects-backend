@@ -4,14 +4,12 @@ from rest_framework_nested.routers import DefaultRouter, NestedSimpleRouter
 from apps.accounts.views import (
     DeleteCookieView,
     PrivacySettingsViewSet,
-    SkillViewSet,
     UserProfilePictureView,
     UserViewSet,
 )
 from apps.feedbacks.views import ReviewViewSet, UserFollowViewSet
 
 router = DefaultRouter()
-router.register(r"skill", SkillViewSet, basename="Skill")
 router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySettings")
 
 user_router = DefaultRouter()

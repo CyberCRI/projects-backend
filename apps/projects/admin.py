@@ -18,7 +18,7 @@ class ProjectAdmin(admin.ModelAdmin):
         "title",
         "purpose",
     )
-    filter_horizontal = ("wikipedia_tags",)
+    filter_horizontal = ("tags",)
 
 
 admin.site.register(Project, ProjectAdmin)
