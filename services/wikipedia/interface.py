@@ -46,7 +46,7 @@ class WikipediaService:
         """
         Get the data for multiple Wikipedia Tags from the Wikimedia API.
         """
-        params = {"action": "wbgetentities", "format": "json", "ids": wikipedia_qids}
+        params = {"action": "wbgetentities", "format": "json", "ids": "|".join(wikipedia_qids)}
         return requests.get(cls.MEDIAWIKI_API_URL, params)
 
     @classmethod
@@ -54,6 +54,8 @@ class WikipediaService:
         """
         Get and format the data for multiple Wikipedia Tags from the Wikimedia API.
         """
+        if not wikipedia_qids:
+            return []
         response = cls.wbgetentities(wikipedia_qids)
         if response.status_code != status.HTTP_200_OK:
             raise WikibaseAPIException(response.status_code)
