@@ -46,7 +46,11 @@ class WikipediaService:
         """
         Get the data for multiple Wikipedia Tags from the Wikimedia API.
         """
-        params = {"action": "wbgetentities", "format": "json", "ids": "|".join(wikipedia_qids)}
+        params = {
+            "action": "wbgetentities",
+            "format": "json",
+            "ids": "|".join(wikipedia_qids),
+        }
         return requests.get(cls.MEDIAWIKI_API_URL, params)
 
     @classmethod

@@ -9,6 +9,7 @@ from apps.commons.urls import (
 from .views import (
     MentorshipContactViewset,
     OrganizationMentorshipViewset,
+    ReadTagViewSet,
     SkillViewSet,
     TagClassificationViewSet,
     TagViewSet,
@@ -24,6 +25,13 @@ organization_router_register(
     basename="TagClassification",
 )
 
+router.register(
+    r"tag",
+    ReadTagViewSet,
+    basename="ReadTag",
+)
+
+
 organization_router_register(
     router,
     r"tag",
@@ -33,7 +41,7 @@ organization_router_register(
 
 organization_router_register(
     router,
-    r"tag-classification/(?P<tag_classification_id>\d+)/tag",
+    r"tag-classification/(?P<tag_classification_id>[^/]+)/tag",
     TagViewSet,
     basename="ClassificationTag",
 )
@@ -56,7 +64,7 @@ organization_user_router_register(
 
 organization_router_register(
     router,
-    r"skill/(?P<skill_id>\d+)",
+    r"skill/(?P<skill_id>[^/]+)",
     MentorshipContactViewset,
     basename="MentorshipContact",
 )

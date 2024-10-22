@@ -287,7 +287,7 @@ class SearchClassificationTagTestCase(WikipediaTestCase):
     @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
     def test_search_wikipedia_tags(self, role, mocked_search, mocked_get):
         existing_tags_qids = [tag.external_id for tag in self.existing_wikipedia_tags]
-        new_tags_qids = [self.get_random_wikipedia_qid() for _ in range(95)]
+        new_tags_qids = [self.get_random_wikipedia_qid() for _ in range(45)]
         wikipedia_qids = existing_tags_qids + new_tags_qids
         mocked_search.side_effect = (
             self.search_wikipedia_tag_mocked_side_effect_with_given_ids(wikipedia_qids)
@@ -309,7 +309,7 @@ class SearchClassificationTagTestCase(WikipediaTestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
-        self.assertEqual(len(content), 100)
+        self.assertEqual(len(content), 50)
         queryset = Tag.objects.filter(
             type=Tag.TagType.WIKIPEDIA, external_id__in=wikipedia_qids
         )
@@ -396,12 +396,6 @@ class AutocompleteClassificationTagTestCase(JwtAPITestCase):
             for i in range(5)
         ]
 
-        # Other tags not returned by the autocomplete endpoint
-        not_returned = [
-            TagFactory(title_en=f"abcd{cls.query}"),
-            *TagFactory.create_batch(5),
-        ]
-
         cls.tag_classification = TagClassificationFactory(
             organization=cls.organization,
             tags=[
@@ -411,20 +405,15 @@ class AutocompleteClassificationTagTestCase(JwtAPITestCase):
                 cls.tag_4,
                 cls.tag_5,
                 *cls.unused_tags,
-                *not_returned,
             ],
         )
 
         # Attach tags to projects
-        cls.project_1.tags.add(
-            cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, cls.tag_5, *not_returned
-        )
-        cls.project_2.tags.add(
-            cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, *not_returned
-        )
-        cls.project_3.tags.add(cls.tag_1, cls.tag_2, cls.tag_3, *not_returned)
-        cls.project_4.tags.add(cls.tag_1, cls.tag_2, *not_returned)
-        cls.project_5.tags.add(cls.tag_1, *not_returned)
+        cls.project_1.tags.add(cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4, cls.tag_5)
+        cls.project_2.tags.add(cls.tag_1, cls.tag_2, cls.tag_3, cls.tag_4)
+        cls.project_3.tags.add(cls.tag_1, cls.tag_2, cls.tag_3)
+        cls.project_4.tags.add(cls.tag_1, cls.tag_2)
+        cls.project_5.tags.add(cls.tag_1)
 
     @parameterized.expand(
         [

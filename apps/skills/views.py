@@ -32,7 +32,9 @@ from .exceptions import (
     UserCannotMentorError,
     UserDoesNotNeedMentorError,
     UserIDIsNotProvidedError,
+    WikipediaTagSearchLimitError,
 )
+from .filters import TagFilter
 from .models import Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
 from .serializers import (
@@ -201,14 +203,11 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         organization_code = self.kwargs.get("organization_code", None)
         tag_classification_id = self.kwargs.get("tag_classification_id", None)
-        if organization_code:
-            queryset = Tag.objects.filter(organization__code=organization_code)
-            if tag_classification_id:
-                queryset = queryset.filter(
-                    tag_classifications__id__in=[tag_classification_id]
-                )
-            return queryset
-        return Tag.objects.none()
+        if organization_code and not tag_classification_id:
+            return Tag.objects.filter(organization__code=organization_code)
+        if organization_code and tag_classification_id:
+            return Tag.objects.filter(tag_classifications__id=tag_classification_id)
+        return Tag.objects.all()
 
     def create(self, request, *args, **kwargs):
         data = set_default_language_title_and_description(request.data)
@@ -264,9 +263,11 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         params = {
             "query": str(self.request.query_params.get("search", "")),
             "language": str(self.request.query_params.get("language", "en")),
-            "limit": int(self.request.query_params.get("limit", 100)),
+            "limit": int(self.request.query_params.get("limit", 50)),
             "offset": int(self.request.query_params.get("offset", 0)),
         }
+        if params["limit"] > 50:
+            raise WikipediaTagSearchLimitError
         wikipedia_qids, next_items = WikipediaService.search(**params)
         queryset = update_or_create_wikipedia_tags(wikipedia_qids)
         count = next_items + len(queryset)
@@ -323,6 +324,13 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         data = queryset.values_list(f"title_{language}", flat=True)
         return Response(data)
+
+
+class ReadTagViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = TagSerializer
+    filterset_class = TagFilter
+    queryset = Tag.objects.all()
+    permission_classes = [ReadOnly]
 
 
 class OrganizationMentorshipViewset(PaginatedViewSet):

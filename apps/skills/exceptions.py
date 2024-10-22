@@ -41,6 +41,12 @@ class UpdateWrongTypeTagClassificationError(APIException):
     default_code = "update_wrong_type_tag_classification"
 
 
+class WikipediaTagSearchLimitError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("You can only search for 50 Wikipedia tags at a time")
+    default_code = "wikipedia_tag_search_limit"
+
+
 # Validation errors
 
 
