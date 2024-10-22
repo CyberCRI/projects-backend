@@ -7,11 +7,8 @@ from apps.commons.models import PermissionsSetupModel
 from .tasks import (
     algolia_reindex_task,
     base_groups_permissions,
-    default_tag_classifications,
     instance_groups_permissions,
     remove_duplicated_roles,
-    update_esco_tags_data,
-    update_wikipedia_tags_data,
 )
 
 
@@ -64,19 +61,19 @@ class RemoveDuplicatedRoles(PostDeployTask):
     task = remove_duplicated_roles
 
 
-class CreateDefaultTagClassifications(PostDeployTask):
-    task_name = "default_tag_classifications"
-    priority = 5
-    task = default_tag_classifications
+# class CreateDefaultTagClassifications(PostDeployTask):  # noqa
+#     task_name = "default_tag_classifications"  # noqa
+#     priority = 5  # noqa
+#     task = default_tag_classifications  # noqa
 
 
-class UpdateWikipediaTagsData(PostDeployTask):
-    task_name = "update_wikipedia_tags_data"
-    priority = 6
-    task = update_wikipedia_tags_data
+# class UpdateWikipediaTagsData(PostDeployTask):  # noqa
+#     task_name = "update_wikipedia_tags_data"  # noqa
+#     priority = 6  # noqa
+#     task = update_wikipedia_tags_data  # noqa
 
 
-class UpdateEscoTagsData(PostDeployTask):
-    task_name = "update_esco_tags_data"
-    priority = 7
-    task = update_esco_tags_data
+# class UpdateEscoTagsData(PostDeployTask):  # noqa
+#     task_name = "update_esco_tags_data"  # noqa
+#     priority = 7  # noqa
+#     task = update_esco_tags_data  # noqa
