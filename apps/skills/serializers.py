@@ -28,6 +28,8 @@ class TagClassificationLightSerializer(serializers.ModelSerializer):
             "type",
             "slug",
             "organization",
+            "title",
+            "description",
         ]
         fields = read_only_fields
 
