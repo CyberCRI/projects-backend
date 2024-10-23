@@ -155,7 +155,7 @@ class AttachmentFile(
         new_file = SimpleUploadedFile(
             name=new_name,
             content=self.file.read(),
-            content_type=f"image/{file_extension}",
+            content_type=f"application/{file_extension}",
         )
         return AttachmentFile.objects.create(
             project=project,
