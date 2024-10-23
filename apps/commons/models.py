@@ -77,3 +77,12 @@ class HasMultipleIDs:
     ) -> List[Any]:
         """Get the main IDs from a list of secondary IDs."""
         return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]
+
+
+class DuplicableModel:
+    """
+    A model that can be duplicated.
+    """
+
+    def duplicate(self, *args, **kwargs):
+        raise NotImplementedError()

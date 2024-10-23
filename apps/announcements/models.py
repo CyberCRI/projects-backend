@@ -2,14 +2,14 @@ from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models
 
-from apps.commons.models import OrganizationRelated, ProjectRelated
+from apps.commons.models import DuplicableModel, OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization
     from apps.projects.models import Project
 
 
-class Announcement(models.Model, ProjectRelated, OrganizationRelated):
+class Announcement(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     """Information about an announcement working on a Project.
 
     Attributes
@@ -69,6 +69,17 @@ class Announcement(models.Model, ProjectRelated, OrganizationRelated):
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
+
+    def duplicate(self, project: "Project"):
+        return Announcement.objects.create(
+            project=project,
+            description=self.description,
+            title=self.title,
+            type=self.type,
+            status=self.status,
+            deadline=self.deadline,
+            is_remunerated=self.is_remunerated,
+        )
 
     def __str__(self):
         return str(self.title)
