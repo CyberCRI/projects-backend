@@ -3,11 +3,11 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import SkillFactory, UserFactory
+from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
+from apps.skills.factories import SkillFactory, TagFactory
 
 faker = Faker()
 
@@ -109,33 +109,25 @@ class UserMentorshipTestCase(JwtAPITestCase):
             "other": cls.other_user,
         }
 
-        cls.mentor_skill_1 = WikipediaTagFactory()
-        cls.mentor_skill_2 = WikipediaTagFactory()
-        cls.mentoree_skill_1 = WikipediaTagFactory()
-        cls.mentoree_skill_2 = WikipediaTagFactory()
-        cls.other_skill = WikipediaTagFactory()
+        cls.mentor_skill_1 = TagFactory()
+        cls.mentor_skill_2 = TagFactory()
+        cls.mentoree_skill_1 = TagFactory()
+        cls.mentoree_skill_2 = TagFactory()
+        cls.other_skill = TagFactory()
 
         for user_type, user in cls.users.items():
             if user_type == "other":
-                SkillFactory(user=user, wikipedia_tag=cls.mentor_skill_1)
-                SkillFactory(user=user, wikipedia_tag=cls.mentor_skill_2)
-                SkillFactory(user=user, wikipedia_tag=cls.mentoree_skill_1)
-                SkillFactory(user=user, wikipedia_tag=cls.mentoree_skill_2)
-                SkillFactory(user=user, wikipedia_tag=cls.other_skill)
+                SkillFactory(user=user, tag=cls.mentor_skill_1)
+                SkillFactory(user=user, tag=cls.mentor_skill_2)
+                SkillFactory(user=user, tag=cls.mentoree_skill_1)
+                SkillFactory(user=user, tag=cls.mentoree_skill_2)
+                SkillFactory(user=user, tag=cls.other_skill)
             else:
-                SkillFactory(
-                    user=user, wikipedia_tag=cls.mentor_skill_1, can_mentor=True
-                )
-                SkillFactory(
-                    user=user, wikipedia_tag=cls.mentor_skill_2, can_mentor=True
-                )
-                SkillFactory(
-                    user=user, wikipedia_tag=cls.mentoree_skill_1, needs_mentor=True
-                )
-                SkillFactory(
-                    user=user, wikipedia_tag=cls.mentoree_skill_2, needs_mentor=True
-                )
-                SkillFactory(user=user, wikipedia_tag=cls.other_skill)
+                SkillFactory(user=user, tag=cls.mentor_skill_1, can_mentor=True)
+                SkillFactory(user=user, tag=cls.mentor_skill_2, can_mentor=True)
+                SkillFactory(user=user, tag=cls.mentoree_skill_1, needs_mentor=True)
+                SkillFactory(user=user, tag=cls.mentoree_skill_2, needs_mentor=True)
+                SkillFactory(user=user, tag=cls.other_skill)
 
     @parameterized.expand(
         [
@@ -185,9 +177,9 @@ class UserMentorshipTestCase(JwtAPITestCase):
     def test_retrieve_mentor_candidates(self, role, mentors):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
-        SkillFactory(user=user, wikipedia_tag=self.mentor_skill_1, needs_mentor=True)
-        SkillFactory(user=user, wikipedia_tag=self.mentor_skill_2, needs_mentor=True)
-        SkillFactory(user=user, wikipedia_tag=self.other_skill, needs_mentor=True)
+        SkillFactory(user=user, tag=self.mentor_skill_1, needs_mentor=True)
+        SkillFactory(user=user, tag=self.mentor_skill_2, needs_mentor=True)
+        SkillFactory(user=user, tag=self.other_skill, needs_mentor=True)
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -203,11 +195,8 @@ class UserMentorshipTestCase(JwtAPITestCase):
         )
         for user in content:
             self.assertSetEqual(
-                {
-                    skill["wikipedia_tag"]["wikipedia_qid"]
-                    for skill in user["can_mentor_on"]
-                },
-                {self.mentor_skill_1.wikipedia_qid, self.mentor_skill_2.wikipedia_qid},
+                {skill["tag"]["id"] for skill in user["can_mentor_on"]},
+                {self.mentor_skill_1.id, self.mentor_skill_2.id},
             )
 
     @parameterized.expand(
@@ -258,9 +247,9 @@ class UserMentorshipTestCase(JwtAPITestCase):
     def test_retrieve_mentoree_candidates(self, role, mentorees):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
-        SkillFactory(user=user, wikipedia_tag=self.mentoree_skill_1, can_mentor=True)
-        SkillFactory(user=user, wikipedia_tag=self.mentoree_skill_2, can_mentor=True)
-        SkillFactory(user=user, wikipedia_tag=self.other_skill, can_mentor=True)
+        SkillFactory(user=user, tag=self.mentoree_skill_1, can_mentor=True)
+        SkillFactory(user=user, tag=self.mentoree_skill_2, can_mentor=True)
+        SkillFactory(user=user, tag=self.other_skill, can_mentor=True)
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -276,12 +265,9 @@ class UserMentorshipTestCase(JwtAPITestCase):
         )
         for user in content:
             self.assertSetEqual(
+                {skill["tag"]["id"] for skill in user["needs_mentor_on"]},
                 {
-                    skill["wikipedia_tag"]["wikipedia_qid"]
-                    for skill in user["needs_mentor_on"]
-                },
-                {
-                    self.mentoree_skill_1.wikipedia_qid,
-                    self.mentoree_skill_2.wikipedia_qid,
+                    self.mentoree_skill_1.id,
+                    self.mentoree_skill_2.id,
                 },
             )

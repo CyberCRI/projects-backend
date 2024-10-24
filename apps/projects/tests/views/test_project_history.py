@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 from django.apps import apps
 from django.urls import reverse
 from faker import Faker
@@ -7,19 +5,19 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory
-from apps.misc.factories import TagFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import LinkedProjectFactory, ProjectFactory
 from apps.projects.models import Project
+from apps.skills.factories import TagFactory
 
 faker = Faker()
 
 HistoricalProject = apps.get_model("projects", "HistoricalProject")
 
 
-class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
+class ProjectHistoryTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -516,10 +514,7 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(version["categories"], [pc2.name])
         self.assertEqual(version["main_category"], pc2.name)
 
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    def test_update_wikipedia_tags(self, mocked):
-        mocked.side_effect = self.get_wikipedia_tag_mocked_side_effect
-        wikipedia_qid = self.get_random_wikipedia_qid()
+    def test_update_tags(self):
         project = ProjectFactory(organizations=[self.organization])
         self.client.force_authenticate(self.user)
         initial_count = (
@@ -527,7 +522,8 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {"wikipedia_tags_ids": [wikipedia_qid]}
+        tag = TagFactory()
+        payload = {"tags": [tag.id]}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -542,33 +538,5 @@ class ProjectHistoryTestCase(JwtAPITestCase, TagTestCaseMixin):
             .count(),
             initial_count + 1,
         )
-        self.assertEqual(version["history_change_reason"], "Updated: wikipedia_tags")
-        self.assertIn(f"name_en_{wikipedia_qid}", version["wikipedia_tags"])
-
-    def test_update_organization_tags(self):
-        organization = OrganizationFactory()
-        tag = TagFactory(organization=organization)
-        project = ProjectFactory(organizations=[organization])
-        self.client.force_authenticate(self.user)
-        initial_count = (
-            HistoricalProject.objects.filter(id=project.id)
-            .exclude(history_change_reason=None)
-            .count()
-        )
-        payload = {"organization_tags_ids": [tag.id]}
-        self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
-        history = HistoricalProject.objects.filter(history_relation__id=project.id)
-        latest_version = history.order_by("-history_date").first()
-        response = self.client.get(
-            reverse("Project-versions-detail", args=(project.id, latest_version.pk))
-        )
-        version = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            HistoricalProject.objects.filter(id=project.id)
-            .exclude(history_change_reason=None)
-            .count(),
-            initial_count + 1,
-        )
-        self.assertEqual(version["history_change_reason"], "Updated: organization_tags")
-        self.assertIn(tag.name, version["organization_tags"])
+        self.assertEqual(version["history_change_reason"], "Updated: tags")
+        self.assertIn(tag.title, version["tags"])

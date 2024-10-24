@@ -2,8 +2,9 @@ from unittest.mock import patch
 
 from faker import Faker
 
-from apps.accounts.factories import SkillFactory, UserFactory
+from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase
+from apps.skills.factories import SkillFactory
 from services.mistral.factories import UserProfileEmbeddingFactory
 from services.mistral.testcases import MistralTestCaseMixin
 

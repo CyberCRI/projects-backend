@@ -22,8 +22,7 @@ class SearchObjectFilter(filters.FilterSet):
     languages = MultiValueCharFilter(method="filter_languages")
     categories = MultiValueCharFilter(method="filter_categories")
     members = UserMultipleIDFilter(method="filter_members")
-    wikipedia_tags = MultiValueCharFilter(method="filter_wikipedia_tags")
-    organization_tags = MultiValueCharFilter(method="filter_organization_tags")
+    tags = MultiValueCharFilter(method="filter_tags")
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
@@ -45,8 +44,7 @@ class SearchObjectFilter(filters.FilterSet):
             SearchObject.SearchObjectType.PEOPLE_GROUP,
         ]
         return queryset.filter(
-            Q(user__skills__wikipedia_tag__wikipedia_qid__in=value)
-            | Q(type__in=unaffected_types)
+            Q(user__skills__tag__id__in=value) | Q(type__in=unaffected_types)
         ).distinct()
 
     def filter_languages(self, queryset, name, value):
@@ -76,23 +74,13 @@ class SearchObjectFilter(filters.FilterSet):
             Q(project__groups__users__id__in=value) | Q(type__in=unaffected_types)
         ).distinct()
 
-    def filter_wikipedia_tags(self, queryset, name, value):
+    def filter_tags(self, queryset, name, value):
         unaffected_types = [
             SearchObject.SearchObjectType.USER,
             SearchObject.SearchObjectType.PEOPLE_GROUP,
         ]
         return queryset.filter(
-            Q(project__wikipedia_tags__wikipedia_qid__in=value)
-            | Q(type__in=unaffected_types)
-        ).distinct()
-
-    def filter_organization_tags(self, queryset, name, value):
-        unaffected_types = [
-            SearchObject.SearchObjectType.USER,
-            SearchObject.SearchObjectType.PEOPLE_GROUP,
-        ]
-        return queryset.filter(
-            Q(project__organization_tags__id__in=value) | Q(type__in=unaffected_types)
+            Q(project__tags__id__in=value) | Q(type__in=unaffected_types)
         ).distinct()
 
     def filter_can_mentor(self, queryset, name, value):
@@ -121,7 +109,7 @@ class SearchObjectFilter(filters.FilterSet):
         return queryset.filter(
             Q(
                 user__skills__can_mentor=True,
-                user__skills__wikipedia_tag__wikipedia_qid__in=value,
+                user__skills__tag__id__in=value,
             )
             | Q(type__in=unaffected_types)
         ).distinct()
@@ -134,7 +122,7 @@ class SearchObjectFilter(filters.FilterSet):
         return queryset.filter(
             Q(
                 user__skills__needs_mentor=True,
-                user__skills__wikipedia_tag__wikipedia_qid__in=value,
+                user__skills__tag__id__in=value,
             )
             | Q(type__in=unaffected_types)
         ).distinct()
@@ -149,8 +137,7 @@ class SearchObjectFilter(filters.FilterSet):
             "members",
             "sdgs",
             "skills",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "can_mentor",
             "needs_mentor",
             "can_mentor_on",

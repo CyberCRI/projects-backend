@@ -18,11 +18,9 @@ class ProjectCategoryFilter(filters.FilterSet):
 class OrganizationFilter(filters.FilterSet):
     # filter by organization code with query ?codes=X
     codes = MultiValueCharFilter(field_name="code", lookup_expr="in")
-    # filter by wikipedia_tags with query ?wikipedia_tags=X,Y,Z
-    wikipedia_tags = MultiValueCharFilter(
-        field_name="wikipedia_tags__name", lookup_expr="in"
-    )
+    # filter by tags with query ?tags=X,Y,Z
+    tags = MultiValueCharFilter(field_name="tags__id", lookup_expr="in")
 
     class Meta:
         model = Organization
-        fields = ["codes", "wikipedia_tags"]
+        fields = ["codes", "tags"]

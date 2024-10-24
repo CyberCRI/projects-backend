@@ -8,7 +8,7 @@ from apps.accounts.utils import get_superadmins_group
 from apps.analytics.factories import StatFactory
 from apps.commons.test import JwtAPITestCase
 from apps.files.models import AttachmentType
-from apps.goals.models import Goal
+from apps.projects.models import Goal
 
 faker = Faker()
 

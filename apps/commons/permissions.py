@@ -75,10 +75,10 @@ class WillBeOwner(permissions.BasePermission):
     def has_permission(self, request: Request, view: GenericViewSet) -> bool:
         if view.action == "create":
             user_id = None
-            if not user_id and "id" in view.kwargs:
-                user_id = ProjectUser.get_main_id(view.kwargs["id"])
             if not user_id and "user_id" in view.kwargs:
                 user_id = ProjectUser.get_main_id(view.kwargs["user_id"])
+            if not user_id and "id" in view.kwargs:
+                user_id = ProjectUser.get_main_id(view.kwargs["id"])
             if not user_id and "user" in request.data:
                 user_id = ProjectUser.get_main_id(request.data["user"])
             if user_id:

@@ -59,3 +59,21 @@ class RemoveDuplicatedRoles(PostDeployTask):
     task_name = "remove_duplicated_roles"
     priority = 4
     task = remove_duplicated_roles
+
+
+# class CreateDefaultTagClassifications(PostDeployTask):  # noqa
+#     task_name = "default_tag_classifications"  # noqa
+#     priority = 5  # noqa
+#     task = default_tag_classifications  # noqa
+
+
+# class UpdateWikipediaTagsData(PostDeployTask):  # noqa
+#     task_name = "update_wikipedia_tags_data"  # noqa
+#     priority = 6  # noqa
+#     task = update_wikipedia_tags_data  # noqa
+
+
+# class UpdateEscoTagsData(PostDeployTask):  # noqa
+#     task_name = "update_esco_tags_data"  # noqa
+#     priority = 7  # noqa
+#     task = update_esco_tags_data  # noqa

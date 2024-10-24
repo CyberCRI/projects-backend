@@ -3,9 +3,9 @@ from unittest.mock import patch
 from faker import Faker
 
 from apps.commons.test import JwtAPITestCase
-from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
+from apps.skills.factories import TagFactory
 from services.mistral.factories import ProjectEmbeddingFactory
 from services.mistral.testcases import MistralTestCaseMixin
 
@@ -113,7 +113,7 @@ class ProjectEmbeddingMiscTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
         embedding = ProjectEmbeddingFactory(item=project)
         BlogEntryFactory.create_batch(3, project=project)
-        project.wikipedia_tags.add(*WikipediaTagFactory.create_batch(3))
+        project.tags.add(*TagFactory.create_batch(3))
         response = embedding.get_summary_chat_prompt()
         for x in response:
             self.assertIsInstance(x, str)
@@ -124,7 +124,7 @@ class ProjectEmbeddingMiscTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
         embedding = ProjectEmbeddingFactory(item=project)
         BlogEntryFactory.create_batch(3, project=project)
-        project.wikipedia_tags.add(*WikipediaTagFactory.create_batch(3))
+        project.tags.add(*TagFactory.create_batch(3))
         prompt_hashcode = embedding.hash_prompt()
         for _ in range(10):
             self.assertEqual(embedding.hash_prompt(), prompt_hashcode)
