@@ -30,7 +30,8 @@ class CreateOrganizationTestCase(JwtAPITestCase):
         cls.users = UserFactory.create_batch(2)
         cls.facilitators = UserFactory.create_batch(2)
         cls.admins = UserFactory.create_batch(2)
-        cls.tags = TagFactory.create_batch(2)
+        cls.default_projects_tags = TagFactory.create_batch(2)
+        cls.default_skills_tags = TagFactory.create_batch(2)
         cls.projects_tag_classification = (
             TagClassification.get_or_create_default_classification(
                 TagClassification.TagClassificationType.WIKIPEDIA
@@ -69,7 +70,6 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
-            "tags": [t.id for t in self.tags],
             "parent_code": self.parent.code,
             "team": {
                 "users": [u.id for u in self.users],
@@ -82,6 +82,8 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             "default_projects_tag_classification": self.projects_tag_classification.id,
             "enabled_skills_tag_classifications": [self.skills_tag_classification.id],
             "default_skills_tag_classification": self.skills_tag_classification.id,
+            "default_projects_tags": [t.id for t in self.default_projects_tags],
+            "default_skills_tags": [t.id for t in self.default_skills_tags],
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
@@ -115,11 +117,6 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["force_login_form_display"], payload["force_login_form_display"]
             )
-            self.assertEqual(len(content["tags"]), 2)
-            self.assertSetEqual(
-                {t["id"] for t in content["tags"]},
-                {t.id for t in self.tags},
-            )
             self.assertSetEqual(
                 {c["id"] for c in content["enabled_projects_tag_classifications"]},
                 {self.projects_tag_classification.id},
@@ -135,6 +132,14 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["default_skills_tag_classification"]["id"],
                 self.skills_tag_classification.id,
+            )
+            self.assertSetEqual(
+                {t["id"] for t in content["default_projects_tags"]},
+                {t.id for t in self.default_projects_tags},
+            )
+            self.assertSetEqual(
+                {t["id"] for t in content["default_skills_tags"]},
+                {t.id for t in self.default_skills_tags},
             )
             organization = Organization.objects.get(code=payload["code"])
             for user in self.users:
@@ -189,7 +194,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.logo_image = cls.get_test_image()
-        cls.tags = TagFactory.create_batch(2)
+        cls.default_projects_tags = TagFactory.create_batch(2)
+        cls.default_skills_tags = TagFactory.create_batch(2)
         cls.projects_tag_classification = TagClassificationFactory(
             organization=cls.organization
         )
@@ -225,13 +231,14 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
-            "tags": [t.id for t in self.tags],
             "enabled_projects_tag_classifications": [
                 self.projects_tag_classification.id
             ],
             "default_projects_tag_classification": self.projects_tag_classification.id,
             "enabled_skills_tag_classifications": [self.skills_tag_classification.id],
             "default_skills_tag_classification": self.skills_tag_classification.id,
+            "default_projects_tags": [t.id for t in self.default_projects_tags],
+            "default_skills_tags": [t.id for t in self.default_skills_tags],
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(self.organization.code,)), data=payload
@@ -265,10 +272,6 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
                 content["force_login_form_display"], payload["force_login_form_display"]
             )
             self.assertSetEqual(
-                {t["id"] for t in content["tags"]},
-                {t.id for t in self.tags},
-            )
-            self.assertSetEqual(
                 {c["id"] for c in content["enabled_projects_tag_classifications"]},
                 {self.projects_tag_classification.id},
             )
@@ -283,6 +286,14 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["default_skills_tag_classification"]["id"],
                 self.skills_tag_classification.id,
+            )
+            self.assertSetEqual(
+                {t["id"] for t in content["default_projects_tags"]},
+                {t.id for t in self.default_projects_tags},
+            )
+            self.assertSetEqual(
+                {t["id"] for t in content["default_skills_tags"]},
+                {t.id for t in self.default_skills_tags},
             )
 
 

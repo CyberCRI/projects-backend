@@ -317,7 +317,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             .annotate(
                 usage=Count("skills", distinct=True)
                 + Count("projects", distinct=True)
-                + Count("organizations", distinct=True)
+                + Count("default_organizations_projects", distinct=True)
+                + Count("default_organizations_skills", distinct=True)
                 + Count("project_categories", distinct=True)
             )
             .order_by("-usage")[:limit]
