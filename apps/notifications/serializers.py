@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.accounts.serializers import UserLightSerializer
+from apps.accounts.serializers import UserLighterSerializer
 from apps.commons.serializers import TranslatedModelSerializer
 from apps.invitations.serializers import InvitationSerializer
 from apps.organizations.models import Organization
@@ -23,7 +23,7 @@ class ContactSerializer(serializers.Serializer):
 
 
 class NotificationsSerializer(TranslatedModelSerializer):
-    sender = UserLightSerializer(read_only=True)
+    sender = UserLighterSerializer(read_only=True)
     project = ProjectSuperLightSerializer(read_only=True)
     invitation = InvitationSerializer(read_only=True)
     organization = serializers.SlugRelatedField(
