@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
@@ -83,14 +83,54 @@ class UserAdminListSerializer(serializers.ModelSerializer):
         ).data
 
 
+class UserLighterSerializer(serializers.ModelSerializer):
+    profile_picture = PrivacySettingProtectedMethodField(
+        privacy_field="profile_picture"
+    )
+    is_manager = serializers.BooleanField(required=False, read_only=True)
+    is_leader = serializers.BooleanField(required=False, read_only=True)
+
+    class Meta:
+        model = ProjectUser
+        read_only_fields = [
+            "id",
+            "slug",
+            "keycloak_id",
+            "email",
+            "given_name",
+            "family_name",
+            "pronouns",
+            "job",
+            "profile_picture",
+            "is_manager",
+            "is_leader",
+        ]
+        fields = read_only_fields
+
+    def get_profile_picture(self, instance: ProjectUser) -> Optional[Dict[str, Any]]:
+        image = instance.profile_picture
+        return ImageSerializer(image).data if image else None
+
+    def to_representation(self, instance: ProjectUser) -> Dict[str, Any]:
+        request = self.context.get("request", None)
+        force_display = self.context.get("force_display", False)
+        if force_display or (
+            request and request.user.get_user_queryset().filter(id=instance.id).exists()
+        ):
+            return super().to_representation(instance)
+        return {
+            **AnonymousUser.serialize(with_permissions=False),
+            "is_manager": False,
+            "is_leader": False,
+        }
+
+
 class UserLightSerializer(serializers.ModelSerializer):
     pronouns = serializers.CharField(required=False)
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
     )
     current_org_role = serializers.CharField(required=False, read_only=True)
-    is_manager = serializers.BooleanField(required=False, read_only=True)
-    is_leader = serializers.BooleanField(required=False, read_only=True)
     people_groups = serializers.SerializerMethodField()
     skills = PrivacySettingProtectedMethodField(
         privacy_field="skills", default_value=[]
@@ -112,8 +152,6 @@ class UserLightSerializer(serializers.ModelSerializer):
             "job",
             "profile_picture",
             "current_org_role",
-            "is_manager",
-            "is_leader",
             "last_login",
             "people_groups",
             "created_at",
@@ -133,8 +171,6 @@ class UserLightSerializer(serializers.ModelSerializer):
         return {
             **AnonymousUser.serialize(with_permissions=False),
             "current_org_role": None,
-            "is_manager": False,
-            "is_leader": False,
         }
 
     def get_profile_picture(self, user: ProjectUser) -> Union[Dict, str]:
