@@ -25,9 +25,9 @@ class OrganizationAdmin(admin.ModelAdmin):
         "contact_email",
     )
     filter_horizontal = (
-        "tags",
         "identity_providers",
         "featured_projects",
+        "default_projects_tags",
         "enabled_projects_tag_classifications",
         "enabled_skills_tag_classifications",
     )

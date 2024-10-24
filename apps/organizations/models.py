@@ -155,11 +155,15 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         "projects.Project", related_name="org_featured_projects", blank=True
     )
     wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
-    tags = models.ManyToManyField(
+    default_projects_tags = models.ManyToManyField(
         "skills.Tag",
-        related_name="organizations",
+        related_name="default_organizations_projects",
         blank=True,
-        db_table="organizations_organization_skills_tags",
+    )
+    default_skills_tags = models.ManyToManyField(
+        "skills.Tag",
+        related_name="default_organizations_skills",
+        blank=True,
     )
     enabled_projects_tag_classifications = models.ManyToManyField(
         "skills.TagClassification",

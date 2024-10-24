@@ -528,7 +528,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 "organization",
                 queryset=Organization.objects.select_related(
                     "faq", "parent", "banner_image", "logo_image"
-                ).prefetch_related("tags"),
+                ).prefetch_related("default_projects_tags", "default_skills_tags"),
             )
             return self.request.user.get_people_group_queryset(organization).filter(
                 organization__code=self.kwargs["organization_code"],

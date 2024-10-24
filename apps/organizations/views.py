@@ -148,7 +148,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     organization_code_lookup = "code"
     queryset = Organization.objects.select_related(
         "faq", "parent", "banner_image", "logo_image"
-    ).prefetch_related("tags")
+    ).prefetch_related(
+        "default_skills_tags",
+        "default_projects_tags",
+    )
     lookup_field = "code"
     lookup_value_regex = "[a-zA-Z0-9_-]+"
 

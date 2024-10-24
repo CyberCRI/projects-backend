@@ -177,6 +177,13 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class OrganizationSerializer(OrganizationRelatedSerializer):
+    parent_code = SlugRelatedField(
+        many=False,
+        required=False,
+        queryset=Organization.objects.all(),
+        source="parent",
+        slug_field="code",
+    )
     enabled_projects_tag_classifications = TagClassificationMultipleIdRelatedField(
         many=True, required=False
     )
@@ -189,24 +196,19 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     default_skills_tag_classification = TagClassificationMultipleIdRelatedField(
         required=False
     )
+    default_projects_tags = TagRelatedField(many=True)
+    default_skills_tags = TagRelatedField(many=True)
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     faq = FaqSerializer(many=False, read_only=True)
-    tags = TagRelatedField(many=True)
+    identity_providers = IdentityProviderSerializer(many=True, read_only=True)
+    google_sync_enabled = serializers.SerializerMethodField()
     children = SlugRelatedField(
         many=True,
         read_only=True,
         slug_field="code",
     )
-    parent_code = SlugRelatedField(
-        many=False,
-        required=False,
-        queryset=Organization.objects.all(),
-        source="parent",
-        slug_field="code",
-    )
-    identity_providers = IdentityProviderSerializer(many=True, read_only=True)
     # write_only
     banner_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -217,17 +219,15 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     logo_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Image.objects.all(), source="logo_image"
     )
-    dashboard_title = serializers.CharField(required=True)
-    dashboard_subtitle = serializers.CharField(required=True)
-    google_sync_enabled = serializers.SerializerMethodField()
     team = OrganizationAddTeamMembersSerializer(required=False, write_only=True)
 
     class Meta:
         model = Organization
         fields = [
             "id",
-            "background_color",
             "code",
+            "name",
+            "parent_code",
             "contact_email",
             "dashboard_title",
             "dashboard_subtitle",
@@ -236,25 +236,24 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "chat_button_text",
             "language",
             "is_logo_visible_on_parent_dashboard",
+            "background_color",
             "access_request_enabled",
             "onboarding_enabled",
             "force_login_form_display",
-            "name",
             "website_url",
             "created_at",
             "updated_at",
-            "tags",
             "enabled_projects_tag_classifications",
             "enabled_skills_tag_classifications",
             "default_projects_tag_classification",
             "default_skills_tag_classification",
+            "default_projects_tags",
+            "default_skills_tags",
             # read_only
             "banner_image",
             "logo_image",
             "faq",
             "children",
-            "parent_code",
-            "is_logo_visible_on_parent_dashboard",
             "google_sync_enabled",
             "identity_providers",
             # write_only
