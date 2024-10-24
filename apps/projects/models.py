@@ -17,7 +17,9 @@ from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
+from apps.analytics.models import Stat
 from apps.commons.models import (
+    DuplicableModel,
     HasMultipleIDs,
     HasOwner,
     OrganizationRelated,
@@ -63,7 +65,11 @@ class SoftDeleteManager(models.Manager):
 
 
 class Project(
-    HasMultipleIDs, PermissionsSetupModel, ProjectRelated, OrganizationRelated
+    HasMultipleIDs,
+    PermissionsSetupModel,
+    ProjectRelated,
+    OrganizationRelated,
+    DuplicableModel,
 ):
     """Main model of the app, represent a user project
 
@@ -498,6 +504,51 @@ class Project(
     def calculate_score(self) -> "ProjectScore":
         return self.get_or_create_score().set_score()
 
+    # @transaction.atomic
+    def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
+        header = self.header_image.duplicate(owner) if self.header_image else None
+        project = Project.objects.create(
+            title=self.title,
+            header_image=header,
+            description=self.description,
+            purpose=self.purpose,
+            is_locked=self.is_locked,
+            is_shareable=self.is_shareable,
+            publication_status=Project.PublicationStatus.PRIVATE,
+            life_status=self.life_status,
+            language=self.language,
+            sdgs=self.sdgs,
+            main_category=self.main_category,
+        )
+        project.categories.set(self.categories.all())
+        project.organizations.set(self.organizations.all())
+        project.wikipedia_tags.set(self.wikipedia_tags.all())
+        project.organization_tags.set(self.organization_tags.all())
+        for image in self.images.all():
+            new_image = image.duplicate(owner)
+            project.images.add(new_image)
+            for identifier in [self.pk, self.slug]:
+                project.description = project.description.replace(
+                    f"/v1/project/{identifier}/image/{image.pk}/",
+                    f"/v1/project/{project.pk}/image/{new_image.pk}/",
+                )
+        project.save()
+        project.setup_permissions(user=owner)
+        for blog_entry in self.blog_entries.all():
+            blog_entry.duplicate(project, self, owner)
+        for announcement in self.announcements.all():
+            announcement.duplicate(project)
+        for location in self.locations.all():
+            location.duplicate(project)
+        for goal in self.goals.all():
+            goal.duplicate(project)
+        for link in self.links.all():
+            link.duplicate(project)
+        for file in self.files.all():
+            file.duplicate(project)
+        Stat.objects.create(project=project)
+        return project
+
 
 class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
     project = models.OneToOneField(
@@ -600,7 +651,7 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
         return self.target.get_related_organizations()
 
 
-class BlogEntry(models.Model, ProjectRelated, OrganizationRelated):
+class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     """A blog entry in a project.
 
     Attributes
@@ -653,8 +704,31 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated):
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
+    def duplicate(
+        self,
+        project: "Project",
+        initial_project: Optional["Project"] = None,
+        owner: Optional["ProjectUser"] = None,
+    ) -> "BlogEntry":
+        blog_entry = BlogEntry.objects.create(
+            project=project,
+            title=self.title,
+            content=self.content,
+        )
+        for image in self.images.all():
+            new_image = image.duplicate(owner)
+            blog_entry.images.add(new_image)
+            for identifier in [initial_project.pk, initial_project.slug]:
+                blog_entry.content = blog_entry.content.replace(
+                    f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
+                    f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
+                )
+        blog_entry.created_at = self.created_at
+        blog_entry.save()
+        return blog_entry
 
-class Location(models.Model, ProjectRelated, OrganizationRelated):
+
+class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     """A project location on Earth.
 
     Attributes
@@ -701,6 +775,16 @@ class Location(models.Model, ProjectRelated, OrganizationRelated):
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
+
+    def duplicate(self, project: "Project") -> "Location":
+        return Location.objects.create(
+            project=project,
+            title=self.title,
+            description=self.description,
+            lat=self.lat,
+            lng=self.lng,
+            type=self.type,
+        )
 
 
 class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner):

@@ -1,17 +1,25 @@
 import datetime
+import uuid
 from typing import TYPE_CHECKING, List, Optional
 
 from django.apps import apps
 from django.conf import settings
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models, transaction
 from django.db.models import ForeignObjectRel, Model, Q, QuerySet
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
-from apps.commons.models import HasOwner, OrganizationRelated, ProjectRelated
-from apps.files.enums import AttachmentLinkCategory, AttachmentType
-from apps.files.utils import resize_and_autorotate
+from apps.commons.models import (
+    DuplicableModel,
+    HasOwner,
+    OrganizationRelated,
+    ProjectRelated,
+)
+
+from .enums import AttachmentLinkCategory, AttachmentType
+from .utils import resize_and_autorotate
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -43,7 +51,9 @@ def attachment_directory_path(instance, filename: str):
     return f"project/attachments/{instance.project.pk}/{instance.attachment_type}/{date_part}-{filename}"
 
 
-class AttachmentLink(models.Model, ProjectRelated, OrganizationRelated):
+class AttachmentLink(
+    models.Model, ProjectRelated, OrganizationRelated, DuplicableModel
+):
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="links"
     )
@@ -86,8 +96,22 @@ class AttachmentLink(models.Model, ProjectRelated, OrganizationRelated):
         """Return the project related to this model."""
         return self.project
 
+    def duplicate(self, project: "Project") -> "AttachmentLink":
+        return AttachmentLink.objects.create(
+            project=project,
+            attachment_type=self.attachment_type,
+            category=self.category,
+            description=self.description,
+            preview_image_url=self.preview_image_url,
+            site_name=self.site_name,
+            site_url=self.site_url,
+            title=self.title,
+        )
 
-class AttachmentFile(models.Model, ProjectRelated, OrganizationRelated):
+
+class AttachmentFile(
+    models.Model, ProjectRelated, OrganizationRelated, DuplicableModel
+):
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="files"
     )
@@ -123,8 +147,30 @@ class AttachmentFile(models.Model, ProjectRelated, OrganizationRelated):
         """Return the project related to this model."""
         return self.project
 
+    def duplicate(self, project: "Project") -> "AttachmentFile":
+        file_path = self.file.name.split("/")
+        file_name = file_path.pop()
+        file_extension = file_name.split(".")[-1]
+        new_name = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
+        new_file = SimpleUploadedFile(
+            name=new_name,
+            content=self.file.read(),
+            content_type=f"application/{file_extension}",
+        )
+        return AttachmentFile.objects.create(
+            project=project,
+            attachment_type=self.attachment_type,
+            file=new_file,
+            mime=self.mime,
+            title=self.title,
+            description=self.description,
+            hashcode=self.hashcode,
+        )
 
-class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
+
+class Image(
+    models.Model, HasOwner, OrganizationRelated, ProjectRelated, DuplicableModel
+):
     name = models.CharField(max_length=255)
     file = StdImageField(
         upload_to=dynamic_upload_to,
@@ -242,6 +288,32 @@ class Image(models.Model, HasOwner, OrganizationRelated, ProjectRelated):
             .distinct()
             .get()
         )
+
+    def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Image":
+        file_path = self.file.name.split("/")
+        file_name = file_path.pop()
+        file_extension = file_name.split(".")[-1]
+        upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
+        new_file = SimpleUploadedFile(
+            name=upload_to,
+            content=self.file.read(),
+            content_type=f"image/{file_extension}",
+        )
+        image = Image(
+            name=self.name,
+            file=new_file,
+            height=self.height,
+            width=self.width,
+            natural_ratio=self.natural_ratio,
+            scale_x=self.scale_x,
+            scale_y=self.scale_y,
+            left=self.left,
+            top=self.top,
+            owner=owner or self.owner,
+        )
+        image._upload_to = lambda instance, filename: upload_to
+        image.save()
+        return image
 
 
 class PeopleResource(models.Model):
