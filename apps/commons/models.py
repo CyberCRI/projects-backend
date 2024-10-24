@@ -84,5 +84,5 @@ class DuplicableModel:
     A model that can be duplicated.
     """
 
-    def duplicate(self, *args, **kwargs):
+    def duplicate(self, *args, **kwargs) -> "DuplicableModel":
         raise NotImplementedError()

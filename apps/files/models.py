@@ -96,7 +96,7 @@ class AttachmentLink(
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project"):
+    def duplicate(self, project: "Project") -> "AttachmentLink":
         return AttachmentLink.objects.create(
             project=project,
             attachment_type=self.attachment_type,
@@ -147,7 +147,7 @@ class AttachmentFile(
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project"):
+    def duplicate(self, project: "Project") -> "AttachmentFile":
         file_path = self.file.name.split("/")
         file_name = file_path.pop()
         file_extension = file_name.split(".")[-1]

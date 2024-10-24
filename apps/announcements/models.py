@@ -70,7 +70,7 @@ class Announcement(models.Model, ProjectRelated, OrganizationRelated, Duplicable
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project"):
+    def duplicate(self, project: "Project") -> "Announcement":
         return Announcement.objects.create(
             project=project,
             description=self.description,

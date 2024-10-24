@@ -66,7 +66,7 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project"):
+    def duplicate(self, project: "Project") -> "Goal":
         return Goal.objects.create(
             project=project,
             title=self.title,
