@@ -28,6 +28,7 @@ class OrganizationAdmin(admin.ModelAdmin):
         "identity_providers",
         "featured_projects",
         "default_projects_tags",
+        "default_skills_tags",
         "enabled_projects_tag_classifications",
         "enabled_skills_tag_classifications",
     )
