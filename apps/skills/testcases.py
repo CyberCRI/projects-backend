@@ -206,6 +206,8 @@ class WikipediaTestCase(JwtAPITestCase):
             self.languages = [
                 language for language, value in {"en": en, "fr": fr}.items() if value
             ]
+            # add a language that should be ignored except for fallback
+            self.languages.append("xx")
 
         def json(self):
             return {

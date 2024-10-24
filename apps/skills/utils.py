@@ -86,26 +86,17 @@ def set_default_language_title_and_description(
     Make sure that the default language title and description are set in
     the tag data used to update or create the tag.
     """
-    default_title = f"title_{default_language}"
-    default_description = f"description_{default_language}"
-    fallback_title = "title"
-    fallback_description = "description"
-
-    if not tag_data.get(default_title, None) or not tag_data.get(
-        default_description, None
-    ):
-        for language in settings.REQUIRED_LANGUAGES:
-            if not tag_data.get(default_title, None):
-                tag_data[default_title] = tag_data.get(f"title_{language}", "")
-            if not tag_data.get(default_description, None):
-                tag_data[default_description] = tag_data.get(
-                    f"description_{language}", ""
-                )
-
-    if not tag_data.get(fallback_title, None):
-        tag_data[fallback_title] = tag_data[default_title]
-    if not tag_data.get(fallback_description, None):
-        tag_data[fallback_description] = tag_data[default_description]
+    fallback_title = tag_data.pop("fallback_title", None)
+    fallback_description = tag_data.pop("fallback_description", None)
+    for language in ["en", *settings.REQUIRED_LANGUAGES]:
+        if not tag_data.get("title"):
+            tag_data["title"] = tag_data.get(f"title_{language}")
+        if not tag_data.get("description"):
+            tag_data["description"] = tag_data.get(f"description_{language}")
+    if not tag_data.get("title"):
+        tag_data["title"] = fallback_title
+    if not tag_data.get("description"):
+        tag_data["description"] = fallback_description
     return tag_data
 
 

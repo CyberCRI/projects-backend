@@ -67,6 +67,16 @@ class WikipediaService:
         return [
             {
                 "external_id": wikipedia_qid,
+                "fallback_title": (
+                    list(content[wikipedia_qid]["labels"].values())[0]["value"]
+                    if len(content[wikipedia_qid]["labels"]) > 0
+                    else ""
+                ),
+                "fallback_description": (
+                    list(content[wikipedia_qid]["descriptions"].values())[0]["value"]
+                    if len(content[wikipedia_qid]["descriptions"]) > 0
+                    else ""
+                ),
                 **{
                     f"title_{language}": content[wikipedia_qid]["labels"][language][
                         "value"
