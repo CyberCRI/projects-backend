@@ -177,7 +177,12 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
                 classification_type=TagClassification.TagClassificationType.ESCO
             )
         )
-        cls.organization.enabled_tag_classifications.add(
+        cls.organization.enabled_projects_tag_classifications.add(
+            cls.enabled_tag_classification,
+            cls.other_organization_enabled_public_tag_classification,
+            cls.other_organization_enabled_private_tag_classification,
+        )
+        cls.organization.enabled_skills_tag_classifications.add(
             cls.enabled_tag_classification,
             cls.other_organization_enabled_public_tag_classification,
             cls.other_organization_enabled_private_tag_classification,
@@ -238,9 +243,11 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
             if tag["id"] in [
                 tag_classification.id for tag_classification in self.enabled_tags
             ]:
-                self.assertTrue(tag["is_enabled"])
+                self.assertTrue(tag["is_enabled_for_projects"])
+                self.assertTrue(tag["is_enabled_for_skills"])
             else:
-                self.assertFalse(tag["is_enabled"])
+                self.assertFalse(tag["is_enabled_for_projects"])
+                self.assertFalse(tag["is_enabled_for_skills"])
 
     @parameterized.expand(
         [

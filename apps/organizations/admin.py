@@ -28,7 +28,8 @@ class OrganizationAdmin(admin.ModelAdmin):
         "tags",
         "identity_providers",
         "featured_projects",
-        "enabled_tag_classifications",
+        "enabled_projects_tag_classifications",
+        "enabled_skills_tag_classifications",
     )
 
     def save_model(self, request, obj, form, change):

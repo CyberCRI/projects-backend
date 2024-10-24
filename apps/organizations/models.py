@@ -161,14 +161,26 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         blank=True,
         db_table="organizations_organization_skills_tags",
     )
-    enabled_tag_classifications = models.ManyToManyField(
+    enabled_projects_tag_classifications = models.ManyToManyField(
         "skills.TagClassification",
-        related_name="enabled_organizations",
+        related_name="enabled_organizations_projects",
         blank=True,
     )
-    default_tag_classification = models.ForeignKey(
+    enabled_skills_tag_classifications = models.ManyToManyField(
         "skills.TagClassification",
-        related_name="default_organizations",
+        related_name="enabled_organizations_skills",
+        blank=True,
+    )
+    default_projects_tag_classification = models.ForeignKey(
+        "skills.TagClassification",
+        related_name="default_organizations_projects",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    default_skills_tag_classification = models.ForeignKey(
+        "skills.TagClassification",
+        related_name="default_organizations_skills",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,

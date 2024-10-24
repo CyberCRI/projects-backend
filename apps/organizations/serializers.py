@@ -177,10 +177,18 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class OrganizationSerializer(OrganizationRelatedSerializer):
-    enabled_tag_classifications = TagClassificationMultipleIdRelatedField(
+    enabled_projects_tag_classifications = TagClassificationMultipleIdRelatedField(
         many=True, required=False
     )
-    default_tag_classification = TagClassificationMultipleIdRelatedField(required=False)
+    enabled_skills_tag_classifications = TagClassificationMultipleIdRelatedField(
+        many=True, required=False
+    )
+    default_projects_tag_classification = TagClassificationMultipleIdRelatedField(
+        required=False
+    )
+    default_skills_tag_classification = TagClassificationMultipleIdRelatedField(
+        required=False
+    )
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
@@ -236,8 +244,10 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "created_at",
             "updated_at",
             "tags",
-            "enabled_tag_classifications",
-            "default_tag_classification",
+            "enabled_projects_tag_classifications",
+            "enabled_skills_tag_classifications",
+            "default_projects_tag_classification",
+            "default_skills_tag_classification",
             # read_only
             "banner_image",
             "logo_image",
@@ -253,7 +263,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "team",
         ]
 
-    def validate_parent_code(self, value):
+    def validate_parent_code(self, value: Organization) -> Organization:
         if not self.instance:
             return value
         parent = value
@@ -263,22 +273,34 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             parent = parent.parent
         return value
 
-    def validate_default_tag_classification(self, value):
-        if not self.instance or "default_tag_classification" in self.initial_data:
-            enabled_tag_classifications = self.initial_data.get(
-                "enabled_tag_classifications", []
-            )
+    def _validate_default_tag_classification(
+        self, value: TagClassification, field_name: str
+    ) -> TagClassification:
+        if not self.instance or field_name in self.initial_data:
+            enabled_tag_classifications = self.initial_data.get(field_name, [])
             enabled_tag_classifications = TagClassification.objects.filter(
                 Q(id__in=enabled_tag_classifications)
                 | Q(slug__in=enabled_tag_classifications)
             ).distinct()
         elif self.instance:
-            enabled_tag_classifications = (
-                self.instance.enabled_tag_classifications.all()
-            )
+            enabled_tag_classifications = getattr(self.instance, field_name).all()
         if value and value not in enabled_tag_classifications:
             raise DefaultTagClassificationIsNotEnabledError
         return value
+
+    def validate_default_projects_tag_classification(
+        self, value: TagClassification
+    ) -> TagClassification:
+        return self._validate_default_tag_classification(
+            value, "enabled_projects_tag_classifications"
+        )
+
+    def validate_default_skills_tag_classification(
+        self, value: TagClassification
+    ) -> TagClassification:
+        return self._validate_default_tag_classification(
+            value, "enabled_skills_tag_classifications"
+        )
 
     def get_related_organizations(self) -> Organization:
         # We're not supposed to be here since only super admin can create

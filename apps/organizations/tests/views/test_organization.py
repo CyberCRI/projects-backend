@@ -31,8 +31,15 @@ class CreateOrganizationTestCase(JwtAPITestCase):
         cls.facilitators = UserFactory.create_batch(2)
         cls.admins = UserFactory.create_batch(2)
         cls.tags = TagFactory.create_batch(2)
-        cls.tag_classification = TagClassification.get_or_create_default_classification(
-            TagClassification.TagClassificationType.WIKIPEDIA
+        cls.projects_tag_classification = (
+            TagClassification.get_or_create_default_classification(
+                TagClassification.TagClassificationType.WIKIPEDIA
+            )
+        )
+        cls.skills_tag_classification = (
+            TagClassification.get_or_create_default_classification(
+                TagClassification.TagClassificationType.ESCO
+            )
         )
 
     @parameterized.expand(
@@ -69,8 +76,12 @@ class CreateOrganizationTestCase(JwtAPITestCase):
                 "admins": [a.id for a in self.admins],
                 "facilitators": [f.id for f in self.facilitators],
             },
-            "enabled_tag_classifications": [self.tag_classification.id],
-            "default_tag_classification": self.tag_classification.id,
+            "enabled_projects_tag_classifications": [
+                self.projects_tag_classification.id
+            ],
+            "default_projects_tag_classification": self.projects_tag_classification.id,
+            "enabled_skills_tag_classifications": [self.skills_tag_classification.id],
+            "default_skills_tag_classification": self.skills_tag_classification.id,
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
         self.assertEqual(response.status_code, expected_code)
@@ -110,11 +121,20 @@ class CreateOrganizationTestCase(JwtAPITestCase):
                 {t.id for t in self.tags},
             )
             self.assertSetEqual(
-                {c["id"] for c in content["enabled_tag_classifications"]},
-                {self.tag_classification.id},
+                {c["id"] for c in content["enabled_projects_tag_classifications"]},
+                {self.projects_tag_classification.id},
             )
             self.assertEqual(
-                content["default_tag_classification"]["id"], self.tag_classification.id
+                content["default_projects_tag_classification"]["id"],
+                self.projects_tag_classification.id,
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["enabled_skills_tag_classifications"]},
+                {self.skills_tag_classification.id},
+            )
+            self.assertEqual(
+                content["default_skills_tag_classification"]["id"],
+                self.skills_tag_classification.id,
             )
             organization = Organization.objects.get(code=payload["code"])
             for user in self.users:
@@ -170,7 +190,12 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.logo_image = cls.get_test_image()
         cls.tags = TagFactory.create_batch(2)
-        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
+        cls.projects_tag_classification = TagClassificationFactory(
+            organization=cls.organization
+        )
+        cls.skills_tag_classification = TagClassificationFactory(
+            organization=cls.organization
+        )
 
     @parameterized.expand(
         [
@@ -201,8 +226,12 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             "onboarding_enabled": faker.boolean(),
             "force_login_form_display": faker.boolean(),
             "tags": [t.id for t in self.tags],
-            "enabled_tag_classifications": [self.tag_classification.id],
-            "default_tag_classification": self.tag_classification.id,
+            "enabled_projects_tag_classifications": [
+                self.projects_tag_classification.id
+            ],
+            "default_projects_tag_classification": self.projects_tag_classification.id,
+            "enabled_skills_tag_classifications": [self.skills_tag_classification.id],
+            "default_skills_tag_classification": self.skills_tag_classification.id,
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(self.organization.code,)), data=payload
@@ -240,11 +269,20 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
                 {t.id for t in self.tags},
             )
             self.assertSetEqual(
-                {c["id"] for c in content["enabled_tag_classifications"]},
-                {self.tag_classification.id},
+                {c["id"] for c in content["enabled_projects_tag_classifications"]},
+                {self.projects_tag_classification.id},
             )
             self.assertEqual(
-                content["default_tag_classification"]["id"], self.tag_classification.id
+                content["default_projects_tag_classification"]["id"],
+                self.projects_tag_classification.id,
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["enabled_skills_tag_classifications"]},
+                {self.skills_tag_classification.id},
+            )
+            self.assertEqual(
+                content["default_skills_tag_classification"]["id"],
+                self.skills_tag_classification.id,
             )
 
 
@@ -528,7 +566,7 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
         organization_3.refresh_from_db()
         self.assertEqual(organization_3.parent, organization_2)
 
-    def test_create_with_not_enabled_default_tag_classification(self):
+    def test_create_with_not_enabled_default_projects_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
         tag_classification = TagClassification.get_or_create_default_classification(
             TagClassification.TagClassificationType.WIKIPEDIA
@@ -542,28 +580,28 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
             "parent_code": self.parent.code,
             "website_url": faker.url(),
             "tags": [],
-            "enabled_tag_classifications": [],
-            "default_tag_classification": tag_classification.id,
+            "enabled_projects_tag_classifications": [],
+            "default_projects_tag_classification": tag_classification.id,
         }
         response = self.client.post(reverse("Organization-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
             {
-                "default_tag_classification": [
+                "default_projects_tag_classification": [
                     "You must choose a default tag classification that is enabled"
                 ]
             },
         )
 
-    def test_update_with_not_enabled_default_tag_classification(self):
+    def test_update_with_not_enabled_default_projects_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
         organization = OrganizationFactory()
         tag_classification = TagClassification.get_or_create_default_classification(
             TagClassification.TagClassificationType.WIKIPEDIA
         )
         payload = {
-            "default_tag_classification": tag_classification.id,
+            "default_projects_tag_classification": tag_classification.id,
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(organization.code,)),
@@ -573,22 +611,22 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {
-                "default_tag_classification": [
+                "default_projects_tag_classification": [
                     "You must choose a default tag classification that is enabled"
                 ]
             },
         )
 
-    def test_update_with_removed_enable_default_tag_classification(self):
+    def test_update_with_removed_enable_default_projects_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
         organization = OrganizationFactory()
         tag_classification = TagClassification.get_or_create_default_classification(
             TagClassification.TagClassificationType.WIKIPEDIA
         )
-        organization.enabled_tag_classifications.add(tag_classification)
+        organization.enabled_projects_tag_classifications.add(tag_classification)
         payload = {
-            "enabled_tag_classifications": [],
-            "default_tag_classification": tag_classification.id,
+            "enabled_projects_tag_classifications": [],
+            "default_projects_tag_classification": tag_classification.id,
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(organization.code,)),
@@ -598,7 +636,83 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {
-                "default_tag_classification": [
+                "default_projects_tag_classification": [
+                    "You must choose a default tag classification that is enabled"
+                ]
+            },
+        )
+
+    def test_create_with_not_enabled_default_skills_tag_classification(self):
+        self.client.force_authenticate(self.superadmin)
+        tag_classification = TagClassification.get_or_create_default_classification(
+            TagClassification.TagClassificationType.WIKIPEDIA
+        )
+        payload = {
+            "name": faker.word(),
+            "code": faker.word(),
+            "dashboard_title": faker.sentence(),
+            "dashboard_subtitle": faker.sentence(),
+            "logo_image_id": self.get_test_image().id,
+            "parent_code": self.parent.code,
+            "website_url": faker.url(),
+            "tags": [],
+            "enabled_skills_tag_classifications": [],
+            "default_skills_tag_classification": tag_classification.id,
+        }
+        response = self.client.post(reverse("Organization-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "default_skills_tag_classification": [
+                    "You must choose a default tag classification that is enabled"
+                ]
+            },
+        )
+
+    def test_update_with_not_enabled_default_skills_tag_classification(self):
+        self.client.force_authenticate(self.superadmin)
+        organization = OrganizationFactory()
+        tag_classification = TagClassification.get_or_create_default_classification(
+            TagClassification.TagClassificationType.WIKIPEDIA
+        )
+        payload = {
+            "default_skills_tag_classification": tag_classification.id,
+        }
+        response = self.client.patch(
+            reverse("Organization-detail", args=(organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "default_skills_tag_classification": [
+                    "You must choose a default tag classification that is enabled"
+                ]
+            },
+        )
+
+    def test_update_with_removed_enable_default_skills_tag_classification(self):
+        self.client.force_authenticate(self.superadmin)
+        organization = OrganizationFactory()
+        tag_classification = TagClassification.get_or_create_default_classification(
+            TagClassification.TagClassificationType.WIKIPEDIA
+        )
+        organization.enabled_skills_tag_classifications.add(tag_classification)
+        payload = {
+            "enabled_skills_tag_classifications": [],
+            "default_skills_tag_classification": tag_classification.id,
+        }
+        response = self.client.patch(
+            reverse("Organization-detail", args=(organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {
+                "default_skills_tag_classification": [
                     "You must choose a default tag classification that is enabled"
                 ]
             },
@@ -645,10 +759,14 @@ class MiscOrganizationTestCase(JwtAPITestCase):
         tag_classification = TagClassificationFactory(organization=organization)
         tag_classification_2 = TagClassificationFactory(organization=organization)
         payload = {
-            "enabled_tag_classifications": [
+            "enabled_projects_tag_classifications": [
                 tag_classification.slug,
                 tag_classification_2.id,
-            ]
+            ],
+            "enabled_skills_tag_classifications": [
+                tag_classification.slug,
+                tag_classification_2.id,
+            ],
         }
         response = self.client.patch(
             reverse("Organization-detail", args=(organization.code,)),
@@ -657,6 +775,10 @@ class MiscOrganizationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(
-            {c["id"] for c in content["enabled_tag_classifications"]},
+            {c["id"] for c in content["enabled_projects_tag_classifications"]},
+            {tag_classification.id, tag_classification_2.id},
+        )
+        self.assertEqual(
+            {c["id"] for c in content["enabled_skills_tag_classifications"]},
             {tag_classification.id, tag_classification_2.id},
         )
