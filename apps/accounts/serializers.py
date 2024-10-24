@@ -152,8 +152,6 @@ class UserLightSerializer(serializers.ModelSerializer):
             "job",
             "profile_picture",
             "current_org_role",
-            "is_manager",
-            "is_leader",
             "last_login",
             "people_groups",
             "created_at",
