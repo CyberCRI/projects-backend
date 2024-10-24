@@ -196,8 +196,8 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     default_skills_tag_classification = TagClassificationMultipleIdRelatedField(
         required=False
     )
-    default_projects_tags = TagRelatedField(many=True)
-    default_skills_tags = TagRelatedField(many=True)
+    default_projects_tags = TagRelatedField(many=True, required=False)
+    default_skills_tags = TagRelatedField(many=True, required=False)
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)

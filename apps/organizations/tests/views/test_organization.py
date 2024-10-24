@@ -590,7 +590,6 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
             "logo_image_id": self.get_test_image().id,
             "parent_code": self.parent.code,
             "website_url": faker.url(),
-            "tags": [],
             "enabled_projects_tag_classifications": [],
             "default_projects_tag_classification": tag_classification.id,
         }
@@ -666,7 +665,6 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
             "logo_image_id": self.get_test_image().id,
             "parent_code": self.parent.code,
             "website_url": faker.url(),
-            "tags": [],
             "enabled_skills_tag_classifications": [],
             "default_skills_tag_classification": tag_classification.id,
         }
