@@ -198,85 +198,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def duplicate(self, request, *args, **kwargs):
         """Duplicate a given project."""
         project = self.get_object()
-
-        # Collecting many to many items
-        organizations = list(project.organizations.all().values_list("id", flat=True))
-        categories = list(project.categories.all().values_list("id", flat=True))
-
-        # collecting sub items
-        blog_entries = list(project.blog_entries.all())
-        goals = list(project.goals.all())
-        links = list(project.links.all())
-        files = list(project.files.all())
-        announcements = list(project.announcements.all())
-        locations = list(project.locations.all())
-        images = list(project.images.all())
-        # keep initial project pk to replace it in description and blog entries
-        initial_project_pk = str(project.pk)
-        initial_project_slug = project.slug
-        # saving a new project in db
-        project.pk = None
-        project.slug = ""
-        project.publication_status = Project.PublicationStatus.PRIVATE
-        project.save()
-        # duplicating sub items
-        foreign_keys = goals + links + files + announcements + locations
-        for item in foreign_keys:
-            created_at = getattr(item, "created_at", None)
-            item.pk = None
-            item.project = project
-            item.save()
-            if created_at:
-                item.created_at = created_at
-                item.save(update_fields=["created_at"])
-
-        # duplicating mtm items
-        project.organizations.add(*organizations)
-        project.categories.add(*categories)
-        # header image
-        if project.header_image:
-            header = project.header_image
-            header.pk = None
-            header.save()
-            header.project_header.set([project])
-        # images
-        for image in images:
-            initial_image_pk = str(image.pk)
-            image.pk = None
-            image.save()
-            image.projects.set([project])
-            for identifier in [initial_project_pk, initial_project_slug]:
-                project.description = project.description.replace(
-                    f"/v1/project/{identifier}/image/{initial_image_pk}/",
-                    f"/v1/project/{project.pk}/image/{image.pk}/",
-                )
-        for blog_entry in blog_entries:
-            created_at = getattr(blog_entry, "created_at", None)
-            images = list(blog_entry.images.all())
-            blog_entry.pk = None
-            blog_entry.project = project
-            blog_entry.save()
-            if created_at:
-                blog_entry.created_at = created_at
-                blog_entry.save(update_fields=["created_at"])
-            for image in images:
-                initial_image_pk = str(image.pk)
-                image.pk = None
-                image.save()
-                image.blog_entries.set([blog_entry])
-                for identifier in [initial_project_pk, initial_project_slug]:
-                    blog_entry.content = blog_entry.content.replace(
-                        f"/v1/project/{identifier}/blog-entry-image/{initial_image_pk}/",
-                        f"/v1/project/{project.pk}/blog-entry-image/{image.pk}/",
-                    )
-
-        project.save()
-        # set project owner
-        project.setup_permissions(request.user)
-        Stat(project=project).save()
+        duplicated_project = project.duplicate(owner=request.user)
         context = {"request": request}
         return Response(
-            ProjectSerializer(project, context=context).data,
+            ProjectSerializer(duplicated_project, context=context).data,
             status=status.HTTP_201_CREATED,
         )
 

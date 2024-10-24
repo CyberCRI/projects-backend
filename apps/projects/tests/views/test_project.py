@@ -474,7 +474,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
                 {
                     key: value
                     for key, value in item.items()
-                    if key not in ["id", "project", "updated_at"]
+                    if key not in ["id", "project", "created_at", "updated_at", "file"]
                 }
                 for item in duplicated_project[related_field]
             ]
@@ -482,7 +482,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
                 {
                     key: value
                     for key, value in item.items()
-                    if key not in ["id", "project", "updated_at"]
+                    if key not in ["id", "project", "created_at", "updated_at", "file"]
                 }
                 for item in initial_project[related_field]
             ]

@@ -2,14 +2,14 @@ from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models, transaction
 
-from apps.commons.models import OrganizationRelated, ProjectRelated
+from apps.commons.models import DuplicableModel, OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization
     from apps.projects.models import Project
 
 
-class Goal(models.Model, ProjectRelated, OrganizationRelated):
+class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     """Goal of a project.
 
     Attributes
@@ -65,3 +65,12 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated):
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
+
+    def duplicate(self, project: "Project") -> "Goal":
+        return Goal.objects.create(
+            project=project,
+            title=self.title,
+            description=self.description,
+            deadline_at=self.deadline_at,
+            status=self.status,
+        )
