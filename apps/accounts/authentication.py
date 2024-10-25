@@ -1,11 +1,9 @@
-import datetime
 import logging
 import uuid
 
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
 from django.utils import timezone
-from django.utils.timezone import make_aware
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.settings import api_settings
@@ -120,7 +118,7 @@ class ProjectJWTAuthentication(JWTAuthentication):
     def get_invitation_user(self, validated_token):
         queryset = Invitation.objects.filter(
             token=uuid.UUID(validated_token.decode("utf-8")),
-            expire_at__gt=make_aware(datetime.datetime.now()),
+            expire_at__gt=timezone.localtime(timezone.now()),
         )
         if queryset.exists():
             return InvitationUser(invitation=queryset.get())
