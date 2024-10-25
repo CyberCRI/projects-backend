@@ -531,8 +531,7 @@ class Project(
         )
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())
-        project.wikipedia_tags.set(self.wikipedia_tags.all())
-        project.organization_tags.set(self.organization_tags.all())
+        project.tags.set(self.tags.all())
         for image in self.images.all():
             new_image = image.duplicate(owner)
             project.images.add(new_image)
