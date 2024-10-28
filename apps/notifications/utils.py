@@ -361,6 +361,17 @@ class ReviewNotificationManager(NotificationTaskManager):
         )
 
 
+class PrivateMessageNotificationManager(NotificationTaskManager):
+    member_setting_name = "project_has_new_private_message"
+    notification_type = Notification.Types.PROJECT_MESSAGE
+    template_dir = "new_private_message"
+    notify_followers = False
+    send_immediately = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return self.project.get_all_members().exclude(id=self.sender.id).distinct()
+
+
 class DeleteMembersNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.MEMBER_REMOVED

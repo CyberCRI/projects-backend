@@ -1,0 +1,7 @@
+{% load i18n %}
+{% blocktranslate count counter=count with project_title=project.title full_name=by.get_full_name %}
+{{ full_name }} posted a message on {{ project_title }}.
+{% plural %}
+{{ full_name }} posted {{ count }} messages on project {{ project_title }}.
+{% endblocktranslate %}
+{{ content }}
