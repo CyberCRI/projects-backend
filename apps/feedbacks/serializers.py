@@ -3,7 +3,7 @@ from typing import List, Optional
 from django.db import transaction
 from rest_framework import serializers
 
-from apps.accounts.serializers import UserLightSerializer
+from apps.accounts.serializers import UserLighterSerializer
 from apps.commons.fields import RecursiveField, WritableSerializerMethodField
 from apps.commons.serializers import (
     LazySerializer,
@@ -26,7 +26,7 @@ from .models import Comment, Follow, Review
 class FollowSerializer(
     OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
 ):
-    follower = UserLightSerializer(many=False, read_only=True)
+    follower = UserLighterSerializer(many=False, read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         write_only=True, queryset=Project.objects.all(), source="project"
     )
@@ -75,7 +75,7 @@ class UserFollowManySerializer(serializers.Serializer):
 class ReviewSerializer(
     OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
 ):
-    reviewer = UserLightSerializer(read_only=True)
+    reviewer = UserLighterSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         source="project", queryset=Project.objects.all()
     )
@@ -112,7 +112,7 @@ class CommentSerializer(
     content = WritableSerializerMethodField(write_field=serializers.CharField())
 
     # read_only
-    author = UserLightSerializer(read_only=True)
+    author = UserLighterSerializer(read_only=True)
     replies = RecursiveField(read_only=True, many=True)
     images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 

@@ -1,3 +1,4 @@
+import logging
 import math
 import uuid
 from datetime import date
@@ -23,6 +24,7 @@ from apps.accounts.utils import (
     get_group_permissions,
     get_superadmins_group,
 )
+from apps.commons.cache import clear_redis_cache_model_method, redis_cache_model_method
 from apps.commons.models import (
     SDG,
     HasMultipleIDs,
@@ -39,6 +41,8 @@ from keycloak import KeycloakGetError
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
+
+logger = logging.getLogger(__name__)
 
 
 class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
@@ -322,15 +326,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     Override Django base user by a user of projects app
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._project_queryset: Optional[QuerySet["Project"]] = None
-        self._user_queryset: Optional[QuerySet["ProjectUser"]] = None
-        self._people_group_queryset: Optional[QuerySet["PeopleGroup"]] = None
-        self._news_queryset: Optional[QuerySet["News"]] = None
-        self._event_queryset: Optional[QuerySet["Event"]] = None
-        self._instruction_queryset: Optional[QuerySet["Instruction"]] = None
-
     # AbstractUser unused fields
     username_validator = None
     username = None
@@ -508,192 +503,251 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
-    def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
-        if self._project_queryset is None:
-            if self.is_superuser:
-                self._project_queryset = Project.objects.all().distinct()
-            else:
-                public_projects = Project.objects.filter(
-                    publication_status=Project.PublicationStatus.PUBLIC
-                )
-                member_projects = get_objects_for_user(self, "projects.view_project")
-                org_user_projects = Project.objects.filter(
-                    publication_status=Project.PublicationStatus.ORG,
-                    organizations__in=get_objects_for_user(
-                        self, "organizations.view_org_project"
-                    ),
-                )
-                org_admin_projects = Project.objects.filter(
-                    organizations__in=get_objects_for_user(
-                        self, "organizations.view_project"
+    def clear_querysets_cache(self, querysets: Optional[List[str]] = None):
+        if querysets:
+            for queryset in querysets:
+                clear_redis_cache_model_method(self, f"querysets.{queryset}")
+        else:
+            clear_redis_cache_model_method(self, "querysets")
+
+    @redis_cache_model_method("querysets.news_ids")
+    def _get_news_queryset_ids(self) -> QuerySet["News"]:
+        groups_ids = self._get_people_group_queryset_ids()
+        organizations = self.get_related_organizations()
+        return list(
+            set(
+                News.objects.filter(
+                    Q(visible_by_all=True)
+                    | Q(people_groups__id__in=groups_ids)
+                    | (
+                        Q(organization__in=organizations)
+                        & Q(people_groups__isnull=True)
+                        & Q(visible_by_all=False)
                     )
-                )
-                qs = (
-                    public_projects.union(member_projects)
-                    .union(org_user_projects)
-                    .union(org_admin_projects)
-                )
-                self._project_queryset = Project.objects.filter(
-                    id__in=qs.values("id")
-                ).distinct()
-        return self._project_queryset.prefetch_related(*prefetch)
+                ).values_list("id", flat=True)
+            )
+        )
+
+    @redis_cache_model_method("querysets.instructions_ids")
+    def _get_instruction_queryset_ids(self) -> QuerySet["Instruction"]:
+        groups_ids = self._get_people_group_queryset_ids()
+        organizations = self.get_related_organizations()
+        return list(
+            set(
+                Instruction.objects.filter(
+                    Q(visible_by_all=True)
+                    | Q(people_groups__id__in=groups_ids)
+                    | (
+                        Q(organization__in=organizations)
+                        & Q(people_groups__isnull=True)
+                        & Q(visible_by_all=False)
+                    )
+                ).values_list("id", flat=True)
+            )
+        )
+
+    @redis_cache_model_method("querysets.events_ids")
+    def _get_event_queryset_ids(self) -> QuerySet["Event"]:
+        groups_ids = self._get_people_group_queryset_ids()
+        organizations = self.get_related_organizations()
+        return list(
+            set(
+                Event.objects.filter(
+                    Q(visible_by_all=True)
+                    | Q(people_groups__id__in=groups_ids)
+                    | (
+                        Q(organization__in=organizations)
+                        & Q(people_groups__isnull=True)
+                        & Q(visible_by_all=False)
+                    )
+                ).values_list("id", flat=True)
+            )
+        )
+
+    @redis_cache_model_method("querysets.projects_ids")
+    def _get_project_queryset_ids(self) -> QuerySet["Project"]:
+        public_projects = Project.objects.filter(
+            publication_status=Project.PublicationStatus.PUBLIC
+        )
+        member_projects = get_objects_for_user(self, "projects.view_project")
+        org_user_projects = Project.objects.filter(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations__in=get_objects_for_user(
+                self, "organizations.view_org_project"
+            ),
+        )
+        org_admin_projects = Project.objects.filter(
+            organizations__in=get_objects_for_user(self, "organizations.view_project")
+        )
+        qs = (
+            public_projects.union(member_projects)
+            .union(org_user_projects)
+            .union(org_admin_projects)
+        )
+        return list(set(qs.values_list("id", flat=True)))
+
+    @redis_cache_model_method("querysets.users_ids")
+    def _get_user_queryset_ids(self) -> QuerySet["ProjectUser"]:
+        request_user = ProjectUser.objects.filter(id=self.id)
+        public_users = ProjectUser.objects.filter(
+            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
+        )
+        org_user_users = ProjectUser.objects.filter(
+            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
+            groups__organizations__in=get_objects_for_user(
+                self, "organizations.view_org_projectuser"
+            ),
+        )
+        org_admin_users = ProjectUser.objects.filter(
+            groups__organizations__in=get_objects_for_user(
+                self, "organizations.view_projectuser"
+            )
+        )
+
+        qs = (
+            request_user.union(public_users)
+            .union(org_user_users)
+            .union(org_admin_users)
+        )
+        return list(set(qs.values_list("id", flat=True)))
+
+    @redis_cache_model_method("querysets.people_groups_ids")
+    def _get_people_group_queryset_ids(self) -> QuerySet["PeopleGroup"]:
+        public_groups = PeopleGroup.objects.filter(
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC
+        )
+        member_groups = get_objects_for_user(self, "accounts.view_peoplegroup")
+        org_user_groups = PeopleGroup.objects.filter(
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+            organization__in=get_objects_for_user(
+                self, "organizations.view_org_peoplegroup"
+            ),
+        )
+        org_admin_groups = PeopleGroup.objects.filter(
+            organization__in=get_objects_for_user(
+                self, "organizations.view_peoplegroup"
+            )
+        )
+        qs = (
+            public_groups.union(member_groups)
+            .union(org_user_groups)
+            .union(org_admin_groups)
+        )
+        return list(set(qs.values_list("id", flat=True)))
 
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
-        if self._news_queryset is None:
-            if self.is_superuser:
-                self._news_queryset = News.objects.all()
-            else:
-                groups = self.get_people_group_queryset()
-                organizations = self.get_related_organizations()
-                self._news_queryset = News.objects.filter(
-                    Q(visible_by_all=True)
-                    | Q(people_groups__in=groups)
-                    | (
-                        Q(organization__in=organizations)
-                        & Q(people_groups__isnull=True)
-                        & Q(visible_by_all=False)
-                    )
-                )
-        return self._news_queryset.distinct().prefetch_related(*prefetch)
+        if self.is_superuser:
+            return News.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            News.objects.filter(id__in=self._get_news_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
-        if self._instruction_queryset is None:
-            if self.is_superuser:
-                self._instruction_queryset = Instruction.objects.all()
-            else:
-                groups = self.get_people_group_queryset()
-                organizations = self.get_related_organizations()
-                self._instruction_queryset = Instruction.objects.filter(
-                    Q(visible_by_all=True)
-                    | Q(people_groups__in=groups)
-                    | (
-                        Q(organization__in=organizations)
-                        & Q(people_groups__isnull=True)
-                        & Q(visible_by_all=False)
-                    )
-                )
-        return self._instruction_queryset.distinct().prefetch_related(*prefetch)
+        if self.is_superuser:
+            return Instruction.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            Instruction.objects.filter(id__in=self._get_instruction_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
-        if self._event_queryset is None:
-            if self.is_superuser:
-                self._event_queryset = Event.objects.all()
-            else:
-                groups = self.get_people_group_queryset()
-                organizations = self.get_related_organizations()
-                self._event_queryset = Event.objects.filter(
-                    Q(visible_by_all=True)
-                    | Q(people_groups__in=groups)
-                    | (
-                        Q(organization__in=organizations)
-                        & Q(people_groups__isnull=True)
-                        & Q(visible_by_all=False)
-                    )
-                )
-        return self._event_queryset.distinct().prefetch_related(*prefetch)
+        if self.is_superuser:
+            return Event.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            Event.objects.filter(id__in=self._get_event_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
+
+    def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+        if self.is_superuser:
+            return Project.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            Project.objects.filter(id__in=self._get_project_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
-        if self._user_queryset is None:
-            if self.is_superuser:
-                self._user_queryset = ProjectUser.objects.all().distinct()
-            else:
-                request_user = ProjectUser.objects.filter(id=self.id)
-                public_users = ProjectUser.objects.filter(
-                    privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
-                )
-                org_user_users = ProjectUser.objects.filter(
-                    privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
-                    groups__organizations__in=get_objects_for_user(
-                        self, "organizations.view_org_projectuser"
-                    ),
-                )
-                org_admin_users = ProjectUser.objects.filter(
-                    groups__organizations__in=get_objects_for_user(
-                        self, "organizations.view_projectuser"
-                    )
-                )
-
-                qs = (
-                    request_user.union(public_users)
-                    .union(org_user_users)
-                    .union(org_admin_users)
-                )
-                self._user_queryset = ProjectUser.objects.filter(
-                    id__in=qs.values("id")
-                ).distinct()
-        return self._user_queryset.prefetch_related(*prefetch)
+        if self.is_superuser:
+            return ProjectUser.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            ProjectUser.objects.filter(id__in=self._get_user_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_people_group_queryset(self, *prefetch) -> QuerySet["PeopleGroup"]:
-        if self._people_group_queryset is None:
-            if self.is_superuser:
-                self._people_group_queryset = PeopleGroup.objects.all().distinct()
-            else:
-                public_groups = PeopleGroup.objects.filter(
-                    publication_status=PeopleGroup.PublicationStatus.PUBLIC
-                )
-                member_groups = get_objects_for_user(self, "accounts.view_peoplegroup")
-                org_user_groups = PeopleGroup.objects.filter(
-                    publication_status=PeopleGroup.PublicationStatus.ORG,
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_org_peoplegroup"
-                    ),
-                )
-                org_admin_groups = PeopleGroup.objects.filter(
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_peoplegroup"
-                    )
-                )
-                qs = (
-                    public_groups.union(member_groups)
-                    .union(org_user_groups)
-                    .union(org_admin_groups)
-                )
-                self._people_group_queryset = PeopleGroup.objects.filter(
-                    id__in=qs.values("id")
-                ).distinct()
-        return self._people_group_queryset.prefetch_related(*prefetch)
+        if self.is_superuser:
+            return PeopleGroup.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            PeopleGroup.objects.filter(id__in=self._get_people_group_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
     ) -> QuerySet["Project"]:
+        if self.is_superuser:
+            return queryset
         return queryset.filter(
-            **{f"{project_related_name}__in": self.get_project_queryset()}
+            **{f"{project_related_name}__id__in": self._get_project_queryset_ids()}
         )
 
     def get_user_related_queryset(
         self, queryset: QuerySet, user_related_name: str = "user"
     ) -> QuerySet["ProjectUser"]:
-        return queryset.filter(**{f"{user_related_name}__in": self.get_user_queryset()})
+        if self.is_superuser:
+            return queryset
+        return queryset.filter(
+            **{f"{user_related_name}__id__in": self._get_user_queryset_ids()}
+        )
 
     def get_people_group_related_queryset(
         self, queryset: QuerySet, people_group_related_name: str = "people_group"
     ) -> QuerySet["PeopleGroup"]:
+        if self.is_superuser:
+            return queryset
         return queryset.filter(
-            **{f"{people_group_related_name}__in": self.get_people_group_queryset()}
+            **{
+                f"{people_group_related_name}__id__in": self._get_people_group_queryset_ids()
+            }
         )
 
     def get_news_related_queryset(
         self, queryset: QuerySet, news_related_name: str = "news"
     ) -> QuerySet["News"]:
-        return queryset.filter(**{f"{news_related_name}__in": self.get_news_queryset()})
+        if self.is_superuser:
+            return queryset
+        return queryset.filter(
+            **{f"{news_related_name}__id__in": self._get_news_queryset_ids()}
+        )
 
     def get_instruction_related_queryset(
         self, queryset: QuerySet, instruction_related_name: str = "instruction"
     ) -> QuerySet["Instruction"]:
+        if self.is_superuser:
+            return queryset
         return queryset.filter(
-            **{f"{instruction_related_name}__in": self.get_instruction_queryset()}
+            **{f"{instruction_related_name}__in": self._get_instruction_queryset_ids()}
         )
 
     def get_event_related_queryset(
         self, queryset: QuerySet, event_related_name: str = "event"
     ) -> QuerySet["Event"]:
+        if self.is_superuser:
+            return queryset
         return queryset.filter(
-            **{f"{event_related_name}__in": self.get_event_queryset()}
+            **{f"{event_related_name}__id__in": self._get_event_queryset_ids()}
         )
 
     def can_see_project(self, project: "Project") -> bool:
         """Return a `BasePermission` according to `linked_project`'s publication status."""
-        return project in self.get_project_queryset()
+        return project.id in self._get_project_queryset_ids()
 
     def get_permissions_representations(self) -> List[str]:
         """Return a list of the permissions representations."""

@@ -69,6 +69,7 @@ from .serializers import (
     PeopleGroupSerializer,
     PrivacySettingsSerializer,
     UserAdminListSerializer,
+    UserLighterSerializer,
     UserLightSerializer,
     UserSerializer,
 )
@@ -694,12 +695,12 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
         page = self.paginate_queryset(queryset)
         if page is not None:
-            user_serializer = UserLightSerializer(
+            user_serializer = UserLighterSerializer(
                 page, many=True, context={"request": request}
             )
             return self.get_paginated_response(user_serializer.data)
 
-        user_serializer = UserLightSerializer(
+        user_serializer = UserLighterSerializer(
             queryset, many=True, context={"request": request}
         )
         return Response(user_serializer.data)

@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
-from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
+from apps.accounts.serializers import PeopleGroupLightSerializer, UserLighterSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -305,11 +305,11 @@ class ProjectIdSerializer(serializers.Serializer):
     project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
 
 
-class UserLightSerializerKeycloakRelatedField(
-    UserLightSerializer, UserMultipleIdRelatedField
+class UserLighterSerializerKeycloakRelatedField(
+    UserLighterSerializer, UserMultipleIdRelatedField
 ):
     def to_representation(self, instance):
-        return UserLightSerializer.to_representation(self, instance)
+        return UserLighterSerializer.to_representation(self, instance)
 
     def to_internal_value(self, data):
         return UserMultipleIdRelatedField.to_internal_value(self, data)
@@ -329,13 +329,13 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
     project = HiddenPrimaryKeyRelatedField(
         required=False, write_only=True, queryset=Project.objects.all()
     )
-    members = UserLightSerializerKeycloakRelatedField(
+    members = UserLighterSerializerKeycloakRelatedField(
         many=True, required=False, queryset=ProjectUser.objects.all()
     )
-    owners = UserLightSerializerKeycloakRelatedField(
+    owners = UserLighterSerializerKeycloakRelatedField(
         many=True, required=False, queryset=ProjectUser.objects.all()
     )
-    reviewers = UserLightSerializerKeycloakRelatedField(
+    reviewers = UserLighterSerializerKeycloakRelatedField(
         many=True, required=False, queryset=ProjectUser.objects.all()
     )
     people_groups = PeopleGroupLightSerializerPrimaryKeyRelatedField(
@@ -807,7 +807,7 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
 
     # read_only
     project = serializers.PrimaryKeyRelatedField(read_only=True)
-    author = UserLightSerializer(read_only=True)
+    author = UserLighterSerializer(read_only=True)
     replies = RecursiveField(read_only=True, many=True)
     images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
 

@@ -1,10 +1,10 @@
 import logging
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 from celery.result import AsyncResult
 from django.conf import settings
 from django.db import models
-from django.utils.timezone import make_aware
+from django.utils import timezone
 
 from .task_managers import PostDeployTask
 
@@ -57,7 +57,7 @@ class PostDeployProcess(models.Model):
                     (
                         not process.last_run
                         or process.last_run
-                        < make_aware(datetime.now() - timedelta(minutes=30))
+                        < timezone.localtime(timezone.now() - timedelta(minutes=30))
                     )
                     and process.status in ["SUCCESS", "PENDING", "NONE"]
                 )
@@ -88,7 +88,7 @@ class PostDeployProcess(models.Model):
             return None
         task_result = AsyncResult(self.task_id)
         date_done = task_result.date_done
-        return make_aware(date_done) if date_done else None
+        return timezone.localtime(date_done) if date_done else None
 
     def _status(self):
         if not self.task_id:
