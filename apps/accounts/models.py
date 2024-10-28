@@ -635,45 +635,57 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
 
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
         if self.is_superuser:
-            return News.objects.all().prefetch_related(*prefetch)
-        return News.objects.filter(
-            id__in=self._get_news_queryset_ids()
-        ).prefetch_related(*prefetch)
+            return News.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            News.objects.filter(id__in=self._get_news_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
         if self.is_superuser:
-            return Instruction.objects.all().prefetch_related(*prefetch)
-        return Instruction.objects.filter(
-            id__in=self._get_instruction_queryset_ids()
-        ).prefetch_related(*prefetch)
+            return Instruction.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            Instruction.objects.filter(id__in=self._get_instruction_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
         if self.is_superuser:
-            return Event.objects.all().prefetch_related(*prefetch)
-        return Event.objects.filter(
-            id__in=self._get_event_queryset_ids()
-        ).prefetch_related(*prefetch)
+            return Event.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            Event.objects.filter(id__in=self._get_event_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
         if self.is_superuser:
-            return Project.objects.all().prefetch_related(*prefetch)
-        return Project.objects.filter(
-            id__in=self._get_project_queryset_ids()
-        ).prefetch_related(*prefetch)
+            return Project.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            Project.objects.filter(id__in=self._get_project_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
         if self.is_superuser:
-            return ProjectUser.objects.all().prefetch_related(*prefetch)
-        return ProjectUser.objects.filter(
-            id__in=self._get_user_queryset_ids()
-        ).prefetch_related(*prefetch)
+            return ProjectUser.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            ProjectUser.objects.filter(id__in=self._get_user_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_people_group_queryset(self, *prefetch) -> QuerySet["PeopleGroup"]:
         if self.is_superuser:
-            return PeopleGroup.objects.all().prefetch_related(*prefetch)
-        return PeopleGroup.objects.filter(
-            id__in=self._get_people_group_queryset_ids()
-        ).prefetch_related(*prefetch)
+            return PeopleGroup.objects.all().distinct().prefetch_related(*prefetch)
+        return (
+            PeopleGroup.objects.filter(id__in=self._get_people_group_queryset_ids())
+            .distinct()
+            .prefetch_related(*prefetch)
+        )
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
