@@ -23,7 +23,7 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    @patch("apps.feedbacks.views.notify_new_private_message.delay")
+    @patch("apps.projects.views.notify_new_private_message.delay")
     def test_notification_task_called(self, notification_task):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
@@ -37,7 +37,7 @@ class NewProjectMessageTestCase(JwtAPITestCase):
             "content": faker.text(),
         }
         response = self.client.post(
-            reverse("ProjectMessage-list", args=(self.project.id,)), data=payload
+            reverse("ProjectMessage-list", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         message_pk = response.json()["id"]
