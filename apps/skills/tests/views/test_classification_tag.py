@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from uuid import UUID
 
 from django.urls import reverse
 from faker import Faker
@@ -23,6 +24,14 @@ class CreateClassificationTagTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.tag_classification = TagClassificationFactory(organization=cls.organization)
+
+    @staticmethod
+    def is_valid_uuid(uuid):
+        try:
+            UUID(uuid)
+            return True
+        except ValueError:
+            return False
 
     @parameterized.expand(
         [
@@ -65,6 +74,7 @@ class CreateClassificationTagTestCase(JwtAPITestCase):
             self.assertEqual(content["description"], payload["description_fr"])
             tag = Tag.objects.get(id=content["id"])
             self.assertEqual(tag.organization, organization)
+            self.assertTrue(self.is_valid_uuid(tag.external_id))
             self.assertIn(self.tag_classification, tag.tag_classifications.all())
 
 

@@ -1,3 +1,4 @@
+import uuid
 from typing import TYPE_CHECKING, Any
 
 from django.db import models, transaction
@@ -69,6 +70,17 @@ class Tag(models.Model, OrganizationRelated):
 
     def __str__(self):
         return f"{self.type.capitalize()} Tag - {self.title}"
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        """
+        For custom tags, we generate a random UUID as the external ID.
+        This prevents IntegrityError because the external ID is supposed to be unique.
+        """
+        if not self.external_id:
+            self.external_id = str(uuid.uuid4())
+        return super().save(force_insert, force_update, using, update_fields)
 
     def get_related_organizations(self):
         """Return the organizations related to this model."""

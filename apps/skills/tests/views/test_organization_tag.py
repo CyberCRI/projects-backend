@@ -1,3 +1,5 @@
+from uuid import UUID
+
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -19,6 +21,14 @@ class CreateOrganizationTagTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+
+    @staticmethod
+    def is_valid_uuid(uuid):
+        try:
+            UUID(uuid)
+            return True
+        except ValueError:
+            return False
 
     @parameterized.expand(
         [
@@ -55,6 +65,7 @@ class CreateOrganizationTagTestCase(JwtAPITestCase):
             self.assertEqual(content["description"], payload["description_fr"])
             tag = Tag.objects.get(id=content["id"])
             self.assertEqual(tag.organization, organization)
+            self.assertTrue(self.is_valid_uuid(tag.external_id))
 
 
 class UpdateOrganizationTagTestCase(JwtAPITestCase):
