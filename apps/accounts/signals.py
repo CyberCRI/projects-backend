@@ -30,7 +30,7 @@ def change_people_group_children_parent(sender, instance, **kwargs):
 
 
 @receiver(m2m_changed, sender=ProjectUser.groups.through)
-def update_search_object_on_user_role_change(sender, instance, action, **kwargs):
+def clear_user_querysets_cache(sender, instance, action, **kwargs):
     """Create the associated search object at user's creation."""
-    if isinstance(instance, ProjectUser) and action in ["post_add", "post_remove"]:
+    if isinstance(instance, ProjectUser):
         instance.clear_querysets_cache()
