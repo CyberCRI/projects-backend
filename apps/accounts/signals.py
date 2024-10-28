@@ -1,7 +1,7 @@
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import m2m_changed, post_save, pre_delete
 from django.dispatch import receiver
 
-from apps.accounts.models import PeopleGroup, PrivacySettings
+from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
 
 
 @receiver(post_save, sender="accounts.ProjectUser")
@@ -27,3 +27,10 @@ def delete_people_group_roles(sender, instance, **kwargs):
 def change_people_group_children_parent(sender, instance, **kwargs):
     """Change the parent of the children groups."""
     instance.children.update(parent=instance.parent)
+
+
+@receiver(m2m_changed, sender=ProjectUser.groups.through)
+def update_search_object_on_user_role_change(sender, instance, action, **kwargs):
+    """Create the associated search object at user's creation."""
+    if isinstance(instance, ProjectUser) and action in ["post_add", "post_remove"]:
+        instance.clear_querysets_cache()
