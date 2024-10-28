@@ -1,4 +1,3 @@
-import logging
 import math
 import uuid
 from datetime import date
@@ -41,8 +40,6 @@ from keycloak import KeycloakGetError
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
-
-logger = logging.getLogger(__name__)
 
 
 class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
