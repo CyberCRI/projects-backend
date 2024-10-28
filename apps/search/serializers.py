@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from rest_framework import serializers
 
-from apps.accounts.serializers import PeopleGroupLightSerializer, UserLightSerializer
+from apps.accounts.serializers import PeopleGroupLightSerializer, UserLighterSerializer
 from apps.feedbacks.models import Follow
 from apps.files.serializers import ImageSerializer
 from apps.organizations.serializers import (
@@ -54,7 +54,7 @@ class ProjectSearchSerializer(serializers.ModelSerializer):
 
 class SearchObjectSerializer(serializers.ModelSerializer):
     project = ProjectSearchSerializer(read_only=True)
-    user = UserLightSerializer(read_only=True)
+    user = UserLighterSerializer(read_only=True)
     people_group = PeopleGroupLightSerializer(read_only=True)
 
     class Meta:
