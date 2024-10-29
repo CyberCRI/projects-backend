@@ -189,7 +189,7 @@ class DeleteBlogEntryTestCase(JwtAPITestCase):
             self.assertFalse(BlogEntry.objects.filter(id=blog_entry.id).exists())
 
 
-class MiscBlogEntryFileTestCase(JwtAPITestCase):
+class MiscBlogEntryTestCase(JwtAPITestCase):
     def test_multiple_lookups(self):
         self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         blog_entry = BlogEntryFactory()

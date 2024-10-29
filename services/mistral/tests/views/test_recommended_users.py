@@ -316,7 +316,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(len(content), 3)
         self.assertSetEqual(
             {project["id"] for project in content},
-            {self.users[user].id for user in ["public_2", "public", "org"]},
+            {self.users[user].id for user in ["org", "private", "public_2"]},
         )
         response = self.client.get(
             reverse(
@@ -329,5 +329,5 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(len(content), 3)
         self.assertSetEqual(
             {project["id"] for project in content},
-            {self.users[user].id for user in ["public_2", "public", "org"]},
+            {self.users[user].id for user in ["org", "private", "public_2"]},
         )

@@ -210,13 +210,15 @@ class MiscProjectMessageImageTestCase(JwtAPITestCase):
         project_message.images.add(image)
         response = self.client.get(
             reverse(
-                "ProjectMessage-images-detail", args=(project_message.id, image.id)
+                "ProjectMessage-images-detail",
+                args=(project_message.project.id, image.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         response = self.client.get(
             reverse(
-                "ProjectMessage-images-detail", args=(project_message.slug, image.id)
+                "ProjectMessage-images-detail",
+                args=(project_message.project.slug, image.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)

@@ -138,7 +138,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
         return self.get_paginated_list(wikipedia_tags)
 
 
-class UserMentorshipViewset(PaginatedViewSet, MultipleIDViewsetMixin):
+class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
     serializer_class = UserLightSerializer
     permission_classes = [ReadOnly]
     multiple_lookup_fields = [

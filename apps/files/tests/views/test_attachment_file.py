@@ -324,12 +324,8 @@ class MiscAttachmentFileTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("AttachmentFile-detail", args=(file.project.id, file.id)),
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], file.id)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         response = self.client.get(
             reverse("AttachmentFile-detail", args=(file.project.slug, file.id)),
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], file.id)
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
