@@ -41,6 +41,7 @@ class NotificationsSerializer(TranslatedModelSerializer):
             "created",
             "invitation",
             "organization",
+            "count",
         ]
         fields = read_only_fields + ["is_viewed"]
 
