@@ -4,6 +4,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.files.models import Image
 from apps.organizations.factories import OrganizationFactory
@@ -144,3 +145,34 @@ class DeleteProjectHeaderTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Image.objects.filter(id=project.header_image.id).exists())
+
+
+class MiscProjectHeaderTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        project = ProjectFactory(header_image=self.get_test_image())
+        payload = {
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+        }
+        response = self.client.patch(
+            reverse(
+                "Project-header-detail",
+                args=(project.id, project.header_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], project.header_image.id)
+        response = self.client.patch(
+            reverse(
+                "Project-header-detail",
+                args=(project.slug, project.header_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], project.header_image.id)

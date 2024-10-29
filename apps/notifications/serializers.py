@@ -49,7 +49,8 @@ class NotificationsSerializer(TranslatedModelSerializer):
 class NotificationSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = NotificationSettings
-        fields = (
+        read_only_fields = ["id"]
+        fields = read_only_fields + [
             "notify_added_to_project",
             "announcement_published",
             "announcement_has_new_application",
@@ -63,4 +64,4 @@ class NotificationSettingsSerializer(serializers.ModelSerializer):
             "organization_has_new_access_request",
             "invitation_link_will_expire",
             "new_instruction",
-        )
+        ]

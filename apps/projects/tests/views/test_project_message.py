@@ -4,6 +4,8 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory, ProjectMessageFactory
@@ -219,3 +221,27 @@ class DeleteProjectMessageTestCase(JwtAPITestCase):
             self.assertTrue(project_message.exists())
             project_message = project_message.get()
             self.assertIsNotNone(project_message.deleted_at)
+
+
+class MiscProjectMessageTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        project_message = ProjectMessageFactory()
+        response = self.client.get(
+            reverse(
+                "ProjectMessage-detail",
+                args=(project_message.project.id, project_message.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], project_message.id)
+        response = self.client.get(
+            reverse(
+                "ProjectMessage-detail",
+                args=(project_message.project.slug, project_message.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], project_message.id)

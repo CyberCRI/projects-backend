@@ -5,6 +5,7 @@ from rest_framework import status
 
 from apps.accounts.factories import SkillFactory, UserFactory
 from apps.accounts.models import PrivacySettings
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
@@ -285,3 +286,71 @@ class UserMentorshipTestCase(JwtAPITestCase):
                     self.mentoree_skill_2.wikipedia_qid,
                 },
             )
+
+    def test_retrieve_mentoree_multiple_lookups(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        SkillFactory(user=user, wikipedia_tag=self.mentoree_skill_1, can_mentor=True)
+        SkillFactory(user=user, wikipedia_tag=self.mentoree_skill_2, can_mentor=True)
+        SkillFactory(user=user, wikipedia_tag=self.other_skill, can_mentor=True)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentoree-candidate",
+                args=(self.organization.code, user.id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 8)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentoree-candidate",
+                args=(self.organization.code, user.slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 8)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentoree-candidate",
+                args=(self.organization.code, user.keycloak_id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 8)
+
+    def test_retrieve_mentor_multiple_lookups(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        SkillFactory(user=user, wikipedia_tag=self.mentor_skill_1, needs_mentor=True)
+        SkillFactory(user=user, wikipedia_tag=self.mentor_skill_2, needs_mentor=True)
+        SkillFactory(user=user, wikipedia_tag=self.other_skill, needs_mentor=True)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentor-candidate",
+                args=(self.organization.code, user.id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 8)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentor-candidate",
+                args=(self.organization.code, user.slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 8)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentor-candidate",
+                args=(self.organization.code, user.keycloak_id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 8)

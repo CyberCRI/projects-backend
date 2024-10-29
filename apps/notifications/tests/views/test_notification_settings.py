@@ -5,6 +5,7 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 
@@ -139,3 +140,27 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
                 notification_settings.project_has_been_reviewed,
                 payload["project_has_been_reviewed"],
             )
+
+
+class MiscNotificationSettingsTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        user = UserFactory(groups=[get_superadmins_group()])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("NotificationSettings-detail", args=(user.id,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], user.notification_settings.id)
+        response = self.client.get(
+            reverse("NotificationSettings-detail", args=(user.slug,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], user.notification_settings.id)
+        response = self.client.get(
+            reverse("NotificationSettings-detail", args=(user.keycloak_id,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], user.notification_settings.id)

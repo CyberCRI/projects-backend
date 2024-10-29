@@ -202,6 +202,63 @@ class ReadAnnouncementTestCase(JwtAPITestCase):
         )
 
 
+class ApplyToAnnouncementTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.projects = {
+            "public": ProjectFactory(
+                organizations=[cls.organization],
+                publication_status=Project.PublicationStatus.PUBLIC,
+            ),
+            "org": ProjectFactory(
+                organizations=[cls.organization],
+                publication_status=Project.PublicationStatus.ORG,
+            ),
+            "private": ProjectFactory(
+                organizations=[cls.organization],
+                publication_status=Project.PublicationStatus.PRIVATE,
+            ),
+        }
+        cls.announcements = {
+            "public": AnnouncementFactory(project=cls.projects["public"]),
+            "org": AnnouncementFactory(project=cls.projects["org"]),
+            "private": AnnouncementFactory(project=cls.projects["private"]),
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, "public"),
+            (TestRoles.ANONYMOUS, "org"),
+            (TestRoles.ANONYMOUS, "private"),
+            (TestRoles.DEFAULT, "public"),
+            (TestRoles.DEFAULT, "org"),
+            (TestRoles.DEFAULT, "private"),
+        ]
+    )
+    def test_apply_to_announcement(self, role, publication_status):
+        user = self.get_parameterized_test_user(role)
+        project = self.projects[publication_status]
+        announcement = self.announcements[publication_status]
+        if user:
+            self.client.force_authenticate(user)
+        payload = {
+            "project_id": project.id,
+            "announcement_id": announcement.id,
+            "applicant_name": faker.last_name(),
+            "applicant_firstname": faker.first_name(),
+            "applicant_email": faker.email(),
+            "applicant_message": faker.text(),
+            "recaptcha": faker.word(),
+        }
+        response = self.client.post(
+            reverse("Announcement-apply", args=(project.id, announcement.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class FilterOrderAnnouncementTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
@@ -309,3 +366,27 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
                 self.announcement_1.id,
             ],
         )
+
+
+class MiscAnnouncementTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        announcement = AnnouncementFactory()
+        response = self.client.get(
+            reverse(
+                "Announcement-detail",
+                args=(announcement.project.id, announcement.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], announcement.id)
+        response = self.client.get(
+            reverse(
+                "Announcement-detail",
+                args=(announcement.project.slug, announcement.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], announcement.id)

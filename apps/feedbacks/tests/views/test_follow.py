@@ -3,6 +3,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.feedbacks.models import Follow
@@ -310,3 +311,39 @@ class ListFollowTestCase(JwtAPITestCase):
                 self.assertIn(self.follower.id, [f["follower"]["id"] for f in content])
             else:
                 self.assertEqual(len(content), 0)
+
+
+class MiscFollowTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        follow = FollowFactory()
+        response = self.client.get(
+            reverse("Followed-list", args=(follow.project.id,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)
+        response = self.client.get(
+            reverse("Followed-list", args=(follow.project.slug,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)
+        response = self.client.get(
+            reverse("Follower-list", args=(follow.follower.id,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)
+        response = self.client.get(
+            reverse("Follower-list", args=(follow.follower.slug,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)
+        response = self.client.get(
+            reverse("Follower-list", args=(follow.follower.keycloak_id,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)

@@ -3,6 +3,8 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import BlogEntryFactory, ProjectFactory
@@ -185,3 +187,21 @@ class DeleteBlogEntryTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(BlogEntry.objects.filter(id=blog_entry.id).exists())
+
+
+class MiscBlogEntryFileTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        blog_entry = BlogEntryFactory()
+        response = self.client.get(
+            reverse("BlogEntry-detail", args=(blog_entry.project.id, blog_entry.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], blog_entry.id)
+        response = self.client.get(
+            reverse("BlogEntry-detail", args=(blog_entry.project.slug, blog_entry.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], blog_entry.id)

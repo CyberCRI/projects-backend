@@ -319,3 +319,21 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+
+class MiscAttachmentLinkTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        link = AttachmentLinkFactory()
+        response = self.client.get(
+            reverse("AttachmentLink-detail", args=(link.project.id, link.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], link.id)
+        response = self.client.get(
+            reverse("AttachmentLink-detail", args=(link.project.slug, link.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], link.id)

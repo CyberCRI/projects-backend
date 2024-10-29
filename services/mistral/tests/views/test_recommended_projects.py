@@ -3,6 +3,8 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory, ProjectScoreFactory
@@ -246,4 +248,43 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertIn(
             content[0]["id"],
             [self.projects[project].id for project in retrieved_projects[:2]],
+        )
+
+    def test_project_recommended_projects_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        response = self.client.get(
+            reverse(
+                "RecommendedProjects-for-project",
+                args=(self.organization.code, self.project.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 4)
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {
+                self.public_project.id,
+                self.org_project.id,
+                self.member_project.id,
+                self.private_project.id,
+            },
+        )
+        response = self.client.get(
+            reverse(
+                "RecommendedProjects-for-project",
+                args=(self.organization.code, self.project.slug),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), 4)
+        self.assertSetEqual(
+            {project["id"] for project in content},
+            {
+                self.public_project.id,
+                self.org_project.id,
+                self.member_project.id,
+                self.private_project.id,
+            },
         )

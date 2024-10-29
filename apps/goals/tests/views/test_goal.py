@@ -3,6 +3,8 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.goals.factories import GoalFactory
 from apps.goals.models import Goal
@@ -178,3 +180,21 @@ class ListGoalsTestCase(JwtAPITestCase):
                 self.assertEqual(content[0]["id"], self.goals[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)
+
+
+class MiscGoalFileTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        goal = GoalFactory()
+        response = self.client.get(
+            reverse("Goal-detail", args=(goal.project.id, goal.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], goal.id)
+        response = self.client.get(
+            reverse("Goal-detail", args=(goal.project.slug, goal.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], goal.id)

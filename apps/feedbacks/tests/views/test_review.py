@@ -39,7 +39,7 @@ class CreateReviewTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]
     )
-    def test_create_review(self, role, expected_code):
+    def test_create_reviewed(self, role, expected_code):
         project = self.project
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
@@ -85,7 +85,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
     )
-    def test_update_review(self, role, expected_code):
+    def test_update_reviewed(self, role, expected_code):
         user = self.get_parameterized_test_user(
             role, instances=[self.project], owned_instance=self.review
         )
@@ -95,6 +95,36 @@ class UpdateReviewTestCase(JwtAPITestCase):
         }
         response = self.client.patch(
             reverse("Reviewed-detail", args=(self.project.id, self.review.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            self.assertEqual(response.json()["description"], payload["description"])
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.OWNER, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+        ]
+    )
+    def test_update_reviewer(self, role, expected_code):
+        user = self.get_parameterized_test_user(
+            role, instances=[self.project], owned_instance=self.review
+        )
+        self.client.force_authenticate(user)
+        payload = {
+            "description": faker.text(),
+        }
+        response = self.client.patch(
+            reverse("Reviewer-detail", args=(self.review.reviewer.id, self.review.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -147,7 +177,7 @@ class ListReviewTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_list_review(self, role, retrieved_follows):
+    def test_list_reviewed(self, role, retrieved_reviews):
         user = self.get_parameterized_test_user(
             role, instances=list(self.projects.values()), owned_instance=self.reviewer
         )
@@ -156,13 +186,41 @@ class ListReviewTestCase(JwtAPITestCase):
             response = self.client.get(reverse("Reviewed-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
-            if project_status in retrieved_follows:
+            if project_status in retrieved_reviews:
                 self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["project_id"], project.id)
                 self.assertEqual(content[0]["reviewer"]["id"], self.reviewer.id)
                 self.assertEqual(
                     content[0]["description"], self.reviews[project_status].description
                 )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.OWNER, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_list_reviewer(self, role, retrieved_reviews):
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values()), owned_instance=self.reviewer
+        )
+        self.client.force_authenticate(user)
+        response = self.client.get(reverse("Reviewer-list", args=(self.reviewer.id,)))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), len(retrieved_reviews))
+        self.assertSetEqual(
+            {review["id"] for review in content},
+            {self.reviews[project_status].id for project_status in retrieved_reviews},
+        )
 
 
 class DestroyReviewTestCase(JwtAPITestCase):
@@ -189,7 +247,7 @@ class DestroyReviewTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
         ]
     )
-    def test_delete_review(self, role, expected_code):
+    def test_delete_reviewed(self, role, expected_code):
         project = self.project
         review = ReviewFactory(project=self.project)
         user = self.get_parameterized_test_user(
@@ -198,6 +256,34 @@ class DestroyReviewTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse("Reviewed-detail", args=(project.id, review.id))
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_204_NO_CONTENT:
+            self.assertFalse(Review.objects.filter(id=review.id).exists())
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+        ]
+    )
+    def test_delete_reviewer(self, role, expected_code):
+        project = self.project
+        review = ReviewFactory(project=self.project)
+        user = self.get_parameterized_test_user(
+            role, instances=[project], owned_instance=review
+        )
+        self.client.force_authenticate(user)
+        response = self.client.delete(
+            reverse("Reviewer-detail", args=(review.reviewer.id, review.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -221,3 +307,39 @@ class ValidateReviewTestCase(JwtAPITestCase):
             reverse("Reviewed-list", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class MiscReviewTestCase(JwtAPITestCase):
+    def test_multiple_lookups(self):
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        review = ReviewFactory()
+        response = self.client.get(
+            reverse("Reviewed-detail", args=(review.project.id, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], review.id)
+        response = self.client.get(
+            reverse("Reviewed-detail", args=(review.project.slug, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], review.id)
+        response = self.client.get(
+            reverse("Reviewer-detail", args=(review.reviewer.id, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], review.id)
+        response = self.client.get(
+            reverse("Reviewer-detail", args=(review.reviewer.slug, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], review.id)
+        response = self.client.get(
+            reverse("Reviewer-detail", args=(review.reviewer.keycloak_id, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], review.id)
