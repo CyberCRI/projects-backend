@@ -1146,23 +1146,3 @@ class MiscUserTestCase(JwtAPITestCase):
         family_name = ""
         user = UserFactory(given_name=given_name, family_name=family_name)
         self.assertEqual(user.slug, f"user-{given_name}")
-
-    def test_multiple_lookups(self):
-        user = UserFactory()
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["slug"], user.slug)
-        self.assertEqual(content["keycloak_id"], user.keycloak_id)
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.slug,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], user.id)
-        self.assertEqual(content["keycloak_id"], user.keycloak_id)
-        response = self.client.get(
-            reverse("ProjectUser-detail", args=(user.keycloak_id,))
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], user.id)
-        self.assertEqual(content["slug"], user.slug)

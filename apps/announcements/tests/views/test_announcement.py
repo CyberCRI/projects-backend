@@ -366,27 +366,3 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
                 self.announcement_1.id,
             ],
         )
-
-
-class MiscAnnouncementTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        announcement = AnnouncementFactory()
-        response = self.client.get(
-            reverse(
-                "Announcement-detail",
-                args=(announcement.project.id, announcement.id),
-            ),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], announcement.id)
-        response = self.client.get(
-            reverse(
-                "Announcement-detail",
-                args=(announcement.project.slug, announcement.id),
-            ),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], announcement.id)

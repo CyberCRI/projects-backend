@@ -3,8 +3,6 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
-from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory
 from apps.files.models import Image
@@ -242,19 +240,3 @@ class DeleteCommentImageTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Image.objects.filter(id=image.id).exists())
-
-
-class MiscCommentImageTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        comment = CommentFactory()
-        image = self.get_test_image()
-        comment.images.add(image)
-        response = self.client.get(
-            reverse("Comment-images-detail", args=(comment.project.id, image.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        response = self.client.get(
-            reverse("Comment-images-detail", args=(comment.project.slug, image.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)

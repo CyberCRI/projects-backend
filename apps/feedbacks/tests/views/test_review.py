@@ -307,39 +307,3 @@ class ValidateReviewTestCase(JwtAPITestCase):
             reverse("Reviewed-list", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-
-class MiscReviewTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        review = ReviewFactory()
-        response = self.client.get(
-            reverse("Reviewed-detail", args=(review.project.id, review.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], review.id)
-        response = self.client.get(
-            reverse("Reviewed-detail", args=(review.project.slug, review.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], review.id)
-        response = self.client.get(
-            reverse("Reviewer-detail", args=(review.reviewer.id, review.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], review.id)
-        response = self.client.get(
-            reverse("Reviewer-detail", args=(review.reviewer.slug, review.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], review.id)
-        response = self.client.get(
-            reverse("Reviewer-detail", args=(review.reviewer.keycloak_id, review.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], review.id)

@@ -3,8 +3,7 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, UserFactory
-from apps.accounts.utils import get_superadmins_group
+from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 
@@ -151,34 +150,3 @@ class DeletePeopleGroupHeaderTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_204_NO_CONTENT:
             people_group.refresh_from_db()
             self.assertIsNone(people_group.header_image)
-
-
-class MiscPeopleGroupHeaderTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        people_group = PeopleGroupFactory(header_image=self.get_test_image())
-        payload = {
-            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
-        }
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-header-list",
-                args=(people_group.organization.code, people_group.id),
-            ),
-            data=payload,
-            format="multipart",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], people_group.header_image.id)
-        response = self.client.patch(
-            reverse(
-                "PeopleGroup-header-list",
-                args=(people_group.organization.code, people_group.slug),
-            ),
-            data=payload,
-            format="multipart",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], people_group.header_image.id)

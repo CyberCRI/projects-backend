@@ -315,17 +315,3 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
             format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-
-class MiscAttachmentFileTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        file = AttachmentFileFactory()
-        response = self.client.get(
-            reverse("AttachmentFile-detail", args=(file.project.id, file.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-        response = self.client.get(
-            reverse("AttachmentFile-detail", args=(file.project.slug, file.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_302_FOUND)

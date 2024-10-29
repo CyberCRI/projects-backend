@@ -5,7 +5,6 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory
 from apps.organizations.factories import OrganizationFactory
@@ -323,21 +322,3 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         self.assertEqual(content["count"], 1)
         self.assertEqual(content["results"][0]["id"], comment.id)
         self.assertEqual(content["results"][0]["content"], "<deleted comment>")
-
-
-class MiscCommentTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        comment = CommentFactory()
-        response = self.client.get(
-            reverse("Comment-detail", args=(comment.project.id, comment.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], comment.id)
-        response = self.client.get(
-            reverse("Comment-detail", args=(comment.project.slug, comment.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], comment.id)

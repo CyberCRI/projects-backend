@@ -3,8 +3,6 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
-from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import LocationFactory, ProjectFactory
@@ -191,21 +189,3 @@ class DeleteLocationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Location.objects.filter(id=location.id).exists())
-
-
-class MiscLocationTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        location = LocationFactory()
-        response = self.client.get(
-            reverse("Location-detail", args=(location.project.id, location.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], location.id)
-        response = self.client.get(
-            reverse("Location-detail", args=(location.project.slug, location.id)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], location.id)

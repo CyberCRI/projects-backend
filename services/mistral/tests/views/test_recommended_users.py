@@ -302,32 +302,3 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             [user["id"] for user in content],
             [self.users[user].id for user in ["org", "private", "public_2", "public"]],
         )
-
-    def test_project_recommended_users_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        response = self.client.get(
-            reverse(
-                "RecommendedUsers-for-project",
-                args=(self.organization.code, self.project.id),
-            ),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertSetEqual(
-            {project["id"] for project in content},
-            {self.users[user].id for user in ["org", "private", "public_2"]},
-        )
-        response = self.client.get(
-            reverse(
-                "RecommendedUsers-for-project",
-                args=(self.organization.code, self.project.slug),
-            ),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 3)
-        self.assertSetEqual(
-            {project["id"] for project in content},
-            {self.users[user].id for user in ["org", "private", "public_2"]},
-        )

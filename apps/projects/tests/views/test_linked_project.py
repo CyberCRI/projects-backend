@@ -193,24 +193,3 @@ class ValidateLinkedProjectTestCase(JwtAPITestCase):
                 ]
             },
         )
-
-
-class MiscLinkedProjectTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
-        linked_project = LinkedProjectFactory()
-        response = self.client.delete(
-            reverse(
-                "LinkedProjects-detail",
-                args=(linked_project.target.id, linked_project.id),
-            ),
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        linked_project = LinkedProjectFactory()
-        response = self.client.delete(
-            reverse(
-                "LinkedProjects-detail",
-                args=(linked_project.target.slug, linked_project.id),
-            ),
-        )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

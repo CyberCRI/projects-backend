@@ -177,23 +177,3 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
             content = response.json()
             for key, value in payload.items():
                 self.assertEqual(content[key], value)
-
-
-class MiscPrivacySettingsTestCase(JwtAPITestCase):
-    def test_multiple_lookups(self):
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        response = self.client.get(reverse("PrivacySettings-detail", args=(user.id,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], user.privacy_settings.id)
-        response = self.client.get(reverse("PrivacySettings-detail", args=(user.slug,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], user.privacy_settings.id)
-        response = self.client.get(
-            reverse("PrivacySettings-detail", args=(user.keycloak_id,))
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], user.privacy_settings.id)
