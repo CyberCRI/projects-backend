@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-28 14:13+0100\n"
+"POT-Creation-Date: 2024-10-29 11:02+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,7 +108,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:131 apps/projects/models.py:162
+#: apps/accounts/models.py:131 apps/projects/models.py:163
 msgid "visibility"
 msgstr ""
 
@@ -461,15 +461,15 @@ msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""
 
-#: apps/notifications/tasks.py:181 apps/notifications/tasks.py:222
+#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:229
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:182 apps/notifications/tasks.py:223
+#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:230
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:183 apps/notifications/tasks.py:224
+#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:231
 msgid "reviewer"
 msgstr ""
 
@@ -489,6 +489,7 @@ msgstr[1] ""
 #: apps/notifications/templates/member_updated_self/mail.html:13
 #: apps/notifications/templates/new_comment/mail.html:13
 #: apps/notifications/templates/new_instruction/mail.html:13
+#: apps/notifications/templates/new_private_message/mail.html:13
 #: apps/notifications/templates/new_reply/mail.html:13
 #: apps/notifications/templates/new_review/mail.html:13
 #: apps/notifications/templates/project_ready_for_review/mail.html:13
@@ -959,6 +960,37 @@ msgid ""
 "You received a new instruction.\n"
 msgstr ""
 
+#: apps/notifications/templates/new_private_message/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s posted a message on <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+
+#: apps/notifications/templates/new_private_message/mail.html:26
+msgid "Message by"
+msgstr ""
+
+#: apps/notifications/templates/new_private_message/mail.html:35
+msgid "Go to message"
+msgstr ""
+
+#: apps/notifications/templates/new_private_message/mail.txt:2
+#: apps/notifications/templates/new_private_message/object.txt:2
+#: apps/notifications/templates/new_private_message/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s posted a message on %(project_title)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s posted %(count)s messages on project %(project_title)s.\n"
+msgstr[0] ""
+msgstr[1] ""
+
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format
 msgid ""
@@ -1163,35 +1195,35 @@ msgstr ""
 msgid "A message cannot be a reply to itself"
 msgstr ""
 
-#: apps/projects/models.py:146
+#: apps/projects/models.py:147
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:155
+#: apps/projects/models.py:156
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:168
+#: apps/projects/models.py:169
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:179
+#: apps/projects/models.py:180
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:187
+#: apps/projects/models.py:188
 msgid "wikipedia tags"
 msgstr ""
 
-#: apps/projects/models.py:190
+#: apps/projects/models.py:191
 msgid "organizational tags"
 msgstr ""
 
-#: apps/projects/models.py:203
+#: apps/projects/models.py:204
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:209
+#: apps/projects/models.py:210
 msgid "main category"
 msgstr ""
 

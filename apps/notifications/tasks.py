@@ -12,7 +12,7 @@ from apps.feedbacks.models import Comment, Review
 from apps.invitations.models import AccessRequest, Invitation
 from apps.newsfeed.models import Instruction
 from apps.organizations.models import Organization
-from apps.projects.models import BlogEntry, Project
+from apps.projects.models import BlogEntry, Project, ProjectMessage
 from projects.celery import app
 
 from .models import Notification
@@ -34,6 +34,7 @@ from .utils import (
     NewAccessRequestNotificationManager,
     NewInstructionNotificationManager,
     PendingAccessRequestsNotificationManager,
+    PrivateMessageNotificationManager,
     ProjectEditedNotificationManager,
     ReadyForReviewNotificationManager,
     ReviewNotificationManager,
@@ -130,6 +131,12 @@ def notify_new_blogentry(blogentry_pk: int, by_pk: int):
 def notify_new_comment(comment_id: int):
     """Notify members and followers that a new comment has been added."""
     return _notify_new_comment(comment_id)
+
+
+@app.task
+def notify_new_private_message(message_id: int):
+    """Notify members and followers that a new private message has been received."""
+    return _notify_new_private_message(message_id)
 
 
 @app.task
@@ -308,12 +315,19 @@ def _notify_new_blogentry(blogentry_pk: int, by_pk: int):
 
 def _notify_new_comment(comment_id: int):
     comment = Comment.objects.get(id=comment_id)
-    for manager in [
-        CommentReplyNotificationManager,
-        CommentNotificationManager,
-        FollowerCommentNotificationManager,
-    ]:
-        manager(comment.author, comment).create_and_send_notifications()
+    CommentReplyNotificationManager(
+        comment.author, comment
+    ).create_and_send_notifications()
+    CommentNotificationManager(comment.author, comment).create_and_send_notifications()
+    FollowerCommentNotificationManager(
+        comment.author, comment
+    ).create_and_send_notifications()
+
+
+def _notify_new_private_message(message_id: int):
+    message = ProjectMessage.objects.get(pk=message_id)
+    manager = PrivateMessageNotificationManager(message.author, message)
+    manager.create_and_send_notifications()
 
 
 def _notify_new_announcement(announcement_pk: int, by_pk: int):

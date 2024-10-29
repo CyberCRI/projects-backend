@@ -32,6 +32,7 @@ from apps.notifications.tasks import (
     notify_member_deleted,
     notify_member_updated,
     notify_new_blogentry,
+    notify_new_private_message,
     notify_ready_for_review,
 )
 from apps.organizations.models import Organization
@@ -776,7 +777,10 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user, project_id=self.kwargs["project_id"])
+        message = serializer.save(
+            author=self.request.user, project_id=self.kwargs["project_id"]
+        )
+        notify_new_private_message.delay(message.id)
 
     def perform_destroy(self, instance: ProjectMessage):
         instance.soft_delete()

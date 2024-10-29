@@ -41,6 +41,7 @@ class NotificationsSerializer(TranslatedModelSerializer):
             "created",
             "invitation",
             "organization",
+            "count",
         ]
         fields = read_only_fields + ["is_viewed"]
 
@@ -57,6 +58,7 @@ class NotificationSettingsSerializer(serializers.ModelSerializer):
             "project_has_been_edited",
             "project_ready_for_review",
             "project_has_been_reviewed",
+            "project_has_new_private_message",
             "comment_received_a_response",
             "organization_has_new_access_request",
             "invitation_link_will_expire",

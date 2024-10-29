@@ -11,6 +11,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.fields import ArrayField
 from django.core.cache import cache
 from django.db import models, transaction
+from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
@@ -469,23 +470,23 @@ class Project(
         return self.get_or_create_group(self.DefaultGroup.PEOPLE_GROUPS)
 
     @property
-    def owners(self) -> List["ProjectUser"]:
+    def owners(self) -> QuerySet["ProjectUser"]:
         return self.get_owners().users
 
     @property
-    def reviewers(self) -> List["ProjectUser"]:
+    def reviewers(self) -> QuerySet["ProjectUser"]:
         return self.get_reviewers().users
 
     @property
-    def members(self) -> List["ProjectUser"]:
+    def members(self) -> QuerySet["ProjectUser"]:
         return self.get_members().users
 
     @property
-    def member_people_groups(self) -> List["PeopleGroup"]:
+    def member_people_groups(self) -> QuerySet["PeopleGroup"]:
         return self.get_people_groups().people_groups
 
     @property
-    def member_people_groups_members(self) -> List["ProjectUser"]:
+    def member_people_groups_members(self) -> QuerySet["ProjectUser"]:
         return self.get_people_groups().users
 
     def set_people_group_members(self):
@@ -498,7 +499,7 @@ class Project(
         )
         self.member_people_groups_members.set(people_groups_users)
 
-    def get_all_members(self) -> List["ProjectUser"]:
+    def get_all_members(self) -> QuerySet["ProjectUser"]:
         """Return the all members."""
         return (
             self.owners.all() | self.reviewers.all() | self.members.all()

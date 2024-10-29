@@ -6,11 +6,13 @@ from datetime import datetime
 from django.db.models import Q
 from requests import Request
 
-from apps.accounts.models import ProjectUser
-from apps.accounts.serializers import UserSerializer
 from apps.emailing.utils import send_email_with_attached_file
+from apps.invitations.models import AccessRequest
 from projects.celery import app
 from services.keycloak.interface import KeycloakService
+
+from .models import ProjectUser
+from .serializers import UserSerializer
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +21,22 @@ logger = logging.getLogger(__name__)
 def calculate_users_scores():
     for user in ProjectUser.objects.all():
         user.calculate_score()
+
+
+@app.task(name="apps.accounts.tasks.send_email_to_user")
+def update_new_user_pending_access_requests(user_pk: int, organization_code: str):
+    user = ProjectUser.objects.get(pk=user_pk)
+    AccessRequest.objects.filter(
+        organization__code=organization_code,
+        status=AccessRequest.Status.PENDING,
+        user__isnull=True,
+        email=user.email,
+    ).update(user=user, status=AccessRequest.Status.ACCEPTED)
+    AccessRequest.objects.exclude(organization__code=organization_code).filter(
+        status=AccessRequest.Status.PENDING,
+        user__isnull=True,
+        email=user.email,
+    ).update(user=user)
 
 
 @app.task

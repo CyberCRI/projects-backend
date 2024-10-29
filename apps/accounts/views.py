@@ -73,6 +73,7 @@ from .serializers import (
     UserLightSerializer,
     UserSerializer,
 )
+from .tasks import update_new_user_pending_access_requests
 from .utils import (
     account_sync_errors_handler,
     get_default_group,
@@ -377,6 +378,9 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             keycloak_account = KeycloakService.create_user(
                 instance, self.request.data.get("password", None)
             )
+        update_new_user_pending_access_requests.delay(
+            instance.id, redirect_organization_code
+        )
         KeycloakService.send_email(
             keycloak_account=keycloak_account,
             email_type=email_type,
