@@ -11,7 +11,7 @@ token_url = 'https://keycloak.k8s.lp-i.dev/realms/lp/protocol/openid-connect/tok
 redirect_uri = 'https://projects.k8s.lp-i.dev/'
 
 ORGANIZATION_CODE = 'DEFAULT'
-GROUP_TO_TEST = 'ab-openlab'
+GROUP_TO_TEST = 'testing_a6grj'
 SEARCH_TERM = 'test'
 USER_ID = '5e558735-5207-4c86-a3ed-c7f83b55e0e9'
 PROJECT_TO_TEST = 'test-stan'
