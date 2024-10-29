@@ -91,11 +91,17 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         payload = {
             "notify_added_to_project": faker.boolean(),
             "announcement_published": faker.boolean(),
+            "announcement_has_new_application": faker.boolean(),
             "followed_project_has_been_edited": faker.boolean(),
             "project_has_been_commented": faker.boolean(),
             "project_has_been_edited": faker.boolean(),
             "project_ready_for_review": faker.boolean(),
             "project_has_been_reviewed": faker.boolean(),
+            "project_has_new_private_message": faker.boolean(),
+            "comment_received_a_response": faker.boolean(),
+            "organization_has_new_access_request": faker.boolean(),
+            "invitation_link_will_expire": faker.boolean(),
+            "new_instruction": faker.boolean(),
         }
         response = self.client.patch(
             reverse("NotificationSettings-detail", args=(self.user.id,)),

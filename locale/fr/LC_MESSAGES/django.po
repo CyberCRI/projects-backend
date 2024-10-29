@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-28 11:20+0100\n"
+"POT-Creation-Date: 2024-10-28 15:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,7 +116,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:132 apps/projects/models.py:160
+#: apps/accounts/models.py:132 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilité"
 
@@ -570,15 +570,15 @@ msgid ""
 msgstr ""
 "Les groupes d'une instruction doivent appartenir à la même organisation"
 
-#: apps/notifications/tasks.py:181 apps/notifications/tasks.py:222
+#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:229
 msgid "editor"
 msgstr "éditeur"
 
-#: apps/notifications/tasks.py:182 apps/notifications/tasks.py:223
+#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:230
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:183 apps/notifications/tasks.py:224
+#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:231
 msgid "reviewer"
 msgstr "correcteur"
 
@@ -603,6 +603,7 @@ msgstr[1] ""
 #: apps/notifications/templates/member_updated_self/mail.html:13
 #: apps/notifications/templates/new_comment/mail.html:13
 #: apps/notifications/templates/new_instruction/mail.html:13
+#: apps/notifications/templates/new_private_message/mail.html:13
 #: apps/notifications/templates/new_reply/mail.html:13
 #: apps/notifications/templates/new_review/mail.html:13
 #: apps/notifications/templates/project_ready_for_review/mail.html:13
@@ -1243,6 +1244,46 @@ msgstr ""
 "\n"
 "Vous avez reçu une nouvelle instruction.\n"
 
+#: apps/notifications/templates/new_private_message/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s posted a message on <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s a envoyé un message au projet <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/new_private_message/mail.html:26
+msgid "Message by"
+msgstr "Message de"
+
+#: apps/notifications/templates/new_private_message/mail.html:35
+msgid "Go to message"
+msgstr "Voir le message"
+
+#: apps/notifications/templates/new_private_message/mail.txt:2
+#: apps/notifications/templates/new_private_message/object.txt:2
+#: apps/notifications/templates/new_private_message/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s posted a message on %(project_title)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s posted %(count)s messages on project %(project_title)s.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s a envoyé un message au projet %(project_title)s.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s a envoyé %(count)s messages au projet %(project_title)s.\n"
+
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format
 msgid ""
@@ -1488,35 +1529,35 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 
-#: apps/projects/models.py:144
+#: apps/projects/models.py:145
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:153
+#: apps/projects/models.py:154
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:166
+#: apps/projects/models.py:167
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:178
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:184
+#: apps/projects/models.py:185
 msgid "wikipedia tags"
 msgstr "tags wikipedia"
 
-#: apps/projects/models.py:187
+#: apps/projects/models.py:188
 msgid "organizational tags"
 msgstr "tags organisationnels"
 
-#: apps/projects/models.py:194
+#: apps/projects/models.py:195
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:200
+#: apps/projects/models.py:201
 msgid "main category"
 msgstr "objectif principal"
 
