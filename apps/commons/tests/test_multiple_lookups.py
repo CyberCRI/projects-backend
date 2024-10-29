@@ -58,6 +58,7 @@ class MiscPeopleGroupHeaderTestCase(JwtAPITestCase):
         self.assertEqual(response.data["id"], self.people_group.id)
 
     def test_people_group_header_multiple_lookups(self):
+        self.client.force_authenticate(self.superadmin)
         payload = {
             "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
@@ -305,7 +306,7 @@ class MiscPeopleGroupHeaderTestCase(JwtAPITestCase):
 
     def test_linked_project_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
-        project = ProjectFactory(organization=self.organization)
+        project = ProjectFactory(organizations=[self.organization])
         linked_project = LinkedProjectFactory(target=project, project=self.project)
         response = self.client.delete(
             reverse(
