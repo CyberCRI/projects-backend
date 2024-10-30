@@ -19,7 +19,7 @@ from apps.projects.serializers import ProjectLightSerializer
 from .models import ProjectEmbedding, UserEmbedding
 
 
-class RecommendationsViewset(GenericViewSet, MultipleIDViewsetMixin):
+class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
     filter_backends = [DjangoFilterBackend]
     ordering_fields = []
     permission_classes = [ReadOnly]
@@ -207,7 +207,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
         embedding = self.get_project_embedding(project)
         if embedding is not None and queryset.exists():
             return ProjectEmbedding.vector_search(embedding, queryset)
-        return queryset.objects.none()
+        return queryset.none()
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[Project]:
         queryset = user.get_project_queryset().filter(
@@ -244,7 +244,7 @@ class UserRecommendationsViewset(RecommendationsViewset):
             queryset = queryset.exclude(id=self.request.user.id)
         if embedding is not None and queryset.exists():
             return UserEmbedding.vector_search(embedding, queryset)
-        return queryset.objects.none()
+        return queryset.none()
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[ProjectUser]:
         queryset = user.get_user_queryset().filter(
