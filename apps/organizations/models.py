@@ -7,6 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
 from django.http import Http404
+from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords
 
 from apps.commons.models import OrganizationRelated, PermissionsSetupModel
@@ -238,6 +239,11 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         admins = self.setup_group_permissions(
             self.get_admins(), self.get_default_admins_permissions()
         )
+        assign_perm("accounts.get_user_by_email", admins)
+        # TODO: remove that when we have a better way to handle permissions
+        assign_perm("accounts.add_projectuser", admins)
+        assign_perm("accounts.change_projectuser", admins)
+        assign_perm("accounts.delete_projectuser", admins)
         facilitators = self.setup_group_permissions(
             self.get_facilitators(), self.get_default_facilitators_permissions()
         )
