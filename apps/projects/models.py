@@ -2,7 +2,7 @@ import logging
 import math
 import os
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 import shortuuid as shortuuid
 from django.conf import settings
@@ -15,7 +15,6 @@ from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -372,7 +371,7 @@ class Project(
         """Return the organizations related to this model."""
         return self.organizations.all()
 
-    def get_default_owners_permissions(self) -> Iterable[Permission]:
+    def get_default_owners_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
             f"{action}_{subscope}"
             for action in ["change", "delete", "add"]
@@ -382,10 +381,10 @@ class Project(
             codename__in=excluded_permissions
         )
 
-    def get_default_reviewers_permissions(self) -> Iterable[Permission]:
+    def get_default_reviewers_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
 
-    def get_default_members_permissions(self) -> Iterable[Permission]:
+    def get_default_members_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(
             content_type=self.content_type,
             codename__in=[
@@ -396,30 +395,23 @@ class Project(
         )
 
     def setup_permissions(self, user: Optional["ProjectUser"] = None):
-        """Setup the project with default permissions."""
-        owners = self.get_owners()
-        owners.permissions.clear()
-        for permission in self.get_default_owners_permissions():
-            assign_perm(permission, owners, self)
-
-        reviewers = self.get_reviewers()
-        reviewers.permissions.clear()
-        for permission in self.get_default_reviewers_permissions():
-            assign_perm(permission, reviewers, self)
-
-        members = self.get_members()
-        members.permissions.clear()
-        for permission in self.get_default_members_permissions():
-            assign_perm(permission, members, self)
-
-        member_people_groups = self.get_people_groups()
-        member_people_groups.permissions.clear()
-        for permission in self.get_default_members_permissions():
-            assign_perm(permission, member_people_groups, self)
+        """Setup the group with default permissions."""
+        reviewers = self.setup_group_permissions(
+            self.get_reviewers(), self.get_default_reviewers_permissions()
+        )
+        owners = self.setup_group_permissions(
+            self.get_owners(), self.get_default_owners_permissions()
+        )
+        members = self.setup_group_permissions(
+            self.get_members(), self.get_default_members_permissions()
+        )
+        people_groups = self.setup_group_permissions(
+            self.get_people_groups(), self.get_default_members_permissions()
+        )
 
         if user:
             owners.users.add(user)
-        self.groups.add(owners, reviewers, members)
+        self.groups.add(owners, reviewers, members, people_groups)
         self.permissions_up_to_date = True
         # Saving is also mandatory to trigger indexing in Algolia
         self.save(update_fields=["permissions_up_to_date"])

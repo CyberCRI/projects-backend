@@ -1,7 +1,10 @@
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from django.contrib.auth.models import Group, Permission
 from django.db import models
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
+from guardian.shortcuts import assign_perm, remove_perm
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -41,6 +44,20 @@ class PermissionsSetupModel(models.Model):
     """Abstract class for models which should be initialized with permissions."""
 
     permissions_up_to_date = models.BooleanField(default=False)
+
+    def setup_group_permissions(
+        self, group: Group, permissions: QuerySet[str]
+    ) -> Group:
+        current_role_permissions = Permission.objects.filter(
+            groupobjectpermission__group=group
+        )
+        permissions_to_remove = current_role_permissions.difference(permissions)
+        permissions_to_add = permissions.difference(current_role_permissions)
+        for permission in permissions_to_add:
+            assign_perm(permission, group, self)
+        for permission in permissions_to_remove:
+            remove_perm(permission, group, self)
+        return group
 
     def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Initialize permissions for the instance."""
