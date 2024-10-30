@@ -9,9 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
 
-from apps.accounts.utils import get_instance_from_group
-from apps.deploys.models import PostDeployProcess
-from apps.deploys.task_managers import InstanceGroupsPermissions
+from apps.commons.models import PermissionsSetupModel
 from apps.invitations.models import Invitation
 from services.keycloak.interface import KeycloakService
 
@@ -79,21 +77,21 @@ class ProjectJWTAuthentication(JWTAuthentication):
             return self.get_invitation_user(raw_token), raw_token
         validated_token = self.get_validated_token(raw_token)
         user, token = self.get_user(validated_token), validated_token
-        user.last_login = timezone.localtime(timezone.now())
-        user.save()
+        ProjectUser.objects.filter(id=user.id).update(
+            last_login=timezone.localtime(timezone.now())
+        )
         self._reassign_users_groups_permissions(user)
         return user, token
 
     def _reassign_users_groups_permissions(self, user: "ProjectUser"):
         """Reassign the permissions of the given group to its users."""
-        task = PostDeployProcess.objects.filter(
-            task_name=InstanceGroupsPermissions.task_name
-        )
-        if task.exists() and task.get().status == "STARTED":
-            for group in user.groups.all():
-                instance = get_instance_from_group(group)
-                if instance and not instance.permissions_up_to_date:
-                    instance.setup_permissions()
+        for model in PermissionsSetupModel.__subclasses__():
+            instances = model.objects.filter(
+                permissions_up_to_date=False, groups__users=user
+            )
+            if instances.exists():
+                for instance in instances:
+                    instance.setup_permissions(user)
 
     # https://github.com/jazzband/djangorestframework-simplejwt/blob/cd4ea99424ec7256291253a87f3435fec01ecf0e/rest_framework_simplejwt/authentication.py#L109
     # Overriden to use function _create_user
