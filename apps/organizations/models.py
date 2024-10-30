@@ -1,10 +1,11 @@
-from typing import TYPE_CHECKING, Iterable, List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from django.db.models import QuerySet
 from django.http import Http404
 from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords
@@ -205,10 +206,10 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         """Return the organization related to this model."""
         return [self]
 
-    def get_default_admins_permissions(self) -> Iterable[Permission]:
+    def get_default_admins_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
 
-    def get_default_facilitators_permissions(self) -> Iterable[Permission]:
+    def get_default_facilitators_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
             "manage_accessrequest",
             *[
@@ -221,7 +222,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             codename__in=excluded_permissions
         )
 
-    def get_default_users_permissions(self) -> Iterable[Permission]:
+    def get_default_users_permissions(self) -> QuerySet[Permission]:
         filtered_permissions = [
             "view_org_project",
             "view_org_projectuser",
@@ -234,28 +235,21 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         )
 
     def setup_permissions(self, user: Optional["ProjectUser"] = None):
-        """
-        Create or update the default groups and permissions for the organization.
-        """
-        admins = self.get_admins()
-        admins.permissions.clear()
+        """Setup the group with default permissions."""
+        admins = self.setup_group_permissions(
+            self.get_admins(), self.get_default_admins_permissions()
+        )
         assign_perm("accounts.get_user_by_email", admins)
         # TODO: remove that when we have a better way to handle permissions
         assign_perm("accounts.add_projectuser", admins)
         assign_perm("accounts.change_projectuser", admins)
         assign_perm("accounts.delete_projectuser", admins)
-        for permission in self.get_default_admins_permissions():
-            assign_perm(permission, admins, self)
-
-        facilitators = self.get_facilitators()
-        facilitators.permissions.clear()
-        for permission in self.get_default_facilitators_permissions():
-            assign_perm(permission, facilitators, self)
-
-        users = self.get_users()
-        users.permissions.clear()
-        for permission in self.get_default_users_permissions():
-            assign_perm(permission, users, self)
+        facilitators = self.setup_group_permissions(
+            self.get_facilitators(), self.get_default_facilitators_permissions()
+        )
+        users = self.setup_group_permissions(
+            self.get_users(), self.get_default_users_permissions()
+        )
 
         if user:
             admins.users.add(user)

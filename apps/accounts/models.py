@@ -2,7 +2,7 @@ import logging
 import math
 import uuid
 from datetime import date
-from typing import Any, Iterable, List, Optional, Union
+from typing import Any, List, Optional, Union
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -16,7 +16,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
-from guardian.shortcuts import assign_perm, get_objects_for_user
+from guardian.shortcuts import get_objects_for_user
 
 from apps.accounts.utils import (
     default_onboarding_status,
@@ -200,34 +200,28 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         groups = {group.id: group for group in groups}
         return self._get_hierarchy(groups, self.id)
 
-    def get_default_managers_permissions(self) -> Iterable[Permission]:
+    def get_default_managers_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
 
-    def get_default_members_permissions(self) -> Iterable[Permission]:
+    def get_default_members_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(
             content_type=self.content_type, codename="view_peoplegroup"
         )
 
-    def get_default_leaders_permissions(self) -> Iterable[Permission]:
+    def get_default_leaders_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
 
     def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
-        managers = self.get_managers()
-        managers.permissions.clear()
-        for permission in self.get_default_managers_permissions():
-            assign_perm(permission, managers, self)
-
-        members = self.get_members()
-        members.permissions.clear()
-        for permission in self.get_default_members_permissions():
-            assign_perm(permission, members, self)
-
-        leaders = self.get_leaders()
-        leaders.permissions.clear()
-        for permission in self.get_default_leaders_permissions():
-            assign_perm(permission, leaders, self)
-
+        managers = self.setup_group_permissions(
+            self.get_managers(), self.get_default_managers_permissions()
+        )
+        members = self.setup_group_permissions(
+            self.get_members(), self.get_default_members_permissions()
+        )
+        leaders = self.setup_group_permissions(
+            self.get_leaders(), self.get_default_leaders_permissions()
+        )
         if user:
             managers.users.add(user)
         self.groups.add(managers, members, leaders)
