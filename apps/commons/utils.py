@@ -2,16 +2,17 @@ import base64
 import itertools
 import re
 import uuid
-from typing import Optional
+from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db.models import Func, Value
+from django.db.models import Func, Model, Value
 from django.forms import IntegerField
 from django.urls import reverse
+from rest_framework.request import Request
 
 from apps.files.models import Image
 
@@ -43,15 +44,82 @@ class ArrayPosition(Func):
         super().__init__(*expressions, output_field=output_field, **extra)
 
 
-def process_text(request, instance, text, upload_to, view, **kwargs):
+def process_text(
+    request: Request,
+    instance: Model,
+    text: str,
+    upload_to: str,
+    view: str,
+    process_template: bool = False,
+    **kwargs,
+) -> Tuple[str, List[Image]]:
+    """
+    Process rich text sent by the frontend.
+    Some texts can contain images that must be duplicated or linked to the instance :
+    - Base64 images are uploaded to the storage and linked to the instance.
+    - Template images are duplicated and linked to the instance.
+    - Unlinked images are linked to the instance.
+
+    Parameters
+    ----------
+    request : Request
+        The request object.
+    instance : Model
+        The instance where the text is located.
+    text : str
+        The text to process.
+    upload_to : str
+        The path where the images will be uploaded in the storage.
+    view : str
+        The name of the view to retrieve the image after processing.
+    process_template : bool, optional
+        Whether to look for images coming from templates, by default False
+    kwargs
+        Additional arguments to pass to the view to build the image url
+
+    Returns
+    -------
+    Tuple[str, List[Image]]
+        The processed text and the images to link to the instance.
+    """
+    if process_template:
+        text, template_images = process_template_images(
+            request, text, upload_to, view, **kwargs
+        )
+    else:
+        template_images = list()
     unlinked_images = process_unlinked_images(instance, text)
     text, base_64_images = process_base64_images(
         request, text, upload_to, view, **kwargs
     )
-    return text, base_64_images + unlinked_images
+    images = list(set(template_images + unlinked_images + base_64_images))
+    return text, images
 
 
-def process_base64_images(request, text, upload_to, view, **kwargs):
+def process_base64_images(
+    request: Request, text: str, upload_to: str, view: str, **kwargs
+) -> Tuple[str, List[Image]]:
+    """
+    Process base64 images in the text.
+
+    Parameters
+    ----------
+    request : Request
+        The request object.
+    text : str
+        The text to process.
+    upload_to : str
+        The path where the images will be uploaded in the storage.
+    view : str
+        The name of the view to retrieve the image after processing.
+    kwargs
+        Additional arguments to pass to the view to build the image url
+
+    Returns
+    -------
+    Tuple[str, List[Image]]
+        The processed text and the images to link to the instance.
+    """
     base_64_images = re.findall('[\'"]data:image/[^"]*;base64,[^"]*[\'"]', text)
     base_64_images = [data[1:-1] for data in base_64_images]
     images = list()
@@ -72,7 +140,66 @@ def process_base64_images(request, text, upload_to, view, **kwargs):
     return text, images
 
 
-def process_unlinked_images(instance, text):
+def process_template_images(
+    request: Request, text: str, upload_to: str, view: str, **kwargs
+) -> Tuple[str, List[Image]]:
+    """
+    Process template images in the text.
+
+    Parameters
+    ----------
+    request : Request
+        The request object.
+    text : str
+        The text to process.
+    upload_to : str
+        The path where the images will be uploaded in the storage.
+    view : str
+        The name of the view to retrieve the image after processing.
+    kwargs
+        Additional arguments to pass to the view to build the image url
+
+    Returns
+    -------
+    Tuple[str, List[Image]]
+        The processed text and the images to link to the instance.
+    """
+    soup = BeautifulSoup(text, features="html.parser")
+    images_tags = soup.findAll("img")
+    images = list()
+    for image_tag in images_tags:
+        image_url = image_tag["src"]
+        if image_url.startswith("/v1/category/") and "/template-image/" in image_url:
+            image_id = (
+                image_url.split("/")[-1]
+                if image_url[-1] != "/"
+                else image_url.split("/")[-2]
+            )
+            image = Image.objects.get(id=image_id)
+            new_image = image.duplicate(owner=request.user, upload_to=upload_to)
+            images.append(new_image)
+            text = text.replace(
+                image_url, reverse(view, kwargs={"pk": new_image.pk, **kwargs})
+            )
+    return text, images
+
+
+def process_unlinked_images(instance: Model, text: str) -> List[Image]:
+    """
+    Find images in the text that are not linked to the instance.
+
+    Parameters
+    ----------
+    instance : Model
+        The instance where the text is located.
+    text : str
+        The text to process.
+
+    Returns
+    -------
+    List[Image]
+        The images to link to the instance.
+    """
     soup = BeautifulSoup(text, features="html.parser")
     images_tags = soup.findAll("img")
     images = list()
@@ -103,7 +230,22 @@ def get_test_image() -> Image:
     return image
 
 
-def get_permissions_from_subscopes(subscopes):
+def get_permissions_from_subscopes(
+    subscopes: List[Tuple[str, str]]
+) -> Tuple[Tuple[str, str]]:
+    """
+    Get the permissions representations from the subscopes.
+
+    Parameters
+    ----------
+    subscopes : List[Tuple[str, str]]
+        The subscopes to generate the permissions from.
+
+    Returns
+    -------
+    Tuple[Tuple[str, str]]
+        The permissions representations
+    """
     permissions = (
         (
             ("view_" + subscope[0], "Can view " + subscope[1]),
@@ -116,7 +258,22 @@ def get_permissions_from_subscopes(subscopes):
     return tuple(itertools.chain.from_iterable(permissions))
 
 
-def get_write_permissions_from_subscopes(subscopes):
+def get_write_permissions_from_subscopes(
+    subscopes: List[Tuple[str, str]]
+) -> Tuple[Tuple[str, str]]:
+    """
+    Get the write permissions representations from the subscopes.
+
+    Parameters
+    ----------
+    subscopes : List[Tuple[str, str]]
+        The subscopes to generate the permissions from.
+
+    Returns
+    -------
+    Tuple[Tuple[str, str]]
+        The write permissions representations
+    """
     permissions = (
         (
             ("add_" + subscope[0], "Can add " + subscope[1]),
@@ -129,6 +286,21 @@ def get_write_permissions_from_subscopes(subscopes):
 
 
 def map_action_to_permission(action: str, codename: str) -> Optional[str]:
+    """
+    Map an HTTP action and a model codename to a permission representation.
+
+    Parameters
+    ----------
+    action : str
+        The HTTP action.
+    codename : str
+        The codename of the model.
+
+    Returns
+    -------
+    Optional[str]
+        The permission representation.
+    """
     return {
         "list": f"view_{codename}",
         "retrieve": f"view_{codename}",
