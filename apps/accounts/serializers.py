@@ -39,14 +39,15 @@ from .utils import get_default_group, get_instance_from_group
 class PrivacySettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = PrivacySettings
-        fields = (
+        read_only_fields = ["id"]
+        fields = read_only_fields + [
             "publication_status",
             "profile_picture",
             "skills",
             "mobile_phone",
             "personal_email",
             "socials",
-        )
+        ]
 
 
 class UserAdminListSerializer(serializers.ModelSerializer):

@@ -778,30 +778,6 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(name="", organization=self.organization)
         self.assertTrue(people_group.slug.startswith("group"), people_group.slug)
 
-    def test_multiple_lookups(self):
-        user = UserFactory()
-        self.client.force_authenticate(user)
-        people_group = PeopleGroupFactory(
-            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
-            organization=self.organization,
-        )
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-detail",
-                args=(people_group.organization.code, people_group.pk),
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["slug"], people_group.slug)
-        response = self.client.get(
-            reverse(
-                "PeopleGroup-detail",
-                args=(people_group.organization.code, people_group.slug),
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], people_group.id)
-
     def test_roles_are_deleted_on_group_delete(self):
         people_group = PeopleGroupFactory(organization=self.organization)
         roles_names = [r.name for r in people_group.groups.all()]

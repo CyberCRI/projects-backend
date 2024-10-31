@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-10-29 11:02+0100\n"
+"POT-Creation-Date: 2024-10-31 14:04+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,19 +112,19 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:131 apps/projects/models.py:163
+#: apps/accounts/models.py:131 apps/projects/models.py:162
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:870
+#: apps/accounts/models.py:864
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:871
+#: apps/accounts/models.py:865
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:872
+#: apps/accounts/models.py:866
 msgid "Public"
 msgstr "Publique"
 
@@ -1529,35 +1529,35 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 
-#: apps/projects/models.py:147
+#: apps/projects/models.py:146
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:156
+#: apps/projects/models.py:155
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:169
+#: apps/projects/models.py:168
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:180
+#: apps/projects/models.py:179
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:188
+#: apps/projects/models.py:187
 msgid "wikipedia tags"
 msgstr "tags wikipedia"
 
-#: apps/projects/models.py:191
+#: apps/projects/models.py:190
 msgid "organizational tags"
 msgstr "tags organisationnels"
 
-#: apps/projects/models.py:204
+#: apps/projects/models.py:203
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:210
+#: apps/projects/models.py:209
 msgid "main category"
 msgstr "objectif principal"
 

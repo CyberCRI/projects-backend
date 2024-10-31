@@ -412,6 +412,7 @@ CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
 CELERY_BEAT_SCHEDULE = {
     "remove-old-project-24hours": {
         "task": "apps.projects.tasks.remove_old_projects",
@@ -455,7 +456,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "get_new_mixpanel_events": {
         "task": "services.mixpanel.tasks.get_new_mixpanel_events",
-        "schedule": crontab(minute="*/2", hour="*"),
+        "schedule": crontab(minute="*/10", hour="*"),
     },
     "retry_google_failed_tasks": {
         "task": "services.google.tasks.retry_failed_tasks",

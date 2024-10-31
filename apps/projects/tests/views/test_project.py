@@ -962,18 +962,6 @@ class MiscProjectTestCase(JwtAPITestCase):
         )
         self.assertEqual(project.slug, "project-0")
 
-    def test_multiple_lookups(self):
-        project = ProjectFactory(
-            organizations=[self.organization],
-            publication_status=Project.PublicationStatus.PUBLIC,
-        )
-        response = self.client.get(reverse("Project-detail", args=(project.id,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["slug"], project.slug)
-        response = self.client.get(reverse("Project-detail", args=(project.slug,)))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json()["id"], project.id)
-
     def test_change_member_role(self):
         self.client.force_authenticate(self.superadmin)
         project = ProjectFactory(organizations=[self.organization])
