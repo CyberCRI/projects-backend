@@ -78,6 +78,10 @@ prestart-no-migrate: check
 start:
 	gunicorn --config ./gunicorn.conf.py projects.wsgi:application
 
+.PHONY: start-uvicorn
+start-uvicorn:
+	uvicorn projects.asgi:application -workers 1 --host
+
 .PHONY: bandit
 bandit:
 	bandit -c pyproject.toml -r apps/ projects/

@@ -65,7 +65,7 @@ spec:
         name: projects-backend
         args:
           - make
-          - start
+          - start-uvicorn
         ports:
           - name: http
             containerPort: {{ .Values.backend.port }}
