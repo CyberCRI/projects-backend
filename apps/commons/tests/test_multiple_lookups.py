@@ -8,20 +8,21 @@ from apps.announcements.factories import AnnouncementFactory
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
-from apps.goals.factories import GoalFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import (
     BlogEntryFactory,
+    GoalFactory,
     LinkedProjectFactory,
     LocationFactory,
     ProjectFactory,
     ProjectMessageFactory,
 )
+from apps.skills.factories import SkillFactory
 
 faker = Faker()
 
 
-class MiscPeopleGroupHeaderTestCase(JwtAPITestCase):
+class MultipleLookupsTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -212,6 +213,26 @@ class MiscPeopleGroupHeaderTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.profile_picture.id)
+
+    def test_skill_multiple_lookups(self):
+        self.client.force_authenticate(self.superadmin)
+        skill = SkillFactory()
+        response = self.client.get(
+            reverse("Skill-detail", args=(skill.user.id, skill.id))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], skill.id)
+        response = self.client.get(
+            reverse("Skill-detail", args=(skill.user.slug, skill.id))
+        )
+        content = response.json()
+        self.assertEqual(content["id"], skill.id)
+        response = self.client.get(
+            reverse("Skill-detail", args=(skill.user.keycloak_id, skill.id))
+        )
+        content = response.json()
+        self.assertEqual(content["id"], skill.id)
 
     def test_project_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
