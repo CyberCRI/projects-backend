@@ -217,19 +217,25 @@ class MultipleLookupsTestCase(JwtAPITestCase):
     def test_skill_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
         skill = SkillFactory()
-        response = self.client.get(
-            reverse("Skill-detail", args=(skill.user.id, skill.id))
+        payload = {
+            "level": faker.pyint(1, 4),
+        }
+        response = self.client.patch(
+            reverse("Skill-detail", args=(skill.user.id, skill.id)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], skill.id)
-        response = self.client.get(
-            reverse("Skill-detail", args=(skill.user.slug, skill.id))
+        response = self.client.patch(
+            reverse("Skill-detail", args=(skill.user.slug, skill.id)),
+            data=payload,
         )
         content = response.json()
         self.assertEqual(content["id"], skill.id)
-        response = self.client.get(
-            reverse("Skill-detail", args=(skill.user.keycloak_id, skill.id))
+        response = self.client.patch(
+            reverse("Skill-detail", args=(skill.user.keycloak_id, skill.id)),
+            data=payload,
         )
         content = response.json()
         self.assertEqual(content["id"], skill.id)
