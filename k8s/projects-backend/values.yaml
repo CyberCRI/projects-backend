@@ -60,10 +60,10 @@ backend:
     app.kubernetes.io/instance: "{{ .Values.instance }}"
   resources:
     requests:
-      cpu: 10m
-      memory: 1103M
+      cpu: 250m
+      memory: 170M
     limits:
-      memory: 1347M
+      memory: 300M
   port: 8000
 
 celery:
