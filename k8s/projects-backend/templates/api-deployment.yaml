@@ -7,7 +7,9 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
+  {{- if not .Values.backend.horizontalScaling.enabled }}
   replicas: {{ .Values.backend.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 6 }}

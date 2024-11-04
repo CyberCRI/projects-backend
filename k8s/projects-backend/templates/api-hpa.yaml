@@ -1,3 +1,6 @@
+{{- with .Values.backend.horizontalScaling }}
+{{- if .enabled }}
+
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -7,12 +10,15 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ tpl $.Values.fullName $ }}
-  minReplicas: 1
-  maxReplicas: 4
+  minReplicas: {{ .minReplicas }}
+  maxReplicas: {{ .maxReplicas }}
   metrics:
   - type: Resource
     resource:
       name: cpu
       target:
         type: Utilization
-        averageUtilization: 50
+        averageUtilization: {{ .targetCPUUtilizationPercentage }}
+
+{{- end }}
+{{- end }}
