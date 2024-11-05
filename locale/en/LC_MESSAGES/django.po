@@ -1331,11 +1331,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:79
+#: apps/skills/templates/mentorship_base.html:78
 msgid ""
 "\n"
+"        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
+"watch?v=T_iGnufU1kY\">\n"
 "          Watch video\n"
-"          "
+"        </mj-button>\n"
+"        "
 msgstr ""
 
 #: apps/skills/templates/mentorship_base.html:84
