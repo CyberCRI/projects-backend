@@ -79,11 +79,11 @@ class FaqSerializer(OrganizationRelatedSerializer):
             if not self.instance:
                 super(FaqSerializer, self).save(**kwargs)
             text, images = process_text(
-                self.context["request"],
-                self.instance,
-                self.validated_data["content"],
-                "faq/images/",
-                "Faq-images-detail",
+                request=self.context["request"],
+                instance=self.instance,
+                text=self.validated_data["content"],
+                upload_to="faq/images/",
+                view="Faq-images-detail",
                 organization_code=self.instance.organization.code,
             )
             self.validated_data["content"] = text
@@ -509,11 +509,11 @@ class ProjectCategorySerializer(
             if not self.instance or not self.instance.template:
                 super(ProjectCategorySerializer, self).save(**kwargs)
             text, description_images = process_text(
-                self.context["request"],
-                self.instance.template,
-                self.validated_data["template"]["description_placeholder"],
-                "template/images/",
-                "Template-images-detail",
+                request=self.context["request"],
+                instance=self.instance.template,
+                text=self.validated_data["template"]["description_placeholder"],
+                upload_to="template/images/",
+                view="Template-images-detail",
                 category_id=self.instance.id,
             )
             self.validated_data["template"]["description_placeholder"] = text
@@ -524,11 +524,11 @@ class ProjectCategorySerializer(
             if not self.instance or not self.instance.template:
                 super(ProjectCategorySerializer, self).save(**kwargs)
             text, blog_images = process_text(
-                self.context["request"],
-                self.instance.template,
-                self.validated_data["template"]["blogentry_placeholder"],
-                "template/images/",
-                "Template-images-detail",
+                request=self.context["request"],
+                instance=self.instance.template,
+                text=self.validated_data["template"]["blogentry_placeholder"],
+                upload_to="template/images/",
+                view="Template-images-detail",
                 category_id=self.instance.id,
             )
             self.validated_data["template"]["blogentry_placeholder"] = text
