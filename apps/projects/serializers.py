@@ -89,11 +89,12 @@ class BlogEntrySerializer(
             if not self.instance:
                 super(BlogEntrySerializer, self).save(**kwargs)
             text, images = process_text(
-                self.context["request"],
-                self.instance,
-                self.validated_data["content"],
-                "blog_entry/images/",
-                "BlogEntry-images-detail",
+                request=self.context["request"],
+                instance=self.instance,
+                text=self.validated_data["content"],
+                upload_to="blog_entry/images/",
+                view="BlogEntry-images-detail",
+                process_template=True,
                 project_id=self.instance.project.id,
             )
             self.validated_data["content"] = text
@@ -556,11 +557,12 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             if not self.instance:
                 super(ProjectSerializer, self).save(**kwargs)
             text, images = process_text(
-                self.context["request"],
-                self.instance,
-                self.validated_data["description"],
-                "project/images/",
-                "Project-images-detail",
+                request=self.context["request"],
+                instance=self.instance,
+                text=self.validated_data["description"],
+                upload_to="project/images/",
+                view="Project-images-detail",
+                process_template=True,
                 project_id=self.instance.id,
             )
             self.validated_data["description"] = text
@@ -838,11 +840,11 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
             if not self.instance:
                 super().save(**kwargs)
             text, images = process_text(
-                self.context["request"],
-                self.instance,
-                self.validated_data["content"],
-                "project_messages/images/",
-                "ProjectMessage-images-detail",
+                request=self.context["request"],
+                instance=self.instance,
+                text=self.validated_data["content"],
+                upload_to="project_messages/images/",
+                view="ProjectMessage-images-detail",
                 project_id=self.instance.project.id,
             )
             self.validated_data["content"] = text

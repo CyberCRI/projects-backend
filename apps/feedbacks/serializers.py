@@ -177,11 +177,11 @@ class CommentSerializer(
             if not self.instance:
                 super(CommentSerializer, self).save(**kwargs)
             text, images = process_text(
-                self.context["request"],
-                self.instance.project,
-                self.validated_data["content"],
-                "comment/images/",
-                "Comment-images-detail",
+                request=self.context["request"],
+                instance=self.instance.project,
+                text=self.validated_data["content"],
+                upload_to="comment/images/",
+                view="Comment-images-detail",
                 project_id=self.instance.project.id,
             )
             self.validated_data["content"] = text

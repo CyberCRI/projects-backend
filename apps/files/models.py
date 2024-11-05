@@ -289,11 +289,16 @@ class Image(
             .get()
         )
 
-    def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Image":
+    def duplicate(
+        self, owner: Optional["ProjectUser"] = None, upload_to: str = ""
+    ) -> "Image":
         file_path = self.file.name.split("/")
         file_name = file_path.pop()
         file_extension = file_name.split(".")[-1]
-        upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
+        if upload_to:
+            upload_to = f"{upload_to}{uuid.uuid4()}.{file_extension}"
+        else:
+            upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
         new_file = SimpleUploadedFile(
             name=upload_to,
             content=self.file.read(),
