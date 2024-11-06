@@ -529,6 +529,7 @@ if DEBUG:
     INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + [
         "127.0.0.1",
         "10.0.2.2",
+        "10.244.2.4",
     ]
 
 # Python requests module default timeout
