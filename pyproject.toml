@@ -52,6 +52,7 @@ pymediawiki = "^0.7.4"
 pgvector = "^0.2.4"
 mistralai = "^0.0.12"
 setuptools = "^74.1.1"
+adrf = "^0.1.8"
 uvicorn = "^0.32.0"
 
 [tool.poetry.dev-dependencies]
