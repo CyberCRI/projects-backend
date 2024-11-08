@@ -3,6 +3,7 @@ import uuid
 from datetime import date
 from typing import Any, List, Optional, Union
 
+from asgiref.sync import sync_to_async
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -680,6 +681,15 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             .prefetch_related(*prefetch)
         )
 
+    async def async_get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+        return await sync_to_async(self.get_project_queryset)(*prefetch)
+
+    async def async_get_user_queryset(self, *prefetch) -> QuerySet["Project"]:
+        return await sync_to_async(self.get_user_queryset)(*prefetch)
+
+    async def async_get_people_group_queryset(self, *prefetch) -> QuerySet["Project"]:
+        return await sync_to_async(self.get_people_group_queryset)(*prefetch)
+
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
     ) -> QuerySet["Project"]:
@@ -1057,6 +1067,15 @@ class AnonymousUser:
                 publication_status=PeopleGroup.PublicationStatus.PUBLIC
             )
         return self._people_group_queryset.prefetch_related(*prefetch)
+
+    async def async_get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+        return await sync_to_async(self.get_project_queryset)(*prefetch)
+
+    async def async_get_user_queryset(self, *prefetch) -> QuerySet["Project"]:
+        return await sync_to_async(self.get_user_queryset)(*prefetch)
+
+    async def async_get_people_group_queryset(self, *prefetch) -> QuerySet["Project"]:
+        return await sync_to_async(self.get_people_group_queryset)(*prefetch)
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"

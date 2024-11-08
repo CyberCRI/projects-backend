@@ -1,5 +1,7 @@
 from typing import List, Tuple
 
+from adrf.viewsets import ViewSet
+from asgiref.sync import sync_to_async
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
 from rest_framework.response import Response
@@ -127,3 +129,53 @@ class PaginatedViewSet(viewsets.ViewSet):
             queryset, many=True, context=self.get_serializer_context()
         )
         return Response(serializer.data)
+
+
+class AsyncPaginatedViewSet(ViewSet):
+    """
+    A viewset that allows paginated responses for viewsets not based on models.
+    """
+
+    pagination_class = api_settings.DEFAULT_PAGINATION_CLASS
+    serializer_class = None
+
+    @property
+    def paginator(self):
+        """
+        The paginator instance associated with the view, or `None`.
+        """
+        if not hasattr(self, "_paginator"):
+            if self.pagination_class is None:
+                self._paginator = None
+            else:
+                self._paginator = self.pagination_class()
+        return self._paginator
+
+    async def paginate_queryset(self, queryset):
+        """
+        Return a single page of results, or `None` if pagination is disabled.
+        """
+        if self.paginator is None:
+            return None
+        return await self.paginator.paginate_queryset(queryset, self.request, view=self)
+
+    async def get_paginated_response(self, data):
+        """
+        Return a paginated style `Response` object for the given output data.
+        """
+        assert self.paginator is not None
+        return self.paginator.get_paginated_response(data)
+
+    async def get_serializer_context(self):
+        """
+        Extra context provided to the serializer class.
+        """
+        return {"request": self.request, "format": self.format_kwarg, "view": self}
+
+    async def get_paginated_list(self, queryset):
+        page = await self.paginate_queryset(queryset)
+        serializer = self.serializer_class(
+            page, many=True, context=await self.get_serializer_context()
+        )
+        data = await sync_to_async(lambda: serializer.data)()
+        return await self.get_paginated_response(data)
