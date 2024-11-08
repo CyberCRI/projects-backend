@@ -159,14 +159,14 @@ class AsyncPaginatedViewSet(ViewSet):
             return None
         return await self.paginator.paginate_queryset(queryset, self.request, view=self)
 
-    async def get_paginated_response(self, data):
+    def get_paginated_response(self, data):
         """
         Return a paginated style `Response` object for the given output data.
         """
         assert self.paginator is not None
         return self.paginator.get_paginated_response(data)
 
-    async def get_serializer_context(self):
+    def get_serializer_context(self):
         """
         Extra context provided to the serializer class.
         """
@@ -175,7 +175,7 @@ class AsyncPaginatedViewSet(ViewSet):
     async def get_paginated_list(self, queryset):
         page = await self.paginate_queryset(queryset)
         serializer = self.serializer_class(
-            page, many=True, context=await self.get_serializer_context()
+            page, many=True, context=self.get_serializer_context()
         )
         data = await sync_to_async(lambda: serializer.data)()
-        return await self.get_paginated_response(data)
+        return self.get_paginated_response(data)
