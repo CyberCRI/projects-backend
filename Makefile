@@ -16,7 +16,7 @@ bash:
 
 .PHONY: fullstack
 fullstack:
-	docker compose exec -it projects-back bash
+	docker compose exec -it projects-backend bash
 
 .PHONY: format
 format:

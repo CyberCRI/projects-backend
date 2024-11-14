@@ -13,12 +13,12 @@ ESCO_BASE_URI = "http://data.europa.eu/esco"
 
 class TagFactory(factory.django.DjangoModelFactory):
     type = Tag.TagType.CUSTOM
-    title = factory.Faker("sentence")
-    title_en = factory.Faker("sentence")
-    title_fr = factory.Faker("sentence")
-    description = factory.Faker("text")
-    description_en = factory.Faker("text")
-    description_fr = factory.Faker("text")
+    title = factory.Faker("word")
+    title_en = factory.Faker("word")
+    title_fr = factory.Faker("word")
+    description = factory.Faker("sentence")
+    description_en = factory.Faker("sentence")
+    description_fr = factory.Faker("sentence")
 
     class Meta:
         model = Tag
@@ -43,8 +43,8 @@ class TagClassificationFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(
         lambda: OrganizationFactory()
     )  # Subfactory seems to not trigger `create()`
-    title = factory.Faker("sentence")
-    description = factory.Faker("text")
+    title = factory.Faker("word")
+    description = factory.Faker("sentence")
 
     class Meta:
         model = TagClassification

@@ -431,3 +431,40 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], tag_classification.id)
+
+    def test_validate_title_too_long(self):
+        self.client.force_authenticate(self.superadmin)
+        payload = {
+            "title": 51 * "*",
+            "description": faker.sentence(),
+        }
+        response = self.client.post(
+            reverse(
+                "TagClassification-list",
+                args=(self.organization.code,),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response, {"title": ["Ensure this field has no more than 50 characters."]}
+        )
+
+    def test_validate_description_too_long(self):
+        self.client.force_authenticate(self.superadmin)
+        payload = {
+            "title": faker.word(),
+            "description": 501 * "*",
+        }
+        response = self.client.post(
+            reverse(
+                "TagClassification-list",
+                args=(self.organization.code,),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"description": ["Ensure this field has no more than 500 characters."]},
+        )

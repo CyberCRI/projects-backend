@@ -54,3 +54,15 @@ class TagFromWrongOrganizationError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("Tags must belong to the classification's organization")
     default_code = "tag_from_wrong_organization"
+
+
+class TagTitleTooLongError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Tag title must be 50 characters or less")
+    default_code = "tag_title_too_long"
+
+
+class TagDescriptionTooLongError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("Tag description must be 500 characters or less")
+    default_code = "tag_description_too_long"

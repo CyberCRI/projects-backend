@@ -115,8 +115,8 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
         related_name="tag_classifications",
     )
     is_public = models.BooleanField(default=False)
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
+    title = models.CharField(max_length=50)
+    description = models.CharField(blank=True, max_length=500)
     tags = models.ManyToManyField("skills.Tag", related_name="tag_classifications")
 
     def __str__(self):
