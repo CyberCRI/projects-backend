@@ -11,7 +11,9 @@ from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRela
 from apps.commons.serializers import TranslatedModelSerializer
 
 from .exceptions import (
+    TagDescriptionTooLongError,
     TagFromWrongOrganizationError,
+    TagTitleTooLongError,
     UpdateWrongTypeTagClassificationError,
     UpdateWrongTypeTagError,
 )
@@ -181,6 +183,24 @@ class TagSerializer(TranslatedModelSerializer):
             "title",
             "description",
         ]
+
+    def validate_title(self, title: str) -> str:
+        """
+        We validate the title length here because we use a larger limit for the
+        model field to allow for external tags over which we have no control.
+        """
+        if len(title) > 50:
+            raise TagTitleTooLongError
+        return title
+
+    def validate_description(self, description: str) -> str:
+        """
+        We validate the description length here because we use a larger limit for the
+        model field to allow for external tags over which we have no control.
+        """
+        if len(description) > 500:
+            raise TagDescriptionTooLongError
+        return description
 
     def validate(self, attrs: dict) -> dict:
         if self.instance and self.instance.type != Tag.TagType.CUSTOM:

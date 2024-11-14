@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-08 17:35+0100\n"
+"POT-Creation-Date: 2024-11-14 10:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -166,7 +166,7 @@ msgstr ""
 msgid "Unknown publication status '{publication_status}'"
 msgstr ""
 
-#: apps/commons/fields.py:28 apps/skills/serializers.py:99
+#: apps/commons/fields.py:28 apps/skills/serializers.py:101
 msgid "This field is required."
 msgstr ""
 
@@ -175,7 +175,7 @@ msgstr ""
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr ""
 
-#: apps/commons/fields.py:31 apps/skills/serializers.py:104
+#: apps/commons/fields.py:31 apps/skills/serializers.py:106
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
@@ -1259,7 +1259,15 @@ msgstr ""
 msgid "Tags must belong to the classification's organization"
 msgstr ""
 
-#: apps/skills/serializers.py:101
+#: apps/skills/exceptions.py:61
+msgid "Tag title must be 50 characters or less"
+msgstr ""
+
+#: apps/skills/exceptions.py:67
+msgid "Tag description must be 500 characters or less"
+msgstr ""
+
+#: apps/skills/serializers.py:103
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr ""

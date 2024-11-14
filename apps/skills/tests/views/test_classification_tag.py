@@ -48,9 +48,9 @@ class CreateClassificationTagTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "title_fr": faker.sentence(),
-            "title_en": faker.sentence(),
-            "description_fr": faker.text(),
+            "title_fr": faker.word(),
+            "title_en": faker.word(),
+            "description_fr": faker.sentence(),
             # description_en uses the same value as description_fr if not provided
         }
         response = self.client.post(
@@ -102,10 +102,10 @@ class UpdateClassificationTagTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
-            "title_fr": faker.sentence(),
-            "title_en": faker.sentence(),
-            "description_fr": faker.text(),
-            "description_en": faker.text(),
+            "title_fr": faker.word(),
+            "title_en": faker.word(),
+            "description_fr": faker.sentence(),
+            "description_en": faker.sentence(),
         }
         response = self.client.patch(
             reverse(
@@ -498,19 +498,64 @@ class ValidateClassificationTagTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     def test_update_non_custom_tag(self):
         tag = TagFactory(organization=self.organization, type=Tag.TagType.ESCO)
+        self.tag_classification.tags.add(tag)
         self.client.force_authenticate(self.superadmin)
         payload = {
             "title_fr": faker.sentence(),
         }
         response = self.client.patch(
-            reverse("OrganizationTag-detail", args=(self.organization.code, tag.id)),
+            reverse(
+                "ClassificationTag-detail",
+                args=(self.organization.code, self.tag_classification.id, tag.id),
+            ),
             payload,
         )
         self.assertApiTechnicalError(
             response,
             "Only custom tags can be updated",
         )
+
+    def test_validate_title_too_long(self):
+        self.client.force_authenticate(self.superadmin)
+        for title_field in ["title_fr", "title_en", "title"]:
+            payload = {
+                title_field: 51 * "*",
+                "description": faker.sentence(),
+            }
+            response = self.client.post(
+                reverse(
+                    "ClassificationTag-list",
+                    args=(self.organization.code, self.tag_classification.id),
+                ),
+                payload,
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertApiValidationError(
+                response,
+                {"title": ["Tag title must be 50 characters or less"]},
+            )
+
+    def test_validate_description_too_long(self):
+        self.client.force_authenticate(self.superadmin)
+        for description_field in ["description_fr", "description_en", "description"]:
+            payload = {
+                "title": faker.word(),
+                description_field: 501 * "*",
+            }
+            response = self.client.post(
+                reverse(
+                    "ClassificationTag-list",
+                    args=(self.organization.code, self.tag_classification.id),
+                ),
+                payload,
+            )
+            self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+            self.assertApiValidationError(
+                response,
+                {"description": ["Tag description must be 500 characters or less"]},
+            )
