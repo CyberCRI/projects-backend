@@ -133,7 +133,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         """Adds request to the serializer's context."""
         return {"request": self.request}
 
-    @transaction.atomic
     def perform_create(self, serializer: ProjectSerializer):
         project = serializer.save()
         project.setup_permissions(self.request.user)
