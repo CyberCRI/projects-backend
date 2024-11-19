@@ -228,6 +228,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             "view_org_projectuser",
             "view_org_peoplegroup",
             "add_project",
+            "duplicate_project",
         ]
         return Permission.objects.filter(
             content_type=self.content_type,

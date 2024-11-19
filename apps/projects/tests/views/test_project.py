@@ -556,8 +556,8 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]
