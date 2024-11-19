@@ -348,7 +348,7 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_add_group_alias.assert_not_called()
             mocked_get_group_members.assert_not_called()
             mocked_add_user_to_group.assert_not_called()
-            self.assertTrue(PeopleGroup.objects.filter(name=payload["name"]).exists())
+            self.assertFalse(PeopleGroup.objects.filter(name=payload["name"]).exists())
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")

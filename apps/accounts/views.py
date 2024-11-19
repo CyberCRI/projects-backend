@@ -579,9 +579,10 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 status=e.status_code,
             )
 
+    @transaction.atomic
     def perform_create(self, serializer):
         people_group = serializer.save()
-        people_group.setup_permissions(self.request.user)
+        people_group.setup_permissions(self.request.user, trigger_indexing=True)
         self.google_sync(people_group, self.request.data)
 
     def update(self, request, *args, **kwargs):

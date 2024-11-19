@@ -211,7 +211,9 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     def get_default_leaders_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
 
-    def setup_permissions(self, user: Optional["ProjectUser"] = None):
+    def setup_permissions(
+        self, user: Optional["ProjectUser"] = None, trigger_indexing: bool = False
+    ):
         """Setup the group with default permissions."""
         managers = self.setup_group_permissions(
             self.get_managers(), self.get_default_managers_permissions()
@@ -225,9 +227,11 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         if user:
             managers.users.add(user)
         self.groups.add(managers, members, leaders)
-        self.permissions_up_to_date = True
-        # Saving is also mandatory to trigger indexing in Algolia
-        self.save(update_fields=["permissions_up_to_date"])
+        if trigger_indexing:
+            self.permissions_up_to_date = True
+            self.save(update_fields=["permissions_up_to_date"])
+        else:
+            PeopleGroup.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""

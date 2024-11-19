@@ -234,7 +234,9 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             codename__in=filtered_permissions,
         )
 
-    def setup_permissions(self, user: Optional["ProjectUser"] = None):
+    def setup_permissions(
+        self, user: Optional["ProjectUser"] = None, trigger_indexing: bool = False
+    ):
         """Setup the group with default permissions."""
         admins = self.setup_group_permissions(
             self.get_admins(), self.get_default_admins_permissions()
@@ -254,8 +256,11 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         if user:
             admins.users.add(user)
         self.groups.add(admins, facilitators, users)
-        self.permissions_up_to_date = True
-        self.save(update_fields=["permissions_up_to_date"])
+        if trigger_indexing:
+            self.permissions_up_to_date = True
+            self.save(update_fields=["permissions_up_to_date"])
+        else:
+            Organization.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""
