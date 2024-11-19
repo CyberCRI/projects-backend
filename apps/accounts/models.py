@@ -208,7 +208,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         return Permission.objects.filter(content_type=self.content_type)
 
     def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexing: bool = False
+        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = False
     ):
         """Setup the group with default permissions."""
         managers = self.setup_group_permissions(
@@ -223,8 +223,9 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         if user:
             managers.users.add(user)
         self.groups.add(managers, members, leaders)
-        if trigger_indexing:
-            self.permissions_up_to_date = True
+        # set to True outside of the if statement to avoid multiple updates
+        self.permissions_up_to_date = True
+        if trigger_indexation:
             self.save(update_fields=["permissions_up_to_date"])
         else:
             PeopleGroup.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
@@ -561,7 +562,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 organizations = self.get_related_organizations()
                 self._instruction_queryset = Instruction.objects.filter(
                     Q(visible_by_all=True)
-                    | Q(people_groups__id=groups)
+                    | Q(people_groups__in=groups)
                     | (
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)

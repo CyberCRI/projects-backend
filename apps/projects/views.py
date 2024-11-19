@@ -136,7 +136,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     @transaction.atomic
     def perform_create(self, serializer: ProjectSerializer):
         project = serializer.save()
-        project.setup_permissions(self.request.user, trigger_indexing=True)
+        project.setup_permissions(self.request.user, trigger_indexation=True)
         Stat(project=project).save()
         project._change_reason = "Created project"
         project.save()

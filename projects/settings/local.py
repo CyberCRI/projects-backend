@@ -17,8 +17,6 @@ DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 FRONTEND_URL = "http://localhost:8080"
 
-# ALGOLIA["AUTO_INDEXING"] = True  # noqa: F405
-
 SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = "/api/schema/"  # noqa: F405
 
 ##############

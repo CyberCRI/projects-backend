@@ -91,7 +91,7 @@ class ProjectJWTAuthentication(JWTAuthentication):
             )
             if instances.exists():
                 for instance in instances:
-                    instance.setup_permissions(user)
+                    instance.setup_permissions()
 
     # https://github.com/jazzband/djangorestframework-simplejwt/blob/cd4ea99424ec7256291253a87f3435fec01ecf0e/rest_framework_simplejwt/authentication.py#L109
     # Overriden to use function _create_user
