@@ -235,7 +235,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         )
 
     def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = False
+        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
         admins = self.setup_group_permissions(
@@ -256,9 +256,8 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         if user:
             admins.users.add(user)
         self.groups.add(admins, facilitators, users)
-        # set to True outside of the if statement to avoid multiple updates
-        self.permissions_up_to_date = True
         if trigger_indexation:
+            self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
         else:
             Organization.objects.filter(pk=self.pk).update(permissions_up_to_date=True)

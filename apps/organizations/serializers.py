@@ -312,9 +312,7 @@ class OrganizationLightSerializer(OrganizationRelatedSerializer):
     def create(self, validated_data):
         """Create the instance's permissions and default groups."""
         organization = super().create(validated_data)
-        organization.setup_permissions(
-            self.context["request"].user, trigger_indexation=True
-        )
+        organization.setup_permissions(self.context["request"].user)
         return organization
 
 

@@ -395,7 +395,7 @@ class Project(
         )
 
     def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = False
+        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
         reviewers = self.setup_group_permissions(
@@ -414,9 +414,8 @@ class Project(
         if user:
             owners.users.add(user)
         self.groups.add(owners, reviewers, members, people_groups)
-        # set to True outside of the if statement to avoid multiple updates
-        self.permissions_up_to_date = True
         if trigger_indexation:
+            self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
         else:
             Project.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
@@ -544,7 +543,7 @@ class Project(
         for file in self.files.all():
             file.duplicate(project)
         Stat.objects.create(project=project)
-        project.setup_permissions(user=owner, trigger_indexation=True)
+        project.setup_permissions(user=owner)
         return project
 
 

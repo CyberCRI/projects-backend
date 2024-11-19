@@ -208,7 +208,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         return Permission.objects.filter(content_type=self.content_type)
 
     def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = False
+        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
         managers = self.setup_group_permissions(
@@ -223,9 +223,8 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         if user:
             managers.users.add(user)
         self.groups.add(managers, members, leaders)
-        # set to True outside of the if statement to avoid multiple updates
-        self.permissions_up_to_date = True
         if trigger_indexation:
+            self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
         else:
             PeopleGroup.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
