@@ -11,7 +11,7 @@ ENVIRONMENT = "local"
 DEBUG = True
 
 AWS_S3_ENDPOINT_URL = "http://localhost:9000"
-AWS_S3_PROXIES = {"http://localhost:9000": "http://minio:9000"}
+AWS_S3_PROXIES = {"http": "http://minio:9000"}
 
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
