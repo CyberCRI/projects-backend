@@ -12,11 +12,11 @@ build:
 
 .PHONY: bash
 bash:
-	docker compose exec -it projects bash
+	docker exec -it projects bash
 
 .PHONY: fullstack
 fullstack:
-	docker compose exec -it projects-back bash
+	docker exec -it projects-backend bash
 
 .PHONY: format
 format:

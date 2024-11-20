@@ -394,7 +394,9 @@ class Project(
             ],
         )
 
-    def setup_permissions(self, user: Optional["ProjectUser"] = None):
+    def setup_permissions(
+        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
+    ):
         """Setup the group with default permissions."""
         reviewers = self.setup_group_permissions(
             self.get_reviewers(), self.get_default_reviewers_permissions()
@@ -412,9 +414,11 @@ class Project(
         if user:
             owners.users.add(user)
         self.groups.add(owners, reviewers, members, people_groups)
-        self.permissions_up_to_date = True
-        # Saving is also mandatory to trigger indexing in Algolia
-        self.save(update_fields=["permissions_up_to_date"])
+        if trigger_indexation:
+            self.permissions_up_to_date = True
+            self.save(update_fields=["permissions_up_to_date"])
+        else:
+            Project.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
     def remove_duplicated_roles(self):
         """Remove duplicated roles in the group."""
@@ -526,7 +530,6 @@ class Project(
                     f"/v1/project/{project.pk}/image/{new_image.pk}/",
                 )
         project.save()
-        project.setup_permissions(user=owner)
         for blog_entry in self.blog_entries.all():
             blog_entry.duplicate(project, self, owner)
         for announcement in self.announcements.all():
@@ -540,6 +543,7 @@ class Project(
         for file in self.files.all():
             file.duplicate(project)
         Stat.objects.create(project=project)
+        project.setup_permissions(user=owner)
         return project
 
 

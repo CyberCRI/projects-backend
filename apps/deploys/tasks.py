@@ -43,7 +43,7 @@ def instance_groups_permissions():
         for instance in permissions_setup_model.objects.filter(
             permissions_up_to_date=False
         ):
-            instance.setup_permissions()
+            instance.setup_permissions(trigger_indexation=False)
 
 
 @app.task

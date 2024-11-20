@@ -50,6 +50,7 @@ services:
       - 15500:15500
 
   projects:
+    container_name: projects
     build:
       context: .
       args:

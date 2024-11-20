@@ -59,7 +59,9 @@ class PermissionsSetupModel(models.Model):
             remove_perm(permission, group, self)
         return group
 
-    def setup_permissions(self, user: Optional["ProjectUser"] = None):
+    def setup_permissions(
+        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
+    ):
         """Initialize permissions for the instance."""
         raise NotImplementedError()
 

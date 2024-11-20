@@ -579,6 +579,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 status=e.status_code,
             )
 
+    @transaction.atomic
     def perform_create(self, serializer):
         people_group = serializer.save()
         people_group.setup_permissions(self.request.user)
