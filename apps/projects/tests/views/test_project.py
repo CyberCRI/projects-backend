@@ -420,7 +420,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
         cls.project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PRIVATE,
+            publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
             categories=[cls.category],
             header_image=cls.get_test_image(),
