@@ -65,6 +65,9 @@ SILENCED_SYSTEM_CHECKS = [
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", False) == "True"
 
+
+DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda _request: DEBUG}
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -529,6 +532,7 @@ if DEBUG:
     INTERNAL_IPS = [ip[: ip.rfind(".")] + ".1" for ip in ips] + [
         "127.0.0.1",
         "10.0.2.2",
+        "10.244.2.4",
     ]
 
 # Python requests module default timeout
