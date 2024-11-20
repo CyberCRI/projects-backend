@@ -1,3 +1,5 @@
+import os
+
 import requests
 from celery.schedules import crontab
 
@@ -8,12 +10,12 @@ ENVIRONMENT = "local"
 
 DEBUG = True
 
-AWS_S3_ENDPOINT_URL = "http://minio:9000"
+AWS_S3_ENDPOINT_URL = "http://localhost:9000"
+AWS_S3_PROXIES = {"http": "http://minio:9000"}
+
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"
 
 FRONTEND_URL = "http://localhost:8080"
-
-ALGOLIA["AUTO_INDEXING"] = False  # noqa: F405
 
 SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = "/api/schema/"  # noqa: F405
 
@@ -65,4 +67,4 @@ MIXPANEL_PROJECT_ID = "2560711"
 #   GOOGLE   #
 ##############
 
-GOOGLE_EMAIL_PREFIX = "local"
+GOOGLE_EMAIL_PREFIX = os.getenv("GOOGLE_EMAIL_PREFIX", "local")
