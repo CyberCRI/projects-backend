@@ -13,9 +13,9 @@ authorization_base_url = (
 token_url = "https://keycloak.k8s.lp-i.dev/realms/lp/protocol/openid-connect/token"
 redirect_uri = "https://projects-ref.k8s.lp-i.dev/"
 
-# ORGANIZATION_CODE = "DEFAULT"
+# ORGANIZATION_CODE = "DEFAULT"  # noqa
 ORGANIZATION_CODE = "CRI"
-# GROUP_TO_TEST = "testing_a6grj"
+# GROUP_TO_TEST = "testing_a6grj"  # noqa
 GROUP_TO_TEST = "alumni"
 SEARCH_TERM = "test"
 USER_ID = "5e558735-5207-4c86-a3ed-c7f83b55e0e9"
