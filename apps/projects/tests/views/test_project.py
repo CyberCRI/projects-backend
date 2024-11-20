@@ -394,7 +394,7 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
         cls.project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PRIVATE,
+            publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
             categories=[cls.category],
             header_image=cls.get_test_image(),
@@ -531,8 +531,8 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]

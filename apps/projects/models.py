@@ -400,6 +400,7 @@ class Project(
                 "view_project",
                 "view_projectmessage",
                 "add_projectmessage",
+                "duplicate_project",
             ],
         )
 
