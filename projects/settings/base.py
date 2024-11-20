@@ -66,9 +66,7 @@ SILENCED_SYSTEM_CHECKS = [
 DEBUG = os.getenv("DEBUG", False) == "True"
 
 
-DEBUG_TOOLBAR_CONFIG = {
-    'SHOW_TOOLBAR_CALLBACK': lambda _request: DEBUG
-}
+DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda _request: DEBUG}
 
 LOGGING = {
     "version": 1,
