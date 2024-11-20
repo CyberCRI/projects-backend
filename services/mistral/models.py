@@ -394,7 +394,9 @@ class UserEmbedding(Embedding):
                 score = embedding.get_weight()
                 results.append([e * score for e in embedding.embedding])
                 total_score += score
-
-        self.embedding = [sum(row) / total_score for row in zip(*results)] or None
+        try:
+            self.embedding = [sum(row) / total_score for row in zip(*results)] or None
+        except ZeroDivisionError:
+            self.embedding = None
         self.save()
         return self
