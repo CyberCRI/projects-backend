@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import multiprocessing
 import os
 import re
 from pathlib import Path
@@ -28,9 +27,6 @@ try:
     DEBUG_TOOLBAR_INSTALLED = True
 except ImportError:
     DEBUG_TOOLBAR_INSTALLED = False
-
-# Allow to run tests in parallel
-multiprocessing.set_start_method("fork")
 
 # Build paths inside the core like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -228,7 +224,7 @@ TEMPLATES = [
         },
     },
 ]
-WSGI_APPLICATION = "projects.wsgi.application"
+ASGI_APPLICATION = "projects.asgi.application"
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
