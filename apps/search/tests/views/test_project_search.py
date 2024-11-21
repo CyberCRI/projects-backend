@@ -8,14 +8,14 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
+from apps.commons.models import Language
 from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
-from apps.misc.factories import TagFactory, WikipediaTagFactory
-from apps.misc.models import Language
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
 from apps.search.tasks import update_or_create_project_search_object_task
+from apps.skills.factories import TagFactory
 
 
 @skipUnlessAlgolia
@@ -25,12 +25,10 @@ class ProjectSearchTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
-        cls.wikipedia_tag = WikipediaTagFactory()
-        cls.organization_tag = TagFactory(organization=cls.organization)
+        cls.tag = TagFactory()
         cls.organization_2 = OrganizationFactory()
         cls.category_2 = ProjectCategoryFactory(organization=cls.organization_2)
-        cls.wikipedia_tag_2 = WikipediaTagFactory()
-        cls.organization_tag_2 = TagFactory(organization=cls.organization_2)
+        cls.tag_2 = TagFactory()
         Project.objects.all().delete()  # Delete projects created by the factories
         cls.no_organization_project = ProjectFactory(
             title="algolia",
@@ -48,8 +46,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
             language=Language.FR,
         )
         cls.public_project_1.categories.add(cls.category)
-        cls.public_project_1.wikipedia_tags.add(cls.wikipedia_tag)
-        cls.public_project_1.organization_tags.add(cls.organization_tag)
+        cls.public_project_1.tags.add(cls.tag)
         cls.public_project_2 = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PUBLIC,
@@ -58,8 +55,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
             language=Language.EN,
         )
         cls.public_project_2.categories.add(cls.category_2)
-        cls.public_project_2.wikipedia_tags.add(cls.wikipedia_tag_2)
-        cls.public_project_2.organization_tags.add(cls.organization_tag_2)
+        cls.public_project_2.tags.add(cls.tag_2)
         cls.private_project = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PRIVATE,
@@ -68,8 +64,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
             language=Language.FR,
         )
         cls.private_project.categories.add(cls.category)
-        cls.private_project.wikipedia_tags.add(cls.wikipedia_tag)
-        cls.private_project.organization_tags.add(cls.organization_tag)
+        cls.private_project.tags.add(cls.tag)
         cls.org_project = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.ORG,
@@ -78,8 +73,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
             language=Language.FR,
         )
         cls.org_project.categories.add(cls.category)
-        cls.org_project.wikipedia_tags.add(cls.wikipedia_tag)
-        cls.org_project.organization_tags.add(cls.organization_tag)
+        cls.org_project.tags.add(cls.tag)
         cls.member_project = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PRIVATE,
@@ -88,7 +82,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
             language=Language.FR,
         )
         cls.member_project.categories.add(cls.category)
-        cls.member_project.wikipedia_tags.add(cls.wikipedia_tag)
+        cls.member_project.tags.add(cls.tag)
         ProjectUser.objects.all().delete()  # Delete users created by the factories
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.public_project_2_member = UserFactory()
@@ -217,31 +211,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.public_project_2.id},
         )
 
-    def test_filter_by_wikipedia_tags(self):
+    def test_filter_by_tags(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("algolia",))
             + "?types=project"
-            + f"&wikipedia_tags={self.wikipedia_tag_2.wikipedia_qid}"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), 1)
-        self.assertEqual(
-            {project["type"] for project in content},
-            {SearchObject.SearchObjectType.PROJECT},
-        )
-        self.assertSetEqual(
-            {project["project"]["id"] for project in content},
-            {self.public_project_2.id},
-        )
-
-    def test_filter_by_organization_tags(self):
-        self.client.force_authenticate(self.superadmin)
-        response = self.client.get(
-            reverse("Search-search", args=("algolia",))
-            + "?types=project"
-            + f"&organization_tags={self.organization_tag_2.id}"
+            + f"&tags={self.tag_2.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

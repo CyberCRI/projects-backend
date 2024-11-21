@@ -24,12 +24,14 @@ from apps.accounts.utils import (
     get_superadmins_group,
 )
 from apps.commons.models import (
+    SDG,
     HasMultipleIDs,
     HasOwner,
+    Language,
     OrganizationRelated,
     PermissionsSetupModel,
 )
-from apps.misc.models import SDG, Language, WikipediaTag
+from apps.misc.models import WikipediaTag
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -867,7 +869,7 @@ class Skill(models.Model, HasOwner):
         HOBBY = "hobby"
 
     user = models.ForeignKey(
-        ProjectUser, on_delete=models.CASCADE, related_name="skills"
+        ProjectUser, on_delete=models.CASCADE, related_name="old_skills"
     )
     type = models.CharField(
         max_length=8, choices=SkillType.choices, default=SkillType.SKILL.value

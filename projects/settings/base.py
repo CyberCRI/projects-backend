@@ -132,26 +132,28 @@ INSTALLED_APPS = [
     "apps.analytics",
     "apps.announcements",
     "apps.commons",
+    "apps.emailing",
     "apps.feedbacks",
     "apps.files",
     "apps.goals",
     "apps.healthcheck",
+    "apps.invitations",
     "apps.misc",
+    "apps.newsfeed",
     "apps.notifications",
     "apps.organizations",
     "apps.projects",
-    "apps.invitations",
     "apps.search",
-    "apps.deploys",
-    "apps.emailing",
-    "apps.newsfeed",
     "apps.skills",
     # services
-    "services.keycloak",
-    "services.mixpanel",
+    "services.esco",
     "services.google",
-    "services.wikipedia",
+    "services.keycloak",
     "services.mistral",
+    "services.mixpanel",
+    "services.wikipedia",
+    # deploys should be the last one
+    "apps.deploys",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
@@ -439,6 +441,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.accounts.tasks.calculate_users_scores",
         "schedule": crontab(minute=0, hour=3),
     },
+    "update_esco_data": {
+        "task": "apps.skills.tasks.update_esco_data_task",
+        "schedule": crontab(minute=0, hour=4),
+    },
     "send_invitations_reminder": {
         "task": "apps.notifications.tasks.send_invitations_reminder",
         "schedule": crontab(minute=0, hour=7),
@@ -626,3 +632,10 @@ GOOGLE_DEFAULT_ORG_UNIT = "/CRI/Admin Staff"
 ##############
 
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
+
+
+##############
+#    ESCO    #
+##############
+
+ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")

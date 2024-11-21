@@ -4,24 +4,20 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from apps.accounts.factories import (
-    PeopleGroupFactory,
-    SeedUserFactory,
-    SkillFactory,
-    UserFactory,
-)
+from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TagTestCaseMixin
+from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
+from apps.skills.factories import SkillFactory, TagFactory
 
 faker = Faker()
 
 
-class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
+class UserIndexUpdateSignalTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -210,18 +206,18 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         signal.assert_called_with(self.user.pk)
 
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     @patch("apps.search.tasks.update_or_create_user_search_object_task.delay")
-    def test_signal_called_on_skill_creation(self, signal, wikipedia_mock):
-        wikipedia_mock.side_effect = self.get_wikipedia_tag_mocked_side_effect
+    def test_signal_called_on_skill_creation(self, signal):
+        tag = TagFactory()
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "user": self.user.id,
-            "wikipedia_tag": self.get_random_wikipedia_qid(),
+            "tag": tag.id,
             "level": faker.pyint(1, 4),
             "level_to_reach": faker.pyint(1, 4),
         }
-        response = self.client.post(reverse("Skill-list"), data=payload)
+        response = self.client.post(
+            reverse("Skill-list", args=(self.user.id,)), data=payload
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         signal.assert_called_with(self.user.pk)
 
@@ -233,7 +229,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase, TagTestCaseMixin):
             "can_mentor": True,
         }
         response = self.client.patch(
-            reverse("Skill-detail", args=(skill.id,)),
+            reverse("Skill-detail", args=(self.user.id, skill.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

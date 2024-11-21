@@ -10,11 +10,12 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.permissions import HasBasePermission
+from apps.commons.models import SDG
 from apps.commons.permissions import ReadOnly
-from apps.misc.models import SDG, WikipediaTag
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
+from apps.skills.models import Tag
 
 from .serializers import StatsSerializer
 
@@ -77,8 +78,8 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
             by_month[month.date()]["updated_count"] += count
 
         # Top ten wikipedia_tags
-        wikipedia_tags = (
-            WikipediaTag.objects.annotate(
+        tags = (
+            Tag.objects.annotate(
                 project_count=Count("projects", filter=Q(projects__in=projects))
             )
             .filter(project_count__gt=0)
@@ -91,7 +92,7 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
                 "total": projects.count(),
                 "by_sdg": by_sdg,
                 "by_month": by_month,
-                "top_tags": wikipedia_tags,
+                "top_tags": tags,
             }
         )
         return Response(serializer.data)

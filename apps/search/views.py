@@ -51,8 +51,8 @@ class SearchViewSet(PaginatedViewSet):
                 type=str,
             ),
             OpenApiParameter(
-                name="wikipedia_tags",
-                description="Wikipedia tags QIDs to filter on, separated by a comma. Works on projects.",
+                name="tags",
+                description="Tags IDs to filter on, separated by a comma. Works on projects.",
                 required=False,
                 type=str,
             ),
@@ -70,7 +70,7 @@ class SearchViewSet(PaginatedViewSet):
             ),
             OpenApiParameter(
                 name="skills",
-                description="Wikipedia QIDs of skills to filter on, separated by a comma. Works on users.",
+                description="Tags IDs of skills to filter on, separated by a comma. Works on users.",
                 required=False,
                 type=str,
             ),
@@ -157,17 +157,7 @@ class SearchViewSet(PaginatedViewSet):
                 SearchObject.SearchObjectType.PROJECT,
             ),
             self.get_type_specific_facet_filter(
-                [
-                    f"wikipedia_tags_filter:{w}"
-                    for w in self.get_filter("wikipedia_tags")
-                ],
-                SearchObject.SearchObjectType.PROJECT,
-            ),
-            self.get_type_specific_facet_filter(
-                [
-                    f"organization_tags_filter:{o}"
-                    for o in self.get_filter("organization_tags")
-                ],
+                [f"tags_filter:{w}" for w in self.get_filter("tags")],
                 SearchObject.SearchObjectType.PROJECT,
             ),
             self.get_type_specific_facet_filter(

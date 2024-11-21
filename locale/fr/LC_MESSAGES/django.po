@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-11-20 14:45+0100\n"
+"POT-Creation-Date: 2024-11-21 16:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -64,71 +64,67 @@ msgid "Permission not found"
 msgstr "La permission n'a pas été trouvée"
 
 #: apps/accounts/exceptions.py:87
-msgid "You already have this skill in your profile"
-msgstr "Vous avez déjà cette compétence dans votre profil"
-
-#: apps/accounts/exceptions.py:93
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
 
-#: apps/accounts/exceptions.py:98
+#: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 "Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
 
-#: apps/accounts/exceptions.py:108
+#: apps/accounts/exceptions.py:102
 msgid "An error occurred while syncing with Google"
 msgstr "Une erreur est survenue lors de la synchronisation avec Google"
 
-#: apps/accounts/exceptions.py:113
+#: apps/accounts/exceptions.py:107
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 "Une erreur est survenue lors de la synchronisation avec Google : {message}"
 
-#: apps/accounts/exceptions.py:126
+#: apps/accounts/exceptions.py:120
 msgid "The organization of a group cannot be changed"
 msgstr "L'organisation d'un groupe ne peut pas être modifiée"
 
-#: apps/accounts/exceptions.py:132
+#: apps/accounts/exceptions.py:126
 msgid "The root group cannot have a parent group"
 msgstr "Le groupe racine ne peut pas avoir de groupe parent"
 
-#: apps/accounts/exceptions.py:138
+#: apps/accounts/exceptions.py:132
 msgid "A non-root group must have a parent group"
 msgstr "Un groupe doit avoir un groupe parent"
 
-#: apps/accounts/exceptions.py:144
+#: apps/accounts/exceptions.py:138
 msgid "The parent group must belong to the same organization"
 msgstr "Le groupe parent doit appartenir à la même organisation"
 
-#: apps/accounts/exceptions.py:150
+#: apps/accounts/exceptions.py:144
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Vous essayez de créer une boucle dans la hiérarchie des groupes"
 
-#: apps/accounts/exceptions.py:156
+#: apps/accounts/exceptions.py:150
 msgid "You cannot assign this role to a user"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 
-#: apps/accounts/exceptions.py:161
+#: apps/accounts/exceptions.py:155
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:128 apps/projects/models.py:160
+#: apps/accounts/models.py:130 apps/projects/models.py:162
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:814
+#: apps/accounts/models.py:816
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:815
+#: apps/accounts/models.py:817
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:816
+#: apps/accounts/models.py:818
 msgid "Public"
 msgstr "Publique"
 
@@ -194,7 +190,7 @@ msgstr "Statut de publication inconnu"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Statut de publication inconnu '{publication_status}'"
 
-#: apps/commons/fields.py:28
+#: apps/commons/fields.py:28 apps/skills/serializers.py:101
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
@@ -203,7 +199,7 @@ msgstr "Ce champ est obligatoire."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 
-#: apps/commons/fields.py:31
+#: apps/commons/fields.py:31 apps/skills/serializers.py:106
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
@@ -1471,6 +1467,10 @@ msgstr "La catégorie parente doit appartenir à la même organisation"
 msgid "You are trying to create a loop in the category's hierarchy"
 msgstr "Vous essayez de créer une boucle dans la hiérarchie des catégories"
 
+#: apps/organizations/exceptions.py:48
+msgid "You must choose a default tag classification that is enabled"
+msgstr "La classification de tags par défaut doit être activée sur le portail"
+
 #: apps/projects/exceptions.py:12
 msgid "You don't have the permission to link this project"
 msgstr "Vous n'avez pas la permission de lier ce projet"
@@ -1529,46 +1529,85 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 
-#: apps/projects/models.py:144
+#: apps/projects/models.py:146
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:153
+#: apps/projects/models.py:155
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:166
+#: apps/projects/models.py:168
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:179
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:184
+#: apps/projects/models.py:187
 msgid "wikipedia tags"
 msgstr "tags wikipedia"
 
-#: apps/projects/models.py:187
+#: apps/projects/models.py:190
 msgid "organizational tags"
 msgstr "tags organisationnels"
 
-#: apps/projects/models.py:194
+#: apps/projects/models.py:203
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:200
+#: apps/projects/models.py:209
 msgid "main category"
 msgstr "objectif principal"
 
 #: apps/skills/exceptions.py:10
+msgid "User ID must be provided through url"
+msgstr "L'identifiant de l'utilisateur·ice doit être fourni via l'url"
+
+#: apps/skills/exceptions.py:16
 msgid "This user cannot be a mentor for this skill"
 msgstr "Cet·te utilisateur·ice ne peut pas être mentor·e pour cette compétence"
 
-#: apps/skills/exceptions.py:16
+#: apps/skills/exceptions.py:22
 msgid "This user does not need a mentor for this skill"
 msgstr ""
 "Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
+
+#: apps/skills/exceptions.py:28
+msgid "You already have this skill in your profile"
+msgstr "Vous avez déjà cette compétence dans votre profil"
+
+#: apps/skills/exceptions.py:34
+msgid "Only custom tags can be updated"
+msgstr "Seuls les tags personnalisés peuvent être mis à jour"
+
+#: apps/skills/exceptions.py:40
+msgid "Only custom tags classifications can be updated"
+msgstr ""
+"Seules les classifications de tags personnalisés peuvent être mises à jour"
+
+#: apps/skills/exceptions.py:46
+msgid "You can only search for 50 Wikipedia tags at a time"
+msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
+
+#: apps/skills/exceptions.py:55
+msgid "Tags must belong to the classification's organization"
+msgstr "Les tags doivent appartenir à l'organisation de la classification"
+
+#: apps/skills/exceptions.py:61
+msgid "Tag title must be 50 characters or less"
+msgstr "Le titre du tag doit comporter 50 caractères ou moins"
+
+#: apps/skills/exceptions.py:67
+msgid "Tag description must be 500 characters or less"
+msgstr "La description du tag doit comporter 500 caractères ou moins"
+
+#: apps/skills/serializers.py:103
+#, python-brace-format
+msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
+msgstr ""
+"identifiant invalide \"{tag_classification_id}\" - cet objet n'existe pas."
 
 #: apps/skills/templates/contact_mentor/mail.html:14
 #: apps/skills/templates/contact_mentoree/mail.html:14
@@ -1968,11 +2007,11 @@ msgstr ""
 "          L’équipe Projects\n"
 "          "
 
-#: projects/settings/base.py:269
+#: projects/settings/base.py:271
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:270
+#: projects/settings/base.py:272
 msgid "French"
 msgstr "Français"
 

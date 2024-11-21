@@ -15,6 +15,7 @@ from .interface import MistralService
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
+    from apps.skills.models import Tag
 
 
 class HasWeight:
@@ -216,10 +217,8 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
             content = f"{title}:\n{content}"
         else:
             content = ""
-        if self.project.wikipedia_tags.exists():
-            tags = [
-                tag.name_en or tag.name_fr for tag in self.project.wikipedia_tags.all()
-            ]
+        if self.project.tags.exists():
+            tags = [tag.title_en or tag.title_fr for tag in self.project.tags.all()]
             tags = [tag for tag in tags if tag]
             key_concepts = ", ".join(tags)
         else:
@@ -268,11 +267,11 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
 
     def get_summary_chat_prompt(self) -> List[str]:
         expert_skills = self.user.skills.filter(level=4).values_list(
-            "wikipedia_tag__name", flat=True
+            "tag__title", flat=True
         )
         expert_skills = ", ".join(expert_skills) if expert_skills else ""
         competent_skills = self.user.skills.filter(level=3).values_list(
-            "wikipedia_tag__name", flat=True
+            "tag__title", flat=True
         )
         competent_skills = ", ".join(competent_skills) if competent_skills else ""
         description = "\n".join(
@@ -399,4 +398,30 @@ class UserEmbedding(Embedding):
         except ZeroDivisionError:
             self.embedding = None
         self.save()
+        return self
+
+
+class TagEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "skills.Tag", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    @property
+    def tag(self) -> "Tag":
+        return self.item
+
+    def get_is_visible(self) -> bool:
+        return bool(self.tag.description) or bool(self.tag.title)
+
+    def set_embedding(self, *args, **kwargs) -> "TagEmbedding":
+        prompt = [
+            self.tag.title,
+            self.tag.description,
+        ]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
         return self

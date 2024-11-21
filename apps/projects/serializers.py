@@ -27,9 +27,6 @@ from apps.files.serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
-from apps.goals.serializers import GoalSerializer
-from apps.misc.models import Tag, WikipediaTag
-from apps.misc.serializers import TagRelatedField, TagSerializer, WikipediaTagSerializer
 from apps.notifications.tasks import notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.serializers import (
@@ -37,6 +34,8 @@ from apps.organizations.serializers import (
     ProjectCategorySerializer,
     TemplateSerializer,
 )
+from apps.skills.models import Tag
+from apps.skills.serializers import TagRelatedField
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -49,7 +48,7 @@ from .exceptions import (
     ProjectWithNoOrganizationError,
     RemoveLastProjectOwnerError,
 )
-from .models import BlogEntry, LinkedProject, Location, Project, ProjectMessage
+from .models import BlogEntry, Goal, LinkedProject, Location, Project, ProjectMessage
 from .utils import compute_project_changes, get_views_from_serializer
 
 
@@ -111,6 +110,37 @@ class BlogEntrySerializer(
             )
             instance.refresh_from_db()
         return super(BlogEntrySerializer, self).update(instance, validated_data)
+
+    def get_related_organizations(self) -> List[Organization]:
+        """Retrieve the related organizations"""
+        if "project" in self.validated_data:
+            return self.validated_data["project"].get_related_organizations()
+        return []
+
+    def get_related_project(self) -> Optional[Project]:
+        """Retrieve the related projects"""
+        if "project" in self.validated_data:
+            return self.validated_data["project"]
+        return None
+
+
+class GoalSerializer(
+    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+):
+    project_id = serializers.PrimaryKeyRelatedField(
+        many=False, write_only=True, queryset=Project.objects.all(), source="project"
+    )
+
+    class Meta:
+        model = Goal
+        fields = [
+            "id",
+            "title",
+            "description",
+            "deadline_at",
+            "status",
+            "project_id",
+        ]
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
@@ -414,14 +444,13 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
 
 class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
     team = ProjectAddTeamMembersSerializer(required=False, source="*")
+    tags = TagRelatedField(many=True, required=False)
 
     # read_only
     header_image = ImageSerializer(read_only=True)
     categories = ProjectCategorySerializer(many=True, read_only=True)
     last_comment = serializers.SerializerMethodField(read_only=True)
     organizations = OrganizationSerializer(many=True, read_only=True)
-    wikipedia_tags = WikipediaTagSerializer(many=True, read_only=True)
-    organization_tags = TagSerializer(many=True, read_only=True)
     goals = GoalSerializer(many=True, read_only=True)
     reviews = ReviewSerializer(many=True, read_only=True)
     locations = LocationSerializer(many=True, read_only=True)
@@ -457,16 +486,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         many=True,
         required=True,
     )
-    wikipedia_tags_ids = TagRelatedField(
-        many=True, write_only=True, source="wikipedia_tags", required=False
-    )
-    organization_tags_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Tag.objects.all(),
-        source="organization_tags",
-        required=False,
-    )
     images_ids = serializers.PrimaryKeyRelatedField(
         many=True,
         write_only=True,
@@ -495,13 +514,12 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "updated_at",
             "deleted_at",
             "template",
+            "tags",
             # read only
             "header_image",
             "categories",
             "last_comment",
             "organizations",
-            "wikipedia_tags",
-            "organization_tags",
             "goals",
             "reviews",
             "locations",
@@ -518,8 +536,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "project_categories_ids",
             "header_image_id",
             "organizations_codes",
-            "wikipedia_tags_ids",
-            "organization_tags_ids",
             "images_ids",
             "team",
         ]
@@ -666,8 +682,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField(read_only=True)
     project_id = serializers.SerializerMethodField(read_only=True)
     categories = serializers.SerializerMethodField(read_only=True)
-    wikipedia_tags = serializers.SerializerMethodField(read_only=True)
-    organization_tags = serializers.SerializerMethodField(read_only=True)
+    tags = serializers.SerializerMethodField(read_only=True)
     members = serializers.SerializerMethodField(read_only=True)
     comments = serializers.SerializerMethodField(read_only=True)
     linked_projects = serializers.SerializerMethodField(read_only=True)
@@ -706,18 +721,9 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         )
 
     @staticmethod
-    def get_wikipedia_tags(version) -> List[str]:
-        tags_ids = version.wikipedia_tags.all().values_list(
-            "wikipediatag_id", flat=True
-        )
-        return WikipediaTag.objects.filter(id__in=tags_ids).values_list(
-            "name", flat=True
-        )
-
-    @staticmethod
-    def get_organization_tags(version) -> List[str]:
-        tags_ids = version.organization_tags.all().values_list("tag_id", flat=True)
-        return Tag.objects.filter(id__in=tags_ids).values_list("name", flat=True)
+    def get_tags(version) -> List[str]:
+        tags_ids = version.tags.all().values_list("tag_id", flat=True)
+        return Tag.objects.filter(id__in=tags_ids).values_list("title", flat=True)
 
     @staticmethod
     def get_members(version) -> List[str]:
@@ -749,8 +755,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
             "title",
             "purpose",
             "description",
-            "wikipedia_tags",
-            "organization_tags",
+            "tags",
             "members",
             "comments",
             "linked_projects",

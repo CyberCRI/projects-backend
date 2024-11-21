@@ -35,7 +35,7 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
         CANCEL = "cancel"
 
     project = models.ForeignKey(
-        "projects.Project", on_delete=models.CASCADE, related_name="goals"
+        "projects.Project", on_delete=models.CASCADE, related_name="old_goals"
     )
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)

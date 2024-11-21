@@ -19,15 +19,17 @@ from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
 from apps.commons.models import (
+    SDG,
     DuplicableModel,
     HasMultipleIDs,
     HasOwner,
+    Language,
     OrganizationRelated,
     PermissionsSetupModel,
     ProjectRelated,
 )
 from apps.commons.utils import get_write_permissions_from_subscopes
-from apps.misc.models import SDG, Language, Tag, WikipediaTag
+from apps.misc.models import Tag, WikipediaTag
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -180,11 +182,18 @@ class Project(
     organizations = models.ManyToManyField(
         "organizations.Organization", related_name="projects"
     )
+    # TODO : Skill update remove wikipedia_tags and organization_tags
     wikipedia_tags = models.ManyToManyField(
         WikipediaTag, related_name="projects", verbose_name=_("wikipedia tags")
     )
     organization_tags = models.ManyToManyField(
         Tag, verbose_name=_("organizational tags")
+    )
+    tags = models.ManyToManyField(
+        "skills.Tag",
+        related_name="projects",
+        blank=True,
+        db_table="projects_project_skills_tags",  # avoid conflicts with old Tag model
     )
     sdgs = ArrayField(
         models.PositiveSmallIntegerField(choices=SDG.choices),
@@ -202,7 +211,7 @@ class Project(
     groups = models.ManyToManyField(Group, related_name="projects")
     history = HistoricalRecords(
         related_name="archive",
-        m2m_fields=[wikipedia_tags, organization_tags, categories],
+        m2m_fields=[tags, categories],
     )
     objects = SoftDeleteManager()
 
@@ -520,8 +529,7 @@ class Project(
         )
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())
-        project.wikipedia_tags.set(self.wikipedia_tags.all())
-        project.organization_tags.set(self.organization_tags.all())
+        project.tags.set(self.tags.all())
         for image in self.images.all():
             new_image = image.duplicate(owner)
             project.images.add(new_image)
@@ -726,6 +734,73 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
         return blog_entry
 
 
+class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+    """Goal of a project.
+
+    Attributes
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    project: ForeignKey
+        Project following this Goal.
+    title: Charfield
+        Title of the Goal.
+    description: TextField
+        Description of the Goal.
+    deadline_at: BooleanField, optional
+        Deadline of the Goal.
+    status: CharField,
+        Status of the Goal.
+    """
+
+    class GoalStatus(models.TextChoices):
+        NONE = "na"
+        ONGOING = "ongoing"
+        COMPLETE = "complete"
+        CANCEL = "cancel"
+
+    project = models.ForeignKey(
+        "projects.Project", on_delete=models.CASCADE, related_name="goals"
+    )
+    title = models.CharField(max_length=255, blank=True)
+    description = models.TextField(blank=True)
+    deadline_at = models.DateField(null=True)
+    status = models.CharField(
+        max_length=24, choices=GoalStatus.choices, default=GoalStatus.NONE
+    )
+
+    @transaction.atomic
+    def save(self, *args, **kwargs):
+        create = self.pk is None
+        super().save(*args, **kwargs)
+        if create and hasattr(self.project, "stat"):
+            self.project.stat.update_goals()
+
+    @transaction.atomic
+    def delete(self, using=None, keep_parents=False):
+        project = self.project
+        super().delete(using, keep_parents)
+        if hasattr(project, "stat"):
+            project.stat.update_goals()
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return self.project.get_related_organizations()
+
+    def get_related_project(self) -> Optional["Project"]:
+        """Return the project related to this model."""
+        return self.project
+
+    def duplicate(self, project: "Project") -> "Goal":
+        return Goal.objects.create(
+            project=project,
+            title=self.title,
+            description=self.description,
+            deadline_at=self.deadline_at,
+            status=self.status,
+        )
+
+
 class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     """A project location on Earth.
 
@@ -809,7 +884,7 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
         Images used by the message.
     """
 
-    project = HistoricForeignKey(
+    project = models.ForeignKey(
         "projects.Project",
         on_delete=models.CASCADE,
         related_name="messages",

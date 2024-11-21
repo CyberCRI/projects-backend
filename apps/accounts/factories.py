@@ -11,7 +11,7 @@ from services.keycloak.factories import (
     RemoteKeycloakAccountFactory,
 )
 
-from .models import PeopleGroup, PrivacySettings, ProjectUser, Skill, UserScore
+from .models import PeopleGroup, PrivacySettings, ProjectUser, UserScore
 
 faker = Faker()
 
@@ -115,13 +115,3 @@ class PeopleGroupFactory(factory.django.DjangoModelFactory):
         instance.setup_permissions()
         instance.organization.setup_permissions()
         return instance
-
-
-class SkillFactory(factory.django.DjangoModelFactory):
-    user = factory.SubFactory(UserFactory)
-    wikipedia_tag = factory.SubFactory("apps.misc.factories.WikipediaTagFactory")
-    level = factory.Faker("random_digit")
-    level_to_reach = factory.Faker("random_digit")
-
-    class Meta:
-        model = Skill

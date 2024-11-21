@@ -1,7 +1,6 @@
 import base64
 import logging
 import os
-import random
 import uuid
 from typing import Dict, List, Optional
 from unittest import skipUnless, util
@@ -10,7 +9,6 @@ from django.conf import settings
 from django.core.files import File
 from django.db import models
 from faker import Faker
-from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
 from apps.accounts.authentication import BearerToken
@@ -245,83 +243,6 @@ class JwtAPITestCase(APITestCase):
         self.assertEqual(content["type"], ExceptionType.AUTHENTHICATION.value)
         if detail:
             self.assertEqual(content["detail"], detail)
-
-
-class TagTestCaseMixin:
-    class QueryWikipediaMockResponse:
-        status_code = status.HTTP_200_OK
-
-        def __init__(self, limit: int, offset: int):
-            self.results = [
-                {
-                    "id": TagTestCaseMixin.get_random_wikipedia_qid(),
-                    "label": faker.word(),
-                    "description": faker.sentence(),
-                }
-                for _ in range(limit)
-            ]
-            self.search_continue = offset + limit
-
-        def json(self):
-            return {"search": self.results, "search-continue": self.search_continue}
-
-    class GetWikipediaTagMocked:
-        status_code = status.HTTP_200_OK
-
-        def __init__(self, wikipedia_qid: str, en: bool, fr: bool):
-            self.wikipedia_qid = wikipedia_qid
-            self.languages = [
-                language for language, value in {"en": en, "fr": fr}.items() if value
-            ]
-
-        def json(self):
-            return {
-                "entities": {
-                    self.wikipedia_qid: {
-                        "labels": {
-                            language: {
-                                "language": language,
-                                "value": f"name_{language}_{self.wikipedia_qid}",
-                            }
-                            for language in self.languages
-                        },
-                        "descriptions": {
-                            language: {
-                                "language": language,
-                                "value": f"description_{language}_{self.wikipedia_qid}",
-                            }
-                            for language in self.languages
-                        },
-                    }
-                }
-            }
-
-    @classmethod
-    def get_random_wikipedia_qid(cls):
-        return f"Q{random.randint(100000, 999999)}"  # nosec
-
-    @classmethod
-    def get_wikipedia_tag_mocked_return(
-        cls,
-        wikipedia_qid: str,
-        en: bool = True,
-        fr: bool = True,
-    ):
-        return cls.GetWikipediaTagMocked(wikipedia_qid, en, fr)
-
-    @classmethod
-    def search_wikipedia_tag_mocked_return(cls, limit: int, offset: int):
-        return cls.QueryWikipediaMockResponse(limit, offset)
-
-    @classmethod
-    def get_wikipedia_tag_mocked_side_effect(cls, wikipedia_qid: str):
-        return cls.get_wikipedia_tag_mocked_return(wikipedia_qid)
-
-    @classmethod
-    def search_wikipedia_tag_mocked_side_effect(
-        cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
-    ):
-        return cls.search_wikipedia_tag_mocked_return(limit, offset)
 
 
 def skipUnlessAlgolia(decorated):  # noqa: N802

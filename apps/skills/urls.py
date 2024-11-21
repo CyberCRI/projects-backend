@@ -1,14 +1,52 @@
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import organization_router_register, user_router_register
+from apps.commons.urls import (
+    organization_router_register,
+    organization_user_router_register,
+    user_router_register,
+)
 
 from .views import (
     MentorshipContactViewset,
     OrganizationMentorshipViewset,
+    ReadTagViewSet,
+    SkillViewSet,
+    TagClassificationViewSet,
+    TagViewSet,
     UserMentorshipViewset,
 )
 
 router = DefaultRouter()
+
+organization_router_register(
+    router,
+    r"tag-classification",
+    TagClassificationViewSet,
+    basename="TagClassification",
+)
+
+router.register(
+    r"tag",
+    ReadTagViewSet,
+    basename="ReadTag",
+)
+
+
+organization_router_register(
+    router,
+    r"tag",
+    TagViewSet,
+    basename="OrganizationTag",
+)
+
+organization_router_register(
+    router,
+    r"tag-classification/(?P<tag_classification_id>[^/]+)/tag",
+    TagViewSet,
+    basename="ClassificationTag",
+)
+
+user_router_register(router, r"skill", SkillViewSet, basename="Skill")
 
 organization_router_register(
     router,
@@ -17,7 +55,7 @@ organization_router_register(
     basename="OrganizationMentorship",
 )
 
-user_router_register(
+organization_user_router_register(
     router,
     r"",
     UserMentorshipViewset,
@@ -26,7 +64,7 @@ user_router_register(
 
 organization_router_register(
     router,
-    r"skill/(?P<skill_id>\d+)",
+    r"skill/(?P<skill_id>[^/]+)",
     MentorshipContactViewset,
     basename="MentorshipContact",
 )

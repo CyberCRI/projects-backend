@@ -1,9 +1,9 @@
+from typing import Dict, List, Optional, Tuple
+
 import requests
 from django.conf import settings
 from mediawiki import MediaWiki
 from rest_framework import status
-
-from apps.misc.models import WikipediaTag
 
 from .exceptions import UnsupportedWikipediaLanguageError, WikibaseAPIException
 
@@ -21,13 +21,6 @@ class WikipediaService:
         if not getattr(cls, f"service_{language}", None):
             setattr(cls, f"service_{language}", MediaWiki(lang=language))
         return getattr(cls, f"service_{language}")
-
-    @classmethod
-    def autocomplete(cls, query: str, language: str = "en", limit: int = 5) -> list:
-        """
-        Get the autocomplete data from the Wikimedia API.
-        """
-        return cls.service(language).prefixsearch(query, results=limit)
 
     @classmethod
     def wbsearchentities(
@@ -49,75 +42,78 @@ class WikipediaService:
         return requests.get(cls.MEDIAWIKI_API_URL, params)
 
     @classmethod
-    def wbgetentities(cls, wikipedia_qid: str) -> list:
+    def wbgetentities(cls, wikipedia_qids: List[str]) -> requests.Response:
         """
-        Get the data from the Wikimedia API.
+        Get the data for multiple Wikipedia Tags from the Wikimedia API.
         """
-        params = {"action": "wbgetentities", "format": "json", "ids": [wikipedia_qid]}
+        params = {
+            "action": "wbgetentities",
+            "format": "json",
+            "ids": "|".join(wikipedia_qids),
+        }
         return requests.get(cls.MEDIAWIKI_API_URL, params)
+
+    @classmethod
+    def get_by_ids(cls, wikipedia_qids: List[str]) -> List[Dict[str, str]]:
+        """
+        Get and format the data for multiple Wikipedia Tags from the Wikimedia API.
+        """
+        if not wikipedia_qids:
+            return []
+        response = cls.wbgetentities(wikipedia_qids)
+        if response.status_code != status.HTTP_200_OK:
+            raise WikibaseAPIException(response.status_code)
+        content = response.json()["entities"]
+        return [
+            {
+                "external_id": wikipedia_qid,
+                "fallback_title": (
+                    list(content[wikipedia_qid]["labels"].values())[0]["value"]
+                    if len(content[wikipedia_qid]["labels"]) > 0
+                    else ""
+                ),
+                "fallback_description": (
+                    list(content[wikipedia_qid]["descriptions"].values())[0]["value"]
+                    if len(content[wikipedia_qid]["descriptions"]) > 0
+                    else ""
+                ),
+                **{
+                    f"title_{language}": content[wikipedia_qid]["labels"][language][
+                        "value"
+                    ]
+                    for language in settings.REQUIRED_LANGUAGES
+                    if language in content[wikipedia_qid]["labels"]
+                },
+                **{
+                    f"description_{language}": content[wikipedia_qid]["descriptions"][
+                        language
+                    ]["value"]
+                    for language in settings.REQUIRED_LANGUAGES
+                    if language in content[wikipedia_qid]["descriptions"]
+                },
+            }
+            for wikipedia_qid in wikipedia_qids
+        ]
+
+    @classmethod
+    def get_by_id(cls, wikipedia_qid: str) -> dict:
+        """
+        Get and format the data for a single Wikipedia Tag from the Wikimedia API.
+        """
+        entities = cls.get_by_ids([wikipedia_qid])
+        return entities[0] if entities else None
 
     @classmethod
     def search(
         cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
-    ) -> list:
+    ) -> Tuple[List[Dict[str, str]], Optional[int]]:
         """
-        Search the data from the Wikimedia API.
+        Search Tags and get formatted data from the Wikimedia API.
         """
         response = cls.wbsearchentities(query, language, limit, offset)
         if response.status_code != status.HTTP_200_OK:
             raise WikibaseAPIException(response.status_code)
         content = response.json()
-        return {
-            "results": [
-                {
-                    "wikipedia_qid": item.get("id", ""),
-                    "name": item.get("label", ""),
-                    "description": item.get("description", ""),
-                }
-                for item in content.get("search", [])
-            ],
-            "search_continue": content.get("search-continue", None),
-        }
-
-    @classmethod
-    def get_by_id(cls, wikipedia_qid: str) -> dict:
-        """
-        Get the data from the Wikimedia API.
-        """
-        response = cls.wbgetentities(wikipedia_qid)
-        if response.status_code != status.HTTP_200_OK:
-            raise WikibaseAPIException(response.status_code)
-        content = response.json()["entities"][wikipedia_qid]
-        names = {
-            f"name_{language}": content["labels"][language]["value"]
-            for language in settings.REQUIRED_LANGUAGES
-            if language in content["labels"]
-        }
-        descriptions = {
-            f"description_{language}": content["descriptions"][language]["value"]
-            for language in settings.REQUIRED_LANGUAGES
-            if language in content["descriptions"]
-        }
-        return {
-            "wikipedia_qid": wikipedia_qid,
-            **names,
-            **descriptions,
-        }
-
-    @classmethod
-    def update_or_create_wikipedia_tag(cls, wikipedia_qid: str) -> dict:
-        """
-        Update or create a WikipediaTag instance.
-        """
-        data = cls.get_by_id(wikipedia_qid)
-        for language in ["en", *settings.REQUIRED_LANGUAGES]:
-            if not data.get("name_en", None):
-                data["name_en"] = data.get(f"name_{language}", "")
-            if not data.get("description_en", None):
-                data["description_en"] = data.get(f"description_{language}", "")
-        wikipedia_qid = data.pop("wikipedia_qid")
-        tag, _ = WikipediaTag.objects.update_or_create(
-            wikipedia_qid=wikipedia_qid,
-            defaults=data,
-        )
-        return tag
+        next_items = content.get("search-continue", None) or 0
+        wikipedia_qids = [item.get("id", "") for item in content.get("search", [])]
+        return wikipedia_qids, next_items

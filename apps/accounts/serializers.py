@@ -16,10 +16,11 @@ from apps.commons.fields import (
 )
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
-from apps.misc.serializers import TagRelatedField
 from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from apps.skills.models import Skill
+from apps.skills.serializers import SkillLightSerializer
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -31,7 +32,7 @@ from .exceptions import (
     UserRoleAssignmentError,
     UserRolePermissionDeniedError,
 )
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
 from .utils import get_default_group, get_instance_from_group
 
 
@@ -201,13 +202,13 @@ class UserLightSerializer(serializers.ModelSerializer):
     def get_needs_mentor_on(self, user: ProjectUser) -> List[Dict]:
         if getattr(user, "needs_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.needs_mentor_on)
-            return SkillSerializer(skills, many=True).data
+            return SkillLightSerializer(skills, many=True).data
         return []
 
     def get_can_mentor_on(self, user: ProjectUser) -> List[Dict]:
         if getattr(user, "can_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.can_mentor_on)
-            return SkillSerializer(skills, many=True).data
+            return SkillLightSerializer(skills, many=True).data
         return []
 
 
@@ -748,45 +749,6 @@ class EmptyPayloadResponseSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         pass
-
-
-class SkillLightSerializer(serializers.ModelSerializer):
-    wikipedia_tag = TagRelatedField(read_only=True)
-
-    class Meta:
-        model = Skill
-        read_only_fields = [
-            "id",
-            "wikipedia_tag",
-            "level",
-            "level_to_reach",
-            "category",
-            "type",
-            "can_mentor",
-            "needs_mentor",
-            "comment",
-        ]
-        fields = read_only_fields
-
-
-class SkillSerializer(serializers.ModelSerializer):
-    user = UserMultipleIdRelatedField(queryset=ProjectUser.objects.all())
-    wikipedia_tag = TagRelatedField()
-
-    class Meta:
-        model = Skill
-        fields = [
-            "id",
-            "user",
-            "wikipedia_tag",
-            "level",
-            "level_to_reach",
-            "category",
-            "type",
-            "can_mentor",
-            "needs_mentor",
-            "comment",
-        ]
 
 
 class CredentialsSerializer(serializers.Serializer):

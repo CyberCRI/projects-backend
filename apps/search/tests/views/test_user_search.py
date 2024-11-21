@@ -5,14 +5,14 @@ from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import SkillFactory, UserFactory
+from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
-from apps.misc.factories import WikipediaTagFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
 from apps.search.tasks import update_or_create_user_search_object_task
+from apps.skills.factories import SkillFactory, TagFactory
 
 
 @skipUnlessAlgolia
@@ -59,20 +59,12 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         SkillFactory(user=cls.org_user)
 
-        cls.wikipedia_tag_1 = WikipediaTagFactory()
-        cls.wikipedia_tag_2 = WikipediaTagFactory()
-        SkillFactory(
-            user=cls.public_user_1, wikipedia_tag=cls.wikipedia_tag_1, can_mentor=True
-        )
-        SkillFactory(
-            user=cls.public_user_2, wikipedia_tag=cls.wikipedia_tag_2, can_mentor=True
-        )
-        SkillFactory(
-            user=cls.private_user, wikipedia_tag=cls.wikipedia_tag_1, needs_mentor=True
-        )
-        SkillFactory(
-            user=cls.org_user, wikipedia_tag=cls.wikipedia_tag_2, needs_mentor=True
-        )
+        cls.tag_1 = TagFactory()
+        cls.tag_2 = TagFactory()
+        SkillFactory(user=cls.public_user_1, tag=cls.tag_1, can_mentor=True)
+        SkillFactory(user=cls.public_user_2, tag=cls.tag_2, can_mentor=True)
+        SkillFactory(user=cls.private_user, tag=cls.tag_1, needs_mentor=True)
+        SkillFactory(user=cls.org_user, tag=cls.tag_2, needs_mentor=True)
         cls.users = {
             "public_1": cls.public_user_1,
             "public_2": cls.public_user_2,
@@ -153,7 +145,7 @@ class UserSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Search-search", args=("algolia",))
             + "?types=user"
-            + f"&skills={self.skill_2.wikipedia_tag.wikipedia_qid}"
+            + f"&skills={self.skill_2.tag.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -206,7 +198,7 @@ class UserSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Search-search", args=("algolia",))
             + "?types=user"
-            + f"&can_mentor_on={self.wikipedia_tag_1.wikipedia_qid},{self.wikipedia_tag_2.wikipedia_qid}"
+            + f"&can_mentor_on={self.tag_1.id},{self.tag_2.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -224,7 +216,7 @@ class UserSearchTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Search-search", args=("algolia",))
             + "?types=user"
-            + f"&needs_mentor_on={self.wikipedia_tag_1.wikipedia_qid},{self.wikipedia_tag_2.wikipedia_qid}"
+            + f"&needs_mentor_on={self.tag_1.id},{self.tag_2.id}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

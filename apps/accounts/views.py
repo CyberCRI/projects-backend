@@ -3,7 +3,6 @@ import uuid
 from django.conf import settings
 from django.db import transaction
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
-from django.db.utils import IntegrityError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import translation
@@ -53,13 +52,9 @@ from services.google.tasks import (
 from services.keycloak.exceptions import KeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 
-from .exceptions import (
-    EmailTypeMissingError,
-    PermissionNotFoundError,
-    SkillAlreadyAddedError,
-)
-from .filters import PeopleGroupFilter, SkillFilter, UserFilter
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser, Skill
+from .exceptions import EmailTypeMissingError, PermissionNotFoundError
+from .filters import PeopleGroupFilter, UserFilter
+from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
 from .parsers import UserMultipartParser
 from .permissions import HasBasePermission, HasPeopleGroupPermission
 from .serializers import (
@@ -73,7 +68,6 @@ from .serializers import (
     PeopleGroupRemoveTeamMembersSerializer,
     PeopleGroupSerializer,
     PrivacySettingsSerializer,
-    SkillSerializer,
     UserAdminListSerializer,
     UserLighterSerializer,
     UserLightSerializer,
@@ -179,7 +173,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
         return queryset.prefetch_related(
-            "skills__wikipedia_tag",
+            "skills__tag",
             "groups",
         )
 
@@ -539,7 +533,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 "organization",
                 queryset=Organization.objects.select_related(
                     "faq", "parent", "banner_image", "logo_image"
-                ).prefetch_related("wikipedia_tags"),
+                ).prefetch_related("default_projects_tags", "default_skills_tags"),
             )
             return self.request.user.get_people_group_queryset(organization).filter(
                 organization__code=self.kwargs["organization_code"],
@@ -923,26 +917,6 @@ class PeopleGroupLogoView(
             people_group.save()
             return f"/v1/organization/{people_group.organization.code}/people-group/{people_group.id}/logo"
         return None
-
-
-class SkillViewSet(viewsets.ModelViewSet):
-    queryset = Skill.objects.all()
-    serializer_class = SkillSerializer
-    filterset_class = SkillFilter
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        ReadOnly
-        | IsOwner
-        | WillBeOwner
-        | HasBasePermission("change_projectuser", "accounts")
-        | HasOrganizationPermission("change_projectuser"),
-    ]
-
-    def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except IntegrityError:
-            raise SkillAlreadyAddedError
 
 
 class DeleteCookieView(views.APIView):

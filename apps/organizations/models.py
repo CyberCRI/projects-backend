@@ -10,12 +10,11 @@ from django.http import Http404
 from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords
 
-from apps.commons.models import OrganizationRelated, PermissionsSetupModel
+from apps.commons.models import Language, OrganizationRelated, PermissionsSetupModel
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
-from apps.misc.models import Language
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -77,7 +76,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     is_logo_visible_on_parent_dashboard: BooleanField
         Whether to show or hide the organization's logo on the main
         organization's portal.
-    wikipedia_tags: ManyToManyField
+    tags: ManyToManyField
         Tags this organization is referred to.
     created_at: DateTimeField
         Date of creation of the organization.
@@ -157,6 +156,40 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         "projects.Project", related_name="org_featured_projects", blank=True
     )
     wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
+    default_projects_tags = models.ManyToManyField(
+        "skills.Tag",
+        related_name="default_organizations_projects",
+        blank=True,
+    )
+    default_skills_tags = models.ManyToManyField(
+        "skills.Tag",
+        related_name="default_organizations_skills",
+        blank=True,
+    )
+    enabled_projects_tag_classifications = models.ManyToManyField(
+        "skills.TagClassification",
+        related_name="enabled_organizations_projects",
+        blank=True,
+    )
+    enabled_skills_tag_classifications = models.ManyToManyField(
+        "skills.TagClassification",
+        related_name="enabled_organizations_skills",
+        blank=True,
+    )
+    default_projects_tag_classification = models.ForeignKey(
+        "skills.TagClassification",
+        related_name="default_organizations_projects",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    default_skills_tag_classification = models.ForeignKey(
+        "skills.TagClassification",
+        related_name="default_organizations_skills",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
 
     groups = models.ManyToManyField(Group, related_name="organizations")
 
@@ -172,6 +205,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         )
         write_only_subscopes = (
             ("tag", "tags"),
+            ("tagclassification", "tag classifications"),
             ("faq", "faqs"),
             ("projectcategory", "project categories"),
             ("review", "reviews"),
@@ -215,7 +249,13 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             *[
                 f"{action}_{subscope}"
                 for action in ["change", "delete", "add"]
-                for subscope in ["tag", "review", "faq", "projectcategory"]
+                for subscope in [
+                    "tag",
+                    "review",
+                    "faq",
+                    "projectcategory",
+                    "tagclassification",
+                ]
             ],
         ]
         return Permission.objects.filter(content_type=self.content_type).exclude(
@@ -377,7 +417,7 @@ class ProjectCategory(models.Model, OrganizationRelated):
         Whether the category is reviewable or not.
     order_index: SmallIntegerField
         Position of the category in the list.
-    wikipedia_tags: ManyToManyField
+    tags: ManyToManyField
         Tags visible in the category.
     template: OneToOneField, optional
         Template used by the category.
@@ -400,11 +440,18 @@ class ProjectCategory(models.Model, OrganizationRelated):
     )
     is_reviewable = models.BooleanField(default=True)
     order_index = models.SmallIntegerField(default=0)
+    # TODO: Skill update - remove wikipedia_tags and organization_tags
     wikipedia_tags = models.ManyToManyField(
         "misc.WikipediaTag", related_name="project_categories"
     )
     organization_tags = models.ManyToManyField(
         "misc.Tag", related_name="project_categories"
+    )
+    tags = models.ManyToManyField(
+        "skills.Tag",
+        related_name="project_categories",
+        blank=True,
+        db_table="organizations_projectcategory_skills_tags",  # avoid conflicts with old Tag model
     )
     template = models.OneToOneField(
         Template,

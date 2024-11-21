@@ -5,9 +5,9 @@ from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.models import Language
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
-from apps.misc.models import Language
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_blogentry, _notify_project_changes
 from apps.organizations.factories import OrganizationFactory
