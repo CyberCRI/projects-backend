@@ -112,19 +112,19 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:130 apps/projects/models.py:162
+#: apps/accounts/models.py:131 apps/projects/models.py:162
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:816
+#: apps/accounts/models.py:826
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:817
+#: apps/accounts/models.py:827
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:818
+#: apps/accounts/models.py:828
 msgid "Public"
 msgstr "Publique"
 
