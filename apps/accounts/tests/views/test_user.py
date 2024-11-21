@@ -648,10 +648,10 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
             "given_name": "test",
             "family_name": "test",
         }
-        cls.user_a = UserFactory(job="ABC", **params)
-        cls.user_b = UserFactory(job="DEF", **params)
-        cls.user_c = UserFactory(job="GHI", **params)
-        cls.user_d = UserFactory(job="JKL", **params)
+        cls.user_a = UserFactory(job="ABC", email="search.ABC@example.com", **params)
+        cls.user_b = UserFactory(job="DEF", email="search.DEF@example.com", **params)
+        cls.user_c = UserFactory(job="GHI", email="search.GHI@example.com", **params)
+        cls.user_d = UserFactory(job="JKL", email="search.JKL@example.com", **params)
         cls.people_group_a = PeopleGroupFactory(name="MNO")
         cls.people_group_b = PeopleGroupFactory(name="PQR")
         cls.people_group_c = PeopleGroupFactory(name="STU")

@@ -54,13 +54,13 @@ mistralai = "^0.0.12"
 setuptools = "^74.1.1"
 adrf = "^0.1.8"
 uvicorn = "^0.32.0"
+django-debug-toolbar = "^4.4.6"
 
 [tool.poetry.dev-dependencies]
 bandit = "^1.7.3"
 black = "^24.3.0"
 coverage = { extras = ["toml"], version = "^6.2" }
 dj-inmemorystorage = "^2.1.0"
-django-debug-toolbar = "^3.2.4"
 factory-boy = "^3.2.0"
 flake8 = "^7.0.1"
 flake8-bugbear = "^22.1.11"
