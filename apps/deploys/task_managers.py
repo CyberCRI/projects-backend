@@ -1,13 +1,12 @@
 from typing import Callable
 
-from django.conf import settings
-
 from apps.commons.models import PermissionsSetupModel
 
 from .tasks import (
     algolia_reindex_task,
     base_groups_permissions,
     instance_groups_permissions,
+    migrate,
     remove_duplicated_roles,
 )
 
@@ -17,33 +16,44 @@ class PostDeployTask:
     priority: int
     task: Callable[[int], None]
     run_in_tests: bool = False
+    run_in_celery: bool = True
 
     @classmethod
     def run(cls):
-        if settings.ENVIRONMENT == "test":
-            cls.task()
+        return cls.task()
+
+    @classmethod
+    def celery_run(cls):
         return cls.task.delay()
 
     def get_progress(self):
         return None
 
 
+class Migrate(PostDeployTask):
+    task_name = "migrate"
+    priority = 1
+    task = migrate
+    run_in_tests = True
+    run_in_celery = False
+
+
 class BaseGroupsPermissions(PostDeployTask):
     task_name = "base_groups_permissions"
-    priority = 1
+    priority = 2
     task = base_groups_permissions
     run_in_tests = True
 
 
 class AlgoliaReindex(PostDeployTask):
     task_name = "algolia_reindex"
-    priority = 2
+    priority = 3
     task = algolia_reindex_task
 
 
 class InstanceGroupsPermissions(PostDeployTask):
     task_name = "instance_groups_permissions"
-    priority = 3
+    priority = 4
     task = instance_groups_permissions
 
     def get_progress(self):
@@ -57,23 +67,11 @@ class InstanceGroupsPermissions(PostDeployTask):
 
 class RemoveDuplicatedRoles(PostDeployTask):
     task_name = "remove_duplicated_roles"
-    priority = 4
+    priority = 5
     task = remove_duplicated_roles
 
 
 # class CreateDefaultTagClassifications(PostDeployTask):  # noqa
 #     task_name = "default_tag_classifications"  # noqa
-#     priority = 5  # noqa
-#     task = default_tag_classifications  # noqa
-
-
-# class UpdateWikipediaTagsData(PostDeployTask):  # noqa
-#     task_name = "update_wikipedia_tags_data"  # noqa
 #     priority = 6  # noqa
-#     task = update_wikipedia_tags_data  # noqa
-
-
-# class UpdateEscoTagsData(PostDeployTask):  # noqa
-#     task_name = "update_esco_tags_data"  # noqa
-#     priority = 7  # noqa
-#     task = update_esco_tags_data  # noqa
+#     task = default_tag_classifications  # noqa

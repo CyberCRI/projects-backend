@@ -69,7 +69,7 @@ migrate:
 	python manage.py migrate --no-input --skip-checks
 
 .PHONY: prestart
-prestart: check migrate
+prestart: check post-deploy
 
 .PHONY: prestart-no-migrate
 prestart-no-migrate: check
@@ -109,3 +109,7 @@ createdb:
 .PHONY: check-migrations
 check-migrations:
 	python manage.py makemigrations --noinput --check
+
+.PHONY: post-deploy
+post-deploy:
+	python manage.py post_deploy
