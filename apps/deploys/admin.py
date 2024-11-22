@@ -25,7 +25,7 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
         "id",
         "task_name",
     )
-    exclude = ("_status", "_last_run")
+    exclude = ("_status", "last_run")
     actions = ["run_task", "reset_task"]
     ordering = ("priority",)
 
