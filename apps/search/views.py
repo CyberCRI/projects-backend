@@ -1,6 +1,7 @@
 from typing import Any, Dict, List
 
 from algoliasearch_django import algolia_engine
+from asgiref.sync import sync_to_async
 from django.db.models import BigIntegerField, F, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -8,7 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
 from apps.commons.utils import ArrayPosition
-from apps.commons.views import PaginatedViewSet
+from apps.commons.views import AsyncPaginatedViewSet
 
 from .filters import SearchObjectFilter
 from .models import SearchObject
@@ -16,7 +17,7 @@ from .pagination import AlgoliaPagination
 from .serializers import SearchObjectSerializer
 
 
-class SearchViewSet(PaginatedViewSet):
+class SearchViewSet(AsyncPaginatedViewSet):
     filter_backends = [DjangoFilterBackend]
     serializer_class = SearchObjectSerializer
     filterset_class = SearchObjectFilter
@@ -114,7 +115,7 @@ class SearchViewSet(PaginatedViewSet):
             return [*facet_filter, *[f"type:{t}" for t in unaffected_types]]
         return facet_filter
 
-    def get_facet_filters(self):
+    async def get_facet_filters(self):
         """
         Get all the facet filters to apply to the Algolia search.
         """
@@ -122,7 +123,7 @@ class SearchViewSet(PaginatedViewSet):
             ["has_organization:true"],
             ["is_root:false"],
             [f"type:{t}" for t in self.get_filter("types")],
-            [f"permissions:{p}" for p in self.get_user_permissions()],
+            [f"permissions:{p}" for p in await self.get_user_permissions()],
             [f"organizations:{o}" for o in self.get_filter("organizations")],
             [f"sdgs:{s}" for s in self.get_filter("sdgs")],
             self.get_type_specific_facet_filter(
@@ -167,7 +168,7 @@ class SearchViewSet(PaginatedViewSet):
         ]
         return [f for f in facet_filters if f]
 
-    def get_user_permissions(self):
+    async def get_user_permissions(self):
         """
         Get the user's permissions formatted for Algolia.
         """
@@ -198,18 +199,18 @@ class SearchViewSet(PaginatedViewSet):
                         "organizations.view_org_project",
                     ]
                 ),
-                user.get_permissions_representations(),
+                await sync_to_async(user.get_permissions_representations)(),
             )
         )
         return [p.replace(":", "-") for p in public_permissions + user_permissions]
 
-    def _search(self, query: str = "") -> Dict[str, Any]:
+    async def _search(self, query: str = "") -> Dict[str, Any]:
         """
         Perform a search on Algolia with the given query.
         """
-        groups = self.request.user.get_people_group_queryset()
-        projects = self.request.user.get_project_queryset()
-        users = self.request.user.get_user_queryset()
+        groups = await self.request.user.async_get_people_group_queryset()
+        projects = await self.request.user.async_get_project_queryset()
+        users = await self.request.user.async_get_user_queryset()
 
         queryset = SearchObject.objects.filter(
             (
@@ -226,9 +227,11 @@ class SearchViewSet(PaginatedViewSet):
             "distinct": 1,
             "page": offset // limit,
             "hitsPerPage": limit,
-            "facetFilters": self.get_facet_filters(),
+            "facetFilters": await self.get_facet_filters(),
         }
-        response = algolia_engine.raw_search(SearchObject, query, params)
+        response = await sync_to_async(algolia_engine.raw_search)(
+            SearchObject, query, params
+        )
         if response is not None:
             self.pagination_class = AlgoliaPagination(response["nbHits"])
             hits = [h["id"] for h in response["hits"]]
@@ -248,21 +251,21 @@ class SearchViewSet(PaginatedViewSet):
         parameters=get_extra_api_parameters(),
     )
     @action(detail=False, methods=["get"], url_path="(?P<search>.+)")
-    def search(self, request, *args, **kwargs):
+    async def search(self, request, *args, **kwargs):
         """
         Get Algolia search results by providing a query.
         """
         query = self.kwargs["search"]
-        queryset = self._search(query)
-        return self.get_paginated_list(queryset)
+        queryset = await self._search(query)
+        return await self.get_paginated_list(queryset)
 
     @extend_schema(
         description="Get Algolia search results with an empty query",
         parameters=get_extra_api_parameters(),
     )
-    def list(self, request, *args, **kwargs):
+    async def list(self, request, *args, **kwargs):
         """
         Get Algolia search results with an empty query.
         """
-        queryset = self._search()
-        return self.get_paginated_list(queryset)
+        queryset = await self._search()
+        return await self.get_paginated_list(queryset)

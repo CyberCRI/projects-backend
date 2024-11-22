@@ -1,3 +1,5 @@
+from asgiref.sync import sync_to_async
+
 from apps.commons.pagination import PageInfoLimitOffsetPagination
 
 
@@ -6,8 +8,8 @@ def AlgoliaPagination(count: int = 0):  # noqa: N802
         def get_count(self, queryset):
             return count
 
-        def paginate_queryset(self, queryset, request, view=None):
-            super(_AlgoliaPagination, self).paginate_queryset(queryset, request, view)
-            return list(queryset)
+        async def paginate_queryset(self, queryset, request, view=None):
+            await sync_to_async(super().paginate_queryset)(queryset, request, view)
+            return [o async for o in queryset.aiterator()]
 
     return _AlgoliaPagination
