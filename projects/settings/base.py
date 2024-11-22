@@ -34,6 +34,8 @@ APPS_DIR = BASE_DIR / "apps"
 
 __version__ = get_version(__name__, BASE_DIR)
 
+VERSION = os.getenv("VERSION", "local")  # Get latest git tag
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 

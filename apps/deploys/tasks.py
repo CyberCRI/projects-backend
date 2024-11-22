@@ -9,8 +9,11 @@ from apps.accounts.utils import (
 )
 from apps.commons.models import PermissionsSetupModel
 from apps.skills.models import TagClassification
-from apps.skills.utils import update_esco_data, update_wikipedia_data
 from projects.celery import app
+
+
+def migrate():
+    call_command("migrate")
 
 
 @app.task
@@ -63,13 +66,3 @@ def default_tag_classifications():
             TagClassification.get_or_create_default_classification(
                 classification_type=classification_type
             )
-
-
-@app.task
-def update_wikipedia_tags_data():
-    update_wikipedia_data()
-
-
-@app.task
-def update_esco_tags_data():
-    update_esco_data()
