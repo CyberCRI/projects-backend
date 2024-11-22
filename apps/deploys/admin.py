@@ -34,7 +34,7 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
             instance.run_task()
 
     def reset_task(self, request, queryset):
-        queryset.update(task_id="", last_run_version="")
+        queryset.update(task_id="", last_run_version="", last_run=None, _status="")
 
     def status(self, instance):
         return self.format_status(instance.status)
