@@ -464,8 +464,8 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
             return self.request.user.get_project_related_queryset(
-                BlogEntry.objects.filter(project=self.kwargs["project_id"]),
-            ).prefetch_related("images")
+                BlogEntry.objects.filter(project=self.kwargs["project_id"])
+            )
         return BlogEntry.objects.none()
 
     def perform_create(self, serializer):
@@ -750,8 +750,8 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             # get_project_related_queryset is not needed because the publication_status is not checked here
             queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
             if self.action in ["retrieve", "list"]:
-                return queryset.exclude(reply_on__isnull=False)
-            return queryset
+                queryset = queryset.exclude(reply_on__isnull=False)
+            return queryset.select_related("author")
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):

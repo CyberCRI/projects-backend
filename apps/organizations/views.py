@@ -39,14 +39,15 @@ class ProjectCategoryViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectCategorySerializer
     filterset_class = ProjectCategoryFilter
     organization_code_lookup = "organization__code"
-    queryset = ProjectCategory.objects.select_related(
-        "organization", "template"
-    ).prefetch_related("tags")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
 
     def get_queryset(self):
-        return super().get_queryset().filter(is_root=False)
+        return (
+            ProjectCategory.objects.filter(is_root=False)
+            .select_related("organization")
+            .prefetch_related("tags")
+        )
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectcategory")
@@ -145,12 +146,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = OrganizationFilter
     organization_code_lookup = "code"
-    queryset = Organization.objects.select_related(
-        "faq", "parent", "banner_image", "logo_image"
-    ).prefetch_related(
-        "default_skills_tags",
-        "default_projects_tags",
-    )
+    queryset = Organization.objects.all()
     lookup_field = "code"
     lookup_value_regex = "[a-zA-Z0-9_-]+"
 
@@ -365,7 +361,7 @@ class FaqViewSet(viewsets.ModelViewSet):
         if "organization_code" in self.kwargs:
             return Faq.objects.filter(
                 organization__code=self.kwargs["organization_code"]
-            ).prefetch_related("images")
+            )
         return Faq.objects.none()
 
     def get_object(self):

@@ -560,24 +560,3 @@ class ProjectCategorySerializer(
             instance.template.save()
             validated_data.pop("template")
         return super().update(instance, validated_data)
-
-
-class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
-    projects_count = serializers.SerializerMethodField()
-
-    class Meta:
-        model = ProjectCategory
-        fields = [
-            "id",
-            "name",
-            "background_color",
-            "foreground_color",
-            "projects_count",
-        ]
-
-    def get_projects_count(self, obj: ProjectCategory) -> int:
-        return obj.projects.count()
-
-    def get_related_organizations(self) -> List[Organization]:
-        self.is_valid(raise_exception=True)
-        return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]

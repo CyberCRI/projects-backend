@@ -810,7 +810,6 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
     )
 
     # read_only
-    project = serializers.PrimaryKeyRelatedField(read_only=True)
     author = UserLighterSerializer(read_only=True)
     replies = RecursiveField(read_only=True, many=True)
     images = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
@@ -825,7 +824,6 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
             "deleted_at",
             "reply_on",
             # read only
-            "project",
             "author",
             "replies",
             "images",

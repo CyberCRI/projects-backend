@@ -9,22 +9,13 @@ from apps.commons.serializers import (
 )
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
-from apps.organizations.serializers import (
-    OrganizationLightSerializer,
-    OrganizationSerializer,
-    ProjectCategorySerializer,
-)
 from apps.projects.models import Project
-from apps.projects.utils import get_views_from_serializer
 
 from .models import Announcement
 
 
 class ProjectAnnouncementSerializer(serializers.ModelSerializer):
-    categories = ProjectCategorySerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
-    organizations = OrganizationSerializer(many=True, read_only=True)
-    views = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -34,14 +25,9 @@ class ProjectAnnouncementSerializer(serializers.ModelSerializer):
             "slug",
             "purpose",
             "publication_status",
-            "categories",
             "header_image",
             "language",
-            "organizations",
-            "views",
         ]
-
-    get_views = get_views_from_serializer
 
 
 class AnnouncementSerializer(
@@ -69,12 +55,6 @@ class AnnouncementSerializer(
             # write_only
             "project_id",
         ]
-
-    def get_organizations(self, announcement: Announcement) -> dict:
-        organizations = OrganizationLightSerializer(
-            announcement.project.organizations, many=True
-        )
-        return organizations.data
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""

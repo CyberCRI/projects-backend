@@ -112,7 +112,7 @@ class TagClassificationMultipleIdRelatedField(serializers.RelatedField):
         super().__init__(**kwargs)
 
     def get_queryset(self) -> QuerySet:
-        return TagClassification.objects.all()
+        return TagClassification.objects.all().select_related("organization")
 
     def to_internal_value(self, data):
         queryset = self.get_queryset()

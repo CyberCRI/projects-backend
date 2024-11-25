@@ -12,7 +12,9 @@ from .models import SearchObject
 
 
 class ProjectSearchSerializer(serializers.ModelSerializer):
-    categories = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
+    categories = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
 

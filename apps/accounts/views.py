@@ -35,6 +35,7 @@ from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
+from apps.skills.models import Skill
 from keycloak import (
     KeycloakDeleteError,
     KeycloakGetError,
@@ -172,8 +173,11 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset = self.annotate_organization_role(queryset, organization)
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
+        skills_prefetch = Prefetch(
+            "skills", queryset=Skill.objects.select_related("tag")
+        )
         return queryset.prefetch_related(
-            "skills__tag",
+            skills_prefetch,
             "groups",
         )
 
@@ -528,10 +532,14 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         if "organization_code" in self.kwargs:
-            return self.request.user.get_people_group_queryset().filter(
-                organization__code=self.kwargs["organization_code"],
-                is_root=False,
-            ).prefetch_related("organization")
+            return (
+                self.request.user.get_people_group_queryset()
+                .filter(
+                    organization__code=self.kwargs["organization_code"],
+                    is_root=False,
+                )
+                .select_related("organization")
+            )
         return PeopleGroup.objects.none()
 
     def get_serializer_class(self):

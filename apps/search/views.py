@@ -210,7 +210,12 @@ class SearchViewSet(PaginatedViewSet):
         groups = self.request.user.get_people_group_queryset()
         projects = self.request.user.get_project_queryset()
         users = self.request.user.get_user_queryset()
-
+        project_prefetch = Prefetch(
+            "project", queryset=projects.prefetch_related("categories")
+        )
+        people_group_prefetch = Prefetch(
+            "people_group", queryset=groups.select_related("organization")
+        )
         queryset = SearchObject.objects.filter(
             (
                 Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
@@ -218,10 +223,7 @@ class SearchViewSet(PaginatedViewSet):
             )
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
-        ).prefetch_related(
-            "project__categories",
-            "people_group__organization",
-        )
+        ).prefetch_related(project_prefetch, people_group_prefetch)
         limit = int(self.request.query_params.get("limit", api_settings.PAGE_SIZE))
         offset = int(self.request.query_params.get("offset", 0))
 

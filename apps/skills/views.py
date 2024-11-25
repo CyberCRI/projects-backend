@@ -118,9 +118,13 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         organization_code = self.kwargs.get("organization_code", None)
         if organization_code:
-            return TagClassification.objects.filter(
-                Q(organization__code=organization_code) | Q(is_public=True)
-            ).distinct()
+            return (
+                TagClassification.objects.filter(
+                    Q(organization__code=organization_code) | Q(is_public=True)
+                )
+                .distinct()
+                .select_related("organization")
+            )
         return TagClassification.objects.none()
 
     def perform_create(self, serializer: TagClassificationSerializer):
