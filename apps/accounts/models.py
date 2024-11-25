@@ -506,7 +506,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
-    def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+    def get_project_queryset(self) -> QuerySet["Project"]:
         if self._project_queryset is None:
             if self.is_superuser:
                 self._project_queryset = Project.objects.all().distinct()
@@ -534,7 +534,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 self._project_queryset = Project.objects.filter(
                     id__in=qs.values("id")
                 ).distinct()
-        return self._project_queryset.prefetch_related(*prefetch)
+        return self._project_queryset
 
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
         if self._news_queryset is None:
@@ -959,12 +959,12 @@ class AnonymousUser:
             }
         return data
 
-    def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+    def get_project_queryset(self) -> QuerySet["Project"]:
         if self._project_queryset is None:
             self._project_queryset = Project.objects.filter(
                 publication_status=Project.PublicationStatus.PUBLIC
             ).distinct()
-        return self._project_queryset.prefetch_related(*prefetch)
+        return self._project_queryset.prefetch_related()
 
     def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
         if self._news_queryset is None:

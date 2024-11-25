@@ -2,7 +2,6 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import Prefetch
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -327,14 +326,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     )
     def featured_project(self, request, *args, **kwargs):
         organization = self.get_object()
-        categories = Prefetch(
-            "categories",
-            queryset=ProjectCategory.objects.select_related("organization"),
-        )
         queryset = (
-            self.request.user.get_project_queryset(categories)
+            self.request.user.get_project_queryset()
             .filter(org_featured_projects=organization)
             .distinct()
+            .prefetch_related("categories")
         )
         page = self.paginate_queryset(queryset)
         if page is not None:

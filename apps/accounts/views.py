@@ -31,7 +31,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
-from apps.organizations.models import Organization, ProjectCategory
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
@@ -783,17 +783,13 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def project(self, request, *args, **kwargs):
         group = self.get_object()
-        categories = Prefetch(
-            "categories",
-            queryset=ProjectCategory.objects.select_related("organization"),
-        )
         group_projects_ids = (
             Project.objects.filter(groups__people_groups=group)
             .distinct()
             .values_list("id", flat=True)
         )
         queryset = (
-            self.request.user.get_project_queryset(categories)
+            self.request.user.get_project_queryset()
             .filter(Q(groups__people_groups=group) | Q(people_groups=group))
             .annotate(
                 is_group_project=Case(
@@ -805,6 +801,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             )
             .distinct()
             .order_by("-is_featured", "-is_group_project")
+            .prefetch_related("categories")
         )
         page = self.paginate_queryset(queryset)
         if page is not None:

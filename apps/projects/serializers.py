@@ -205,7 +205,9 @@ class ProjectSuperLightSerializer(serializers.ModelSerializer):
 
 
 class ProjectLightSerializer(serializers.ModelSerializer):
-    categories = ProjectCategorySerializer(many=True, read_only=True)
+    categories = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="name"
+    )
     header_image = ImageSerializer(read_only=True)
     views = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField(read_only=True)

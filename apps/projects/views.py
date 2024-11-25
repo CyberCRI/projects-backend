@@ -5,7 +5,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -35,7 +35,6 @@ from apps.notifications.tasks import (
     notify_new_private_message,
     notify_ready_for_review,
 )
-from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
@@ -97,29 +96,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        """Prefetch related models"""
-        organizations = Prefetch(
-            "organizations",
-            queryset=Organization.objects.select_related(
-                "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("default_projects_tags", "default_skills_tags"),
-        )
-        return self.request.user.get_project_queryset(
-            "tags",
-            "goals",
-            "follows",
-            "follows",
-            "reviews",
-            "locations",
-            "announcements",
-            "links",
-            "files",
-            "images",
-            "blog_entries",
-            "linked_projects",
-            "categories",
-            organizations,
-        )
+        return self.request.user.get_project_queryset().prefetch_related("categories")
 
     def get_serializer_class(self):
         is_summary = (
@@ -389,6 +366,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             self.request.user.get_project_queryset()
             .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
             .exclude(id=project.id)
+            .prefetch_related("categories")
         )
         queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)
