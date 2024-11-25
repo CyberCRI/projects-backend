@@ -5,10 +5,6 @@ from rest_framework import serializers
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLighterSerializer
 from apps.feedbacks.models import Follow
 from apps.files.serializers import ImageSerializer
-from apps.organizations.serializers import (
-    OrganizationLightSerializer,
-    ProjectCategoryLightSerializer,
-)
 from apps.projects.models import Project
 from apps.projects.utils import get_views_from_serializer
 
@@ -16,9 +12,8 @@ from .models import SearchObject
 
 
 class ProjectSearchSerializer(serializers.ModelSerializer):
-    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
+    categories = serializers.SlugRelatedField(many=True, read_only=True, slug_field="name")
     header_image = ImageSerializer(read_only=True)
-    organizations = OrganizationLightSerializer(many=True, read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -29,7 +24,6 @@ class ProjectSearchSerializer(serializers.ModelSerializer):
             "slug",
             "purpose",
             "language",
-            "organizations",
             "header_image",
             "categories",
             "created_at",

@@ -1,7 +1,7 @@
 from typing import Any, Dict, List
 
 from algoliasearch_django import algolia_engine
-from django.db.models import BigIntegerField, F, Q
+from django.db.models import BigIntegerField, F, Prefetch, Q
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
@@ -218,6 +218,9 @@ class SearchViewSet(PaginatedViewSet):
             )
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
+        ).prefetch_related(
+            "project__categories",
+            "people_group__organization",
         )
         limit = int(self.request.query_params.get("limit", api_settings.PAGE_SIZE))
         offset = int(self.request.query_params.get("offset", 0))

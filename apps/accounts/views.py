@@ -527,18 +527,11 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        """Prefetch related models"""
         if "organization_code" in self.kwargs:
-            organization = Prefetch(
-                "organization",
-                queryset=Organization.objects.select_related(
-                    "faq", "parent", "banner_image", "logo_image"
-                ).prefetch_related("default_projects_tags", "default_skills_tags"),
-            )
-            return self.request.user.get_people_group_queryset(organization).filter(
+            return self.request.user.get_people_group_queryset().filter(
                 organization__code=self.kwargs["organization_code"],
                 is_root=False,
-            )
+            ).prefetch_related("organization")
         return PeopleGroup.objects.none()
 
     def get_serializer_class(self):
