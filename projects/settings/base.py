@@ -61,7 +61,7 @@ SILENCED_SYSTEM_CHECKS = [
 ]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True  # os.getenv("DEBUG", False) == "True"
+DEBUG = os.getenv("DEBUG", False) == "True"
 DEBUG_TOOLBAR_CONFIG = {"SHOW_TOOLBAR_CALLBACK": lambda _request: DEBUG}
 
 LOGGING = {
