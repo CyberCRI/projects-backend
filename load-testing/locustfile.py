@@ -2,7 +2,7 @@ import base64
 import json
 import os
 
-from locust import HttpUser, task
+from locust import HttpUser, task  # type: ignore
 from requests_oauthlib import OAuth2Session
 
 client_id = "projects-frontend-dev"
