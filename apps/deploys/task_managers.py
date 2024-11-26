@@ -3,7 +3,7 @@ from typing import Callable
 from apps.commons.models import PermissionsSetupModel
 
 from .tasks import (
-    algolia_reindex_task,
+    rebuild_index,
     base_groups_permissions,
     instance_groups_permissions,
     migrate,
@@ -45,10 +45,10 @@ class BaseGroupsPermissions(PostDeployTask):
     run_in_tests = True
 
 
-class AlgoliaReindex(PostDeployTask):
-    task_name = "algolia_reindex"
+class RebuildIndex(PostDeployTask):
+    task_name = "rebuild_index"
     priority = 3
-    task = algolia_reindex_task
+    task = rebuild_index
 
 
 class InstanceGroupsPermissions(PostDeployTask):

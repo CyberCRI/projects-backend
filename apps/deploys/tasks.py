@@ -17,8 +17,12 @@ def migrate():
 
 
 @app.task
-def algolia_reindex_task():
-    call_command("algolia_reindex")
+def rebuild_index():
+    """
+    python manage.py opensearch index rebuild --force
+    """
+    call_command("opensearch", "index", "rebuild", "--force")
+    call_command("opensearch", "document", "index", "--force")
 
 
 @app.task
