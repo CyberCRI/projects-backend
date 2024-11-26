@@ -149,6 +149,7 @@ INSTALLED_APPS = [
     "services.wikipedia",
     # deploys should be the last one
     "apps.deploys",
+    "django_opensearch_dsl",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
@@ -566,12 +567,13 @@ options.DEFAULT_NAMES += (
 ##############
 
 OPENSEARCH_DSL = {
-    "default": {"hosts": os.getenv("OPENSEARCH_HOST", "http://opensearch:9200")},
+    "default": {"hosts": os.getenv("OPENSEARCH_HOST", "http://opensearch-node:9200")},
 }
+OPENSEARCH_DSL_AUTO_REFRESH = True
 OPENSEARCH_DSL_AUTOSYNC = True
 OPENSEARCH_DSL_PARALLEL = True
 OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
-    "OPENSEARCH_DSL_SIGNAL_PROCESSOR", "opensearch_dsl.signals.CelerySignalProcessor"
+    "OPENSEARCH_DSL_SIGNAL_PROCESSOR", "django_opensearch_dsl.signals.CelerySignalProcessor"
 )
 
 #####################
