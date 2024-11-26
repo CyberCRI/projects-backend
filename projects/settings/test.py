@@ -20,9 +20,6 @@ SIMPLE_JWT["ALGORITHM"] = "HS256"  # noqa: F405
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
-ALGOLIA["AUTO_INDEXING"] = False  # noqa: F405
-ALGOLIA["INDEX_PREFIX"] = "test"  # noqa: F405
-
 ##############
 #   GOOGLE   #
 ##############

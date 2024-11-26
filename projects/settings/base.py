@@ -108,7 +108,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     # external
-    "algoliasearch_django",
     "corsheaders",
     "django_cleanup.apps.CleanupConfig",
     "django_extensions",
@@ -562,18 +561,18 @@ options.DEFAULT_NAMES += (
     "write_only_subscopes",
 )
 
-# Algolia settings
-# See https://www.algolia.com/doc/framework-integration/django/setup/?client=python#setup
-ALGOLIA = {
-    "APPLICATION_ID": os.getenv(
-        "ALGOLIA_APP_ID", "NOT_SET"
-    ),  # Cannot set None by default, it fails
-    "API_KEY": os.getenv(
-        "ALGOLIA_KEY", "NOT_SET"
-    ),  # Cannot set None by default, it fails
-    "INDEX_PREFIX": os.getenv("ALGOLIA_PREFIX", ""),
-    "INDEX_SUFFIX": os.getenv("ALGOLIA_SUFFIX", ""),
+##############
+# OpenSearch #
+##############
+
+OPENSEARCH_DSL = {
+    "default": {"hosts": os.getenv("OPENSEARCH_HOST", "http://opensearch:9200")},
 }
+OPENSEARCH_DSL_AUTOSYNC = True
+OPENSEARCH_DSL_PARALLEL = True
+OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
+    "OPENSEARCH_DSL_SIGNAL_PROCESSOR", "opensearch_dsl.signals.CelerySignalProcessor"
+)
 
 #####################
 #   Static files    #
