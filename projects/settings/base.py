@@ -108,6 +108,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     # external
+    "django_opensearch_dsl",
     "corsheaders",
     "django_cleanup.apps.CleanupConfig",
     "django_extensions",
@@ -149,7 +150,6 @@ INSTALLED_APPS = [
     "services.wikipedia",
     # deploys should be the last one
     "apps.deploys",
-    "django_opensearch_dsl",
 ]
 
 if DEBUG and DEBUG_TOOLBAR_INSTALLED:
