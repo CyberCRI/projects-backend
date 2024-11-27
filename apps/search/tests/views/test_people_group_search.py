@@ -1,6 +1,3 @@
-import time
-
-from algoliasearch_django import algolia_engine
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -8,13 +5,13 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
+from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
+from apps.deploys.tasks import rebuild_index
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
-from apps.search.tasks import update_or_create_people_group_search_object_task
 
 
-@skipUnlessAlgolia
+@skipUnlessSearch
 class PeopleGroupSearchTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -63,11 +60,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             "org": cls.org_people_group,
             "member": cls.member_people_group,
         }
-        # Create search objects manually because celery tasks are not executed in tests
-        for group in cls.groups.values():
-            update_or_create_people_group_search_object_task(group.pk)
-        algolia_engine.reindex_all(SearchObject)
-        time.sleep(10)  # reindexing is asynchronous, wait for it to finish
+        rebuild_index()
 
     @parameterized.expand(
         [

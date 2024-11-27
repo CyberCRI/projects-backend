@@ -1,6 +1,3 @@
-import time
-
-from algoliasearch_django import algolia_engine
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -9,16 +6,16 @@ from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import Language
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
+from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
+from apps.deploys.tasks import rebuild_index
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
-from apps.search.tasks import update_or_create_project_search_object_task
 from apps.skills.factories import TagFactory
 
 
-@skipUnlessAlgolia
+@skipUnlessSearch
 class ProjectSearchTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -33,8 +30,8 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.no_organization_project = ProjectFactory(
             title="algolia",
             publication_status=Project.PublicationStatus.PUBLIC,
-            sdgs=[2],
-            language=Language.EN,
+            sdgs=[1],
+            language=Language.FR,
             organizations=[cls.organization],
         )
         cls.no_organization_project.organizations.set([])
@@ -94,29 +91,29 @@ class ProjectSearchTestCase(JwtAPITestCase):
             "public_2": cls.public_project_2,
             "private": cls.private_project,
             "org": cls.org_project,
+            "no_org": cls.no_organization_project,
             "member": cls.member_project,
         }
-        # Create search objects manually because celery tasks are not executed in tests
-        for project in cls.projects.values():
-            update_or_create_project_search_object_task(project.pk)
-        algolia_engine.reindex_all(SearchObject)
-        time.sleep(10)  # reindexing is asynchronous, wait for it to finish
+        rebuild_index()
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("public_1", "public_2")),
-            (TestRoles.DEFAULT, ("public_1", "public_2")),
+            (TestRoles.ANONYMOUS, ("public_1", "public_2", "no_org")),
+            (TestRoles.DEFAULT, ("public_1", "public_2", "no_org")),
             (
                 TestRoles.SUPERADMIN,
-                ("public_1", "public_2", "private", "org", "member"),
+                ("public_1", "public_2", "private", "org", "member", "no_org"),
             ),
-            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "member")),
+            (
+                TestRoles.ORG_ADMIN,
+                ("public_1", "public_2", "private", "org", "member", "no_org"),
+            ),
             (
                 TestRoles.ORG_FACILITATOR,
-                ("public_1", "public_2", "private", "org", "member"),
+                ("public_1", "public_2", "private", "org", "member", "no_org"),
             ),
-            (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
-            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member")),
+            (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
+            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member", "no_org")),
         ]
     )
     def test_search_project(self, role, retrieved_projects):

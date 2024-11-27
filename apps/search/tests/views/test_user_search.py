@@ -1,6 +1,3 @@
-import time
-
-from algoliasearch_django import algolia_engine
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -8,14 +5,14 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
+from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
+from apps.deploys.tasks import rebuild_index
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
-from apps.search.tasks import update_or_create_user_search_object_task
 from apps.skills.factories import SkillFactory, TagFactory
 
 
-@skipUnlessAlgolia
+@skipUnlessSearch
 class UserSearchTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -27,7 +24,7 @@ class UserSearchTestCase(JwtAPITestCase):
         cls.no_org_user = UserFactory(
             given_name="algolia",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
-            sdgs=[2],
+            sdgs=[1],
             groups=[],
         )
         cls.public_user_1 = UserFactory(
@@ -70,22 +67,25 @@ class UserSearchTestCase(JwtAPITestCase):
             "public_2": cls.public_user_2,
             "private": cls.private_user,
             "org": cls.org_user,
+            "no_org": cls.no_org_user,
         }
-        # Create search objects manually because celery tasks are not executed in tests
-        for user in cls.users.values():
-            update_or_create_user_search_object_task(user.pk)
-        algolia_engine.reindex_all(SearchObject)
-        time.sleep(10)  # reindexing is asynchronous, wait for it to finish
+        rebuild_index()
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("public_1", "public_2")),
-            (TestRoles.DEFAULT, ("public_1", "public_2")),
-            (TestRoles.OWNER, ("public_1", "public_2", "private", "org")),
-            (TestRoles.SUPERADMIN, ("public_1", "public_2", "private", "org")),
-            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("public_1", "public_2", "private", "org")),
-            (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
+            (TestRoles.ANONYMOUS, ("public_1", "public_2", "no_org")),
+            (TestRoles.DEFAULT, ("public_1", "public_2", "no_org")),
+            (TestRoles.OWNER, ("public_1", "public_2", "private", "org", "no_org")),
+            (
+                TestRoles.SUPERADMIN,
+                ("public_1", "public_2", "private", "org", "no_org"),
+            ),
+            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "no_org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("public_1", "public_2", "private", "org", "no_org"),
+            ),
+            (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
         ]
     )
     def test_search_user(self, role, retrieved_users):
