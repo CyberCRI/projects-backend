@@ -245,15 +245,15 @@ class JwtAPITestCase(APITestCase):
             self.assertEqual(content["detail"], detail)
 
 
-def skipUnlessAlgolia(decorated):  # noqa: N802
-    """Skip decorated tests if ennvar `TEST_ALGOLIA` has not been set to 1."""
-    check = bool(int(os.getenv("TEST_ALGOLIA", 0)))
-    msg = "Algolia test skipped, use envvar 'TEST_ALGOLIA=1' to test"
+def skipUnlessSearch(decorated):  # noqa: N802
+    """Skip decorated tests if ennvar `TEST_SEARCH` has not been set to 1."""
+    check = bool(int(os.getenv("TEST_SEARCH", 0)))
+    msg = "Search test skipped, use envvar 'TEST_SEARCH=1' to test"
     return skipUnless(check, msg)(decorated)
 
 
 def skipUnlessGoogle(decorated):  # noqa: N802
-    """Skip decorated tests if ennvar `TEST_ALGOLIA` has not been set to 1."""
+    """Skip decorated tests if ennvar `TEST_GOOGLE` has not been set to 1."""
     check = bool(int(os.getenv("TEST_GOOGLE", 0)))
     msg = "Google test skipped, use envvar 'TEST_GOOGLE=1' to test"
     return skipUnless(check, msg)(decorated)
