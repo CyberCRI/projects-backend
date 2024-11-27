@@ -14,7 +14,6 @@ config:
     POSTGRES_HOST: prod-prod-projects-backend.postgres.database.azure.com
     EMAIL_HOST_USER: projects@learningplanetinstitute.org
     EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
-    ALGOLIA_APP_ID: WJ95QBZUH1
     EMAIL_HOST: smtp.eu.mailgun.org
     EMAIL_PORT: "465"
     EMAIL_USE_SSL: "True"

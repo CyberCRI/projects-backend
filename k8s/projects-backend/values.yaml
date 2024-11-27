@@ -23,7 +23,8 @@ config:
     CELERY_BROKER_URL: '{{ printf "redis://%s-master:6379/0" .Values.redis.helmReleaseName }}'
     CELERY_RESULT_BACKEND: '{{ printf "redis://%s-master:6379/0" .Values.redis.helmReleaseName }}'
     CACHE_REDIS_URL: '{{ printf "redis://%s-master:6379/1" .Values.redis.helmReleaseName }}'
-    ALGOLIA_AUTO_INDEXING: "1"
+    OPENSEARCH_DSL_AUTO_REFRESH: "True"
+    OPENSEARCH_DSL_AUTOSYNC: "True"
     EMAIL_HOST: projects-mailhog
     EMAIL_PORT: "1025"
     # Debug
