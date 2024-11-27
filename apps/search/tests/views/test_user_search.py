@@ -22,34 +22,34 @@ class UserSearchTestCase(JwtAPITestCase):
         ProjectUser.objects.all().delete()  # Delete users created by the factories
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.no_org_user = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             sdgs=[1],
             groups=[],
         )
         cls.public_user_1 = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             sdgs=[1],
             groups=[cls.organization.get_users()],
         )
         SkillFactory(user=cls.public_user_1)
         cls.public_user_2 = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             sdgs=[2],
             groups=[cls.organization_2.get_users()],
         )
         cls.skill_2 = SkillFactory(user=cls.public_user_2)
         cls.private_user = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             publication_status=PrivacySettings.PrivacyChoices.HIDE,
             sdgs=[1],
             groups=[cls.organization.get_users()],
         )
         SkillFactory(user=cls.private_user)
         cls.org_user = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
             sdgs=[1],
             groups=[cls.organization.get_users()],
@@ -94,7 +94,7 @@ class UserSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=user"
+            reverse("Search-search", args=("opensearch",)) + "?types=user"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -111,7 +111,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=user"
             + f"&organizations={self.organization_2.code}"
         )
@@ -128,7 +128,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=user" + "&sdgs=2"
+            reverse("Search-search", args=("opensearch",)) + "?types=user" + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -143,7 +143,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_by_skills(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=user"
             + f"&skills={self.skill_2.tag.id}"
         )
@@ -160,7 +160,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_can_mentor(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=user"
             + "&can_mentor=true"
         )
@@ -178,7 +178,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_needs_mentor(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=user"
             + "&needs_mentor=true"
         )
@@ -196,7 +196,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_can_mentor_on(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=user"
             + f"&can_mentor_on={self.tag_1.id},{self.tag_2.id}"
         )
@@ -214,7 +214,7 @@ class UserSearchTestCase(JwtAPITestCase):
     def test_filter_needs_mentor_on(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=user"
             + f"&needs_mentor_on={self.tag_1.id},{self.tag_2.id}"
         )

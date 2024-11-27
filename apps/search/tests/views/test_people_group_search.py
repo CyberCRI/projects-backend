@@ -19,32 +19,32 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         PeopleGroup.objects.all().delete()  # Delete people_groups created by the factories
         cls.public_people_group_1 = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization,
             sdgs=[2],
         )
         cls.organization_2 = OrganizationFactory()
         cls.public_people_group_2 = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization_2,
             sdgs=[1],
         )
         cls.private_people_group = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PRIVATE,
             organization=cls.organization,
             sdgs=[2],
         )
         cls.org_people_group = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.ORG,
             organization=cls.organization,
             sdgs=[2],
         )
         cls.member_people_group = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PRIVATE,
             organization=cls.organization,
             sdgs=[2],
@@ -85,7 +85,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=people_group"
+            reverse("Search-search", args=("opensearch",)) + "?types=people_group"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -102,7 +102,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=people_group"
             + f"&organizations={self.organization_2.code}"
         )
@@ -121,7 +121,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=people_group"
             + "&sdgs=1"
         )

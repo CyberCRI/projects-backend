@@ -21,36 +21,36 @@ class MixedSearchTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group_1 = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization,
         )
         cls.people_group_2 = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization,
         )
         cls.user_1 = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             family_name="",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now() - timezone.timedelta(days=3)),
         )
         cls.user_2 = UserFactory(
-            given_name="algolia",
+            given_name="opensearch",
             family_name="",
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now() - timezone.timedelta(days=2)),
         )
         cls.project_1 = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
         cls.project_2 = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
         )
@@ -82,7 +82,7 @@ class MixedSearchTestCase(JwtAPITestCase):
 
     def test_search_mixed_index(self):
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + f"?organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

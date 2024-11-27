@@ -28,7 +28,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.tag_2 = TagFactory()
         Project.objects.all().delete()  # Delete projects created by the factories
         cls.no_organization_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             sdgs=[1],
             language=Language.FR,
@@ -36,7 +36,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         )
         cls.no_organization_project.organizations.set([])
         cls.public_project_1 = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
             sdgs=[1],
@@ -45,7 +45,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.public_project_1.categories.add(cls.category)
         cls.public_project_1.tags.add(cls.tag)
         cls.public_project_2 = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization_2],
             sdgs=[2],
@@ -54,7 +54,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.public_project_2.categories.add(cls.category_2)
         cls.public_project_2.tags.add(cls.tag_2)
         cls.private_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PRIVATE,
             organizations=[cls.organization],
             sdgs=[1],
@@ -63,7 +63,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.private_project.categories.add(cls.category)
         cls.private_project.tags.add(cls.tag)
         cls.org_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.ORG,
             organizations=[cls.organization],
             sdgs=[1],
@@ -72,7 +72,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.org_project.categories.add(cls.category)
         cls.org_project.tags.add(cls.tag)
         cls.member_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PRIVATE,
             organizations=[cls.organization],
             sdgs=[1],
@@ -120,7 +120,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=project"
+            reverse("Search-search", args=("opensearch",)) + "?types=project"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -137,7 +137,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&organizations={self.organization_2.code}"
         )
@@ -156,7 +156,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=project" + "&sdgs=2"
+            reverse("Search-search", args=("opensearch",))
+            + "?types=project"
+            + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -173,7 +175,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_language(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + "&languages=en"
         )
@@ -192,7 +194,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_categories(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&categories={self.category_2.id}"
         )
@@ -211,7 +213,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_tags(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&tags={self.tag_2.id}"
         )
@@ -230,7 +232,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_members(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&members={self.public_project_2_member.id}"
         )
