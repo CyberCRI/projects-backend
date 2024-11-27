@@ -1,22 +1,24 @@
-from typing import Iterable, Union
-from django.db.models.query import QuerySet
-from django.utils.html import strip_tags
+from datetime import date
+from typing import Iterable, Optional, Union
 
+from django.contrib.auth.models import Group
+from django.core.exceptions import MultipleObjectsReturned
+from django.utils.html import strip_tags
 from django_opensearch_dsl import Document, fields
 from django_opensearch_dsl.registries import registry
 
-from apps.projects.models import Project
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.organizations.models import ProjectCategory
-from apps.skills.models import Tag, Skill
-from django.contrib.auth.models import Group
-from apps.accounts.models import ProjectUser, PeopleGroup
+from apps.projects.models import Project
+from apps.skills.models import Skill, Tag
+
 from .models import SearchObject
 
 
 @registry.register_document
 class UserDocument(Document):
     class Index:
-        name = "users"
+        name = "user"
 
     class Django:
         model = ProjectUser
@@ -32,9 +34,28 @@ class UserDocument(Document):
             Skill,
         ]
 
+    search_object_id = fields.IntegerField()
+    last_update = fields.DateField()
     content = fields.TextField()
     people_groups = fields.TextField()
     projects = fields.TextField()
+
+    def prepare_search_object_id(self, instance: ProjectUser) -> int:
+        try:
+            search_object, _ = SearchObject.objects.update_or_create(
+                type=SearchObject.SearchObjectType.USER,
+                user=instance,
+                defaults={"last_update": instance.last_login},
+            )
+        except MultipleObjectsReturned:
+            SearchObject.objects.filter(
+                type=SearchObject.SearchObjectType.USER, user=instance
+            ).delete()
+            return self.prepare_search_object_id(instance)
+        return search_object.id
+
+    def prepare_last_update(self, instance: ProjectUser) -> Optional[date]:
+        return instance.last_login.date() if instance.last_login else None
 
     def prepare_content(self, instance: ProjectUser) -> str:
         return " ".join(
@@ -52,7 +73,7 @@ class UserDocument(Document):
                 for people_group in PeopleGroup.objects.filter(groups__users=instance)
             ]
         )
-    
+
     def prepare_projects(self, instance: ProjectUser) -> str:
         return " ".join(
             [
@@ -60,8 +81,10 @@ class UserDocument(Document):
                 for project in Project.objects.filter(groups__users=instance)
             ]
         )
-    
-    def get_instances_from_related(self, related: Union[Tag, Skill]) -> Iterable[ProjectUser]:
+
+    def get_instances_from_related(
+        self, related: Union[Tag, Skill]
+    ) -> Iterable[ProjectUser]:
         if isinstance(related, Tag):
             return ProjectUser.objects.filter(skills__tag=related)
         if isinstance(related, Skill):
@@ -72,7 +95,7 @@ class UserDocument(Document):
 @registry.register_document
 class PeopleGroupDocument(Document):
     class Index:
-        name = "people_groups"
+        name = "people_group"
 
     class Django:
         model = PeopleGroup
@@ -85,15 +108,36 @@ class PeopleGroupDocument(Document):
             Group,
         ]
 
+    search_object_id = fields.IntegerField()
+    last_update = fields.DateField()
     content = fields.TextField()
     members = fields.TextField()
-    
+
+    def prepare_search_object_id(self, instance: PeopleGroup) -> int:
+        try:
+            search_object, _ = SearchObject.objects.update_or_create(
+                type=SearchObject.SearchObjectType.PEOPLE_GROUP,
+                people_group=instance,
+                defaults={"last_update": instance.updated_at},
+            )
+        except MultipleObjectsReturned:
+            SearchObject.objects.filter(
+                type=SearchObject.SearchObjectType.PEOPLE_GROUP, people_group=instance
+            ).delete()
+            return self.prepare_search_object_id(instance)
+        return search_object.id
+
+    def prepare_last_update(self, instance: PeopleGroup) -> date:
+        return instance.updated_at.date()
+
     def prepare_content(self, instance: PeopleGroup) -> str:
         return strip_tags(instance.description)
-    
+
     def prepare_members(self, instance: PeopleGroup) -> str:
-        return " ".join([member.get_full_name() for member in instance.get_all_members()])
-    
+        return " ".join(
+            [member.get_full_name() for member in instance.get_all_members()]
+        )
+
     def get_instances_from_related(self, related: Group) -> Iterable[PeopleGroup]:
         if isinstance(related, Group):
             return PeopleGroup.objects.filter(groups=related)
@@ -103,7 +147,7 @@ class PeopleGroupDocument(Document):
 @registry.register_document
 class ProjectDocument(Document):
     class Index:
-        name = "projects"
+        name = "project"
 
     class Django:
         model = Project
@@ -117,11 +161,30 @@ class ProjectDocument(Document):
             Group,
         ]
 
+    search_object_id = fields.IntegerField()
+    last_update = fields.DateField()
     content = fields.TextField()
     members = fields.TextField()
     categories = fields.TextField()
     tags = fields.TextField()
-    
+
+    def prepare_search_object_id(self, instance: Project) -> int:
+        try:
+            search_object, _ = SearchObject.objects.update_or_create(
+                type=SearchObject.SearchObjectType.PROJECT,
+                project=instance,
+                defaults={"last_update": instance.updated_at},
+            )
+        except MultipleObjectsReturned:
+            SearchObject.objects.filter(
+                type=SearchObject.SearchObjectType.PROJECT, project=instance
+            ).delete()
+            return self.prepare_search_object_id(instance)
+        return search_object.id
+
+    def prepare_last_update(self, instance: Project) -> date:
+        return instance.updated_at.date()
+
     def prepare_content(self, instance: Project) -> str:
         return "\n".join(
             [
@@ -134,17 +197,19 @@ class ProjectDocument(Document):
         )
 
     def prepare_members(self, instance: Project) -> str:
-        return " ".join([member.get_full_name() for member in instance.get_all_members()])
-    
-    def prepare_categories(self, instance: Project) -> str:
         return " ".join(
-            [category.name for category in instance.categories.all()]
+            [member.get_full_name() for member in instance.get_all_members()]
         )
-    
+
+    def prepare_categories(self, instance: Project) -> str:
+        return " ".join([category.name for category in instance.categories.all()])
+
     def prepare_tags(self, instance: Project) -> str:
         return " ".join([tag.title for tag in instance.tags.all()])
-    
-    def get_instances_from_related(self, related: Union[ProjectCategory, Tag, Group]) -> Iterable[Project]:
+
+    def get_instances_from_related(
+        self, related: Union[ProjectCategory, Tag, Group]
+    ) -> Iterable[Project]:
         if isinstance(related, ProjectCategory):
             return Project.objects.filter(categories=related)
         if isinstance(related, Tag):

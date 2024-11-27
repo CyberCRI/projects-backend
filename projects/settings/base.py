@@ -573,7 +573,8 @@ OPENSEARCH_DSL_AUTO_REFRESH = True
 OPENSEARCH_DSL_AUTOSYNC = True
 OPENSEARCH_DSL_PARALLEL = True
 OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
-    "OPENSEARCH_DSL_SIGNAL_PROCESSOR", "django_opensearch_dsl.signals.CelerySignalProcessor"
+    "OPENSEARCH_DSL_SIGNAL_PROCESSOR",
+    "django_opensearch_dsl.signals.CelerySignalProcessor",
 )
 
 #####################
