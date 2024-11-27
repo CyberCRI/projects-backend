@@ -130,6 +130,8 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         verbose_name=_("visibility"),
     )
     is_root = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     # TODO : Delete these fields when people migration is done
     people_data = models.JSONField(default=dict)
