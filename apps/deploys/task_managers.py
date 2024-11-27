@@ -3,10 +3,10 @@ from typing import Callable
 from apps.commons.models import PermissionsSetupModel
 
 from .tasks import (
-    rebuild_index,
     base_groups_permissions,
     instance_groups_permissions,
     migrate,
+    rebuild_index,
     remove_duplicated_roles,
 )
 
