@@ -567,10 +567,16 @@ options.DEFAULT_NAMES += (
 ##############
 
 OPENSEARCH_DSL = {
-    "default": {"hosts": os.getenv("OPENSEARCH_HOST", "http://opensearch-node:9200")},
+    "default": {
+        "hosts": os.getenv("OPENSEARCH_HOST", "http://opensearch-node:9200"),
+        "http_auth": (
+            os.getenv("OPENSEARCH_USERNAME", "admin"),
+            os.getenv("OPENSEARCH_PASSWORD", "admin"),
+        ),
+    },
 }
-OPENSEARCH_DSL_AUTO_REFRESH = True
-OPENSEARCH_DSL_AUTOSYNC = True
+OPENSEARCH_DSL_AUTO_REFRESH = os.getenv("OPENSEARCH_DSL_AUTO_REFRESH", False) == "True"
+OPENSEARCH_DSL_AUTOSYNC = os.getenv("OPENSEARCH_DSL_AUTOSYNC", False) == "True"
 OPENSEARCH_DSL_PARALLEL = True
 OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
     "OPENSEARCH_DSL_SIGNAL_PROCESSOR",

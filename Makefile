@@ -108,3 +108,12 @@ check-migrations:
 .PHONY: post-deploy
 post-deploy:
 	python manage.py post_deploy
+
+.PHONY: list-index
+list-index:
+	python manage.py opensearch index list
+
+.PHONY: rebuild-index
+rebuild-index:
+	python manage.py opensearch index rebuild --force
+	python manage.py opensearch document index --force --refresh

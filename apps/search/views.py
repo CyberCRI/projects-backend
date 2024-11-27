@@ -1,6 +1,6 @@
 from django.db.models import BigIntegerField, F, Q, QuerySet, Prefetch
 from drf_spectacular.utils import extend_schema
-from opensearchpy import OpenSearch, Search
+from opensearchpy import Search
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
@@ -16,11 +16,6 @@ from .serializers import SearchObjectSerializer
 class SearchViewSet(ListViewSet):
     filterset_class = SearchObjectFilter
     serializer_class = SearchObjectSerializer
-    client = OpenSearch(
-        hosts=[{"host": "opensearch-node", "port": 9200}],
-        use_ssl=False,
-        verify_certs=False,
-    )
 
     def get_queryset(self, order: bool = True) -> QuerySet[SearchObject]:
         groups = self.request.user.get_people_group_queryset()
@@ -41,7 +36,6 @@ class SearchViewSet(ListViewSet):
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
         ).prefetch_related(project_prefetch, people_group_prefetch)
         if order:
-            # return latest updated first
             return queryset.order_by("-last_update")
         return queryset
 
@@ -64,7 +58,7 @@ class SearchViewSet(ListViewSet):
 
         response = (
             Search(
-                using=self.client,
+                using="default",
                 index=indexes,
             )
             .filter("terms", search_object_id=search_objects_ids)
