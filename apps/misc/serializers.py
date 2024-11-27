@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import QuerySet
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -43,7 +44,14 @@ class TagRelatedField(serializers.RelatedField):
         return WikipediaTag.objects.all()
 
     def to_representation(self, instance: WikipediaTag) -> dict:
-        return {"wikipedia_qid": instance.wikipedia_qid, "name": instance.name}
+        return {
+            "wikipedia_qid": instance.wikipedia_qid,
+            "name": instance.name,
+            **{
+                f"name_{language}": getattr(instance, f"name_{language}")
+                for language in settings.REQUIRED_LANGUAGES
+            },
+        }
 
     def to_internal_value(self, qid: str) -> WikipediaTag:
         return WikipediaService.update_or_create_wikipedia_tag(qid)
