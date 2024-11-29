@@ -213,6 +213,9 @@ class Project(
         related_name="archive",
         m2m_fields=[tags, categories],
     )
+    duplicated_from = models.CharField(
+        max_length=8, null=True, blank=True, default=None
+    )
     objects = SoftDeleteManager()
 
     class Meta:
@@ -526,6 +529,7 @@ class Project(
             language=self.language,
             sdgs=self.sdgs,
             main_category=self.main_category,
+            duplicated_from=self.id,
         )
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())

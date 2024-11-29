@@ -523,6 +523,10 @@ class DuplicateProjectTestCase(JwtAPITestCase):
                 f"<img src=\"/v1/project/{duplicated_project['id']}/blog-entry-image/{duplicated_image}/\" />",
                 duplicated_blog_entry["content"],
             )
+        self.assertEqual(
+            Project.objects.get(id=duplicated_project["id"]).duplicated_from,
+            initial_project["id"],
+        )
 
     @parameterized.expand(
         [
