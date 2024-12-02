@@ -95,6 +95,12 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     Users are allowed to create their own tags and classifications.
     """
 
+    class ReservedSlugs(models.TextChoices):
+        """Reserved slugs for tag classifications."""
+
+        ENABLED_FOR_PROJECTS = "enabled-for-projects"
+        ENABLED_FOR_SKILLS = "enabled-for-skills"
+
     class TagClassificationType(models.TextChoices):
         """Main type of a tag."""
 
@@ -141,7 +147,10 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
                 pass
             slug = raw_slug
             same_slug_count = 0
-            while TagClassification.objects.filter(slug=slug).exists():
+            while (
+                TagClassification.objects.filter(slug=slug).exists()
+                or slug in self.ReservedSlugs.values
+            ):
                 same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
             return slug

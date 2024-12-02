@@ -96,7 +96,7 @@ def people_group_router_register(
 def organization_user_router_register(
     router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
-    prefix = r"organization/(?P<organization_code>[^/]+)/user(?P<user_id>[^/]+)"
+    prefix = r"organization/(?P<organization_code>[^/]+)/user/(?P<user_id>[^/]+)"
     if path:
         prefix += "/" + path
     router.register(prefix, viewset, basename)

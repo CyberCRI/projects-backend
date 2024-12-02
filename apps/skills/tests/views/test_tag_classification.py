@@ -412,6 +412,10 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
             tag_classification.slug.startswith("tag-classification-"),
             tag_classification.slug,
         )
+        tag_classification = TagClassificationFactory(title="enabled for projects")
+        self.assertEqual(tag_classification.slug, "enabled-for-projects-1")
+        tag_classification = TagClassificationFactory(title="enabled for skills")
+        self.assertEqual(tag_classification.slug, "enabled-for-skills-1")
 
     def test_multiple_lookups(self):
         tag_classification = TagClassificationFactory(organization=self.organization)

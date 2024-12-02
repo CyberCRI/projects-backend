@@ -229,6 +229,142 @@ class RetrieveClassificationTagTestCase(JwtAPITestCase):
             self.assertEqual(content["description"], tag.description_en)
 
 
+class EnabledClassificationTagTestCase(WikipediaTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.query = faker.word()
+        cls.enabled_tags_1 = [
+            TagFactory(organization=cls.organization, title_en=f"{cls.query} {i}")
+            for i in range(5)
+        ]
+        cls.enabled_tags_2 = [
+            TagFactory(organization=cls.organization, title_en=f"{cls.query} {i}")
+            for i in range(5, 10)
+        ]
+        cls.wikipedia_tags = [
+            TagFactory(
+                type=Tag.TagType.WIKIPEDIA,
+                organization=cls.organization,
+                title_en=f"{cls.query} {i}",
+            )
+            for i in range(10, 15)
+        ]
+        cls.disabled_tags = [
+            TagFactory(organization=cls.organization, title_en=f"{cls.query} {i}")
+            for i in range(15, 20)
+        ]
+        cls.enabled_classification_1 = TagClassificationFactory(
+            organization=cls.organization, tags=cls.enabled_tags_1
+        )
+        cls.enabled_classification_2 = TagClassificationFactory(
+            organization=cls.organization, tags=cls.enabled_tags_2
+        )
+        cls.wikipedia_classification = (
+            TagClassification.get_or_create_default_classification(
+                classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+            )
+        )
+        cls.wikipedia_classification.tags.add(*cls.wikipedia_tags)
+        cls.disabled_classification = TagClassificationFactory(
+            organization=cls.organization, tags=cls.disabled_tags
+        )
+        cls.organization.enabled_projects_tag_classifications.add(
+            cls.enabled_classification_1,
+            cls.enabled_classification_2,
+            cls.wikipedia_classification,
+        )
+        cls.organization.enabled_skills_tag_classifications.add(
+            cls.enabled_classification_1,
+            cls.enabled_classification_2,
+            cls.wikipedia_classification,
+        )
+
+    @parameterized.expand(
+        [
+            (TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS,),
+            (TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS,),
+        ]
+    )
+    @patch("apps.skills.views.TagViewSet.wikipedia_search")
+    def test_list_enabled_tag_classifications(self, enabled_for, mocked_search):
+        mocked_search.side_effect = lambda _: None
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-list",
+                args=(self.organization.code, enabled_for),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        mocked_search.assert_has_calls([])
+        self.assertSetEqual(
+            {tag["id"] for tag in content},
+            {
+                tag.id
+                for tag in self.enabled_tags_1
+                + self.enabled_tags_2
+                + self.wikipedia_tags
+            },
+        )
+
+    @parameterized.expand(
+        [
+            (TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS,),
+            (TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS,),
+        ]
+    )
+    @patch("apps.skills.views.TagViewSet.wikipedia_search")
+    def test_search_enabled_tag_classifications(self, enabled_for, mocked_search):
+        mocked_search.side_effect = lambda _: None
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-list",
+                args=(self.organization.code, enabled_for),
+            )
+            + f"?search={self.query}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        mocked_search.assert_called_once()
+        self.assertSetEqual(
+            {tag["id"] for tag in content},
+            {
+                tag.id
+                for tag in self.enabled_tags_1
+                + self.enabled_tags_2
+                + self.wikipedia_tags
+            },
+        )
+
+    @parameterized.expand(
+        [
+            (TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS,),
+            (TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS,),
+        ]
+    )
+    def test_autocomplete_enabled_tag_classifications(self, enabled_for):
+        response = self.client.get(
+            reverse(
+                "ClassificationTag-autocomplete",
+                args=(self.organization.code, enabled_for),
+            )
+            + "?limit=100"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertSetEqual(
+            set(content),
+            {
+                tag.title_en
+                for tag in self.enabled_tags_1
+                + self.enabled_tags_2
+                + self.wikipedia_tags
+            },
+        )
+
+
 class SearchClassificationTagTestCase(WikipediaTestCase):
     @classmethod
     def setUpTestData(cls):
