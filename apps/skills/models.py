@@ -39,9 +39,9 @@ class Tag(models.Model, OrganizationRelated):
     class TagType(models.TextChoices):
         """Main type of a tag."""
 
-        WIKIPEDIA = "wikipedia"
-        ESCO = "esco"
-        CUSTOM = "custom"
+        WIKIPEDIA = "Wikipedia"
+        ESCO = "ESCO"
+        CUSTOM = "Custom"
 
     class SecondaryTagType(models.TextChoices):
         """Secondary type of a tag,"""
@@ -104,9 +104,9 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     class TagClassificationType(models.TextChoices):
         """Main type of a tag."""
 
-        WIKIPEDIA = "wikipedia"
-        ESCO = "esco"
-        CUSTOM = "custom"
+        WIKIPEDIA = "Wikipedia"
+        ESCO = "ESCO"
+        CUSTOM = "Custom"
 
     slug = models.SlugField(unique=True)
     type = models.CharField(
@@ -182,7 +182,7 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
         classification, _ = cls.objects.get_or_create(
             type=classification_type,
             defaults={
-                "title": classification_type.capitalize(),
+                "title": classification_type,
                 "is_public": True,
             },
         )
