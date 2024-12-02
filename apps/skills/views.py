@@ -1,6 +1,8 @@
+from typing import Union
+
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db.models import Count, Q
+from django.db.models import Count, Q, QuerySet
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -9,6 +11,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from apps.accounts.models import PrivacySettings, ProjectUser
@@ -189,6 +192,18 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         (TagClassification, "tag_classification_id"),
     ]
 
+    def get_tag_classification_id_from_lookup_value(
+        self, tag_classification_id: str
+    ) -> Union[int, str]:
+        """
+        Override the default method to handle multiple lookup values to allow fetching
+        all tags from the organization that are enabled for projects or skills by using
+        the slugs `enabled-for-projects` and `enabled-for-skills`.
+        """
+        if tag_classification_id in TagClassification.ReservedSlugs.values:
+            return tag_classification_id
+        return TagClassification.get_main_id(tag_classification_id)
+
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "tag")
         if codename:
@@ -200,12 +215,58 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
+    def get_enabled_tags(
+        self, organization_code: str, enabled_for: str
+    ) -> QuerySet[Tag]:
+        """
+        Get all tags from an organization that are enabled for projects or skills.
+
+        If one of the enabled classifications is Wikipedia, the method will also
+        perform a search in the Wikipedia database before returning the results.
+
+        This will only happen if the `search` parameter is provided in the request,
+        it allows to add new tags from Wikipedia to the organization when searching
+        multiple classifications at once.
+        """
+        if enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS:
+            classifications = TagClassification.objects.filter(
+                enabled_organizations_projects__code=organization_code
+            )
+        elif enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS:
+            classifications = TagClassification.objects.filter(
+                enabled_organizations_skills__code=organization_code
+            )
+        else:
+            return Tag.objects.none()
+        wikipedia = TagClassification.get_or_create_default_classification(
+            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+        )
+        if wikipedia in classifications and self.request.query_params.get(
+            "search", None
+        ):
+            self.wikipedia_search(self.request)
+        return Tag.objects.filter(tag_classifications__in=classifications)
+
     def get_queryset(self):
+        """
+        This viewset can be used in three ways:
+        - To get all custom tags from an organization
+            When accessed with the `organization_code` parameter in the URL
+        - To get all tags from a specific classification
+            When accessed with the `organization_code` and `tag_classification_id`
+            parameters in the URL
+        - To get all tags from an organization that are enabled for projects or skills
+            When accessed with the `organization_code` and `tag_classification_id`
+            parameters in the URL and the `tag_classification_id` parameter is set
+            to `enabled-for-projects` or `enabled-for-skills`
+        """
         organization_code = self.kwargs.get("organization_code", None)
         tag_classification_id = self.kwargs.get("tag_classification_id", None)
         if organization_code and not tag_classification_id:
             return Tag.objects.filter(organization__code=organization_code)
         if organization_code and tag_classification_id:
+            if tag_classification_id in TagClassification.ReservedSlugs.values:
+                return self.get_enabled_tags(organization_code, tag_classification_id)
             return Tag.objects.filter(tag_classifications__id=tag_classification_id)
         return Tag.objects.all()
 
@@ -246,7 +307,16 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def list(self, request, *args, **kwargs):
         """
-        List all pages returned from wikipedia with a text query
+        List all custom tags of an organization (if only `organization_code` is provided
+        in the url), or all tags from a specific classification (if `organization_code`
+        and `tag_classification_id` are provided in the url).
+
+        Additionally, when using this endpoint with the `tag_classification_id`
+        parameter, you can use the following values instead of slugs to retrieve
+        specific tags classifications:
+
+        - `enabled-for-projects`: Tags that are enabled for projects in the organization
+        - `enabled-for-skills`: Tags that are enabled for skills in the organization
         """
         wikipedia = TagClassification.get_or_create_default_classification(
             classification_type=TagClassification.TagClassificationType.WIKIPEDIA
@@ -259,7 +329,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             return self.wikipedia_search(request)
         return super().list(request, *args, **kwargs)
 
-    def wikipedia_search(self, request):
+    def wikipedia_search(self, request: Request) -> Response:
         params = {
             "query": str(self.request.query_params.get("search", "")),
             "language": str(self.request.query_params.get("language", "en")),
@@ -304,6 +374,18 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     @action(detail=False, methods=["GET"])
     def autocomplete(self, request, *args, **kwargs):
+        """
+        Autocomplete custom tags of an organization (if only `organization_code` is
+        provided in the url), or all tags from a specific classification (if
+        `organization_code` and `tag_classification_id` are provided in the url).
+
+        Additionally, when using this endpoint with the `tag_classification_id`
+        parameter, you can use the following values instead of slugs to look through
+        specific tags classifications:
+
+        - `enabled-for-projects`: Tags that are enabled for projects in the organization
+        - `enabled-for-skills`: Tags that are enabled for skills in the organization
+        """
         language = self.request.query_params.get("language", "en")
         limit = int(self.request.query_params.get("limit", 5))
         search = self.request.query_params.get("search", "")

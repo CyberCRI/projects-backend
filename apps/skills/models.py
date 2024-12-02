@@ -95,6 +95,12 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     Users are allowed to create their own tags and classifications.
     """
 
+    class ReservedSlugs(models.TextChoices):
+        """Reserved slugs for tag classifications."""
+
+        ENABLED_FOR_PROJECTS = "enabled-for-projects"
+        ENABLED_FOR_SKILLS = "enabled-for-skills"
+
     class TagClassificationType(models.TextChoices):
         """Main type of a tag."""
 
@@ -131,7 +137,7 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     def get_slug(self) -> str:
         if self.slug == "":
             title = self.title
-            if title == "":
+            if title in ["", *self.ReservedSlugs.values]:
                 title = "tag-classification"
             raw_slug = slugify(title[0:46])
             try:
