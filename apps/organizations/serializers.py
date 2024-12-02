@@ -560,3 +560,19 @@ class ProjectCategorySerializer(
             instance.template.save()
             validated_data.pop("template")
         return super().update(instance, validated_data)
+
+
+class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
+
+    class Meta:
+        model = ProjectCategory
+        fields = [
+            "id",
+            "name",
+            "background_color",
+            "foreground_color",
+        ]
+
+    def get_related_organizations(self) -> List[Organization]:
+        self.is_valid(raise_exception=True)
+        return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]

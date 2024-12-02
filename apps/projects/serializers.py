@@ -31,7 +31,7 @@ from apps.notifications.tasks import notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.serializers import (
     OrganizationSerializer,
-    ProjectCategorySerializer,
+    ProjectCategoryLightSerializer,
     TemplateSerializer,
 )
 from apps.skills.models import Tag
@@ -205,11 +205,8 @@ class ProjectSuperLightSerializer(serializers.ModelSerializer):
 
 
 class ProjectLightSerializer(serializers.ModelSerializer):
-    categories = serializers.SlugRelatedField(
-        many=True, read_only=True, slug_field="name"
-    )
+    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
-    views = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField(read_only=True)
     is_featured = serializers.BooleanField(read_only=True, required=False)
     is_group_project = serializers.BooleanField(read_only=True, required=False)
@@ -224,7 +221,6 @@ class ProjectLightSerializer(serializers.ModelSerializer):
             "categories",
             "header_image",
             "language",
-            "views",
             "publication_status",
             "life_status",
             "created_at",
@@ -233,8 +229,6 @@ class ProjectLightSerializer(serializers.ModelSerializer):
             "is_featured",
             "is_group_project",
         ]
-
-    get_views = get_views_from_serializer
 
     def get_is_followed(self, project: Project) -> Dict[str, Any]:
         if "request" in self.context:
@@ -450,7 +444,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
 
     # read_only
     header_image = ImageSerializer(read_only=True)
-    categories = ProjectCategorySerializer(many=True, read_only=True)
+    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     last_comment = serializers.SerializerMethodField(read_only=True)
     organizations = OrganizationSerializer(many=True, read_only=True)
     goals = GoalSerializer(many=True, read_only=True)
