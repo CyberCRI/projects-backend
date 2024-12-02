@@ -324,6 +324,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if (
             self.request.query_params.get("search", None)
             and self.kwargs.get("tag_classification_id", None)
+            and self.kwargs["tag_classification_id"]
+            not in TagClassification.ReservedSlugs.values
             and int(self.kwargs["tag_classification_id"]) == int(wikipedia.id)
         ):
             return self.wikipedia_search(request)

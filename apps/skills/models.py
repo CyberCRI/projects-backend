@@ -137,7 +137,7 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     def get_slug(self) -> str:
         if self.slug == "":
             title = self.title
-            if title in ["", *self.ReservedSlugs.values]:
+            if title == "":
                 title = "tag-classification"
             raw_slug = slugify(title[0:46])
             try:
@@ -147,7 +147,10 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
                 pass
             slug = raw_slug
             same_slug_count = 0
-            while TagClassification.objects.filter(slug=slug).exists():
+            while (
+                TagClassification.objects.filter(slug=slug).exists()
+                or slug in self.ReservedSlugs.values
+            ):
                 same_slug_count += 1
                 slug = f"{raw_slug}-{same_slug_count}"
             return slug
