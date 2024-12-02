@@ -682,6 +682,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         group = self.get_object()
         managers_ids = group.managers.all().values_list("id", flat=True)
         leaders_ids = group.leaders.all().values_list("id", flat=True)
+        skills_prefetch = Prefetch(
+            "skills", queryset=Skill.objects.select_related("tag")
+        )
         queryset = (
             group.get_all_members()
             .distinct()
@@ -696,6 +699,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
             )
             .order_by("-is_leader", "-is_manager")
+            .prefetch_related(skills_prefetch, "groups")
         )
 
         page = self.paginate_queryset(queryset)
