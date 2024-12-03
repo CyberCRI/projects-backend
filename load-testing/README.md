@@ -38,7 +38,7 @@ Run the followin command :
 ```bash
 CLIENT_SECRET=${CLIENT_SECRET} locust
 ```
-Then click on the output link, this will open a browser window. This will redirect you instantly. Copy the url you have been redirected to, paste it in the terminal, and press enter.
+Then click on the output link, this will open a browser window. Login, copy the url you have been redirected to, paste it in the terminal, and press enter.
 
 You can now copy the token that has been displayed in the browser window (don't forget the equal signs at the end).
 

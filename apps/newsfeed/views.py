@@ -1,7 +1,7 @@
 import uuid
 from itertools import chain, zip_longest
 
-from django.db.models import F, Q, QuerySet
+from django.db.models import F, Prefetch, Q, QuerySet
 from django.shortcuts import redirect
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
@@ -17,6 +17,7 @@ from apps.commons.views import ListViewSet
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.projects.models import Project
 
 from .filters import EventFilter, InstructionFilter, NewsFilter
 from .models import Event, Instruction, News, Newsfeed
@@ -35,6 +36,9 @@ class NewsfeedViewSet(ListViewSet):
     filterset_class = None
 
     def get_projects_queryset(self):
+        projects_prefetch = Prefetch(
+            "project", queryset=Project.objects.prefetch_related("categories")
+        )
         return (
             self.request.user.get_project_related_queryset(
                 queryset=Newsfeed.objects.filter(
@@ -47,6 +51,7 @@ class NewsfeedViewSet(ListViewSet):
             .annotate(date=F("project__updated_at"))
             .order_by("-date")
             .distinct()
+            .prefetch_related(projects_prefetch)
         )
 
     def get_announcements_queryset(self):
