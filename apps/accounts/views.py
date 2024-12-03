@@ -31,10 +31,11 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
-from apps.organizations.models import Organization, ProjectCategory
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
+from apps.skills.models import Skill
 from keycloak import (
     KeycloakDeleteError,
     KeycloakGetError,
@@ -172,8 +173,11 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset = self.annotate_organization_role(queryset, organization)
         if self.action == "admin_list":
             queryset = self.annotate_keycloak_email_verified(queryset)
+        skills_prefetch = Prefetch(
+            "skills", queryset=Skill.objects.select_related("tag")
+        )
         return queryset.prefetch_related(
-            "skills__tag",
+            skills_prefetch,
             "groups",
         )
 
@@ -527,17 +531,14 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        """Prefetch related models"""
         if "organization_code" in self.kwargs:
-            organization = Prefetch(
-                "organization",
-                queryset=Organization.objects.select_related(
-                    "faq", "parent", "banner_image", "logo_image"
-                ).prefetch_related("default_projects_tags", "default_skills_tags"),
-            )
-            return self.request.user.get_people_group_queryset(organization).filter(
-                organization__code=self.kwargs["organization_code"],
-                is_root=False,
+            return (
+                self.request.user.get_people_group_queryset()
+                .filter(
+                    organization__code=self.kwargs["organization_code"],
+                    is_root=False,
+                )
+                .select_related("organization")
             )
         return PeopleGroup.objects.none()
 
@@ -681,6 +682,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         group = self.get_object()
         managers_ids = group.managers.all().values_list("id", flat=True)
         leaders_ids = group.leaders.all().values_list("id", flat=True)
+        skills_prefetch = Prefetch(
+            "skills", queryset=Skill.objects.select_related("tag")
+        )
         queryset = (
             group.get_all_members()
             .distinct()
@@ -695,6 +699,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
             )
             .order_by("-is_leader", "-is_manager")
+            .prefetch_related(skills_prefetch, "groups")
         )
 
         page = self.paginate_queryset(queryset)
@@ -783,17 +788,13 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def project(self, request, *args, **kwargs):
         group = self.get_object()
-        categories = Prefetch(
-            "categories",
-            queryset=ProjectCategory.objects.select_related("organization"),
-        )
         group_projects_ids = (
             Project.objects.filter(groups__people_groups=group)
             .distinct()
             .values_list("id", flat=True)
         )
         queryset = (
-            self.request.user.get_project_queryset(categories)
+            self.request.user.get_project_queryset()
             .filter(Q(groups__people_groups=group) | Q(people_groups=group))
             .annotate(
                 is_group_project=Case(
@@ -805,6 +806,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             )
             .distinct()
             .order_by("-is_featured", "-is_group_project")
+            .prefetch_related("categories")
         )
         page = self.paginate_queryset(queryset)
         if page is not None:

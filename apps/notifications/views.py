@@ -32,7 +32,6 @@ logger = logging.getLogger(__name__)
 class NotificationsViewSet(ListViewSet):
     """Allows getting or modifying a user's notification."""
 
-    queryset = Notification.objects.all()
     permission_classes = [ReadOnly]
     serializer_class = NotificationsSerializer
 
@@ -40,7 +39,7 @@ class NotificationsViewSet(ListViewSet):
         return (
             Notification.objects.filter(receiver=self.request.user)
             .order_by("-created")
-            .select_related("sender", "project")
+            .select_related("sender", "project", "organization")
         )
 
     @transaction.atomic

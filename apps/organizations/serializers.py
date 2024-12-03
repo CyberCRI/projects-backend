@@ -563,7 +563,6 @@ class ProjectCategorySerializer(
 
 
 class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
-    projects_count = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjectCategory
@@ -572,11 +571,7 @@ class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
             "name",
             "background_color",
             "foreground_color",
-            "projects_count",
         ]
-
-    def get_projects_count(self, obj: ProjectCategory) -> int:
-        return obj.projects.count()
 
     def get_related_organizations(self) -> List[Organization]:
         self.is_valid(raise_exception=True)

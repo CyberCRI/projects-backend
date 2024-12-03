@@ -506,10 +506,10 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
-    def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+    def get_project_queryset(self) -> QuerySet["Project"]:
         if self._project_queryset is None:
             if self.is_superuser:
-                self._project_queryset = Project.objects.all().distinct()
+                self._project_queryset = Project.objects.all()
             else:
                 public_projects = Project.objects.filter(
                     publication_status=Project.PublicationStatus.PUBLIC
@@ -531,12 +531,10 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     .union(org_user_projects)
                     .union(org_admin_projects)
                 )
-                self._project_queryset = Project.objects.filter(
-                    id__in=qs.values("id")
-                ).distinct()
-        return self._project_queryset.prefetch_related(*prefetch)
+                self._project_queryset = Project.objects.filter(id__in=qs.values("id"))
+        return self._project_queryset.distinct()
 
-    def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
+    def get_news_queryset(self) -> QuerySet["News"]:
         if self._news_queryset is None:
             if self.is_superuser:
                 self._news_queryset = News.objects.all()
@@ -552,9 +550,9 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                         & Q(visible_by_all=False)
                     )
                 )
-        return self._news_queryset.distinct().prefetch_related(*prefetch)
+        return self._news_queryset.distinct()
 
-    def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
+    def get_instruction_queryset(self) -> QuerySet["Instruction"]:
         if self._instruction_queryset is None:
             if self.is_superuser:
                 self._instruction_queryset = Instruction.objects.all()
@@ -570,9 +568,9 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                         & Q(visible_by_all=False)
                     )
                 )
-        return self._instruction_queryset.distinct().prefetch_related(*prefetch)
+        return self._instruction_queryset.distinct()
 
-    def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
+    def get_event_queryset(self) -> QuerySet["Event"]:
         if self._event_queryset is None:
             if self.is_superuser:
                 self._event_queryset = Event.objects.all()
@@ -588,12 +586,12 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                         & Q(visible_by_all=False)
                     )
                 )
-        return self._event_queryset.distinct().prefetch_related(*prefetch)
+        return self._event_queryset.distinct()
 
-    def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
+    def get_user_queryset(self) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:
             if self.is_superuser:
-                self._user_queryset = ProjectUser.objects.all().distinct()
+                self._user_queryset = ProjectUser.objects.all()
             else:
                 request_user = ProjectUser.objects.filter(id=self.id)
                 public_users = ProjectUser.objects.filter(
@@ -615,15 +613,13 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     .union(org_user_users)
                     .union(org_admin_users)
                 )
-                self._user_queryset = ProjectUser.objects.filter(
-                    id__in=qs.values("id")
-                ).distinct()
-        return self._user_queryset.prefetch_related(*prefetch)
+                self._user_queryset = ProjectUser.objects.filter(id__in=qs.values("id"))
+        return self._user_queryset.distinct()
 
-    def get_people_group_queryset(self, *prefetch) -> QuerySet["PeopleGroup"]:
+    def get_people_group_queryset(self) -> QuerySet["PeopleGroup"]:
         if self._people_group_queryset is None:
             if self.is_superuser:
-                self._people_group_queryset = PeopleGroup.objects.all().distinct()
+                self._people_group_queryset = PeopleGroup.objects.all()
             else:
                 public_groups = PeopleGroup.objects.filter(
                     publication_status=PeopleGroup.PublicationStatus.PUBLIC
@@ -647,8 +643,8 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                 )
                 self._people_group_queryset = PeopleGroup.objects.filter(
                     id__in=qs.values("id")
-                ).distinct()
-        return self._people_group_queryset.prefetch_related(*prefetch)
+                )
+        return self._people_group_queryset.distinct()
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
@@ -959,14 +955,14 @@ class AnonymousUser:
             }
         return data
 
-    def get_project_queryset(self, *prefetch) -> QuerySet["Project"]:
+    def get_project_queryset(self) -> QuerySet["Project"]:
         if self._project_queryset is None:
             self._project_queryset = Project.objects.filter(
                 publication_status=Project.PublicationStatus.PUBLIC
-            ).distinct()
-        return self._project_queryset.prefetch_related(*prefetch)
+            )
+        return self._project_queryset.distinct()
 
-    def get_news_queryset(self, *prefetch) -> QuerySet["News"]:
+    def get_news_queryset(self) -> QuerySet["News"]:
         if self._news_queryset is None:
             self._news_queryset = News.objects.filter(
                 Q(visible_by_all=True)
@@ -974,9 +970,9 @@ class AnonymousUser:
                     people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
                 )
             )
-        return self._news_queryset.distinct().prefetch_related(*prefetch)
+        return self._news_queryset.distinct()
 
-    def get_event_queryset(self, *prefetch) -> QuerySet["Event"]:
+    def get_event_queryset(self) -> QuerySet["Event"]:
         if self._event_queryset is None:
             self._event_queryset = Event.objects.filter(
                 Q(visible_by_all=True)
@@ -984,9 +980,9 @@ class AnonymousUser:
                     people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
                 )
             )
-        return self._event_queryset.distinct().prefetch_related(*prefetch)
+        return self._event_queryset.distinct()
 
-    def get_instruction_queryset(self, *prefetch) -> QuerySet["Instruction"]:
+    def get_instruction_queryset(self) -> QuerySet["Instruction"]:
         if self._instruction_queryset is None:
             self._instruction_queryset = Instruction.objects.filter(
                 Q(visible_by_all=True)
@@ -994,21 +990,21 @@ class AnonymousUser:
                     people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
                 )
             )
-        return self._instruction_queryset.distinct().prefetch_related(*prefetch)
+        return self._instruction_queryset.distinct()
 
-    def get_user_queryset(self, *prefetch) -> QuerySet["ProjectUser"]:
+    def get_user_queryset(self) -> QuerySet["ProjectUser"]:
         if self._user_queryset is None:
             self._user_queryset = ProjectUser.objects.filter(
                 privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
             )
-        return self._user_queryset.prefetch_related(*prefetch)
+        return self._user_queryset.distinct()
 
-    def get_people_group_queryset(self, *prefetch) -> QuerySet["PeopleGroup"]:
+    def get_people_group_queryset(self) -> QuerySet["PeopleGroup"]:
         if self._people_group_queryset is None:
             self._people_group_queryset = PeopleGroup.objects.filter(
                 publication_status=PeopleGroup.PublicationStatus.PUBLIC
             )
-        return self._people_group_queryset.prefetch_related(*prefetch)
+        return self._people_group_queryset.distinct()
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"

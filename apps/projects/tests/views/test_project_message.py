@@ -49,8 +49,10 @@ class CreateProjectMessageTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertEqual(content["author"]["id"], user.id)
-            self.assertEqual(content["project"], self.project.id)
             self.assertEqual(content["content"], payload["content"])
+            message_id = content["id"]
+            message = ProjectMessage.objects.get(id=message_id)
+            self.assertEqual(message.project, self.project)
 
     @parameterized.expand(
         [
@@ -79,9 +81,11 @@ class CreateProjectMessageTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertEqual(content["author"]["id"], user.id)
-            self.assertEqual(content["project"], self.project.id)
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["reply_on"], self.reply_on.id)
+            message_id = content["id"]
+            message = ProjectMessage.objects.get(id=message_id)
+            self.assertEqual(message.project, self.project)
 
 
 class RetrieveProjectMessageTestCase(JwtAPITestCase):

@@ -5,7 +5,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Prefetch, QuerySet
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
@@ -35,7 +35,6 @@ from apps.notifications.tasks import (
     notify_new_private_message,
     notify_ready_for_review,
 )
-from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
@@ -97,29 +96,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        """Prefetch related models"""
-        organizations = Prefetch(
-            "organizations",
-            queryset=Organization.objects.select_related(
-                "faq", "parent", "banner_image", "logo_image"
-            ).prefetch_related("default_projects_tags", "default_skills_tags"),
-        )
-        return self.request.user.get_project_queryset(
-            "tags",
-            "goals",
-            "follows",
-            "follows",
-            "reviews",
-            "locations",
-            "announcements",
-            "links",
-            "files",
-            "images",
-            "blog_entries",
-            "linked_projects",
-            "categories",
-            organizations,
-        )
+        return self.request.user.get_project_queryset().prefetch_related("categories")
 
     def get_serializer_class(self):
         is_summary = (
@@ -389,6 +366,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             self.request.user.get_project_queryset()
             .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
             .exclude(id=project.id)
+            .prefetch_related("categories")
         )
         queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
         return Response(ProjectLightSerializer(queryset, many=True).data)
@@ -486,8 +464,8 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
             return self.request.user.get_project_related_queryset(
-                BlogEntry.objects.filter(project=self.kwargs["project_id"]),
-            ).prefetch_related("images")
+                BlogEntry.objects.filter(project=self.kwargs["project_id"])
+            )
         return BlogEntry.objects.none()
 
     def perform_create(self, serializer):
@@ -772,8 +750,8 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             # get_project_related_queryset is not needed because the publication_status is not checked here
             queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
             if self.action in ["retrieve", "list"]:
-                return queryset.exclude(reply_on__isnull=False)
-            return queryset
+                queryset = queryset.exclude(reply_on__isnull=False)
+            return queryset.select_related("author")
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):

@@ -203,6 +203,7 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
                 score__activity__gte=0.37,  # 6 months of inactivity
             )
             .exclude(id=project.id)
+            .prefetch_related("categories")
         )
         embedding = self.get_project_embedding(project)
         if embedding is not None and queryset.exists():
@@ -210,11 +211,15 @@ class ProjectRecommendationsViewset(RecommendationsViewset):
         return queryset.none()
 
     def get_queryset_for_user(self, user: ProjectUser) -> QuerySet[Project]:
-        queryset = user.get_project_queryset().filter(
-            organizations__code__in=get_below_hierarchy_codes(
-                [self.kwargs["organization_code"]]
-            ),
-            score__activity__gte=0.37,  # 6 months of inactivity
+        queryset = (
+            user.get_project_queryset()
+            .filter(
+                organizations__code__in=get_below_hierarchy_codes(
+                    [self.kwargs["organization_code"]]
+                ),
+                score__activity__gte=0.37,  # 6 months of inactivity
+            )
+            .prefetch_related("categories")
         )
         embedding = self.get_user_embedding(user)
         if user.is_authenticated:
