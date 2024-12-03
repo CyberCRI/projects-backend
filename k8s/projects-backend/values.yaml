@@ -39,6 +39,7 @@ config:
     OPENSEARCH_DSL_AUTO_REFRESH: "True"
     OPENSEARCH_DSL_AUTOSYNC: "True"
     OPENSEARCH_USERNAME: projects
+    OPENSEARCH_HOST: http://opensearch-cluster-master.opensearch:9200
 
 fullName: projects-backend
 
