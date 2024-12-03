@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Iterable, Optional, Union
 
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import MultipleObjectsReturned
 from django.utils.html import strip_tags
@@ -18,7 +19,7 @@ from .models import SearchObject
 @registry.register_document
 class UserDocument(Document):
     class Index:
-        name = "user"
+        name = f"{settings.OPENSEARCH_INDEX_PREFIX}-user"
 
     class Django:
         model = ProjectUser
@@ -95,7 +96,7 @@ class UserDocument(Document):
 @registry.register_document
 class PeopleGroupDocument(Document):
     class Index:
-        name = "people_group"
+        name = f"{settings.OPENSEARCH_INDEX_PREFIX}-people_group"
 
     class Django:
         model = PeopleGroup
@@ -147,7 +148,7 @@ class PeopleGroupDocument(Document):
 @registry.register_document
 class ProjectDocument(Document):
     class Index:
-        name = "project"
+        name = f"{settings.OPENSEARCH_INDEX_PREFIX}-project"
 
     class Django:
         model = Project

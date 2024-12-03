@@ -582,6 +582,7 @@ OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
     "OPENSEARCH_DSL_SIGNAL_PROCESSOR",
     "django_opensearch_dsl.signals.CelerySignalProcessor",
 )
+OPENSEARCH_INDEX_PREFIX = os.getenv("OPENSEARCH_INDEX_PREFIX", "proj-local")
 
 #####################
 #   Static files    #

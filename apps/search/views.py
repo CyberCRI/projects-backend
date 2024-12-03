@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
 from drf_spectacular.utils import extend_schema
 from opensearchpy import Search
@@ -49,10 +50,14 @@ class SearchViewSet(ListViewSet):
         search_objects_ids = list(queryset.values_list("id", flat=True))
 
         query = self.kwargs.get("search", "")
-        indexes = request.query_params.get("types", "project,user,people_group").split(
-            ","
-        )
-
+        indexes = [
+            f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
+            for index in (
+                request.query_params.get("types", "project,user,people_group").split(
+                    ","
+                )
+            )
+        ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
         offset = request.query_params.get("offset", 0)
 

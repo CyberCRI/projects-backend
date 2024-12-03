@@ -15,6 +15,7 @@ config:
     KEYCLOAK_REALM: lp-staging
     MJML_HTTPSERVER_URL: http://mjml-server.stag-test-mjml/v1/render
     ENVIRONMENT: staging
+    OPENSEARCH_INDEX_PREFIX: "proj-staging"
 
 hostname: api.projects.k8s.lp-i.xyz
 
