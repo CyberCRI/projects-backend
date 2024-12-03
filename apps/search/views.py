@@ -1,4 +1,4 @@
-from django.db.models import BigIntegerField, F, Q, QuerySet, Prefetch
+from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
 from drf_spectacular.utils import extend_schema
 from opensearchpy import Search
 from rest_framework.decorators import action
