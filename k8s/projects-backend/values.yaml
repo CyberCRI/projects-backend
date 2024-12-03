@@ -38,6 +38,7 @@ config:
     GUNICORN_LOG_LEVEL: "info"
     KEYCLOAK_REALM: lp
     VERSION: "{{ .Values.application.revision }}"
+    OPENSEARCH_USERNAME: projects
 
 fullName: projects-backend
 
