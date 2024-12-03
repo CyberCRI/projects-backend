@@ -573,6 +573,7 @@ OPENSEARCH_DSL = {
             os.getenv("OPENSEARCH_USERNAME", "admin"),
             os.getenv("OPENSEARCH_PASSWORD", "admin"),
         ),
+        "verify_certs": False,
     },
 }
 OPENSEARCH_DSL_AUTO_REFRESH = os.getenv("OPENSEARCH_DSL_AUTO_REFRESH", False) == "True"
