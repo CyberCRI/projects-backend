@@ -38,6 +38,7 @@ class UserDocument(Document):
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
     content = fields.TextField()
+    skills = fields.TextField()
     people_groups = fields.TextField()
     projects = fields.TextField()
 
@@ -66,6 +67,9 @@ class UserDocument(Document):
                 strip_tags(instance.professional_description),
             ]
         )
+
+    def prepare_skills(self, instance: ProjectUser) -> str:
+        return " ".join([skill.tag.title for skill in instance.skills.all()])
 
     def prepare_people_groups(self, instance: ProjectUser) -> str:
         return " ".join(
@@ -102,7 +106,6 @@ class PeopleGroupDocument(Document):
         model = PeopleGroup
         fields = [
             "name",
-            "description",
             "email",
         ]
         related_models = [
@@ -213,7 +216,7 @@ class ProjectDocument(Document):
     ) -> Iterable[Project]:
         if isinstance(related, ProjectCategory):
             return Project.objects.filter(categories=related)
-        if isinstance(related, Tag):
+        if isinstance(related, Tag) and related.type == Tag.TagType.CUSTOM:
             return Project.objects.filter(tags=related)
         if isinstance(related, Group):
             return Project.objects.filter(groups=related)
