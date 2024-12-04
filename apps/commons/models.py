@@ -106,10 +106,6 @@ class PermissionsSetupModel(models.Model):
         """Initialize permissions for the instance."""
         raise NotImplementedError()
 
-    def remove_duplicated_roles(self):
-        """Remove duplicated roles in the instance."""
-        raise NotImplementedError()
-
     class Meta:
         abstract = True
 

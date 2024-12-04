@@ -56,14 +56,6 @@ def instance_groups_permissions():
 
 
 @app.task
-def remove_duplicated_roles():
-    permissions_setup_models = PermissionsSetupModel.__subclasses__()
-    for permissions_setup_model in permissions_setup_models:
-        for instance in permissions_setup_model.objects.all():
-            instance.remove_duplicated_roles()
-
-
-@app.task
 def default_tag_classifications():
     for classification_type in TagClassification.TagClassificationType.values:
         if classification_type != TagClassification.TagClassificationType.CUSTOM:

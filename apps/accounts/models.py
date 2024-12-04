@@ -233,17 +233,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         else:
             PeopleGroup.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
-    def remove_duplicated_roles(self):
-        """Remove duplicated roles in the group."""
-        self.members.set(
-            self.members.exclude(
-                pk__in=self.managers.values_list("pk", flat=True)
-            ).exclude(pk__in=self.leaders.values_list("pk", flat=True))
-        )
-        self.managers.set(
-            self.managers.exclude(pk__in=self.leaders.values_list("pk", flat=True))
-        )
-
     def get_or_create_group(self, name: str) -> Group:
         """Return the group with the given name."""
         group, created = Group.objects.get_or_create(

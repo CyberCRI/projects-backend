@@ -7,7 +7,6 @@ from .tasks import (
     instance_groups_permissions,
     migrate,
     rebuild_index,
-    remove_duplicated_roles,
 )
 
 
@@ -63,12 +62,6 @@ class InstanceGroupsPermissions(PostDeployTask):
         )
         total_objects = sum([m.objects.count() for m in models])
         return f"{str(round((updated_objects / total_objects)*100, 2))}%"
-
-
-class RemoveDuplicatedRoles(PostDeployTask):
-    task_name = "remove_duplicated_roles"
-    priority = 5
-    task = remove_duplicated_roles
 
 
 # class CreateDefaultTagClassifications(PostDeployTask):  # noqa

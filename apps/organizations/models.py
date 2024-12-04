@@ -303,17 +303,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         else:
             Organization.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
-    def remove_duplicated_roles(self):
-        """Remove duplicated roles in the group."""
-        self.users.set(
-            self.users.exclude(pk__in=self.admins.values_list("pk", flat=True)).exclude(
-                pk__in=self.facilitators.values_list("pk", flat=True)
-            )
-        )
-        self.facilitators.set(
-            self.facilitators.exclude(pk__in=self.admins.values_list("pk", flat=True))
-        )
-
     def get_or_create_group(self, name: str) -> Group:
         """Return the group with the given name."""
         group, created = Group.objects.get_or_create(
