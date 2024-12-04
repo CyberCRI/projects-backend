@@ -29,3 +29,14 @@ GOOGLE_EMAIL_PREFIX = "test"
 
 TEST_RUNNER = "django_slowtests.testrunner.DiscoverSlowestTestsRunner"
 NUM_SLOW_TESTS = 10
+
+
+##############
+# OpenSearch #
+##############
+
+OPENSEARCH_DSL_AUTO_REFRESH = False
+OPENSEARCH_DSL_AUTOSYNC = False
+OPENSEARCH_DSL_PARALLEL = True
+OPENSEARCH_DSL_SIGNAL_PROCESSOR = "django_opensearch_dsl.signals.RealTimeSignalProcessor"
+OPENSEARCH_INDEX_PREFIX = "proj-test"
