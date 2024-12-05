@@ -21,8 +21,7 @@ def rebuild_index():
     """
     python manage.py opensearch index rebuild --force
     """
-    call_command("opensearch", "index", "rebuild", "--force")
-    call_command("opensearch", "document", "index", "--force", "--refresh")
+    call_command("update_or_rebuild_index")
 
 
 @app.task

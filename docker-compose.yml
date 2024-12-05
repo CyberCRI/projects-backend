@@ -128,19 +128,6 @@ services:
       - 9200:9200
       - 9600:9600
 
-  opensearch-dashboards:
-    image: opensearchproject/opensearch-dashboards:latest
-    container_name: opensearch-dashboards
-    ports:
-      - 5601:5601
-    expose:
-      - "5601"
-    environment:
-      OPENSEARCH_HOSTS: '["http://opensearch-node:9200"]'
-      DISABLE_SECURITY_DASHBOARDS_PLUGIN: true
-    depends_on:
-      - opensearch-node
-
 volumes:
   opensearch-data:
   postgres-data:

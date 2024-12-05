@@ -115,5 +115,4 @@ list-index:
 
 .PHONY: rebuild-index
 rebuild-index:
-	python manage.py opensearch index rebuild --force
-	python manage.py opensearch document index --force --refresh
+	python manage.py update_or_rebuild_index
