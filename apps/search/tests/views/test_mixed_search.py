@@ -1,5 +1,6 @@
 from typing import Any, Dict, Union
 
+from django.core.management import call_command
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -7,7 +8,6 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings
 from apps.commons.test import JwtAPITestCase, skipUnlessSearch
-from apps.deploys.tasks import rebuild_index
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
@@ -66,7 +66,9 @@ class MixedSearchTestCase(JwtAPITestCase):
         PeopleGroup.objects.filter(pk=cls.people_group_2.pk).update(
             updated_at=timezone.localtime(timezone.now() - timezone.timedelta(days=1))
         )
-        rebuild_index()
+        # Index the data
+        call_command("opensearch", "index", "rebuild", "--force")
+        call_command("opensearch", "document", "index", "--force", "--refresh")
 
     @staticmethod
     def get_object_id_from_search_object(

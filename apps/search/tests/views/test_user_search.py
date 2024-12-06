@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -6,7 +7,6 @@ from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
-from apps.deploys.tasks import rebuild_index
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
 from apps.skills.factories import SkillFactory, TagFactory
@@ -69,7 +69,9 @@ class UserSearchTestCase(JwtAPITestCase):
             "org": cls.org_user,
             "no_org": cls.no_org_user,
         }
-        rebuild_index()
+        # Index the data
+        call_command("opensearch", "index", "rebuild", "--force")
+        call_command("opensearch", "document", "index", "--force", "--refresh")
 
     @parameterized.expand(
         [
