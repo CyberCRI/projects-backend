@@ -1,5 +1,5 @@
 from django.core.management import call_command
-from guardian.shortcuts import assign_perm
+from guardian.shortcuts import assign_perm, remove_perm
 
 from apps.accounts.utils import (
     get_default_group,
@@ -31,15 +31,36 @@ def base_groups_permissions():
     - Default group
     - Superadmins group
     """
-    default_group = get_default_group()
-    default_group.permissions.clear()
-    for permission in get_default_group_permissions():
-        assign_perm(permission, default_group)
 
+    # Default group
+    default_group = get_default_group()
+    default_group_permissions = get_default_group_permissions()
+    current_default_group_permissions = default_group.permissions.all()
+    default_group_permissions_to_remove = current_default_group_permissions.difference(
+        default_group_permissions
+    )
+    default_group_permissions_to_add = default_group_permissions.difference(
+        current_default_group_permissions
+    )
+    for permission in default_group_permissions_to_add:
+        assign_perm(permission, default_group)
+    for permission in default_group_permissions_to_remove:
+        remove_perm(permission, default_group)
+
+    # Superadmins group
     superadmins_group = get_superadmins_group()
-    superadmins_group.permissions.clear()
-    for permission in get_superadmins_group_permissions():
+    superadmins_group_permissions = get_superadmins_group_permissions()
+    current_superadmins_group_permissions = superadmins_group.permissions.all()
+    superadmins_group_permissions_to_remove = (
+        current_superadmins_group_permissions.difference(superadmins_group_permissions)
+    )
+    superadmins_group_permissions_to_add = superadmins_group_permissions.difference(
+        current_superadmins_group_permissions
+    )
+    for permission in superadmins_group_permissions_to_add:
         assign_perm(permission, superadmins_group)
+    for permission in superadmins_group_permissions_to_remove:
+        remove_perm(permission, superadmins_group)
 
 
 @app.task

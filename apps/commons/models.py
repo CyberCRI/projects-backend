@@ -86,7 +86,7 @@ class PermissionsSetupModel(models.Model):
 
     permissions_up_to_date = models.BooleanField(default=False)
 
-    def setup_group_permissions(
+    def setup_group_object_permissions(
         self, group: Group, permissions: QuerySet[str]
     ) -> Group:
         current_role_permissions = Permission.objects.filter(
@@ -98,6 +98,18 @@ class PermissionsSetupModel(models.Model):
             assign_perm(permission, group, self)
         for permission in permissions_to_remove:
             remove_perm(permission, group, self)
+        return group
+
+    def setup_group_global_permissions(
+        self, group: Group, permissions: QuerySet[str]
+    ) -> Group:
+        current_role_permissions = group.permissions.all()
+        permissions_to_remove = current_role_permissions.difference(permissions)
+        permissions_to_add = permissions.difference(current_role_permissions)
+        for permission in permissions_to_add:
+            assign_perm(permission, group)
+        for permission in permissions_to_remove:
+            remove_perm(permission, group)
         return group
 
     def setup_permissions(

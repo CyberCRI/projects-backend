@@ -411,22 +411,22 @@ class Project(
         self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
-        reviewers = self.setup_group_permissions(
+        reviewers = self.setup_group_object_permissions(
             self.get_reviewers(), self.get_default_reviewers_permissions()
         )
-        owners = self.setup_group_permissions(
+        owners = self.setup_group_object_permissions(
             self.get_owners(), self.get_default_owners_permissions()
         )
-        members = self.setup_group_permissions(
+        members = self.setup_group_object_permissions(
             self.get_members(), self.get_default_members_permissions()
         )
-        people_groups = self.setup_group_permissions(
+        people_groups = self.setup_group_object_permissions(
             self.get_people_groups(), self.get_default_members_permissions()
         )
 
         if user:
             owners.users.add(user)
-        self.groups.add(owners, reviewers, members, people_groups)
+        self.groups.set([owners, reviewers, members, people_groups])
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])

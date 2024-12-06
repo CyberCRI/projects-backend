@@ -215,18 +215,18 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
-        managers = self.setup_group_permissions(
+        managers = self.setup_group_object_permissions(
             self.get_managers(), self.get_default_managers_permissions()
         )
-        members = self.setup_group_permissions(
+        members = self.setup_group_object_permissions(
             self.get_members(), self.get_default_members_permissions()
         )
-        leaders = self.setup_group_permissions(
+        leaders = self.setup_group_object_permissions(
             self.get_leaders(), self.get_default_leaders_permissions()
         )
         if user:
             managers.users.add(user)
-        self.groups.add(managers, members, leaders)
+        self.groups.set([managers, members, leaders])
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
