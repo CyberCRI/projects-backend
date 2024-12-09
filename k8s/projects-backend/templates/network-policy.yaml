@@ -1,32 +1,13 @@
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: {{ tpl $.Values.fullName $ }}
-  labels:
-  {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
-spec:
-  podSelector:
-    matchLabels:
-    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 6 }}
-  policyTypes:
-    - Ingress
-  ingress:
-    - from:
-      # Incoming http traffic from nginx-ingress
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: ingress-nginx
-      # Incoming traffic from projects namespace
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: {{ .Values.namespace }}
-      # Incoming traffic from monitoring namespace
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: {{ .Values.monitoringNamespace }}
-      ports:
-        - protocol: TCP
-          port: http
+{{ include "common.security.networkPolicy" (dict
+  "name" (tpl .Values.fullName .)
+  "podSelector" (dict "matchLabels" (tpl (.Values.backend.commonLabels | toJson) .| fromJson) )
+  "allowFromReverseProxy" true
+  "reverseProxyNamespace" (ternary "traefik" "ingress-nginx" .Values.traefik  )
+  "additionalIngresses" (get (tpl ((dict "root" .Values.backend.networkPolicyAdditionalIngresses) | toJson) . | fromJson) "root")
+  "commonLabels" (tpl (.Values.backend.commonLabels | toJson) . | fromJson)
+  "enableEgress" false
+) }}
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

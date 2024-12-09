@@ -75,6 +75,19 @@ backend:
     minReplicas: 1
     maxReplicas: 4
     targetCPUUtilizationPercentage: 50
+  networkPolicyAdditionalIngresses:
+  - from:
+      # Incoming traffic from projects namespace
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: "{{ .Values.namespace }}"
+      # Incoming traffic from monitoring namespace
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: "{{ .Values.monitoringNamespace }}"
+    ports:
+    - protocol: TCP
+      port: http
 
 celery:
   enabled: true
@@ -158,3 +171,5 @@ workflow:
       templateName: create-db
 
 runMigrations: true
+
+traefik: false
