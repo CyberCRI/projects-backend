@@ -39,11 +39,6 @@ makemessages:
 # Create translation files
 	python manage.py makemessages --all
 
-.PHONY: algolia-reindex
-algolia-reindex:
-# Reindex algolia
-	python manage.py algolia_reindex
-
 TEMP_TRANSLATION_FILES := $(shell mktemp -d --suffix -projects-back-makemessages)
 .PHONY: makemessages-check
 makemessages-check:
@@ -113,3 +108,11 @@ check-migrations:
 .PHONY: post-deploy
 post-deploy:
 	python manage.py post_deploy
+
+.PHONY: list-index
+list-index:
+	python manage.py opensearch index list
+
+.PHONY: rebuild-index
+rebuild-index:
+	python manage.py update_or_rebuild_index

@@ -3,11 +3,10 @@ from typing import Callable
 from apps.commons.models import PermissionsSetupModel
 
 from .tasks import (
-    algolia_reindex_task,
     base_groups_permissions,
     instance_groups_permissions,
     migrate,
-    remove_duplicated_roles,
+    rebuild_index,
 )
 
 
@@ -45,10 +44,10 @@ class BaseGroupsPermissions(PostDeployTask):
     run_in_tests = True
 
 
-class AlgoliaReindex(PostDeployTask):
-    task_name = "algolia_reindex"
+class RebuildIndex(PostDeployTask):
+    task_name = "rebuild_index"
     priority = 3
-    task = algolia_reindex_task
+    task = rebuild_index
 
 
 class InstanceGroupsPermissions(PostDeployTask):
@@ -63,12 +62,6 @@ class InstanceGroupsPermissions(PostDeployTask):
         )
         total_objects = sum([m.objects.count() for m in models])
         return f"{str(round((updated_objects / total_objects)*100, 2))}%"
-
-
-class RemoveDuplicatedRoles(PostDeployTask):
-    task_name = "remove_duplicated_roles"
-    priority = 5
-    task = remove_duplicated_roles
 
 
 # class CreateDefaultTagClassifications(PostDeployTask):  # noqa

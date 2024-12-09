@@ -1,6 +1,4 @@
-import time
-
-from algoliasearch_django import algolia_engine
+from django.core.management import call_command
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -9,16 +7,15 @@ from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import Language
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
+from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
-from apps.search.tasks import update_or_create_project_search_object_task
 from apps.skills.factories import TagFactory
 
 
-@skipUnlessAlgolia
+@skipUnlessSearch
 class ProjectSearchTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -31,15 +28,15 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.tag_2 = TagFactory()
         Project.objects.all().delete()  # Delete projects created by the factories
         cls.no_organization_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
-            sdgs=[2],
-            language=Language.EN,
+            sdgs=[1],
+            language=Language.FR,
             organizations=[cls.organization],
         )
         cls.no_organization_project.organizations.set([])
         cls.public_project_1 = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization],
             sdgs=[1],
@@ -48,7 +45,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.public_project_1.categories.add(cls.category)
         cls.public_project_1.tags.add(cls.tag)
         cls.public_project_2 = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[cls.organization_2],
             sdgs=[2],
@@ -57,7 +54,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.public_project_2.categories.add(cls.category_2)
         cls.public_project_2.tags.add(cls.tag_2)
         cls.private_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PRIVATE,
             organizations=[cls.organization],
             sdgs=[1],
@@ -66,7 +63,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.private_project.categories.add(cls.category)
         cls.private_project.tags.add(cls.tag)
         cls.org_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.ORG,
             organizations=[cls.organization],
             sdgs=[1],
@@ -75,7 +72,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
         cls.org_project.categories.add(cls.category)
         cls.org_project.tags.add(cls.tag)
         cls.member_project = ProjectFactory(
-            title="algolia",
+            title="opensearch",
             publication_status=Project.PublicationStatus.PRIVATE,
             organizations=[cls.organization],
             sdgs=[1],
@@ -94,36 +91,38 @@ class ProjectSearchTestCase(JwtAPITestCase):
             "public_2": cls.public_project_2,
             "private": cls.private_project,
             "org": cls.org_project,
+            "no_org": cls.no_organization_project,
             "member": cls.member_project,
         }
-        # Create search objects manually because celery tasks are not executed in tests
-        for project in cls.projects.values():
-            update_or_create_project_search_object_task(project.pk)
-        algolia_engine.reindex_all(SearchObject)
-        time.sleep(10)  # reindexing is asynchronous, wait for it to finish
+        # Index the data
+        call_command("opensearch", "index", "rebuild", "--force")
+        call_command("opensearch", "document", "index", "--force", "--refresh")
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("public_1", "public_2")),
-            (TestRoles.DEFAULT, ("public_1", "public_2")),
+            (TestRoles.ANONYMOUS, ("public_1", "public_2", "no_org")),
+            (TestRoles.DEFAULT, ("public_1", "public_2", "no_org")),
             (
                 TestRoles.SUPERADMIN,
-                ("public_1", "public_2", "private", "org", "member"),
+                ("public_1", "public_2", "private", "org", "member", "no_org"),
             ),
-            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "member")),
+            (
+                TestRoles.ORG_ADMIN,
+                ("public_1", "public_2", "private", "org", "member", "no_org"),
+            ),
             (
                 TestRoles.ORG_FACILITATOR,
-                ("public_1", "public_2", "private", "org", "member"),
+                ("public_1", "public_2", "private", "org", "member", "no_org"),
             ),
-            (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
-            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member")),
+            (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
+            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member", "no_org")),
         ]
     )
     def test_search_project(self, role, retrieved_projects):
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=project"
+            reverse("Search-search", args=("opensearch",)) + "?types=project"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -140,7 +139,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&organizations={self.organization_2.code}"
         )
@@ -159,7 +158,9 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=project" + "&sdgs=2"
+            reverse("Search-search", args=("opensearch",))
+            + "?types=project"
+            + "&sdgs=2"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -176,7 +177,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_language(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + "&languages=en"
         )
@@ -195,7 +196,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_categories(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&categories={self.category_2.id}"
         )
@@ -214,7 +215,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_tags(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&tags={self.tag_2.id}"
         )
@@ -233,7 +234,7 @@ class ProjectSearchTestCase(JwtAPITestCase):
     def test_filter_by_members(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=project"
             + f"&members={self.public_project_2_member.id}"
         )

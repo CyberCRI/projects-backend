@@ -1,6 +1,4 @@
-import time
-
-from algoliasearch_django import algolia_engine
+from django.core.management import call_command
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -8,13 +6,12 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessAlgolia
+from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
 from apps.organizations.factories import OrganizationFactory
 from apps.search.models import SearchObject
-from apps.search.tasks import update_or_create_people_group_search_object_task
 
 
-@skipUnlessAlgolia
+@skipUnlessSearch
 class PeopleGroupSearchTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -22,32 +19,32 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         PeopleGroup.objects.all().delete()  # Delete people_groups created by the factories
         cls.public_people_group_1 = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization,
             sdgs=[2],
         )
         cls.organization_2 = OrganizationFactory()
         cls.public_people_group_2 = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=cls.organization_2,
             sdgs=[1],
         )
         cls.private_people_group = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PRIVATE,
             organization=cls.organization,
             sdgs=[2],
         )
         cls.org_people_group = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.ORG,
             organization=cls.organization,
             sdgs=[2],
         )
         cls.member_people_group = PeopleGroupFactory(
-            name="algolia",
+            name="opensearch",
             publication_status=PeopleGroup.PublicationStatus.PRIVATE,
             organization=cls.organization,
             sdgs=[2],
@@ -63,11 +60,9 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
             "org": cls.org_people_group,
             "member": cls.member_people_group,
         }
-        # Create search objects manually because celery tasks are not executed in tests
-        for group in cls.groups.values():
-            update_or_create_people_group_search_object_task(group.pk)
-        algolia_engine.reindex_all(SearchObject)
-        time.sleep(10)  # reindexing is asynchronous, wait for it to finish
+        # Index the data
+        call_command("opensearch", "index", "rebuild", "--force")
+        call_command("opensearch", "document", "index", "--force", "--refresh")
 
     @parameterized.expand(
         [
@@ -92,7 +87,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",)) + "?types=people_group"
+            reverse("Search-search", args=("opensearch",)) + "?types=people_group"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -109,7 +104,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
     def test_filter_by_organization(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=people_group"
             + f"&organizations={self.organization_2.code}"
         )
@@ -128,7 +123,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase):
     def test_filter_by_sdgs(self):
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
-            reverse("Search-search", args=("algolia",))
+            reverse("Search-search", args=("opensearch",))
             + "?types=people_group"
             + "&sdgs=1"
         )
