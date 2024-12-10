@@ -180,7 +180,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             "children": [
                 cls._get_hierarchy(groups, child)
                 for child in groups[group_id].children_ids
-                if child is not None
+                if child is not None and child in groups
             ],
             "roles": [group.name for group in groups[group_id].groups.all()],
             "header_image": (
@@ -190,9 +190,13 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             ),
         }
 
-    def get_hierarchy(self):
+    def get_hierarchy(self, user: Optional["ProjectUser"] = None) -> dict:
         # This would be better with a recursive serializer, but it doubles the query time
-        groups = PeopleGroup.objects.filter(organization=self.organization.pk).annotate(
+        if user:
+            groups = user.get_people_group_queryset()
+        else:
+            groups = PeopleGroup.objects.all()
+        groups = groups.filter(organization=self.organization.pk).annotate(
             children_ids=ArrayAgg("children")
         )
         groups = {group.id: group for group in groups}
