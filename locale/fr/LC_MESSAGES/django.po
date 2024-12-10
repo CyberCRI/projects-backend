@@ -116,15 +116,15 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:812
+#: apps/accounts/models.py:824
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:813
+#: apps/accounts/models.py:825
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:814
+#: apps/accounts/models.py:826
 msgid "Public"
 msgstr "Publique"
 

@@ -209,15 +209,15 @@ class RetrieveNewsTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("all", "public")),
-            (TestRoles.DEFAULT, ("all", "public")),
+            (TestRoles.ANONYMOUS, ("all",)),
+            (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_USER, ("none", "all", "public", "org")),
-            (TestRoles.GROUP_LEADER, ("all", "public", "private")),
-            (TestRoles.GROUP_MANAGER, ("all", "public", "private")),
-            (TestRoles.GROUP_MEMBER, ("all", "public", "private")),
+            (TestRoles.ORG_USER, ("none", "all")),
+            (TestRoles.GROUP_LEADER, ("all", "private")),
+            (TestRoles.GROUP_MANAGER, ("all", "private")),
+            (TestRoles.GROUP_MEMBER, ("all", "private")),
         ]
     )
     def test_list_news(self, role, expected_count):

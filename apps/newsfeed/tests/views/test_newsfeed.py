@@ -193,20 +193,18 @@ class NewsfeedTestCase(JwtAPITestCase):
                 TestRoles.ANONYMOUS,
                 [
                     "public_not_complete_announcement",
-                    "public_news",
+                    "all_news",
                     "public_project",
                     "public_announcement",
-                    "all_news",
                 ],
             ),
             (
                 TestRoles.DEFAULT,
                 [
                     "public_not_complete_announcement",
-                    "public_news",
+                    "all_news",
                     "public_project",
                     "public_announcement",
-                    "all_news",
                 ],
             ),
             (
@@ -267,30 +265,27 @@ class NewsfeedTestCase(JwtAPITestCase):
                 TestRoles.ORG_USER,
                 [
                     "public_not_complete_announcement",
-                    "org_news",
+                    "all_news",
                     "public_project",
                     "public_announcement",
-                    "public_news",
                     "org_project",
                     "org_announcement",
-                    "all_news",
                 ],
             ),
             (
                 TestRoles.PROJECT_MEMBER,
                 [
                     "public_not_complete_announcement",
-                    "public_news",
+                    "all_news",
                     "public_project",
                     "public_announcement",
-                    "all_news",
                     "member_project",
                     "member_announcement",
                 ],
             ),
         ]
     )
-    def test_list_projects(self, role, retrieved_newsfeed):
+    def test_newsfeed(self, role, retrieved_newsfeed):
         user = self.get_parameterized_test_user(
             role, instances=[self.member_project, self.announcement_member_project]
         )
