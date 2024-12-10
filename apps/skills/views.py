@@ -735,7 +735,6 @@ class MentorshipContactViewset(viewsets.ViewSet):
             raise UserCannotMentorError
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.send_email("contact_mentor", skill, **serializer.validated_data)
         try:
             Mentoring.objects.create(
                 skill=skill,
@@ -744,6 +743,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
+        self.send_email("contact_mentor", skill, **serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(request=MentorshipContactSerializer, responses={204: None})
@@ -764,7 +764,6 @@ class MentorshipContactViewset(viewsets.ViewSet):
             raise UserDoesNotNeedMentorError
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.send_email("contact_mentoree", skill, **serializer.validated_data)
         try:
             Mentoring.objects.create(
                 skill=skill,
@@ -773,4 +772,5 @@ class MentorshipContactViewset(viewsets.ViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
+        self.send_email("contact_mentoree", skill, **serializer.validated_data)
         return Response(status=status.HTTP_204_NO_CONTENT)
