@@ -2,6 +2,7 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.db import transaction
 from django.db.models import Count, Q, QuerySet
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
@@ -31,6 +32,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 from services.wikipedia.interface import WikipediaService
 
 from .exceptions import (
+    DuplicatedMentoringError,
     SkillAlreadyAddedError,
     UserCannotMentorError,
     UserDoesNotNeedMentorError,
@@ -38,7 +40,7 @@ from .exceptions import (
     WikipediaTagSearchLimitError,
 )
 from .filters import TagFilter
-from .models import Skill, Tag, TagClassification
+from .models import Mentoring, Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
 from .serializers import (
     MentorshipContactSerializer,
@@ -723,6 +725,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
         url_name="contact-mentor",
         permission_classes=[IsAuthenticated],
     )
+    @transaction.atomic
     def contact_mentor(self, request, *args, **kwargs):
         """
         Contact a mentor for help.
@@ -733,6 +736,14 @@ class MentorshipContactViewset(viewsets.ViewSet):
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.send_email("contact_mentor", skill, **serializer.validated_data)
+        try:
+            Mentoring.objects.create(
+                skill=skill,
+                mentor=skill.user,
+                mentoree=self.request.user,
+            )
+        except IntegrityError:
+            raise DuplicatedMentoringError
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(request=MentorshipContactSerializer, responses={204: None})
@@ -743,6 +754,7 @@ class MentorshipContactViewset(viewsets.ViewSet):
         url_name="contact-mentoree",
         permission_classes=[IsAuthenticated],
     )
+    @transaction.atomic
     def contact_mentoree(self, request, *args, **kwargs):
         """
         Contact a mentoree for help.
@@ -753,4 +765,12 @@ class MentorshipContactViewset(viewsets.ViewSet):
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.send_email("contact_mentoree", skill, **serializer.validated_data)
+        try:
+            Mentoring.objects.create(
+                skill=skill,
+                mentor=self.request.user,
+                mentoree=skill.user,
+            )
+        except IntegrityError:
+            raise DuplicatedMentoringError
         return Response(status=status.HTTP_204_NO_CONTENT)

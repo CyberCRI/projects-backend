@@ -47,6 +47,12 @@ class WikipediaTagSearchLimitError(APIException):
     default_code = "wikipedia_tag_search_limit"
 
 
+class DuplicatedMentoringError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("You already made a mentoring request for this skill")
+    default_code = "duplicated_mentoring"
+
+
 # Validation errors
 
 
