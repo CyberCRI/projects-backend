@@ -29,7 +29,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         user.privacy_settings.skills = privacy
         user.privacy_settings.socials = privacy
         user.privacy_settings.mobile_phone = privacy
-        user.privacy_settings.personal_email = privacy
+        user.privacy_settings.email = privacy
         user.privacy_settings.save()
 
     def assert_fields_visible(self, user, data):
@@ -38,7 +38,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.assertEqual(data["skype"], user.skype)
         self.assertEqual(data["landline_phone"], user.landline_phone)
         self.assertEqual(data["mobile_phone"], user.mobile_phone)
-        self.assertEqual(data["personal_email"], user.personal_email)
+        self.assertEqual(data["email"], user.email)
         self.assertEqual(data["linkedin"], user.linkedin)
         self.assertEqual(data["medium"], user.medium)
         self.assertEqual(data["website"], user.website)
@@ -54,7 +54,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         self.assertIsNone(data["skype"])
         self.assertIsNone(data["landline_phone"])
         self.assertIsNone(data["mobile_phone"])
-        self.assertIsNone(data["personal_email"])
+        self.assertIsNone(data["email"])
         self.assertIsNone(data["linkedin"])
         self.assertIsNone(data["medium"])
         self.assertIsNone(data["website"])

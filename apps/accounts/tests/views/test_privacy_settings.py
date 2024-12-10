@@ -59,7 +59,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
                 "skills",
                 "socials",
                 "mobile_phone",
-                "personal_email",
+                "email",
             ]:
                 self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
@@ -93,7 +93,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
                 "skills",
                 "socials",
                 "mobile_phone",
-                "personal_email",
+                "email",
             ]:
                 self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
@@ -127,7 +127,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
                 "skills",
                 "socials",
                 "mobile_phone",
-                "personal_email",
+                "email",
             ]:
                 self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
@@ -165,7 +165,7 @@ class UpdatePrivacySettingsTestCase(JwtAPITestCase):
                 "skills",
                 "socials",
                 "mobile_phone",
-                "personal_email",
+                "email",
             ]
         }
         response = self.client.patch(

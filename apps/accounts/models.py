@@ -839,7 +839,7 @@ class PrivacySettings(models.Model, HasOwner):
         **PRIVACY_CHARFIELD,
         default=PrivacyChoices.ORGANIZATION,
     )
-    personal_email = models.CharField(
+    email = models.CharField(
         **PRIVACY_CHARFIELD,
         default=PrivacyChoices.ORGANIZATION,
     )
