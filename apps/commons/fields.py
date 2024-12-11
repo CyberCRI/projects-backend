@@ -185,7 +185,10 @@ class PrivacySettingFieldMixin:
             and user_data.model == ProjectUser
             and self.source_attrs
         ):
-            return user_data.filter(**{self.source_attrs[0]: value}).first()
+            try:
+                return user_data.filter(**{self.source_attrs[0]: value}).first()
+            except TypeError:  # filter raises a TypeError if queryset has been sliced
+                user_data = list(user_data)
         if user_data and isinstance(user_data, ProjectUser):
             return user_data
         if user_data and isinstance(user_data, list) and len(user_data) == 1:
