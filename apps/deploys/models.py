@@ -14,6 +14,14 @@ logger = logging.getLogger(__name__)
 
 
 class PostDeployProcess(models.Model):
+    """
+    A model to manage post deploy processes that should be executed after a deploy.
+    These processes are defined in the PostDeployTask subclasses.
+
+    The instances of this model are created when the deploy() method is called, they
+    should not be created manually.
+    """
+
     class PostDeployProcessStatus(models.TextChoices):
         SUCCESS = "SUCCESS"
         FAILURE = "FAILURE"
@@ -92,7 +100,12 @@ class PostDeployProcess(models.Model):
                     (
                         not process.last_run
                         or process.last_run
-                        < timezone.localtime(timezone.now() - timedelta(minutes=30))
+                        < timezone.localtime(
+                            timezone.now()
+                            - timedelta(
+                                minutes=cls._tasks[process.task_name].sleep_time
+                            )
+                        )
                     )
                     and str(process.last_run_version) != str(settings.VERSION)
                 )
