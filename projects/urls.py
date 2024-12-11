@@ -57,7 +57,6 @@ router.extend(skills_router)
 urlpatterns_v1 = [
     path("", include(router.urls)),
     path("", include("apps.accounts.urls")),
-    path("", include("apps.notifications.urls")),
     path("", include("apps.organizations.urls")),
     path("", include("apps.emailing.urls")),
     path("healthz/", include(("apps.healthcheck.urls", "healthcheck"))),

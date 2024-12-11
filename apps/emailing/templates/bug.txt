@@ -1,5 +1,5 @@
 Subject: {{ title }}
 From: {{ reported_by }}
 URL: {{ url }}
-
+From portal {{ organization_url }}
 {{ message|safe }}

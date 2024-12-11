@@ -1,4 +1,4 @@
 Subject: {{ subject }}
 From: {{ email }}
-
+From portal {{ organization_url }}
 {{ content|safe }}
