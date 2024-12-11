@@ -1591,15 +1591,19 @@ msgstr ""
 msgid "You can only search for 50 Wikipedia tags at a time"
 msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
 
-#: apps/skills/exceptions.py:55
+#: apps/skills/exceptions.py:52
+msgid "You already made a mentoring request for this skill"
+msgstr "Vous avez déjà fait une demande de mentorat pour cette compétence"
+
+#: apps/skills/exceptions.py:61
 msgid "Tags must belong to the classification's organization"
 msgstr "Les tags doivent appartenir à l'organisation de la classification"
 
-#: apps/skills/exceptions.py:61
+#: apps/skills/exceptions.py:67
 msgid "Tag title must be 50 characters or less"
 msgstr "Le titre du tag doit comporter 50 caractères ou moins"
 
-#: apps/skills/exceptions.py:67
+#: apps/skills/exceptions.py:73
 msgid "Tag description must be 500 characters or less"
 msgstr "La description du tag doit comporter 500 caractères ou moins"
 
