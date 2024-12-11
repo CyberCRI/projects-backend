@@ -6,11 +6,17 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
 class ContactTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS,),
@@ -26,6 +32,8 @@ class ContactTestCase(JwtAPITestCase):
             "content": faker.text(),
             "email": faker.email(),
         }
-        response = self.client.post(reverse("Contact-us"), data=payload)
+        response = self.client.post(
+            reverse("Contact-us", args=(self.organization.code,)), data=payload
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()
