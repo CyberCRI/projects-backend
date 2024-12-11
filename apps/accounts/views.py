@@ -828,7 +828,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def hierarchy(self, request, *args, **kwargs):
         people_group = self.get_object()
-        return Response(people_group.get_hierarchy(), status=status.HTTP_200_OK)
+        return Response(
+            people_group.get_hierarchy(self.request.user), status=status.HTTP_200_OK
+        )
 
 
 @extend_schema(
