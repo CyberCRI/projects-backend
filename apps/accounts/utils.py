@@ -80,8 +80,15 @@ def get_permission_representation(
 
 
 def get_instance_from_group(group: Group) -> Optional[PermissionsSetupModel]:
-    if group.projects.exists() and group.people_groups.exists():
-        return group.projects.get()
+    """
+    Get the related instance from a django.contrib.auth.models.Group instance.
+    The instance can be an Organization, a Project or a PeopleGroup.
+
+    The projects check must absolutely come before the people_groups check, because
+    a project can have a people_group as a member. The concerned group is related to
+    both the project and the people_group, but the project is the one that should be
+    returned.
+    """
     if group.projects.exists():
         return group.projects.get()
     if group.organizations.exists():
