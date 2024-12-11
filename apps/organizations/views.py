@@ -235,7 +235,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         """Get the people groups hierarchy of the organization."""
         organization = self.get_object()
         root_group = PeopleGroup.update_or_create_root(organization)
-        return Response(root_group.get_hierarchy(), status=status.HTTP_200_OK)
+        return Response(
+            root_group.get_hierarchy(self.request.user), status=status.HTTP_200_OK
+        )
 
     @action(
         detail=True,
