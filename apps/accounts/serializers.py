@@ -358,16 +358,22 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
     )
 
     def get_hierarchy(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
+        request = self.context.get("request")
+        queryset = request.user.get_people_group_queryset()
         hierarchy = []
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
-            hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
+            if obj in queryset:
+                hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
+        request = self.context.get("request")
+        queryset = (
+            request.user.get_people_group_queryset() & obj.children.all().distinct()
+        )
         return [
-            {"id": child.id, "name": child.name}
-            for child in obj.children.all().order_by("name")
+            {"id": child.id, "name": child.name} for child in queryset.order_by("name")
         ]
 
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:

@@ -704,7 +704,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         )
 
     def can_see_project(self, project: "Project") -> bool:
-        """Return a `BasePermission` according to `linked_project`'s publication status."""
+        """Whether the user can see the project."""
         return project in self.get_project_queryset()
 
     def get_permissions_representations(self) -> List[str]:
