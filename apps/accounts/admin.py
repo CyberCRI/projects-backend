@@ -204,13 +204,13 @@ class GroupAdmin(admin.ModelAdmin):
         return format_html(f'<b style="color:{color};">{permissions_up_to_date}</b>')
 
     def permissions_up_to_date(self, instance: Group) -> str:
-        if instance.people_groups.exists():
-            return self.format_permissions_up_to_date(
-                instance.people_groups.get().permissions_up_to_date
-            )
         if instance.projects.exists():
             return self.format_permissions_up_to_date(
                 instance.projects.get().permissions_up_to_date
+            )
+        if instance.people_groups.exists():
+            return self.format_permissions_up_to_date(
+                instance.people_groups.get().permissions_up_to_date
             )
         if instance.organizations.exists():
             return self.format_permissions_up_to_date(

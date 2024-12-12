@@ -201,6 +201,9 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("projectmessage", "project messages"),
             ("projectuser", "users"),
             ("peoplegroup", "groups"),
+            ("news", "news"),
+            ("event", "event"),
+            ("instruction", "instructions"),
         )
         write_only_subscopes = (
             ("tag", "tags"),
@@ -211,9 +214,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("comment", "comments"),
             ("follow", "follows"),
             ("invitation", "invitation links"),
-            ("news", "news"),
-            ("event", "event"),
-            ("instruction", "instructions"),
         )
         permissions = (
             ("view_stat", "Can view stats"),

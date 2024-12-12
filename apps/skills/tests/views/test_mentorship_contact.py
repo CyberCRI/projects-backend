@@ -9,6 +9,7 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.skills.factories import SkillFactory
+from apps.skills.models import Mentoring
 
 faker = Faker()
 
@@ -53,6 +54,13 @@ class MentorshipContactTestCase(JwtAPITestCase):
             self.assertIn(payload["title"], email.body)
             self.assertIn(payload["content"], email.body)
             self.assertIn(payload["reply_to"], email.body)
+            self.assertTrue(
+                Mentoring.objects.filter(
+                    mentor=self.mentor,
+                    mentoree=user,
+                    skill=self.mentor_skill,
+                ).exists()
+            )
 
     @parameterized.expand(
         [
@@ -84,6 +92,13 @@ class MentorshipContactTestCase(JwtAPITestCase):
             self.assertIn(payload["title"], email.body)
             self.assertIn(payload["content"], email.body)
             self.assertIn(payload["reply_to"], email.body)
+            self.assertTrue(
+                Mentoring.objects.filter(
+                    mentor=user,
+                    mentoree=self.mentoree,
+                    skill=self.mentoree_skill,
+                ).exists()
+            )
 
 
 class ValidateMentorshipContactTestCase(JwtAPITestCase):
@@ -139,4 +154,62 @@ class ValidateMentorshipContactTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiTechnicalError(
             response, "This user does not need a mentor for this skill"
+        )
+
+    def test_duplicate_mentoree_request(self):
+        organization = self.organization
+        user = self.superadmin
+        self.client.force_authenticate(user)
+        payload = {
+            "title": faker.sentence(),
+            "content": faker.text(),
+            "reply_to": faker.email(),
+        }
+        response = self.client.post(
+            reverse(
+                "MentorshipContact-contact-mentoree",
+                args=(organization.code, self.mentoree_skill.id),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.post(
+            reverse(
+                "MentorshipContact-contact-mentoree",
+                args=(organization.code, self.mentoree_skill.id),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiTechnicalError(
+            response, "You already made a mentoring request for this skill"
+        )
+
+    def test_duplicate_mentor_request(self):
+        organization = self.organization
+        user = self.superadmin
+        self.client.force_authenticate(user)
+        payload = {
+            "title": faker.sentence(),
+            "content": faker.text(),
+            "reply_to": faker.email(),
+        }
+        response = self.client.post(
+            reverse(
+                "MentorshipContact-contact-mentor",
+                args=(organization.code, self.mentor_skill.id),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.client.post(
+            reverse(
+                "MentorshipContact-contact-mentor",
+                args=(organization.code, self.mentor_skill.id),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiTechnicalError(
+            response, "You already made a mentoring request for this skill"
         )

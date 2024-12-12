@@ -45,7 +45,7 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
             "profile_picture",
             "skills",
             "mobile_phone",
-            "personal_email",
+            "email",
             "socials",
         ]
 
@@ -86,6 +86,9 @@ class UserAdminListSerializer(serializers.ModelSerializer):
 
 
 class UserLighterSerializer(serializers.ModelSerializer):
+    email = PrivacySettingProtectedEmailField(
+        privacy_field="email", required=False, allow_blank=True
+    )
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
     )
@@ -128,6 +131,9 @@ class UserLighterSerializer(serializers.ModelSerializer):
 
 
 class UserLightSerializer(serializers.ModelSerializer):
+    email = PrivacySettingProtectedEmailField(
+        privacy_field="email", required=False, allow_blank=True
+    )
     pronouns = serializers.CharField(required=False)
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
@@ -488,6 +494,12 @@ class UserSerializer(serializers.ModelSerializer):
     privacy_settings = PrivacySettingsSerializer(read_only=True)
 
     # Privacy protected fields
+    email = PrivacySettingProtectedEmailField(
+        privacy_field="email", required=False, allow_blank=True
+    )
+    personal_email = PrivacySettingProtectedEmailField(
+        privacy_field="email", required=False, allow_blank=True
+    )
     skills = PrivacySettingProtectedMethodField(
         privacy_field="skills", default_value=[]
     )
@@ -496,9 +508,6 @@ class UserSerializer(serializers.ModelSerializer):
     )
     mobile_phone = PrivacySettingProtectedCharField(
         privacy_field="mobile_phone", required=False, allow_blank=True
-    )
-    personal_email = PrivacySettingProtectedEmailField(
-        privacy_field="personal_email", required=False, allow_blank=True
     )
     facebook = PrivacySettingProtectedCharField(
         privacy_field="socials", required=False, allow_blank=True

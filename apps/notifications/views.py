@@ -3,6 +3,7 @@ from urllib.request import Request
 
 from django.conf import settings
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
@@ -16,6 +17,7 @@ from apps.commons.serializers import RetrieveUpdateModelViewSet
 from apps.commons.views import ListViewSet, MultipleIDViewsetMixin
 from apps.emailing.tasks import send_email_task
 from apps.emailing.utils import render_message
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 
 from .models import Notification, NotificationSettings
@@ -83,15 +85,19 @@ class ReportViewSet(viewsets.GenericViewSet):
 
     @extend_schema(request=EmailReportSerializer)
     @action(detail=False, methods=["POST"])
-    def abuse(self, request: Request):
+    def abuse(self, request: Request, *args, **kwargs):
         """Allow to send an abuse report email."""
+        organization_code = self.kwargs.get("organization_code", None)
+        organization = get_object_or_404(Organization, code=organization_code)
         serializer = EmailReportSerializer(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
 
         text_content, html_content = render_message(
-            "abuse", **serializer.validated_data
+            "abuse",
+            organization_url=organization.website_url,
+            **serializer.validated_data,
         )
         send_email_task.delay(
             f"[Abuse] {serializer.validated_data['title']}",
@@ -104,14 +110,20 @@ class ReportViewSet(viewsets.GenericViewSet):
 
     @extend_schema(request=EmailReportSerializer)
     @action(detail=False, methods=["POST"])
-    def bug(self, request: Request):
+    def bug(self, request: Request, *args, **kwargs):
         """Allow to send a bug report email."""
+        organization_code = self.kwargs.get("organization_code", None)
+        organization = get_object_or_404(Organization, code=organization_code)
         serializer = EmailReportSerializer(
             data=request.data, context={"request": request}
         )
         serializer.is_valid(raise_exception=True)
 
-        text_content, html_content = render_message("bug", **serializer.validated_data)
+        text_content, html_content = render_message(
+            "bug",
+            organization_url=organization.website_url,
+            **serializer.validated_data,
+        )
         send_email_task.delay(
             f"[Bug] {serializer.validated_data['title']}",
             text_content,
@@ -130,13 +142,17 @@ class ContactViewSet(viewsets.GenericViewSet):
 
     @extend_schema(request=ContactSerializer)
     @action(detail=False, methods=["POST"])
-    def us(self, request: Request):
+    def us(self, request: Request, *args, **kwargs):
         """Allow to send an abuse report email."""
+        organization_code = self.kwargs.get("organization_code", None)
+        organization = get_object_or_404(Organization, code=organization_code)
         serializer = ContactSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         text_content, html_content = render_message(
-            "contact_us", **serializer.validated_data
+            "contact_us",
+            organization_url=organization.website_url,
+            **serializer.validated_data,
         )
         send_email_task.delay(
             f"[Contact] {serializer.validated_data['subject']}",

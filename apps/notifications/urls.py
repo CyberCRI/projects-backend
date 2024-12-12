@@ -1,18 +1,31 @@
-from django.urls import include, path
 from rest_framework.routers import SimpleRouter
 
-from . import views
+from apps.commons.urls import organization_router_register
 
-router = SimpleRouter()
-router.register(r"report", views.ReportViewSet, basename="Report")
-router.register(r"contact", views.ContactViewSet, basename="Contact")
-router.register(r"notification", views.NotificationsViewSet, basename="Notification")
-router.register(
-    r"notifications-setting",
-    views.NotificationSettingsViewSet,
-    basename="NotificationSettings",
+from .views import (
+    ContactViewSet,
+    NotificationSettingsViewSet,
+    NotificationsViewSet,
+    ReportViewSet,
 )
 
-urlpatterns = [
-    path(r"", include(router.urls)),
-]
+router = SimpleRouter()
+
+router.register(r"notification", NotificationsViewSet, basename="Notification")
+router.register(
+    r"notifications-setting",
+    NotificationSettingsViewSet,
+    basename="NotificationSettings",
+)
+organization_router_register(
+    router,
+    r"report",
+    ReportViewSet,
+    basename="Report",
+)
+organization_router_register(
+    router,
+    r"contact",
+    ContactViewSet,
+    basename="Contact",
+)

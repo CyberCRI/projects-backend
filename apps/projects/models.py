@@ -279,8 +279,14 @@ class Project(
             self.stat.update_versions()
 
     def delete(self, using=None, keep_parents=False):
-        """Only soft-delete the project."""
+        """
+        Only soft-delete the project.
+
+        The member_people_groups group is deleted in the `soft_delete` method to avoid
+        any issue with the `get_instance_from_group`.
+        """
         self.deleted_at = timezone.localtime(timezone.now())
+        self.get_people_groups().delete()
         self.save()
 
     @transaction.atomic

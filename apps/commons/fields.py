@@ -1,6 +1,7 @@
 import inspect
 
 from django.contrib.auth.models import Group
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
@@ -165,11 +166,47 @@ class PrivacySettingFieldMixin:
         ]
         super().__init__(**kwargs)
 
+    def _get_user(self, value):
+        if isinstance(value, ProjectUser):
+            return value
+        user_data = getattr(self.parent, "instance", None) or getattr(
+            self.parent, "queryset", None
+        )
+        if (
+            user_data
+            and isinstance(user_data, QuerySet)
+            and user_data.model == ProjectUser
+            and user_data.count() == 1
+        ):
+            return user_data.get()
+        if (
+            user_data
+            and isinstance(user_data, QuerySet)
+            and user_data.model == ProjectUser
+            and self.source_attrs
+        ):
+            try:
+                return user_data.filter(**{self.source_attrs[0]: value}).first()
+            except TypeError:  # filter raises a TypeError if queryset has been sliced
+                user_data = list(user_data)
+        if user_data and isinstance(user_data, ProjectUser):
+            return user_data
+        if user_data and isinstance(user_data, list) and len(user_data) == 1:
+            return user_data[0]
+        if user_data and isinstance(user_data, list) and self.source_attrs:
+            return [
+                user
+                for user in user_data
+                if getattr(user, self.source_attrs[0]) == value
+            ][0]
+        if self.source_attrs:
+            queryset = ProjectUser.objects.filter(**{self.source_attrs[0]: value})
+            if queryset.count() == 1:
+                return queryset.get()
+        return None
+
     def _check_privacy_settings(self, value):
-        if isinstance(self.parent.instance, ProjectUser):
-            instance = self.parent.instance
-        else:
-            instance = value
+        instance = self._get_user(value)
         assert isinstance(instance, ProjectUser)
         request = self.context.get("request")
         assert request is not None

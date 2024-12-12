@@ -219,3 +219,38 @@ class Skill(models.Model, HasOwner):
     def get_owner(self):
         """Get the owner of the object."""
         return self.user
+
+
+class Mentoring(models.Model):
+    class MentoringStatus(models.TextChoices):
+        """Status of a mentoring request."""
+
+        PENDING = "pending"
+        ACCEPTED = "accepted"
+        REJECTED = "rejected"
+
+    mentor = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="mentor_requests",
+    )
+    mentoree = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="mentoree_requests",
+    )
+    skill = models.ForeignKey(
+        "skills.Skill", on_delete=models.CASCADE, related_name="mentoring_requests"
+    )
+    status = models.CharField(
+        max_length=8,
+        choices=MentoringStatus.choices,
+        default=MentoringStatus.PENDING.value,
+    )
+
+    class Meta:
+        unique_together = (
+            "mentor",
+            "mentoree",
+            "skill",
+        )

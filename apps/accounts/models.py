@@ -182,7 +182,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             "children": [
                 cls._get_hierarchy(groups, child)
                 for child in groups[group_id].children_ids
-                if child is not None
+                if child is not None and child in groups
             ],
             "roles": [group.name for group in groups[group_id].groups.all()],
             "header_image": (
@@ -192,9 +192,16 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             ),
         }
 
-    def get_hierarchy(self):
+    def get_hierarchy(self, user: Optional["ProjectUser"] = None) -> dict:
         # This would be better with a recursive serializer, but it doubles the query time
-        groups = PeopleGroup.objects.filter(organization=self.organization.pk).annotate(
+        if user:
+            groups = (
+                user.get_people_group_queryset()
+                | PeopleGroup.objects.filter(is_root=True).distinct()
+            )
+        else:
+            groups = PeopleGroup.objects.all()
+        groups = groups.filter(organization=self.organization.pk).annotate(
             children_ids=ArrayAgg("children")
         )
         groups = {group.id: group for group in groups}
@@ -530,7 +537,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             if self.is_superuser:
                 self._news_queryset = News.objects.all()
             else:
-                groups = self.get_people_group_queryset()
+                groups = PeopleGroup.objects.filter(groups__users=self)
                 organizations = self.get_related_organizations()
                 self._news_queryset = News.objects.filter(
                     Q(visible_by_all=True)
@@ -538,7 +545,11 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     | (
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)
-                        & Q(visible_by_all=False)
+                    )
+                    | Q(
+                        organization__in=get_objects_for_user(
+                            self, "organizations.view_news"
+                        )
                     )
                 )
         return self._news_queryset.distinct()
@@ -548,7 +559,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             if self.is_superuser:
                 self._instruction_queryset = Instruction.objects.all()
             else:
-                groups = self.get_people_group_queryset()
+                groups = PeopleGroup.objects.filter(groups__users=self)
                 organizations = self.get_related_organizations()
                 self._instruction_queryset = Instruction.objects.filter(
                     Q(visible_by_all=True)
@@ -556,7 +567,11 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     | (
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)
-                        & Q(visible_by_all=False)
+                    )
+                    | Q(
+                        organization__in=get_objects_for_user(
+                            self, "organizations.view_instruction"
+                        )
                     )
                 )
         return self._instruction_queryset.distinct()
@@ -566,7 +581,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             if self.is_superuser:
                 self._event_queryset = Event.objects.all()
             else:
-                groups = self.get_people_group_queryset()
+                groups = PeopleGroup.objects.filter(groups__users=self)
                 organizations = self.get_related_organizations()
                 self._event_queryset = Event.objects.filter(
                     Q(visible_by_all=True)
@@ -574,7 +589,11 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
                     | (
                         Q(organization__in=organizations)
                         & Q(people_groups__isnull=True)
-                        & Q(visible_by_all=False)
+                    )
+                    | Q(
+                        organization__in=get_objects_for_user(
+                            self, "organizations.view_event"
+                        )
                     )
                 )
         return self._event_queryset.distinct()
@@ -830,7 +849,7 @@ class PrivacySettings(models.Model, HasOwner):
         **PRIVACY_CHARFIELD,
         default=PrivacyChoices.ORGANIZATION,
     )
-    personal_email = models.CharField(
+    email = models.CharField(
         **PRIVACY_CHARFIELD,
         default=PrivacyChoices.ORGANIZATION,
     )
@@ -955,32 +974,17 @@ class AnonymousUser:
 
     def get_news_queryset(self) -> QuerySet["News"]:
         if self._news_queryset is None:
-            self._news_queryset = News.objects.filter(
-                Q(visible_by_all=True)
-                | Q(
-                    people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
-                )
-            )
+            self._news_queryset = News.objects.filter(visible_by_all=True)
         return self._news_queryset.distinct()
 
     def get_event_queryset(self) -> QuerySet["Event"]:
         if self._event_queryset is None:
-            self._event_queryset = Event.objects.filter(
-                Q(visible_by_all=True)
-                | Q(
-                    people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
-                )
-            )
+            self._event_queryset = Event.objects.filter(visible_by_all=True)
         return self._event_queryset.distinct()
 
     def get_instruction_queryset(self) -> QuerySet["Instruction"]:
         if self._instruction_queryset is None:
-            self._instruction_queryset = Instruction.objects.filter(
-                Q(visible_by_all=True)
-                | Q(
-                    people_groups__publication_status=PeopleGroup.PublicationStatus.PUBLIC
-                )
-            )
+            self._instruction_queryset = Instruction.objects.filter(visible_by_all=True)
         return self._instruction_queryset.distinct()
 
     def get_user_queryset(self) -> QuerySet["ProjectUser"]:
@@ -1027,38 +1031,17 @@ class AnonymousUser:
     def get_news_related_queryset(
         self, queryset: QuerySet, news_related_name: str = "news"
     ) -> QuerySet["News"]:
-        return queryset.filter(
-            Q(**{f"{news_related_name}__visible_by_all": True})
-            | Q(
-                **{
-                    f"{news_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
-                }
-            )
-        )
+        return queryset.filter(**{f"{news_related_name}__visible_by_all": True})
 
     def get_instruction_related_queryset(
         self, queryset: QuerySet, instruction_related_name: str = "instruction"
     ) -> QuerySet["Instruction"]:
-        return queryset.filter(
-            Q(**{f"{instruction_related_name}__visible_by_all": True})
-            | Q(
-                **{
-                    f"{instruction_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
-                }
-            )
-        )
+        return queryset.filter(**{f"{instruction_related_name}__visible_by_all": True})
 
     def get_event_related_queryset(
         self, queryset: QuerySet, event_related_name: str = "event"
     ) -> QuerySet["Event"]:
-        return queryset.filter(
-            Q(**{f"{event_related_name}__visible_by_all": True})
-            | Q(
-                **{
-                    f"{event_related_name}__people_groups__publication_status": PeopleGroup.PublicationStatus.PUBLIC
-                }
-            )
-        )
+        return queryset.filter(**{f"{event_related_name}__visible_by_all": True})
 
     def can_see_project(self, project):
         return project.publication_status == Project.PublicationStatus.PUBLIC

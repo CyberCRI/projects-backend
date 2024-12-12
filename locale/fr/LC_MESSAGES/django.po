@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-04 16:04+0100\n"
+"POT-Creation-Date: 2024-12-12 15:30+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,15 +116,15 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:803
+#: apps/accounts/models.py:822
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:804
+#: apps/accounts/models.py:823
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:805
+#: apps/accounts/models.py:824
 msgid "Public"
 msgstr "Publique"
 
@@ -190,16 +190,16 @@ msgstr "Statut de publication inconnu"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Statut de publication inconnu '{publication_status}'"
 
-#: apps/commons/fields.py:28 apps/skills/serializers.py:101
+#: apps/commons/fields.py:29 apps/skills/serializers.py:101
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
 
-#: apps/commons/fields.py:29
+#: apps/commons/fields.py:30
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 
-#: apps/commons/fields.py:31 apps/skills/serializers.py:106
+#: apps/commons/fields.py:32 apps/skills/serializers.py:106
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
@@ -1591,15 +1591,19 @@ msgstr ""
 msgid "You can only search for 50 Wikipedia tags at a time"
 msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
 
-#: apps/skills/exceptions.py:55
+#: apps/skills/exceptions.py:52
+msgid "You already made a mentoring request for this skill"
+msgstr "Vous avez déjà fait une demande de mentorat pour cette compétence"
+
+#: apps/skills/exceptions.py:61
 msgid "Tags must belong to the classification's organization"
 msgstr "Les tags doivent appartenir à l'organisation de la classification"
 
-#: apps/skills/exceptions.py:61
+#: apps/skills/exceptions.py:67
 msgid "Tag title must be 50 characters or less"
 msgstr "Le titre du tag doit comporter 50 caractères ou moins"
 
-#: apps/skills/exceptions.py:67
+#: apps/skills/exceptions.py:73
 msgid "Tag description must be 500 characters or less"
 msgstr "La description du tag doit comporter 500 caractères ou moins"
 
