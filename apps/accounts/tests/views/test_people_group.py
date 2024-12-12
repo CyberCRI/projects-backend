@@ -15,6 +15,228 @@ from apps.projects.models import Project
 faker = Faker()
 
 
+class ReadPeopleGroupTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.groups = {
+            "public": PeopleGroupFactory(
+                publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+                organization=cls.organization,
+            ),
+            "private": PeopleGroupFactory(
+                publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+                organization=cls.organization,
+            ),
+            "org": PeopleGroupFactory(
+                publication_status=PeopleGroup.PublicationStatus.ORG,
+                organization=cls.organization,
+            ),
+            "member": PeopleGroupFactory(
+                publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+                organization=cls.organization,
+            ),
+            "root": PeopleGroup.update_or_create_root(cls.organization),
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.GROUP_LEADER, ("public", "member")),
+            (TestRoles.GROUP_MANAGER, ("public", "member")),
+            (TestRoles.GROUP_MEMBER, ("public", "member")),
+        ]
+    )
+    def test_retrieve_people_groups(self, role, expected_groups):
+        organization = self.organization
+        member_group = self.groups["member"]
+        user = self.get_parameterized_test_user(role, instances=[member_group])
+        self.client.force_authenticate(user)
+        for people_group_type, people_group in self.groups.items():
+            response = self.client.get(
+                reverse(
+                    "PeopleGroup-detail",
+                    args=(
+                        organization.code,
+                        people_group.id,
+                    ),
+                )
+            )
+            member_response = self.client.get(
+                reverse(
+                    "PeopleGroup-member",
+                    args=(
+                        organization.code,
+                        people_group.id,
+                    ),
+                )
+            )
+            project_response = self.client.get(
+                reverse(
+                    "PeopleGroup-project",
+                    args=(
+                        organization.code,
+                        people_group.id,
+                    ),
+                )
+            )
+            if people_group_type in expected_groups:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                self.assertEqual(member_response.status_code, status.HTTP_200_OK)
+                self.assertEqual(project_response.status_code, status.HTTP_200_OK)
+            else:
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(member_response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    project_response.status_code, status.HTTP_404_NOT_FOUND
+                )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_ADMIN, ("public", "private", "org", "member")),
+            (TestRoles.ORG_FACILITATOR, ("public", "private", "org", "member")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.GROUP_LEADER, ("public", "member")),
+            (TestRoles.GROUP_MANAGER, ("public", "member")),
+            (TestRoles.GROUP_MEMBER, ("public", "member")),
+        ]
+    )
+    def test_list_people_groups(self, role, expected_groups):
+        organization = self.organization
+        member_group = self.groups["member"]
+        user = self.get_parameterized_test_user(role, instances=[member_group])
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("PeopleGroup-list", args=(organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(len(content), len(expected_groups))
+        self.assertEqual(
+            {people_group["id"] for people_group in content},
+            {
+                self.groups[people_group_type].id
+                for people_group_type in expected_groups
+            },
+        )
+
+
+class ReadPeopleGroupHierarchyTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.root_group = PeopleGroup.update_or_create_root(cls.organization)
+        cls.level_1 = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=cls.organization,
+            parent=cls.root_group,
+        )
+        cls.level_2 = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+            organization=cls.organization,
+            parent=cls.level_1,
+        )
+        cls.level_3 = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+            organization=cls.organization,
+            parent=cls.level_2,
+        )
+        cls.group = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=cls.organization,
+            parent=cls.level_3,
+        )
+        cls.public_child = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+            organization=cls.organization,
+            parent=cls.group,
+        )
+        cls.private_child = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+            organization=cls.organization,
+            parent=cls.group,
+        )
+        cls.org_child = PeopleGroupFactory(
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+            organization=cls.organization,
+            parent=cls.group,
+        )
+        cls.parents = {
+            "level_1": cls.level_1,
+            "level_2": cls.level_2,
+            "level_3": cls.level_3,
+        }
+        cls.children = {
+            "public": cls.public_child,
+            "private": cls.private_child,
+            "org": cls.org_child,
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ["level_1"], ("public",)),
+            (TestRoles.DEFAULT, ["level_1"], ("public",)),
+            (
+                TestRoles.SUPERADMIN,
+                ["level_1", "level_2", "level_3"],
+                ("public", "private", "org"),
+            ),
+            (
+                TestRoles.ORG_ADMIN,
+                ["level_1", "level_2", "level_3"],
+                ("public", "private", "org"),
+            ),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ["level_1", "level_2", "level_3"],
+                ("public", "private", "org"),
+            ),
+            (TestRoles.ORG_USER, ["level_1", "level_3"], ("public", "org")),
+            (TestRoles.GROUP_LEADER, ["level_1", "level_2"], ("public", "private")),
+            (TestRoles.GROUP_MANAGER, ["level_1", "level_2"], ("public", "private")),
+            (TestRoles.GROUP_MEMBER, ["level_1", "level_2"], ("public", "private")),
+        ]
+    )
+    def test_retrieve_people_group_hierarchy(
+        self, role, expected_parents, expected_children
+    ):
+        user = self.get_parameterized_test_user(
+            role, instances=[self.level_2, self.private_child]
+        )
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-detail",
+                args=(self.organization.code, self.group.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+
+        hierarchy = content["hierarchy"]
+        self.assertEqual(len(hierarchy), len(expected_parents))
+        for i, parent in enumerate(expected_parents):
+            self.assertEqual(hierarchy[i]["id"], self.parents[parent].id)
+            self.assertEqual(hierarchy[i]["order"], i)
+
+        children = content["children"]
+        self.assertEqual(len(children), len(expected_children))
+        self.assertSetEqual(
+            {child["id"] for child in children},
+            {self.children[child].id for child in expected_children},
+        )
+
+
 class CreatePeopleGroupTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
