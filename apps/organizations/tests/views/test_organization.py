@@ -1,4 +1,5 @@
 import random
+from functools import reduce
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -8,6 +9,7 @@ from parameterized import parameterized
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
@@ -500,6 +502,229 @@ class OrganizationFeaturedProjectTestCase(JwtAPITestCase):
         self.assertEqual(
             {p["id"] for p in content},
             {projects[p].id for p in retrieved_projects},
+        )
+
+
+class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.root_group = PeopleGroup.update_or_create_root(cls.organization)
+
+        cls.level_1_public = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.root_group,
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+        )
+        cls.level_1_org = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.root_group,
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+        )
+        cls.level_1_private = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.root_group,
+            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+        )
+
+        cls.level_2_public_public = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_public,
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+        )
+        cls.level_2_public_org = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_public,
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+        )
+        cls.level_2_public_private = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_public,
+            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+        )
+
+        cls.level_2_org_public = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_org,
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+        )
+        cls.level_2_org_org = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_org,
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+        )
+        cls.level_2_org_private = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_org,
+            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+        )
+
+        cls.level_2_private_public = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_private,
+            publication_status=PeopleGroup.PublicationStatus.PUBLIC,
+        )
+        cls.level_2_private_org = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_private,
+            publication_status=PeopleGroup.PublicationStatus.ORG,
+        )
+        cls.level_2_private_private = PeopleGroup.objects.create(
+            organization=cls.organization,
+            parent=cls.level_1_private,
+            publication_status=PeopleGroup.PublicationStatus.PRIVATE,
+        )
+
+        cls.groups = {
+            "root": cls.root_group,
+            "level_1_public": cls.level_1_public,
+            "level_1_org": cls.level_1_org,
+            "level_1_private": cls.level_1_private,
+            "level_2_public_public": cls.level_2_public_public,
+            "level_2_public_org": cls.level_2_public_org,
+            "level_2_public_private": cls.level_2_public_private,
+            "level_2_org_public": cls.level_2_org_public,
+            "level_2_org_org": cls.level_2_org_org,
+            "level_2_org_private": cls.level_2_org_private,
+            "level_2_private_public": cls.level_2_private_public,
+            "level_2_private_org": cls.level_2_private_org,
+            "level_2_private_private": cls.level_2_private_private,
+        }
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("root", "level_1_public", "level_2_public_public")),
+            (TestRoles.DEFAULT, ("root", "level_1_public", "level_2_public_public")),
+            (
+                TestRoles.SUPERADMIN,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_org",
+                    "level_1_private",
+                    "level_2_public_public",
+                    "level_2_public_org",
+                    "level_2_public_private",
+                    "level_2_org_public",
+                    "level_2_org_org",
+                    "level_2_org_private",
+                    "level_2_private_public",
+                    "level_2_private_org",
+                    "level_2_private_private",
+                ),
+            ),
+            (
+                TestRoles.ORG_ADMIN,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_org",
+                    "level_1_private",
+                    "level_2_public_public",
+                    "level_2_public_org",
+                    "level_2_public_private",
+                    "level_2_org_public",
+                    "level_2_org_org",
+                    "level_2_org_private",
+                    "level_2_private_public",
+                    "level_2_private_org",
+                    "level_2_private_private",
+                ),
+            ),
+            (
+                TestRoles.ORG_FACILITATOR,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_org",
+                    "level_1_private",
+                    "level_2_public_public",
+                    "level_2_public_org",
+                    "level_2_public_private",
+                    "level_2_org_public",
+                    "level_2_org_org",
+                    "level_2_org_private",
+                    "level_2_private_public",
+                    "level_2_private_org",
+                    "level_2_private_private",
+                ),
+            ),
+            (
+                TestRoles.ORG_USER,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_org",
+                    "level_2_public_public",
+                    "level_2_public_org",
+                    "level_2_org_public",
+                    "level_2_org_org",
+                ),
+            ),
+            (
+                TestRoles.GROUP_LEADER,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_private",
+                    "level_2_public_public",
+                    "level_2_public_private",
+                    "level_2_private_public",
+                    "level_2_private_private",
+                ),
+            ),
+            (
+                TestRoles.GROUP_MANAGER,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_private",
+                    "level_2_public_public",
+                    "level_2_public_private",
+                    "level_2_private_public",
+                    "level_2_private_private",
+                ),
+            ),
+            (
+                TestRoles.GROUP_MEMBER,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_private",
+                    "level_2_public_public",
+                    "level_2_public_private",
+                    "level_2_private_public",
+                    "level_2_private_private",
+                ),
+            ),
+        ]
+    )
+    def test_retrieve_organization_people_groups_hierarchy(self, role, expected_groups):
+        organization = self.organization
+        groups = self.groups
+        user = self.get_parameterized_test_user(
+            role,
+            instances=[
+                self.level_1_private,
+                self.level_2_public_private,
+                self.level_2_private_private,
+                self.level_2_org_private,
+            ],
+        )
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse("Organization-people-groups-hierarchy", args=([organization.code]))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        groups = [response.json()]
+        retrieved_groups = []
+        while groups:
+            retrieved_groups += [g["id"] for g in groups]
+            groups = reduce(lambda x, y: x + y["children"], groups, [])
+
+        self.assertSetEqual(
+            set(retrieved_groups), {self.groups[g].id for g in expected_groups}
         )
 
 

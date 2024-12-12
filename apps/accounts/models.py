@@ -193,7 +193,10 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     def get_hierarchy(self, user: Optional["ProjectUser"] = None) -> dict:
         # This would be better with a recursive serializer, but it doubles the query time
         if user:
-            groups = user.get_people_group_queryset()
+            groups = (
+                user.get_people_group_queryset()
+                | PeopleGroup.objects.filter(is_root=True).distinct()
+            )
         else:
             groups = PeopleGroup.objects.all()
         groups = groups.filter(organization=self.organization.pk).annotate(
