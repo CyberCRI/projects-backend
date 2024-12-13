@@ -4,6 +4,10 @@ kind: Deployment
 metadata:
   labels:
   {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 4 }}
+  {{- if .Values.sablier.enabled }}
+  sablier.enable: "true"
+  sablier.group: {{ .Values.sablier.groupName }}
+  {{- end }}
   name: {{ tpl $.Values.fullName $ }}-celery
   annotations:
     argocd.argoproj.io/sync-wave: "1"
@@ -17,10 +21,6 @@ spec:
       labels:
         {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 8 }}
         {{ printf "%s-client" $.Values.redis.helmReleaseName }}: "true"
-        {{- if .Values.sablier.enabled }}
-        sablier.enable: "true"
-        sablier.group: {{ .Values.sablier.groupName }}
-        {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
     spec:
