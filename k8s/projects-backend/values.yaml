@@ -174,3 +174,10 @@ sablier:
   enabled: false
   groupName: projects
   traefikMiddleware: "{{.Values.namespace}}-{{.Values.sablier.groupName}}@kubernetescrd"
+
+uvicorn:
+  entrypoint: projects.asgi:application
+  workers: 2
+  host: 0.0.0.0
+  limitRequests: true
+  maxRequests: 1000
