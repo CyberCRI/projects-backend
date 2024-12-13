@@ -8,6 +8,9 @@ metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod-traefik
     kubernetes.io/ingress.class: traefik
+    {{- if .Values.sablier.enabled }}
+    traefik.ingress.kubernetes.io/router.middlewares: {{.Values.sablier.traefikMiddleware}}
+    {{- end }}
 spec:
   rules:
     - host: {{ .Values.hostname }}

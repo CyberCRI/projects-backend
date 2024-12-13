@@ -17,6 +17,10 @@ spec:
       labels:
         {{- (tpl ($.Values.celery.commonLabels | toYaml ) $) | nindent 8 }}
         {{ printf "%s-client" $.Values.redis.helmReleaseName }}: "true"
+        {{- if .Values.sablier.enabled }}
+        sablier.enable: "true"
+        sablier.group: {{ .Values.sablier.groupName }}
+        {{- end }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/config.yaml") . | sha256sum }}
     spec:
