@@ -173,7 +173,7 @@ traefik: false
 sablier:
   enabled: false
   groupName: projects
-  traefikMiddleware: "{{.Values.namespace}}-{{.Values.sablier.groupName}}@kubernetescrd"
+  traefikMiddleware: "{{.Values.namespace}}-{{.Values.sablier.groupName}}-sablier@kubernetescrd"
 
 uvicorn:
   entrypoint: projects.asgi:application
