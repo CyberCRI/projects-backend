@@ -221,3 +221,29 @@ class ProjectDocument(Document):
         if isinstance(related, Group):
             return Project.objects.filter(groups=related)
         return []
+
+
+@registry.register_document
+class TagDocument(Document):
+    class Index:
+        name = f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"
+
+    class Django:
+        model = Tag
+    
+    title_fr = fields.TextField()
+    title_en = fields.TextField()
+    description_fr = fields.TextField()
+    description_en = fields.TextField()
+
+    def prepare_title_fr(self, instance: Tag) -> str:
+        return instance.title_fr
+    
+    def prepare_title_en(self, instance: Tag) -> str:
+        return instance.title_en
+    
+    def prepare_description_fr(self, instance: Tag) -> str:
+        return instance.description_fr
+    
+    def prepare_description_en(self, instance: Tag) -> str:
+        return instance.description_en
