@@ -62,12 +62,19 @@ def OpenSearchRankedFieldsFilter(  # noqa: N802
     class _OpenSearchRankedFieldsFilter(SearchFilter):
         def filter_queryset(self, request, queryset, view):
             search_terms = self.get_search_terms(request)
+            if isinstance(search_terms, list):
+                search_terms = " ".join(search_terms)
             if search_terms:
                 limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
                 offset = request.query_params.get("offset", 0)
                 response = (
                     Search(using="default", index=index)
-                    .query("multi_match", type="best_fields", fields=fields)
+                    .query(
+                        "multi_match",
+                        type="best_fields",
+                        fields=fields,
+                        query=search_terms,
+                    )
                     .filter("terms", id=list(queryset.values_list("id", flat=True)))
                     .params(size=limit, from_=offset)
                 )

@@ -313,42 +313,6 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
                 classification.tags.add(instance)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="language",
-                description="Choose the language you want for your results (en or fr), default to en.",
-                required=False,
-                type=str,
-            ),
-        ]
-    )
-    def list(self, request, *args, **kwargs):
-        """
-        List all custom tags of an organization (if only `organization_code` is provided
-        in the url), or all tags from a specific classification (if `organization_code`
-        and `tag_classification_id` are provided in the url).
-
-        Additionally, when using this endpoint with the `tag_classification_id`
-        parameter, you can use the following values instead of slugs to retrieve
-        specific tags classifications:
-
-        - `enabled-for-projects`: Tags that are enabled for projects in the organization
-        - `enabled-for-skills`: Tags that are enabled for skills in the organization
-        """
-        wikipedia = TagClassification.get_or_create_default_classification(
-            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
-        )
-        if (
-            self.request.query_params.get("search", None)
-            and self.kwargs.get("tag_classification_id", None)
-            and self.kwargs["tag_classification_id"]
-            not in TagClassification.ReservedSlugs.values
-            and int(self.kwargs["tag_classification_id"]) == int(wikipedia.id)
-        ):
-            return self.wikipedia_search(request)
-        return super().list(request, *args, **kwargs)
-
     def wikipedia_search(self, request: Request) -> Response:
         params = {
             "query": str(self.request.query_params.get("search", "")),
