@@ -230,7 +230,8 @@ class TagDocument(Document):
 
     class Django:
         model = Tag
-    
+        fields = ["id"]
+
     title_fr = fields.TextField()
     title_en = fields.TextField()
     description_fr = fields.TextField()
@@ -238,12 +239,12 @@ class TagDocument(Document):
 
     def prepare_title_fr(self, instance: Tag) -> str:
         return instance.title_fr
-    
+
     def prepare_title_en(self, instance: Tag) -> str:
         return instance.title_en
-    
+
     def prepare_description_fr(self, instance: Tag) -> str:
         return instance.description_fr
-    
+
     def prepare_description_en(self, instance: Tag) -> str:
         return instance.description_en

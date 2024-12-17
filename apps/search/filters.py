@@ -1,10 +1,98 @@
-from django.db.models import Q
+from typing import List, Optional
+
+from django.db.models import BigIntegerField, Case, F, Q, Value, When
 from django_filters import rest_framework as filters
+from opensearchpy import Search
+from rest_framework.filters import SearchFilter
+from rest_framework.settings import api_settings
 
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
+from apps.commons.utils import ArrayPosition
 from apps.organizations.utils import get_below_hierarchy_codes
 
 from .models import SearchObject
+
+
+def OpenSearchFilter(  # noqa: N802
+    index: str, highlight: Optional[List[str]] = None, fragment_size: int = 150
+):
+    class _OpenSearchFilter(SearchFilter):
+        def filter_queryset(self, request, queryset, view):
+            search_terms = self.get_search_terms(request)
+            if search_terms:
+                limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
+                offset = request.query_params.get("offset", 0)
+                response = (
+                    Search(using="default", index=index)
+                    .query("multi_match", query=search_terms)
+                    .filter("terms", id=list(queryset.values_list("id", flat=True)))
+                    .params(size=limit, from_=offset)
+                )
+                if highlight:
+                    response = response.highlight(
+                        *highlight, fragment_size=fragment_size
+                    )
+                response = response.execute()
+                ids = [hit.id for hit in response.hits]
+                queryset = queryset.filter(id__in=ids).annotate(
+                    ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
+                )
+                if highlight:
+                    queryset = queryset.annotate(
+                        highlight=Case(
+                            *[
+                                When(id=hit.id, then=Value(hit.highlight))
+                                for hit in response.hits
+                            ],
+                        )
+                    )
+                return queryset.order_by("ordering")
+
+            return queryset
+
+    return _OpenSearchFilter
+
+
+def OpenSearchRankedFieldsFilter(  # noqa: N802
+    index: str,
+    fields: Optional[List[str]],
+    highlight: Optional[List[str]] = None,
+    fragment_size: int = 150,
+):
+    class _OpenSearchRankedFieldsFilter(SearchFilter):
+        def filter_queryset(self, request, queryset, view):
+            search_terms = self.get_search_terms(request)
+            if search_terms:
+                limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
+                offset = request.query_params.get("offset", 0)
+                response = (
+                    Search(using="default", index=index)
+                    .query("multi_match", type="best_fields", fields=fields)
+                    .filter("terms", id=list(queryset.values_list("id", flat=True)))
+                    .params(size=limit, from_=offset)
+                )
+                if highlight:
+                    response = response.highlight(
+                        *highlight, fragment_size=fragment_size
+                    )
+                response = response.execute()
+                ids = [hit.id for hit in response.hits]
+                queryset = queryset.filter(id__in=ids).annotate(
+                    ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
+                )
+                if highlight:
+                    queryset = queryset.annotate(
+                        highlight=Case(
+                            *[
+                                When(id=hit.id, then=Value(hit.highlight))
+                                for hit in response.hits
+                            ],
+                        )
+                    )
+                return queryset.order_by("ordering")
+            return queryset
+
+    return _OpenSearchRankedFieldsFilter
 
 
 class SearchObjectFilter(filters.FilterSet):

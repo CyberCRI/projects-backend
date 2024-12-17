@@ -1,7 +1,6 @@
 import subprocess  # nosec B404
 
 from django.core.management.base import BaseCommand
-
 from django_opensearch_dsl.registries import registry
 from opensearchpy.exceptions import NotFoundError
 
