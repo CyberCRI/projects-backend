@@ -284,7 +284,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ):
                 self.wikipedia_search(self.request)
             return Tag.objects.filter(
-                tag_classifications__id=tag_classification_id
+                tag_classifications__id__in=tag_classification_ids
             ).distinct()
         return Tag.objects.all()
 
