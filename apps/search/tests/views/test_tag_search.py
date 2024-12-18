@@ -75,7 +75,9 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
     )
     @patch("opensearchpy.Search.execute")
     def test_search_tags(self, role, mocked_search):
-        mocked_search.return_value = self.opensearch_tags_mocked_return(tags=self.tags)
+        mocked_search.return_value = self.opensearch_tags_mocked_return(
+            tags=self.tags, query=self.query
+        )
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         response = self.client.get(
@@ -89,6 +91,9 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
             [tag["id"] for tag in content],
             [tag.id for tag in self.tags],
         )
+        for tag in content:
+            for value in tag["highlight"].values():
+                self.assertIn(f"<em>{self.query}</em>", value)
 
     @parameterized.expand(
         [
@@ -107,10 +112,13 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.tags))
-        self.assertListEqual(
-            [tag["id"] for tag in content],
-            [tag.id for tag in self.tags],
+        self.assertSetEqual(
+            {tag["id"] for tag in content},
+            {tag.id for tag in self.tags},
         )
+        for tag in content:
+            for value in tag["highlight"].values():
+                self.assertIn(f"<em>{self.query}</em>", value)
 
 
 @skipUnlessSearch
@@ -280,7 +288,7 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             self.get_existing_wikipedia_tags_mocked_return(tags=self.wikipedia_tags)
         )
         mocked_search.return_value = self.opensearch_tags_mocked_return(
-            tags=self.classifications[classification]["tags"]
+            tags=self.classifications[classification]["tags"], query=self.query
         )
 
         response = self.client.get(
@@ -302,6 +310,9 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             [tag["id"] for tag in content],
             [tag.id for tag in self.classifications[classification]["tags"]],
         )
+        for tag in content:
+            for value in tag["highlight"].values():
+                self.assertIn(f"<em>{self.query}</em>", value)
 
     @parameterized.expand(
         [
@@ -343,23 +354,12 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             len(content), len(self.classifications[classification]["tags"])
         )
         self.assertSetEqual(
-            {tag["id"] for tag in content[:4]},
-            {
-                self.tag_1.id,
-                self.tag_3.id,
-                self.wikipedia_tag_1.id,
-                self.wikipedia_tag_3.id,
-            },
+            {tag["id"] for tag in content},
+            {tag.id for tag in self.classifications[classification]["tags"]},
         )
-        self.assertSetEqual(
-            {tag["id"] for tag in content[4:]},
-            {
-                self.tag_2.id,
-                self.tag_4.id,
-                self.wikipedia_tag_2.id,
-                self.wikipedia_tag_4.id,
-            },
-        )
+        for tag in content:
+            for value in tag["highlight"].values():
+                self.assertIn(f"<em>{self.query}</em>", value)
 
     @parameterized.expand(
         [
@@ -399,13 +399,12 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             len(content), len(self.classifications[classification]["tags"])
         )
         self.assertSetEqual(
-            {tag["id"] for tag in content[:2]},
-            {self.wikipedia_tag_1.id, self.wikipedia_tag_3.id},
+            {tag["id"] for tag in content},
+            {tag.id for tag in self.classifications[classification]["tags"]},
         )
-        self.assertSetEqual(
-            {tag["id"] for tag in content[2:]},
-            {self.wikipedia_tag_2.id, self.wikipedia_tag_4.id},
-        )
+        for tag in content:
+            for value in tag["highlight"].values():
+                self.assertIn(f"<em>{self.query}</em>", value)
 
     @parameterized.expand(
         [
@@ -445,8 +444,9 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             len(content), len(self.classifications[classification]["tags"])
         )
         self.assertSetEqual(
-            {tag["id"] for tag in content[:2]}, {self.tag_1.id, self.tag_3.id}
+            {tag["id"] for tag in content},
+            {tag.id for tag in self.classifications[classification]["tags"]},
         )
-        self.assertSetEqual(
-            {tag["id"] for tag in content[2:]}, {self.tag_2.id, self.tag_4.id}
-        )
+        for tag in content:
+            for value in tag["highlight"].values():
+                self.assertIn(f"<em>{self.query}</em>", value)
