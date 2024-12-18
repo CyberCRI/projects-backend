@@ -91,9 +91,9 @@ class UserDocument(Document):
         self, related: Union[Tag, Skill]
     ) -> Iterable[ProjectUser]:
         if isinstance(related, Tag):
-            return ProjectUser.objects.filter(skills__tag=related)
+            return ProjectUser.objects.filter(skills__tag=related).distinct()
         if isinstance(related, Skill):
-            return [related.user]
+            return related.user
         return []
 
 
@@ -144,7 +144,7 @@ class PeopleGroupDocument(Document):
 
     def get_instances_from_related(self, related: Group) -> Iterable[PeopleGroup]:
         if isinstance(related, Group):
-            return PeopleGroup.objects.filter(groups=related)
+            return PeopleGroup.objects.filter(groups=related).distinct()
         return []
 
 
@@ -215,11 +215,11 @@ class ProjectDocument(Document):
         self, related: Union[ProjectCategory, Tag, Group]
     ) -> Iterable[Project]:
         if isinstance(related, ProjectCategory):
-            return Project.objects.filter(categories=related)
+            return Project.objects.filter(categories=related).distinct()
         if isinstance(related, Tag) and related.type == Tag.TagType.CUSTOM:
-            return Project.objects.filter(tags=related)
+            return Project.objects.filter(tags=related).distinct()
         if isinstance(related, Group):
-            return Project.objects.filter(groups=related)
+            return Project.objects.filter(groups=related).distinct()
         return []
 
 

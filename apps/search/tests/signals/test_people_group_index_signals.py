@@ -1,35 +1,38 @@
-from django.core.management import call_command
+from unittest.mock import call, patch
+
 from django.test import override_settings
 from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, skipUnlessSearch
+from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
 
 
-@skipUnlessSearch
-@override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
 class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
-        call_command("opensearch", "index", "rebuild", "--force")
+        cls.people_group = PeopleGroupFactory(organization=cls.organization)
+        cls.member_to_remove = UserFactory(groups=[cls.people_group.get_members()])
+        cls.member_to_add = UserFactory()
 
-    def _search_people_groups(self, query: str):
-        response = self.client.get(
-            reverse("Search-search", args=(query,)) + "?types=people_group"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        return response.json()["results"]
+    @staticmethod
+    def mocked_update(*args, **kwargs):
+        pass
 
-    def test_signal_called_on_people_group_create(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_people_group_create(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
         payload = {
             "name": faker.name(),
@@ -40,61 +43,58 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
             reverse("PeopleGroup-list", args=(self.organization.code,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        post_content = response.json()
-        search_content = self._search_people_groups(payload["name"])
-        self.assertIn(
-            post_content["id"],
-            [result["people_group"]["id"] for result in search_content],
-        )
+        people_group = PeopleGroup.objects.get(id=response.json()["id"])
+        mocked_update.assert_has_calls([call(people_group, "index")])
 
-    def test_signal_called_on_people_group_update(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_people_group_update(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
-        people_group = PeopleGroupFactory(organization=self.organization)
         payload = {"name": faker.name()}
         response = self.client.patch(
             reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.id)
+                "PeopleGroup-detail",
+                args=(self.organization.code, self.people_group.id),
             ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        search_content = self._search_people_groups(payload["name"])
-        self.assertIn(
-            people_group.id, [result["people_group"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.people_group, "index")])
 
-    def test_signal_called_on_members_changed(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_member_added(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
-        people_group = PeopleGroupFactory(organization=self.organization)
-        user = UserFactory()
-
-        # Add member and check if the search index is updated
-        payload = {"members": [user.id]}
+        payload = {"members": [self.member_to_add.id]}
         response = self.client.post(
             reverse(
-                "PeopleGroup-add-member", args=(self.organization.code, people_group.id)
+                "PeopleGroup-add-member",
+                args=(self.organization.code, self.people_group.id),
             ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        search_content = self._search_people_groups(user.given_name)
-        self.assertIn(
-            people_group.id, [result["people_group"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.people_group, "index")])
 
-        # Remove member and check if the search index is updated
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_member_removed(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
+        self.client.force_authenticate(self.superadmin)
         payload = {
-            "users": [user.id],
+            "users": [self.member_to_remove.id],
         }
         response = self.client.post(
             reverse(
                 "PeopleGroup-remove-member",
-                args=(self.organization.code, people_group.id),
+                args=(self.organization.code, self.people_group.id),
             ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        search_content = self._search_people_groups(user.given_name)
-        self.assertNotIn(
-            people_group.id, [result["people_group"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.people_group, "index")])

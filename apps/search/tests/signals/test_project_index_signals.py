@@ -1,4 +1,6 @@
-from django.core.management import call_command
+from unittest.mock import call, patch
+
+from django.db.models.query import QuerySet
 from django.test import override_settings
 from django.urls import reverse
 from faker import Faker
@@ -6,32 +8,42 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.test import JwtAPITestCase, skipUnlessSearch
+from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
+from apps.projects.models import Project
 from apps.skills.factories import TagFactory
 
 faker = Faker()
 
 
-@skipUnlessSearch
-@override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
 class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
-        call_command("opensearch", "index", "rebuild", "--force")
-
-    def _search_projects(self, query: str):
-        response = self.client.get(
-            reverse("Search-search", args=(query,)) + "?types=project"
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.category_to_add = ProjectCategoryFactory(organization=cls.organization)
+        cls.tag = TagFactory(organization=cls.organization)
+        cls.tag_to_add = TagFactory(organization=cls.organization)
+        cls.project = ProjectFactory(
+            organizations=[cls.organization], categories=[cls.category]
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        return response.json()["results"]
+        cls.project.tags.add(cls.tag)
+        cls.main_owner = UserFactory(groups=[cls.project.get_owners()])
+        cls.member_to_add = UserFactory()
+        cls.member_to_remove = UserFactory(groups=[cls.project.get_members()])
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
-    def test_signal_called_on_project_create(self):
+    @staticmethod
+    def mocked_update(*args, **kwargs):
+        pass
+
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_project_create(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
         payload = {
             "title": faker.sentence(),
@@ -44,106 +56,119 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        post_content = response.json()
-        search_content = self._search_projects(payload["title"])
-        self.assertIn(
-            post_content["id"], [result["project"]["id"] for result in search_content]
+        mocked_update.assert_has_calls(
+            [call(Project.objects.get(id=response.json()["id"]), "index")]
         )
 
-    def test_signal_called_on_project_update(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_project_update(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
-        project = ProjectFactory(organizations=[self.organization])
         payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), payload
+            reverse("Project-detail", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        search_content = self._search_projects(payload["title"])
-        self.assertIn(
-            project.id, [result["project"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.project, "index")])
 
-    def test_signal_called_on_change_members(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_add_members(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
-        project = ProjectFactory(organizations=[self.organization])
-        user = UserFactory()
-        owner = UserFactory()
-        project.owners.add(owner)
-
-        # Add member and check if the search index is updated
-        payload = {"members": [user.id]}
+        payload = {"members": [self.member_to_add.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(project.id,)), payload
+            reverse("Project-add-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        search_content = self._search_projects(user.given_name)
-        self.assertIn(
-            project.id, [result["project"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.project, "index")])
 
-        # Remove member and check if the search index is updated
-        payload = {"users": [user.id]}
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_remove_members(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
+        self.client.force_authenticate(self.superadmin)
+        payload = {"users": [self.member_to_remove.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(project.id,)), payload
+            reverse("Project-remove-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        search_content = self._search_projects(user.given_name)
-        self.assertNotIn(
-            project.id, [result["project"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.project, "index")])
 
-    def test_signal_called_on_change_categories(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_add_category(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
-        project = ProjectFactory(organizations=[self.organization])
-
-        # Add category and check if the search index is updated
-        category = ProjectCategoryFactory()
-        payload = {"project_categories_ids": [category.id]}
+        payload = {
+            "project_categories_ids": [self.category_to_add.id, self.category.id]
+        }
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), payload
+            reverse("Project-detail", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        search_content = self._search_projects(category.name)
-        self.assertIn(
-            project.id, [result["project"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.project, "index")])
 
-        # Update category and check if the search index is updated
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_change_category(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
+        self.client.force_authenticate(self.superadmin)
         payload = {"name": faker.word()}
         response = self.client.patch(
-            reverse("Category-detail", args=(category.id,)), payload
+            reverse("Category-detail", args=(self.category.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        search_content = self._search_projects(payload["name"])
-        self.assertIn(
-            project.id, [result["project"]["id"] for result in search_content]
+        self.assertTrue(
+            any(
+                self.project in call_args[0][0] and call_args[0][1] == "index"
+                for call_args in mocked_update.call_args_list
+                if len(call_args[0]) == 2
+                and isinstance((call_args[0][0]), QuerySet)
+                and call_args[0][0].model == Project
+            )
         )
 
-    def test_signal_called_on_change_tags(self):
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_add_tags(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
         self.client.force_authenticate(self.superadmin)
-        project = ProjectFactory(organizations=[self.organization])
-
-        # Add tag and check if the search index is updated
-        tag = TagFactory(organization=self.organization)
-        payload = {"tags": [tag.id]}
+        payload = {"tags": [self.tag_to_add.id, self.tag.id]}
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), payload
+            reverse("Project-detail", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        search_content = self._search_projects(tag.title)
-        self.assertIn(
-            project.id, [result["project"]["id"] for result in search_content]
-        )
+        mocked_update.assert_has_calls([call(self.project, "index")])
 
-        # Update tag and check if the search index is updated
+    @patch("django_opensearch_dsl.documents.Document.update")
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    def test_signal_called_on_change_tags(self, mocked_update):
+        mocked_update.side_effect = self.mocked_update
+
+        self.client.force_authenticate(self.superadmin)
         title = faker.word()
         payload = {"title": title, "title_en": title, "title_fr": title}
         response = self.client.patch(
-            reverse("OrganizationTag-detail", args=(self.organization.code, tag.id)),
+            reverse(
+                "OrganizationTag-detail", args=(self.organization.code, self.tag.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        search_content = self._search_projects(title)
-        self.assertIn(
-            project.id, [result["project"]["id"] for result in search_content]
+        self.assertTrue(
+            any(
+                self.project in call_args[0][0] and call_args[0][1] == "index"
+                for call_args in mocked_update.call_args_list
+                if len(call_args[0]) == 2
+                and isinstance((call_args[0][0]), QuerySet)
+                and call_args[0][0].model == Project
+            )
         )
