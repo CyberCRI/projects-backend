@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from django.db.models import BigIntegerField, Case, F, Q, Value, When
+from django.db.models import BigIntegerField, Case, F, JSONField, Q, Value, When
 from django_filters import rest_framework as filters
 from opensearchpy import Search
 from rest_framework.filters import SearchFilter
@@ -41,7 +41,13 @@ def OpenSearchFilter(  # noqa: N802
                     queryset = queryset.annotate(
                         highlight=Case(
                             *[
-                                When(id=hit.id, then=Value(hit.highlight))
+                                When(
+                                    id=hit.id,
+                                    then=Value(
+                                        hit.meta.highlight.to_dict(),
+                                        output_field=JSONField(),
+                                    ),
+                                )
                                 for hit in response.hits
                             ],
                         )
@@ -91,7 +97,13 @@ def OpenSearchRankedFieldsFilter(  # noqa: N802
                     queryset = queryset.annotate(
                         highlight=Case(
                             *[
-                                When(id=hit.id, then=Value(hit.highlight))
+                                When(
+                                    id=hit.id,
+                                    then=Value(
+                                        hit.meta.highlight.to_dict(),
+                                        output_field=JSONField(),
+                                    ),
+                                )
                                 for hit in response.hits
                             ],
                         )
