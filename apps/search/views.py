@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
 from drf_spectacular.utils import extend_schema
-from opensearchpy import Search
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
@@ -9,6 +8,7 @@ from apps.commons.utils import ArrayPosition
 from apps.commons.views import ListViewSet
 
 from .filters import SearchObjectFilter
+from .interface import OpenSearchService
 from .models import SearchObject
 from .pagination import FixedCountPagination
 from .serializers import SearchObjectSerializer
@@ -50,7 +50,7 @@ class SearchViewSet(ListViewSet):
         search_objects_ids = list(queryset.values_list("id", flat=True))
 
         query = self.kwargs.get("search", "")
-        indexes = [
+        indices = [
             f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
             for index in (
                 request.query_params.get("types", "project,user,people_group").split(
@@ -60,16 +60,12 @@ class SearchViewSet(ListViewSet):
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
         offset = request.query_params.get("offset", 0)
-
-        response = (
-            Search(
-                using="default",
-                index=indexes,
-            )
-            .filter("terms", search_object_id=search_objects_ids)
-            .query("multi_match", query=query)
-            .params(size=limit, from_=offset)
-            .execute()
+        response = OpenSearchService.search(
+            indices=indices,
+            query=query,
+            limit=limit,
+            offset=offset,
+            search_object_id=search_objects_ids,
         )
         search_objects_ids = [hit.search_object_id for hit in response.hits]
         ordered_queryset = (
