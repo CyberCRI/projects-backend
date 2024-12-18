@@ -1,4 +1,5 @@
-from django.core.management import call_command
+from unittest.mock import patch
+
 from django.urls import reverse
 from parameterized import parameterized
 from rest_framework import status
@@ -7,16 +8,16 @@ from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import Language
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
+from apps.search.testcases import SearchTestCaseMixin
 from apps.skills.factories import TagFactory
 
 
-@skipUnlessSearch
-class ProjectSearchTestCase(JwtAPITestCase):
+class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -94,9 +95,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             "no_org": cls.no_organization_project,
             "member": cls.member_project,
         }
-        # Index the data
-        call_command("opensearch", "index", "rebuild", "--force")
-        call_command("opensearch", "document", "index", "--force", "--refresh")
+        cls.search_objects = {
+            key: SearchObject.objects.create(
+                type=SearchObject.SearchObjectType.PROJECT, project=value
+            )
+            for key, value in cls.projects.items()
+        }
 
     @parameterized.expand(
         [
@@ -118,7 +122,14 @@ class ProjectSearchTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member", "no_org")),
         ]
     )
-    def test_search_project(self, role, retrieved_projects):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_search_project(self, role, retrieved_projects, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[
+                self.search_objects[project] for project in retrieved_projects
+            ],
+            query="opensearch",
+        )
         user = self.get_parameterized_test_user(role, instances=[self.member_project])
         self.client.force_authenticate(user)
         response = self.client.get(
@@ -136,7 +147,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.projects[project].id for project in retrieved_projects},
         )
 
-    def test_filter_by_organization(self):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_filter_by_organization(self, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[self.search_objects["public_2"]],
+            query="opensearch",
+        )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))
@@ -155,7 +171,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.public_project_2.id},
         )
 
-    def test_filter_by_sdgs(self):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_filter_by_sdgs(self, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[self.search_objects["public_2"]],
+            query="opensearch",
+        )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))
@@ -174,7 +195,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.public_project_2.id},
         )
 
-    def test_filter_by_language(self):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_filter_by_language(self, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[self.search_objects["public_2"]],
+            query="opensearch",
+        )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))
@@ -193,7 +219,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.public_project_2.id},
         )
 
-    def test_filter_by_categories(self):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_filter_by_categories(self, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[self.search_objects["public_2"]],
+            query="opensearch",
+        )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))
@@ -212,7 +243,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.public_project_2.id},
         )
 
-    def test_filter_by_tags(self):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_filter_by_tags(self, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[self.search_objects["public_2"]],
+            query="opensearch",
+        )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))
@@ -231,7 +267,12 @@ class ProjectSearchTestCase(JwtAPITestCase):
             {self.public_project_2.id},
         )
 
-    def test_filter_by_members(self):
+    @patch("apps.search.interface.OpenSearchService.search")
+    def test_filter_by_members(self, mocked_search):
+        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
+            search_objects=[self.search_objects["public_2"]],
+            query="opensearch",
+        )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))

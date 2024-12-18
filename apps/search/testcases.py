@@ -46,9 +46,23 @@ class MockedSearchObjectHit:
         )
 
 
-class MockedResponse:
+class MockedHitsTotal:
+    def __init__(self, hits: List[Union[MockedSearchObjectHit, MockedTagHit]]):
+        self.value = len(hits)
+
+
+class MockedHits:
     def __init__(self, hits: List[Union[MockedSearchObjectHit, MockedTagHit]]):
         self.hits = hits
+        self.total = MockedHitsTotal(hits=hits)
+
+    def __iter__(self):
+        return iter(self.hits)
+
+
+class MockedResponse:
+    def __init__(self, hits: List[Union[MockedSearchObjectHit, MockedTagHit]]):
+        self.hits = MockedHits(hits)
 
 
 class SearchTestCaseMixin:

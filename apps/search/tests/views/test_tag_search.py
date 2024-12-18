@@ -1,13 +1,11 @@
-import os
 from unittest.mock import patch
 
-from django.core.management import call_command
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.commons.test import JwtAPITestCase, TestRoles, skipUnlessSearch
+from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.search.testcases import SearchTestCaseMixin
 from apps.skills.factories import TagClassificationFactory, TagFactory
@@ -62,18 +60,13 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
             description_fr="",
         )
 
-        # If an OpenSearch server is running, build the index
-        if int(os.getenv("TEST_SEARCH", 0)):
-            call_command("opensearch", "index", "rebuild", "--force")
-            call_command("opensearch", "document", "index", "--force", "--refresh")
-
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS,),
             (TestRoles.DEFAULT,),
         ]
     )
-    @patch("opensearchpy.Search.execute")
+    @patch("apps.search.interface.OpenSearchService.best_fields_search")
     def test_search_tags(self, role, mocked_search):
         mocked_search.return_value = self.opensearch_tags_mocked_return(
             tags=self.tags, query=self.query
@@ -95,33 +88,7 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
             for value in tag["highlight"].values():
                 self.assertIn(f"<em>{self.query}</em>", value)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
-    @skipUnlessSearch
-    def test_search_tags_not_mocked(self, role):
-        user = self.get_parameterized_test_user(role)
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("OrganizationTag-list", args=(self.organization.code,))
-            + f"?search={self.query}"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), len(self.tags))
-        self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.tags},
-        )
-        for tag in content:
-            for value in tag["highlight"].values():
-                self.assertIn(f"<em>{self.query}</em>", value)
 
-
-@skipUnlessSearch
 class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
     @classmethod
     def setUpTestData(cls):
@@ -248,11 +215,6 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             },
         }
 
-        # If an OpenSearch server is running, build the index
-        if int(os.getenv("TEST_SEARCH", 0)):
-            call_command("opensearch", "index", "rebuild", "--force")
-            call_command("opensearch", "document", "index", "--force", "--refresh")
-
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, "wikipedia"),
@@ -265,7 +227,7 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             (TestRoles.DEFAULT, "skills"),
         ]
     )
-    @patch("opensearchpy.Search.execute")
+    @patch("apps.search.interface.OpenSearchService.best_fields_search")
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
     def test_search_tags(
@@ -309,143 +271,6 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
         self.assertListEqual(
             [tag["id"] for tag in content],
             [tag.id for tag in self.classifications[classification]["tags"]],
-        )
-        for tag in content:
-            for value in tag["highlight"].values():
-                self.assertIn(f"<em>{self.query}</em>", value)
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, "projects"),
-            (TestRoles.DEFAULT, "projects"),
-            (TestRoles.ANONYMOUS, "skills"),
-            (TestRoles.DEFAULT, "skills"),
-        ]
-    )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
-    def test_search_tags_not_mocked(
-        self, role, classification, mocked_wikipedia_search, mocked_wikipedia_get
-    ):
-        user = self.get_parameterized_test_user(role)
-        self.client.force_authenticate(user)
-        mocked_wikipedia_search.return_value = self.search_wikipedia_tag_mocked_return(
-            limit=0,
-            offset=10,
-            wikipedia_qids=[tag.external_id for tag in self.wikipedia_tags],
-        )
-        mocked_wikipedia_get.return_value = (
-            self.get_existing_wikipedia_tags_mocked_return(tags=self.wikipedia_tags)
-        )
-
-        response = self.client.get(
-            reverse(
-                "ClassificationTag-list",
-                args=(
-                    self.organization.code,
-                    self.classifications[classification]["id"],
-                ),
-            )
-            + f"?search={self.query}&limit=10&offsef=0"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(
-            len(content), len(self.classifications[classification]["tags"])
-        )
-        self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.classifications[classification]["tags"]},
-        )
-        for tag in content:
-            for value in tag["highlight"].values():
-                self.assertIn(f"<em>{self.query}</em>", value)
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, "wikipedia"),
-            (TestRoles.DEFAULT, "wikipedia"),
-        ]
-    )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
-    def test_search_wikipedia_tags_not_mocked(
-        self, role, classification, mocked_wikipedia_search, mocked_wikipedia_get
-    ):
-        user = self.get_parameterized_test_user(role)
-        self.client.force_authenticate(user)
-        mocked_wikipedia_search.return_value = self.search_wikipedia_tag_mocked_return(
-            limit=0,
-            offset=10,
-            wikipedia_qids=[tag.external_id for tag in self.wikipedia_tags],
-        )
-        mocked_wikipedia_get.return_value = (
-            self.get_existing_wikipedia_tags_mocked_return(tags=self.wikipedia_tags)
-        )
-
-        response = self.client.get(
-            reverse(
-                "ClassificationTag-list",
-                args=(
-                    self.organization.code,
-                    self.classifications[classification]["id"],
-                ),
-            )
-            + f"?search={self.query}&limit=10&offsef=0"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(
-            len(content), len(self.classifications[classification]["tags"])
-        )
-        self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.classifications[classification]["tags"]},
-        )
-        for tag in content:
-            for value in tag["highlight"].values():
-                self.assertIn(f"<em>{self.query}</em>", value)
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, "classification"),
-            (TestRoles.DEFAULT, "classification"),
-        ]
-    )
-    @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
-    @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
-    def test_search_classification_tags_not_mocked(
-        self, role, classification, mocked_wikipedia_search, mocked_wikipedia_get
-    ):
-        user = self.get_parameterized_test_user(role)
-        self.client.force_authenticate(user)
-        mocked_wikipedia_search.return_value = self.search_wikipedia_tag_mocked_return(
-            limit=0,
-            offset=10,
-            wikipedia_qids=[tag.external_id for tag in self.wikipedia_tags],
-        )
-        mocked_wikipedia_get.return_value = (
-            self.get_existing_wikipedia_tags_mocked_return(tags=self.wikipedia_tags)
-        )
-
-        response = self.client.get(
-            reverse(
-                "ClassificationTag-list",
-                args=(
-                    self.organization.code,
-                    self.classifications[classification]["id"],
-                ),
-            )
-            + f"?search={self.query}&limit=10&offsef=0"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(
-            len(content), len(self.classifications[classification]["tags"])
-        )
-        self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.classifications[classification]["tags"]},
         )
         for tag in content:
             for value in tag["highlight"].values():

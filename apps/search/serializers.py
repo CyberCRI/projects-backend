@@ -51,5 +51,12 @@ class SearchObjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SearchObject
-        read_only_fields = ["id", "type", "project", "user", "people_group"]
+        read_only_fields = [
+            "id",
+            "type",
+            "project",
+            "user",
+            "people_group",
+            "last_update",
+        ]
         fields = read_only_fields
