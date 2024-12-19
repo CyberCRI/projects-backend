@@ -24,6 +24,7 @@ class UserDocument(Document):
     class Django:
         model = ProjectUser
         fields = [
+            "id",
             "given_name",
             "family_name",
             "email",
@@ -105,6 +106,7 @@ class PeopleGroupDocument(Document):
     class Django:
         model = PeopleGroup
         fields = [
+            "id",
             "name",
             "email",
         ]
@@ -156,6 +158,7 @@ class ProjectDocument(Document):
     class Django:
         model = Project
         fields = [
+            "id",
             "title",
             "purpose",
         ]

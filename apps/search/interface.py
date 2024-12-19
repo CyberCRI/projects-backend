@@ -36,9 +36,10 @@ class OpenSearchService:
         request = (
             Search(using="default", index=indices)
             .query("multi_match", query=query)
-            .filter("terms", **kwargs)
             .params(size=limit, from_=offset)
         )
+        if kwargs:
+            request = request.filter("terms", **kwargs)
         if highlight:
             request = request.highlight(*highlight, fragment_size=highlight_size)
         return request.execute()
@@ -73,9 +74,10 @@ class OpenSearchService:
         request = (
             Search(using="default", index=indices)
             .query("multi_match", type="best_fields", fields=fields, query=query)
-            .filter("terms", **kwargs)
             .params(size=limit, from_=offset)
         )
+        if kwargs:
+            request = request.filter("terms", **kwargs)
         if highlight:
             request = request.highlight(*highlight, fragment_size=highlight_size)
         return request.execute()
