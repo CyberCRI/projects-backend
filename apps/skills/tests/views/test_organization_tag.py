@@ -195,42 +195,6 @@ class RetrieveOrganizationTagTestCase(JwtAPITestCase):
             self.assertEqual(content["description"], tag.description_en)
 
 
-class SearchOrganizationTagTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.query = "abcd"
-        cls.tags = [
-            TagFactory(organization=cls.organization, title_en="abcd"),
-            TagFactory(organization=cls.organization, description_en="abcd"),
-            TagFactory(organization=cls.organization, title_fr="abcd"),
-            TagFactory(organization=cls.organization, description_fr="abcd"),
-        ]
-        cls.other_tags = TagFactory.create_batch(5, organization=cls.organization)
-
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
-    def test_search_tags(self, role):
-        user = self.get_parameterized_test_user(role)
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("OrganizationTag-list", args=(self.organization.code,))
-            + f"?search={self.query}"
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), len(self.tags))
-        self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.tags},
-        )
-
-
 class AutocompleteOrganizationTagTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls) -> None:

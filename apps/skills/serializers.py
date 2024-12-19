@@ -169,6 +169,7 @@ class TagClassificationRemoveTagsSerializer(serializers.Serializer):
 class TagSerializer(TranslatedModelSerializer):
     mentors_count = serializers.IntegerField(required=False, read_only=True)
     mentorees_count = serializers.IntegerField(required=False, read_only=True)
+    highlight = serializers.JSONField(required=False, read_only=True)
 
     class Meta:
         model = Tag
@@ -178,6 +179,7 @@ class TagSerializer(TranslatedModelSerializer):
             "secondary_type",
             "mentors_count",
             "mentorees_count",
+            "highlight",
         ]
         fields = read_only_fields + [
             "title",
