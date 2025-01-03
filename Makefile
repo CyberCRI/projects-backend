@@ -80,7 +80,7 @@ start:
 
 .PHONY: start-uvicorn
 start-uvicorn:
-	uvicorn projects.asgi:application
+	uvicorn projects.asgi:application --workers 1 --host 0.0.0.0
 
 .PHONY: bandit
 bandit:
