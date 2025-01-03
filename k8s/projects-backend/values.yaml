@@ -37,6 +37,9 @@ config:
     GUNICORN_LOG_LEVEL: "info"
     KEYCLOAK_REALM: lp
     VERSION: "{{ .Values.application.revision }}"
+    UVICORN_HOST: "0.0.0.0"
+    UVICORN_WORKERS: "2"
+    UVICORN_LIMIT_MAX_REQUESTS: "1048"
 
 fullName: projects-backend
 
