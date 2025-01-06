@@ -54,7 +54,7 @@ services:
     build:
       context: .
       args:
-        EXPORT_FLAG: --dev
+        EXPORT_FLAG: --with dev
     env_file:
       - .env
     user: root
