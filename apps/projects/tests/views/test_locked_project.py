@@ -46,13 +46,9 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
@@ -68,16 +64,16 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
@@ -94,16 +90,16 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
         ]
@@ -119,16 +115,16 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
         ]
@@ -144,16 +140,16 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
         ]
@@ -173,6 +169,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("BlogEntry-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Add goal
         payload = {
@@ -185,6 +185,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Add location
         payload = {
@@ -199,6 +203,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("Location-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Add linked project
         linked_project = ProjectFactory(organizations=[self.organization])
@@ -210,6 +218,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("LinkedProjects-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Add announcement
         payload = {
@@ -224,6 +236,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Add file
         payload = {
@@ -243,6 +259,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             format="multipart",
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Add link
         mocked_response = MockResponse()
@@ -255,16 +275,16 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("AttachmentLink-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
         ]
@@ -282,6 +302,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Update goal
         payload = {
@@ -292,6 +316,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Update location
         payload = {
@@ -302,6 +330,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Update announcement
         payload = {
@@ -314,6 +346,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Update file
         payload = {
@@ -327,6 +363,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             format="multipart",
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Update link
         payload = {
@@ -339,16 +379,16 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
         ]
@@ -363,6 +403,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("BlogEntry-detail", args=(self.project.id, blog_entry.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Destroy goal
         goal = GoalFactory(project=self.project)
@@ -370,6 +414,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("Goal-detail", args=(self.project.id, goal.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Destroy location
         location = LocationFactory(project=self.project)
@@ -377,6 +425,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("Location-detail", args=(self.project.id, location.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Destroy linked project
         linked_project = LinkedProjectFactory(
@@ -387,6 +439,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("LinkedProjects-detail", args=(self.project.id, linked_project.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Destroy announcement
         announcement = AnnouncementFactory(project=self.project)
@@ -394,6 +450,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("Announcement-detail", args=(self.project.id, announcement.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Destroy file
         attachment_file = AttachmentFileFactory(project=self.project)
@@ -401,6 +461,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("AttachmentFile-detail", args=(self.project.id, attachment_file.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
 
         # Destroy link
         attachment_link = AttachmentLinkFactory(project=self.project)
@@ -408,3 +472,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             reverse("AttachmentLink-detail", args=(self.project.id, attachment_link.id))
         )
         self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
+                response, "You cannot modify a locked project"
+            )
