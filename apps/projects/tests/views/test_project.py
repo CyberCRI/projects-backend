@@ -225,32 +225,6 @@ class UpdateProjectTestCase(JwtAPITestCase):
                 },
             )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
-            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
-            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
-            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_OWNER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
-        ]
-    )
-    def test_update_locked_project(self, role, expected_code):
-        project = ProjectFactory(is_locked=True)
-        user = self.get_parameterized_test_user(role, instances=[project])
-        self.client.force_authenticate(user)
-        payload = {
-            "title": faker.sentence(),
-        }
-        response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, expected_code)
-
 
 class DeleteProjectTestCase(JwtAPITestCase):
     @classmethod

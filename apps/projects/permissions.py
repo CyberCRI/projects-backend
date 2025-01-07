@@ -6,10 +6,12 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
+from apps.accounts.models import ProjectUser
 from apps.commons.models import ProjectRelated
 from apps.commons.permissions import IgnoreCall
 from apps.commons.serializers import ProjectRelatedSerializer
 
+from .exceptions import LockedProjectError
 from .models import Project
 
 
@@ -72,12 +74,42 @@ def HasProjectPermission(  # noqa: N802
     return _HasProjectPermission
 
 
-class ProjectIsNotLocked(permissions.BasePermission):
-    message = "This project is locked."
+class ProjectIsNotLocked(permissions.BasePermission, ProjectRelatedPermission):
+    def user_can_modify_locked_project(
+        self, project: Project, user: ProjectUser
+    ) -> bool:
+        return any(
+            [
+                user.has_perm("projects.change_locked_project"),
+                user.has_perm("projects.change_locked_project", project),
+                *[
+                    user.has_perm("organizations.change_locked_project", o)
+                    for o in project.get_related_organizations()
+                ],
+            ]
+        )
+
+    def has_permission(self, request: Request, view: GenericViewSet) -> bool:
+        project = self.get_related_project(request, view)
+        if (
+            project
+            and view.action == "create"
+            and project.is_locked
+            and not self.user_can_modify_locked_project(project, request.user)
+        ):
+            raise LockedProjectError
+        return True
 
     def has_object_permission(
-        self, request: Request, view: GenericViewSet, obj: Project
+        self, request: Request, view: GenericViewSet, obj: ProjectRelated
     ) -> bool:
-        if view.action in ["update", "partial_update"]:
-            return not obj.is_locked
+        project = self.get_related_project(request, view, obj)
+        if (
+            project
+            and view.action
+            in ["update", "partial_update", "destroy", "add_member", "remove_member"]
+            and project.is_locked
+            and not self.user_can_modify_locked_project(project, request.user)
+        ):
+            raise LockedProjectError
         return True

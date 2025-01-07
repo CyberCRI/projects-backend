@@ -29,6 +29,12 @@ class AddProjectToOrganizationPermissionError(PermissionDenied):
     default_code = "add_project_to_organization_permission_error"
 
 
+class LockedProjectError(PermissionDenied):
+    status_code = status.HTTP_403_FORBIDDEN
+    default_detail = _("You cannot modify a locked project")
+    default_code = "locked_project_error"
+
+
 # Technical errors
 
 
