@@ -20,7 +20,7 @@ from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
-from apps.projects.permissions import HasProjectPermission
+from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
 
 from .exceptions import ProtectedImageError
 from .models import AttachmentFile, AttachmentLink, Image
@@ -37,6 +37,7 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = "[0-9]+"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")
@@ -63,6 +64,7 @@ class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = "[0-9]+"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")
