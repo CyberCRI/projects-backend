@@ -2,7 +2,6 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
-from django.db import transaction
 from django.db.models import Count, Q, QuerySet
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
@@ -24,6 +23,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
     PaginatedViewSet,
+    ReadUpdateDestroyModelViewSet,
     WriteOnlyModelViewSet,
 )
 from apps.emailing.utils import render_message, send_email
@@ -43,6 +43,7 @@ from .filters import TagFilter
 from .models import Mentoring, Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
 from .serializers import (
+    MentoringSerializer,
     MentorshipContactSerializer,
     SkillSerializer,
     TagClassificationAddTagsSerializer,
@@ -685,16 +686,21 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
         return self.get_paginated_list(users)
 
 
-class MentorshipContactViewset(viewsets.ViewSet):
+class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
+    queryset = Mentoring.objects.all()
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        if "user_id" in self.kwargs:
+            return self.queryset.filter(mentoree_id=self.kwargs["user_id"])
+        return self.queryset.none()
 
     def get_organization(self):
         organization_code = self.kwargs["organization_code"]
         return get_object_or_404(Organization, code=organization_code)
 
-    def get_skill(self):
+    def get_skill(self, skill_id: int) -> Skill:
         organization = self.get_organization()
-        skill_id = self.kwargs["skill_id"]
         return get_object_or_404(
             Skill, id=int(skill_id), user__in=organization.get_all_members()
         )
@@ -717,60 +723,79 @@ class MentorshipContactViewset(viewsets.ViewSet):
             subject, text, [skill.user.email], html_content=html, reply_to=[reply_to]
         )
 
-    @extend_schema(request=MentorshipContactSerializer, responses={204: None})
+    @extend_schema(
+        request=MentorshipContactSerializer,
+        responses={status.HTTP_200_OK: MentoringSerializer},
+    )
     @action(
         detail=False,
         methods=["POST"],
-        url_path="contact-mentor",
-        url_name="contact-mentor",
-        permission_classes=[IsAuthenticated],
+        url_path="mentor-request/(?P<skill_id>[^/]+)",
+        url_name="mentor-request",
     )
-    @transaction.atomic
-    def contact_mentor(self, request, *args, **kwargs):
-        """
-        Contact a mentor for help.
-        """
-        skill = self.get_skill()
+    def mentor_request(self, request, *args, **kwargs):
+        skill = self.get_skill(self.kwargs["skill_id"])
         if not skill.can_mentor:
             raise UserCannotMentorError
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            Mentoring.objects.create(
+            instance = Mentoring.objects.create(
                 skill=skill,
                 mentor=skill.user,
                 mentoree=self.request.user,
+                created_by=self.request.user,
             )
         except IntegrityError:
             raise DuplicatedMentoringError
         self.send_email("contact_mentor", skill, **serializer.validated_data)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(MentoringSerializer(instance).data)
 
-    @extend_schema(request=MentorshipContactSerializer, responses={204: None})
+    @extend_schema(
+        request=MentorshipContactSerializer,
+        responses={status.HTTP_200_OK: MentoringSerializer},
+    )
     @action(
         detail=False,
         methods=["POST"],
-        url_path="contact-mentoree",
-        url_name="contact-mentoree",
-        permission_classes=[IsAuthenticated],
+        url_path="mentoree-request/(?P<skill_id>[^/]+)",
+        url_name="mentoree-request",
     )
-    @transaction.atomic
-    def contact_mentoree(self, request, *args, **kwargs):
+    def mentoree_request(self, request, *args, **kwargs):
         """
         Contact a mentoree for help.
         """
-        skill = self.get_skill()
+        skill = self.get_skill(self.kwargs["skill_id"])
         if not skill.needs_mentor:
             raise UserDoesNotNeedMentorError
         serializer = MentorshipContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
-            Mentoring.objects.create(
+            instance = Mentoring.objects.create(
                 skill=skill,
                 mentor=self.request.user,
                 mentoree=skill.user,
+                created_by=self.request.user,
             )
         except IntegrityError:
             raise DuplicatedMentoringError
         self.send_email("contact_mentoree", skill, **serializer.validated_data)
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(MentoringSerializer(instance).data)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="accept",
+        url_name="accept",
+    )
+    def accept(self, request, *args, **kwargs):
+        pass
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="decline",
+        url_name="decline",
+    )
+    def decline(self, request, *args, **kwargs):
+        pass

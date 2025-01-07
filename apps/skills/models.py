@@ -1,5 +1,5 @@
 import uuid
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 
 from django.db import models, transaction
 from django.utils.text import slugify
@@ -221,32 +221,40 @@ class Skill(models.Model, HasOwner):
         return self.user
 
 
-class Mentoring(models.Model):
+class Mentoring(models.Model, HasOwner):
     class MentoringStatus(models.TextChoices):
         """Status of a mentoring request."""
 
         PENDING = "pending"
         ACCEPTED = "accepted"
         REJECTED = "rejected"
+        FINISHED = "finished"
 
     mentor = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        related_name="mentor_requests",
+        related_name="mentor_mentorings",
     )
     mentoree = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        related_name="mentoree_requests",
+        related_name="mentoree_mentorings",
     )
     skill = models.ForeignKey(
-        "skills.Skill", on_delete=models.CASCADE, related_name="mentoring_requests"
+        "skills.Skill", on_delete=models.CASCADE, related_name="mentorings"
     )
     status = models.CharField(
         max_length=8,
         choices=MentoringStatus.choices,
         default=MentoringStatus.PENDING.value,
     )
+    created_by = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="created_mentorings",
+        null=True,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = (
@@ -254,3 +262,16 @@ class Mentoring(models.Model):
             "mentoree",
             "skill",
         )
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is an owner of the object."""
+        return user in self.get_owner()
+
+    def get_owner(self) -> List["ProjectUser"]:
+        """
+        Get the owners of the object.
+
+        The HasOwner mixin was meant to be used for models with a single owner.
+        In this case, the owner can be either the mentor or the mentoree.
+        """
+        return [self.mentor, self.mentoree]

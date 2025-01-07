@@ -7,7 +7,7 @@ from apps.commons.urls import (
 )
 
 from .views import (
-    MentorshipContactViewset,
+    MentoringViewSet,
     OrganizationMentorshipViewset,
     ReadTagViewSet,
     SkillViewSet,
@@ -64,7 +64,7 @@ organization_user_router_register(
 
 organization_router_register(
     router,
-    r"skill/(?P<skill_id>[^/]+)",
-    MentorshipContactViewset,
+    r"mentoring",
+    MentoringViewSet,
     basename="MentorshipContact",
 )
