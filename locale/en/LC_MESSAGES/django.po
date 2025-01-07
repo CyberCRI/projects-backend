@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 11:42+0100\n"
+"POT-Creation-Date: 2025-01-07 17:36+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -330,7 +330,7 @@ msgid ""
 msgstr ""
 
 #: apps/invitations/templates/access_requests_base.html:83
-#: apps/skills/templates/mentorship_base.html:208
+#: apps/skills/templates/mentorship_base.html:206
 #: services/keycloak/templates/keycloak_base.html:83
 msgid ""
 "\n"
@@ -1280,48 +1280,88 @@ msgstr ""
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr ""
 
-#: apps/skills/templates/contact_mentor/mail.html:14
-#: apps/skills/templates/contact_mentoree/mail.html:14
-msgid ""
-"\n"
-"    Reply\n"
-"    "
-msgstr ""
-
-#: apps/skills/templates/contact_mentor/mail.txt:2
-#: apps/skills/templates/contact_mentoree/mail.txt:2
+#: apps/skills/templates/contact_mentor/mail.html:10
 #, python-format
 msgid ""
 "\n"
-"%(title)s\n"
+"            Can you mentor me in %(skill)s?\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/contact_mentor/mail.html:19
+#: apps/skills/templates/contact_mentoree/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Here is the message that %(user)s has left on the Projects "
+"platform:\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/contact_mentor/mail.html:30
+#: apps/skills/templates/contact_mentoree/mail.html:30
+msgid ""
+"\n"
+"            Reply\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/contact_mentor/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s?\n"
+"\n"
+"Here is the message that %(user)s has left on the Projects platform:\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(reply_to)s\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 
 #: apps/skills/templates/contact_mentor/object.txt:2
 #, python-format
 msgid ""
 "\n"
-"Would you mentor %(mentoree_name)s ?\n"
+"Can you mentor %(mentoree_name)s?\n"
+msgstr ""
+
+#: apps/skills/templates/contact_mentoree/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s?\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/contact_mentoree/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s?\n"
+"\n"
+"Here is the message that %(user)s has left on the Projects platform:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
 msgid ""
 "\n"
-"%(mentor_name)s wants to mentor you.\n"
+"%(mentor_name)s offers to mentor you\n"
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:57
+#: apps/skills/templates/mentorship_base.html:55
 msgid ""
 "\n"
 "          Mentoring guide : advice for mentors and mentorees\n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:62
+#: apps/skills/templates/mentorship_base.html:60
 msgid ""
 "\n"
 "          Dear Mentors and Mentorees, 👩‍🏫👨‍🎓\n"
@@ -1332,14 +1372,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:69
+#: apps/skills/templates/mentorship_base.html:67
 msgid ""
 "\n"
 "          🌟 To get started\n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:74
+#: apps/skills/templates/mentorship_base.html:72
 msgid ""
 "\n"
 "          We encourage you to watch this video to learn more about the roles "
@@ -1347,7 +1387,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:78
+#: apps/skills/templates/mentorship_base.html:76
 msgid ""
 "\n"
 "        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
@@ -1357,14 +1397,14 @@ msgid ""
 "        "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:84
+#: apps/skills/templates/mentorship_base.html:82
 msgid ""
 "\n"
 "          In brief : \n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:89
+#: apps/skills/templates/mentorship_base.html:87
 msgid ""
 "\n"
 "          - <strong>A mentor</strong> serves as a supportive guide who "
@@ -1380,14 +1420,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:97
+#: apps/skills/templates/mentorship_base.html:95
 msgid ""
 "\n"
 "          📅 Mentoring structures :\n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:102
+#: apps/skills/templates/mentorship_base.html:100
 msgid ""
 "\n"
 "          Here are a few suggested structures for your mentoring sessions. "
@@ -1396,7 +1436,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:107
+#: apps/skills/templates/mentorship_base.html:105
 msgid ""
 "\n"
 "          🔹 <strong>Single session</strong> : Ideal for a quick, one-hour "
@@ -1405,7 +1445,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:112
+#: apps/skills/templates/mentorship_base.html:110
 msgid ""
 "\n"
 "          🔹 <strong>Three one-hour sessions</strong> : Great for diving "
@@ -1413,7 +1453,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:117
+#: apps/skills/templates/mentorship_base.html:115
 msgid ""
 "\n"
 "              - 👂 <strong>Session 1</strong> : Understand the issue and "
@@ -1421,7 +1461,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:122
+#: apps/skills/templates/mentorship_base.html:120
 msgid ""
 "\n"
 "              - 📚 <strong>Session 2</strong> : Share research and set clear "
@@ -1429,7 +1469,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:127
+#: apps/skills/templates/mentorship_base.html:125
 msgid ""
 "\n"
 "              - 🌟 <strong>Session 3</strong> : Review progress and adjust "
@@ -1437,7 +1477,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:132
+#: apps/skills/templates/mentorship_base.html:130
 msgid ""
 "\n"
 "          🔹 <strong>Year-long mentoring (2 hours/month)</strong> : Perfect "
@@ -1445,7 +1485,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:137
+#: apps/skills/templates/mentorship_base.html:135
 msgid ""
 "\n"
 "              - 🏅 <strong>Progress review</strong> : Discuss achievements "
@@ -1453,7 +1493,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:142
+#: apps/skills/templates/mentorship_base.html:140
 msgid ""
 "\n"
 "              - 🎯 <strong>Goals</strong> : Set 2-3 objectives to work on "
@@ -1461,7 +1501,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:147
+#: apps/skills/templates/mentorship_base.html:145
 msgid ""
 "\n"
 "              - 📖 <strong>Resources</strong> : Share helpful content "
@@ -1469,7 +1509,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:152
+#: apps/skills/templates/mentorship_base.html:150
 msgid ""
 "\n"
 "              - 🗓️ <strong>Next session</strong> : Schedule the upcoming "
@@ -1477,14 +1517,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:158
+#: apps/skills/templates/mentorship_base.html:156
 msgid ""
 "\n"
 "          ✅ Tips for successful mentoring :\n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:163
+#: apps/skills/templates/mentorship_base.html:161
 msgid ""
 "\n"
 "          📝 <strong>Prepare for each session :</strong> Think about the "
@@ -1493,7 +1533,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:168
+#: apps/skills/templates/mentorship_base.html:166
 msgid ""
 "\n"
 "          🤝 <strong>Be open and honest :</strong> Building trust requires "
@@ -1501,7 +1541,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:173
+#: apps/skills/templates/mentorship_base.html:171
 msgid ""
 "\n"
 "          👂 <strong>Practice active listening :</strong> Ask questions and "
@@ -1509,14 +1549,14 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:178
+#: apps/skills/templates/mentorship_base.html:176
 msgid ""
 "\n"
 "          🎯 <strong>Set clear goals</strong> after each session.\n"
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:183
+#: apps/skills/templates/mentorship_base.html:181
 msgid ""
 "\n"
 "          📬 <strong>Share useful resources</strong> between meetings to "
@@ -1524,7 +1564,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:188
+#: apps/skills/templates/mentorship_base.html:186
 msgid ""
 "\n"
 "          📆 <strong>Always schedule the next session</strong> to maintain "
@@ -1532,7 +1572,7 @@ msgid ""
 "          "
 msgstr ""
 
-#: apps/skills/templates/mentorship_base.html:194
+#: apps/skills/templates/mentorship_base.html:192
 msgid ""
 "\n"
 "          We hope these tips help you better navigate your mentorship "

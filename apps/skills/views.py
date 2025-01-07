@@ -748,7 +748,9 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
-        self.send_email("contact_mentor", skill, **serializer.validated_data)
+        self.send_email(
+            "contact_mentor", skill, instance=instance, **serializer.validated_data
+        )
         return Response(MentoringSerializer(instance).data)
 
     @extend_schema(
@@ -779,7 +781,9 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
-        self.send_email("contact_mentoree", skill, **serializer.validated_data)
+        self.send_email(
+            "contact_mentoree", skill, instance=instance, **serializer.validated_data
+        )
         return Response(MentoringSerializer(instance).data)
 
     @action(
