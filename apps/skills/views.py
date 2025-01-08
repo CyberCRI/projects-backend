@@ -43,8 +43,8 @@ from .filters import TagFilter
 from .models import Mentoring, Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
 from .serializers import (
+    MentoringContactSerializer,
     MentoringSerializer,
-    MentorshipContactSerializer,
     SkillSerializer,
     TagClassificationAddTagsSerializer,
     TagClassificationRemoveTagsSerializer,
@@ -724,20 +724,20 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
         )
 
     @extend_schema(
-        request=MentorshipContactSerializer,
+        request=MentoringContactSerializer,
         responses={status.HTTP_200_OK: MentoringSerializer},
     )
     @action(
         detail=False,
         methods=["POST"],
-        url_path="mentor-request/(?P<skill_id>[^/]+)",
-        url_name="mentor-request",
+        url_path="contact-mentor/(?P<skill_id>[^/]+)",
+        url_name="contact-mentor",
     )
     def mentor_request(self, request, *args, **kwargs):
         skill = self.get_skill(self.kwargs["skill_id"])
         if not skill.can_mentor:
             raise UserCannotMentorError
-        serializer = MentorshipContactSerializer(data=request.data)
+        serializer = MentoringContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
             instance = Mentoring.objects.create(
@@ -754,14 +754,14 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
         return Response(MentoringSerializer(instance).data)
 
     @extend_schema(
-        request=MentorshipContactSerializer,
+        request=MentoringContactSerializer,
         responses={status.HTTP_200_OK: MentoringSerializer},
     )
     @action(
         detail=False,
         methods=["POST"],
-        url_path="mentoree-request/(?P<skill_id>[^/]+)",
-        url_name="mentoree-request",
+        url_path="contact-mentoree/(?P<skill_id>[^/]+)",
+        url_name="contact-mentoree",
     )
     def mentoree_request(self, request, *args, **kwargs):
         """
@@ -770,7 +770,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
         skill = self.get_skill(self.kwargs["skill_id"])
         if not skill.needs_mentor:
             raise UserDoesNotNeedMentorError
-        serializer = MentorshipContactSerializer(data=request.data)
+        serializer = MentoringContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
             instance = Mentoring.objects.create(

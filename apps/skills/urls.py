@@ -66,5 +66,5 @@ organization_router_register(
     router,
     r"mentoring",
     MentoringViewSet,
-    basename="MentorshipContact",
+    basename="Mentoring",
 )

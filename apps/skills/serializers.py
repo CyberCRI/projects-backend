@@ -259,7 +259,7 @@ class SkillSerializer(serializers.ModelSerializer):
         ]
 
 
-class MentorshipContactSerializer(serializers.Serializer):
+class MentoringContactSerializer(serializers.Serializer):
     content = serializers.CharField()
     reply_to = serializers.EmailField()
 

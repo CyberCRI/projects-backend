@@ -14,7 +14,7 @@ from apps.skills.models import Mentoring
 faker = Faker()
 
 
-class MentorshipContactTestCase(JwtAPITestCase):
+class CreateMentoringTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -27,81 +27,79 @@ class MentorshipContactTestCase(JwtAPITestCase):
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_204_NO_CONTENT),
+            (TestRoles.DEFAULT, status.HTTP_200_OK),
         ]
     )
     def test_contact_mentor(self, role, expected_code):
-        organization = self.organization
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(),
             "content": faker.text(),
             "reply_to": faker.email(),
         }
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentor",
-                args=(organization.code, self.mentor_skill.id),
+                "Mentoring-contact-mentor",
+                args=(self.organization.code, self.mentor_skill.id),
             ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
-        if expected_code == status.HTTP_204_NO_CONTENT:
+        if expected_code == status.HTTP_200_OK:
             self.assertEqual(len(mail.outbox), 1)
             email = mail.outbox[0]
             self.assertEqual(email.to, [self.mentor.email])
-            self.assertIn(payload["title"], email.body)
             self.assertIn(payload["content"], email.body)
-            self.assertIn(payload["reply_to"], email.body)
-            self.assertTrue(
-                Mentoring.objects.filter(
-                    mentor=self.mentor,
-                    mentoree=user,
-                    skill=self.mentor_skill,
-                ).exists()
-            )
+
+            content = response.json()
+            mentoring = Mentoring.objects.filter(id=content["id"])
+            self.assertTrue(mentoring.exists())
+            mentoring = mentoring.get()
+            self.assertEqual(mentoring.mentor, self.mentor)
+            self.assertEqual(mentoring.mentoree, user)
+            self.assertEqual(mentoring.skill, self.mentor_skill)
+            self.assertEqual(mentoring.status, Mentoring.MentoringStatus.PENDING.value)
+            self.assertEqual(mentoring.created_by, user)
 
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
-            (TestRoles.DEFAULT, status.HTTP_204_NO_CONTENT),
+            (TestRoles.DEFAULT, status.HTTP_200_OK),
         ]
     )
     def test_contact_mentoree(self, role, expected_code):
-        organization = self.organization
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         payload = {
-            "title": faker.sentence(),
             "content": faker.text(),
             "reply_to": faker.email(),
         }
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentoree",
-                args=(organization.code, self.mentoree_skill.id),
+                "Mentoring-contact-mentoree",
+                args=(self.organization.code, self.mentoree_skill.id),
             ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
-        if expected_code == status.HTTP_204_NO_CONTENT:
+        if expected_code == status.HTTP_200_OK:
             self.assertEqual(len(mail.outbox), 1)
             email = mail.outbox[0]
             self.assertEqual(email.to, [self.mentoree.email])
-            self.assertIn(payload["title"], email.body)
             self.assertIn(payload["content"], email.body)
-            self.assertIn(payload["reply_to"], email.body)
-            self.assertTrue(
-                Mentoring.objects.filter(
-                    mentor=user,
-                    mentoree=self.mentoree,
-                    skill=self.mentoree_skill,
-                ).exists()
-            )
+
+            content = response.json()
+            mentoring = Mentoring.objects.filter(id=content["id"])
+            self.assertTrue(mentoring.exists())
+            mentoring = mentoring.get()
+            self.assertEqual(mentoring.mentor, user)
+            self.assertEqual(mentoring.mentoree, self.mentoree)
+            self.assertEqual(mentoring.skill, self.mentoree_skill)
+            self.assertEqual(mentoring.status, Mentoring.MentoringStatus.PENDING.value)
+            self.assertEqual(mentoring.created_by, user)
 
 
-class ValidateMentorshipContactTestCase(JwtAPITestCase):
+class ValidateMentoringTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
@@ -115,18 +113,15 @@ class ValidateMentorshipContactTestCase(JwtAPITestCase):
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     def test_contact_mentor_for_wrong_skill(self):
-        organization = self.organization
-        user = self.superadmin
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         payload = {
-            "title": faker.sentence(),
             "content": faker.text(),
             "reply_to": faker.email(),
         }
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentor",
-                args=(organization.code, self.mentor_wrong_skill.id),
+                "Mentoring-contact-mentor",
+                args=(self.organization.code, self.mentor_wrong_skill.id),
             ),
             data=payload,
         )
@@ -136,18 +131,15 @@ class ValidateMentorshipContactTestCase(JwtAPITestCase):
         )
 
     def test_contact_mentoree_for_wrong_skill(self):
-        organization = self.organization
-        user = self.superadmin
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         payload = {
-            "title": faker.sentence(),
             "content": faker.text(),
             "reply_to": faker.email(),
         }
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentoree",
-                args=(organization.code, self.mentoree_wrong_skill.id),
+                "Mentoring-contact-mentoree",
+                args=(self.organization.code, self.mentoree_wrong_skill.id),
             ),
             data=payload,
         )
@@ -157,26 +149,23 @@ class ValidateMentorshipContactTestCase(JwtAPITestCase):
         )
 
     def test_duplicate_mentoree_request(self):
-        organization = self.organization
-        user = self.superadmin
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         payload = {
-            "title": faker.sentence(),
             "content": faker.text(),
             "reply_to": faker.email(),
         }
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentoree",
-                args=(organization.code, self.mentoree_skill.id),
+                "Mentoring-contact-mentoree",
+                args=(self.organization.code, self.mentoree_skill.id),
             ),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentoree",
-                args=(organization.code, self.mentoree_skill.id),
+                "Mentoring-contact-mentoree",
+                args=(self.organization.code, self.mentoree_skill.id),
             ),
             data=payload,
         )
@@ -186,26 +175,23 @@ class ValidateMentorshipContactTestCase(JwtAPITestCase):
         )
 
     def test_duplicate_mentor_request(self):
-        organization = self.organization
-        user = self.superadmin
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         payload = {
-            "title": faker.sentence(),
             "content": faker.text(),
             "reply_to": faker.email(),
         }
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentor",
-                args=(organization.code, self.mentor_skill.id),
+                "Mentoring-contact-mentor",
+                args=(self.organization.code, self.mentor_skill.id),
             ),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         response = self.client.post(
             reverse(
-                "MentorshipContact-contact-mentor",
-                args=(organization.code, self.mentor_skill.id),
+                "Mentoring-contact-mentor",
+                args=(self.organization.code, self.mentor_skill.id),
             ),
             data=payload,
         )
