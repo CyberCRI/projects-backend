@@ -45,10 +45,9 @@ class WriteOnlyModelViewSet(
     """
 
 
-class ReadUpdateDestroyModelViewSet(
+class ReadDestroyModelViewSet(
     mixins.ListModelMixin,
     mixins.RetrieveModelMixin,
-    mixins.UpdateModelMixin,
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):

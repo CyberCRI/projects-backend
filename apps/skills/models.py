@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 from django.db import models, transaction
 from django.utils.text import slugify
 
-from apps.commons.models import HasMultipleIDs, HasOwner, OrganizationRelated
+from apps.commons.models import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -221,14 +221,13 @@ class Skill(models.Model, HasOwner):
         return self.user
 
 
-class Mentoring(models.Model, HasOwner):
+class Mentoring(models.Model, HasOwners):
     class MentoringStatus(models.TextChoices):
         """Status of a mentoring request."""
 
         PENDING = "pending"
         ACCEPTED = "accepted"
         REJECTED = "rejected"
-        FINISHED = "finished"
 
     mentor = models.ForeignKey(
         "accounts.ProjectUser",
@@ -246,7 +245,7 @@ class Mentoring(models.Model, HasOwner):
     status = models.CharField(
         max_length=8,
         choices=MentoringStatus.choices,
-        default=MentoringStatus.PENDING.value,
+        null=True,
     )
     created_by = models.ForeignKey(
         "accounts.ProjectUser",
@@ -265,9 +264,9 @@ class Mentoring(models.Model, HasOwner):
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is an owner of the object."""
-        return user in self.get_owner()
+        return user in self.get_owners()
 
-    def get_owner(self) -> List["ProjectUser"]:
+    def get_owners(self) -> List["ProjectUser"]:
         """
         Get the owners of the object.
 
@@ -275,3 +274,42 @@ class Mentoring(models.Model, HasOwner):
         In this case, the owner can be either the mentor or the mentoree.
         """
         return [self.mentor, self.mentoree]
+
+
+class MentoringMessage(models.Model, HasOwner):
+    """
+    Message sent in a mentoring conversation.
+
+    Attributes
+    ----------
+    mentoring: ForeignKey
+        The mentoring conversation the message belongs to.
+    sender: ForeignKey
+        The user who sent the message.
+    content: TextField
+        The content of the message.
+    created_at: DateTimeField
+        The date and time the message was created.
+    """
+
+    mentoring = models.ForeignKey(
+        "skills.Mentoring", on_delete=models.CASCADE, related_name="messages"
+    )
+    sender = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="sent_mentoring_messages",
+    )
+    content = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        return user == self.sender
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.sender

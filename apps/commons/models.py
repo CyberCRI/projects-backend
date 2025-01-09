@@ -81,6 +81,18 @@ class HasOwner:
         raise NotImplementedError()
 
 
+class HasOwners:
+    """Abstract class for models which have an owner."""
+
+    def get_owners(self):
+        """Get the owner of the object."""
+        raise NotImplementedError()
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        raise NotImplementedError()
+
+
 class PermissionsSetupModel(models.Model):
     """Abstract class for models which should be initialized with permissions."""
 

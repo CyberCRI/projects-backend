@@ -53,6 +53,14 @@ class DuplicatedMentoringError(APIException):
     default_code = "duplicated_mentoring"
 
 
+class MentoringCreatorStatusChangeError(APIException):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _(
+        "You cannot change the status of a mentoring request you created"
+    )
+    default_code = "mentoring_creator_status_change"
+
+
 # Validation errors
 
 

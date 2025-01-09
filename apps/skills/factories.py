@@ -4,7 +4,7 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.organizations.factories import OrganizationFactory
 
-from .models import Skill, Tag, TagClassification
+from .models import Mentoring, Skill, Tag, TagClassification
 
 faker = Faker()
 
@@ -64,3 +64,27 @@ class SkillFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Skill
+
+
+class MentoreeCreatedMentoringFactory(factory.django.DjangoModelFactory):
+    mentor = factory.SubFactory(UserFactory)
+    mentoree = factory.SubFactory(UserFactory)
+    skill = factory.LazyAttribute(
+        lambda x: SkillFactory(user=x.mentor, can_mentor=True)
+    )
+    created_by = factory.LazyAttribute(lambda x: x.mentoree)
+
+    class Meta:
+        model = Mentoring
+
+
+class MentorCreatedMentoringFactory(factory.django.DjangoModelFactory):
+    mentor = factory.SubFactory(UserFactory)
+    mentoree = factory.SubFactory(UserFactory)
+    skill = factory.LazyAttribute(
+        lambda x: SkillFactory(user=x.mentoree, needs_mentor=True)
+    )
+    created_by = factory.LazyAttribute(lambda x: x.mentor)
+
+    class Meta:
+        model = Mentoring

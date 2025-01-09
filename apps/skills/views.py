@@ -2,6 +2,7 @@ from typing import Union
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.db import transaction
 from django.db.models import Count, Q, QuerySet
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
@@ -23,7 +24,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
     PaginatedViewSet,
-    ReadUpdateDestroyModelViewSet,
+    ReadDestroyModelViewSet,
     WriteOnlyModelViewSet,
 )
 from apps.emailing.utils import render_message, send_email
@@ -33,6 +34,7 @@ from services.wikipedia.interface import WikipediaService
 
 from .exceptions import (
     DuplicatedMentoringError,
+    MentoringCreatorStatusChangeError,
     SkillAlreadyAddedError,
     UserCannotMentorError,
     UserDoesNotNeedMentorError,
@@ -44,6 +46,7 @@ from .models import Mentoring, Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
 from .serializers import (
     MentoringContactSerializer,
+    MentoringResponseSerializer,
     MentoringSerializer,
     SkillSerializer,
     TagClassificationAddTagsSerializer,
@@ -686,33 +689,28 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
         return self.get_paginated_list(users)
 
 
-class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
+class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
     queryset = Mentoring.objects.all()
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsOwner]
+    serializer_class = MentoringSerializer
 
     def get_queryset(self):
-        if "user_id" in self.kwargs:
-            return self.queryset.filter(mentoree_id=self.kwargs["user_id"])
+        if self.request.user.is_authenticated:
+            return self.queryset.filter(
+                Q(mentoree=self.request.user) | Q(mentor=self.request.user)
+            ).distinct()
         return self.queryset.none()
-
-    def get_organization(self):
-        organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(Organization, code=organization_code)
-
-    def get_skill(self, skill_id: int) -> Skill:
-        organization = self.get_organization()
-        return get_object_or_404(
-            Skill, id=int(skill_id), user__in=organization.get_all_members()
-        )
 
     def get_skill_name(self, skill: Skill, language: str):
         return getattr(skill.tag, f"title_{language}", skill.tag.title)
 
-    def send_email(self, template_folder: str, skill: Skill, **kwargs):
-        language = skill.user.language
+    def send_email(
+        self, template_folder: str, receiver: ProjectUser, skill: Skill, **kwargs
+    ):
+        language = receiver.language
         kwargs = {
             "sender": self.request.user,
-            "receiver": skill.user,
+            "receiver": receiver,
             "skill": self.get_skill_name(skill, language),
             **kwargs,
         }
@@ -720,7 +718,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
         text, html = render_message(f"{template_folder}/mail", language, **kwargs)
         reply_to = kwargs["reply_to"]
         send_email(
-            subject, text, [skill.user.email], html_content=html, reply_to=[reply_to]
+            subject, text, [receiver.email], html_content=html, reply_to=[reply_to]
         )
 
     @extend_schema(
@@ -732,11 +730,14 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
         methods=["POST"],
         url_path="contact-mentor/(?P<skill_id>[^/]+)",
         url_name="contact-mentor",
+        permission_classes=[IsAuthenticated],
     )
-    def mentor_request(self, request, *args, **kwargs):
-        skill = self.get_skill(self.kwargs["skill_id"])
+    @transaction.atomic
+    def contact_mentor(self, request, *args, **kwargs):
+        skill = get_object_or_404(Skill, id=int(self.kwargs["skill_id"]))
         if not skill.can_mentor:
             raise UserCannotMentorError
+        # Create the mentoring instance
         serializer = MentoringContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -748,8 +749,13 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
+        # Send the email
         self.send_email(
-            "contact_mentor", skill, instance=instance, **serializer.validated_data
+            "contact_mentor",
+            skill.user,
+            skill,
+            instance=instance,
+            **serializer.validated_data,
         )
         return Response(MentoringSerializer(instance).data)
 
@@ -762,14 +768,17 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
         methods=["POST"],
         url_path="contact-mentoree/(?P<skill_id>[^/]+)",
         url_name="contact-mentoree",
+        permission_classes=[IsAuthenticated],
     )
-    def mentoree_request(self, request, *args, **kwargs):
+    @transaction.atomic
+    def contact_mentoree(self, request, *args, **kwargs):
         """
         Contact a mentoree for help.
         """
-        skill = self.get_skill(self.kwargs["skill_id"])
+        skill = get_object_or_404(Skill, id=int(self.kwargs["skill_id"]))
         if not skill.needs_mentor:
             raise UserDoesNotNeedMentorError
+        # Create the mentoring instance
         serializer = MentoringContactSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         try:
@@ -781,25 +790,59 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadUpdateDestroyModelViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
+        # Send the email
         self.send_email(
-            "contact_mentoree", skill, instance=instance, **serializer.validated_data
+            "contact_mentoree",
+            skill.user,
+            skill,
+            instance=instance,
+            **serializer.validated_data,
         )
         return Response(MentoringSerializer(instance).data)
 
+    @extend_schema(
+        request=MentoringResponseSerializer,
+        responses={status.HTTP_200_OK: MentoringSerializer},
+    )
     @action(
         detail=True,
-        methods=["GET"],
-        url_path="accept",
-        url_name="accept",
+        methods=["POST"],
+        url_path="respond",
+        url_name="respond",
     )
-    def accept(self, request, *args, **kwargs):
-        pass
+    @transaction.atomic
+    def respond(self, request, *args, **kwargs):
+        """
+        Reply to the mentoring request and update the Mentoring's status.
+        An email with the user's message will be sent to the mentoring's initiator.
 
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_path="decline",
-        url_name="decline",
-    )
-    def decline(self, request, *args, **kwargs):
-        pass
+        The status can be:
+            - pending : the mentoring is still being discussed
+            - accepted : the mentoring is accepted
+            - rejected : the mentoring is rejected
+        """
+        instance = self.get_object()
+        if self.request.user == instance.created_by:
+            # Only the receiver of the mentoring request can accept or reject it
+            raise MentoringCreatorStatusChangeError
+        # Update the mentoring status
+        serializer = MentoringResponseSerializer(instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        instance.status = serializer.validated_data.pop("status")
+        instance.save()
+        # Send the email
+        if instance.created_by == instance.mentor:
+            template = f"mentoree_response_{instance.status}"
+        elif instance.created_by == instance.mentoree:
+            template = f"mentor_response_{instance.status}"
+        else:
+            # This part should never be reached
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+        self.send_email(
+            template,
+            instance.created_by,
+            instance.skill,
+            instance=instance,
+            **serializer.validated_data,
+        )
+        return Response(MentoringSerializer(instance).data)

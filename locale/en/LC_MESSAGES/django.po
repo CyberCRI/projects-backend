@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 17:36+0100\n"
+"POT-Creation-Date: 2025-01-09 17:44+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1263,15 +1263,19 @@ msgstr ""
 msgid "You already made a mentoring request for this skill"
 msgstr ""
 
-#: apps/skills/exceptions.py:61
+#: apps/skills/exceptions.py:59
+msgid "You cannot change the status of a mentoring request you created"
+msgstr ""
+
+#: apps/skills/exceptions.py:69
 msgid "Tags must belong to the classification's organization"
 msgstr ""
 
-#: apps/skills/exceptions.py:67
+#: apps/skills/exceptions.py:75
 msgid "Tag title must be 50 characters or less"
 msgstr ""
 
-#: apps/skills/exceptions.py:73
+#: apps/skills/exceptions.py:81
 msgid "Tag description must be 500 characters or less"
 msgstr ""
 
@@ -1352,6 +1356,217 @@ msgstr ""
 msgid ""
 "\n"
 "%(mentor_name)s offers to mentor you\n"
+msgstr ""
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has accepted to mentor you in %(skill)s!\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Good news, %(user)s has accepted to mentor you. You can contact "
+"them at %(email)s.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:30
+#: apps/skills/templates/mentor_response_pending/mail.html:30
+#: apps/skills/templates/mentoree_response_accepted/mail.html:30
+#: apps/skills/templates/mentoree_response_pending/mail.html:30
+#, python-format
+msgid ""
+"\n"
+"            Reply to %(user)s\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s has accepted to mentor you in %(skill)s!\n"
+"\n"
+"Good news, %(user)s has accepted to mentor you. You can contact them at "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+
+#: apps/skills/templates/mentor_response_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s has accepted to mentor you\n"
+msgstr ""
+
+#: apps/skills/templates/mentor_response_pending/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s needs more information to mentor you in %(skill)s.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_pending/mail.html:19
+#: apps/skills/templates/mentoree_response_pending/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has left the following message:\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_pending/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s needs more information to mentor you in %(skill)s.\n"
+" \n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+
+#: apps/skills/templates/mentor_response_pending/object.txt:2
+#: apps/skills/templates/mentoree_response_pending/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s needs more information on mentoring\n"
+msgstr ""
+
+#: apps/skills/templates/mentor_response_rejected/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s can't mentor you in %(skill)s!\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_rejected/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Unfortunately, %(user)s can't mentor you in %(skill)s.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentor_response_rejected/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s can't mentor you in %(skill)s!\n"
+"\n"
+"Unfortunately, %(user)s will not be able to mentor you.\n"
+"\n"
+"%(content)s\n"
+msgstr ""
+
+#: apps/skills/templates/mentor_response_rejected/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s can't mentor you\n"
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_accepted/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has accepted to be your mentoree in %(skill)s!\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_accepted/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Good news, %(user)s has accepted to be your mentoree. You can "
+"contact them at %(email)s.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s has accepted to be your mentoree in %(skill)s!\n"
+"\n"
+"Good news, %(user)s has accepted to be your mentoree. You can contact them "
+"at %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s has accepted to be your mentoree\n"
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_pending/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s needs more information to be your mentoree in "
+"%(skill)s.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_pending/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s needs more information to be your mentoree in %(skill)s.\n"
+" \n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_rejected/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s can't be your mentoree in %(skill)s!\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_rejected/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Unfortunately, %(user)s can't be your mentoree in %(skill)s.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_rejected/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s can't be your mentoree in %(skill)s!\n"
+"\n"
+"Unfortunately, %(user)s will not be able to be your mentoree.\n"
+"\n"
+"%(content)s\n"
+msgstr ""
+
+#: apps/skills/templates/mentoree_response_rejected/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s can't be your mentoree\n"
 msgstr ""
 
 #: apps/skills/templates/mentorship_base.html:55

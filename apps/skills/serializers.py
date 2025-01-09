@@ -264,6 +264,14 @@ class MentoringContactSerializer(serializers.Serializer):
     reply_to = serializers.EmailField()
 
 
+class MentoringResponseSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(
+        choices=Mentoring.MentoringStatus.choices, required=True
+    )
+    content = serializers.CharField()
+    reply_to = serializers.EmailField()
+
+
 class MentoringSerializer(serializers.ModelSerializer):
     mentor = LazySerializer(
         "apps.accounts.serializers.UserLighterSerializer", read_only=True
