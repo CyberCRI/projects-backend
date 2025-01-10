@@ -15,7 +15,7 @@ from apps.commons.views import MultipleIDViewsetMixin
 from apps.notifications.tasks import notify_new_announcement, notify_new_application
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
-from apps.projects.permissions import HasProjectPermission
+from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
 
 from .filters import AnnouncementFilter
 from .models import Announcement
@@ -32,6 +32,7 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ordering = ["updated_at"]
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")

@@ -84,10 +84,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if codename:
             self.permission_classes = [
                 IsAuthenticatedOrReadOnly,
-                ProjectIsNotLocked
-                | HasBasePermission("change_locked_project", "projects")
-                | HasOrganizationPermission("change_locked_project")
-                | HasProjectPermission("change_locked_project"),
+                ProjectIsNotLocked,
                 ReadOnly
                 | HasBasePermission(codename, "projects")
                 | HasOrganizationPermission(codename)
@@ -190,6 +187,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         url_path="member/add",
         permission_classes=[
             IsAuthenticated,
+            ProjectIsNotLocked,
             HasBasePermission("change_project", "projects")
             | HasOrganizationPermission("change_project")
             | HasProjectPermission("change_project"),
@@ -240,6 +238,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         url_path="member/remove",
         permission_classes=[
             IsAuthenticated,
+            ProjectIsNotLocked,
             HasBasePermission("change_project", "projects")
             | HasOrganizationPermission("change_project")
             | HasProjectPermission("change_project"),
@@ -375,6 +374,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | IsOwner
         | HasBasePermission("change_project", "projects")
@@ -406,6 +406,7 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
 class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | IsOwner
         | HasBasePermission("change_project", "projects")
@@ -452,6 +453,7 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = "[0-9]+"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")
@@ -476,6 +478,7 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | IsOwner
         | HasBasePermission("change_project", "projects")
@@ -521,6 +524,7 @@ class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = "[0-9]+"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")
@@ -544,6 +548,7 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     pagination_class = None
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")
@@ -606,6 +611,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = "[0-9]+"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
         ReadOnly
         | HasBasePermission("change_project", "projects")
         | HasOrganizationPermission("change_project")
@@ -664,6 +670,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         url_path="add-many",
         permission_classes=[
             IsAuthenticated,
+            ProjectIsNotLocked,
             HasBasePermission("change_project", "projects")
             | HasOrganizationPermission("change_project")
             | HasProjectPermission("change_project"),
@@ -701,6 +708,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         url_path="delete-many",
         permission_classes=[
             IsAuthenticated,
+            ProjectIsNotLocked,
             HasBasePermission("change_project", "projects")
             | HasOrganizationPermission("change_project")
             | HasProjectPermission("change_project"),

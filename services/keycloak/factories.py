@@ -23,6 +23,8 @@ class RemoteKeycloakAccountFactory(KeycloakAccountFactory):
                 "enabled": True,
                 "firstName": x.user.given_name,
                 "lastName": x.user.family_name,
+                "credentials": [{"type": "password", "value": "password"}],
+                "requiredActions": [],
             }
         )
     )

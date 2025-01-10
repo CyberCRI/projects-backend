@@ -1,4 +1,4 @@
 {% load i18n %}
-{% blocktranslate with mentor_name=sender.get_full_name %}
-{{ mentor_name }} wants to mentor you.
+{% blocktranslate with mentor_name=sender.given_name|capfirst %}
+{{ mentor_name }} offers to mentor you
 {% endblocktranslate %}

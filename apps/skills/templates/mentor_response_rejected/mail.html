@@ -1,0 +1,27 @@
+{% extends "../mentorship_base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-section>
+    <mj-column>
+        <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+            {% blocktranslate with user=sender.given_name|capfirst %}
+            {{ user }} can't mentor you in {{ skill }}!
+            {% endblocktranslate %}
+        </mj-text>
+    </mj-column>
+</mj-section>
+<mj-section>
+    <mj-column border="1px solid #dddddd" border-radius="5px">
+        <mj-text padding="20px" font-weight="bold" font-size="15px">
+            {% blocktranslate with user=sender.given_name|capfirst %}
+            Unfortunately, {{ user }} can't mentor you in {{ skill }}.
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-divider border-width="1px" border-style="dashed" border-color="lightgrey" padding="0 20px" />
+        <mj-text padding="20px" font-size="15px" line-height="20px">{{ content|safe }}</mj-text>
+    </mj-column>
+</mj-section>
+{% endblock %}

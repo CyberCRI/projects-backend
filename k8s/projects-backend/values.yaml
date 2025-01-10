@@ -173,3 +173,15 @@ workflow:
 runMigrations: true
 
 traefik: false
+
+sablier:
+  enabled: false
+  groupName: projects
+  traefikMiddleware: "{{.Values.namespace}}-{{.Values.sablier.groupName}}-sablier@kubernetescrd"
+
+uvicorn:
+  entrypoint: projects.asgi:application
+  workers: 2
+  host: 0.0.0.0
+  limitRequests: true
+  maxRequests: 1000

@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with mentor_name=sender.given_name|capfirst %}
+{{ mentor_name }} can't mentor you
+{% endblocktranslate %}
