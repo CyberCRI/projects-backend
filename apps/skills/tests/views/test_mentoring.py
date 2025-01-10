@@ -1,3 +1,15 @@
+"""
+Test cases for the mentoring views
+
+To test the content of the emails, you can run this command in a backend shell:
+
+DO NOT RUN IN PRODUCTION!
+
+```shell
+python manage.py test_mentoring_emails
+```
+"""
+
 from django.core import mail
 from django.urls import reverse
 from faker import Faker
@@ -44,7 +56,10 @@ class CreateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(self.mentor_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentor_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -86,7 +101,10 @@ class CreateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(self.mentoree_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentoree_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -117,6 +135,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
+        cls.organization = OrganizationFactory()
         cls.mentor_created = MentorCreatedMentoringFactory()
         cls.mentoree_created = MentoreeCreatedMentoringFactory()
 
@@ -156,7 +175,13 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             "reply_to": faker.email(),
         }
         response = self.client.post(
-            reverse("Mentoring-respond", args=(self.mentor_created.id,)),
+            reverse(
+                "Mentoring-respond",
+                args=(
+                    self.organization.code,
+                    self.mentor_created.id,
+                ),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -217,7 +242,13 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             "reply_to": faker.email(),
         }
         response = self.client.post(
-            reverse("Mentoring-respond", args=(self.mentoree_created.id,)),
+            reverse(
+                "Mentoring-respond",
+                args=(
+                    self.organization.code,
+                    self.mentoree_created.id,
+                ),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -264,7 +295,10 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(self.mentor_wrong_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentor_wrong_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -282,7 +316,10 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(self.mentoree_wrong_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentoree_wrong_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -300,7 +337,10 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(self.mentoree_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentoree_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -308,7 +348,10 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(self.mentoree_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentoree_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -326,7 +369,10 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(self.mentor_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentor_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -334,7 +380,10 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(self.mentor_skill.id,),
+                args=(
+                    self.organization.code,
+                    self.mentor_skill.id,
+                ),
             ),
             data=payload,
         )
@@ -352,7 +401,13 @@ class ValidateMentoringTestCase(JwtAPITestCase):
             "reply_to": faker.email(),
         }
         response = self.client.post(
-            reverse("Mentoring-respond", args=(mentoring.id,)),
+            reverse(
+                "Mentoring-respond",
+                args=(
+                    self.organization.code,
+                    mentoring.id,
+                ),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

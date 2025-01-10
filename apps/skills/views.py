@@ -708,10 +708,14 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         self, template_folder: str, receiver: ProjectUser, skill: Skill, **kwargs
     ):
         language = receiver.language
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
         kwargs = {
             "sender": self.request.user,
             "receiver": receiver,
             "skill": self.get_skill_name(skill, language),
+            "organization": organization,
             **kwargs,
         }
         subject, _ = render_message(f"{template_folder}/object", language, **kwargs)

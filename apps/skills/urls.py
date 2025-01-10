@@ -62,7 +62,8 @@ organization_user_router_register(
     basename="UserMentorship",
 )
 
-router.register(
+organization_router_register(
+    router,
     r"mentoring",
     MentoringViewSet,
     basename="Mentoring",
