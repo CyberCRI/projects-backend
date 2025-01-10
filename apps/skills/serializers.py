@@ -8,7 +8,7 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
-from apps.commons.serializers import TranslatedModelSerializer
+from apps.commons.serializers import LazySerializer, TranslatedModelSerializer
 
 from .exceptions import (
     TagDescriptionTooLongError,
@@ -17,7 +17,7 @@ from .exceptions import (
     UpdateWrongTypeTagClassificationError,
     UpdateWrongTypeTagError,
 )
-from .models import Skill, Tag, TagClassification
+from .models import Mentoring, Skill, Tag, TagClassification
 
 
 class TagClassificationLightSerializer(serializers.ModelSerializer):
@@ -259,7 +259,38 @@ class SkillSerializer(serializers.ModelSerializer):
         ]
 
 
-class MentorshipContactSerializer(serializers.Serializer):
-    title = serializers.CharField(max_length=255)
+class MentoringContactSerializer(serializers.Serializer):
     content = serializers.CharField()
     reply_to = serializers.EmailField()
+
+
+class MentoringResponseSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(
+        choices=Mentoring.MentoringStatus.choices, required=True
+    )
+    content = serializers.CharField()
+    reply_to = serializers.EmailField()
+
+
+class MentoringSerializer(serializers.ModelSerializer):
+    mentor = LazySerializer(
+        "apps.accounts.serializers.UserLighterSerializer", read_only=True
+    )
+    mentoree = LazySerializer(
+        "apps.accounts.serializers.UserLighterSerializer", read_only=True
+    )
+    skill = SkillLightSerializer(read_only=True)
+    created_by = serializers.PrimaryKeyRelatedField(read_only=True)
+
+    class Meta:
+        model = Mentoring
+        read_only_fields = [
+            "id",
+            "mentor",
+            "mentoree",
+            "skill",
+            "status",
+            "created_by",
+            "created_at",
+        ]
+        fields = read_only_fields

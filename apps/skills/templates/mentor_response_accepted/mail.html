@@ -7,8 +7,8 @@
 <mj-section>
     <mj-column>
         <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
-            {% blocktranslate %}
-            Do you want to be mentored in {{ skill }}?
+            {% blocktranslate with user=sender.given_name|capfirst %}
+            {{ user }} has accepted to mentor you in {{ skill }}!
             {% endblocktranslate %}
         </mj-text>
     </mj-column>
@@ -16,8 +16,8 @@
 <mj-section>
     <mj-column border="1px solid #dddddd" border-radius="5px">
         <mj-text padding="20px" font-weight="bold" font-size="15px">
-            {% blocktranslate with user=sender.get_full_name %}
-            Here is the message that {{ user }} has left on the Projects platform:
+            {% blocktranslate with user=sender.given_name|capfirst email=sender.email %}
+            Good news, {{ user }} has accepted to mentor you. You can contact them at {{ email }}.
             {% endblocktranslate %}
         </mj-text>
         <mj-divider border-width="1px" border-style="dashed" border-color="lightgrey" padding="0 20px" />
@@ -26,9 +26,9 @@
 </mj-section>
 <mj-section>
     <mj-column>
-        <mj-button css-class="lpi-button" href="{{ organization.website_url }}/mentorship/respond/{{ instance.id }}">
-            {% blocktranslate %}
-            Reply
+        <mj-button css-class="lpi-button" href="mailto:{{ sender.email }}">
+            {% blocktranslate with user=sender.given_name|capfirst %}
+            Reply to {{ user }}
             {% endblocktranslate %}
         </mj-button>
     </mj-column>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-07 11:42+0100\n"
+"POT-Creation-Date: 2025-01-10 10:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -380,7 +380,7 @@ msgstr ""
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:83
-#: apps/skills/templates/mentorship_base.html:208
+#: apps/skills/templates/mentorship_base.html:206
 #: services/keycloak/templates/keycloak_base.html:83
 msgid ""
 "\n"
@@ -1565,49 +1565,55 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: apps/skills/exceptions.py:10
+#: apps/skills/exceptions.py:11
+msgid "You cannot change the status of a mentoring request you created"
+msgstr ""
+"Vous ne pouvez pas changer le statut d'une demande de mentorat que vous avez "
+"créée"
+
+#: apps/skills/exceptions.py:21
 msgid "User ID must be provided through url"
 msgstr "L'identifiant de l'utilisateur·ice doit être fourni via l'url"
 
-#: apps/skills/exceptions.py:16
+#: apps/skills/exceptions.py:27
 msgid "This user cannot be a mentor for this skill"
 msgstr "Cet·te utilisateur·ice ne peut pas être mentor·e pour cette compétence"
 
-#: apps/skills/exceptions.py:22
+#: apps/skills/exceptions.py:33
 msgid "This user does not need a mentor for this skill"
 msgstr ""
 "Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
 
-#: apps/skills/exceptions.py:28
+#: apps/skills/exceptions.py:39
 msgid "You already have this skill in your profile"
 msgstr "Vous avez déjà cette compétence dans votre profil"
 
-#: apps/skills/exceptions.py:34
+#: apps/skills/exceptions.py:45
 msgid "Only custom tags can be updated"
 msgstr "Seuls les tags personnalisés peuvent être mis à jour"
 
-#: apps/skills/exceptions.py:40
+#: apps/skills/exceptions.py:51
 msgid "Only custom tags classifications can be updated"
 msgstr ""
 "Seules les classifications de tags personnalisés peuvent être mises à jour"
 
-#: apps/skills/exceptions.py:46
+#: apps/skills/exceptions.py:57
 msgid "You can only search for 50 Wikipedia tags at a time"
 msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
 
-#: apps/skills/exceptions.py:52
+#: apps/skills/exceptions.py:63
 msgid "You already made a mentoring request for this skill"
 msgstr "Vous avez déjà fait une demande de mentorat pour cette compétence"
 
-#: apps/skills/exceptions.py:61
+#: apps/skills/exceptions.py:72
 msgid "Tags must belong to the classification's organization"
 msgstr "Les tags doivent appartenir à l'organisation de la classification"
 
-#: apps/skills/exceptions.py:67
+#: apps/skills/exceptions.py:78
 msgid "Tag title must be 50 characters or less"
 msgstr "Le titre du tag doit comporter 50 caractères ou moins"
 
-#: apps/skills/exceptions.py:73
+#: apps/skills/exceptions.py:84
 msgid "Tag description must be 500 characters or less"
 msgstr "La description du tag doit comporter 500 caractères ou moins"
 
@@ -1617,54 +1623,418 @@ msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr ""
 "identifiant invalide \"{tag_classification_id}\" - cet objet n'existe pas."
 
-#: apps/skills/templates/contact_mentor/mail.html:14
-#: apps/skills/templates/contact_mentoree/mail.html:14
-msgid ""
-"\n"
-"    Reply\n"
-"    "
-msgstr ""
-"\n"
-"    Répondre\n"
-"    "
-
-#: apps/skills/templates/contact_mentor/mail.txt:2
-#: apps/skills/templates/contact_mentoree/mail.txt:2
+#: apps/skills/templates/contact_mentor/mail.html:10
 #, python-format
 msgid ""
 "\n"
-"%(title)s\n"
-"\n"
-"%(content)s\n"
-"\n"
-"Reply : %(reply_to)s\n"
+"            Can you mentor me in %(skill)s?\n"
+"            "
 msgstr ""
 "\n"
-"%(title)s\n"
+"            Pouvez-vous me mentorer en %(skill)s?\n"
+"            "
+
+#: apps/skills/templates/contact_mentor/mail.html:19
+#: apps/skills/templates/contact_mentoree/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Here is the message that %(user)s has left on the Projects "
+"platform:\n"
+"            "
+msgstr ""
+"\n"
+"            Voici le message que %(user)s a laissé sur la plateforme "
+"Projects:\n"
+"            "
+
+#: apps/skills/templates/contact_mentor/mail.html:30
+#: apps/skills/templates/contact_mentoree/mail.html:30
+msgid ""
+"\n"
+"            Reply\n"
+"            "
+msgstr ""
+"\n"
+"            Répondre\n"
+"            "
+
+#: apps/skills/templates/contact_mentor/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s?\n"
+"\n"
+"Here is the message that %(user)s has left on the Projects platform:\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Répondre : %(reply_to)s\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"Pouvez-vous me mentorer en %(skill)s?\n"
+"\n"
+"Voici le message que %(user)s a laissé sur la plateforme Projects:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentor/object.txt:2
 #, python-format
 msgid ""
 "\n"
-"Would you mentor %(mentoree_name)s ?\n"
+"Can you mentor %(mentoree_name)s?\n"
 msgstr ""
 "\n"
 "Accepteriez-vous de mentorer %(mentoree_name)s ?\n"
+
+#: apps/skills/templates/contact_mentoree/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s?\n"
+"            "
+msgstr ""
+"\n"
+"            Voulez-vous être mentoré·e en %(skill)s?\n"
+"            "
+
+#: apps/skills/templates/contact_mentoree/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s?\n"
+"\n"
+"Here is the message that %(user)s has left on the Projects platform:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"Voulez-vous être mentoré·e en %(skill)s?\n"
+"\n"
+"Voici le message que %(user)s a laissé sur la plateforme Projects:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
 msgid ""
 "\n"
-"%(mentor_name)s wants to mentor you.\n"
+"%(mentor_name)s offers to mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s propose de vous mentorer.\n"
+"%(mentor_name)s propose de vous mentorer\n"
 
-#: apps/skills/templates/mentorship_base.html:57
+#: apps/skills/templates/mentor_response_accepted/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has accepted to mentor you in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s a accepté de vous mentorer en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Good news, %(user)s has accepted to mentor you. You can contact "
+"them at %(email)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Bonne nouvelle, %(user)s a accepté de vous mentorer. Voici "
+"l'email auquel vous pouvez le ou la contacter : %(email)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:30
+#: apps/skills/templates/mentor_response_pending/mail.html:30
+#: apps/skills/templates/mentoree_response_accepted/mail.html:30
+#: apps/skills/templates/mentoree_response_pending/mail.html:30
+#, python-format
+msgid ""
+"\n"
+"            Reply to %(user)s\n"
+"            "
+msgstr ""
+"\n"
+"            Répondre à %(user)s\n"
+"            "
+
+#: apps/skills/templates/mentor_response_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s has accepted to mentor you in %(skill)s!\n"
+"\n"
+"Good news, %(user)s has accepted to mentor you. You can contact them at "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"%(user)s a accepté de vous mentorer en %(skill)s!\n"
+"\n"
+"Bonne nouvelle, %(user)s a accepté de vous mentorer. Voici l'email auquel "
+"vous pouvez le ou la contacter : %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Répondre à %(user)s : %(email)s\n"
+
+#: apps/skills/templates/mentor_response_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s has accepted to mentor you\n"
+msgstr ""
+"\n"
+"%(mentor_name)s a accepté de vous mentorer\n"
+
+#: apps/skills/templates/mentor_response_pending/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s needs more information to mentor you in %(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"           %(user)s a besoin de précisions pour vous mentorer en %(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_pending/mail.html:19
+#: apps/skills/templates/mentoree_response_pending/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has left the following message:\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s vous a envoyé le message suivant:\n"
+"            "
+
+#: apps/skills/templates/mentor_response_pending/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s needs more information to mentor you in %(skill)s.\n"
+" \n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"%(user)s a besoin de précisions pour vous mentorer en %(skill)s.\n"
+" \n"
+"%(content)s\n"
+"\n"
+"Répondre à %(user)s : %(email)s\n"
+
+#: apps/skills/templates/mentor_response_pending/object.txt:2
+#: apps/skills/templates/mentoree_response_pending/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s needs more information on mentoring\n"
+msgstr ""
+"\n"
+"%(mentor_name)s a besoin de précisions sur le mentorat\n"
+
+#: apps/skills/templates/mentor_response_rejected/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s can't mentor you in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s ne peut pas vous mentorer en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentor_response_rejected/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Unfortunately, %(user)s can't mentor you in %(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Malheureusement, %(user)s ne peut pas vous mentorer en "
+"%(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_rejected/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s can't mentor you in %(skill)s!\n"
+"\n"
+"Unfortunately, %(user)s will not be able to mentor you.\n"
+"\n"
+"%(content)s\n"
+msgstr ""
+"\n"
+"%(user)s ne peut pas vous mentorer en %(skill)s!\n"
+"\n"
+"Malheureusement, %(user)s ne pourra pas vous mentorer.\n"
+"\n"
+"%(content)s\n"
+
+#: apps/skills/templates/mentor_response_rejected/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s can't mentor you\n"
+msgstr ""
+"\n"
+"%(mentor_name)s ne peut pas vous mentorer\n"
+
+#: apps/skills/templates/mentoree_response_accepted/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has accepted to be your mentoree in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s a accepté d'être votre mentoré·e en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_accepted/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Good news, %(user)s has accepted to be your mentoree. You can "
+"contact them at %(email)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Bonne nouvelle, %(user)s a accepté d'être votre mentoré·e. Vous "
+"pouvez le ou la contacter à l'adresse suivante : %(email)s.\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s has accepted to be your mentoree in %(skill)s!\n"
+"\n"
+"Good news, %(user)s has accepted to be your mentoree. You can contact them "
+"at %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"%(user)s a accepté d'être votre mentoré·e en %(skill)s!\n"
+"\n"
+"Bonne nouvelle, %(user)s a accepté d'être votre mentoré·e. Vous pouvez le ou "
+"la contacter à l'adresse suivante : %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Répondre à %(user)s : %(email)s\n"
+
+#: apps/skills/templates/mentoree_response_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s has accepted to be your mentoree\n"
+msgstr ""
+"\n"
+"%(mentor_name)s a accepté d'être votre mentoré·e\n"
+
+#: apps/skills/templates/mentoree_response_pending/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s needs more information to be your mentoree in "
+"%(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s a besoin de précisions pour être votre mentoré·e en "
+"%(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_pending/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s needs more information to be your mentoree in %(skill)s.\n"
+" \n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"%(user)s a besoin de précisions pour être votre mentoré·e en %(skill)s.\n"
+" \n"
+"%(content)s\n"
+"\n"
+"Répondre à %(user)s : %(email)s\n"
+
+#: apps/skills/templates/mentoree_response_rejected/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s can't be your mentoree in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s ne peut pas être votre mentoré·e en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_rejected/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Unfortunately, %(user)s can't be your mentoree in %(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Malheureusement, %(user)s ne peut pas être votre mentoré·e en "
+"%(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_rejected/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s can't be your mentoree in %(skill)s!\n"
+"\n"
+"Unfortunately, %(user)s will not be able to be your mentoree.\n"
+"\n"
+"%(content)s\n"
+msgstr ""
+"\n"
+"%(user)s ne peut pas être votre mentoré·e en %(skill)s!\n"
+"\n"
+"Malheureusement, %(user)s ne pourra pas être votre mentoré·e.\n"
+"\n"
+"%(content)s\n"
+
+#: apps/skills/templates/mentoree_response_rejected/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s can't be your mentoree\n"
+msgstr ""
+"\n"
+"%(mentor_name)s ne peut pas être votre mentoré·e\n"
+
+#: apps/skills/templates/mentorship_base.html:55
 msgid ""
 "\n"
 "          Mentoring guide : advice for mentors and mentorees\n"
@@ -1674,7 +2044,7 @@ msgstr ""
 "          Guide du mentorat : conseils pour les mentor·es et les mentoré·es\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:62
+#: apps/skills/templates/mentorship_base.html:60
 msgid ""
 "\n"
 "          Dear Mentors and Mentorees, 👩‍🏫👨‍🎓\n"
@@ -1692,7 +2062,7 @@ msgstr ""
 "Elle promet d'être riche en découvertes et en succès !\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:69
+#: apps/skills/templates/mentorship_base.html:67
 msgid ""
 "\n"
 "          🌟 To get started\n"
@@ -1702,7 +2072,7 @@ msgstr ""
 "          🌟 Pour bien démarrer\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:74
+#: apps/skills/templates/mentorship_base.html:72
 msgid ""
 "\n"
 "          We encourage you to watch this video to learn more about the roles "
@@ -1714,7 +2084,7 @@ msgstr ""
 "sur les rôles de mentor·e et de mentoré·e.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:78
+#: apps/skills/templates/mentorship_base.html:76
 msgid ""
 "\n"
 "        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
@@ -1730,7 +2100,7 @@ msgstr ""
 "        </mj-button>\n"
 "        "
 
-#: apps/skills/templates/mentorship_base.html:84
+#: apps/skills/templates/mentorship_base.html:82
 msgid ""
 "\n"
 "          In brief : \n"
@@ -1740,7 +2110,7 @@ msgstr ""
 "          En résumé : \n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:89
+#: apps/skills/templates/mentorship_base.html:87
 msgid ""
 "\n"
 "          - <strong>A mentor</strong> serves as a supportive guide who "
@@ -1768,7 +2138,7 @@ msgstr ""
 "appliquant les conseils de votre mentor·e pour atteindre vos objectifs.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:97
+#: apps/skills/templates/mentorship_base.html:95
 msgid ""
 "\n"
 "          📅 Mentoring structures :\n"
@@ -1778,7 +2148,7 @@ msgstr ""
 "          📅 Structures possibles du mentorat :\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:102
+#: apps/skills/templates/mentorship_base.html:100
 msgid ""
 "\n"
 "          Here are a few suggested structures for your mentoring sessions. "
@@ -1792,7 +2162,7 @@ msgstr ""
 "et des disponibilités de chacun·e : \n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:107
+#: apps/skills/templates/mentorship_base.html:105
 msgid ""
 "\n"
 "          🔹 <strong>Single session</strong> : Ideal for a quick, one-hour "
@@ -1806,7 +2176,7 @@ msgstr ""
 "importante, ou une réponse à une question spécifique.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:112
+#: apps/skills/templates/mentorship_base.html:110
 msgid ""
 "\n"
 "          🔹 <strong>Three one-hour sessions</strong> : Great for diving "
@@ -1818,7 +2188,7 @@ msgstr ""
 "approfondir une problématique. Voici un exemple de déroulé :\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:117
+#: apps/skills/templates/mentorship_base.html:115
 msgid ""
 "\n"
 "              - 👂 <strong>Session 1</strong> : Understand the issue and "
@@ -1830,7 +2200,7 @@ msgstr ""
 "problématique et suggestions initiales.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:122
+#: apps/skills/templates/mentorship_base.html:120
 msgid ""
 "\n"
 "              - 📚 <strong>Session 2</strong> : Share research and set clear "
@@ -1842,7 +2212,7 @@ msgstr ""
 "définition d'objectifs concrets.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:127
+#: apps/skills/templates/mentorship_base.html:125
 msgid ""
 "\n"
 "              - 🌟 <strong>Session 3</strong> : Review progress and adjust "
@@ -1853,7 +2223,7 @@ msgstr ""
 "              - 🌟 <strong>Séance 3</strong> : Bilan des progrès réalisés.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:132
+#: apps/skills/templates/mentorship_base.html:130
 msgid ""
 "\n"
 "          🔹 <strong>Year-long mentoring (2 hours/month)</strong> : Perfect "
@@ -1865,7 +2235,7 @@ msgstr ""
 "suivi régulier et durable. Voici un déroulé type pour une séance : \n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:137
+#: apps/skills/templates/mentorship_base.html:135
 msgid ""
 "\n"
 "              - 🏅 <strong>Progress review</strong> : Discuss achievements "
@@ -1877,7 +2247,7 @@ msgstr ""
 "avancées et nouveaux besoins.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:142
+#: apps/skills/templates/mentorship_base.html:140
 msgid ""
 "\n"
 "              - 🎯 <strong>Goals</strong> : Set 2-3 objectives to work on "
@@ -1889,7 +2259,7 @@ msgstr ""
 "atteindre avant la prochaine séance.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:147
+#: apps/skills/templates/mentorship_base.html:145
 msgid ""
 "\n"
 "              - 📖 <strong>Resources</strong> : Share helpful content "
@@ -1901,7 +2271,7 @@ msgstr ""
 "articles, etc.) à explorer entre les séances.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:152
+#: apps/skills/templates/mentorship_base.html:150
 msgid ""
 "\n"
 "              - 🗓️ <strong>Next session</strong> : Schedule the upcoming "
@@ -1913,7 +2283,7 @@ msgstr ""
 "prochain rendez-vous.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:158
+#: apps/skills/templates/mentorship_base.html:156
 msgid ""
 "\n"
 "          ✅ Tips for successful mentoring :\n"
@@ -1923,7 +2293,7 @@ msgstr ""
 "          ✅ Conseils pratiques pour un mentorat réussi :\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:163
+#: apps/skills/templates/mentorship_base.html:161
 msgid ""
 "\n"
 "          📝 <strong>Prepare for each session :</strong> Think about the "
@@ -1936,7 +2306,7 @@ msgstr ""
 "à aborder, aux objectifs à atteindre et aux questions à poser.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:168
+#: apps/skills/templates/mentorship_base.html:166
 msgid ""
 "\n"
 "          🤝 <strong>Be open and honest :</strong> Building trust requires "
@@ -1948,7 +2318,7 @@ msgstr ""
 "est essentielle pour instaurer une relation de confiance.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:173
+#: apps/skills/templates/mentorship_base.html:171
 msgid ""
 "\n"
 "          👂 <strong>Practice active listening :</strong> Ask questions and "
@@ -1960,7 +2330,7 @@ msgstr ""
 "questions et reformulez pour bien comprendre.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:178
+#: apps/skills/templates/mentorship_base.html:176
 msgid ""
 "\n"
 "          🎯 <strong>Set clear goals</strong> after each session.\n"
@@ -1971,7 +2341,7 @@ msgstr ""
 "séance.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:183
+#: apps/skills/templates/mentorship_base.html:181
 msgid ""
 "\n"
 "          📬 <strong>Share useful resources</strong> between meetings to "
@@ -1983,7 +2353,7 @@ msgstr ""
 "séances pour enrichir l'apprentissage.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:188
+#: apps/skills/templates/mentorship_base.html:186
 msgid ""
 "\n"
 "          📆 <strong>Always schedule the next session</strong> to maintain "
@@ -1995,7 +2365,7 @@ msgstr ""
 "pour maintenir le suivi.\n"
 "          "
 
-#: apps/skills/templates/mentorship_base.html:194
+#: apps/skills/templates/mentorship_base.html:192
 msgid ""
 "\n"
 "          We hope these tips help you better navigate your mentorship "

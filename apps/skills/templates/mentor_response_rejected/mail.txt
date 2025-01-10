@@ -1,0 +1,8 @@
+{% load i18n %}
+{% blocktranslate with user=sender.given_name|capfirst %}
+{{ user }} can't mentor you in {{ skill }}!
+
+Unfortunately, {{ user }} will not be able to mentor you.
+
+{{ content }}
+{% endblocktranslate %}

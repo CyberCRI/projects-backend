@@ -1,8 +1,10 @@
 {% load i18n %}
-{% blocktranslate %}
-{{ title }}
+{% blocktranslate with user=sender.get_full_name %}
+Can you mentor me in {{ skill }}?
+
+Here is the message that {{ user }} has left on the Projects platform:
 
 {{ content }}
 
-Reply : {{ reply_to }}
+Reply : {{ organization.website_url }}/mentorship/respond/{{ instance.id }}
 {% endblocktranslate %}
