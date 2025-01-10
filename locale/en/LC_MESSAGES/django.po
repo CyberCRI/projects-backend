@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-09 17:44+0100\n"
+"POT-Creation-Date: 2025-01-10 10:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1231,51 +1231,51 @@ msgstr ""
 msgid "main category"
 msgstr ""
 
-#: apps/skills/exceptions.py:10
-msgid "User ID must be provided through url"
-msgstr ""
-
-#: apps/skills/exceptions.py:16
-msgid "This user cannot be a mentor for this skill"
-msgstr ""
-
-#: apps/skills/exceptions.py:22
-msgid "This user does not need a mentor for this skill"
-msgstr ""
-
-#: apps/skills/exceptions.py:28
-msgid "You already have this skill in your profile"
-msgstr ""
-
-#: apps/skills/exceptions.py:34
-msgid "Only custom tags can be updated"
-msgstr ""
-
-#: apps/skills/exceptions.py:40
-msgid "Only custom tags classifications can be updated"
-msgstr ""
-
-#: apps/skills/exceptions.py:46
-msgid "You can only search for 50 Wikipedia tags at a time"
-msgstr ""
-
-#: apps/skills/exceptions.py:52
-msgid "You already made a mentoring request for this skill"
-msgstr ""
-
-#: apps/skills/exceptions.py:59
+#: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
 msgstr ""
 
-#: apps/skills/exceptions.py:69
+#: apps/skills/exceptions.py:21
+msgid "User ID must be provided through url"
+msgstr ""
+
+#: apps/skills/exceptions.py:27
+msgid "This user cannot be a mentor for this skill"
+msgstr ""
+
+#: apps/skills/exceptions.py:33
+msgid "This user does not need a mentor for this skill"
+msgstr ""
+
+#: apps/skills/exceptions.py:39
+msgid "You already have this skill in your profile"
+msgstr ""
+
+#: apps/skills/exceptions.py:45
+msgid "Only custom tags can be updated"
+msgstr ""
+
+#: apps/skills/exceptions.py:51
+msgid "Only custom tags classifications can be updated"
+msgstr ""
+
+#: apps/skills/exceptions.py:57
+msgid "You can only search for 50 Wikipedia tags at a time"
+msgstr ""
+
+#: apps/skills/exceptions.py:63
+msgid "You already made a mentoring request for this skill"
+msgstr ""
+
+#: apps/skills/exceptions.py:72
 msgid "Tags must belong to the classification's organization"
 msgstr ""
 
-#: apps/skills/exceptions.py:75
+#: apps/skills/exceptions.py:78
 msgid "Tag title must be 50 characters or less"
 msgstr ""
 
-#: apps/skills/exceptions.py:81
+#: apps/skills/exceptions.py:84
 msgid "Tag description must be 500 characters or less"
 msgstr ""
 

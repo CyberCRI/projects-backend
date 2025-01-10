@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-09 17:44+0100\n"
+"POT-Creation-Date: 2025-01-10 10:56+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1565,53 +1565,55 @@ msgstr "objectifs de développement durable"
 msgid "main category"
 msgstr "objectif principal"
 
-#: apps/skills/exceptions.py:10
+#: apps/skills/exceptions.py:11
+msgid "You cannot change the status of a mentoring request you created"
+msgstr ""
+"Vous ne pouvez pas changer le statut d'une demande de mentorat que vous avez "
+"créée"
+
+#: apps/skills/exceptions.py:21
 msgid "User ID must be provided through url"
 msgstr "L'identifiant de l'utilisateur·ice doit être fourni via l'url"
 
-#: apps/skills/exceptions.py:16
+#: apps/skills/exceptions.py:27
 msgid "This user cannot be a mentor for this skill"
 msgstr "Cet·te utilisateur·ice ne peut pas être mentor·e pour cette compétence"
 
-#: apps/skills/exceptions.py:22
+#: apps/skills/exceptions.py:33
 msgid "This user does not need a mentor for this skill"
 msgstr ""
 "Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
 
-#: apps/skills/exceptions.py:28
+#: apps/skills/exceptions.py:39
 msgid "You already have this skill in your profile"
 msgstr "Vous avez déjà cette compétence dans votre profil"
 
-#: apps/skills/exceptions.py:34
+#: apps/skills/exceptions.py:45
 msgid "Only custom tags can be updated"
 msgstr "Seuls les tags personnalisés peuvent être mis à jour"
 
-#: apps/skills/exceptions.py:40
+#: apps/skills/exceptions.py:51
 msgid "Only custom tags classifications can be updated"
 msgstr ""
 "Seules les classifications de tags personnalisés peuvent être mises à jour"
 
-#: apps/skills/exceptions.py:46
+#: apps/skills/exceptions.py:57
 msgid "You can only search for 50 Wikipedia tags at a time"
 msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
 
-#: apps/skills/exceptions.py:52
+#: apps/skills/exceptions.py:63
 msgid "You already made a mentoring request for this skill"
 msgstr "Vous avez déjà fait une demande de mentorat pour cette compétence"
 
-#: apps/skills/exceptions.py:59
-msgid "You cannot change the status of a mentoring request you created"
-msgstr "Vous ne pouvez pas changer le statut d'une demande de mentorat que vous avez créée"
-
-#: apps/skills/exceptions.py:69
+#: apps/skills/exceptions.py:72
 msgid "Tags must belong to the classification's organization"
 msgstr "Les tags doivent appartenir à l'organisation de la classification"
 
-#: apps/skills/exceptions.py:75
+#: apps/skills/exceptions.py:78
 msgid "Tag title must be 50 characters or less"
 msgstr "Le titre du tag doit comporter 50 caractères ou moins"
 
-#: apps/skills/exceptions.py:81
+#: apps/skills/exceptions.py:84
 msgid "Tag description must be 500 characters or less"
 msgstr "La description du tag doit comporter 500 caractères ou moins"
 
@@ -1748,10 +1750,9 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Bonne nouvelle, %(user)s a accepté de vous mentorer. Voici l'email "
-"auquel vous pouvez le ou la contacter : %(email)s.\n"
+"            Bonne nouvelle, %(user)s a accepté de vous mentorer. Voici "
+"l'email auquel vous pouvez le ou la contacter : %(email)s.\n"
 "            "
-
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:30
 #: apps/skills/templates/mentor_response_pending/mail.html:30
@@ -1789,7 +1790,6 @@ msgstr ""
 "%(content)s\n"
 "\n"
 "Répondre à %(user)s : %(email)s\n"
-
 
 #: apps/skills/templates/mentor_response_accepted/object.txt:2
 #, python-format
@@ -1840,7 +1840,6 @@ msgstr ""
 "\n"
 "Répondre à %(user)s : %(email)s\n"
 
-
 #: apps/skills/templates/mentor_response_pending/object.txt:2
 #: apps/skills/templates/mentoree_response_pending/object.txt:2
 #, python-format
@@ -1870,7 +1869,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Malheureusement, %(user)s ne peut pas vous mentorer en %(skill)s.\n"
+"            Malheureusement, %(user)s ne peut pas vous mentorer en "
+"%(skill)s.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.txt:2

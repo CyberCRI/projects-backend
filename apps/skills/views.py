@@ -42,7 +42,7 @@ from .exceptions import (
     WikipediaTagSearchLimitError,
 )
 from .filters import TagFilter
-from .models import Mentoring, Skill, Tag, TagClassification
+from .models import Mentoring, MentoringMessage, Skill, Tag, TagClassification
 from .pagination import WikipediaPagination
 from .serializers import (
     MentoringContactSerializer,
@@ -749,7 +749,12 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
-        # Send the email
+        # Create the message and send the email
+        MentoringMessage.objects.create(
+            mentoring=instance,
+            sender=self.request.user,
+            content=serializer.validated_data.get("content", ""),
+        )
         self.send_email(
             "contact_mentor",
             skill.user,
@@ -790,7 +795,12 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             )
         except IntegrityError:
             raise DuplicatedMentoringError
-        # Send the email
+        # Create the message and send the email
+        MentoringMessage.objects.create(
+            mentoring=instance,
+            sender=self.request.user,
+            content=serializer.validated_data.get("content", ""),
+        )
         self.send_email(
             "contact_mentoree",
             skill.user,
@@ -830,7 +840,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         serializer.is_valid(raise_exception=True)
         instance.status = serializer.validated_data.pop("status")
         instance.save()
-        # Send the email
+        # Create the message and send the email
         if instance.created_by == instance.mentor:
             template = f"mentoree_response_{instance.status}"
         elif instance.created_by == instance.mentoree:
@@ -838,6 +848,11 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         else:
             # This part should never be reached
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        MentoringMessage.objects.create(
+            mentoring=instance,
+            sender=self.request.user,
+            content=serializer.validated_data.get("content", ""),
+        )
         self.send_email(
             template,
             instance.created_by,

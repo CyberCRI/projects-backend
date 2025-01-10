@@ -13,7 +13,7 @@ from apps.skills.factories import (
     MentoreeCreatedMentoringFactory,
     SkillFactory,
 )
-from apps.skills.models import Mentoring
+from apps.skills.models import Mentoring, MentoringMessage
 
 faker = Faker()
 
@@ -64,6 +64,11 @@ class CreateMentoringTestCase(JwtAPITestCase):
             self.assertEqual(mentoring.skill, self.mentor_skill)
             self.assertEqual(mentoring.created_by, user)
             self.assertIsNone(mentoring.status)
+            self.assertTrue(
+                MentoringMessage.objects.filter(
+                    mentoring=mentoring, content=payload["content"], sender=user
+                ).exists()
+            )
 
     @parameterized.expand(
         [
@@ -101,6 +106,11 @@ class CreateMentoringTestCase(JwtAPITestCase):
             self.assertEqual(mentoring.skill, self.mentoree_skill)
             self.assertEqual(mentoring.created_by, user)
             self.assertIsNone(mentoring.status)
+            self.assertTrue(
+                MentoringMessage.objects.filter(
+                    mentoring=mentoring, content=payload["content"], sender=user
+                ).exists()
+            )
 
 
 class RespondToMentoringTestCase(JwtAPITestCase):
@@ -125,7 +135,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             (
                 "mentor",
                 Mentoring.MentoringStatus.ACCEPTED.value,
-                status.HTTP_400_BAD_REQUEST,
+                status.HTTP_403_FORBIDDEN,
             ),
             ("mentoree", Mentoring.MentoringStatus.ACCEPTED.value, status.HTTP_200_OK),
             ("mentoree", Mentoring.MentoringStatus.REJECTED.value, status.HTTP_200_OK),
@@ -158,8 +168,15 @@ class RespondToMentoringTestCase(JwtAPITestCase):
 
             content = response.json()
             self.assertEqual(content["status"], mentoring_status)
-        if expected_code == status.HTTP_400_BAD_REQUEST:
-            self.assertApiTechnicalError(
+            self.assertTrue(
+                MentoringMessage.objects.filter(
+                    mentoring=self.mentor_created,
+                    content=payload["content"],
+                    sender=user,
+                ).exists()
+            )
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
                 response,
                 "You cannot change the status of a mentoring request you created",
             )
@@ -179,7 +196,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             (
                 "mentoree",
                 Mentoring.MentoringStatus.ACCEPTED.value,
-                status.HTTP_400_BAD_REQUEST,
+                status.HTTP_403_FORBIDDEN,
             ),
             ("mentor", Mentoring.MentoringStatus.ACCEPTED.value, status.HTTP_200_OK),
             ("mentor", Mentoring.MentoringStatus.REJECTED.value, status.HTTP_200_OK),
@@ -211,8 +228,15 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             self.assertIn(payload["content"], email.body)
             content = response.json()
             self.assertEqual(content["status"], mentoring_status)
-        if expected_code == status.HTTP_400_BAD_REQUEST:
-            self.assertApiTechnicalError(
+            self.assertTrue(
+                MentoringMessage.objects.filter(
+                    mentoring=self.mentoree_created,
+                    content=payload["content"],
+                    sender=user,
+                ).exists()
+            )
+        if expected_code == status.HTTP_403_FORBIDDEN:
+            self.assertApiPermissionError(
                 response,
                 "You cannot change the status of a mentoring request you created",
             )
@@ -317,4 +341,22 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiTechnicalError(
             response, "You already made a mentoring request for this skill"
+        )
+
+    def test_update_mentoring_status_with_invalid_status(self):
+        mentoring = MentoreeCreatedMentoringFactory()
+        self.client.force_authenticate(mentoring.mentor)
+        payload = {
+            "status": faker.word(),
+            "content": faker.text(),
+            "reply_to": faker.email(),
+        }
+        response = self.client.post(
+            reverse("Mentoring-respond", args=(mentoring.id,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"status": [f"\"{payload['status']}\" is not a valid choice."]},
         )
