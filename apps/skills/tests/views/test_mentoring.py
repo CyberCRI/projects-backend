@@ -30,6 +30,78 @@ from apps.skills.models import Mentoring, MentoringMessage
 faker = Faker()
 
 
+class ViewMentoringTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.mentoring = MentorCreatedMentoringFactory()
+        MentoreeCreatedMentoringFactory()
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND),
+            (
+                "mentor",
+                status.HTTP_200_OK,
+            ),
+            (
+                "mentoree",
+                status.HTTP_200_OK,
+            ),
+        ]
+    )
+    def test_retrieve_mentoring(self, role, expected_code):
+        if role == "mentor":
+            user = self.mentoring.mentor
+        elif role == "mentoree":
+            user = self.mentoring.mentoree
+        else:
+            user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "Mentoring-detail", args=(self.organization.code, self.mentoring.id)
+            )
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            self.assertEqual(content["id"], self.mentoring.id)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED, False),
+            (TestRoles.DEFAULT, status.HTTP_200_OK, False),
+            ("mentor", status.HTTP_200_OK, True),
+            ("mentoree", status.HTTP_200_OK, True),
+        ]
+    )
+    def test_list_mentoring(self, role, expected_code, retrieved):
+        if role == "mentor":
+            user = self.mentoring.mentor
+        elif role == "mentoree":
+            user = self.mentoring.mentoree
+        else:
+            user = self.get_parameterized_test_user(role)
+        self.client.force_authenticate(user)
+        response = self.client.get(
+            reverse(
+                "Mentoring-list",
+                args=(self.organization.code,),
+            )
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if retrieved:
+            content = response.json()["results"]
+            self.assertEqual(len(content), 1)
+            self.assertSetEqual(
+                {mentoring["id"] for mentoring in content},
+                {self.mentoring.id},
+            )
+
+
 class CreateMentoringTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
