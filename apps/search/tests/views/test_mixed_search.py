@@ -111,7 +111,7 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             return search_object["user"]["id"]
         return None
 
-    @patch("apps.search.interface.OpenSearchService.search")
+    @patch("apps.search.interface.OpenSearchService.best_fields_search")
     def test_search_mixed_index(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=self.search_objects,

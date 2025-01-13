@@ -62,8 +62,31 @@ class SearchViewSet(ListViewSet):
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
         offset = request.query_params.get("offset", 0)
-        response = OpenSearchService.search(
+        response = OpenSearchService.best_fields_search(
             indices=indices,
+            fields=[
+                # common
+                "content^3",
+                # user
+                "given_name^4",
+                "family_name^4",
+                "job^4",
+                "email^3",
+                "personal_email^2",
+                "skills^2",
+                "people_groups^1",
+                "projects^1",
+                # project
+                "title^4",
+                "purpose^4",
+                "tags^3",
+                "members^2",
+                "categories^1",
+                # people_group
+                "name^4",
+                "members^3",
+                "email^1",
+            ],
             query=query,
             limit=limit,
             offset=offset,
