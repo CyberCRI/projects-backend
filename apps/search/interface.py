@@ -18,24 +18,54 @@ class OpenSearchService:
         highlight_size: int = 150,
         limit: int = 100,
         offset: int = 0,
+        fuzziness: Union[int, str] = 1,
+        prefix_length: int = 1,
+        max_expansions: int = 10,
+        fuzzy_transpositions: bool = True,
         **kwargs,
     ) -> Response:
         """
         Search for a query in the OpenSearch indices.
 
         Args:
-            - indices: The indices to search in
-            - query: The query to search for
-            - highlight: The fields for which to return highlights
+            - indices: list[str]
+                The indices to search in
+            - query: str
+                The query to search for
+            - highlight: list[str] | None = None
+                The fields for which to return highlights
                 ex: ["title", "description"]
-            - highlight_size: The size of the highlights if any
-            - limit: The maximum number of results to return
-            - offset: The offset to start the search from
-            - **kwargs: filters to apply to the search
+            - highlight_size: int = 150
+                The size of the highlights if any
+            - limit: int = 100
+                The maximum number of results to return
+            - offset: int = 0
+                The offset to start the search from
+            - fuzziness: int | str = 1
+                The level of tolerance for typos
+                ex: "AUTO", 1, 2
+            - prefix_length: int
+                The number of initial characters which will not be "fuzzified"
+            - max_expansions: int = 10
+                The maximum number of variations if the search term
+            - fuzzy_transpositions: bool = True
+                Whether transpositions ("ab" -> "ba") are treated as a single edit
+            - **kwargs
+                filters to apply to the search
+
+        Returns:
+            opensearchpy.helpers.response.Response
         """
         request = (
             Search(using="default", index=indices)
-            .query("multi_match", query=query)
+            .query(
+                "multi_match",
+                query=query,
+                fuzziness=fuzziness,
+                prefix_length=prefix_length,
+                max_expansions=max_expansions,
+                fuzzy_transpositions=fuzzy_transpositions,
+            )
             .params(size=limit, from_=offset)
         )
         if kwargs:
@@ -54,26 +84,59 @@ class OpenSearchService:
         highlight_size: int = 150,
         limit: int = 100,
         offset: int = 0,
+        fuzziness: Union[int, str] = 1,
+        prefix_length: int = 1,
+        max_expansions: int = 10,
+        fuzzy_transpositions: bool = True,
         **kwargs,
     ) -> Response:
         """
         Search for a query in the OpenSearch indices using best_fields strategy.
 
         Args:
-            - indices: The indices to search in
-            - fields: The fields to search in with their weight
+            - indices: list[str]
+                The indices to search in
+            - fields: list[str]
+                The fields to search in with their weight
                 ex: ["title^3", "description^2"]
-            - query: The query to search for
-            - highlight: The fields for which to return highlights
+            - query: str
+                The query to search for
+            - highlight: list[str] | None = None
+                The fields for which to return highlights
                 ex: ["title", "description"]
-            - highlight_size: The size of the highlights if any
-            - limit: The maximum number of results to return
-            - offset: The offset to start the search from
-            - **kwargs: filters to apply to the search
+            - highlight_size: int = 150
+                The size of the highlights if any
+            - limit: int = 100
+                The maximum number of results to return
+            - offset: int = 0
+                The offset to start the search from
+            - fuzziness: int | str = 1
+                The level of tolerance for typos
+                ex: "AUTO", 1, 2
+            - prefix_length: int
+                The number of initial characters which will not be "fuzzified"
+            - max_expansions: int = 10
+                The maximum number of variations if the search term
+            - fuzzy_transpositions: bool = True
+                Whether transpositions ("ab" -> "ba") are treated as a single edit
+            - **kwargs
+                filters to apply to the search
+
+        Returns:
+            opensearchpy.helpers.response.Response
         """
         request = (
             Search(using="default", index=indices)
-            .query("multi_match", type="best_fields", fields=fields, query=query)
+            .query(
+                "multi_match",
+                type="best_fields",
+                query=query,
+                fields=fields,
+                fuzziness=fuzziness,
+                prefix_length=prefix_length,
+                max_expansions=max_expansions,
+                fuzzy_transpositions=fuzzy_transpositions,
+            )
             .params(size=limit, from_=offset)
         )
         if kwargs:

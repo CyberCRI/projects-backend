@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
@@ -10,13 +11,14 @@ from apps.commons.views import ListViewSet
 from .filters import SearchObjectFilter
 from .interface import OpenSearchService
 from .models import SearchObject
-from .pagination import FixedCountPagination
+from .pagination import SearchPagination
 from .serializers import SearchObjectSerializer
 
 
 class SearchViewSet(ListViewSet):
     filterset_class = SearchObjectFilter
     serializer_class = SearchObjectSerializer
+    filter_backends = [DjangoFilterBackend]
 
     def get_queryset(self, order: bool = True) -> QuerySet[SearchObject]:
         groups = self.request.user.get_people_group_queryset()
@@ -37,7 +39,7 @@ class SearchViewSet(ListViewSet):
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
         ).prefetch_related(project_prefetch, people_group_prefetch)
         if order:
-            return queryset.order_by("-last_update")
+            return queryset.order_by(F("last_update").desc(nulls_last=True))
         return queryset
 
     @extend_schema(
@@ -77,7 +79,7 @@ class SearchViewSet(ListViewSet):
             )
             .order_by("ordering")
         )
-        self.pagination_class = FixedCountPagination(response.hits.total.value)
+        self.pagination_class = SearchPagination(response.hits.total.value)
         page = self.paginate_queryset(ordered_queryset)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)

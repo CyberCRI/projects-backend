@@ -115,6 +115,8 @@ services:
       DISABLE_INSTALL_DEMO_CONFIG: true
       DISABLE_SECURITY_PLUGIN: true
       discovery.type: single-node
+      logger.org.opensearch: ERROR
+      cluster.routing.allocation.disk.watermark.flood_stage: 100%
     ulimits:
       memlock:
         soft: -1
