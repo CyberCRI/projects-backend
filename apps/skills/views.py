@@ -193,7 +193,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
             fields=[
                 *[f"title_{ln}^2" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"alternative_titles_{ln}^1" for ln in settings.REQUIRED_LANGUAGES],
+                *[f"alternative_titles_{ln}^2" for ln in settings.REQUIRED_LANGUAGES],
                 *[f"description_{ln}^1" for ln in settings.REQUIRED_LANGUAGES],
             ],
             highlight=[
