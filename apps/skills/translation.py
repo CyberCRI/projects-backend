@@ -6,5 +6,5 @@ from .models import Tag
 
 @register(Tag)
 class TagTranslationOptions(TranslationOptions):
-    fields = ("title", "description")
+    fields = ("title", "description", "alternative_titles")
     required_languages = settings.REQUIRED_LANGUAGES
