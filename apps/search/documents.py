@@ -239,6 +239,8 @@ class TagDocument(Document):
     title_en = fields.TextField()
     description_fr = fields.TextField()
     description_en = fields.TextField()
+    alternative_titles_fr = fields.TextField()
+    alternative_titles_en = fields.TextField()
 
     def prepare_title_fr(self, instance: Tag) -> str:
         return instance.title_fr
@@ -251,3 +253,9 @@ class TagDocument(Document):
 
     def prepare_description_en(self, instance: Tag) -> str:
         return instance.description_en
+
+    def prepare_alternative_titles_fr(self, instance: Tag) -> str:
+        return instance.alternative_titles_fr
+
+    def prepare_alternative_titles_en(self, instance: Tag) -> str:
+        return instance.alternative_titles_en
