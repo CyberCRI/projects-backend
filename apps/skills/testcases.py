@@ -48,6 +48,13 @@ class EscoTestCase(JwtAPITestCase):
                 "fr": title_fr,
                 "en": title_en,
             },
+            "alternativeLabel": {
+                # Test when alternative label is provided in only one language
+                "en": [
+                    f"{title_en} alternative 1",
+                    f"{title_en} alternative 2",
+                ]
+            },
             "description": {
                 "fr": {"literal": description_fr, "mimetype": "plain/text"},
                 "en": {"literal": description_en, "mimetype": "plain/text"},
@@ -116,18 +123,29 @@ class EscoTestCase(JwtAPITestCase):
             "title": title_en,
             "referenceLanguage": ["en"],
             "preferredLabel": {
-                "fr": f"{title_fr} preferred",
+                "fr": title_fr,
                 "en": title_en,
             },
-            "alternativeTerms": {
-                "fr": [
-                    {"roles": ["male"], "label": title_fr},
-                    {"roles": ["female"], "label": f"{title_fr} female"},
-                ],
+            "alternativeLabel": {
+                # Test when alternative label is provided in only one language
+                "en": [
+                    f"{title_en} alternative 1",
+                    f"{title_en} alternative 2",
+                ]
             },
             "description": {
                 "fr": {"literal": description_fr, "mimetype": "plain/text"},
                 "en": {"literal": description_en, "mimetype": "plain/text"},
+            },
+            "alternativeTerms": {
+                "fr": [
+                    {"roles": ["male"], "label": f"{title_fr} male"},
+                    {"roles": ["female"], "label": f"{title_fr} female"},
+                ],
+                "en": [
+                    {"roles": ["male"], "label": f"{title_en} male"},
+                    {"roles": ["female"], "label": f"{title_en} female"},
+                ],
             },
             "status": "released",
             "_links": {
