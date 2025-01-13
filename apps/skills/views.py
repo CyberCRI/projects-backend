@@ -691,7 +691,7 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
 
 class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
     queryset = Mentoring.objects.all()
-    permission_classes = [IsAuthenticated, IsOwner]
+    permission_classes = [IsAuthenticated, ReadOnly | IsOwner]
     serializer_class = MentoringSerializer
 
     def get_queryset(self):
