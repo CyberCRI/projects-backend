@@ -34,6 +34,7 @@ class SearchViewSet(ListViewSet):
             (
                 Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
                 & Q(people_group__in=groups)
+                & Q(people_group__is_root=False)
             )
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
