@@ -684,7 +684,7 @@ class UserSerializer(serializers.ModelSerializer):
         )
         if organization:
             queryset = queryset.filter(organization=organization).distinct()
-        return PeopleGroupSuperLightSerializer(
+        return PeopleGroupLightSerializer(
             queryset, many=True, context=self.context
         ).data
 
