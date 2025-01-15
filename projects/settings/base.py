@@ -412,6 +412,7 @@ CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_MAX_TASKS_PER_CHILD = os.getenv("CELERY_MAX_TASKS_PER_CHILD", None)
 CELERY_BEAT_SCHEDULE = {
     "remove-old-project-24hours": {
         "task": "apps.projects.tasks.remove_old_projects",
