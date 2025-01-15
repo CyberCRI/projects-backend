@@ -14,7 +14,6 @@ config:
     POSTGRES_DB: dev_projects
     ENVIRONMENT: dev
     DEBUG: "False"
-    OPENSEARCH_INDEX_PREFIX: "proj-dev"
 
 workflow:
   lifecycle:
