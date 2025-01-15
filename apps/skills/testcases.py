@@ -48,6 +48,13 @@ class EscoTestCase(JwtAPITestCase):
                 "fr": title_fr,
                 "en": title_en,
             },
+            "alternativeLabel": {
+                # Test when alternative label is provided in only one language
+                "en": [
+                    f"{title_en} alternative 1",
+                    f"{title_en} alternative 2",
+                ]
+            },
             "description": {
                 "fr": {"literal": description_fr, "mimetype": "plain/text"},
                 "en": {"literal": description_en, "mimetype": "plain/text"},
@@ -116,18 +123,29 @@ class EscoTestCase(JwtAPITestCase):
             "title": title_en,
             "referenceLanguage": ["en"],
             "preferredLabel": {
-                "fr": f"{title_fr} preferred",
+                "fr": title_fr,
                 "en": title_en,
             },
-            "alternativeTerms": {
-                "fr": [
-                    {"roles": ["male"], "label": title_fr},
-                    {"roles": ["female"], "label": f"{title_fr} female"},
-                ],
+            "alternativeLabel": {
+                # Test when alternative label is provided in only one language
+                "en": [
+                    f"{title_en} alternative 1",
+                    f"{title_en} alternative 2",
+                ]
             },
             "description": {
                 "fr": {"literal": description_fr, "mimetype": "plain/text"},
                 "en": {"literal": description_en, "mimetype": "plain/text"},
+            },
+            "alternativeTerms": {
+                "fr": [
+                    {"roles": ["male"], "label": f"{title_fr} male"},
+                    {"roles": ["female"], "label": f"{title_fr} female"},
+                ],
+                "en": [
+                    {"roles": ["male"], "label": f"{title_en} male"},
+                    {"roles": ["female"], "label": f"{title_en} female"},
+                ],
             },
             "status": "released",
             "_links": {
@@ -232,6 +250,45 @@ class WikipediaTestCase(JwtAPITestCase):
                 }
             }
 
+    class GetExistingWikipediaTagsMocked:
+        status_code = status.HTTP_200_OK
+
+        def __init__(self, tags: List[Tag], en: bool, fr: bool):
+            self.tags = tags
+            self.languages = [
+                language for language, value in {"en": en, "fr": fr}.items() if value
+            ]
+            # add a language that should be ignored except for fallback
+            self.languages.append("xx")
+
+        def json(self):
+            """
+            Return a mocked response for the Wikipedia API.
+            Add a " _" at the end of the values to allow testing of the update mechanism
+            """
+            return {
+                "entities": {
+                    tag.external_id: {
+                        "labels": {
+                            language: {
+                                "language": language,
+                                "value": getattr(tag, f"title_{language}", "") + " _",
+                            }
+                            for language in self.languages
+                        },
+                        "descriptions": {
+                            language: {
+                                "language": language,
+                                "value": getattr(tag, f"description_{language}", "")
+                                + " _",
+                            }
+                            for language in self.languages
+                        },
+                    }
+                    for tag in self.tags
+                }
+            }
+
     @classmethod
     def get_random_wikipedia_qid(cls):
         return f"Q{random.randint(100000, 999999)}"  # nosec
@@ -244,6 +301,15 @@ class WikipediaTestCase(JwtAPITestCase):
         fr: bool = True,
     ):
         return cls.GetWikipediaTagsMocked(wikipedia_qids, en, fr)
+
+    @classmethod
+    def get_existing_wikipedia_tags_mocked_return(
+        cls,
+        tags: List[Tag],
+        en: bool = True,
+        fr: bool = True,
+    ):
+        return cls.GetExistingWikipediaTagsMocked(tags, en, fr)
 
     @classmethod
     def search_wikipedia_tag_mocked_return(

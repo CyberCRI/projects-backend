@@ -7,7 +7,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
 from django.http import Http404
-from guardian.shortcuts import assign_perm
 from simple_history.models import HistoricalRecords
 
 from apps.commons.models import Language, OrganizationRelated, PermissionsSetupModel
@@ -243,6 +242,18 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     def get_default_admins_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
 
+    def get_global_admins_permissions(self) -> QuerySet[Permission]:
+        return Permission.objects.filter(
+            codename__in=[
+                "get_user_by_email",
+                # TODO: remove that when we have a better way to handle permissions
+                "add_projectuser",
+                "change_projectuser",
+                "delete_projectuser",
+            ],
+            content_type__app_label="accounts",
+        )
+
     def get_default_facilitators_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
             "manage_accessrequest",
@@ -279,40 +290,27 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
-        admins = self.setup_group_permissions(
+        admins = self.setup_group_object_permissions(
             self.get_admins(), self.get_default_admins_permissions()
         )
-        assign_perm("accounts.get_user_by_email", admins)
-        # TODO: remove that when we have a better way to handle permissions
-        assign_perm("accounts.add_projectuser", admins)
-        assign_perm("accounts.change_projectuser", admins)
-        assign_perm("accounts.delete_projectuser", admins)
-        facilitators = self.setup_group_permissions(
+        admins = self.setup_group_global_permissions(
+            admins, self.get_global_admins_permissions()
+        )
+        facilitators = self.setup_group_object_permissions(
             self.get_facilitators(), self.get_default_facilitators_permissions()
         )
-        users = self.setup_group_permissions(
+        users = self.setup_group_object_permissions(
             self.get_users(), self.get_default_users_permissions()
         )
 
         if user:
             admins.users.add(user)
-        self.groups.add(admins, facilitators, users)
+        self.groups.set([admins, facilitators, users])
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
         else:
             Organization.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
-
-    def remove_duplicated_roles(self):
-        """Remove duplicated roles in the group."""
-        self.users.set(
-            self.users.exclude(pk__in=self.admins.values_list("pk", flat=True)).exclude(
-                pk__in=self.facilitators.values_list("pk", flat=True)
-            )
-        )
-        self.facilitators.set(
-            self.facilitators.exclude(pk__in=self.admins.values_list("pk", flat=True))
-        )
 
     def get_or_create_group(self, name: str) -> Group:
         """Return the group with the given name."""

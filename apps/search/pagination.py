@@ -1,13 +1,20 @@
 from apps.commons.pagination import PageInfoLimitOffsetPagination
 
 
-def AlgoliaPagination(count: int = 0):  # noqa: N802
-    class _AlgoliaPagination(PageInfoLimitOffsetPagination):
+def SearchPagination(count: int = 0):  # noqa: N802
+    class _SearchPagination(PageInfoLimitOffsetPagination):
         def get_count(self, queryset):
             return count
 
         def paginate_queryset(self, queryset, request, view=None):
-            super(_AlgoliaPagination, self).paginate_queryset(queryset, request, view)
-            return list(queryset)
+            """
+            Queryset is already paginated by OpenSearchService.
+            We need to set the count, offset and limit manually.
+            """
+            self.request = request
+            self.count = self.get_count(queryset)
+            self.offset = self.get_offset(request)
+            self.limit = self.get_limit(request)
+            return queryset
 
-    return _AlgoliaPagination
+    return _SearchPagination

@@ -18,7 +18,6 @@ from rest_framework.response import Response
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import UserLightSerializer
-from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
@@ -30,6 +29,7 @@ from apps.commons.views import (
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
+from apps.search.filters import OpenSearchRankedFieldsFilter
 from services.wikipedia.interface import WikipediaService
 
 from .exceptions import (
@@ -43,7 +43,6 @@ from .exceptions import (
 )
 from .filters import TagFilter
 from .models import Mentoring, MentoringMessage, Skill, Tag, TagClassification
-from .pagination import WikipediaPagination
 from .serializers import (
     MentoringContactSerializer,
     MentoringResponseSerializer,
@@ -189,12 +188,19 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = TagSerializer
-    search_fields = [
-        *[f"title_{language}" for language in settings.REQUIRED_LANGUAGES],
-        *[f"description_{language}" for language in settings.REQUIRED_LANGUAGES],
-    ]
     filter_backends = (
-        UnaccentSearchFilter,
+        OpenSearchRankedFieldsFilter(
+            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
+            fields=[
+                *[f"title_{ln}^2" for ln in settings.REQUIRED_LANGUAGES],
+                *[f"alternative_titles_{ln}^2" for ln in settings.REQUIRED_LANGUAGES],
+                *[f"description_{ln}^1" for ln in settings.REQUIRED_LANGUAGES],
+            ],
+            highlight=[
+                *[f"title_{ln}" for ln in settings.REQUIRED_LANGUAGES],
+                *[f"description_{ln}" for ln in settings.REQUIRED_LANGUAGES],
+            ],
+        ),
         DjangoFilterBackend,
         OrderingFilter,
     )
@@ -225,37 +231,22 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    def get_enabled_tags(
+    def get_enabled_classifications(
         self, organization_code: str, enabled_for: str
-    ) -> QuerySet[Tag]:
+    ) -> QuerySet[TagClassification]:
         """
-        Get all tags from an organization that are enabled for projects or skills.
-
-        If one of the enabled classifications is Wikipedia, the method will also
-        perform a search in the Wikipedia database before returning the results.
-
-        This will only happen if the `search` parameter is provided in the request,
-        it allows to add new tags from Wikipedia to the organization when searching
-        multiple classifications at once.
+        Get all tag classifications from an organization that are enabled for projects
+        or skills.
         """
         if enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS:
-            classifications = TagClassification.objects.filter(
+            return TagClassification.objects.filter(
                 enabled_organizations_projects__code=organization_code
             )
-        elif enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS:
-            classifications = TagClassification.objects.filter(
+        if enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS:
+            return TagClassification.objects.filter(
                 enabled_organizations_skills__code=organization_code
             )
-        else:
-            return Tag.objects.none()
-        wikipedia = TagClassification.get_or_create_default_classification(
-            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
-        )
-        if wikipedia in classifications and self.request.query_params.get(
-            "search", None
-        ):
-            self.wikipedia_search(self.request)
-        return Tag.objects.filter(tag_classifications__in=classifications)
+        return TagClassification.objects.none()
 
     def get_queryset(self):
         """
@@ -269,6 +260,11 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             When accessed with the `organization_code` and `tag_classification_id`
             parameters in the URL and the `tag_classification_id` parameter is set
             to `enabled-for-projects` or `enabled-for-skills`
+
+        This method will perform a search in the Wikipedia database to eventually
+        create new tags if:
+        - One of the classifications is the Wikipedia classification
+        - The search query parameter is provided
         """
         organization_code = self.kwargs.get("organization_code", None)
         tag_classification_id = self.kwargs.get("tag_classification_id", None)
@@ -276,8 +272,25 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             return Tag.objects.filter(organization__code=organization_code)
         if organization_code and tag_classification_id:
             if tag_classification_id in TagClassification.ReservedSlugs.values:
-                return self.get_enabled_tags(organization_code, tag_classification_id)
-            return Tag.objects.filter(tag_classifications__id=tag_classification_id)
+                tag_classification_ids = [
+                    c.id
+                    for c in self.get_enabled_classifications(
+                        organization_code, tag_classification_id
+                    )
+                ]
+            else:
+                tag_classification_ids = [tag_classification_id]
+            wikipedia_classification = TagClassification.get_or_create_default_classification(
+                classification_type=TagClassification.TagClassificationType.WIKIPEDIA
+            )
+            if (
+                wikipedia_classification.id in tag_classification_ids
+                and self.request.query_params.get("search", None)
+            ):
+                self.wikipedia_search(self.request)
+            return Tag.objects.filter(
+                tag_classifications__id__in=tag_classification_ids
+            ).distinct()
         return Tag.objects.all()
 
     def create(self, request, *args, **kwargs):
@@ -305,42 +318,6 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
                 classification.tags.add(instance)
 
-    @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="language",
-                description="Choose the language you want for your results (en or fr), default to en.",
-                required=False,
-                type=str,
-            ),
-        ]
-    )
-    def list(self, request, *args, **kwargs):
-        """
-        List all custom tags of an organization (if only `organization_code` is provided
-        in the url), or all tags from a specific classification (if `organization_code`
-        and `tag_classification_id` are provided in the url).
-
-        Additionally, when using this endpoint with the `tag_classification_id`
-        parameter, you can use the following values instead of slugs to retrieve
-        specific tags classifications:
-
-        - `enabled-for-projects`: Tags that are enabled for projects in the organization
-        - `enabled-for-skills`: Tags that are enabled for skills in the organization
-        """
-        wikipedia = TagClassification.get_or_create_default_classification(
-            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
-        )
-        if (
-            self.request.query_params.get("search", None)
-            and self.kwargs.get("tag_classification_id", None)
-            and self.kwargs["tag_classification_id"]
-            not in TagClassification.ReservedSlugs.values
-            and int(self.kwargs["tag_classification_id"]) == int(wikipedia.id)
-        ):
-            return self.wikipedia_search(request)
-        return super().list(request, *args, **kwargs)
-
     def wikipedia_search(self, request: Request) -> Response:
         params = {
             "query": str(self.request.query_params.get("search", "")),
@@ -350,13 +327,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         }
         if params["limit"] > 50:
             raise WikipediaTagSearchLimitError
-        wikipedia_qids, next_items = WikipediaService.search(**params)
-        queryset = update_or_create_wikipedia_tags(wikipedia_qids)
-        count = next_items + len(queryset)
-        paginator = WikipediaPagination(count=count)()
-        page = paginator.paginate_queryset(queryset, request, view=self)
-        serializer = self.serializer_class(page, many=True)
-        return paginator.get_paginated_response(data=serializer.data)
+        wikipedia_qids, _ = WikipediaService.search(**params)
+        update_or_create_wikipedia_tags(wikipedia_qids)
 
     @extend_schema(
         parameters=[

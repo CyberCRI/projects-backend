@@ -1,5 +1,6 @@
 from typing import List, Optional, Union
 
+from django.conf import settings
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -10,6 +11,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.serializers import UserLightSerializer
+from apps.commons.cache import redis_cache_viewset_method
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.utils import get_below_hierarchy_codes
@@ -95,6 +97,13 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
             return self.get_queryset_for_project(project)
         return self.get_queryset_for_user(self.request.user)
 
+    @redis_cache_viewset_method(
+        "recommendations", settings.CACHE_RECOMMENDATION_POOL_TTL
+    )
+    def get_queryset_pool_ids(self, pool: int) -> List[Union[str, int]]:
+        queryset = self.get_queryset()[:pool]
+        return list(queryset.values_list("id", flat=True))
+
     @action(
         detail=False,
         methods=["GET"],
@@ -144,10 +153,8 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
         """
         count = int(request.query_params.get("count", 4))
         pool = int(request.query_params.get("pool", 25))
-        queryset = self.get_queryset()[:pool]
-        queryset = self.queryset.filter(id__in=queryset.values_list("id", flat=True))
-        queryset = queryset.order_by("?")
-        queryset = queryset[:count]
+        pool_ids = self.get_queryset_pool_ids(pool)
+        queryset = self.queryset.filter(id__in=pool_ids).order_by("?")[:count]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
@@ -181,10 +188,8 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
         """
         count = int(request.query_params.get("count", 4))
         pool = int(request.query_params.get("pool", 25))
-        queryset = self.get_queryset()[:pool]
-        queryset = self.queryset.filter(id__in=queryset.values_list("id", flat=True))
-        queryset = queryset.order_by("?")
-        queryset = queryset[:count]
+        pool_ids = self.get_queryset_pool_ids(pool)
+        queryset = self.queryset.filter(id__in=pool_ids).order_by("?")[:count]
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 

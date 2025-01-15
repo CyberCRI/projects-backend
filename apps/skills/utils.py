@@ -30,43 +30,25 @@ def create_missing_esco_tags() -> list[Tag]:
     return created_tags
 
 
-def _update_esco_skill_data(esco_skill: Tag) -> Tag:
+def _update_esco_tag_data(esco_skill: Tag) -> Tag:
     data = EscoService.get_object_from_uri(
         esco_skill.secondary_type, esco_skill.external_id
     )
     for language in settings.REQUIRED_LANGUAGES:
         title = data.get("preferredLabel", {}).get(language, "")
         description = data.get("description", {}).get(language, {}).get("literal", "")
+        alternative_titles = data.get("alternativeLabel", {}).get(language, [])
+        alternative_titles = ", ".join(alternative_titles)
         setattr(esco_skill, f"title_{language}", title)
         setattr(esco_skill, f"description_{language}", description)
+        setattr(esco_skill, f"alternative_titles_{language}", alternative_titles)
     esco_skill.save()
     return esco_skill
 
 
-def _update_esco_occupation_data(esco_occupation: Tag) -> Tag:
-    data = EscoService.get_object_from_uri(
-        esco_occupation.secondary_type, esco_occupation.external_id
-    )
-    for language in settings.REQUIRED_LANGUAGES:
-        titles = data.get("alternativeTerms", {}).get(language, [])
-        title = list(filter(lambda x: "male" in x["roles"], titles))
-        if title and language == "fr":
-            title = title[0]["label"]
-        else:
-            title = data.get("preferredLabel", {}).get(language, "")
-        description = data.get("description", {}).get(language, {}).get("literal", "")
-        setattr(esco_occupation, f"title_{language}", title)
-        setattr(esco_occupation, f"description_{language}", description)
-    esco_occupation.save()
-    return esco_occupation
-
-
 def update_esco_tag_data(esco_tag: Tag) -> Tag:
     try:
-        if esco_tag.secondary_type == Tag.SecondaryTagType.SKILL:
-            return _update_esco_skill_data(esco_tag)
-        if esco_tag.secondary_type == Tag.SecondaryTagType.OCCUPATION:
-            return _update_esco_occupation_data(esco_tag)
+        _update_esco_tag_data(esco_tag)
     except Exception as e:  # noqa: PIE786
         logger.error(f"Error updating ESCO tag {esco_tag.external_id}: {e}")
     return esco_tag

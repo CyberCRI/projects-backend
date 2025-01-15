@@ -108,7 +108,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     # external
-    "algoliasearch_django",
+    "django_opensearch_dsl",
     "corsheaders",
     "django_cleanup.apps.CleanupConfig",
     "django_extensions",
@@ -488,6 +488,7 @@ CACHE_ANNOUNCEMENTS_LIST_TTL = 60 * int(
 CACHE_LOCATIONS_LIST_TTL = 60 * int(
     os.getenv("CACHE_LOCATIONS_LIST_TTL", CACHE_DEFAULT_TTL)
 )
+CACHE_RECOMMENDATION_POOL_TTL = 86400  # 1 day
 CACHE_PROJECT_VIEWS = 86400  # 1 day
 
 #############
@@ -562,18 +563,29 @@ options.DEFAULT_NAMES += (
     "write_only_subscopes",
 )
 
-# Algolia settings
-# See https://www.algolia.com/doc/framework-integration/django/setup/?client=python#setup
-ALGOLIA = {
-    "APPLICATION_ID": os.getenv(
-        "ALGOLIA_APP_ID", "NOT_SET"
-    ),  # Cannot set None by default, it fails
-    "API_KEY": os.getenv(
-        "ALGOLIA_KEY", "NOT_SET"
-    ),  # Cannot set None by default, it fails
-    "INDEX_PREFIX": os.getenv("ALGOLIA_PREFIX", ""),
-    "INDEX_SUFFIX": os.getenv("ALGOLIA_SUFFIX", ""),
+##############
+# OpenSearch #
+##############
+
+OPENSEARCH_DSL = {
+    "default": {
+        "hosts": os.getenv("OPENSEARCH_HOST", "http://opensearch-node:9200"),
+        "http_auth": (
+            os.getenv("OPENSEARCH_USERNAME", "admin"),
+            os.getenv("OPENSEARCH_PASSWORD", "admin"),
+        ),
+        "verify_certs": False,
+        "use_ssl": os.getenv("OPENSEARCH_USE_SSL", False) == "True",
+    },
 }
+OPENSEARCH_DSL_AUTO_REFRESH = os.getenv("OPENSEARCH_DSL_AUTO_REFRESH", False) == "True"
+OPENSEARCH_DSL_AUTOSYNC = os.getenv("OPENSEARCH_DSL_AUTOSYNC", False) == "True"
+OPENSEARCH_DSL_PARALLEL = True
+OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
+    "OPENSEARCH_DSL_SIGNAL_PROCESSOR",
+    "django_opensearch_dsl.signals.CelerySignalProcessor",
+)
+OPENSEARCH_INDEX_PREFIX = os.getenv("OPENSEARCH_INDEX_PREFIX", "proj-local")
 
 #####################
 #   Static files    #

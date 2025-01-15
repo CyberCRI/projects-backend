@@ -277,6 +277,7 @@ class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
             for user in users:
                 user.groups.remove(*people_group.groups.filter(users=user))
                 user.groups.add(group)
+        people_group.save()  # Trigger reindexing
         return validated_data
 
 
@@ -293,6 +294,7 @@ class PeopleGroupRemoveTeamMembersSerializer(serializers.Serializer):
         users = validated_data.get("users", [])
         for user in users:
             user.groups.remove(*people_group.groups.filter(users=user))
+        people_group.save()  # Trigger reindexing
         return validated_data
 
 

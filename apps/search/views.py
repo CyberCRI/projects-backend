@@ -1,212 +1,26 @@
-from typing import Any, Dict, List
-
-from algoliasearch_django import algolia_engine
-from django.db.models import BigIntegerField, F, Prefetch, Q
+from django.conf import settings
+from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import OpenApiParameter, extend_schema
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
 from apps.commons.utils import ArrayPosition
-from apps.commons.views import PaginatedViewSet
+from apps.commons.views import ListViewSet
 
 from .filters import SearchObjectFilter
+from .interface import OpenSearchService
 from .models import SearchObject
-from .pagination import AlgoliaPagination
+from .pagination import SearchPagination
 from .serializers import SearchObjectSerializer
 
 
-class SearchViewSet(PaginatedViewSet):
-    filter_backends = [DjangoFilterBackend]
-    serializer_class = SearchObjectSerializer
+class SearchViewSet(ListViewSet):
     filterset_class = SearchObjectFilter
-    pagination_class = AlgoliaPagination()
-    queryset = SearchObject.objects.all()
+    serializer_class = SearchObjectSerializer
+    filter_backends = [DjangoFilterBackend]
 
-    @staticmethod
-    def get_extra_api_parameters() -> List[OpenApiParameter]:
-        return [
-            OpenApiParameter(
-                name="types",
-                description="Types of objects to filter on, separated by a comma. Can be 'project', 'people_group' or 'user'.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="organizations",
-                description="Codes of the organization to filter on, separated by a comma. Works on projects, groups and users.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="sdgs",
-                description="SDGs to filter on, separated by a comma. Works on projects, groups and users.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="categories",
-                description="Categories ids to filter on, separated by a comma. Works on projects.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="tags",
-                description="Tags IDs to filter on, separated by a comma. Works on projects.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="members",
-                description="Members ids to filter on, separated by a comma. Works on projects.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="languages",
-                description="Languages to filter on, separated by a comma. Works on projects.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="skills",
-                description="Tags IDs of skills to filter on, separated by a comma. Works on users.",
-                required=False,
-                type=str,
-            ),
-            OpenApiParameter(
-                name="limit",
-                description=f"Number of results to return per page, defaults to {api_settings.PAGE_SIZE}",
-                required=False,
-                type=int,
-            ),
-            OpenApiParameter(
-                name="offset",
-                description="The initial index from which to return the results, defaults to 0.",
-                required=False,
-                type=int,
-            ),
-        ]
-
-    def get_filter(self, name):
-        """
-        Get a filter from the query parameters.
-        """
-        values = self.request.query_params.get(name, "")
-        return values.split(",") if values else []
-
-    def get_type_specific_facet_filter(
-        self, facet_filter: List[str], filtered_type: str
-    ):
-        """
-        Make a facet filter work only on a specific type of object.
-        """
-        if facet_filter:
-            unaffected_types = [
-                object_type
-                for object_type in [
-                    SearchObject.SearchObjectType.PROJECT,
-                    SearchObject.SearchObjectType.PEOPLE_GROUP,
-                    SearchObject.SearchObjectType.USER,
-                ]
-                if object_type != filtered_type
-            ]
-            return [*facet_filter, *[f"type:{t}" for t in unaffected_types]]
-        return facet_filter
-
-    def get_facet_filters(self):
-        """
-        Get all the facet filters to apply to the Algolia search.
-        """
-        facet_filters = [
-            ["has_organization:true"],
-            ["is_root:false"],
-            [f"type:{t}" for t in self.get_filter("types")],
-            [f"permissions:{p}" for p in self.get_user_permissions()],
-            [f"organizations:{o}" for o in self.get_filter("organizations")],
-            [f"sdgs:{s}" for s in self.get_filter("sdgs")],
-            self.get_type_specific_facet_filter(
-                [f"language:{ln}" for ln in self.get_filter("languages")],
-                SearchObject.SearchObjectType.PROJECT,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"skills_filter:{s}" for s in self.get_filter("skills")],
-                SearchObject.SearchObjectType.USER,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"can_mentor_filter:{s}" for s in self.get_filter("can_mentor")],
-                SearchObject.SearchObjectType.USER,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"needs_mentor_filter:{s}" for s in self.get_filter("needs_mentor")],
-                SearchObject.SearchObjectType.USER,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"can_mentor_on_filter:{s}" for s in self.get_filter("can_mentor_on")],
-                SearchObject.SearchObjectType.USER,
-            ),
-            self.get_type_specific_facet_filter(
-                [
-                    f"needs_mentor_on_filter:{s}"
-                    for s in self.get_filter("needs_mentor_on")
-                ],
-                SearchObject.SearchObjectType.USER,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"categories_filter:{c}" for c in self.get_filter("categories")],
-                SearchObject.SearchObjectType.PROJECT,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"tags_filter:{w}" for w in self.get_filter("tags")],
-                SearchObject.SearchObjectType.PROJECT,
-            ),
-            self.get_type_specific_facet_filter(
-                [f"members_filter:{m}" for m in self.get_filter("members")],
-                SearchObject.SearchObjectType.PROJECT,
-            ),
-        ]
-        return [f for f in facet_filters if f]
-
-    def get_user_permissions(self):
-        """
-        Get the user's permissions formatted for Algolia.
-        """
-        public_permissions = [
-            "accounts.view_public_peoplegroup",
-            "accounts.view_public_projectuser",
-            "projects.view_public_project",
-        ]
-        user = self.request.user
-        if user.is_authenticated:
-            public_permissions.append(f"accounts.view_projectuser.{user.pk}")
-        user_permissions = list(
-            filter(
-                lambda x: any(
-                    x.startswith(s)
-                    for s in [
-                        # PeopleGroup
-                        "accounts.view_peoplegroup",
-                        "organizations.view_peoplegroup",
-                        "organizations.view_org_peoplegroup",
-                        # ProjectUser
-                        "accounts.view_projectuser",
-                        "organizations.view_projectuser",
-                        "organizations.view_org_projectuser",
-                        # Project
-                        "projects.view_project",
-                        "organizations.view_project",
-                        "organizations.view_org_project",
-                    ]
-                ),
-                user.get_permissions_representations(),
-            )
-        )
-        return [p.replace(":", "-") for p in public_permissions + user_permissions]
-
-    def _search(self, query: str = "") -> Dict[str, Any]:
-        """
-        Perform a search on Algolia with the given query.
-        """
+    def get_queryset(self, order: bool = True) -> QuerySet[SearchObject]:
         groups = self.request.user.get_people_group_queryset()
         projects = self.request.user.get_project_queryset()
         users = self.request.user.get_user_queryset()
@@ -220,54 +34,76 @@ class SearchViewSet(PaginatedViewSet):
             (
                 Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
                 & Q(people_group__in=groups)
+                & Q(people_group__is_root=False)
             )
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
         ).prefetch_related(project_prefetch, people_group_prefetch)
-        limit = int(self.request.query_params.get("limit", api_settings.PAGE_SIZE))
-        offset = int(self.request.query_params.get("offset", 0))
-
-        params = {
-            "distinct": 1,
-            "page": offset // limit,
-            "hitsPerPage": limit,
-            "facetFilters": self.get_facet_filters(),
-        }
-        response = algolia_engine.raw_search(SearchObject, query, params)
-        if response is not None:
-            self.pagination_class = AlgoliaPagination(response["nbHits"])
-            hits = [h["id"] for h in response["hits"]]
-            # Return a queryset of Project sorted with `hits`.
-            ordering = ArrayPosition(hits, F("id"), base_field=BigIntegerField())
-            queryset = (
-                queryset.filter(id__in=hits)
-                .annotate(ordering=ordering)
-                .order_by("ordering")
-            )
-        else:
-            queryset = queryset.none()
+        if order:
+            return queryset.order_by(F("last_update").desc(nulls_last=True))
         return queryset
 
     @extend_schema(
-        description="Get Algolia search results by providing a query",
-        parameters=get_extra_api_parameters(),
+        responses=SearchObjectSerializer(many=True),
+        filters=[SearchObjectFilter],
     )
-    @action(detail=False, methods=["get"], url_path="(?P<search>.+)")
+    @action(detail=False, methods=["GET"], url_path="(?P<search>.+)")
     def search(self, request, *args, **kwargs):
-        """
-        Get Algolia search results by providing a query.
-        """
-        query = self.kwargs["search"]
-        queryset = self._search(query)
-        return self.get_paginated_list(queryset)
+        queryset = self.filter_queryset(self.get_queryset())
+        search_objects_ids = list(queryset.values_list("id", flat=True))
 
-    @extend_schema(
-        description="Get Algolia search results with an empty query",
-        parameters=get_extra_api_parameters(),
-    )
-    def list(self, request, *args, **kwargs):
-        """
-        Get Algolia search results with an empty query.
-        """
-        queryset = self._search()
-        return self.get_paginated_list(queryset)
+        query = self.kwargs.get("search", "")
+        indices = [
+            f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
+            for index in (
+                request.query_params.get("types", "project,user,people_group").split(
+                    ","
+                )
+            )
+        ]
+        limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
+        offset = request.query_params.get("offset", 0)
+        response = OpenSearchService.best_fields_search(
+            indices=indices,
+            fields=[
+                # common
+                "content^3",
+                # user
+                "given_name^4",
+                "family_name^4",
+                "job^4",
+                "email^3",
+                "personal_email^2",
+                "skills^2",
+                "people_groups^1",
+                "projects^1",
+                # project
+                "title^4",
+                "purpose^4",
+                "tags^3",
+                "members^2",
+                "categories^1",
+                # people_group
+                "name^4",
+                "members^3",
+                "email^1",
+            ],
+            query=query,
+            limit=limit,
+            offset=offset,
+            search_object_id=search_objects_ids,
+        )
+        search_objects_ids = [hit.search_object_id for hit in response.hits]
+        ordered_queryset = (
+            SearchObject.objects.filter(id__in=search_objects_ids)
+            .annotate(
+                ordering=ArrayPosition(
+                    search_objects_ids, F("id"), base_field=BigIntegerField()
+                )
+            )
+            .order_by("ordering")
+        )
+        self.pagination_class = SearchPagination(response.hits.total.value)
+        page = self.paginate_queryset(ordered_queryset)
+        serializer = self.get_serializer(page, many=True)
+        return self.get_paginated_response(serializer.data)

@@ -104,7 +104,34 @@ services:
       retries: 5
       start_period: 30s
 
+  opensearch-node:
+    image: opensearchproject/opensearch:latest
+    container_name: opensearch-node
+    environment:
+      cluster.name: opensearch-cluster
+      node.name: opensearch-node
+      bootstrap.memory_lock: true
+      OPENSEARCH_JAVA_OPTS: -Xms1024m -Xmx1024m
+      DISABLE_INSTALL_DEMO_CONFIG: true
+      DISABLE_SECURITY_PLUGIN: true
+      discovery.type: single-node
+      logger.org.opensearch: ERROR
+      cluster.routing.allocation.disk.watermark.flood_stage: 100%
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      - 9200:9200
+      - 9600:9600
+
 volumes:
+  opensearch-data:
   postgres-data:
   s3:
   redis:

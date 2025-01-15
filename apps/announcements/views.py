@@ -53,7 +53,7 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         notify_new_announcement.delay(announcement.pk, self.request.user.pk)
 
     @extend_schema(request=ApplyToAnnouncementSerializer)
-    @action(detail=True, methods=["post"], permission_classes=[AllowAny])
+    @action(detail=True, methods=["POST"], permission_classes=[AllowAny])
     def apply(self, request, **kwargs):
         announcement = self.get_object()
         serializer = ApplyToAnnouncementSerializer(

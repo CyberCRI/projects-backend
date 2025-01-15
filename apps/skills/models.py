@@ -59,6 +59,7 @@ class Tag(models.Model, OrganizationRelated):
         default=SecondaryTagType.TAG.value,
     )
     title = models.CharField(max_length=255)
+    alternative_titles = models.TextField(blank=True)
     description = models.TextField(blank=True)
     organization = models.ForeignKey(
         "organizations.Organization",
