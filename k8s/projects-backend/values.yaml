@@ -173,8 +173,6 @@ workflow:
 
 runMigrations: true
 
-traefik: false
-
 sablier:
   enabled: false
   groupName: projects

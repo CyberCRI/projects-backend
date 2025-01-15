@@ -1,4 +1,3 @@
-{{- if .Values.traefik }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -27,31 +26,3 @@ spec:
     - hosts:
         - {{ .Values.hostname }}
       secretName: {{ printf "%s-tls" .Values.hostname }}
-{{- else }}
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: {{ tpl .Values.fullName . }}
-  labels:
-    {{- (tpl ($.Values.backend.commonLabels | toYaml ) $) | nindent 4 }}
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    kubernetes.io/ingress.class: nginx
-    nginx.ingress.kubernetes.io/proxy-body-size: 10m
-spec:
-  rules:
-    - host: {{ .Values.hostname }}
-      http:
-        paths:
-          - path: {{ .Values.ingressPath }}
-            pathType: Prefix
-            backend:
-              service:
-                name: {{ tpl .Values.fullName . }}
-                port:
-                  name: http
-  tls:
-    - hosts:
-        - {{ .Values.hostname }}
-      secretName: {{ printf "%s-tls" .Values.hostname }}
-{{- end }}

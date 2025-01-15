@@ -2,7 +2,7 @@
   "name" (tpl .Values.fullName .)
   "podSelector" (dict "matchLabels" (tpl (.Values.backend.commonLabels | toJson) .| fromJson) )
   "allowFromReverseProxy" true
-  "reverseProxyNamespace" (ternary "traefik" "ingress-nginx" .Values.traefik  )
+  "reverseProxyNamespace" "traefik"
   "additionalIngresses" (get (tpl ((dict "root" .Values.backend.networkPolicyAdditionalIngresses) | toJson) . | fromJson) "root")
   "commonLabels" (tpl (.Values.backend.commonLabels | toJson) . | fromJson)
   "enableEgress" false
