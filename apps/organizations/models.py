@@ -216,6 +216,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
             ("invitation", "invitation links"),
         )
         permissions = (
+            ("access_admin", "Can access the admin panel"),
             ("view_stat", "Can view stats"),
             ("view_org_project", "Can view community projects"),
             ("view_org_projectuser", "Can view community users"),
@@ -257,6 +258,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     def get_default_facilitators_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
             "manage_accessrequest",
+            "access_admin",
             *[
                 f"{action}_{subscope}"
                 for action in ["change", "delete", "add"]
@@ -467,6 +469,9 @@ class ProjectCategory(models.Model, OrganizationRelated):
 
     class Meta:
         ordering = ["organization__code", "order_index"]
+
+    def __str__(self) -> str:
+        return self.name
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

@@ -1,100 +1,20 @@
-import csv
-
-from django import forms
 from django.contrib import admin
 from django.contrib.auth.models import Group, Permission
 from django.db import transaction
-from django.db.models import Q
-from django.http import HttpResponse
-from django.shortcuts import redirect, render
-from django.urls import path, reverse
+from django.db.models import Q, QuerySet
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
 from apps.accounts.models import PeopleGroup, ProjectUser
-from apps.accounts.tasks import batch_create_users
 from apps.accounts.utils import get_group_permissions
+from apps.commons.admin import RoleBasedAccessAdmin
 from apps.emailing.models import Email
+from apps.organizations.models import Organization
 from services.keycloak.interface import KeycloakService
 
 
-class UserCSVImportMixin:
-    class CsvImportForm(forms.Form):
-        file = forms.FileField()
-        update_mode = forms.ChoiceField(
-            choices=(
-                ("hard", "Completely update the data and add m2m"),
-                ("soft", "Add the data if the field is empty and add m2m"),
-                ("no_update", "Do not update anything"),
-            ),
-            initial="no_update",
-        )
-
-    def get_csv_import_urls(self):
-        return [
-            path("import-users-with-csv/", self.import_with_csv),
-            path("download-csv-template/", self.get_csv_template),
-        ]
-
-    def import_with_csv(self, request):
-        if not request.user.is_superuser:
-            return HttpResponse("Unauthorized", status=403)
-        if request.method == "POST":
-            mode = request.POST.get("update_mode", "no_update")
-            file = request.FILES["file"]
-            file_data = file.read().decode("utf-8").splitlines()
-            users_data = [user for user in csv.DictReader(file_data)]
-            batch_create_users.delay(users_data, request.user.pk, mode)
-            self.message_user(
-                request,
-                "Your csv file has been imported, a log file will be sent to you by email.",
-            )
-            return redirect("..")
-        return render(
-            request, "admin/upload_csv_form.html", {"form": self.CsvImportForm()}
-        )
-
-    def get_csv_template(self, request):
-        if not request.user.is_superuser:
-            return HttpResponse("Unauthorized", status=403)
-        response = HttpResponse(content_type="text/csv")
-        response["Content-Disposition"] = (
-            'attachment; filename="user_import_fields.csv"'
-        )
-        writer = csv.writer(response)
-        rows = [
-            ["name", "example", "required"],
-            ["email", "foo.bar@email.com", True],
-            ["given_name", "Foo", True],
-            ["family_name", "Bar", True],
-            ["job", "Developer", True],
-            ["external_id", "abcd1234", False],
-            ["roles_to_add", "peoplegroup:#1:members;organization:#1:users", True],
-            ["personal_email", "foo.bar@email.com", False],
-            ["location", "Paris, France", False],
-            ["birthdate", "YYYY-MM-DD", False],
-            ["language", "en", False],
-            ["pronouns", "she/her", False],
-            ["personal_description", "<p>I am a developer</p>", False],
-            ["short_description", "I am a developer", False],
-            ["professional_description", "<p>I am a developer</p>", False],
-            ["sdgs", "1;2;3", False],
-            ["facebook", "https://www.facebook.com/foo.bar", False],
-            ["mobile_phone", "+33612345678", False],
-            ["linkedin", "https://www.linkedin.com/in/foo.bar", False],
-            ["medium", "https://medium.com/@foo_bar", False],
-            ["website", "https://www.foo.bar", False],
-            ["skype", "foo.bar", False],
-            ["landline_phone", "+33123456789", False],
-            ["twitter", "https://twitter.com/foo_bar", False],
-            ["redirect_organization_code", "CRI", False],
-        ]
-        writer.writerows(rows)
-        return response
-
-
-class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
-    change_list_template = "admin/users_changelist.html"
+class UserAdmin(RoleBasedAccessAdmin):
     list_display = (
         "id",
         "keycloak_account_link",
@@ -114,6 +34,14 @@ class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
         ("keycloak_account", admin.EmptyFieldListFilter),
     )
 
+    def get_queryset_for_organizations(
+        self, queryset: QuerySet, organizations: QuerySet[Organization]
+    ) -> QuerySet:
+        """
+        Filter the queryset based on the organizations the user has admin access to.
+        """
+        return queryset.filter(groups__organizations__in=organizations).distinct()
+
     def keycloak_account_link(self, obj):
         if hasattr(obj, "keycloak_account"):
             admin_page = reverse(
@@ -130,6 +58,8 @@ class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
         actions = super().get_actions(request)
         if "delete_selected" in actions:
             del actions["delete_selected"]
+        if not request.user.is_superuser:
+            del actions["create_email_for_users"]
         return actions
 
     def create_email_for_users(self, request, queryset):
@@ -146,9 +76,6 @@ class UserAdmin(admin.ModelAdmin, UserCSVImportMixin):
         if hasattr(obj, "keycloak_account"):
             KeycloakService.delete_user(obj.keycloak_account)
         return super().delete_model(request, obj)
-
-    def get_urls(self):
-        return [*self.get_csv_import_urls(), *super().get_urls()]
 
     class Meta:
         verbose_name = "User"

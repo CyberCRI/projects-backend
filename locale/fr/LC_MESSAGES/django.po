@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2024-12-12 15:30+0100\n"
+"POT-Creation-Date: 2025-01-16 14:49+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -116,15 +116,15 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:822
+#: apps/accounts/models.py:827
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:823
+#: apps/accounts/models.py:828
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:824
+#: apps/accounts/models.py:829
 msgid "Public"
 msgstr "Publique"
 
@@ -1563,7 +1563,7 @@ msgstr "objectifs de développement durable"
 
 #: apps/projects/models.py:209
 msgid "main category"
-msgstr "objectif principal"
+msgstr "catégorie principale"
 
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
@@ -2385,11 +2385,11 @@ msgstr ""
 "          L’équipe Projects\n"
 "          "
 
-#: projects/settings/base.py:267
+#: projects/settings/base.py:268
 msgid "English"
 msgstr "Anglais"
 
-#: projects/settings/base.py:268
+#: projects/settings/base.py:269
 msgid "French"
 msgstr "Français"
 
