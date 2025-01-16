@@ -74,13 +74,16 @@ class RoleBasedAccessAdmin(admin.ModelAdmin):
         return request.user.is_superuser
 
     def has_view_permission(self, request, obj=...):
+        """
+        Restrict read access to superusers only if `superadmin_only` is set to True.
+        """
         if self.superadmin_only:
             return request.user.is_superuser
         return True
 
     def has_module_permission(self, request):
         """
-        Restrict read access to superusers only if `superadmin_only` is set to True.
+        Restrict module access to superusers only if `superadmin_only` is set to True.
         """
         if self.superadmin_only:
             return request.user.is_superuser
