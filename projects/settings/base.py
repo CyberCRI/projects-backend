@@ -122,6 +122,7 @@ INSTALLED_APPS = [
     "stdimage",
     "rest_framework_simplejwt",
     "guardian",
+    "import_export",
     "django_prometheus",
     # internal
     "apps.accounts",

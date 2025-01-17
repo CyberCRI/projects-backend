@@ -418,7 +418,12 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
         """
         Needs to return True if user can access admin site
         """
-        return self.is_superuser
+        return (
+            self.is_superuser
+            or get_objects_for_user(
+                self, "organizations.access_admin", Organization
+            ).exists()
+        )
 
     @classmethod
     def get_id_field_name(cls, object_id: Union[uuid.UUID, int, str]) -> str:
