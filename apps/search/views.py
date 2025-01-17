@@ -67,12 +67,13 @@ class SearchViewSet(ListViewSet):
             indices=indices,
             fields=[
                 # common
-                "content^3",
+                "content^3",  # project + user + people_group
+                "email^3",  # user + people_group
+                "members^2",  # project + people_group
                 # user
                 "given_name^4",
                 "family_name^4",
                 "job^4",
-                "email^3",
                 "personal_email^2",
                 "skills^2",
                 "people_groups^1",
@@ -85,8 +86,6 @@ class SearchViewSet(ListViewSet):
                 "categories^1",
                 # people_group
                 "name^4",
-                "members^3",
-                "email^1",
             ],
             query=query,
             limit=limit,
