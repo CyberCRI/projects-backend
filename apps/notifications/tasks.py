@@ -54,13 +54,13 @@ def notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
 
 
 @app.task
-def notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int):
+def notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int, role: str):
     """Notify that a people group has been added to a project as member.
 
     New members are notified they have been added, while previous members are
     notified of all the newly added members.
     """
-    return _notify_group_as_member_added(project_pk, group_id, by_pk)
+    return _notify_group_as_member_added(project_pk, group_id, by_pk, role)
 
 
 @app.task
@@ -206,13 +206,16 @@ def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
         ).create_and_send_notifications()
 
 
-def _notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int):
+def _notify_group_as_member_added(
+    project_pk: str, group_id: int, by_pk: int, role: str
+):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
     people_group = PeopleGroup.objects.get(pk=group_id)
     people_group_data = {
         "id": people_group.id,
         "name": people_group.name,
+        "role": str(role),
     }
     new_members = [user.id for user in people_group.get_all_members()]
     for manager in [

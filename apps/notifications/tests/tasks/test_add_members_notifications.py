@@ -54,9 +54,7 @@ class AddedMemberTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
 
         group = PeopleGroupFactory(organization=self.organization)
-        payload = {
-            "people_groups": [group.id],
-        }
+        payload = {Project.DefaultGroup.MEMBER_GROUPS: [group.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
