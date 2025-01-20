@@ -44,7 +44,11 @@ def OpenSearchFilter(  # noqa: N802
                                 When(
                                     id=hit.id,
                                     then=Value(
-                                        hit.meta.highlight.to_dict(),
+                                        (
+                                            hit.meta.highlight.to_dict()
+                                            if hasattr(hit.meta, "highlight")
+                                            else {}
+                                        ),
                                         output_field=JSONField(),
                                     ),
                                 )
@@ -94,7 +98,11 @@ def OpenSearchRankedFieldsFilter(  # noqa: N802
                                 When(
                                     id=hit.id,
                                     then=Value(
-                                        hit.meta.highlight.to_dict(),
+                                        (
+                                            hit.meta.highlight.to_dict()
+                                            if hasattr(hit.meta, "highlight")
+                                            else {}
+                                        ),
                                         output_field=JSONField(),
                                     ),
                                 )
