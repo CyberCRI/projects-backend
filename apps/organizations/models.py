@@ -154,7 +154,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
     featured_projects = models.ManyToManyField(
         "projects.Project", related_name="org_featured_projects", blank=True
     )
-    wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
     default_projects_tags = models.ManyToManyField(
         "skills.Tag",
         related_name="default_organizations_projects",
@@ -440,13 +439,6 @@ class ProjectCategory(models.Model, OrganizationRelated):
     )
     is_reviewable = models.BooleanField(default=True)
     order_index = models.SmallIntegerField(default=0)
-    # TODO: Skill update - remove wikipedia_tags and organization_tags
-    wikipedia_tags = models.ManyToManyField(
-        "misc.WikipediaTag", related_name="project_categories"
-    )
-    organization_tags = models.ManyToManyField(
-        "misc.Tag", related_name="project_categories"
-    )
     tags = models.ManyToManyField(
         "skills.Tag",
         related_name="project_categories",

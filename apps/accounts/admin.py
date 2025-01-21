@@ -29,7 +29,6 @@ class UserAdmin(RoleBasedAccessAdmin):
     filter_horizontal = ("groups",)
     actions = ["create_email_for_users"]
     list_filter = (
-        "type",
         "last_login",
         ("keycloak_account", admin.EmptyFieldListFilter),
     )

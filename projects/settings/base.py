@@ -559,7 +559,6 @@ JWT_ACCESS_TOKEN_COOKIE_NAME = "jwt_access_token"  # nosec
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # Django guardian custom setup
-# TODO : django-guardian rework : can't remove additional_actions for now
 options.DEFAULT_NAMES += (
     "subscopes",
     "write_only_subscopes",

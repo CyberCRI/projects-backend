@@ -31,7 +31,6 @@ from apps.commons.models import (
     OrganizationRelated,
     PermissionsSetupModel,
 )
-from apps.misc.models import WikipediaTag
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -132,11 +131,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     is_root = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # TODO : Delete these fields when people migration is done
-    people_data = models.JSONField(default=dict)
-    people_id = models.CharField(max_length=255)
-    order = models.IntegerField(null=True)
 
     def __str__(self) -> str:
         return str(self.name)
@@ -389,10 +383,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     skype = models.CharField(blank=True, max_length=255)
     landline_phone = models.CharField(blank=True, max_length=255)
     twitter = models.URLField(blank=True)
-
-    # TODO : Delete these fields when people migration is done
-    people_data = models.JSONField(default=dict)
-    type = models.CharField(max_length=255, blank=True, default="")
 
     def __str__(self):
         return self.get_full_name()
@@ -862,45 +852,6 @@ class PrivacySettings(models.Model, HasOwner):
         **PRIVACY_CHARFIELD,
         default=PrivacyChoices.ORGANIZATION,
     )
-
-    def is_owned_by(self, user: "ProjectUser") -> bool:
-        """Whether the given user is the owner of the object."""
-        return self.user == user
-
-    def get_owner(self):
-        """Get the owner of the object."""
-        return self.user
-
-
-class Skill(models.Model, HasOwner):
-    class SkillType(models.TextChoices):
-        """Visibility setting of a project."""
-
-        SKILL = "skill"
-        HOBBY = "hobby"
-
-    user = models.ForeignKey(
-        ProjectUser, on_delete=models.CASCADE, related_name="old_skills"
-    )
-    type = models.CharField(
-        max_length=8, choices=SkillType.choices, default=SkillType.SKILL.value
-    )
-    wikipedia_tag = models.ForeignKey(
-        WikipediaTag, on_delete=models.CASCADE, related_name="skills"
-    )
-    level = models.SmallIntegerField()
-    level_to_reach = models.SmallIntegerField()
-    category = models.CharField(max_length=255, blank=True, default="")
-    can_mentor = models.BooleanField(default=False)
-    needs_mentor = models.BooleanField(default=False)
-    comment = models.TextField(blank=True, default="")
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(
-                fields=["user", "wikipedia_tag"], name="unique user wikipedia_tag"
-            )
-        ]
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""

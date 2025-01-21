@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-16 14:49+0100\n"
+"POT-Creation-Date: 2025-01-21 12:10+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,19 +112,19 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:130 apps/projects/models.py:162
+#: apps/accounts/models.py:129 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:827
+#: apps/accounts/models.py:817
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:828
+#: apps/accounts/models.py:818
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:829
+#: apps/accounts/models.py:819
 msgid "Public"
 msgstr "Publique"
 
@@ -1533,35 +1533,27 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 
-#: apps/projects/models.py:146
+#: apps/projects/models.py:145
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:155
+#: apps/projects/models.py:154
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:168
+#: apps/projects/models.py:167
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:179
+#: apps/projects/models.py:178
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:187
-msgid "wikipedia tags"
-msgstr "tags wikipedia"
-
-#: apps/projects/models.py:190
-msgid "organizational tags"
-msgstr "tags organisationnels"
-
-#: apps/projects/models.py:203
+#: apps/projects/models.py:195
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:209
+#: apps/projects/models.py:201
 msgid "main category"
 msgstr "catégorie principale"
 
@@ -2734,3 +2726,9 @@ msgstr "La langue n'est pas disponible"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "La langue {language} n'est pas disponible"
+
+#~ msgid "wikipedia tags"
+#~ msgstr "tags wikipedia"
+
+#~ msgid "organizational tags"
+#~ msgstr "tags organisationnels"
