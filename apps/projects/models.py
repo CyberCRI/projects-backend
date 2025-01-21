@@ -29,7 +29,6 @@ from apps.commons.models import (
     ProjectRelated,
 )
 from apps.commons.utils import get_write_permissions_from_subscopes
-from apps.misc.models import Tag, WikipediaTag
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -181,13 +180,6 @@ class Project(
     images = models.ManyToManyField("files.Image", related_name="projects")
     organizations = models.ManyToManyField(
         "organizations.Organization", related_name="projects"
-    )
-    # TODO : Skill update remove wikipedia_tags and organization_tags
-    wikipedia_tags = models.ManyToManyField(
-        WikipediaTag, related_name="projects", verbose_name=_("wikipedia tags")
-    )
-    organization_tags = models.ManyToManyField(
-        Tag, verbose_name=_("organizational tags")
     )
     tags = models.ManyToManyField(
         "skills.Tag",
