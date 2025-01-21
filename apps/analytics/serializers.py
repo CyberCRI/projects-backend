@@ -10,7 +10,6 @@ from apps.skills.serializers import TagSerializer
 
 class StatsOrganizationSerializer(serializers.ModelSerializer):
     logo_image = ImageSerializer(read_only=True)
-    # TODO : Skill update
     tags = TagSerializer(many=True, read_only=True)
     project_count = serializers.IntegerField()
 

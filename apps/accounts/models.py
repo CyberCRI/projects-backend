@@ -132,11 +132,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    # TODO : Delete these fields when people migration is done
-    people_data = models.JSONField(default=dict)
-    people_id = models.CharField(max_length=255)
-    order = models.IntegerField(null=True)
-
     def __str__(self) -> str:
         return str(self.name)
 
@@ -388,10 +383,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     skype = models.CharField(blank=True, max_length=255)
     landline_phone = models.CharField(blank=True, max_length=255)
     twitter = models.URLField(blank=True)
-
-    # TODO : Delete these fields when people migration is done
-    people_data = models.JSONField(default=dict)
-    type = models.CharField(max_length=255, blank=True, default="")
 
     def __str__(self):
         return self.get_full_name()
