@@ -63,6 +63,7 @@ class AddedMemberTestCase(JwtAPITestCase):
             project.pk,
             group.id,
             owner.pk,
+            Project.DefaultGroup.MEMBER_GROUPS,
         )
 
     def test_user_notification_task(self):
@@ -149,6 +150,7 @@ class AddedMemberTestCase(JwtAPITestCase):
             project.pk,
             group.id,
             sender.pk,
+            "member_groups",
         )
         notifications = Notification.objects.filter(project=project)
         self.assertEqual(notifications.count(), 5)

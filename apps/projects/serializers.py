@@ -375,7 +375,7 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
         created = not project.groups.filter(people_groups=people_group).exists()
         people_group.groups.remove(*project.groups.filter(people_groups=people_group))
         people_group.groups.add(group)
-        project.set_role_group_members()
+        project.set_role_group_members(group)
         return {
             "type": "peoplegroup",
             "created": created,
@@ -426,13 +426,15 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
         many=True, write_only=True, required=False, queryset=PeopleGroup.objects.all()
     )
 
-    def validate_users(self, users):
+    def validate_users(self, users: List[ProjectUser]) -> List[ProjectUser]:
         project = get_object_or_404(Project, pk=self.initial_data["project"])
         if all(owner in users for owner in project.get_owners().users.all()):
             raise RemoveLastProjectOwnerError
         return list(filter(lambda x: x.groups.filter(projects=project).exists(), users))
 
-    def validate_people_groups(self, people_groups):
+    def validate_people_groups(
+        self, people_groups: List[PeopleGroup]
+    ) -> List[PeopleGroup]:
         project = get_object_or_404(Project, pk=self.initial_data["project"])
         return list(
             filter(lambda x: x.groups.filter(projects=project).exists(), people_groups)
@@ -667,6 +669,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
                 for o in self.instance.organizations.all()
             )
             or user in self.instance.reviewers.all()
+            or user in self.instance.reviewer_groups_users.all()
         ):
             return value
         raise OnlyReviewerCanChangeStatusError

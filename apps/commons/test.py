@@ -12,7 +12,7 @@ from faker import Faker
 from rest_framework.test import APIClient, APITestCase
 
 from apps.accounts.authentication import BearerToken
-from apps.accounts.factories import UserFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.files.models import Image
@@ -38,6 +38,9 @@ class TestRoles(models.TextChoices):
     PROJECT_OWNER = "project_owner"
     PROJECT_REVIEWER = "project_reviewer"
     PROJECT_MEMBER = "project_member"
+    PROJECT_OWNER_GROUP = "project_owner_group"
+    PROJECT_REVIEWER_GROUP = "project_reviewer_group"
+    PROJECT_MEMBER_GROUP = "project_member_group"
     OWNER = "object_owner"
 
 
@@ -152,6 +155,27 @@ class JwtAPITestCase(APITestCase):
                 return UserFactory(groups=[p.get_reviewers() for p in instances])
             if role == TestRoles.PROJECT_MEMBER:
                 return UserFactory(groups=[p.get_members() for p in instances])
+            if role == TestRoles.PROJECT_OWNER_GROUP:
+                people_group = PeopleGroupFactory()
+                user = UserFactory(groups=[people_group.get_members()])
+                for project in instances:
+                    project.owner_groups.add(people_group)
+                    project.set_role_group_members(project.get_owner_groups())
+                return user
+            if role == TestRoles.PROJECT_REVIEWER_GROUP:
+                people_group = PeopleGroupFactory()
+                user = UserFactory(groups=[people_group.get_members()])
+                for project in instances:
+                    project.reviewer_groups.add(people_group)
+                    project.set_role_group_members(project.get_reviewer_groups())
+                return user
+            if role == TestRoles.PROJECT_MEMBER_GROUP:
+                people_group = PeopleGroupFactory()
+                user = UserFactory(groups=[people_group.get_members()])
+                for project in instances:
+                    project.member_groups.add(people_group)
+                    project.set_role_group_members(project.get_member_groups())
+                return user
             if role == TestRoles.ORG_ADMIN:
                 return UserFactory(
                     groups=[

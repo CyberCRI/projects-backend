@@ -157,6 +157,9 @@ class UpdateProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_200_OK),
         ]
     )
     def test_update_project(self, role, expected_code):
@@ -207,6 +210,9 @@ class UpdateProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_400_BAD_REQUEST),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_400_BAD_REQUEST),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_200_OK),
         ]
     )
     def test_update_project_only_reviewer_can_update(self, role, expected_code):
@@ -259,6 +265,9 @@ class DeleteProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_delete_project(self, role, expected_code):
@@ -302,6 +311,9 @@ class ProjectMembersTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_add_project_member(self, role, expected_code):
@@ -346,6 +358,9 @@ class ProjectMembersTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_remove_project_member(self, role, expected_code):
@@ -550,6 +565,9 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_201_CREATED),
         ]
     )
     def test_duplicate_project(self, role, expected_code):
@@ -586,6 +604,9 @@ class LockUnlockProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_200_OK),
         ]
     )
     def test_lock_project(self, role, expected_code):
