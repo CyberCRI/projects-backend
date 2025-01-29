@@ -1,0 +1,32 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ tpl .Values.workflow.opensearch.resourceName $ }}
+spec:
+  entrypoint: create-opensearch-user
+  serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+  securityContext:
+    {{- include "common.security.podSecurityContext.restricted" dict | nindent 4 }}
+  templates:
+  - name: create-user-and-role
+    steps:
+    - - name: create-db
+        templateRef:
+          clusterScope: true
+          name: {{ .Values.workflow.opensearch.name }}
+          template: {{ .Values.workflow.opensearch.createRoleAndUser.templateName }}
+        arguments:
+          parameters:
+            - name: hostname
+              value: {{ .Values.config.nonSensitive.OPENSEARCH_HOST }}
+            - name: username
+              value: {{ .Values.config.nonSensitive.OPENSEARCH_USERNAME }}
+            - name: password-secret-name
+              value: {{ tpl .Values.fullName . }}
+            - name: password-secret-key
+              value: OPENSEARCH_PASSWORD
+            - name: role-name
+              value: {{ .Values.config.nonSensitive.OPENSEARCH_USERNAME }} # The role name is the same as the username
+            - name: index-pattern
+              value: {{ printf "%s-*" .Values.config.nonSensitive.OPENSEARCH_INDEX_PREFIX }}

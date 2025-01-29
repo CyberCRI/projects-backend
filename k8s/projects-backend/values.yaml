@@ -170,6 +170,11 @@ workflow:
       templateName: drop-db
     createDb:
       templateName: create-db
+  opensearch:
+    name: opensearch
+    resourceName: opensearch
+    createRoleAndUser:
+      templateName: create-role-and-user
 
 runMigrations: true
 
