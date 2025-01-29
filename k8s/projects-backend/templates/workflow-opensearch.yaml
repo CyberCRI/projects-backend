@@ -4,14 +4,14 @@ kind: WorkflowTemplate
 metadata:
   name: {{ tpl .Values.workflow.opensearch.resourceName $ }}
 spec:
-  entrypoint: create-opensearch-user
+  entrypoint: create-role-and-user
   serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
   securityContext:
     {{- include "common.security.podSecurityContext.restricted" dict | nindent 4 }}
   templates:
-  - name: create-user-and-role
+  - name: create-role-and-user
     steps:
-    - - name: create-db
+    - - name: create-role-and-user
         templateRef:
           clusterScope: true
           name: {{ .Values.workflow.opensearch.name }}
