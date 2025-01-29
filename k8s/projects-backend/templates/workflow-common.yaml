@@ -1,4 +1,4 @@
-{{- if or .Values.workflow.backups.enabled .Values.workflow.lifecycle.enabled }}
+{{- if or (or .Values.workflow.backups.enabled .Values.workflow.lifecycle.enabled) .Values.workflow.opensearch.enabled }}
 apiVersion: v1
 kind: Secret
 metadata:

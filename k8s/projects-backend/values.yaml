@@ -171,6 +171,7 @@ workflow:
     createDb:
       templateName: create-db
   opensearch:
+    enabled: true
     name: opensearch
     resourceName: opensearch
     createRoleAndUser:
