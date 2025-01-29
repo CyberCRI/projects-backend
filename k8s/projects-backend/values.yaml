@@ -40,7 +40,7 @@ config:
     OPENSEARCH_DSL_AUTOSYNC: "True"
     OPENSEARCH_USE_SSL: "True"
     OPENSEARCH_USERNAME: projects
-    OPENSEARCH_HOST: http://opensearch-cluster-master.opensearch:9200
+    OPENSEARCH_HOST: https://opensearch-cluster-master.opensearch:9200
     OPENSEARCH_INDEX_PREFIX: proj-main
 
 fullName: projects-backend
