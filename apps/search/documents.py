@@ -70,7 +70,11 @@ class UserDocument(Document):
         )
 
     def prepare_skills(self, instance: ProjectUser) -> str:
-        return " ".join([skill.tag.title for skill in instance.skills.all()])
+        return " ".join(
+            getattr(skill.tag, f"title_{ln}", "") or ""
+            for skill in instance.skills.all()
+            for ln in settings.REQUIRED_LANGUAGES
+        )
 
     def prepare_people_groups(self, instance: ProjectUser) -> str:
         return " ".join(
