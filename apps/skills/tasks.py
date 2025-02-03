@@ -1,5 +1,6 @@
 from datetime import date, timedelta
 
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.emailing.utils import render_message, send_email
@@ -31,8 +32,12 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
     if inactivity_days not in [3, 10]:
         raise ValueError("inactivity_days must be 3 or 10")
     for mentoring in Mentoring.objects.filter(
-        status__in=[Mentoring.MentoringStatus.PENDING, None],
-        messages__created_at__date=timezone.now() - timedelta(days=inactivity_days),
+        (Q(status=Mentoring.MentoringStatus.PENDING) | Q(status__isnull=True))
+        & Q(
+            messages__created_at__date=(
+                timezone.now() - timedelta(days=inactivity_days)
+            ).date()
+        )
     ).distinct():
         latest_message = mentoring.messages.order_by("-created_at").first()
         if latest_message.created_at.date() == date.today() - timedelta(
@@ -41,7 +46,7 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
             if mentoring.mentor == mentoring.created_by:
                 receiver = mentoring.mentoree
                 template_folder = f"reminder_mentoree_{inactivity_days}_days"
-            if mentoring.mentoree == mentoring.created_by:
+            elif mentoring.mentoree == mentoring.created_by:
                 receiver = mentoring.mentor
                 template_folder = f"reminder_mentor_{inactivity_days}_days"
             else:
