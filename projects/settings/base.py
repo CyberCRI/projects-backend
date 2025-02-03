@@ -451,6 +451,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.notify_pending_access_requests",
         "schedule": crontab(minute=0, hour=9),
     },
+    "send_mentoring_reminder": {
+        "task": "apps.skills.tasks.mentoring_reminder",
+        "schedule": crontab(minute=0, hour=17),
+    },
     "send_notifications_reminder": {
         "task": "apps.notifications.tasks.send_notifications_reminder",
         "schedule": crontab(minute=0, hour=18),

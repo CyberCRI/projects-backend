@@ -71,7 +71,7 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
             )
 
 
-@app.task(name="apps.skills.tasks.mentoring_requests_reminder")
-def mentoring_requests_reminder():
+@app.task(name="apps.skills.tasks.mentoring_reminder")
+def mentoring_reminder():
     _send_mentoring_reminder(3)
     _send_mentoring_reminder(10)
