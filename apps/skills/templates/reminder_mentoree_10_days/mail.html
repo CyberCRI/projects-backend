@@ -1,0 +1,36 @@
+{% extends "../mentorship_base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-section>
+    <mj-column>
+        <mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+            {% blocktranslate %}
+            Do you want to be mentored in {{ skill }}? (last reminder)
+            {% endblocktranslate %}
+        </mj-text>
+    </mj-column>
+</mj-section>
+<mj-section>
+    <mj-column border="1px solid #dddddd" border-radius="5px">
+        <mj-text padding="20px" font-weight="bold" font-size="15px">
+            {% blocktranslate with user=sender.get_full_name %}
+            It's the last time we'll share this message that {{ user }} has left for you on the Projects platform.
+            {% endblocktranslate %}
+        </mj-text>
+        <mj-divider border-width="1px" border-style="dashed" border-color="lightgrey" padding="0 20px" />
+        <mj-text padding="20px" font-size="15px" line-height="20px">{{ content|safe }}</mj-text>
+    </mj-column>
+</mj-section>
+<mj-section>
+    <mj-column>
+        <mj-button css-class="lpi-button" href="{{ organization.website_url }}/mentorship/respond/{{ instance.id }}">
+            {% blocktranslate %}
+            Reply
+            {% endblocktranslate %}
+        </mj-button>
+    </mj-column>
+</mj-section>
+{% endblock %}

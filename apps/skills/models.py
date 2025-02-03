@@ -222,7 +222,7 @@ class Skill(models.Model, HasOwner):
         return self.user
 
 
-class Mentoring(models.Model, HasOwners):
+class Mentoring(models.Model, HasOwners, OrganizationRelated):
     class MentoringStatus(models.TextChoices):
         """Status of a mentoring request."""
 
@@ -230,6 +230,11 @@ class Mentoring(models.Model, HasOwners):
         ACCEPTED = "accepted"
         REJECTED = "rejected"
 
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="mentorings",
+    )
     mentor = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
@@ -275,6 +280,9 @@ class Mentoring(models.Model, HasOwners):
         In this case, the owner can be either the mentor or the mentoree.
         """
         return [self.mentor, self.mentoree]
+
+    def get_related_organizations(self):
+        return [self.organization]
 
 
 class MentoringMessage(models.Model, HasOwner):

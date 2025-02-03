@@ -121,7 +121,7 @@ class Command(BaseCommand):
 
         # french needs more info from english mentor request
         mentoring = MentoreeCreatedMentoringFactory(
-            mentor=french_user, mentoree=english_user
+            organization=organization, mentor=french_user, mentoree=english_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
@@ -145,7 +145,7 @@ class Command(BaseCommand):
 
         # english needs more info from french mentor request
         mentoring = MentoreeCreatedMentoringFactory(
-            mentor=english_user, mentoree=french_user
+            organization=organization, mentor=english_user, mentoree=french_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
@@ -169,7 +169,7 @@ class Command(BaseCommand):
 
         # french needs more info from english mentoree request
         mentoring = MentorCreatedMentoringFactory(
-            mentor=english_user, mentoree=french_user
+            organization=organization, mentor=english_user, mentoree=french_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
@@ -193,7 +193,7 @@ class Command(BaseCommand):
 
         # english needs more info from french mentoree request
         mentoring = MentorCreatedMentoringFactory(
-            mentor=french_user, mentoree=english_user
+            organization=organization, mentor=french_user, mentoree=english_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
@@ -217,7 +217,7 @@ class Command(BaseCommand):
 
         # french accepts english mentor request
         mentoring = MentoreeCreatedMentoringFactory(
-            mentor=french_user, mentoree=english_user
+            organization=organization, mentor=french_user, mentoree=english_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
@@ -241,7 +241,7 @@ class Command(BaseCommand):
 
         # english accepts french mentor request
         mentoring = MentoreeCreatedMentoringFactory(
-            mentor=english_user, mentoree=french_user
+            organization=organization, mentor=english_user, mentoree=french_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
@@ -265,7 +265,7 @@ class Command(BaseCommand):
 
         # french accepts english mentoree request
         mentoring = MentorCreatedMentoringFactory(
-            mentor=english_user, mentoree=french_user
+            organization=organization, mentor=english_user, mentoree=french_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
@@ -289,7 +289,7 @@ class Command(BaseCommand):
 
         # english accepts french mentoree request
         mentoring = MentorCreatedMentoringFactory(
-            mentor=french_user, mentoree=english_user
+            organization=organization, mentor=french_user, mentoree=english_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
@@ -313,7 +313,7 @@ class Command(BaseCommand):
 
         # french rejects english mentor request
         mentoring = MentoreeCreatedMentoringFactory(
-            mentor=french_user, mentoree=english_user
+            organization=organization, mentor=french_user, mentoree=english_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
@@ -337,7 +337,7 @@ class Command(BaseCommand):
 
         # english rejects french mentor request
         mentoring = MentoreeCreatedMentoringFactory(
-            mentor=english_user, mentoree=french_user
+            organization=organization, mentor=english_user, mentoree=french_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
@@ -361,7 +361,7 @@ class Command(BaseCommand):
 
         # french rejects english mentoree request
         mentoring = MentorCreatedMentoringFactory(
-            mentor=english_user, mentoree=french_user
+            organization=organization, mentor=english_user, mentoree=french_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
@@ -385,7 +385,7 @@ class Command(BaseCommand):
 
         # english rejects french mentoree request
         mentoring = MentorCreatedMentoringFactory(
-            mentor=french_user, mentoree=english_user
+            organization=organization, mentor=french_user, mentoree=english_user
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
