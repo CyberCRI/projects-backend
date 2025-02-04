@@ -66,7 +66,7 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
             (TestRoles.DEFAULT,),
         ]
     )
-    @patch("apps.search.interface.OpenSearchService.best_fields_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_search")
     def test_search_tags(self, role, mocked_search):
         mocked_search.return_value = self.opensearch_tags_mocked_return(
             tags=self.tags, query=self.query
@@ -227,7 +227,7 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             (TestRoles.DEFAULT, "skills"),
         ]
     )
-    @patch("apps.search.interface.OpenSearchService.best_fields_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_search")
     @patch("services.wikipedia.interface.WikipediaService.wbgetentities")
     @patch("services.wikipedia.interface.WikipediaService.wbsearchentities")
     def test_search_tags(
