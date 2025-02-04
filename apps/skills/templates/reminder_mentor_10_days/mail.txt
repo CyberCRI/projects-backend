@@ -1,0 +1,10 @@
+{% load i18n %}
+{% blocktranslate with user=sender.get_full_name %}
+Can you mentor me in {{ skill }}? (last reminder)
+
+It's the last time we'll share this message that {{ user }} has left for you on the Projects platform.
+
+{{ content }}
+
+Reply : {{ organization.website_url }}/mentorship/respond/{{ instance.id }}
+{% endblocktranslate %}

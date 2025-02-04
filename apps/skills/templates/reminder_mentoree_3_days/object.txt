@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with mentoree_name=sender.given_name|capfirst %}
+Do you want to be mentored in {{ skill }}? (reminder)
+{% endblocktranslate %}

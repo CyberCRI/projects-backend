@@ -680,14 +680,10 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         self, template_folder: str, receiver: ProjectUser, skill: Skill, **kwargs
     ):
         language = receiver.language
-        organization = get_object_or_404(
-            Organization, code=self.kwargs["organization_code"]
-        )
         kwargs = {
             "sender": self.request.user,
             "receiver": receiver,
             "skill": self.get_skill_name(skill, language),
-            "organization": organization,
             **kwargs,
         }
         subject, _ = render_message(f"{template_folder}/object", language, **kwargs)
@@ -710,6 +706,9 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
     )
     @transaction.atomic
     def contact_mentor(self, request, *args, **kwargs):
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
         skill = get_object_or_404(Skill, id=int(self.kwargs["skill_id"]))
         if not skill.can_mentor:
             raise UserCannotMentorError
@@ -718,6 +717,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         serializer.is_valid(raise_exception=True)
         try:
             instance = Mentoring.objects.create(
+                organization=organization,
                 skill=skill,
                 mentor=skill.user,
                 mentoree=self.request.user,
@@ -736,6 +736,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             skill.user,
             skill,
             instance=instance,
+            organization=organization,
             **serializer.validated_data,
         )
         return Response(MentoringSerializer(instance).data)
@@ -756,6 +757,9 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         """
         Contact a mentoree for help.
         """
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
         skill = get_object_or_404(Skill, id=int(self.kwargs["skill_id"]))
         if not skill.needs_mentor:
             raise UserDoesNotNeedMentorError
@@ -764,6 +768,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         serializer.is_valid(raise_exception=True)
         try:
             instance = Mentoring.objects.create(
+                organization=organization,
                 skill=skill,
                 mentor=self.request.user,
                 mentoree=skill.user,
@@ -782,6 +787,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             skill.user,
             skill,
             instance=instance,
+            organization=organization,
             **serializer.validated_data,
         )
         return Response(MentoringSerializer(instance).data)
@@ -807,6 +813,9 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             - accepted : the mentoring is accepted
             - rejected : the mentoring is rejected
         """
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
         instance = self.get_object()
         if self.request.user == instance.created_by:
             # Only the receiver of the mentoring request can accept or reject it
@@ -834,6 +843,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             instance.created_by,
             instance.skill,
             instance=instance,
+            organization=organization,
             **serializer.validated_data,
         )
         return Response(MentoringSerializer(instance).data)
