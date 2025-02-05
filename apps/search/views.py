@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
@@ -46,6 +46,32 @@ class SearchViewSet(ListViewSet):
     @extend_schema(
         responses=SearchObjectSerializer(many=True),
         filters=[SearchObjectFilter],
+        parameters=[
+            OpenApiParameter(
+                name="limit",
+                description="Number of results to return per page.",
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="offset",
+                description="The initial index from which to return the results.",
+                required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="search_type",
+                description="The type of multi_match search to perform: most_fields (default) or best_fields.",
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="fuzziness",
+                description="The level of tolerance for typos. Can be AUTO or a positive integer (default is 1).",
+                required=False,
+                type=str,
+            ),
+        ],
     )
     @action(detail=False, methods=["GET"], url_path="(?P<search>.+)")
     def search(self, request, *args, **kwargs):
@@ -63,12 +89,14 @@ class SearchViewSet(ListViewSet):
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
         offset = request.query_params.get("offset", 0)
-        response = OpenSearchService.best_fields_search(
+        search_type = request.query_params.get("search_type", "most_fields")
+        fuzziness = request.query_params.get("fuzziness", 1)
+        response = OpenSearchService.multi_match_search(
             indices=indices,
             fields=[
                 # common
-                "content^3",  # project + user + people_group
-                "email^3",  # user + people_group
+                "content^2",  # project + user + people_group
+                "email^2",  # user + people_group
                 "members^2",  # project + people_group
                 # user
                 "given_name^4",
@@ -82,14 +110,15 @@ class SearchViewSet(ListViewSet):
                 "title^4",
                 "purpose^4",
                 "tags^3",
-                "members^2",
                 "categories^1",
                 # people_group
                 "name^4",
             ],
             query=query,
+            search_type=search_type,
             limit=limit,
             offset=offset,
+            fuzziness=fuzziness,
             search_object_id=search_objects_ids,
         )
         search_objects_ids = [hit.search_object_id for hit in response.hits]
