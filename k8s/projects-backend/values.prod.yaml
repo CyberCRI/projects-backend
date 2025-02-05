@@ -19,7 +19,6 @@ config:
     EMAIL_USE_SSL: "True"
     KEYCLOAK_SERVER_URL: https://id.learningplanetinstitute.org/
     ENVIRONMENT: production
-    OPENSEARCH_INDEX_PREFIX: "proj-prod"
 
 hostname: api.projects.lp-i.org
 
