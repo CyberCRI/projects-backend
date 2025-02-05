@@ -16,8 +16,8 @@
 <mj-section>
     <mj-column border="1px solid #dddddd" border-radius="5px">
         <mj-text padding="20px" font-weight="bold" font-size="15px">
-            {% blocktranslate with user=sender.given_name|capfirst %}
-            {{ user }} has left the following message:
+            {% blocktranslate with user=sender.given_name|capfirst email=sender.email %}    
+            {{ user }} has left the following message. You can contact them at {{ email }}.
             {% endblocktranslate %}
         </mj-text>
         <mj-divider border-width="1px" border-style="dashed" border-color="lightgrey" padding="0 20px" />

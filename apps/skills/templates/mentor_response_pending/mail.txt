@@ -2,6 +2,8 @@
 {% blocktranslate with user=sender.given_name|capfirst email=sender.email %}
 {{ user }} needs more information to mentor you in {{ skill }}.
  
+{{ user }} has left the following message. You can contact them at {{ email }}.
+
 {{ content }}
 
 Reply to {{ user }} : {{ email }}
