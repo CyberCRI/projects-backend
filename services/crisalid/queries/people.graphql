@@ -1,0 +1,17 @@
+query People($limit: Int, $offset: Int) {
+    people(limit: $limit, offset: $offset) {
+        names {
+            first_names {
+                value
+            }
+            last_names {
+                value
+            }
+        }
+        identifiers {
+            type
+            value
+        }
+        display_name
+    }
+}
