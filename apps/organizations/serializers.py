@@ -33,64 +33,9 @@ from .exceptions import (
     ParentCategoryOrganizationError,
     RootCategoryParentError,
 )
-from .models import Faq, Organization, ProjectCategory, Template
+from .models import Organization, ProjectCategory, Template
 
 logger = logging.getLogger(__name__)
-
-
-class FaqSerializer(OrganizationRelatedSerializer):
-    images = ImageSerializer(many=True, read_only=True)
-    organization_code = serializers.SlugRelatedField(
-        write_only=True,
-        slug_field="code",
-        source="organization",
-        queryset=Organization.objects.all(),
-    )
-    images_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Image.objects.all(),
-        source="images",
-        required=False,
-    )
-
-    class Meta:
-        model = Faq
-        fields = [
-            "id",
-            "title",
-            "content",
-            # read only
-            "images",
-            # write only
-            "organization_code",
-            "images_ids",
-        ]
-
-    def get_related_organizations(self) -> List[Organization]:
-        """Retrieve the related organizations"""
-        if "organization" in self.validated_data:
-            return [self.validated_data["organization"]]
-        return []
-
-    @transaction.atomic
-    def save(self, **kwargs):
-        if "content" in self.validated_data:
-            if not self.instance:
-                super(FaqSerializer, self).save(**kwargs)
-            text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
-                text=self.validated_data["content"],
-                upload_to="faq/images/",
-                view="Faq-images-detail",
-                organization_code=self.instance.organization.code,
-            )
-            self.validated_data["content"] = text
-            self.validated_data["images"] = images + [
-                image for image in self.instance.images.all()
-            ]
-        return super(FaqSerializer, self).save(**kwargs)
 
 
 class OrganizationAddTeamMembersSerializer(serializers.Serializer):
@@ -201,7 +146,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     # read_only
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
-    faq = FaqSerializer(many=False, read_only=True)
     identity_providers = IdentityProviderSerializer(many=True, read_only=True)
     google_sync_enabled = serializers.SerializerMethodField()
     children = SlugRelatedField(
@@ -252,7 +196,6 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             # read_only
             "banner_image",
             "logo_image",
-            "faq",
             "children",
             "google_sync_enabled",
             "identity_providers",

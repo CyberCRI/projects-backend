@@ -7,7 +7,6 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory
 from apps.organizations.factories import (
-    FaqFactory,
     OrganizationFactory,
     ProjectCategoryFactory,
     TemplateFactory,
@@ -177,54 +176,6 @@ class TextProcessingTestCase(JwtAPITestCase):
         for image_id in content["images"]:
             self.assertIn(
                 reverse("Comment-images-detail", args=(self.project.id, image_id)),
-                content["content"],
-            )
-
-    def test_create_faq_content(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Faq-images-detail", self.organization.code
-        )
-        self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "content": text,
-            "organization_code": self.organization.code,
-        }
-        response = self.client.post(
-            reverse("Faq-list", args=(self.organization.code,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 2)
-        for image in content["images"]:
-            image_id = image["id"]
-            self.assertIn(
-                reverse("Faq-images-detail", args=(self.organization.code, image_id)),
-                content["content"],
-            )
-
-    def test_update_faq_content(self):
-        organization = OrganizationFactory()
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Faq-images-detail", organization.code
-        )
-        self.client.force_authenticate(self.user)
-        FaqFactory(organization=organization)
-        payload = {
-            "content": text,
-        }
-        response = self.client.patch(
-            reverse("Faq-list", args=(organization.code,)),
-            data=payload,
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 2)
-        for image in content["images"]:
-            image_id = image["id"]
-            self.assertIn(
-                reverse("Faq-images-detail", args=(organization.code, image_id)),
                 content["content"],
             )
 

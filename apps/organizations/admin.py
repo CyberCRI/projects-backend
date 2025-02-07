@@ -16,7 +16,6 @@ class OrganizationAdmin(admin.ModelAdmin):
     readonly_fields = (
         "groups",
         "images",
-        "faq",
     )
     search_fields = (
         "code",
