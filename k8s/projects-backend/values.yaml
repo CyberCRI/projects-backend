@@ -54,6 +54,7 @@ image:
 
 
 ingressPath: /
+ingressMiddlewares: []
 
 backend:
   replicaCount: 1
