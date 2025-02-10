@@ -2,7 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -20,10 +20,9 @@ from apps.commons.utils import map_action_to_permission
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.filters import OrganizationFilter, ProjectCategoryFilter
-from apps.organizations.models import Faq, Organization, ProjectCategory
+from apps.organizations.models import Organization, ProjectCategory
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.serializers import (
-    FaqSerializer,
     OrganizationAddFeaturedProjectsSerializer,
     OrganizationAddTeamMembersSerializer,
     OrganizationLightSerializer,
@@ -105,39 +104,6 @@ class ProjectCategoryBackgroundView(ImageStorageView):
             category.background_image = image
             category.save()
             return f"/v1/category/{self.kwargs['category_id']}/background/{image.id}"
-        return None
-
-
-class FaqImagesView(ImageStorageView):
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        ReadOnly
-        | HasBasePermission("change_faq", "organizations")
-        | HasOrganizationPermission("change_faq"),
-    ]
-
-    def get_queryset(self):
-        if "organization_code" in self.kwargs:
-            qs = Image.objects.filter(
-                faqs__organization__code=self.kwargs["organization_code"]
-            )
-            # Retrieve images before the faq is posted
-            if self.request.user.is_authenticated:
-                qs = qs | Image.objects.filter(owner=self.request.user)
-            return qs.distinct()
-        return Image.objects.none()
-
-    @staticmethod
-    def upload_to(instance, filename) -> str:
-        return f"faq/images/{uuid.uuid4()}#{instance.name}"
-
-    def retrieve(self, request, *args, **kwargs):
-        image = self.get_object()
-        return redirect(image.file.url)
-
-    def add_image_to_model(self, image, *args, **kwargs):
-        if "organization_code" in self.kwargs:
-            return f"/v1/organization/{self.kwargs['organization_code']}/faq-image/{image.id}"
         return None
 
 
@@ -341,51 +307,6 @@ class OrganizationViewSet(viewsets.ModelViewSet):
             queryset, context={"request": request}, many=True
         )
         return Response(project_serializer.data)
-
-
-class FaqViewSet(viewsets.ModelViewSet):
-    serializer_class = FaqSerializer
-    lookup_field = "id"
-    lookup_value_regex = "[0-9]+"
-
-    def get_permissions(self):
-        codename = map_action_to_permission(self.action, "faq")
-        if codename:
-            self.permission_classes = [
-                IsAuthenticatedOrReadOnly,
-                ReadOnly
-                | HasBasePermission(codename, "organizations")
-                | HasOrganizationPermission(codename),
-            ]
-        return super().get_permissions()
-
-    def get_queryset(self):
-        if "organization_code" in self.kwargs:
-            return Faq.objects.filter(
-                organization__code=self.kwargs["organization_code"]
-            )
-        return Faq.objects.none()
-
-    def get_object(self):
-        """
-        Retrieve the object within the QuerySet.
-
-        There should be only one Faq in the QuerySet since we filter by
-        `organization_code` in `get_queryset` and there is a one to one relation
-        between the objects.
-        """
-        queryset = self.filter_queryset(self.get_queryset())
-        # No need to give additional filters since there should be only one
-        # object in the QuerySet
-        obj = get_object_or_404(queryset)
-        # May raise a permission denied
-        self.check_object_permissions(self.request, obj)
-        return obj
-
-    def perform_create(self, serializer):
-        organization = serializer.validated_data["organization"]
-        organization.faq = serializer.save()
-        organization.save()
 
 
 class OrganizationBannerView(ImageStorageView):

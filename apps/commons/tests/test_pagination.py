@@ -10,7 +10,7 @@ class PageInfoLimitOffsetPaginationTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
-        Organization.objects.bulk_create(OrganizationFactory.build_batch(5, faq=None))
+        Organization.objects.bulk_create(OrganizationFactory.build_batch(5))
 
     def test_first_page(self):
         pagination = PageInfoLimitOffsetPagination()

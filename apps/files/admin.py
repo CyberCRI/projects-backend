@@ -16,7 +16,6 @@ class ImageForm(forms.ModelForm):
         ORGANIZATION_LOGO = "organization/logo/"
         ORGANIZATION_BANNER = "organization/banner/"
         ORGANIZATION_IMAGES = "organization/images/"
-        FAQ_IMAGES = "faq/images/"
         CATEGORY_BACKGROUND = "category/background/"
         TEMPLATE_IMAGES = "template/images/"
         EMAIL_IMAGES = "email/images/"
