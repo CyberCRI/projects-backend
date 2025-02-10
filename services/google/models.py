@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models
 
 from apps.accounts.models import PeopleGroup, ProjectUser
@@ -111,12 +111,19 @@ class GoogleGroup(models.Model):
         defaults = {"solved": error is None}
         if error is not None:
             defaults["error"] = str(error)
-        error, created = GoogleSyncErrors.objects.update_or_create(
-            google_group=self,
-            on_task=on_task,
-            solved=False,
-            defaults=defaults,
-        )
+        try:
+            error, created = GoogleSyncErrors.objects.update_or_create(
+                google_group=self,
+                on_task=on_task,
+                solved=False,
+                defaults=defaults,
+            )
+        except MultipleObjectsReturned:
+            errors = GoogleSyncErrors.objects.filter(
+                google_group=self, on_task=on_task, solved=False
+            )
+            errors.exclude(id=errors.first().id).update(solved=True)
+            self.update_or_create_error(on_task, error)
         if not created:
             error.retries_count += 1
             error.save()
@@ -247,12 +254,19 @@ class GoogleAccount(models.Model):
         defaults = {"solved": error is None}
         if error is not None:
             defaults["error"] = error
-        error, created = GoogleSyncErrors.objects.update_or_create(
-            google_account=self,
-            on_task=on_task,
-            solved=False,
-            defaults=defaults,
-        )
+        try:
+            error, created = GoogleSyncErrors.objects.update_or_create(
+                google_account=self,
+                on_task=on_task,
+                solved=False,
+                defaults=defaults,
+            )
+        except MultipleObjectsReturned:
+            errors = GoogleSyncErrors.objects.filter(
+                google_account=self, on_task=on_task, solved=False
+            )
+            errors.exclude(id=errors.first().id).update(solved=True)
+            self.update_or_create_error(on_task, error)
         if not created:
             error.retries_count += 1
             error.save()
