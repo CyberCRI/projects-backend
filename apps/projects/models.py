@@ -13,7 +13,6 @@ from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
@@ -115,6 +114,9 @@ class Project(
     history: HistoricalRecords
         History of this project.
     """
+
+    slugified_fields: List[str] = ["title"]
+    slug_prefix: str = "project"
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -246,24 +248,8 @@ class Project(
             return "id"
         return "slug"
 
-    def get_slug(self) -> str:
-        if self.slug == "":
-            raw_slug = slugify(self.title[0:46])
-            if len(raw_slug) == 0:
-                raw_slug = "project-0"
-            if len(raw_slug) <= 8:
-                raw_slug = f"project-{raw_slug}"  # Prevent clashes with ids
-            slug = raw_slug
-            same_slug_count = 0
-            while Project.objects.all_with_delete().filter(slug=slug).exists():
-                same_slug_count += 1
-                slug = f"{raw_slug}-{same_slug_count}"
-            return slug
-        return self.slug
-
     @transaction.atomic
     def save(self, *args, **kwargs):
-        self.slug = self.get_slug()
         super().save(*args, **kwargs)
         if hasattr(self, "stat"):
             if self._original_description != self.description:

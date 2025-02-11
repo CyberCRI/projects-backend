@@ -1,8 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING, Any, List
 
-from django.db import models, transaction
-from django.utils.text import slugify
+from django.db import models
 
 from apps.commons.models import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
 
@@ -96,6 +95,9 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     Users are allowed to create their own tags and classifications.
     """
 
+    slugified_fields: List[str] = ["title"]
+    slug_prefix: str = "tag-classification"
+
     class ReservedSlugs(models.TextChoices):
         """Reserved slugs for tag classifications."""
 
@@ -109,7 +111,6 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
         ESCO = "ESCO"
         CUSTOM = "Custom"
 
-    slug = models.SlugField(unique=True)
     type = models.CharField(
         max_length=255,
         choices=TagClassificationType.choices,
@@ -134,33 +135,6 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
         if self.type == self.TagClassificationType.CUSTOM:
             return [self.organization]
         return []
-
-    def get_slug(self) -> str:
-        if self.slug == "":
-            title = self.title
-            if title == "":
-                title = "tag-classification"
-            raw_slug = slugify(title[0:46])
-            try:
-                int(raw_slug)
-                raw_slug = f"tag-classification-{raw_slug}"  # Prevent clashes with IDs
-            except ValueError:
-                pass
-            slug = raw_slug
-            same_slug_count = 0
-            while (
-                TagClassification.objects.filter(slug=slug).exists()
-                or slug in self.ReservedSlugs.values
-            ):
-                same_slug_count += 1
-                slug = f"{raw_slug}-{same_slug_count}"
-            return slug
-        return self.slug
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        self.slug = self.get_slug()
-        super().save(*args, **kwargs)
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:

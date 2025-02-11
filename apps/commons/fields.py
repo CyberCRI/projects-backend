@@ -226,7 +226,9 @@ class PrivacySettingFieldMixin:
                     organizations__in=request.user.get_related_organizations(),
                 ).exists()
             case PrivacySettings.PrivacyChoices.HIDE:
-                if not request.user.is_authenticated:
+                if not request.user.is_authenticated or not isinstance(
+                    request.user, ProjectUser
+                ):
                     return False
                 return Group.objects.filter(
                     organizations__isnull=False,
