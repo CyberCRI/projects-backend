@@ -26,9 +26,9 @@ from apps.commons.models import (
     SDG,
     HasMultipleIDs,
     HasOwner,
+    HasPermissionsSetup,
     Language,
     OrganizationRelated,
-    PermissionsSetupModel,
 )
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
@@ -39,7 +39,9 @@ from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 
 
-class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
+class PeopleGroup(
+    HasMultipleIDs, HasPermissionsSetup, OrganizationRelated, models.Model
+):
     """
     A group of users.
     This model is used to group people together, for example to display them on a page.
@@ -92,6 +94,8 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         LEADERS = "leaders"
 
     name = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     description = models.TextField(blank=True)
     short_description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
@@ -132,6 +136,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     is_root = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    permissions_up_to_date = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return str(self.name)
@@ -284,7 +289,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         ]
 
 
-class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
+class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
     """
     Override Django base user by a user of projects app
     """
@@ -322,6 +327,8 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     email = models.CharField(max_length=255, unique=True)
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
+    slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     groups = models.ManyToManyField(Group, related_name="users")
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()

@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from django.contrib.auth.models import Group, Permission
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q, QuerySet
 from django.shortcuts import get_object_or_404
@@ -95,10 +94,8 @@ class HasOwners:
         raise NotImplementedError()
 
 
-class PermissionsSetupModel(models.Model):
+class HasPermissionsSetup:
     """Abstract class for models which should be initialized with permissions."""
-
-    permissions_up_to_date = models.BooleanField(default=False)
 
     def setup_group_object_permissions(
         self, group: Group, permissions: QuerySet[str]
@@ -145,9 +142,17 @@ class DuplicableModel:
         raise NotImplementedError()
 
 
-class HasMultipleIDs(models.Model):
+class HasMultipleIDs:
     """
-    Abstract model class for models that have a slug.
+    This mixin handles models with multiple identifiers, including slugs.
+
+    The model implements a `slug` field to store the current slug and an
+    `outdated_slugs` field to store the previous slugs. The `slugified_fields`
+    attribute must be defined to specify which fields are used to generate the
+    slug. If any of these fields is modified, the slug will be updated.
+
+    Because this mixin overrides the `save` method it must come after `models.Model`
+    in the inheritance order.
 
     Attributes
     ------
@@ -169,12 +174,6 @@ class HasMultipleIDs(models.Model):
     _original_slug_fields_value: Dict[str, str] = {}
     slugified_fields: List[str] = []
     slug_prefix: str = ""
-
-    slug = models.SlugField(unique=True)
-    outdated_slugs = ArrayField(models.SlugField(), default=list)
-
-    class Meta:
-        abstract = True
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -228,7 +227,8 @@ class HasMultipleIDs(models.Model):
         ).exists()
 
     def get_slug(self) -> str:
-        raw_slug = slugify("-".join(self.slugified_fields)[0:46])
+        raw_slug = [getattr(self, field) for field in self.slugified_fields]
+        raw_slug = slugify("-".join(raw_slug)[0:46])
         # If there is a potential clash with another identifier, add the prefix
         if self.get_id_field_name(raw_slug) != "slug":
             raw_slug = f"{self.slug_prefix}-{raw_slug}"

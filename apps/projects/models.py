@@ -22,9 +22,9 @@ from apps.commons.models import (
     DuplicableModel,
     HasMultipleIDs,
     HasOwner,
+    HasPermissionsSetup,
     Language,
     OrganizationRelated,
-    PermissionsSetupModel,
     ProjectRelated,
 )
 from apps.commons.utils import get_write_permissions_from_subscopes
@@ -66,10 +66,11 @@ class SoftDeleteManager(models.Manager):
 
 class Project(
     HasMultipleIDs,
-    PermissionsSetupModel,
+    HasPermissionsSetup,
     ProjectRelated,
     OrganizationRelated,
     DuplicableModel,
+    models.Model,
 ):
     """Main model of the app, represent a user project
 
@@ -146,6 +147,7 @@ class Project(
     )
     title = models.CharField(max_length=255, verbose_name=_("title"))
     slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     header_image = models.ForeignKey(
         "files.Image",
         on_delete=models.SET_NULL,
@@ -210,6 +212,7 @@ class Project(
     duplicated_from = models.CharField(
         max_length=8, null=True, blank=True, default=None
     )
+    permissions_up_to_date = models.BooleanField(default=False)
     objects = SoftDeleteManager()
 
     class Meta:

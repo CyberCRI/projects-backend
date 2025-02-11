@@ -12,7 +12,7 @@ from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm, get_group_perms
 from rest_framework.request import Request
 
-from apps.commons.models import PermissionsSetupModel
+from apps.commons.models import HasPermissionsSetup
 from keycloak import KeycloakError
 
 from .exceptions import (
@@ -71,7 +71,7 @@ def get_superadmins_group():
 
 
 def get_permission_representation(
-    permission: Union[Permission, str], instance: Optional[PermissionsSetupModel] = None
+    permission: Union[Permission, str], instance: Optional[HasPermissionsSetup] = None
 ) -> str:
     if instance:
         content_type = ContentType.objects.get_for_model(instance)
@@ -79,7 +79,7 @@ def get_permission_representation(
     return f"{permission.content_type.app_label}.{permission.codename}"
 
 
-def get_instance_from_group(group: Group) -> Optional[PermissionsSetupModel]:
+def get_instance_from_group(group: Group) -> Optional[HasPermissionsSetup]:
     """
     Get the related instance from a django.contrib.auth.models.Group instance.
     The instance can be an Organization, a Project or a PeopleGroup.
@@ -121,7 +121,7 @@ def get_group_permissions(group: Group) -> List[str]:
 
 def get_permission_from_representation(
     representation: str,
-) -> Tuple[Optional[str], Optional[PermissionsSetupModel]]:
+) -> Tuple[Optional[str], Optional[HasPermissionsSetup]]:
     split_representation = representation.split(".")
     if len(split_representation) == 2:
         return representation, None

@@ -9,7 +9,7 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import AccessToken
 
-from apps.commons.models import PermissionsSetupModel
+from apps.commons.models import HasPermissionsSetup
 from apps.invitations.models import Invitation
 from services.keycloak.interface import KeycloakService
 
@@ -85,7 +85,7 @@ class ProjectJWTAuthentication(JWTAuthentication):
 
     def _reassign_users_groups_permissions(self, user: "ProjectUser"):
         """Reassign the permissions of the given group to its users."""
-        for model in PermissionsSetupModel.__subclasses__():
+        for model in HasPermissionsSetup.__subclasses__():
             instances = model.objects.filter(
                 permissions_up_to_date=False, groups__users=user
             )

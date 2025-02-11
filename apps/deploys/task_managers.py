@@ -1,6 +1,6 @@
 from typing import Callable
 
-from apps.commons.models import PermissionsSetupModel
+from apps.commons.models import HasPermissionsSetup
 
 from .tasks import (
     base_groups_permissions,
@@ -88,7 +88,7 @@ class RebuildIndex(PostDeployTask):
 class InstanceGroupsPermissions(PostDeployTask):
     """
     Assign permissions to the default groups of all models that inherit from
-    PermissionsSetupModel :
+    HasPermissionsSetup :
     - Project
     - PeopleGroup
     - Organization
@@ -99,7 +99,7 @@ class InstanceGroupsPermissions(PostDeployTask):
     task = instance_groups_permissions
 
     def get_progress(self):
-        models = PermissionsSetupModel.__subclasses__()
+        models = HasPermissionsSetup.__subclasses__()
         updated_objects = sum(
             [m.objects.filter(permissions_up_to_date=True).count() for m in models]
         )

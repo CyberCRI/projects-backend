@@ -1,6 +1,7 @@
 import uuid
 from typing import TYPE_CHECKING, Any, List
 
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from apps.commons.models import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
@@ -89,7 +90,7 @@ class Tag(models.Model, OrganizationRelated):
         return []
 
 
-class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
+class TagClassification(HasMultipleIDs, OrganizationRelated, models.Model):
     """
     Subset of tags that can be used as Skills, Hobbies or Project tags.
     Users are allowed to create their own tags and classifications.
@@ -124,6 +125,8 @@ class TagClassification(models.Model, HasMultipleIDs, OrganizationRelated):
     )
     is_public = models.BooleanField(default=False)
     title = models.CharField(max_length=50)
+    slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     description = models.CharField(blank=True, max_length=500)
     tags = models.ManyToManyField("skills.Tag", related_name="tag_classifications")
 

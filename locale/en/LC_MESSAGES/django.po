@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-04 16:17+0100\n"
+"POT-Creation-Date: 2025-02-11 16:43+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,19 +108,19 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:129 apps/projects/models.py:161
+#: apps/accounts/models.py:134 apps/projects/models.py:165
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:817
+#: apps/accounts/models.py:768
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:818
+#: apps/accounts/models.py:769
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:819
+#: apps/accounts/models.py:770
 msgid "Public"
 msgstr ""
 
@@ -1199,27 +1199,27 @@ msgstr ""
 msgid "A message cannot be a reply to itself"
 msgstr ""
 
-#: apps/projects/models.py:145
+#: apps/projects/models.py:148
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:154
+#: apps/projects/models.py:158
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:167
+#: apps/projects/models.py:171
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:178
+#: apps/projects/models.py:182
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:195
+#: apps/projects/models.py:199
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:201
+#: apps/projects/models.py:205
 msgid "main category"
 msgstr ""
 
