@@ -95,7 +95,16 @@ class HasOwners:
 
 
 class HasPermissionsSetup:
-    """Abstract class for models which should be initialized with permissions."""
+    """
+    This mixin handles models that have permissions on the instance level.
+
+    Models based on this mixin must implement a `permissions_up_to_date` field to store
+    that is used to check if all the instances permissions have been updated after a
+    potential change.
+
+    The model must also override the `setup_permissions` method that assigns the
+    instances' permissions.
+    """
 
     def setup_group_object_permissions(
         self, group: Group, permissions: QuerySet[str]
@@ -129,9 +138,6 @@ class HasPermissionsSetup:
         """Initialize permissions for the instance."""
         raise NotImplementedError()
 
-    class Meta:
-        abstract = True
-
 
 class DuplicableModel:
     """
@@ -146,13 +152,32 @@ class HasMultipleIDs:
     """
     This mixin handles models with multiple identifiers, including slugs.
 
-    The model implements a `slug` field to store the current slug and an
-    `outdated_slugs` field to store the previous slugs. The `slugified_fields`
-    attribute must be defined to specify which fields are used to generate the
-    slug. If any of these fields is modified, the slug will be updated.
+    Models based on this mixin must implement a `slug` field to store the current slug
+    and an `outdated_slugs` field to store the previous slugs. The `slugified_fields`
+    attribute must be defined to specify which fields are used to generate the slug.
+    If any of these fields is modified, the slug will be updated.
+
+    The model must also override the `get_id_field_name` method that returns the name
+    of the id field based on checks that can detect what type of identifier is passed.
 
     Because this mixin overrides the `save` method it must come after `models.Model`
     in the inheritance order.
+
+    Example
+    ------
+    ```
+    class ModelWithSlug(HasMultipleIDs, models.Model):
+        slugified_fields: List[str] = ["field_used_for_slug"]
+        slug_prefix: str = "my-model"
+        slug = models.SlugField(unique=True)
+        outdated_slugs = ArrayField(models.SlugField(), default=list)
+
+        @classmethod
+        def get_id_field_name(cls, object_id: Any) -> str:
+            if isinstance(object_id, int):
+                return "id"
+            return "slug"
+    ```
 
     Attributes
     ------
@@ -230,10 +255,10 @@ class HasMultipleIDs:
         raw_slug = [getattr(self, field) for field in self.slugified_fields]
         raw_slug = slugify("-".join(raw_slug)[0:46])
         # If there is a potential clash with another identifier, add the prefix
-        if self.get_id_field_name(raw_slug) != "slug":
+        if self.get_id_field_name(raw_slug) != "slug" or not raw_slug:
             raw_slug = f"{self.slug_prefix}-{raw_slug}"
         # If there is still a potential clash with another identifier, add the id
-        if self.get_id_field_name(raw_slug) != "slug":
+        while self.get_id_field_name(raw_slug) != "slug":
             raw_slug = f"{raw_slug}-{self.id}"
         same_slug_count = 0
         slug = raw_slug
