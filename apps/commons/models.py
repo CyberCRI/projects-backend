@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Optional
 from django.contrib.auth.models import Group, Permission
 from django.db import models
 from django.db.models import Q, QuerySet
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from guardian.shortcuts import assign_perm, remove_perm
@@ -198,6 +199,7 @@ class HasMultipleIDs:
 
     _original_slug_fields_value: Dict[str, str] = {}
     slugified_fields: List[str] = []
+    reserved_slugs: List[str] = []
     slug_prefix: str = ""
 
     def __init__(self, *args, **kwargs):
@@ -211,12 +213,13 @@ class HasMultipleIDs:
             getattr(self, field) != self._original_slug_fields_value[field]
             for field in self.slugified_fields
         ):
-            self.outdated_slugs = self.outdated_slugs + [self.slug]
+            if self.slug:
+                self.outdated_slugs = self.outdated_slugs + [self.slug]
             self.slug = self.get_slug()
             self._original_slug_fields_value = {
                 field: getattr(self, field, "") for field in self.slugified_fields
             }
-        super().save(*args, **kwargs)
+        return super().save(*args, **kwargs)
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -231,7 +234,7 @@ class HasMultipleIDs:
             return object_id
         try:
             obj = get_object_or_404(cls, **{field_name: object_id})
-        except cls.DoesNotExist as e:
+        except Http404 as e:
             if field_name == "slug":
                 obj = get_object_or_404(cls, outdated_slugs__contains=[object_id])
             else:
@@ -247,22 +250,29 @@ class HasMultipleIDs:
 
     @classmethod
     def slug_exists(cls, slug: str) -> bool:
-        return cls.objects.filter(
+        # Handle soft-deleted objects
+        if hasattr(cls.objects, "all_with_delete"):
+            objects = cls.objects.all_with_delete()
+        else:
+            objects = cls.objects.all()
+        return objects.filter(
             Q(slug=slug) | Q(outdated_slugs__contains=[slug])
         ).exists()
 
     def get_slug(self) -> str:
         raw_slug = [getattr(self, field) for field in self.slugified_fields]
         raw_slug = slugify("-".join(raw_slug)[0:46])
+        if not raw_slug or raw_slug == "-":
+            raw_slug = self.slug_prefix
         # If there is a potential clash with another identifier, add the prefix
-        if self.get_id_field_name(raw_slug) != "slug" or not raw_slug:
-            raw_slug = f"{self.slug_prefix}-{raw_slug}"
-        # If there is still a potential clash with another identifier, add the id
         while self.get_id_field_name(raw_slug) != "slug":
-            raw_slug = f"{raw_slug}-{self.id}"
+            raw_slug = f"{self.slug_prefix}-{raw_slug}"
         same_slug_count = 0
         slug = raw_slug
-        while self.slug_exists(slug):
+        while self.slug_exists(slug) or slug in [
+            self.slug_prefix,
+            *self.reserved_slugs,
+        ]:
             same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
         return slug

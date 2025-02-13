@@ -938,7 +938,7 @@ class MiscProjectTestCase(JwtAPITestCase):
             title=title,
             deleted_at=timezone.localtime(timezone.now()),
         )
-        self.assertEqual(project.slug, "project-0")
+        self.assertEqual(project.slug, "project-1")
 
     def test_change_member_role(self):
         self.client.force_authenticate(self.superadmin)

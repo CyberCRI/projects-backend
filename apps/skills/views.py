@@ -216,7 +216,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         all tags from the organization that are enabled for projects or skills by using
         the slugs `enabled-for-projects` and `enabled-for-skills`.
         """
-        if tag_classification_id in TagClassification.ReservedSlugs.values:
+        if tag_classification_id in TagClassification.reserved_slugs:
             return tag_classification_id
         return TagClassification.get_main_id(tag_classification_id)
 
@@ -238,11 +238,11 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         Get all tag classifications from an organization that are enabled for projects
         or skills.
         """
-        if enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS:
+        if enabled_for == "enabled-for-projects":
             return TagClassification.objects.filter(
                 enabled_organizations_projects__code=organization_code
             )
-        if enabled_for == TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS:
+        if enabled_for == "enabled-for-skills":
             return TagClassification.objects.filter(
                 enabled_organizations_skills__code=organization_code
             )
@@ -271,7 +271,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if organization_code and not tag_classification_id:
             return Tag.objects.filter(organization__code=organization_code)
         if organization_code and tag_classification_id:
-            if tag_classification_id in TagClassification.ReservedSlugs.values:
+            if tag_classification_id in TagClassification.reserved_slugs:
                 tag_classification_ids = [
                     c.id
                     for c in self.get_enabled_classifications(

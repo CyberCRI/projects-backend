@@ -27,17 +27,33 @@ class MultipleLookupsTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
         cls.user = UserFactory(profile_picture=cls.get_test_image())
+        cls.outdated_user_slug = faker.word()
+        cls.user.outdated_slugs = [cls.outdated_user_slug]
+        cls.user.save()
+
         cls.organization = OrganizationFactory()
+        cls.outdated_organization_slug = faker.word()
+        cls.organization.outdated_slugs = [cls.outdated_organization_slug]
+        cls.organization.save()
+
         cls.project = ProjectFactory(
             organizations=[cls.organization],
             header_image=cls.get_test_image(),
         )
+        cls.outdated_project_slug = faker.word()
+        cls.project.outdated_slugs = [cls.outdated_project_slug]
+        cls.project.save()
+
         cls.people_group = PeopleGroupFactory(
             organization=cls.organization,
             header_image=cls.get_test_image(),
             logo_image=cls.get_test_image(),
         )
+        cls.outdated_group_slug = faker.word()
+        cls.people_group.outdated_slugs = [cls.outdated_group_slug]
+        cls.people_group.save()
 
     def test_people_group_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -53,6 +69,14 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             reverse(
                 "PeopleGroup-detail",
                 args=(self.organization.code, self.people_group.slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.people_group.id)
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-detail",
+                args=(self.organization.code, self.outdated_group_slug),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,6 +102,17 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             reverse(
                 "PeopleGroup-header-list",
                 args=(self.organization.code, self.people_group.slug),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.people_group.header_image.id)
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-header-list",
+                args=(self.organization.code, self.outdated_group_slug),
             ),
             data=payload,
             format="multipart",
@@ -113,6 +148,17 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.people_group.logo_image.id)
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-logo-list",
+                args=(self.organization.code, self.outdated_group_slug),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.people_group.logo_image.id)
 
     def test_user_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -128,6 +174,12 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.assertEqual(content["id"], self.user.id)
         response = self.client.get(
             reverse("ProjectUser-detail", args=(self.user.keycloak_id,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.user.id)
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(self.outdated_user_slug,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -153,6 +205,12 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.privacy_settings.id)
+        response = self.client.get(
+            reverse("PrivacySettings-detail", args=(self.outdated_user_slug,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.user.privacy_settings.id)
 
     def test_user_notification_settings_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -170,6 +228,12 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.assertEqual(content["id"], self.user.notification_settings.id)
         response = self.client.get(
             reverse("NotificationSettings-detail", args=(self.user.keycloak_id,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.user.notification_settings.id)
+        response = self.client.get(
+            reverse("NotificationSettings-detail", args=(self.outdated_user_slug,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -213,28 +277,45 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.user.profile_picture.id)
+        response = self.client.patch(
+            reverse(
+                "UserProfilePicture-detail",
+                args=(self.outdated_user_slug, self.user.profile_picture.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.user.profile_picture.id)
 
     def test_skill_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
-        skill = SkillFactory()
+        skill = SkillFactory(user=self.user)
         payload = {
             "level": faker.pyint(1, 4),
         }
         response = self.client.patch(
-            reverse("Skill-detail", args=(skill.user.id, skill.id)),
+            reverse("Skill-detail", args=(self.user.id, skill.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], skill.id)
         response = self.client.patch(
-            reverse("Skill-detail", args=(skill.user.slug, skill.id)),
+            reverse("Skill-detail", args=(self.user.slug, skill.id)),
             data=payload,
         )
         content = response.json()
         self.assertEqual(content["id"], skill.id)
         response = self.client.patch(
-            reverse("Skill-detail", args=(skill.user.keycloak_id, skill.id)),
+            reverse("Skill-detail", args=(self.user.keycloak_id, skill.id)),
+            data=payload,
+        )
+        content = response.json()
+        self.assertEqual(content["id"], skill.id)
+        response = self.client.patch(
+            reverse("Skill-detail", args=(self.outdated_user_slug, skill.id)),
             data=payload,
         )
         content = response.json()
@@ -248,6 +329,11 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(reverse("Project-detail", args=(self.project.slug,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["id"], self.project.id)
+        response = self.client.get(
+            reverse("Project-detail", args=(self.outdated_project_slug,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.json()["id"], self.project.id)
 
     def test_announcement_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -255,7 +341,7 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "Announcement-detail",
-                args=(announcement.project.id, announcement.id),
+                args=(self.project.id, announcement.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -264,7 +350,16 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "Announcement-detail",
-                args=(announcement.project.slug, announcement.id),
+                args=(self.project.slug, announcement.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], announcement.id)
+        response = self.client.get(
+            reverse(
+                "Announcement-detail",
+                args=(self.outdated_project_slug, announcement.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -275,13 +370,19 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         goal = GoalFactory(project=self.project)
         response = self.client.get(
-            reverse("Goal-detail", args=(goal.project.id, goal.id)),
+            reverse("Goal-detail", args=(self.project.id, goal.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], goal.id)
         response = self.client.get(
-            reverse("Goal-detail", args=(goal.project.slug, goal.id)),
+            reverse("Goal-detail", args=(self.project.slug, goal.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], goal.id)
+        response = self.client.get(
+            reverse("Goal-detail", args=(self.outdated_project_slug, goal.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -314,18 +415,35 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], self.project.header_image.id)
+        response = self.client.patch(
+            reverse(
+                "Project-header-detail",
+                args=(self.outdated_project_slug, self.project.header_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.project.header_image.id)
 
     def test_location_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
         location = LocationFactory(project=self.project)
         response = self.client.get(
-            reverse("Location-detail", args=(location.project.id, location.id)),
+            reverse("Location-detail", args=(self.project.id, location.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], location.id)
         response = self.client.get(
-            reverse("Location-detail", args=(location.project.slug, location.id)),
+            reverse("Location-detail", args=(self.project.slug, location.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], location.id)
+        response = self.client.get(
+            reverse("Location-detail", args=(self.outdated_project_slug, location.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -334,19 +452,27 @@ class MultipleLookupsTestCase(JwtAPITestCase):
     def test_linked_project_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
         project = ProjectFactory(organizations=[self.organization])
-        linked_project = LinkedProjectFactory(target=project, project=self.project)
+        linked_project = LinkedProjectFactory(target=self.project, project=project)
         response = self.client.delete(
             reverse(
                 "LinkedProjects-detail",
-                args=(linked_project.target.id, linked_project.id),
+                args=(self.project.id, linked_project.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        linked_project = LinkedProjectFactory(target=project, project=self.project)
+        linked_project = LinkedProjectFactory(target=self.project, project=project)
         response = self.client.delete(
             reverse(
                 "LinkedProjects-detail",
-                args=(linked_project.target.slug, linked_project.id),
+                args=(self.project.slug, linked_project.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        linked_project = LinkedProjectFactory(target=self.project, project=project)
+        response = self.client.delete(
+            reverse(
+                "LinkedProjects-detail",
+                args=(self.outdated_project_slug, linked_project.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -355,11 +481,17 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         file = AttachmentFileFactory(project=self.project)
         response = self.client.get(
-            reverse("AttachmentFile-detail", args=(file.project.id, file.id)),
+            reverse("AttachmentFile-detail", args=(self.project.id, file.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         response = self.client.get(
-            reverse("AttachmentFile-detail", args=(file.project.slug, file.id)),
+            reverse("AttachmentFile-detail", args=(self.project.slug, file.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        response = self.client.get(
+            reverse(
+                "AttachmentFile-detail", args=(self.outdated_project_slug, file.id)
+            ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -367,13 +499,21 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         link = AttachmentLinkFactory(project=self.project)
         response = self.client.get(
-            reverse("AttachmentLink-detail", args=(link.project.id, link.id)),
+            reverse("AttachmentLink-detail", args=(self.project.id, link.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], link.id)
         response = self.client.get(
-            reverse("AttachmentLink-detail", args=(link.project.slug, link.id)),
+            reverse("AttachmentLink-detail", args=(self.project.slug, link.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], link.id)
+        response = self.client.get(
+            reverse(
+                "AttachmentLink-detail", args=(self.outdated_project_slug, link.id)
+            ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -391,18 +531,32 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             reverse("Project-images-detail", args=(self.project.slug, image.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        response = self.client.get(
+            reverse(
+                "Project-images-detail", args=(self.outdated_project_slug, image.id)
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
     def test_blog_entry_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
         blog_entry = BlogEntryFactory(project=self.project)
         response = self.client.get(
-            reverse("BlogEntry-detail", args=(blog_entry.project.id, blog_entry.id)),
+            reverse("BlogEntry-detail", args=(self.project.id, blog_entry.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], blog_entry.id)
         response = self.client.get(
-            reverse("BlogEntry-detail", args=(blog_entry.project.slug, blog_entry.id)),
+            reverse("BlogEntry-detail", args=(self.project.slug, blog_entry.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], blog_entry.id)
+        response = self.client.get(
+            reverse(
+                "BlogEntry-detail", args=(self.outdated_project_slug, blog_entry.id)
+            ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -414,12 +568,16 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         image = self.get_test_image(owner=self.user)
         blog_entry.images.add(image)
         response = self.client.get(
-            reverse("BlogEntry-images-detail", args=(blog_entry.project.id, image.id)),
+            reverse("BlogEntry-images-detail", args=(self.project.id, image.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        response = self.client.get(
+            reverse("BlogEntry-images-detail", args=(self.project.slug, image.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         response = self.client.get(
             reverse(
-                "BlogEntry-images-detail", args=(blog_entry.project.slug, image.id)
+                "BlogEntry-images-detail", args=(self.outdated_project_slug, image.id)
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -430,7 +588,7 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "ProjectMessage-detail",
-                args=(project_message.project.id, project_message.id),
+                args=(self.project.id, project_message.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -439,7 +597,16 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "ProjectMessage-detail",
-                args=(project_message.project.slug, project_message.id),
+                args=(self.project.slug, project_message.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], project_message.id)
+        response = self.client.get(
+            reverse(
+                "ProjectMessage-detail",
+                args=(self.outdated_project_slug, project_message.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -454,14 +621,21 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "ProjectMessage-images-detail",
-                args=(project_message.project.id, image.id),
+                args=(self.project.id, image.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         response = self.client.get(
             reverse(
                 "ProjectMessage-images-detail",
-                args=(project_message.project.slug, image.id),
+                args=(self.project.slug, image.id),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        response = self.client.get(
+            reverse(
+                "ProjectMessage-images-detail",
+                args=(self.outdated_project_slug, image.id),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -470,13 +644,19 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         comment = CommentFactory(project=self.project, author=self.user)
         response = self.client.get(
-            reverse("Comment-detail", args=(comment.project.id, comment.id)),
+            reverse("Comment-detail", args=(self.project.id, comment.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], comment.id)
         response = self.client.get(
-            reverse("Comment-detail", args=(comment.project.slug, comment.id)),
+            reverse("Comment-detail", args=(self.project.slug, comment.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], comment.id)
+        response = self.client.get(
+            reverse("Comment-detail", args=(self.outdated_project_slug, comment.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -488,11 +668,17 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         image = self.get_test_image(owner=self.user)
         comment.images.add(image)
         response = self.client.get(
-            reverse("Comment-images-detail", args=(comment.project.id, image.id)),
+            reverse("Comment-images-detail", args=(self.project.id, image.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
         response = self.client.get(
-            reverse("Comment-images-detail", args=(comment.project.slug, image.id)),
+            reverse("Comment-images-detail", args=(self.project.slug, image.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+        response = self.client.get(
+            reverse(
+                "Comment-images-detail", args=(self.outdated_project_slug, image.id)
+            ),
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
 
@@ -500,31 +686,43 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         follow = FollowFactory(project=self.project, follower=self.user)
         response = self.client.get(
-            reverse("Followed-list", args=(follow.project.id,)),
+            reverse("Followed-list", args=(self.project.id,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(content[0]["id"], follow.id)
         response = self.client.get(
-            reverse("Followed-list", args=(follow.project.slug,)),
+            reverse("Followed-list", args=(self.project.slug,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(content[0]["id"], follow.id)
         response = self.client.get(
-            reverse("Follower-list", args=(follow.follower.id,)),
+            reverse("Followed-list", args=(self.outdated_project_slug,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(content[0]["id"], follow.id)
         response = self.client.get(
-            reverse("Follower-list", args=(follow.follower.slug,)),
+            reverse("Follower-list", args=(self.user.id,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(content[0]["id"], follow.id)
         response = self.client.get(
-            reverse("Follower-list", args=(follow.follower.keycloak_id,)),
+            reverse("Follower-list", args=(self.user.slug,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)
+        response = self.client.get(
+            reverse("Follower-list", args=(self.user.keycloak_id,)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()["results"]
+        self.assertEqual(content[0]["id"], follow.id)
+        response = self.client.get(
+            reverse("Follower-list", args=(self.outdated_user_slug,)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -534,31 +732,42 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         review = ReviewFactory(project=self.project, reviewer=self.user)
         response = self.client.get(
-            reverse("Reviewed-detail", args=(review.project.id, review.id)),
+            reverse("Reviewed-detail", args=(self.project.id, review.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], review.id)
         response = self.client.get(
-            reverse("Reviewed-detail", args=(review.project.slug, review.id)),
+            reverse("Reviewed-detail", args=(self.project.slug, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        response = self.client.get(
+            reverse("Reviewed-detail", args=(self.outdated_project_slug, review.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], review.id)
         response = self.client.get(
-            reverse("Reviewer-detail", args=(review.reviewer.id, review.id)),
+            reverse("Reviewer-detail", args=(self.user.id, review.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], review.id)
         response = self.client.get(
-            reverse("Reviewer-detail", args=(review.reviewer.slug, review.id)),
+            reverse("Reviewer-detail", args=(self.user.slug, review.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["id"], review.id)
         response = self.client.get(
-            reverse("Reviewer-detail", args=(review.reviewer.keycloak_id, review.id)),
+            reverse("Reviewer-detail", args=(self.user.keycloak_id, review.id)),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], review.id)
+        response = self.client.get(
+            reverse("Reviewer-detail", args=(self.outdated_user_slug, review.id)),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -580,6 +789,13 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(
+            reverse(
+                "RecommendedProjects-for-project",
+                args=(self.organization.code, self.outdated_project_slug),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_project_recommended_users_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -594,6 +810,13 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             reverse(
                 "RecommendedUsers-for-project",
                 args=(self.organization.code, self.project.slug),
+            ),
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(
+            reverse(
+                "RecommendedUsers-for-project",
+                args=(self.organization.code, self.outdated_project_slug),
             ),
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -621,6 +844,13 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentoree-candidate",
+                args=(self.organization.code, self.outdated_user_slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_retrieve_mentor_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -642,6 +872,13 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             reverse(
                 "UserMentorship-mentor-candidate",
                 args=(self.organization.code, self.user.keycloak_id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        response = self.client.get(
+            reverse(
+                "UserMentorship-mentor-candidate",
+                args=(self.organization.code, self.outdated_user_slug),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

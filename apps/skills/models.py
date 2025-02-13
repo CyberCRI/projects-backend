@@ -98,12 +98,7 @@ class TagClassification(HasMultipleIDs, OrganizationRelated, models.Model):
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "tag-classification"
-
-    class ReservedSlugs(models.TextChoices):
-        """Reserved slugs for tag classifications."""
-
-        ENABLED_FOR_PROJECTS = "enabled-for-projects"
-        ENABLED_FOR_SKILLS = "enabled-for-skills"
+    reserved_slugs = ["enabled-for-projects", "enabled-for-skills"]
 
     class TagClassificationType(models.TextChoices):
         """Main type of a tag."""
