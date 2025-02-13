@@ -395,6 +395,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
             if self.instance
             else data.get("parent", None)
         )
+        data["parent"] = data["parent"].id if data["parent"] else None
         return super().run_validation(data)
 
     def validate_parent(self, value):

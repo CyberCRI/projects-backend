@@ -845,6 +845,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
 
     def test_annotate_members(self):
         people_group = PeopleGroupFactory(
@@ -908,6 +909,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(root_people_group.count(), 1)
 
     def test_root_group_is_default_parent(self):
+        self.client.force_authenticate(self.superadmin)
         organization = self.organization
         root_people_group = PeopleGroup.update_or_create_root(organization)
         payload = {
@@ -915,8 +917,6 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
             "description": faker.text(),
             "email": faker.email(),
         }
-        user = UserFactory(groups=[organization.get_admins()])
-        self.client.force_authenticate(user)
         response = self.client.post(
             reverse("PeopleGroup-list", args=(organization.code,)),
             payload,
@@ -926,11 +926,11 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(people_group.parent, root_people_group)
 
     def test_add_member_in_leaders_group(self):
+        self.client.force_authenticate(self.superadmin)
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=self.organization,
         )
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         people_group.members.add(user)
         payload = {
@@ -947,11 +947,11 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertIn(user, people_group.leaders.all())
 
     def test_add_leader_in_members_group(self):
+        self.client.force_authenticate(self.superadmin)
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=self.organization,
         )
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         people_group.leaders.add(user)
         payload = {
@@ -968,11 +968,11 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertIn(user, people_group.members.all())
 
     def test_add_member_in_managers_group(self):
+        self.client.force_authenticate(self.superadmin)
         people_group = PeopleGroupFactory(
             publication_status=PeopleGroup.PublicationStatus.PUBLIC,
             organization=self.organization,
         )
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         user = UserFactory()
         people_group.members.add(user)
         payload = {
@@ -1000,11 +1000,56 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(name="", organization=self.organization)
         self.assertTrue(people_group.slug.startswith("group"), people_group.slug)
 
+    def test_outdated_slug(self):
+        self.client.force_authenticate(self.superadmin)
+
+        name_a = "name-a"
+        name_b = "name-b"
+        name_c = "name-c"
+        parent = PeopleGroupFactory(organization=self.organization)
+        people_group = PeopleGroupFactory(
+            name=name_a, organization=self.organization, parent=parent
+        )
+
+        # Check that the slug is updated and the old one is stored in outdated_slugs
+        payload = {"name": name_b}
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-detail", args=(self.organization.code, people_group.id)
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        people_group.refresh_from_db()
+        self.assertEqual(people_group.slug, "name-b")
+        self.assertSetEqual({"name-a"}, set(people_group.outdated_slugs))
+
+        # Check that multiple_slug is correctly updated
+        payload = {"name": name_c}
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-detail", args=(self.organization.code, people_group.id)
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        people_group.refresh_from_db()
+        self.assertEqual(people_group.slug, "name-c")
+        self.assertSetEqual({"name-a", "name-b"}, set(people_group.outdated_slugs))
+
+        # Check that outdated_slugs respect unicity
+        payload = {"name": name_a}
+        response = self.client.post(
+            reverse("PeopleGroup-list", args=(self.organization.code,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(content["slug"], "name-a-1")
+
     def test_roles_are_deleted_on_group_delete(self):
+        self.client.force_authenticate(self.superadmin)
         people_group = PeopleGroupFactory(organization=self.organization)
         roles_names = [r.name for r in people_group.groups.all()]
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
                 "PeopleGroup-detail",
@@ -1015,11 +1060,10 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertFalse(Group.objects.filter(name__in=roles_names).exists())
 
     def test_parent_update_on_parent_delete(self):
+        self.client.force_authenticate(self.superadmin)
         main_parent = PeopleGroupFactory(organization=self.organization)
         parent = PeopleGroupFactory(organization=self.organization, parent=main_parent)
         child = PeopleGroupFactory(organization=self.organization, parent=parent)
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
                 "PeopleGroup-detail",

@@ -931,6 +931,58 @@ class MiscProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization], title=title)
         self.assertEqual(project.slug, "my-amazing-test-project-2")
 
+    def test_outdated_slug(self):
+        self.client.force_authenticate(self.superadmin)
+
+        title_a = "title-a"
+        title_b = "title-b"
+        title_c = "title-c"
+        project = ProjectFactory(title=title_a, organizations=[self.organization])
+
+        # Check that the slug is updated and the old one is stored in outdated_slugs
+        payload = {"title": title_b}
+        response = self.client.patch(
+            reverse("Project-detail", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        self.assertEqual(project.slug, "title-b")
+        self.assertSetEqual({"title-a"}, set(project.outdated_slugs))
+
+        # Check that multiple_slug is correctly updated
+        payload = {"title": title_c}
+        response = self.client.patch(
+            reverse("Project-detail", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        self.assertEqual(project.slug, "title-c")
+        self.assertSetEqual({"title-a", "title-b"}, set(project.outdated_slugs))
+
+        # Check that outdated_slugs respect unicity
+        payload = {
+            "organizations_codes": [self.organization.code],
+            "title": title_a,
+            "purpose": faker.sentence(),
+        }
+        response = self.client.post(reverse("Project-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(content["slug"], "title-a-1")
+
+        # Check that deleted projects outdated_slugs respect unicity
+        project.deleted_at = timezone.localtime(timezone.now())
+        project.save()
+        payload = {
+            "organizations_codes": [self.organization.code],
+            "title": title_b,
+            "purpose": faker.sentence(),
+        }
+        response = self.client.post(reverse("Project-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(content["slug"], "title-b-1")
+
     def test_blank_raw_slug(self):
         title = "."
         project = ProjectFactory(
