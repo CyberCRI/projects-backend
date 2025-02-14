@@ -513,11 +513,11 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
             cls.retrieved_featured_group_project,
             *list(cls.retrieved_featured_projects.values())
         )
-        cls.retrieved_featured_group_project.member_people_groups.add(
+        cls.retrieved_featured_group_project.member_groups.add(
             cls.retrieved_people_group
         )
         for project in cls.retrieved_group_projects.values():
-            project.member_people_groups.add(cls.retrieved_people_group)
+            project.member_groups.add(cls.retrieved_people_group)
 
     @parameterized.expand(
         [

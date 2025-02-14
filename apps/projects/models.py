@@ -137,10 +137,14 @@ class Project(
     class DefaultGroup(models.TextChoices):
         """Default permission groups of a project."""
 
+        # Direct membership
         MEMBERS = "members"
         OWNERS = "owners"
         REVIEWERS = "reviewers"
-        PEOPLE_GROUPS = "people_groups"
+        # People group membership
+        MEMBER_GROUPS = "member_groups"
+        OWNER_GROUPS = "owner_groups"
+        REVIEWER_GROUPS = "reviewer_groups"
 
     id = models.CharField(
         primary_key=True, auto_created=True, default=uuid_generator, max_length=8
@@ -263,11 +267,16 @@ class Project(
         """
         Only soft-delete the project.
 
-        The member_people_groups group is deleted in the `soft_delete` method to avoid
+        The group roles are deleted in the `soft_delete` method to avoid
         any issue with the `get_instance_from_group`.
         """
         self.deleted_at = timezone.localtime(timezone.now())
-        self.get_people_groups().delete()
+        for group in [
+            self.get_member_groups(),
+            self.get_owner_groups(),
+            self.get_reviewer_groups(),
+        ]:
+            group.delete()
         self.save()
 
     @transaction.atomic
@@ -398,22 +407,34 @@ class Project(
         self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
     ):
         """Setup the group with default permissions."""
+        reviewers_permissions = self.get_default_reviewers_permissions()
+        owners_permissions = self.get_default_owners_permissions()
+        members_permissions = self.get_default_members_permissions()
+
         reviewers = self.setup_group_object_permissions(
-            self.get_reviewers(), self.get_default_reviewers_permissions()
+            self.get_reviewers(), reviewers_permissions
         )
         owners = self.setup_group_object_permissions(
-            self.get_owners(), self.get_default_owners_permissions()
+            self.get_owners(), owners_permissions
         )
         members = self.setup_group_object_permissions(
-            self.get_members(), self.get_default_members_permissions()
+            self.get_members(), members_permissions
         )
-        people_groups = self.setup_group_object_permissions(
-            self.get_people_groups(), self.get_default_members_permissions()
+        reviewer_groups = self.setup_group_object_permissions(
+            self.get_reviewer_groups(), reviewers_permissions
+        )
+        owner_groups = self.setup_group_object_permissions(
+            self.get_owner_groups(), owners_permissions
+        )
+        member_groups = self.setup_group_object_permissions(
+            self.get_member_groups(), members_permissions
         )
 
         if user:
             owners.users.add(user)
-        self.groups.set([owners, reviewers, members, people_groups])
+        self.groups.set(
+            [owners, reviewers, members, owner_groups, reviewer_groups, member_groups]
+        )
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
@@ -441,9 +462,17 @@ class Project(
         """Return the members group."""
         return self.get_or_create_group(self.DefaultGroup.MEMBERS)
 
-    def get_people_groups(self) -> Group:
+    def get_member_groups(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.PEOPLE_GROUPS)
+        return self.get_or_create_group(self.DefaultGroup.MEMBER_GROUPS)
+
+    def get_owner_groups(self) -> Group:
+        """Return the members group."""
+        return self.get_or_create_group(self.DefaultGroup.OWNER_GROUPS)
+
+    def get_reviewer_groups(self) -> Group:
+        """Return the members group."""
+        return self.get_or_create_group(self.DefaultGroup.REVIEWER_GROUPS)
 
     @property
     def owners(self) -> QuerySet["ProjectUser"]:
@@ -458,22 +487,46 @@ class Project(
         return self.get_members().users
 
     @property
-    def member_people_groups(self) -> QuerySet["PeopleGroup"]:
-        return self.get_people_groups().people_groups
+    def member_groups(self) -> QuerySet["PeopleGroup"]:
+        return self.get_member_groups().people_groups
 
     @property
-    def member_people_groups_members(self) -> QuerySet["ProjectUser"]:
-        return self.get_people_groups().users
+    def owner_groups(self) -> QuerySet["PeopleGroup"]:
+        return self.get_owner_groups().people_groups
 
-    def set_people_group_members(self):
-        people_groups = self.member_people_groups.all()
+    @property
+    def reviewer_groups(self) -> QuerySet["PeopleGroup"]:
+        return self.get_reviewer_groups().people_groups
+
+    @property
+    def member_groups_users(self) -> QuerySet["ProjectUser"]:
+        return self.get_member_groups().users
+
+    @property
+    def owner_groups_users(self) -> QuerySet["ProjectUser"]:
+        return self.get_owner_groups().users
+
+    @property
+    def reviewer_groups_users(self) -> QuerySet["ProjectUser"]:
+        return self.get_reviewer_groups().users
+
+    def set_role_group_members(self, role_group: Group):
+        people_groups = role_group.people_groups.all()
         people_groups_users = [
             people_group.get_all_members() for people_group in people_groups
         ]
         people_groups_users = reduce(
             lambda x, y: x.union(y), people_groups_users, set()
         )
-        self.member_people_groups_members.set(people_groups_users)
+        role_group.users.set(people_groups_users)
+
+    def set_role_groups_members(self):
+        for group in [
+            self.get_member_groups(),
+            self.get_owner_groups(),
+            self.get_reviewer_groups(),
+        ]:
+            self.set_role_group_members(group)
 
     def get_all_members(self) -> QuerySet["ProjectUser"]:
         """Return the all members."""

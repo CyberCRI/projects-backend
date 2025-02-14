@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-11 16:43+0100\n"
+"POT-Creation-Date: 2025-02-14 14:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,7 +108,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:134 apps/projects/models.py:165
+#: apps/accounts/models.py:134 apps/projects/models.py:169
 msgid "visibility"
 msgstr ""
 
@@ -461,15 +461,15 @@ msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""
 
-#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:229
+#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:232
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:230
+#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:233
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:231
+#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:234
 msgid "reviewer"
 msgstr ""
 
@@ -1199,27 +1199,27 @@ msgstr ""
 msgid "A message cannot be a reply to itself"
 msgstr ""
 
-#: apps/projects/models.py:148
+#: apps/projects/models.py:152
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:158
+#: apps/projects/models.py:162
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:171
+#: apps/projects/models.py:175
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:182
+#: apps/projects/models.py:186
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:199
+#: apps/projects/models.py:203
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:205
+#: apps/projects/models.py:209
 msgid "main category"
 msgstr ""
 

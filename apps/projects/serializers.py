@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from django.apps import apps
+from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -335,14 +336,19 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
     reviewers = UserLighterSerializerKeycloakRelatedField(
         many=True, required=False, queryset=ProjectUser.objects.all()
     )
-    people_groups = PeopleGroupLightSerializerPrimaryKeyRelatedField(
-        many=True,
-        required=False,
-        queryset=PeopleGroup.objects.all(),
-        source="member_people_groups",
+    member_groups = PeopleGroupLightSerializerPrimaryKeyRelatedField(
+        many=True, required=False, queryset=PeopleGroup.objects.all()
+    )
+    owner_groups = PeopleGroupLightSerializerPrimaryKeyRelatedField(
+        many=True, required=False, queryset=PeopleGroup.objects.all()
+    )
+    reviewer_groups = PeopleGroupLightSerializerPrimaryKeyRelatedField(
+        many=True, required=False, queryset=PeopleGroup.objects.all()
     )
 
-    def add_user(self, user, project, group, role):
+    def add_user(
+        self, user: ProjectUser, project: Project, group: Group, role: str
+    ) -> Dict[str, Any]:
         created = not project.groups.filter(users=user).exists()
         if (
             group.name == project.get_reviewers().name
@@ -363,30 +369,46 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
             "role": role,
         }
 
-    def add_people_group(self, people_group, project):
-        created = people_group not in project.member_people_groups.all()
-        project.member_people_groups.add(people_group)
-        project.set_people_group_members()
+    def add_people_group(
+        self, people_group: PeopleGroup, project: Project, group: Group, role: str
+    ) -> Dict[str, Any]:
+        created = not project.groups.filter(people_groups=people_group).exists()
+        people_group.groups.remove(*project.groups.filter(people_groups=people_group))
+        people_group.groups.add(group)
+        project.set_role_group_members(group)
         return {
             "type": "peoplegroup",
             "created": created,
             "people_group": people_group,
             "project": project,
+            "group": group,
+            "role": role,
         }
 
     def create(self, validated_data):
         validated_data = validated_data.get("team", validated_data)
         project = validated_data["project"]
         instances = []
-        for role in filter(
-            lambda x: x != Project.DefaultGroup.PEOPLE_GROUPS, Project.DefaultGroup
-        ):
+        for role in [
+            Project.DefaultGroup.OWNERS,
+            Project.DefaultGroup.REVIEWERS,
+            Project.DefaultGroup.MEMBERS,
+        ]:
             users = validated_data.get(role, [])
             group = getattr(project, f"get_{role}")()
             for user in users:
                 instances.append(self.add_user(user, project, group, role))
-        for people_group in validated_data.get("member_people_groups", []):
-            instances.append(self.add_people_group(people_group, project))
+        for role in [
+            Project.DefaultGroup.OWNER_GROUPS,
+            Project.DefaultGroup.REVIEWER_GROUPS,
+            Project.DefaultGroup.MEMBER_GROUPS,
+        ]:
+            people_groups = validated_data.get(role, [])
+            group = getattr(project, f"get_{role}")()
+            for people_group in people_groups:
+                instances.append(
+                    self.add_people_group(people_group, project, group, role)
+                )
         return instances
 
     def to_internal_value(self, data):
@@ -404,13 +426,15 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
         many=True, write_only=True, required=False, queryset=PeopleGroup.objects.all()
     )
 
-    def validate_users(self, users):
+    def validate_users(self, users: List[ProjectUser]) -> List[ProjectUser]:
         project = get_object_or_404(Project, pk=self.initial_data["project"])
         if all(owner in users for owner in project.get_owners().users.all()):
             raise RemoveLastProjectOwnerError
         return list(filter(lambda x: x.groups.filter(projects=project).exists(), users))
 
-    def validate_people_groups(self, people_groups):
+    def validate_people_groups(
+        self, people_groups: List[PeopleGroup]
+    ) -> List[PeopleGroup]:
         project = get_object_or_404(Project, pk=self.initial_data["project"])
         return list(
             filter(lambda x: x.groups.filter(projects=project).exists(), people_groups)
@@ -426,8 +450,11 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
     def remove_people_groups(self, validated_data):
         project = validated_data["project"]
         people_groups = validated_data.get("people_groups", [])
-        project.member_people_groups.remove(*people_groups)
-        project.set_people_group_members()
+        for people_group in people_groups:
+            people_group.groups.remove(
+                *project.groups.filter(people_groups=people_group)
+            )
+        project.set_role_groups_members()
         return people_groups
 
     def create(self, validated_data):
@@ -642,6 +669,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
                 for o in self.instance.organizations.all()
             )
             or user in self.instance.reviewers.all()
+            or user in self.instance.reviewer_groups_users.all()
         ):
             return value
         raise OnlyReviewerCanChangeStatusError

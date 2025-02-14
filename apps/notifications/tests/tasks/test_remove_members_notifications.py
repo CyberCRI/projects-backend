@@ -54,7 +54,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
 
         group = PeopleGroupFactory(organization=self.organization)
-        project.member_people_groups.add(group)
+        project.member_groups.add(group)
         payload = {
             "people_groups": [group.id],
         }

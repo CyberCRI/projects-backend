@@ -195,7 +195,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     @transaction.atomic
     def add_member(self, request, *args, **kwargs):
-        """Add users to the project's group of the given name or add group to project.member_people_groups."""
+        """Add users to the project's group of the given name or add group to project.member_groups."""
         project = self.get_object()
         serializer = ProjectAddTeamMembersSerializer(
             data={"project": project.pk, **request.data}
@@ -227,6 +227,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                     instance["project"].pk,
                     instance["people_group"].pk,
                     self.request.user.pk,
+                    instance["role"],
                 )
 
     @extend_schema(
