@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
+from apps.commons.utils import queryset_iterator
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
 from apps.invitations.models import AccessRequest, Invitation
@@ -377,7 +378,7 @@ def _notify_pending_access_requests():
 
 
 def _send_notifications_reminder(users: dict):
-    for user in users:
+    for user in queryset_iterator(users):
         notifications = Notification.objects.filter(
             receiver=user, to_send=True
         ).order_by("created")

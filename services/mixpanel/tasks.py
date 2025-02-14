@@ -1,3 +1,4 @@
+from apps.commons.utils import queryset_iterator
 from projects.celery import app
 from services.mixpanel.interface import MixpanelService
 from services.mixpanel.models import MixpanelEvent
@@ -15,5 +16,5 @@ def get_new_mixpanel_events():
         ignore_conflicts=True,
     )
     projects = {event.project for event in events}
-    for project in projects:
+    for project in queryset_iterator(projects):
         project.set_cached_views()

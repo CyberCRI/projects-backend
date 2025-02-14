@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.commons.utils import queryset_iterator
 from projects.celery import app
 
 from .models import Project
@@ -21,7 +22,7 @@ def remove_old_projects():
 
 @app.task(name="apps.projects.tasks.calculate_projects_scores")
 def calculate_projects_scores():
-    for project in Project.objects.all():
+    for project in queryset_iterator(Project.objects.all()):
         project.calculate_score()
 
 
