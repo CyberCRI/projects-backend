@@ -1,4 +1,5 @@
 import base64
+import gc
 import itertools
 import re
 import uuid
@@ -9,7 +10,8 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.core.files.base import ContentFile
-from django.db.models import Func, Model, Value
+from django.db import reset_queries
+from django.db.models import Func, Model, QuerySet, Value
 from django.forms import IntegerField
 from django.urls import reverse
 from rest_framework.request import Request
@@ -309,3 +311,34 @@ def map_action_to_permission(action: str, codename: str) -> Optional[str]:
         "partial_update": f"change_{codename}",
         "destroy": f"delete_{codename}",
     }.get(action, None)
+
+
+def queryset_iterator(
+    queryset: QuerySet,
+    batchsize: int = 1000,
+    collect_garbage: bool = True,
+    clear_queries_cache: bool = None,
+):
+    """
+    Iterate over a Queryset in batches and clear the queries cache and garbage
+    collector at each iteration.
+
+    Use this function when you have to iterate over a large Queryset to avoid
+    memory leaks.
+    """
+    iterator = (
+        queryset.values_list("pk", flat=True).order_by("pk").distinct().iterator()
+    )
+    eof = False
+    while not eof:
+        primary_key_buffer = []
+        try:
+            while len(primary_key_buffer) < batchsize:
+                primary_key_buffer.append(iterator.next())
+        except StopIteration:
+            eof = True
+        yield from queryset.filter(pk__in=primary_key_buffer).order_by("pk").iterator()
+        if clear_queries_cache:
+            reset_queries()
+        if collect_garbage:
+            gc.collect()

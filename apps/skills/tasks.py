@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.commons.utils import queryset_iterator
 from apps.emailing.utils import render_message, send_email
 from projects.celery import app
 
@@ -31,14 +32,15 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
     """
     if inactivity_days not in [3, 10]:
         raise ValueError("inactivity_days must be 3 or 10")
-    for mentoring in Mentoring.objects.filter(
+    mentorings = Mentoring.objects.filter(
         (Q(status=Mentoring.MentoringStatus.PENDING) | Q(status__isnull=True))
         & Q(
             messages__created_at__date=(
                 timezone.now() - timedelta(days=inactivity_days)
             ).date()
         )
-    ).distinct():
+    ).distinct()
+    for mentoring in queryset_iterator(mentorings):
         latest_message = mentoring.messages.order_by("-created_at").first()
         if latest_message.created_at.date() == date.today() - timedelta(
             days=inactivity_days

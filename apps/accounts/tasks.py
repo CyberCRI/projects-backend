@@ -1,3 +1,4 @@
+from apps.commons.utils import queryset_iterator
 from apps.invitations.models import AccessRequest
 from projects.celery import app
 
@@ -6,7 +7,7 @@ from .models import ProjectUser
 
 @app.task(name="apps.accounts.tasks.calculate_users_scores")
 def calculate_users_scores():
-    for user in ProjectUser.objects.all():
+    for user in queryset_iterator(ProjectUser.objects.all()):
         user.calculate_score()
 
 

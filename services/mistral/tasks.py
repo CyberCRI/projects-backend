@@ -1,6 +1,7 @@
 import logging
 
 from apps.accounts.models import ProjectUser
+from apps.commons.utils import queryset_iterator
 from apps.projects.models import Project
 from projects.celery import app
 
@@ -17,9 +18,9 @@ def vectorize_updated_objects():
 def _vectorize_updated_objects():
     projects = Project.objects.all()
     users = ProjectUser.objects.all()
-    for project in projects:
+    for project in queryset_iterator(projects):
         embedding, _ = ProjectEmbedding.objects.get_or_create(item=project)
         embedding.vectorize()
-    for user in users:
+    for user in queryset_iterator(users):
         embedding, _ = UserEmbedding.objects.get_or_create(item=user)
         embedding.vectorize()

@@ -3,6 +3,7 @@ from typing import Dict, List
 
 from django.conf import settings
 
+from apps.commons.utils import queryset_iterator
 from services.esco.interface import EscoService
 from services.wikipedia.interface import WikipediaService
 
@@ -57,7 +58,7 @@ def update_esco_tag_data(esco_tag: Tag) -> Tag:
 def update_esco_data(force_update: bool = False):
     new_tags = create_missing_esco_tags()
     tags = Tag.objects.filter(type=Tag.TagType.ESCO) if force_update else new_tags
-    for tag in tags:
+    for tag in queryset_iterator(tags):
         update_esco_tag_data(tag)
 
 

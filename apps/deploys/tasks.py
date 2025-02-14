@@ -8,6 +8,7 @@ from apps.accounts.utils import (
     get_superadmins_group_permissions,
 )
 from apps.commons.models import HasPermissionsSetup
+from apps.commons.utils import queryset_iterator
 from apps.skills.models import TagClassification
 from projects.celery import app
 
@@ -69,8 +70,8 @@ def instance_groups_permissions():
     for permissions_setup_model in permissions_setup_models:
         permissions_setup_model.objects.all().update(permissions_up_to_date=False)
     for permissions_setup_model in permissions_setup_models:
-        for instance in permissions_setup_model.objects.filter(
-            permissions_up_to_date=False
+        for instance in queryset_iterator(
+            permissions_setup_model.objects.filter(permissions_up_to_date=False)
         ):
             instance.setup_permissions(trigger_indexation=False)
 
