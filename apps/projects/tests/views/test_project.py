@@ -33,7 +33,13 @@ class CreateProjectTestCase(JwtAPITestCase):
         cls.members = UserFactory.create_batch(2)
         cls.reviewers = UserFactory.create_batch(2)
         cls.owners = UserFactory.create_batch(2)
-        cls.people_groups = PeopleGroupFactory.create_batch(
+        cls.member_groups = PeopleGroupFactory.create_batch(
+            2, organization=cls.organization
+        )
+        cls.reviewer_groups = PeopleGroupFactory.create_batch(
+            2, organization=cls.organization
+        )
+        cls.owner_groups = PeopleGroupFactory.create_batch(
             2, organization=cls.organization
         )
         cls.tags = TagFactory.create_batch(3)
@@ -70,7 +76,9 @@ class CreateProjectTestCase(JwtAPITestCase):
                 "members": [m.id for m in self.members],
                 "reviewers": [r.id for r in self.reviewers],
                 "owners": [o.id for o in self.owners],
-                "people_groups": [pg.id for pg in self.people_groups],
+                "member_groups": [pg.id for pg in self.member_groups],
+                "reviewer_groups": [pg.id for pg in self.reviewer_groups],
+                "owner_groups": [pg.id for pg in self.owner_groups],
             },
         }
         response = self.client.post(reverse("Project-list"), data=payload)
@@ -112,8 +120,16 @@ class CreateProjectTestCase(JwtAPITestCase):
                 {user.id, *payload["team"]["owners"]},
             )
             self.assertEqual(
-                {u["id"] for u in content["team"]["people_groups"]},
-                set(payload["team"]["people_groups"]),
+                {u["id"] for u in content["team"]["member_groups"]},
+                set(payload["team"]["member_groups"]),
+            )
+            self.assertEqual(
+                {u["id"] for u in content["team"]["reviewer_groups"]},
+                set(payload["team"]["reviewer_groups"]),
+            )
+            self.assertEqual(
+                {u["id"] for u in content["team"]["owner_groups"]},
+                set(payload["team"]["owner_groups"]),
             )
 
 
@@ -141,6 +157,9 @@ class UpdateProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_200_OK),
         ]
     )
     def test_update_project(self, role, expected_code):
@@ -191,6 +210,9 @@ class UpdateProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_400_BAD_REQUEST),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_400_BAD_REQUEST),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_200_OK),
         ]
     )
     def test_update_project_only_reviewer_can_update(self, role, expected_code):
@@ -243,6 +265,9 @@ class DeleteProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_delete_project(self, role, expected_code):
@@ -265,7 +290,13 @@ class ProjectMembersTestCase(JwtAPITestCase):
         cls.members = UserFactory.create_batch(2)
         cls.owners = UserFactory.create_batch(2)
         cls.reviewers = UserFactory.create_batch(2)
-        cls.people_groups = PeopleGroupFactory.create_batch(
+        cls.member_groups = PeopleGroupFactory.create_batch(
+            2, organization=cls.organization
+        )
+        cls.owner_groups = PeopleGroupFactory.create_batch(
+            2, organization=cls.organization
+        )
+        cls.reviewer_groups = PeopleGroupFactory.create_batch(
             2, organization=cls.organization
         )
 
@@ -280,6 +311,9 @@ class ProjectMembersTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_add_project_member(self, role, expected_code):
@@ -290,7 +324,9 @@ class ProjectMembersTestCase(JwtAPITestCase):
             "members": [m.id for m in self.members],
             "owners": [r.id for r in self.owners],
             "reviewers": [r.id for r in self.reviewers],
-            "people_groups": [pg.id for pg in self.people_groups],
+            "member_groups": [pg.id for pg in self.member_groups],
+            "owner_groups": [pg.id for pg in self.owner_groups],
+            "reviewer_groups": [pg.id for pg in self.reviewer_groups],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)),
@@ -304,8 +340,12 @@ class ProjectMembersTestCase(JwtAPITestCase):
                 self.assertIn(owner, project.owners.all())
             for reviewer in self.reviewers:
                 self.assertIn(reviewer, project.reviewers.all())
-            for people_group in self.people_groups:
-                self.assertIn(people_group, project.member_people_groups.all())
+            for people_group in self.member_groups:
+                self.assertIn(people_group, project.member_groups.all())
+            for people_group in self.owner_groups:
+                self.assertIn(people_group, project.owner_groups.all())
+            for people_group in self.reviewer_groups:
+                self.assertIn(people_group, project.reviewer_groups.all())
 
     @parameterized.expand(
         [
@@ -318,6 +358,9 @@ class ProjectMembersTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_204_NO_CONTENT),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_204_NO_CONTENT),
         ]
     )
     def test_remove_project_member(self, role, expected_code):
@@ -326,12 +369,17 @@ class ProjectMembersTestCase(JwtAPITestCase):
         project.members.add(*self.members)
         project.owners.add(*self.owners)
         project.reviewers.add(*self.reviewers)
-        project.member_people_groups.add(*self.people_groups)
+        project.member_groups.add(*self.member_groups)
+        project.owner_groups.add(*self.owner_groups)
+        project.reviewer_groups.add(*self.reviewer_groups)
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         payload = {
             "users": [u.id for u in self.members + self.owners + self.reviewers],
-            "people_groups": [pg.id for pg in self.people_groups],
+            "people_groups": [
+                pg.id
+                for pg in self.member_groups + self.owner_groups + self.reviewer_groups
+            ],
         }
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)),
@@ -345,8 +393,12 @@ class ProjectMembersTestCase(JwtAPITestCase):
                 self.assertNotIn(owner, project.owners.all())
             for reviewer in self.reviewers:
                 self.assertNotIn(reviewer, project.reviewers.all())
-            for people_group in self.people_groups:
-                self.assertNotIn(people_group, project.member_people_groups.all())
+            for people_group in self.member_groups:
+                self.assertNotIn(people_group, project.member_groups.all())
+            for people_group in self.owner_groups:
+                self.assertNotIn(people_group, project.owner_groups.all())
+            for people_group in self.reviewer_groups:
+                self.assertNotIn(people_group, project.reviewer_groups.all())
 
     def test_remove_project_member_self(self):
         # Create project with owner to avoid error when removing last owner
@@ -513,6 +565,9 @@ class DuplicateProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_OWNER, status.HTTP_201_CREATED),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_201_CREATED),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_201_CREATED),
         ]
     )
     def test_duplicate_project(self, role, expected_code):
@@ -549,6 +604,9 @@ class LockUnlockProjectTestCase(JwtAPITestCase):
             (TestRoles.PROJECT_MEMBER, status.HTTP_403_FORBIDDEN),
             (TestRoles.PROJECT_OWNER, status.HTTP_200_OK),
             (TestRoles.PROJECT_REVIEWER, status.HTTP_200_OK),
+            (TestRoles.PROJECT_MEMBER_GROUP, status.HTTP_403_FORBIDDEN),
+            (TestRoles.PROJECT_OWNER_GROUP, status.HTTP_200_OK),
+            (TestRoles.PROJECT_REVIEWER_GROUP, status.HTTP_200_OK),
         ]
     )
     def test_lock_project(self, role, expected_code):

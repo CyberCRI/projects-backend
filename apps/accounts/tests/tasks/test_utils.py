@@ -36,21 +36,29 @@ class GetInstanceFromGroupTestCase(TestCase):
             self.project.get_owners(),
             self.project.get_reviewers(),
             self.project.get_members(),
-            self.project.get_people_groups(),
+            self.project.get_owner_groups(),
+            self.project.get_reviewer_groups(),
+            self.project.get_member_groups(),
         ]:
             instance = get_instance_from_group(group)
             self.assertEqual(instance, self.project)
 
     def test_get_instance_from_deleted_group(self):
         project = ProjectFactory(organizations=[self.organization])
-        people_group = PeopleGroupFactory(organization=self.organization)
-        project.member_people_groups.add(people_group)
+        member_people_group = PeopleGroupFactory(organization=self.organization)
+        owner_people_group = PeopleGroupFactory(organization=self.organization)
+        reviewer_people_group = PeopleGroupFactory(organization=self.organization)
+        project.member_groups.add(member_people_group)
+        project.owner_groups.add(owner_people_group)
+        project.reviewer_groups.add(reviewer_people_group)
         project.delete()
         for group in [
             project.get_owners(),
             project.get_reviewers(),
             project.get_members(),
-            project.get_people_groups(),
+            project.get_owner_groups(),
+            project.get_reviewer_groups(),
+            project.get_member_groups(),
         ]:
             instance = get_instance_from_group(group)
             self.assertIsNone(instance)

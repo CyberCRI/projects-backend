@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-04 16:17+0100\n"
+"POT-Creation-Date: 2025-02-14 11:14+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:129 apps/projects/models.py:161
+#: apps/accounts/models.py:129 apps/projects/models.py:165
 msgid "visibility"
 msgstr "visibilité"
 
@@ -566,15 +566,15 @@ msgid ""
 msgstr ""
 "Les groupes d'une instruction doivent appartenir à la même organisation"
 
-#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:229
+#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:232
 msgid "editor"
 msgstr "éditeur"
 
-#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:230
+#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:233
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:231
+#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:234
 msgid "reviewer"
 msgstr "correcteur"
 
@@ -1533,27 +1533,27 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 
-#: apps/projects/models.py:145
+#: apps/projects/models.py:149
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:154
+#: apps/projects/models.py:158
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:167
+#: apps/projects/models.py:171
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:178
+#: apps/projects/models.py:182
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:195
+#: apps/projects/models.py:199
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:201
+#: apps/projects/models.py:205
 msgid "main category"
 msgstr "catégorie principale"
 

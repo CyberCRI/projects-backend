@@ -341,7 +341,9 @@ class UserProjectsEmbedding(Embedding, HasWeight):
                 (Project.DefaultGroup.MEMBERS, 1),
                 (Project.DefaultGroup.OWNERS, 2),
                 (Project.DefaultGroup.REVIEWERS, 1),
-                (Project.DefaultGroup.PEOPLE_GROUPS, 1),
+                (Project.DefaultGroup.MEMBER_GROUPS, 1),
+                (Project.DefaultGroup.OWNER_GROUPS, 2),
+                (Project.DefaultGroup.REVIEWER_GROUPS, 1),
             ]
         ]
         data = [
