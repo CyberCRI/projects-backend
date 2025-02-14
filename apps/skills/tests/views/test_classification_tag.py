@@ -282,10 +282,7 @@ class EnabledClassificationTagTestCase(WikipediaTestCase):
         )
 
     @parameterized.expand(
-        [
-            (TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS,),
-            (TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS,),
-        ]
+        [(reserved_slug,) for reserved_slug in TagClassification.reserved_slugs]
     )
     @patch("apps.skills.views.TagViewSet.wikipedia_search")
     def test_list_enabled_tag_classifications(self, enabled_for, mocked_search):
@@ -310,10 +307,7 @@ class EnabledClassificationTagTestCase(WikipediaTestCase):
         )
 
     @parameterized.expand(
-        [
-            (TagClassification.ReservedSlugs.ENABLED_FOR_PROJECTS,),
-            (TagClassification.ReservedSlugs.ENABLED_FOR_SKILLS,),
-        ]
+        [(reserved_slug,) for reserved_slug in TagClassification.reserved_slugs]
     )
     def test_autocomplete_enabled_tag_classifications(self, enabled_for):
         response = self.client.get(

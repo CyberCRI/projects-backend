@@ -1119,8 +1119,61 @@ class MiscUserTestCase(JwtAPITestCase):
         user = UserFactory(given_name=given_name, family_name=family_name)
         self.assertEqual(user.slug, f"{slug_base}-2")
         user = UserFactory(given_name="", family_name="")
-        slug_base = user.email.split("@")[0].lower()
-        self.assertEqual(user.slug, slug_base)
+        self.assertEqual(user.slug, "user-1")
+
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_outdated_slug(self, mocked):
+        mocked.return_value = {}
+        organization = OrganizationFactory()
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        given_name = faker.first_name()
+        family_name_a = "name-a"
+        family_name_b = "name-b"
+        family_name_c = "name-c"
+        user = SeedUserFactory(given_name=given_name, family_name=family_name_a)
+
+        # Check that the slug is updated and the old one is stored in outdated_slugs
+        payload = {"family_name": family_name_b}
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=(user.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertEqual(user.slug, f"{given_name.lower()}-{family_name_b}")
+        self.assertSetEqual(
+            {f"{given_name.lower()}-{family_name_a}"}, set(user.outdated_slugs)
+        )
+
+        # Check that multiple_slug is correctly updated
+        payload = {"family_name": family_name_c}
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=(user.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertEqual(user.slug, f"{given_name.lower()}-{family_name_c}")
+        self.assertSetEqual(
+            {
+                f"{given_name.lower()}-{family_name_a}",
+                f"{given_name.lower()}-{family_name_b}",
+            },
+            set(user.outdated_slugs),
+        )
+
+        # Check that outdated_slugs respect unicity
+        payload = {
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
+            "given_name": given_name,
+            "family_name": family_name_a,
+            "roles_to_add": [organization.get_users().name],
+        }
+        response = self.client.post(
+            reverse("ProjectUser-list") + f"?organization={organization.code}",
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(content["slug"], f"{given_name.lower()}-{family_name_a}-1")
 
     def test_integer_slug(self):
         given_name = str(faker.pyint())

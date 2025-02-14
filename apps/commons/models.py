@@ -1,9 +1,11 @@
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet
+from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.utils.text import slugify
 from guardian.shortcuts import assign_perm, remove_perm
 
 if TYPE_CHECKING:
@@ -93,10 +95,17 @@ class HasOwners:
         raise NotImplementedError()
 
 
-class PermissionsSetupModel(models.Model):
-    """Abstract class for models which should be initialized with permissions."""
+class HasPermissionsSetup:
+    """
+    This mixin handles models that have permissions on the instance level.
 
-    permissions_up_to_date = models.BooleanField(default=False)
+    Models based on this mixin must implement a `permissions_up_to_date` field to store
+    that is used to check if all the instances permissions have been updated after a
+    potential change.
+
+    The model must also override the `setup_permissions` method that assigns the
+    instances' permissions.
+    """
 
     def setup_group_object_permissions(
         self, group: Group, permissions: QuerySet[str]
@@ -130,12 +139,87 @@ class PermissionsSetupModel(models.Model):
         """Initialize permissions for the instance."""
         raise NotImplementedError()
 
-    class Meta:
-        abstract = True
+
+class DuplicableModel:
+    """
+    A model that can be duplicated.
+    """
+
+    def duplicate(self, *args, **kwargs) -> "DuplicableModel":
+        raise NotImplementedError()
 
 
 class HasMultipleIDs:
-    """Abstract class for models which have multiple IDs."""
+    """
+    This mixin handles models with multiple identifiers, including slugs.
+
+    Models based on this mixin must implement a `slug` field to store the current slug
+    and an `outdated_slugs` field to store the previous slugs. The `slugified_fields`
+    attribute must be defined to specify which fields are used to generate the slug.
+    If any of these fields is modified, the slug will be updated.
+
+    The model must also override the `get_id_field_name` method that returns the name
+    of the id field based on checks that can detect what type of identifier is passed.
+
+    Because this mixin overrides the `save` method it must come after `models.Model`
+    in the inheritance order.
+
+    Example
+    ------
+    ```
+    class ModelWithSlug(HasMultipleIDs, models.Model):
+        slugified_fields: List[str] = ["field_used_for_slug"]
+        slug_prefix: str = "my-model"
+        slug = models.SlugField(unique=True)
+        outdated_slugs = ArrayField(models.SlugField(), default=list)
+
+        @classmethod
+        def get_id_field_name(cls, object_id: Any) -> str:
+            if isinstance(object_id, int):
+                return "id"
+            return "slug"
+    ```
+
+    Attributes
+    ------
+    slugified_fields: List[str]
+        The fields that are used to generate the slug. If any of these fields
+        is modified, the slug will be updated.
+    slug_prefix: str
+        The prefix to add to the slug if there is a potential clash with another
+        identifier.
+
+    Model Fields
+    ------
+    slug: SlugField
+        The current slug of the object.
+    outdated_slugs: ArrayField(SlugField)
+        The outdated slugs of the object. They are kept for url retro-compatibility.
+    """
+
+    _original_slug_fields_value: Dict[str, str] = {}
+    slugified_fields: List[str] = []
+    reserved_slugs: List[str] = []
+    slug_prefix: str = ""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._original_slug_fields_value = {
+            field: getattr(self, field, "") for field in self.slugified_fields
+        }
+
+    def save(self, *args, **kwargs):
+        if not self.slug or any(
+            getattr(self, field) != self._original_slug_fields_value[field]
+            for field in self.slugified_fields
+        ):
+            if self.slug:
+                self.outdated_slugs = self.outdated_slugs + [self.slug]
+            self.slug = self.get_slug()
+            self._original_slug_fields_value = {
+                field: getattr(self, field, "") for field in self.slugified_fields
+            }
+        return super().save(*args, **kwargs)
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -148,7 +232,13 @@ class HasMultipleIDs:
         field_name = cls.get_id_field_name(object_id)
         if field_name == returned_field:
             return object_id
-        obj = get_object_or_404(cls, **{field_name: object_id})
+        try:
+            obj = get_object_or_404(cls, **{field_name: object_id})
+        except Http404 as e:
+            if field_name == "slug":
+                obj = get_object_or_404(cls, outdated_slugs__contains=[object_id])
+            else:
+                raise e
         return getattr(obj, returned_field)
 
     @classmethod
@@ -158,11 +248,31 @@ class HasMultipleIDs:
         """Get the main IDs from a list of secondary IDs."""
         return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]
 
+    @classmethod
+    def slug_exists(cls, slug: str) -> bool:
+        # Handle soft-deleted objects
+        if hasattr(cls.objects, "all_with_delete"):
+            objects = cls.objects.all_with_delete()
+        else:
+            objects = cls.objects.all()
+        return objects.filter(
+            Q(slug=slug) | Q(outdated_slugs__contains=[slug])
+        ).exists()
 
-class DuplicableModel:
-    """
-    A model that can be duplicated.
-    """
-
-    def duplicate(self, *args, **kwargs) -> "DuplicableModel":
-        raise NotImplementedError()
+    def get_slug(self) -> str:
+        raw_slug = [getattr(self, field) for field in self.slugified_fields]
+        raw_slug = slugify("-".join(raw_slug)[0:46])
+        if not raw_slug or raw_slug == "-":
+            raw_slug = self.slug_prefix
+        # If there is a potential clash with another identifier, add the prefix
+        while self.get_id_field_name(raw_slug) != "slug":
+            raw_slug = f"{self.slug_prefix}-{raw_slug}"
+        same_slug_count = 0
+        slug = raw_slug
+        while self.slug_exists(slug) or slug in [
+            self.slug_prefix,
+            *self.reserved_slugs,
+        ]:
+            same_slug_count += 1
+            slug = f"{raw_slug}-{same_slug_count}"
+        return slug

@@ -417,6 +417,55 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
         tag_classification = TagClassificationFactory(title="enabled for skills")
         self.assertEqual(tag_classification.slug, "enabled-for-skills-1")
 
+    def test_outdated_slug(self):
+        self.client.force_authenticate(self.superadmin)
+
+        title_a = "title-a"
+        title_b = "title-b"
+        title_c = "title-c"
+        tag_classification = TagClassificationFactory(
+            title=title_a, organization=self.organization
+        )
+
+        # Check that the slug is updated and the old one is stored in outdated_slugs
+        payload = {"title": title_b}
+        response = self.client.patch(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, tag_classification.id),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        tag_classification.refresh_from_db()
+        self.assertEqual(tag_classification.slug, "title-b")
+        self.assertSetEqual({"title-a"}, set(tag_classification.outdated_slugs))
+
+        # Check that multiple_slug is correctly updated
+        payload = {"title": title_c}
+        response = self.client.patch(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, tag_classification.id),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        tag_classification.refresh_from_db()
+        self.assertEqual(tag_classification.slug, "title-c")
+        self.assertSetEqual(
+            {"title-a", "title-b"}, set(tag_classification.outdated_slugs)
+        )
+
+        # Check that outdated_slugs respect unicity
+        payload = {"title": title_a, "description": faker.sentence()}
+        response = self.client.post(
+            reverse("TagClassification-list", args=(self.organization.code,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(content["slug"], "title-a-1")
+
     def test_multiple_lookups(self):
         tag_classification = TagClassificationFactory(organization=self.organization)
         response = self.client.get(

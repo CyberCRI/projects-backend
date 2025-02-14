@@ -9,7 +9,7 @@ from django.db.models import QuerySet
 from django.http import Http404
 from simple_history.models import HistoricalRecords
 
-from apps.commons.models import Language, OrganizationRelated, PermissionsSetupModel
+from apps.commons.models import HasPermissionsSetup, Language, OrganizationRelated
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
-class Organization(PermissionsSetupModel, OrganizationRelated):
+class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
     """An Organization is a set of ProjectCategories contained in an OrganizationDirectory.
 
     Attributes
@@ -168,6 +168,7 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    permissions_up_to_date = models.BooleanField(default=False)
 
     class Meta:
         subscopes = (

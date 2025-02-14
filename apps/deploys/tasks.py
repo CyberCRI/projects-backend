@@ -7,7 +7,7 @@ from apps.accounts.utils import (
     get_superadmins_group,
     get_superadmins_group_permissions,
 )
-from apps.commons.models import PermissionsSetupModel
+from apps.commons.models import HasPermissionsSetup
 from apps.skills.models import TagClassification
 from projects.celery import app
 
@@ -65,7 +65,7 @@ def base_groups_permissions():
 
 @app.task
 def instance_groups_permissions():
-    permissions_setup_models = PermissionsSetupModel.__subclasses__()
+    permissions_setup_models = HasPermissionsSetup.__subclasses__()
     for permissions_setup_model in permissions_setup_models:
         permissions_setup_model.objects.all().update(permissions_up_to_date=False)
     for permissions_setup_model in permissions_setup_models:

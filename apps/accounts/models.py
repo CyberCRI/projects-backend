@@ -13,7 +13,6 @@ from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
 from django.http import Http404
 from django.utils import timezone
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
 
@@ -27,9 +26,9 @@ from apps.commons.models import (
     SDG,
     HasMultipleIDs,
     HasOwner,
+    HasPermissionsSetup,
     Language,
     OrganizationRelated,
-    PermissionsSetupModel,
 )
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
@@ -40,7 +39,9 @@ from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 
 
-class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
+class PeopleGroup(
+    HasMultipleIDs, HasPermissionsSetup, OrganizationRelated, models.Model
+):
     """
     A group of users.
     This model is used to group people together, for example to display them on a page.
@@ -75,6 +76,9 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             The visibility setting of the group.
     """
 
+    slugified_fields: List[str] = ["name"]
+    slug_prefix: str = "group"
+
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a people group."""
 
@@ -91,6 +95,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
 
     name = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     description = models.TextField(blank=True)
     short_description = models.TextField(blank=True)
     email = models.EmailField(blank=True)
@@ -131,6 +136,7 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
     is_root = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    permissions_up_to_date = models.BooleanField(default=False)
 
     def __str__(self) -> str:
         return str(self.name)
@@ -273,30 +279,6 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
             self.managers.all() | self.members.all() | self.leaders.all()
         ).distinct()
 
-    def get_slug(self) -> str:
-        if self.slug == "":
-            name = self.name
-            if name == "":
-                name = "group"
-            raw_slug = slugify(name[0:46])
-            try:
-                int(raw_slug)
-                raw_slug = f"group-{raw_slug}"  # Prevent clashes with IDs
-            except ValueError:
-                pass
-            slug = raw_slug
-            same_slug_count = 0
-            while PeopleGroup.objects.filter(slug=slug).exists():
-                same_slug_count += 1
-                slug = f"{raw_slug}-{same_slug_count}"
-            return slug
-        return self.slug
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        self.slug = self.get_slug()
-        super().save(*args, **kwargs)
-
     class Meta:
         constraints = [
             UniqueConstraint(
@@ -307,10 +289,13 @@ class PeopleGroup(HasMultipleIDs, PermissionsSetupModel, OrganizationRelated):
         ]
 
 
-class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
+class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
     """
     Override Django base user by a user of projects app
     """
+
+    slugified_fields: List[str] = ["given_name", "family_name"]
+    slug_prefix: str = "user"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -343,6 +328,7 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
     given_name = models.CharField(max_length=255, blank=True)
     family_name = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     groups = models.ManyToManyField(Group, related_name="users")
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
@@ -717,41 +703,6 @@ class ProjectUser(AbstractUser, HasMultipleIDs, HasOwner, OrganizationRelated):
             for permission in group_permissions
         ]
         return list(set(groups_permissions))
-
-    def get_slug(self) -> str:
-        """
-        Generates a unique slug for the user based on their first and last names.
-        If the generated slug already exists, a numerical suffix is appended for uniqueness.
-        If the slug is purely numerical, "-1" is appended to prevent clashes with IDs.
-        If the slug is an uuid, "-1" is appended to prevent clashes with keycloak_ids.
-        """
-        if self.slug == "":
-            full_name = self.get_full_name()
-            if full_name == "":
-                full_name = self.email.split("@")[0] or "user"
-            raw_slug = slugify(full_name[0:46])
-            try:
-                int(raw_slug)
-                raw_slug = f"user-{raw_slug}"  # Prevent clashes with IDs
-            except ValueError:
-                pass
-            try:
-                uuid.UUID(raw_slug)
-                raw_slug = f"user-{raw_slug}"  # Prevent clashes with keycloak_ids
-            except ValueError:
-                pass
-            slug = raw_slug
-            same_slug_count = 0
-            while ProjectUser.objects.filter(slug=slug).exists():
-                same_slug_count += 1
-                slug = f"{raw_slug}-{same_slug_count}"
-            return slug
-        return self.slug
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        self.slug = self.get_slug()
-        super().save(*args, **kwargs)
 
     def get_or_create_score(self) -> "UserScore":
         score, created = UserScore.objects.get_or_create(user=self)
