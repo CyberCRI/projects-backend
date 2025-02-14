@@ -67,6 +67,9 @@ class SkillFactory(factory.django.DjangoModelFactory):
 
 
 class MentoreeCreatedMentoringFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
     mentor = factory.SubFactory(UserFactory)
     mentoree = factory.SubFactory(UserFactory)
     skill = factory.LazyAttribute(
@@ -79,6 +82,9 @@ class MentoreeCreatedMentoringFactory(factory.django.DjangoModelFactory):
 
 
 class MentorCreatedMentoringFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
     mentor = factory.SubFactory(UserFactory)
     mentoree = factory.SubFactory(UserFactory)
     skill = factory.LazyAttribute(

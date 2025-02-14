@@ -35,8 +35,8 @@ class ViewMentoringTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.mentoring = MentorCreatedMentoringFactory()
-        MentoreeCreatedMentoringFactory()
+        cls.mentoring = MentorCreatedMentoringFactory(organization=cls.organization)
+        MentoreeCreatedMentoringFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -146,6 +146,7 @@ class CreateMentoringTestCase(JwtAPITestCase):
             mentoring = Mentoring.objects.filter(id=content["id"])
             self.assertTrue(mentoring.exists())
             mentoring = mentoring.get()
+            self.assertEqual(mentoring.organization, self.organization)
             self.assertEqual(mentoring.mentor, self.mentor)
             self.assertEqual(mentoring.mentoree, user)
             self.assertEqual(mentoring.skill, self.mentor_skill)
@@ -191,6 +192,7 @@ class CreateMentoringTestCase(JwtAPITestCase):
             mentoring = Mentoring.objects.filter(id=content["id"])
             self.assertTrue(mentoring.exists())
             mentoring = mentoring.get()
+            self.assertEqual(mentoring.organization, self.organization)
             self.assertEqual(mentoring.mentor, user)
             self.assertEqual(mentoring.mentoree, self.mentoree)
             self.assertEqual(mentoring.skill, self.mentoree_skill)
@@ -208,8 +210,12 @@ class RespondToMentoringTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.mentor_created = MentorCreatedMentoringFactory()
-        cls.mentoree_created = MentoreeCreatedMentoringFactory()
+        cls.mentor_created = MentorCreatedMentoringFactory(
+            organization=cls.organization
+        )
+        cls.mentoree_created = MentoreeCreatedMentoringFactory(
+            organization=cls.organization
+        )
 
     @parameterized.expand(
         [
@@ -465,7 +471,7 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         )
 
     def test_update_mentoring_status_with_invalid_status(self):
-        mentoring = MentoreeCreatedMentoringFactory()
+        mentoring = MentoreeCreatedMentoringFactory(organization=self.organization)
         self.client.force_authenticate(mentoring.mentor)
         payload = {
             "status": faker.word(),

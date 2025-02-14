@@ -1,0 +1,10 @@
+{% load i18n %}
+{% blocktranslate with user=sender.get_full_name %}
+Do you want to be mentored in {{ skill }}? (reminder)
+
+{{ user }} sent you a message on the Projects platform and it looks like you haven't responded yet. Good news, it's not too late :)
+
+{{ content }}
+
+Reply : {{ organization.website_url }}/mentorship/respond/{{ instance.id }}
+{% endblocktranslate %}

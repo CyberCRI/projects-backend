@@ -244,8 +244,6 @@ class Image(
             return [self.organization_banner.get()]
         if self.organizations.exists():
             return [self.organizations.get()]
-        if self.faqs.exists():
-            return [self.faqs.get().organization]
         if self.project_category.exists():
             return [self.project_category.get().organization]
         if self.project_header.exists():

@@ -271,7 +271,9 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             },
         )
 
-    def test_update_with_same_link(self):
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_update_with_same_link(self, mocked):
+        mocked.return_value = MockResponse()
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         payload = {"site_url": self.url}

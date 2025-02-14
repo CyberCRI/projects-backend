@@ -17,7 +17,7 @@ CELERY_BEAT_SCHEDULE["send_notifications_reminder"] = {  # noqa: F405
 #  MIXPANEL  #
 ##############
 
-MIXPANEL_PROJECT_ID = "2560711"
+MIXPANEL_PROJECT_ID = "3580268"
 
 ##############
 #   GOOGLE   #

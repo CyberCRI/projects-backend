@@ -19,26 +19,6 @@ if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
-class Faq(models.Model, OrganizationRelated):
-    """Frequently asked question of an organization.
-
-    title: CharField
-        Name of the FAQ.
-    content: TextField
-        Content of the FAQ.
-    images: ManyToManyField
-        Images used by the FAQ.
-    """
-
-    title = models.CharField(max_length=255)
-    images = models.ManyToManyField("files.Image", related_name="faqs")
-    content = models.TextField(blank=True)
-
-    def get_related_organizations(self) -> List["Organization"]:
-        """Return the organization related to this model."""
-        return [self.organization]
-
-
 class Organization(PermissionsSetupModel, OrganizationRelated):
     """An Organization is a set of ProjectCategories contained in an OrganizationDirectory.
 
@@ -70,8 +50,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         Main language of the organization.
     website_url: CharField
         Organization's website.
-    faq: OneToOneField, optional
-        The organization's frequently asked questions.
     is_logo_visible_on_parent_dashboard: BooleanField
         Whether to show or hide the organization's logo on the main
         organization's portal.
@@ -145,16 +123,12 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         "files.Image", related_name="organizations", blank=True
     )
 
-    faq = models.OneToOneField(
-        Faq, on_delete=models.SET_NULL, null=True, related_name="organization"
-    )
     identity_providers = models.ManyToManyField(
         "keycloak.IdentityProvider", related_name="organizations", blank=True
     )
     featured_projects = models.ManyToManyField(
         "projects.Project", related_name="org_featured_projects", blank=True
     )
-    wikipedia_tags = models.ManyToManyField("misc.WikipediaTag", blank=True)
     default_projects_tags = models.ManyToManyField(
         "skills.Tag",
         related_name="default_organizations_projects",
@@ -208,7 +182,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
         write_only_subscopes = (
             ("tag", "tags"),
             ("tagclassification", "tag classifications"),
-            ("faq", "faqs"),
             ("projectcategory", "project categories"),
             ("review", "reviews"),
             ("comment", "comments"),
@@ -265,7 +238,6 @@ class Organization(PermissionsSetupModel, OrganizationRelated):
                 for subscope in [
                     "tag",
                     "review",
-                    "faq",
                     "projectcategory",
                     "tagclassification",
                 ]
@@ -440,13 +412,6 @@ class ProjectCategory(models.Model, OrganizationRelated):
     )
     is_reviewable = models.BooleanField(default=True)
     order_index = models.SmallIntegerField(default=0)
-    # TODO: Skill update - remove wikipedia_tags and organization_tags
-    wikipedia_tags = models.ManyToManyField(
-        "misc.WikipediaTag", related_name="project_categories"
-    )
-    organization_tags = models.ManyToManyField(
-        "misc.Tag", related_name="project_categories"
-    )
     tags = models.ManyToManyField(
         "skills.Tag",
         related_name="project_categories",

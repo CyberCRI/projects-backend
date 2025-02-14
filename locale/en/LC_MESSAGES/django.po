@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-01-20 14:09+0100\n"
+"POT-Creation-Date: 2025-02-14 11:15+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,19 +108,19 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:130 apps/projects/models.py:166
+#: apps/accounts/models.py:129 apps/projects/models.py:165
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:827
+#: apps/accounts/models.py:817
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:828
+#: apps/accounts/models.py:818
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:829
+#: apps/accounts/models.py:819
 msgid "Public"
 msgstr ""
 
@@ -1199,35 +1199,27 @@ msgstr ""
 msgid "A message cannot be a reply to itself"
 msgstr ""
 
-#: apps/projects/models.py:150
+#: apps/projects/models.py:149
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:159
+#: apps/projects/models.py:158
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:172
+#: apps/projects/models.py:171
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:183
+#: apps/projects/models.py:182
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:191
-msgid "wikipedia tags"
-msgstr ""
-
-#: apps/projects/models.py:194
-msgid "organizational tags"
-msgstr ""
-
-#: apps/projects/models.py:207
+#: apps/projects/models.py:199
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:213
+#: apps/projects/models.py:205
 msgid "main category"
 msgstr ""
 
@@ -1304,6 +1296,10 @@ msgstr ""
 
 #: apps/skills/templates/contact_mentor/mail.html:30
 #: apps/skills/templates/contact_mentoree/mail.html:30
+#: apps/skills/templates/reminder_mentor_10_days/mail.html:30
+#: apps/skills/templates/reminder_mentor_3_days/mail.html:30
+#: apps/skills/templates/reminder_mentoree_10_days/mail.html:30
+#: apps/skills/templates/reminder_mentoree_3_days/mail.html:30
 msgid ""
 "\n"
 "            Reply\n"
@@ -1419,8 +1415,9 @@ msgstr ""
 #: apps/skills/templates/mentoree_response_pending/mail.html:19
 #, python-format
 msgid ""
-"\n"
-"            %(user)s has left the following message:\n"
+"    \n"
+"            %(user)s has left the following message. You can contact them at "
+"%(email)s.\n"
 "            "
 msgstr ""
 
@@ -1430,6 +1427,8 @@ msgid ""
 "\n"
 "%(user)s needs more information to mentor you in %(skill)s.\n"
 " \n"
+"%(user)s has left the following message. You can contact them at %(email)s.\n"
+"\n"
 "%(content)s\n"
 "\n"
 "Reply to %(user)s : %(email)s\n"
@@ -1530,6 +1529,8 @@ msgid ""
 "\n"
 "%(user)s needs more information to be your mentoree in %(skill)s.\n"
 " \n"
+"%(user)s has left the following message. You can contact them at %(email)s.\n"
+"\n"
 "%(content)s\n"
 "\n"
 "Reply to %(user)s : %(email)s\n"
@@ -1797,6 +1798,142 @@ msgid ""
 "          <br/>\n"
 "          The Projects team\n"
 "          "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_10_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Can you mentor me in %(skill)s? (last reminder)\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_10_days/mail.html:19
+#: apps/skills/templates/reminder_mentoree_10_days/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            It's the last time we'll share this message that %(user)s has "
+"left for you on the Projects platform.\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_10_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s? (last reminder)\n"
+"\n"
+"It's the last time we'll share this message that %(user)s has left for you "
+"on the Projects platform.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_10_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor %(mentoree_name)s? (last reminder)\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_3_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Can you mentor me in %(skill)s? (reminder)\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_3_days/mail.html:19
+#: apps/skills/templates/reminder_mentoree_3_days/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            %(user)s sent you a message on the Projects platform and it "
+"looks like you haven't responded yet. Good news, it's not too late :)\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_3_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s? (reminder)\n"
+"\n"
+"%(user)s sent you a message on the Projects platform and it looks like you "
+"haven't responded yet. Good news, it's not too late :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentor_3_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor %(mentoree_name)s? (reminder)\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentoree_10_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s? (last reminder)\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentoree_10_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (last reminder)\n"
+"\n"
+"It's the last time we'll share this message that %(user)s has left for you "
+"on the Projects platform.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentoree_10_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (last reminder)\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentoree_3_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s? (reminder)\n"
+"            "
+msgstr ""
+
+#: apps/skills/templates/reminder_mentoree_3_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (reminder)\n"
+"\n"
+"%(user)s sent you a message on the Projects platform and it looks like you "
+"haven't responded yet. Good news, it's not too late :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+
+#: apps/skills/templates/reminder_mentoree_3_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (reminder)\n"
 msgstr ""
 
 #: projects/settings/base.py:268

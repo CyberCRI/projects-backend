@@ -34,9 +34,6 @@ organizations_nested_router = routers.NestedSimpleRouter(
     organizations_router, r"organization", lookup="organization"
 )
 organizations_nested_router.register(
-    r"faq-image", views.FaqImagesView, basename="Faq-images"
-)
-organizations_nested_router.register(
     r"banner", views.OrganizationBannerView, basename="Organization-banner"
 )
 organizations_nested_router.register(
@@ -57,9 +54,6 @@ organizations_nested_router.register(
 
 details_only_organizations_nested_router = DetailOnlyNestedRouter(
     organizations_router, r"organization", lookup="organization"
-)
-details_only_organizations_nested_router.register(
-    r"faq", views.FaqViewSet, basename="Faq"
 )
 
 details_only_people_groups_nested_router = DetailOnlyNestedRouter(

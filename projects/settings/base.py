@@ -451,6 +451,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.notify_pending_access_requests",
         "schedule": crontab(minute=0, hour=9),
     },
+    "send_mentoring_reminder": {
+        "task": "apps.skills.tasks.mentoring_reminder",
+        "schedule": crontab(minute=0, hour=17),
+    },
     "send_notifications_reminder": {
         "task": "apps.notifications.tasks.send_notifications_reminder",
         "schedule": crontab(minute=0, hour=18),
@@ -559,7 +563,6 @@ JWT_ACCESS_TOKEN_COOKIE_NAME = "jwt_access_token"  # nosec
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 
 # Django guardian custom setup
-# TODO : django-guardian rework : can't remove additional_actions for now
 options.DEFAULT_NAMES += (
     "subscopes",
     "write_only_subscopes",

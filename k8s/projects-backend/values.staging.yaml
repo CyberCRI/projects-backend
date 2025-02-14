@@ -13,8 +13,8 @@ config:
     KEYCLOAK_SERVER_URL: https://keycloak.k8s.lp-i.dev/
     KEYCLOAK_PUBLIC_KEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAhmgO2vMFDfpb1fgHrrzUqKdIqkPWhCCopZQmcqdSTEA/hvcjYatzeT1fFHWJGHQ8LbuSF+JZgzMX76yBVsrHq3we4chJ/l0sg8Kv0PXTbDeVsPOsEQewQrJDN/HW+Zk2WbSAfyRkS6q7UI1gBOFyNx8qDP9L9878dFsjh0duL2lCp2HGeOgZ41sdPc3SSwmaF9uxpmViEcDSGHYzhtXZLSh2t5FEviznRanxnQG/LuXr5lluqN2AQGrXuycAOnH2Jsdnqht+5pAu2BkcYjeYmwteA8eq9xCaPapiG8ulYgQR9hUeWqwT4EpFM8tbVoZI7XqbrEdi4PX/zl1DIjHf5QIDAQAB
     KEYCLOAK_REALM: lp-staging
-    MJML_HTTPSERVER_URL: http://mjml-server.stag-test-mjml/v1/render
     ENVIRONMENT: staging
+    OPENSEARCH_USERNAME: projects-staging
     OPENSEARCH_INDEX_PREFIX: "proj-staging"
 
 hostname: api.projects.k8s.lp-i.xyz

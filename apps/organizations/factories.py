@@ -5,7 +5,7 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.commons.factories import language_factory
 from apps.commons.utils import get_test_image
-from apps.organizations.models import Faq, Organization, ProjectCategory, Template
+from apps.organizations.models import Organization, ProjectCategory, Template
 
 faker = Faker()
 
@@ -42,24 +42,6 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     def with_admin(self, create, extracted, **kwargs):
         if create and extracted is True:
             UserFactory(groups=[self.get_admins()])
-
-
-class FaqFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Faq
-
-    title = factory.Faker("text", max_nb_chars=50)
-    content = factory.Faker("text")
-    organization = factory.LazyFunction(
-        lambda: OrganizationFactory()
-    )  # Subfactory seems to not trigger `create()`
-
-    @classmethod
-    def create(cls, **kwargs):
-        instance = super().create(**kwargs)
-        instance.organization.faq = instance
-        instance.organization.save()
-        return instance
 
 
 class TemplateFactory(factory.django.DjangoModelFactory):
