@@ -1,10 +1,12 @@
+from unittest.mock import patch
+
 from django.contrib.auth.models import Group
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
@@ -511,7 +513,7 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
         )
         cls.retrieved_people_group.featured_projects.add(
             cls.retrieved_featured_group_project,
-            *list(cls.retrieved_featured_projects.values())
+            *list(cls.retrieved_featured_projects.values()),
         )
         cls.retrieved_featured_group_project.member_groups.add(
             cls.retrieved_people_group
@@ -678,6 +680,175 @@ class PeopleGroupFeaturedProjectTestCase(JwtAPITestCase):
             elif project["id"] in [p.id for p in group_projects.values()]:
                 self.assertFalse(project["is_featured"])
                 self.assertTrue(project["is_group_project"])
+
+
+class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.project = ProjectFactory(organizations=[cls.organization])
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+        cls.user_1 = UserFactory()
+        cls.user_2 = UserFactory()
+        cls.user_3 = UserFactory()
+
+    @parameterized.expand(
+        [
+            (Project.DefaultGroup.MEMBER_GROUPS,),
+            (Project.DefaultGroup.OWNER_GROUPS,),
+            (Project.DefaultGroup.REVIEWER_GROUPS,),
+        ]
+    )
+    def test_assign_role_on_project_group_member_changer(self, project_role):
+        self.client.force_authenticate(user=self.superadmin)
+        people_group = PeopleGroupFactory(organization=self.organization)
+        people_group.members.add(self.user_1)
+        people_group.managers.add(self.user_2)
+        people_group.leaders.add(self.user_3)
+        payload = {
+            project_role: [people_group.id],
+        }
+        response = self.client.post(
+            reverse("Project-add-member", args=(self.project.id,)),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.project.refresh_from_db()
+        for user in [self.user_1, self.user_2, self.user_3]:
+            self.assertIn(user, getattr(self.project, f"{project_role}_users").all())
+        payload = {
+            "people_groups": [people_group.id],
+        }
+        response = self.client.post(
+            reverse("Project-remove-member", args=(self.project.id,)),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.project.refresh_from_db()
+        for user in [self.user_1, self.user_2, self.user_3]:
+            self.assertNotIn(user, getattr(self.project, f"{project_role}_users").all())
+
+    @parameterized.expand(
+        [
+            (Project.DefaultGroup.MEMBER_GROUPS,),
+            (Project.DefaultGroup.OWNER_GROUPS,),
+            (Project.DefaultGroup.REVIEWER_GROUPS,),
+        ]
+    )
+    def test_assign_role_on_group_member_changer(self, project_role):
+        self.client.force_authenticate(user=self.superadmin)
+        people_group = PeopleGroupFactory(organization=self.organization)
+        getattr(self.project, f"get_{project_role}")().people_groups.add(people_group)
+        payload = {
+            PeopleGroup.DefaultGroup.LEADERS: [self.user_1.id],
+            PeopleGroup.DefaultGroup.MANAGERS: [self.user_2.id],
+            PeopleGroup.DefaultGroup.MEMBERS: [self.user_3.id],
+        }
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-add-member", args=(self.organization.code, people_group.id)
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.project.refresh_from_db()
+        for user in [self.user_1, self.user_2, self.user_3]:
+            self.assertIn(user, getattr(self.project, f"{project_role}_users").all())
+        payload = {
+            "users": [self.user_1.id, self.user_2.id, self.user_3.id],
+        }
+        response = self.client.post(
+            reverse(
+                "PeopleGroup-remove-member",
+                args=(self.organization.code, people_group.id),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.project.refresh_from_db()
+        for user in [self.user_1, self.user_2, self.user_3]:
+            self.assertNotIn(user, getattr(self.project, f"{project_role}_users").all())
+
+    @parameterized.expand(
+        [
+            (Project.DefaultGroup.MEMBER_GROUPS,),
+            (Project.DefaultGroup.OWNER_GROUPS,),
+            (Project.DefaultGroup.REVIEWER_GROUPS,),
+        ]
+    )
+    def test_assign_role_on_user_roles_update(self, project_role):
+        self.client.force_authenticate(user=self.superadmin)
+        people_group = PeopleGroupFactory(organization=self.organization)
+        user = SeedUserFactory()
+        for group in [
+            people_group.get_members(),
+            people_group.get_managers(),
+            people_group.get_leaders(),
+        ]:
+            getattr(self.project, f"get_{project_role}")().people_groups.add(
+                people_group
+            )
+            payload = {
+                "roles_to_add": [group.name],
+            }
+            response = self.client.patch(
+                reverse("ProjectUser-detail", args=(user.id,)),
+                payload,
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.project.refresh_from_db()
+            self.assertIn(user, getattr(self.project, f"{project_role}_users").all())
+            payload = {
+                "roles_to_remove": [group.name],
+            }
+            response = self.client.patch(
+                reverse("ProjectUser-detail", args=(user.id,)),
+                payload,
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            self.project.refresh_from_db()
+            self.assertNotIn(user, getattr(self.project, f"{project_role}_users").all())
+
+    @parameterized.expand(
+        [
+            (Project.DefaultGroup.MEMBER_GROUPS,),
+            (Project.DefaultGroup.OWNER_GROUPS,),
+            (Project.DefaultGroup.REVIEWER_GROUPS,),
+        ]
+    )
+    @patch("services.keycloak.interface.KeycloakService.send_email")
+    def test_assign_role_on_user_create(self, project_role, mocked):
+        mocked.return_value = {}
+        self.client.force_authenticate(user=self.superadmin)
+        people_group = PeopleGroupFactory(organization=self.organization)
+        for group in [
+            people_group.get_members(),
+            people_group.get_managers(),
+            people_group.get_leaders(),
+        ]:
+            getattr(self.project, f"get_{project_role}")().people_groups.add(
+                people_group
+            )
+            payload = {
+                "email": f"{faker.uuid4()}@{faker.domain_name()}",
+                "given_name": faker.first_name(),
+                "family_name": faker.last_name(),
+                "roles_to_add": [self.organization.get_users().name, group.name],
+            }
+            response = self.client.post(
+                reverse("ProjectUser-list"),
+                payload,
+            )
+            self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+            content = response.json()
+            self.project.refresh_from_db()
+            self.assertIn(
+                content["id"],
+                getattr(self.project, f"{project_role}_users").values_list(
+                    "id", flat=True
+                ),
+            )
 
 
 class ValidatePeopleGroupTestCase(JwtAPITestCase):

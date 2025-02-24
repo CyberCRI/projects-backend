@@ -262,22 +262,29 @@ class PeopleGroup(
         return self.get_or_create_group(self.DefaultGroup.LEADERS)
 
     @property
-    def managers(self) -> List["ProjectUser"]:
+    def managers(self) -> QuerySet["ProjectUser"]:
         return self.get_managers().users
 
     @property
-    def members(self) -> List["ProjectUser"]:
+    def members(self) -> QuerySet["ProjectUser"]:
         return self.get_members().users
 
     @property
-    def leaders(self) -> List["ProjectUser"]:
+    def leaders(self) -> QuerySet["ProjectUser"]:
         return self.get_leaders().users
 
-    def get_all_members(self) -> List["ProjectUser"]:
+    def get_all_members(self) -> QuerySet["ProjectUser"]:
         """Return the all members."""
         return (
             self.managers.all() | self.members.all() | self.leaders.all()
         ).distinct()
+
+    def set_role_groups_members(self):
+        projects = Project.objects.filter(groups__people_groups=self).distinct()
+        if projects.exists():
+            for project in projects:
+                for group in project.groups.filter(people_groups=self):
+                    project.set_role_group_members(group)
 
     class Meta:
         constraints = [
