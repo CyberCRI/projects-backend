@@ -14,6 +14,7 @@ from apps.commons.fields import (
     PrivacySettingProtectedMethodField,
     UserMultipleIdRelatedField,
 )
+from apps.commons.models import HasPermissionsSetup
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -277,6 +278,7 @@ class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
             for user in users:
                 user.groups.remove(*people_group.groups.filter(users=user))
                 user.groups.add(group)
+        people_group.set_role_groups_members()
         people_group.save()  # Trigger reindexing
         return validated_data
 
@@ -294,6 +296,7 @@ class PeopleGroupRemoveTeamMembersSerializer(serializers.Serializer):
         users = validated_data.get("users", [])
         for user in users:
             user.groups.remove(*people_group.groups.filter(users=user))
+        people_group.set_role_groups_members()
         people_group.save()  # Trigger reindexing
         return validated_data
 
@@ -620,6 +623,37 @@ class UserSerializer(serializers.ModelSerializer):
             "is_leader": False,
         }
 
+    def _validate_role(
+        self,
+        group: Group,
+        request_user: ProjectUser,
+        instance: Optional[HasPermissionsSetup] = None,
+    ):
+        instance = instance or get_instance_from_group(group)
+        if not instance or (
+            isinstance(instance, Project) and group.people_groups.exists()
+        ):
+            raise UserRoleAssignmentError(group.name)
+        content_type = ContentType.objects.get_for_model(instance)
+        if not any(
+            [
+                request_user.has_perm(
+                    f"{content_type.app_label}.change_{content_type.model}"
+                ),
+                request_user.has_perm(
+                    f"{content_type.app_label}.change_{content_type.model}",
+                    instance,
+                ),
+                *[
+                    request_user.has_perm(
+                        f"organizations.change_{content_type.model}", organization
+                    )
+                    for organization in instance.get_related_organizations()
+                ],
+            ]
+        ):
+            raise UserRolePermissionDeniedError(group.name)
+
     def validate_roles(self, groups: List[Group]) -> List[Group]:
         request = self.context.get("request")
         user = request.user
@@ -633,35 +667,38 @@ class UserSerializer(serializers.ModelSerializer):
             if self.instance
             else []
         )
-        for group in groups_to_add + groups_to_remove:
+        additional_groups_to_add = []
+        additional_groups_to_remove = []
+        for group in groups_to_add:
             instance = get_instance_from_group(group)
-            if not instance or (
-                isinstance(instance, Project) and group.people_groups.exists()
-            ):
-                raise UserRoleAssignmentError(group.name)
-            content_type = ContentType.objects.get_for_model(instance)
-            if not any(
-                [
-                    user.has_perm(
-                        f"{content_type.app_label}.change_{content_type.model}"
-                    ),
-                    user.has_perm(
-                        f"{content_type.app_label}.change_{content_type.model}",
-                        instance,
-                    ),
-                    *[
-                        user.has_perm(
-                            f"organizations.change_{content_type.model}", organization
-                        )
-                        for organization in instance.get_related_organizations()
-                    ],
-                ]
-            ):
-                raise UserRolePermissionDeniedError(group.name)
+            self._validate_role(group, user, instance)
+            if isinstance(instance, PeopleGroup):
+                group_projects = Project.objects.filter(groups__people_groups=instance)
+                group_projects_roles = Group.objects.filter(
+                    projects__in=group_projects, people_groups=instance
+                ).distinct()
+                additional_groups_to_add += list(group_projects_roles)
+        for group in groups_to_remove:
+            instance = get_instance_from_group(group)
+            self._validate_role(group, user, instance)
+            if isinstance(instance, PeopleGroup):
+                group_projects = Project.objects.filter(groups__people_groups=instance)
+                group_projects_roles = Group.objects.filter(
+                    projects__in=group_projects, people_groups=instance
+                ).distinct()
+                additional_groups_to_remove += list(group_projects_roles)
         default_group = get_default_group()
         if default_group not in groups:
             groups.append(default_group)
-        return groups
+        return list(
+            set(
+                [
+                    group
+                    for group in groups + additional_groups_to_add
+                    if group not in additional_groups_to_remove
+                ]
+            )
+        )
 
     def get_permissions(self, user: ProjectUser) -> List[str]:
         return user.get_instance_permissions_representations()
