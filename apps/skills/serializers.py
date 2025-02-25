@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
+from rest_framework.fields import empty
 
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
 from apps.commons.serializers import LazySerializer, TranslatedModelSerializer
@@ -263,7 +264,15 @@ class SkillSerializer(serializers.ModelSerializer):
 
 class MentoringContactSerializer(serializers.Serializer):
     content = serializers.CharField()
-    reply_to = serializers.EmailField()
+    reply_to = serializers.EmailField(required=False)
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance=instance, data=data, **kwargs)
+        reply_to = self.initial_data.get("reply_to", None)
+        if not reply_to:
+            context = self.context
+            user = context.get("request").user
+            self.initial_data["reply_to"] = user.email
 
 
 class MentoringResponseSerializer(serializers.Serializer):
@@ -271,7 +280,15 @@ class MentoringResponseSerializer(serializers.Serializer):
         choices=Mentoring.MentoringStatus.choices, required=True
     )
     content = serializers.CharField()
-    reply_to = serializers.EmailField()
+    reply_to = serializers.EmailField(required=False)
+
+    def __init__(self, instance=None, data=empty, **kwargs):
+        super().__init__(instance=instance, data=data, **kwargs)
+        reply_to = self.initial_data.get("reply_to", None)
+        if not reply_to:
+            context = self.context
+            user = context.get("request").user
+            self.initial_data["reply_to"] = user.email
 
 
 class MentoringSerializer(serializers.ModelSerializer):

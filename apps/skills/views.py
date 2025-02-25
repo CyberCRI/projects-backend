@@ -673,8 +673,13 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
             ).distinct()
         return self.queryset.none()
 
-    def get_skill_name(self, skill: Skill, language: str):
-        return getattr(skill.tag, f"title_{language}", skill.tag.title)
+    @staticmethod
+    def get_skill_name(skill: Skill, language: str):
+        for ln in [language, *settings.REQUIRED_LANGUAGES]:
+            skill_name = getattr(skill.tag, f"title_{ln}", None)
+            if skill_name:
+                return skill_name
+        return skill.tag.title
 
     def send_email(
         self, template_folder: str, receiver: ProjectUser, skill: Skill, **kwargs
