@@ -203,10 +203,10 @@ class HasMultipleIDs:
     slug_prefix: str = ""
 
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
         self._original_slug_fields_value = {
             field: getattr(self, field, "") for field in self.slugified_fields
         }
+        super(HasMultipleIDs, self).__init__(*args, **kwargs)
 
     def save(self, *args, **kwargs):
         if not self.slug or any(
