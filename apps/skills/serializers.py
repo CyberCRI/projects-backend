@@ -268,11 +268,12 @@ class MentoringContactSerializer(serializers.Serializer):
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
-        reply_to = self.initial_data.get("reply_to", None)
-        if not reply_to:
-            context = self.context
-            user = context.get("request").user
-            self.initial_data["reply_to"] = user.email
+        if hasattr(self, "initial_data"):
+            reply_to = self.initial_data.get("reply_to", None)
+            if not reply_to and "request" in self.context:
+                context = self.context
+                user = context["request"].user
+                self.initial_data["reply_to"] = user.email
 
 
 class MentoringResponseSerializer(serializers.Serializer):
@@ -284,11 +285,12 @@ class MentoringResponseSerializer(serializers.Serializer):
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
-        reply_to = self.initial_data.get("reply_to", None)
-        if not reply_to:
-            context = self.context
-            user = context.get("request").user
-            self.initial_data["reply_to"] = user.email
+        if hasattr(self, "initial_data"):
+            reply_to = self.initial_data.get("reply_to", None)
+            if not reply_to and "request" in self.context:
+                context = self.context
+                user = context["request"].user
+                self.initial_data["reply_to"] = user.email
 
 
 class MentoringSerializer(serializers.ModelSerializer):
