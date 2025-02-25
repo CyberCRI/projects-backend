@@ -244,6 +244,10 @@ class Project(
     def content_type(self) -> ContentType:
         return ContentType.objects.get_for_model(Project)
 
+    def __init__(self, *args, **kwargs):
+        super(Project, self).__init__(*args, **kwargs)
+        self._original_description = self.description
+
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
         """Get the name of the field which contains the given ID."""
@@ -255,7 +259,9 @@ class Project(
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         if hasattr(self, "stat"):
-            self.stat.update_description_length()
+            if self._original_description != self.description:
+                self.stat.update_description_length()
+            self.stat.update_versions()
 
     def delete(self, using=None, keep_parents=False):
         """
