@@ -21,31 +21,27 @@ class GoogleService:
     A service to interact with the Google API.
     """
 
-    _service = None
-
     @classmethod
     def service(cls):
-        if cls._service is None:
-            scopes = [
-                "https://www.googleapis.com/auth/admin.directory.user",
-                "https://www.googleapis.com/auth/admin.directory.group.member",
-                "https://www.googleapis.com/auth/admin.directory.group",
-                "https://www.googleapis.com/auth/admin.directory.orgunit",
-                "https://www.googleapis.com/auth/admin.directory.user.alias",
-                "https://www.googleapis.com/auth/apps.groups.settings",
-            ]
-            credentials = service_account.Credentials.from_service_account_info(
-                settings.GOOGLE_CREDENTIALS, scopes=scopes
-            )
-            delegated_credentials = credentials.with_subject(
-                settings.GOOGLE_SERVICE_ACCOUNT_EMAIL
-            )
-            cls._service = build(
-                serviceName=settings.GOOGLE_SERVICE_NAME,
-                version=settings.GOOGLE_SERVICE_VERSION,
-                credentials=delegated_credentials,
-            )
-        return cls._service
+        scopes = [
+            "https://www.googleapis.com/auth/admin.directory.user",
+            "https://www.googleapis.com/auth/admin.directory.group.member",
+            "https://www.googleapis.com/auth/admin.directory.group",
+            "https://www.googleapis.com/auth/admin.directory.orgunit",
+            "https://www.googleapis.com/auth/admin.directory.user.alias",
+            "https://www.googleapis.com/auth/apps.groups.settings",
+        ]
+        credentials = service_account.Credentials.from_service_account_info(
+            settings.GOOGLE_CREDENTIALS, scopes=scopes
+        )
+        delegated_credentials = credentials.with_subject(
+            settings.GOOGLE_SERVICE_ACCOUNT_EMAIL
+        )
+        return build(
+            serviceName=settings.GOOGLE_SERVICE_NAME,
+            version=settings.GOOGLE_SERVICE_VERSION,
+            credentials=delegated_credentials,
+        )
 
     @staticmethod
     def text_to_ascii(text):
