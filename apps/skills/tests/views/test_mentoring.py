@@ -24,8 +24,10 @@ from apps.skills.factories import (
     MentorCreatedMentoringFactory,
     MentoreeCreatedMentoringFactory,
     SkillFactory,
+    TagFactory,
 )
 from apps.skills.models import Mentoring, MentoringMessage
+from apps.skills.views import MentoringViewSet
 
 faker = Faker()
 
@@ -492,4 +494,53 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         self.assertApiValidationError(
             response,
             {"status": [f"\"{payload['status']}\" is not a valid choice."]},
+        )
+
+
+class MiscMentoringTestCase(JwtAPITestCase):
+    def test_get_skill_name(self):
+        user = UserFactory()
+
+        tag = TagFactory(title_fr="")
+        skill = SkillFactory(user=user, tag=tag)
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "en"),
+            tag.title_en,
+        )
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "fr"),
+            tag.title_en,
+        )
+
+        tag = TagFactory(title_en="")
+        skill = SkillFactory(user=user, tag=tag)
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "en"),
+            tag.title_fr,
+        )
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "fr"),
+            tag.title_fr,
+        )
+
+        tag = TagFactory()
+        skill = SkillFactory(user=user, tag=tag)
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "en"),
+            tag.title_en,
+        )
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "fr"),
+            tag.title_fr,
+        )
+
+        tag = TagFactory(title_en="", title_fr=None)
+        skill = SkillFactory(user=user, tag=tag)
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "en"),
+            tag.title,
+        )
+        self.assertEqual(
+            MentoringViewSet.get_skill_name(skill, "fr"),
+            tag.title,
         )
