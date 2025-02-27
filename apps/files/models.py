@@ -273,7 +273,17 @@ class Image(
         return []
 
     def get_related_project(self) -> Optional["Project"]:
-        """Return the projects related to this model."""
+        """
+        Return the project related to this model.
+
+        With the current data format, an image should be related to only one project.
+        However, with the old duplication version, the same Image object could be
+        related to multiple projects. In this case, we return the first project
+        found.
+
+        TODO : Actually duplicate the old images to avoid this issue and replace
+        `first()` by `get()`.
+        """
         Project = apps.get_model("projects", "Project")  # noqa
         return (
             Project.objects.filter(
@@ -284,7 +294,7 @@ class Image(
                 | Q(messages__images=self)
             )
             .distinct()
-            .get()
+            .first()
         )
 
     def duplicate(
