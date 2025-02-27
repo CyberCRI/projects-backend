@@ -5,6 +5,8 @@ from django.db.models import Q, QuerySet
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
+from import_export import fields, resources
+from import_export.admin import ExportActionMixin
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_group_permissions
@@ -14,7 +16,34 @@ from apps.organizations.models import Organization
 from services.keycloak.interface import KeycloakService
 
 
-class UserAdmin(RoleBasedAccessAdmin):
+class UserResource(resources.ModelResource):
+    portals = fields.Field()
+
+    class Meta:
+        fields = [
+            "id",
+            "slug",
+            "email",
+            "given_name",
+            "family_name",
+            "job",
+            "portals",
+            "language",
+            "location",
+            "sdgs",
+            "created_at",
+            "last_login",
+        ]
+        model = ProjectUser
+
+    def dehydrate_portals(self, user: ProjectUser):
+        organizations = user.get_related_organizations()
+        return ",".join([f"{o.code}" for o in organizations])
+
+
+class UserAdmin(ExportActionMixin, RoleBasedAccessAdmin):
+    resource_classes = [UserResource]
+
     list_display = (
         "id",
         "keycloak_account_link",
