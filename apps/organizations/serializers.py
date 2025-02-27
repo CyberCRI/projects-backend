@@ -516,6 +516,7 @@ class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
             "background_color",
             "foreground_color",
             "organization",
+            "is_reviewable",
         ]
 
     def get_related_organizations(self) -> List[Organization]:
