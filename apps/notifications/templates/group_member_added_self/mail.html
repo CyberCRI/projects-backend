@@ -15,8 +15,8 @@
           {% endblocktranslate %}
         </mj-text>
         <mj-text font-size="15px" line-height="20px">
-          {% blocktranslate with project_title=project.title project_slug=project.slug full_name=by.get_full_name website_url=project.organizations.first.website_url group=group.name %}
-          {{ full_name }} added the group {{ group }} you are part of to the team of project <a class="lpi-link" href="{{ website_url }}/projects/{{ project_slug }}/summary?fromNotification">{{ project_title }}</a>.
+          {% blocktranslate with project_title=project.title project_slug=project.slug full_name=by.get_full_name website_url=project.organizations.first.website_url group_name=group.name %}
+          {{ full_name }} added the group {{ group_name }} you are part of to the team of project <a class="lpi-link" href="{{ website_url }}/projects/{{ project_slug }}/summary?fromNotification">{{ project_title }}</a>.
           {% endblocktranslate %}
         </mj-text>
       </mj-column>
