@@ -506,6 +506,7 @@ class ProjectCategorySerializer(
 
 
 class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
+    organization = SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
         model = ProjectCategory
@@ -514,6 +515,7 @@ class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
             "name",
             "background_color",
             "foreground_color",
+            "organization",
         ]
 
     def get_related_organizations(self) -> List[Organization]:
