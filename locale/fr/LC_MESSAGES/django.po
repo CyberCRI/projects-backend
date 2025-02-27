@@ -651,7 +651,7 @@ msgid ""
 "you are part of to the team of project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe %(group)s "
+"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe %(group_name)s "
 "dont vous faites partie à l'équipe du projet \"%(project_title)s\".\n"
 
 #: apps/notifications/templates/group_member_added_self/object.txt:2
@@ -662,7 +662,7 @@ msgid ""
 "%(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a ajouté le groupe %(group)s dont vous faites partie à "
+"%(full_name)s a ajouté le groupe %(group_name)s dont vous faites partie à "
 "l'équipe du projet %(project_title)s.\n"
 
 #: apps/notifications/templates/group_member_removed_other/reminder.txt:2
