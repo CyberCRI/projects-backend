@@ -39,6 +39,67 @@ from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 
 
+class Role(models.Model):
+    """
+    This model gives additional information about the role of a user in a group.
+
+    Attributes:
+    ----------
+        ???: ForeignKey
+            The user that has the role.
+        group: ForeignKey
+            The group that gives the role's permissions.
+        type: CharField
+            The type of object the role is related to.
+        name: CharField
+            The name of the role.
+    """
+
+    class RoleType(models.TextChoices):
+        """Type of the role."""
+
+        BASE = "base"
+        PROJECT = "project"
+        PEOPLE_GROUP = "people_group"
+        ORGANIZATION = "organization"
+
+    class RoleName(models.TextChoices):
+        """Name of the role."""
+
+        # Base roles
+        SUPERADMIN = "superadmin"
+        DEFAULT = "default"
+        # Project roles
+        REVIEWER = "reviewer"
+        OWNER = "owner"
+        REVIEWER_GROUP = "reviewer_group"
+        OWNER_GROUP = "owner_group"
+        MEMBER_GROUP = "member_group"
+        # People group roles
+        LEADER = "leader"
+        MANAGER = "manager"
+        # Project + People group role
+        MEMBER = "member"
+        # Organization roles
+        ADMIN = "admin"
+        FACILITATOR = "facilitator"
+        USER = "user"
+
+    user = models.ForeignKey(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="roles"
+    )
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="roles")
+    type = models.CharField(
+        max_length=20, choices=RoleType.choices, blank=True, null=True
+    )
+    name = models.CharField(
+        max_length=20, choices=RoleName.choices, blank=True, null=True
+    )
+
+    def __str__(self) -> str:
+        return f"User {self.user.id} - {self.group.name}"
+
+
 class PeopleGroup(
     HasMultipleIDs, HasPermissionsSetup, OrganizationRelated, models.Model
 ):
@@ -336,7 +397,7 @@ class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
     family_name = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(unique=True)
     outdated_slugs = ArrayField(models.SlugField(), default=list)
-    groups = models.ManyToManyField(Group, related_name="users")
+    groups = models.ManyToManyField(Group, related_name="users", through=Role)
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
