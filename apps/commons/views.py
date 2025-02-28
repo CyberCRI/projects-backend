@@ -5,7 +5,7 @@ from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
-from .models import HasMultipleIDs
+from .mixins import HasMultipleIDs
 
 
 class CreateListDestroyViewSet(

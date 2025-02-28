@@ -22,14 +22,14 @@ from apps.accounts.utils import (
     get_group_permissions,
     get_superadmins_group,
 )
-from apps.commons.models import (
-    SDG,
+from apps.commons.enums import SDG, Language
+from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
-    Language,
     OrganizationRelated,
 )
+from apps.commons.models import GroupData
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -85,13 +85,6 @@ class PeopleGroup(
         PUBLIC = "public"
         PRIVATE = "private"
         ORG = "org"
-
-    class DefaultGroup(models.TextChoices):
-        """Default permission groups of a people group."""
-
-        MEMBERS = "members"
-        MANAGERS = "managers"
-        LEADERS = "leaders"
 
     name = models.CharField(max_length=255, blank=True)
     slug = models.SlugField(unique=True)
@@ -240,26 +233,17 @@ class PeopleGroup(
         else:
             PeopleGroup.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
-    def get_or_create_group(self, name: str) -> Group:
-        """Return the group with the given name."""
-        group, created = Group.objects.get_or_create(
-            name=f"{self.content_type.model}:#{self.pk}:{name}"
-        )
-        if created:
-            self.groups.add(group)
-        return group
-
     def get_managers(self) -> Group:
         """Return the managers group."""
-        return self.get_or_create_group(self.DefaultGroup.MANAGERS)
+        return self.get_or_create_group(GroupData.Role.MANAGERS)
 
     def get_members(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.MEMBERS)
+        return self.get_or_create_group(GroupData.Role.MEMBERS)
 
     def get_leaders(self) -> Group:
         """Return the leaders group."""
-        return self.get_or_create_group(self.DefaultGroup.LEADERS)
+        return self.get_or_create_group(GroupData.Role.LEADERS)
 
     @property
     def managers(self) -> QuerySet["ProjectUser"]:

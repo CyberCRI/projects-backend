@@ -1,6 +1,6 @@
 from factory.fuzzy import FuzzyChoice
 
-from apps.commons.models import SDG, Language
+from apps.commons.enums import SDG, Language
 
 
 def language_factory():

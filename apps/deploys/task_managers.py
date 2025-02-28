@@ -1,6 +1,6 @@
 from typing import Callable
 
-from apps.commons.models import HasPermissionsSetup
+from apps.commons.mixins import HasPermissionsSetup
 
 from .tasks import (
     base_groups_permissions,

@@ -7,7 +7,7 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.models import Language
+from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import ProjectFactory

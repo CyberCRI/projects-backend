@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
@@ -33,7 +34,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         project.owners.add(member)
         payload = {
-            Project.DefaultGroup.MEMBERS: [member.id],
+            GroupData.Role.MEMBERS: [member.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
@@ -43,7 +44,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
             project.pk,
             member.pk,
             owner.pk,
-            Project.DefaultGroup.MEMBERS.value,
+            GroupData.Role.MEMBERS.value,
         )
 
     def test_notification_task(self):
@@ -68,7 +69,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
             project.pk,
             member.pk,
             sender.pk,
-            Project.DefaultGroup.MEMBERS,
+            GroupData.Role.MEMBERS,
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -129,13 +130,13 @@ class UpdatedMemberTestCase(JwtAPITestCase):
             project.pk,
             member_1.pk,
             sender.pk,
-            Project.DefaultGroup.MEMBERS,
+            GroupData.Role.MEMBERS,
         )
         _notify_member_updated(
             project.pk,
             member_2.pk,
             sender.pk,
-            Project.DefaultGroup.REVIEWERS,
+            GroupData.Role.REVIEWERS,
         )
 
         notifications = Notification.objects.filter(project=project)

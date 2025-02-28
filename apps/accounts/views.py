@@ -25,6 +25,7 @@ from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
 
 from apps.commons.filters import UnaccentSearchFilter
+from apps.commons.models import GroupData
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.serializers import EmailAddressSerializer, RetrieveUpdateModelViewSet
 from apps.commons.utils import map_action_to_permission
@@ -134,15 +135,15 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             current_org_role=Case(
                 When(
                     pk__in=organization.admins.values_list("pk", flat=True),
-                    then=Value(Organization.DefaultGroup.ADMINS),
+                    then=Value(GroupData.Role.ADMINS),
                 ),
                 When(
                     pk__in=organization.facilitators.values_list("pk", flat=True),
-                    then=Value(Organization.DefaultGroup.FACILITATORS),
+                    then=Value(GroupData.Role.FACILITATORS),
                 ),
                 When(
                     pk__in=organization.users.values_list("pk", flat=True),
-                    then=Value(Organization.DefaultGroup.USERS),
+                    then=Value(GroupData.Role.USERS),
                 ),
                 default=Value(None),
             )

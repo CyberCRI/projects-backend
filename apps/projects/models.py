@@ -17,16 +17,16 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
-from apps.commons.models import (
-    SDG,
+from apps.commons.enums import SDG, Language
+from apps.commons.mixins import (
     DuplicableModel,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
-    Language,
     OrganizationRelated,
     ProjectRelated,
 )
+from apps.commons.models import GroupData
 from apps.commons.utils import get_write_permissions_from_subscopes
 
 from .exceptions import WrongProjectOrganizationError
@@ -133,18 +133,6 @@ class Project(
         COMPLETED = "completed"
         CANCELED = "canceled"
         TO_REVIEW = "toreview"
-
-    class DefaultGroup(models.TextChoices):
-        """Default permission groups of a project."""
-
-        # Direct membership
-        MEMBERS = "members"
-        OWNERS = "owners"
-        REVIEWERS = "reviewers"
-        # People group membership
-        MEMBER_GROUPS = "member_groups"
-        OWNER_GROUPS = "owner_groups"
-        REVIEWER_GROUPS = "reviewer_groups"
 
     id = models.CharField(
         primary_key=True, auto_created=True, default=uuid_generator, max_length=8
@@ -441,38 +429,29 @@ class Project(
         else:
             Project.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
-    def get_or_create_group(self, name: str) -> Group:
-        """Return the group with the given name."""
-        group, created = Group.objects.get_or_create(
-            name=f"{self.content_type.model}:#{self.pk}:{name}",
-        )
-        if created:
-            self.groups.add(group)
-        return group
-
     def get_owners(self) -> Group:
         """Return the owners group."""
-        return self.get_or_create_group(self.DefaultGroup.OWNERS)
+        return self.get_or_create_group(GroupData.Role.OWNERS)
 
     def get_reviewers(self) -> Group:
         """Return the reviewers group."""
-        return self.get_or_create_group(self.DefaultGroup.REVIEWERS)
+        return self.get_or_create_group(GroupData.Role.REVIEWERS)
 
     def get_members(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.MEMBERS)
+        return self.get_or_create_group(GroupData.Role.MEMBERS)
 
     def get_member_groups(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.MEMBER_GROUPS)
+        return self.get_or_create_group(GroupData.Role.MEMBER_GROUPS)
 
     def get_owner_groups(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.OWNER_GROUPS)
+        return self.get_or_create_group(GroupData.Role.OWNER_GROUPS)
 
     def get_reviewer_groups(self) -> Group:
         """Return the members group."""
-        return self.get_or_create_group(self.DefaultGroup.REVIEWER_GROUPS)
+        return self.get_or_create_group(GroupData.Role.REVIEWER_GROUPS)
 
     @property
     def owners(self) -> QuerySet["ProjectUser"]:

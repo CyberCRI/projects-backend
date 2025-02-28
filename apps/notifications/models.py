@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING
 
 from django.db import models
 
-from apps.commons.models import HasOwner
+from apps.commons.mixins import HasOwner
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser

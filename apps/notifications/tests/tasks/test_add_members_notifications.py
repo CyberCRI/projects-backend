@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
@@ -31,7 +32,7 @@ class AddedMemberTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
 
         member = UserFactory()
-        payload = {Project.DefaultGroup.MEMBERS: [member.id]}
+        payload = {GroupData.Role.MEMBERS: [member.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
@@ -40,7 +41,7 @@ class AddedMemberTestCase(JwtAPITestCase):
             project.pk,
             member.pk,
             owner.pk,
-            Project.DefaultGroup.MEMBERS,
+            GroupData.Role.MEMBERS,
         )
 
     @patch("apps.projects.views.notify_group_as_member_added.delay")
@@ -54,7 +55,7 @@ class AddedMemberTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
 
         group = PeopleGroupFactory(organization=self.organization)
-        payload = {Project.DefaultGroup.MEMBER_GROUPS: [group.id]}
+        payload = {GroupData.Role.MEMBER_GROUPS: [group.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
@@ -63,7 +64,7 @@ class AddedMemberTestCase(JwtAPITestCase):
             project.pk,
             group.id,
             owner.pk,
-            Project.DefaultGroup.MEMBER_GROUPS,
+            GroupData.Role.MEMBER_GROUPS,
         )
 
     def test_user_notification_task(self):
@@ -88,7 +89,7 @@ class AddedMemberTestCase(JwtAPITestCase):
             project.pk,
             member.pk,
             sender.pk,
-            Project.DefaultGroup.MEMBERS,
+            GroupData.Role.MEMBERS,
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -203,15 +204,13 @@ class AddedMemberTestCase(JwtAPITestCase):
         member_2 = UserFactory()
         project.owners.add(member_1)
         project.owners.add(member_2)
-        _notify_member_added(
-            project.pk, member_1.pk, sender.pk, Project.DefaultGroup.MEMBERS
-        )
+        _notify_member_added(project.pk, member_1.pk, sender.pk, GroupData.Role.MEMBERS)
         project.owners.add(member_2)
         _notify_member_added(
             project.pk,
             member_2.pk,
             sender.pk,
-            Project.DefaultGroup.MEMBERS,
+            GroupData.Role.MEMBERS,
         )
 
         notifications = Notification.objects.filter(project=project)

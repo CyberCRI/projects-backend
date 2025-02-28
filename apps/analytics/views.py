@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.models import SDG
+from apps.commons.enums import SDG
 from apps.commons.permissions import ReadOnly
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission

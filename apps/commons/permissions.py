@@ -7,7 +7,7 @@ from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.models import ProjectUser
 
-from .models import HasOwner, HasOwners
+from .mixins import HasOwner, HasOwners
 
 
 class IgnoreCall:
