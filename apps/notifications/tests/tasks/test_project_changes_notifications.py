@@ -5,7 +5,7 @@ from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import UserFactory
-from apps.commons.models import Language
+from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-27 11:52+0100\n"
+"POT-Creation-Date: 2025-02-28 17:26+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,19 +112,19 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:134 apps/projects/models.py:169
+#: apps/accounts/models.py:127 apps/projects/models.py:157
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:775
+#: apps/accounts/models.py:759
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:776
+#: apps/accounts/models.py:760
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:777
+#: apps/accounts/models.py:761
 msgid "Public"
 msgstr "Publique"
 
@@ -651,8 +651,9 @@ msgid ""
 "you are part of to the team of project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe %(group_name)s "
-"dont vous faites partie à l'équipe du projet \"%(project_title)s\".\n"
+"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe "
+"%(group_name)s dont vous faites partie à l'équipe du projet "
+"\"%(project_title)s\".\n"
 
 #: apps/notifications/templates/group_member_added_self/object.txt:2
 #, python-format
@@ -1539,27 +1540,27 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
 
-#: apps/projects/models.py:152
+#: apps/projects/models.py:140
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:162
+#: apps/projects/models.py:150
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:175
+#: apps/projects/models.py:163
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:186
+#: apps/projects/models.py:174
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:203
+#: apps/projects/models.py:191
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:209
+#: apps/projects/models.py:197
 msgid "main category"
 msgstr "catégorie principale"
 

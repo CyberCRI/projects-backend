@@ -14,7 +14,7 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
-from apps.commons.models import SDG
+from apps.commons.enums import SDG
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory

@@ -4,12 +4,12 @@ from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
-from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
@@ -378,9 +378,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     self.assertEqual(content["current_org_role"], None)
                     self.assertEqual(content_2["current_org_role"], None)
                 else:
+                    self.assertEqual(content["current_org_role"], GroupData.Role.USERS)
                     self.assertEqual(
-                        content["current_org_role"], Organization.DefaultGroup.USERS
-                    )
-                    self.assertEqual(
-                        content_2["current_org_role"], Organization.DefaultGroup.USERS
+                        content_2["current_org_role"], GroupData.Role.USERS
                     )

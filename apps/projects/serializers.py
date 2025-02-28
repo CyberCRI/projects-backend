@@ -15,6 +15,7 @@ from apps.commons.fields import (
     UserMultipleIdRelatedField,
     WritableSerializerMethodField,
 )
+from apps.commons.models import GroupData
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
@@ -390,18 +391,18 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
         project = validated_data["project"]
         instances = []
         for role in [
-            Project.DefaultGroup.OWNERS,
-            Project.DefaultGroup.REVIEWERS,
-            Project.DefaultGroup.MEMBERS,
+            GroupData.Role.OWNERS,
+            GroupData.Role.REVIEWERS,
+            GroupData.Role.MEMBERS,
         ]:
             users = validated_data.get(role, [])
             group = getattr(project, f"get_{role}")()
             for user in users:
                 instances.append(self.add_user(user, project, group, role))
         for role in [
-            Project.DefaultGroup.OWNER_GROUPS,
-            Project.DefaultGroup.REVIEWER_GROUPS,
-            Project.DefaultGroup.MEMBER_GROUPS,
+            GroupData.Role.OWNER_GROUPS,
+            GroupData.Role.REVIEWER_GROUPS,
+            GroupData.Role.MEMBER_GROUPS,
         ]:
             people_groups = validated_data.get(role, [])
             group = getattr(project, f"get_{role}")()

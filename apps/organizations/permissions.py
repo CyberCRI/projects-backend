@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.models import PrivacySettings, ProjectUser
-from apps.commons.models import OrganizationRelated, ProjectRelated
+from apps.commons.mixins import OrganizationRelated, ProjectRelated
 from apps.commons.permissions import IgnoreCall
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,

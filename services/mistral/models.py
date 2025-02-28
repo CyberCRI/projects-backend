@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
+from apps.commons.models import GroupData
 from apps.projects.models import Project
 
 from .exceptions import VectorSearchWrongQuerysetError
@@ -338,12 +339,12 @@ class UserProjectsEmbedding(Embedding, HasWeight):
                 )
             ]
             for role, weight in [
-                (Project.DefaultGroup.MEMBERS, 1),
-                (Project.DefaultGroup.OWNERS, 2),
-                (Project.DefaultGroup.REVIEWERS, 1),
-                (Project.DefaultGroup.MEMBER_GROUPS, 1),
-                (Project.DefaultGroup.OWNER_GROUPS, 2),
-                (Project.DefaultGroup.REVIEWER_GROUPS, 1),
+                (GroupData.Role.MEMBERS, 1),
+                (GroupData.Role.OWNERS, 2),
+                (GroupData.Role.REVIEWERS, 1),
+                (GroupData.Role.MEMBER_GROUPS, 1),
+                (GroupData.Role.OWNER_GROUPS, 2),
+                (GroupData.Role.REVIEWER_GROUPS, 1),
             ]
         ]
         data = [

@@ -7,12 +7,12 @@ from faker import Faker
 from rest_framework import status
 
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
-from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
-from apps.projects.models import Project
 from apps.skills.factories import SkillFactory, TagFactory
 
 faker = Faker()
@@ -114,7 +114,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.side_effect = self.mocked_update
 
         self.client.force_authenticate(self.superadmin)
-        payload = {PeopleGroup.DefaultGroup.MEMBERS: [self.user.id]}
+        payload = {GroupData.Role.MEMBERS: [self.user.id]}
         response = self.client.post(
             reverse(
                 "PeopleGroup-add-member",
@@ -148,7 +148,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.side_effect = self.mocked_update
 
         self.client.force_authenticate(self.superadmin)
-        payload = {Project.DefaultGroup.MEMBERS: [self.user.id]}
+        payload = {GroupData.Role.MEMBERS: [self.user.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(self.project.id,)),
             payload,

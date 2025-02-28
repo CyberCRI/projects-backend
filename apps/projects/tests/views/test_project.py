@@ -12,7 +12,8 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.announcements.factories import AnnouncementFactory
-from apps.commons.models import SDG, Language
+from apps.commons.enums import SDG, Language
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
@@ -787,7 +788,7 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse("Project-list")
             + f"?members={self.user_1.id},{self.user_2.id}"
-            + f"&member_role={Project.DefaultGroup.OWNERS},{Project.DefaultGroup.MEMBERS}"
+            + f"&member_role={GroupData.Role.OWNERS},{GroupData.Role.MEMBERS}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -1055,7 +1056,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization])
         user = UserFactory(groups=[project.get_members()])
         payload = {
-            Project.DefaultGroup.OWNERS: [user.id],
+            GroupData.Role.OWNERS: [user.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
@@ -1117,7 +1118,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         )
         reviewer = UserFactory()
         payload = {
-            Project.DefaultGroup.REVIEWERS: [reviewer.id],
+            GroupData.Role.REVIEWERS: [reviewer.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
@@ -1135,7 +1136,7 @@ class MiscProjectTestCase(JwtAPITestCase):
         UserFactory(groups=[project.get_reviewers()])
         reviewer = UserFactory()
         payload = {
-            Project.DefaultGroup.REVIEWERS: [reviewer.id],
+            GroupData.Role.REVIEWERS: [reviewer.id],
         }
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
