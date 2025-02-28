@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-02-28 15:47+0100\n"
+"POT-Creation-Date: 2025-02-27 11:52+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,19 +112,19 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:195 apps/projects/models.py:169
+#: apps/accounts/models.py:134 apps/projects/models.py:169
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:836
+#: apps/accounts/models.py:775
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:837
+#: apps/accounts/models.py:776
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:838
+#: apps/accounts/models.py:777
 msgid "Public"
 msgstr "Publique"
 
@@ -651,9 +651,8 @@ msgid ""
 "you are part of to the team of project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe "
-"%(group_name)s dont vous faites partie à l'équipe du projet "
-"\"%(project_title)s\".\n"
+"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe %(group_name)s "
+"dont vous faites partie à l'équipe du projet \"%(project_title)s\".\n"
 
 #: apps/notifications/templates/group_member_added_self/object.txt:2
 #, python-format
