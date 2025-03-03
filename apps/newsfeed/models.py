@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING, List
 
 from django.db import models
 
-from apps.commons.models import HasOwner, Language, OrganizationRelated
+from apps.commons.enums import Language
+from apps.commons.mixins import HasOwner, OrganizationRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser

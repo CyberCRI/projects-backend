@@ -5,7 +5,7 @@ from django.db import models, transaction
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group
-from apps.commons.models import HasOwner, OrganizationRelated
+from apps.commons.mixins import HasOwner, OrganizationRelated
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from services.keycloak.interface import KeycloakService

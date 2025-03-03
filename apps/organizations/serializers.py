@@ -12,6 +12,7 @@ from rest_framework.relations import SlugRelatedField
 
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
+from apps.commons.models import GroupData
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.commons.utils import process_text
 from apps.files.models import Image
@@ -54,7 +55,7 @@ class OrganizationAddTeamMembersSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         organization = validated_data["organization"]
-        for role in Organization.DefaultGroup:
+        for role in GroupData.organization_roles():
             users = validated_data.get(role, [])
             group = getattr(organization, f"get_{role}")()
             for user in users:

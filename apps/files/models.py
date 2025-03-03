@@ -11,7 +11,7 @@ from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
-from apps.commons.models import (
+from apps.commons.mixins import (
     DuplicableModel,
     HasOwner,
     OrganizationRelated,

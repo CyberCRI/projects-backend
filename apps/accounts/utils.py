@@ -12,7 +12,7 @@ from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm, get_group_perms
 from rest_framework.request import Request
 
-from apps.commons.models import HasPermissionsSetup
+from apps.commons.mixins import HasPermissionsSetup
 from keycloak import KeycloakError
 
 from .exceptions import (
@@ -89,12 +89,8 @@ def get_instance_from_group(group: Group) -> Optional[HasPermissionsSetup]:
     both the project and the people_group, but the project is the one that should be
     returned.
     """
-    if group.projects.exists():
-        return group.projects.get()
-    if group.organizations.exists():
-        return group.organizations.get()
-    if group.people_groups.exists():
-        return group.people_groups.get()
+    if group.data.exists():
+        return group.data.get().instance
     return None
 
 

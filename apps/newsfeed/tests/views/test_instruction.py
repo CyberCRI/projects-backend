@@ -10,7 +10,7 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
-from apps.commons.models import Language
+from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.newsfeed.factories import InstructionFactory
 from apps.newsfeed.models import Instruction

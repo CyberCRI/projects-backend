@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
-from apps.commons.models import HasOwner, OrganizationRelated, ProjectRelated
+from apps.commons.mixins import HasOwner, OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser

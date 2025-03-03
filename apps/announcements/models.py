@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models
 
-from apps.commons.models import DuplicableModel, OrganizationRelated, ProjectRelated
+from apps.commons.mixins import DuplicableModel, OrganizationRelated, ProjectRelated
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization

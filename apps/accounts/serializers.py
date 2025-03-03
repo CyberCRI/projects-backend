@@ -14,7 +14,8 @@ from apps.commons.fields import (
     PrivacySettingProtectedMethodField,
     UserMultipleIdRelatedField,
 )
-from apps.commons.models import HasPermissionsSetup
+from apps.commons.mixins import HasPermissionsSetup
+from apps.commons.models import GroupData
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -272,7 +273,7 @@ class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         people_group = validated_data["people_group"]
-        for role in PeopleGroup.DefaultGroup:
+        for role in GroupData.people_group_roles():
             users = validated_data.get(role, [])
             group = getattr(people_group, f"get_{role}")()
             for user in users:
@@ -378,7 +379,13 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
             request.user.get_people_group_queryset() & obj.children.all().distinct()
         )
         return [
-            {"id": child.id, "name": child.name} for child in queryset.order_by("name")
+            {
+                "id": child.id,
+                "slug": child.slug,
+                "name": child.name,
+                "organization": child.organization.code,
+            }
+            for child in queryset.order_by("name")
         ]
 
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
