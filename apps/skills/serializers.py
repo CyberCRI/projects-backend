@@ -275,6 +275,11 @@ class MentoringContactSerializer(serializers.Serializer):
                 user = context["request"].user
                 self.initial_data["reply_to"] = user.email
 
+    def validate_content(self, content: str) -> str:
+        if not content:
+            return content
+        return content.replace("\n", "<br/>")
+
 
 class MentoringResponseSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
@@ -291,6 +296,11 @@ class MentoringResponseSerializer(serializers.Serializer):
                 context = self.context
                 user = context["request"].user
                 self.initial_data["reply_to"] = user.email
+
+    def validate_content(self, content: str) -> str:
+        if not content:
+            return content
+        return content.replace("\n", "<br/>")
 
 
 class MentoringSerializer(serializers.ModelSerializer):
