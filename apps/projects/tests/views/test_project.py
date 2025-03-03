@@ -697,6 +697,15 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         cls.user_3 = UserFactory(
             groups=[cls.project_2.get_owners(), cls.project_3.get_owners()]
         )
+        cls.people_group_1 = PeopleGroupFactory(organization=cls.organization_1)
+        cls.people_group_2 = PeopleGroupFactory(organization=cls.organization_2)
+        cls.people_group_3 = PeopleGroupFactory(organization=cls.organization_3)
+        cls.project_1.owner_groups.add(cls.people_group_1)
+        cls.project_2.reviewer_groups.add(cls.people_group_1)
+        cls.project_2.member_groups.add(cls.people_group_2)
+        cls.project_3.reviewer_groups.add(cls.people_group_2)
+        cls.project_2.owner_groups.add(cls.people_group_3)
+        cls.project_3.owner_groups.add(cls.people_group_3)
         Project.objects.filter(id=cls.project_1.id).update(
             created_at=cls.date_1,
             updated_at=cls.date_1,
@@ -762,6 +771,19 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             {self.project_2.id, self.project_3.id},
         )
 
+    def test_filter_by_group_members(self):
+        response = self.client.get(
+            reverse("Project-list")
+            + f"?group_members={self.people_group_2.id},{self.people_group_3.id}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
+        content = response.json()
+        self.assertEqual(content["count"], 2)
+        self.assertEqual(
+            {p["id"] for p in content["results"]},
+            {self.project_2.id, self.project_3.id},
+        )
+
     def test_filter_by_sdgs(self):
         response = self.client.get(reverse("Project-list") + "?sdgs=1,4,7")
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
@@ -789,6 +811,20 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
             reverse("Project-list")
             + f"?members={self.user_1.id},{self.user_2.id}"
             + f"&member_role={GroupData.Role.OWNERS},{GroupData.Role.MEMBERS}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["count"], 2)
+        self.assertSetEqual(
+            {p["id"] for p in response.data["results"]},
+            {self.project_1.id, self.project_2.id},
+        )
+
+    def test_filter_by_group_role(self):
+        response = self.client.get(
+            reverse("Project-list")
+            + f"?group_members={self.people_group_1.id},{self.people_group_2.id}"
+            + f"&group_role={GroupData.Role.OWNER_GROUPS},{GroupData.Role.MEMBER_GROUPS}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()

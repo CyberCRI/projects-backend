@@ -379,7 +379,13 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
             request.user.get_people_group_queryset() & obj.children.all().distinct()
         )
         return [
-            {"id": child.id, "name": child.name} for child in queryset.order_by("name")
+            {
+                "id": child.id,
+                "slug": child.slug,
+                "name": child.name,
+                "organization": child.organization.code,
+            }
+            for child in queryset.order_by("name")
         ]
 
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
