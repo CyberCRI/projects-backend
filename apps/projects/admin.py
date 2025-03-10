@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import QuerySet
-from import_export import fields, resources
-from import_export.admin import ExportActionMixin
+from import_export import fields, resources # type: ignore
+from import_export.admin import ExportActionMixin # type: ignore
 
 from apps.commons.admin import RoleBasedAccessAdmin
 from apps.organizations.models import Organization
