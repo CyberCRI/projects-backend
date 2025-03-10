@@ -1160,6 +1160,23 @@ class MiscUserTestCase(JwtAPITestCase):
             set(user.outdated_slugs),
         )
 
+        # Check that outdated_slugs are reused if relevant
+        payload = {"family_name": family_name_b}
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=(user.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        user.refresh_from_db()
+        self.assertEqual(user.slug, f"{given_name.lower()}-{family_name_b}")
+        self.assertSetEqual(
+            {
+                f"{given_name.lower()}-{family_name_a}",
+                f"{given_name.lower()}-{family_name_b}",
+                f"{given_name.lower()}-{family_name_c}",
+            },
+            set(user.outdated_slugs),
+        )
+
         # Check that outdated_slugs respect unicity
         payload = {
             "email": f"{faker.uuid4()}@{faker.domain_name()}",

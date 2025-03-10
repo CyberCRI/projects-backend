@@ -1054,6 +1054,18 @@ class MiscProjectTestCase(JwtAPITestCase):
         self.assertEqual(project.slug, "title-c")
         self.assertSetEqual({"title-a", "title-b"}, set(project.outdated_slugs))
 
+        # Check that outdated_slugs are reused if relevant
+        payload = {"title": title_b}
+        response = self.client.patch(
+            reverse("Project-detail", args=(project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        project.refresh_from_db()
+        self.assertEqual(project.slug, "title-b")
+        self.assertSetEqual(
+            {"title-a", "title-b", "title-c"}, set(project.outdated_slugs)
+        )
+
         # Check that outdated_slugs respect unicity
         payload = {
             "organizations_codes": [self.organization.code],

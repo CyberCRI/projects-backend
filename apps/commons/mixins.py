@@ -189,9 +189,14 @@ class HasMultipleIDs:
             getattr(self, field) != self._original_slug_fields_value[field]
             for field in self.slugified_fields
         ):
-            if self.slug:
+            new_slug = self.get_slug()
+            if (
+                self.slug
+                and new_slug != self.slug
+                and self.slug not in self.outdated_slugs
+            ):
                 self.outdated_slugs = self.outdated_slugs + [self.slug]
-            self.slug = self.get_slug()
+            self.slug = new_slug
             self._original_slug_fields_value = {
                 field: getattr(self, field, "") for field in self.slugified_fields
             }
@@ -249,6 +254,8 @@ class HasMultipleIDs:
             self.slug_prefix,
             *self.reserved_slugs,
         ]:
+            if slug in self.outdated_slugs or slug == self.slug:
+                return slug
             same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
         return slug
