@@ -28,7 +28,7 @@ spec:
       version: v3
       {{- with .Values.redis.values }}
       values: |
-        {{- . | toYaml | nindent 8 }}
+        {{- tpl (. | toYaml | nindent 8) $ }}
       {{- end }}
   # Destination cluster and namespace to deploy the application
   destination:
