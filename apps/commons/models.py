@@ -1,285 +1,85 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import List, Optional
 
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.db.models import Q, QuerySet
-from django.http import Http404
-from django.shortcuts import get_object_or_404
-from django.utils.text import slugify
-from guardian.shortcuts import assign_perm, remove_perm
-
-if TYPE_CHECKING:
-    from apps.accounts.models import ProjectUser
-    from apps.organizations.models import Organization
-    from apps.projects.models import Project
 
 
-class Language(models.TextChoices):
+class GroupData(models.Model):
     """
-    Represent a language, e.g: fr
+    Additional data for a django.contrib.auth.models.Group instance.
+
+    Attributes:
+    ----------
+        group: ForeignKey
+            The related group.
+        content_type: ForeignKey
+            The content type of the related instance.
+        object_id: CharField
+            The ID of the related instance.
+        role: CharField
     """
 
-    FR = "fr", "French"
-    EN = "en", "English"
+    class Role(models.TextChoices):
+        # Base roles
+        SUPERADMINS = "superadmins"
+        DEFAULT = "default"
+        # Project roles
+        REVIEWERS = "reviewers"
+        OWNERS = "owners"
+        REVIEWER_GROUPS = "reviewer_groups"
+        OWNER_GROUPS = "owner_groups"
+        MEMBER_GROUPS = "member_groups"
+        # People group roles
+        LEADERS = "leaders"
+        MANAGERS = "managers"
+        # Project + people group roles
+        MEMBERS = "members"
+        # Organization roles
+        ADMINS = "admins"
+        FACILITATORS = "facilitators"
+        USERS = "users"
+
+    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="data")
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
+    object_id = models.CharField(max_length=255, null=True)
+    role = models.CharField(max_length=255, choices=Role.choices)
+
+    def __str__(self) -> str:
+        return f"{self.group} - {self.role}"
+
+    @property
+    def instance(self) -> Optional[models.Model]:
+        """Return the related instance."""
+        if self.content_type:
+            obj = self.content_type.get_object_for_this_type(pk=self.object_id)
+            if not hasattr(obj, "deleted_at") or not obj.deleted_at:
+                return obj
+        return None
 
     @classmethod
-    def default(cls):
-        return Language.EN
-
-
-class SDG(models.IntegerChoices):
-    """
-    Represent an SDG by its number.
-    See https://www.un.org/sustainabledevelopment
-    """
-
-    NO_POVERTY = 1, "No poverty"
-    ZERO_HUNGER = 2, "Zero hunger"
-    GOOD_HEALTH_AND_WELL_BEING = 3, "Good health and well-being"
-    QUALITY_EDUCATION = 4, "Quality education"
-    GENDER_EQUALITY = 5, "Gender equality"
-    CLEAN_WATER_AND_SANITATION = 6, "Clean water and sanitation"
-    AFFORDABLE_AND_CLEAN_ENERGY = 7, "Affordable and clean energy"
-    DECENT_WORK_AND_ECONOMIC_GROWTH = 8, "Decent work and economic growth"
-    INDUSTRY_INNOVATION_AND_INFRASTRUCTURE = (
-        9,
-        "Industry, innovation and infrastructure",
-    )
-    REDUCED_INEQUALITIES = 10, "Reduces inequalities"
-    SUSTAINABLE_CITIES_AND_COMMUNITIES = 11, "Sustainable cities and communities"
-    RESPONSIBLE_CONSUMPTION_AND_PRODUCTION = 12, "Responsible consumption & production"
-    CLIMATE_ACTION = 13, "Climate action"
-    LIFE_BELOW_WATER = 14, "Life below water"
-    LIFE_ON_LAND = 15, "Life on land"
-    PEACE_JUSTICE_AND_STRONG_INSTITUTIONS = 16, "Peace, justice and strong institutions"
-    PARTNERSHIPS_FOR_THE_GOALS = 17, "Partnerships for the goals"
-
-
-class OrganizationRelated:
-    """Abstract class for models related to an `Organization`."""
-
-    def get_related_organizations(self) -> List["Organization"]:
-        """Return the organizations related to this model."""
-        raise NotImplementedError()
-
-
-class ProjectRelated:
-    """Abstract class for models related to `Project`."""
-
-    def get_related_project(self) -> Optional["Project"]:
-        """Return the projects related to this model."""
-        raise NotImplementedError()
-
-
-class HasOwner:
-    """Abstract class for models which have an owner."""
-
-    def get_owner(self):
-        """Get the owner of the object."""
-        raise NotImplementedError()
-
-    def is_owned_by(self, user: "ProjectUser") -> bool:
-        """Whether the given user is the owner of the object."""
-        raise NotImplementedError()
-
-
-class HasOwners:
-    """Abstract class for models which have an owner."""
-
-    def get_owners(self):
-        """Get the owner of the object."""
-        raise NotImplementedError()
-
-    def is_owned_by(self, user: "ProjectUser") -> bool:
-        """Whether the given user is the owner of the object."""
-        raise NotImplementedError()
-
-
-class HasPermissionsSetup:
-    """
-    This mixin handles models that have permissions on the instance level.
-
-    Models based on this mixin must implement a `permissions_up_to_date` field to store
-    that is used to check if all the instances permissions have been updated after a
-    potential change.
-
-    The model must also override the `setup_permissions` method that assigns the
-    instances' permissions.
-    """
-
-    def setup_group_object_permissions(
-        self, group: Group, permissions: QuerySet[str]
-    ) -> Group:
-        current_role_permissions = Permission.objects.filter(
-            groupobjectpermission__group=group
-        )
-        permissions_to_remove = current_role_permissions.difference(permissions)
-        permissions_to_add = permissions.difference(current_role_permissions)
-        for permission in permissions_to_add:
-            assign_perm(permission, group, self)
-        for permission in permissions_to_remove:
-            remove_perm(permission, group, self)
-        return group
-
-    def setup_group_global_permissions(
-        self, group: Group, permissions: QuerySet[str]
-    ) -> Group:
-        current_role_permissions = group.permissions.all()
-        permissions_to_remove = current_role_permissions.difference(permissions)
-        permissions_to_add = permissions.difference(current_role_permissions)
-        for permission in permissions_to_add:
-            assign_perm(permission, group)
-        for permission in permissions_to_remove:
-            remove_perm(permission, group)
-        return group
-
-    def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
-    ):
-        """Initialize permissions for the instance."""
-        raise NotImplementedError()
-
-
-class DuplicableModel:
-    """
-    A model that can be duplicated.
-    """
-
-    def duplicate(self, *args, **kwargs) -> "DuplicableModel":
-        raise NotImplementedError()
-
-
-class HasMultipleIDs:
-    """
-    This mixin handles models with multiple identifiers, including slugs.
-
-    Models based on this mixin must implement a `slug` field to store the current slug
-    and an `outdated_slugs` field to store the previous slugs. The `slugified_fields`
-    attribute must be defined to specify which fields are used to generate the slug.
-    If any of these fields is modified, the slug will be updated.
-
-    The model must also override the `get_id_field_name` method that returns the name
-    of the id field based on checks that can detect what type of identifier is passed.
-
-    Because this mixin overrides the `save` method it must come after `models.Model`
-    in the inheritance order.
-
-    Example
-    ------
-    ```
-    class ModelWithSlug(HasMultipleIDs, models.Model):
-        slugified_fields: List[str] = ["field_used_for_slug"]
-        slug_prefix: str = "my-model"
-        slug = models.SlugField(unique=True)
-        outdated_slugs = ArrayField(models.SlugField(), default=list)
-
-        @classmethod
-        def get_id_field_name(cls, object_id: Any) -> str:
-            if isinstance(object_id, int):
-                return "id"
-            return "slug"
-    ```
-
-    Attributes
-    ------
-    slugified_fields: List[str]
-        The fields that are used to generate the slug. If any of these fields
-        is modified, the slug will be updated.
-    slug_prefix: str
-        The prefix to add to the slug if there is a potential clash with another
-        identifier.
-
-    Model Fields
-    ------
-    slug: SlugField
-        The current slug of the object.
-    outdated_slugs: ArrayField(SlugField)
-        The outdated slugs of the object. They are kept for url retro-compatibility.
-    """
-
-    _original_slug_fields_value: Dict[str, str] = {}
-    slugified_fields: List[str] = []
-    reserved_slugs: List[str] = []
-    slug_prefix: str = ""
-
-    def __init__(self, *args, **kwargs):
-        self._original_slug_fields_value = {
-            field: getattr(self, field, "") for field in self.slugified_fields
-        }
-        super(HasMultipleIDs, self).__init__(*args, **kwargs)
-
-    def save(self, *args, **kwargs):
-        if not self.slug or any(
-            getattr(self, field) != self._original_slug_fields_value[field]
-            for field in self.slugified_fields
-        ):
-            new_slug = self.get_slug()
-            if (
-                self.slug
-                and new_slug != self.slug
-                and self.slug not in self.outdated_slugs
-            ):
-                self.outdated_slugs = self.outdated_slugs + [self.slug]
-            self.slug = new_slug
-            self._original_slug_fields_value = {
-                field: getattr(self, field, "") for field in self.slugified_fields
-            }
-        return super().save(*args, **kwargs)
+    def project_roles(cls) -> List[str]:
+        return [
+            cls.Role.REVIEWERS,
+            cls.Role.OWNERS,
+            cls.Role.MEMBERS,
+            cls.Role.REVIEWER_GROUPS,
+            cls.Role.OWNER_GROUPS,
+            cls.Role.MEMBER_GROUPS,
+        ]
 
     @classmethod
-    def get_id_field_name(cls, object_id: Any) -> str:
-        """Get the name of the field which contains the given ID."""
-        raise NotImplementedError()
+    def people_group_roles(cls) -> List[str]:
+        return [
+            cls.Role.LEADERS,
+            cls.Role.MANAGERS,
+            cls.Role.MEMBERS,
+        ]
 
     @classmethod
-    def get_main_id(cls, object_id: Any, returned_field: str = "id") -> Any:
-        """Get the main ID from a secondary ID."""
-        field_name = cls.get_id_field_name(object_id)
-        if field_name == returned_field:
-            return object_id
-        try:
-            obj = get_object_or_404(cls, **{field_name: object_id})
-        except Http404 as e:
-            if field_name == "slug":
-                obj = get_object_or_404(cls, outdated_slugs__contains=[object_id])
-            else:
-                raise e
-        return getattr(obj, returned_field)
-
-    @classmethod
-    def get_main_ids(
-        cls, objects_ids: List[Any], returned_field: str = "id"
-    ) -> List[Any]:
-        """Get the main IDs from a list of secondary IDs."""
-        return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]
-
-    @classmethod
-    def slug_exists(cls, slug: str) -> bool:
-        # Handle soft-deleted objects
-        if hasattr(cls.objects, "all_with_delete"):
-            objects = cls.objects.all_with_delete()
-        else:
-            objects = cls.objects.all()
-        return objects.filter(
-            Q(slug=slug) | Q(outdated_slugs__contains=[slug])
-        ).exists()
-
-    def get_slug(self) -> str:
-        raw_slug = [getattr(self, field) for field in self.slugified_fields]
-        raw_slug = slugify("-".join(raw_slug)[0:46])
-        if not raw_slug or raw_slug == "-":
-            raw_slug = self.slug_prefix
-        # If there is a potential clash with another identifier, add the prefix
-        while self.get_id_field_name(raw_slug) != "slug":
-            raw_slug = f"{self.slug_prefix}-{raw_slug}"
-        same_slug_count = 0
-        slug = raw_slug
-        while self.slug_exists(slug) or slug in [
-            self.slug_prefix,
-            *self.reserved_slugs,
-        ]:
-            if slug in self.outdated_slugs or slug == self.slug:
-                return slug
-            same_slug_count += 1
-            slug = f"{raw_slug}-{same_slug_count}"
-        return slug
+    def organization_roles(cls) -> List[str]:
+        return [
+            cls.Role.ADMINS,
+            cls.Role.FACILITATORS,
+            cls.Role.USERS,
+        ]

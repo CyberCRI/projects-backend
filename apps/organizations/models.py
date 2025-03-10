@@ -9,7 +9,9 @@ from django.db.models import QuerySet
 from django.http import Http404
 from simple_history.models import HistoricalRecords
 
-from apps.commons.models import HasPermissionsSetup, Language, OrganizationRelated
+from apps.commons.enums import Language
+from apps.commons.mixins import HasPermissionsSetup, OrganizationRelated
+from apps.commons.models import GroupData
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
@@ -73,13 +75,6 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
     identity_providers: ManyToManyField
         Identity providers authorized to access the organization.
     """
-
-    class DefaultGroup(models.TextChoices):
-        """Default permission groups of an organization."""
-
-        USERS = "users"
-        ADMINS = "admins"
-        FACILITATORS = "facilitators"
 
     code = models.CharField(max_length=50, unique=True)
     website_url = models.CharField(max_length=255)
@@ -287,26 +282,17 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
         else:
             Organization.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
 
-    def get_or_create_group(self, name: str) -> Group:
-        """Return the group with the given name."""
-        group, created = Group.objects.get_or_create(
-            name=f"{self.content_type.model}:#{self.pk}:{name}"
-        )
-        if created:
-            self.groups.add(group)
-        return group
-
     def get_admins(self) -> Group:
         """Return the admins group."""
-        return self.get_or_create_group(self.DefaultGroup.ADMINS)
+        return self.get_or_create_group(GroupData.Role.ADMINS)
 
     def get_facilitators(self) -> Group:
         """Return the facilitators group."""
-        return self.get_or_create_group(self.DefaultGroup.FACILITATORS)
+        return self.get_or_create_group(GroupData.Role.FACILITATORS)
 
     def get_users(self) -> Group:
         """Return the users group."""
-        return self.get_or_create_group(self.DefaultGroup.USERS)
+        return self.get_or_create_group(GroupData.Role.USERS)
 
     @property
     def admins(self) -> List["ProjectUser"]:

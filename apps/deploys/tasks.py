@@ -7,7 +7,7 @@ from apps.accounts.utils import (
     get_superadmins_group,
     get_superadmins_group_permissions,
 )
-from apps.commons.models import HasPermissionsSetup
+from apps.commons.mixins import HasPermissionsSetup
 from apps.skills.models import TagClassification
 from projects.celery import app
 

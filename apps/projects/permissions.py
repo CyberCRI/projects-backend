@@ -7,7 +7,7 @@ from rest_framework.request import Request
 from rest_framework.viewsets import GenericViewSet
 
 from apps.accounts.models import ProjectUser
-from apps.commons.models import ProjectRelated
+from apps.commons.mixins import ProjectRelated
 from apps.commons.permissions import IgnoreCall
 from apps.commons.serializers import ProjectRelatedSerializer
 

@@ -9,6 +9,7 @@ from rest_framework import status
 from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
@@ -695,9 +696,9 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (Project.DefaultGroup.MEMBER_GROUPS,),
-            (Project.DefaultGroup.OWNER_GROUPS,),
-            (Project.DefaultGroup.REVIEWER_GROUPS,),
+            (GroupData.Role.MEMBER_GROUPS,),
+            (GroupData.Role.OWNER_GROUPS,),
+            (GroupData.Role.REVIEWER_GROUPS,),
         ]
     )
     def test_assign_role_on_project_group_member_changer(self, project_role):
@@ -731,9 +732,9 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (Project.DefaultGroup.MEMBER_GROUPS,),
-            (Project.DefaultGroup.OWNER_GROUPS,),
-            (Project.DefaultGroup.REVIEWER_GROUPS,),
+            (GroupData.Role.MEMBER_GROUPS,),
+            (GroupData.Role.OWNER_GROUPS,),
+            (GroupData.Role.REVIEWER_GROUPS,),
         ]
     )
     def test_assign_role_on_group_member_changer(self, project_role):
@@ -741,9 +742,9 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
         people_group = PeopleGroupFactory(organization=self.organization)
         getattr(self.project, f"get_{project_role}")().people_groups.add(people_group)
         payload = {
-            PeopleGroup.DefaultGroup.LEADERS: [self.user_1.id],
-            PeopleGroup.DefaultGroup.MANAGERS: [self.user_2.id],
-            PeopleGroup.DefaultGroup.MEMBERS: [self.user_3.id],
+            GroupData.Role.LEADERS: [self.user_1.id],
+            GroupData.Role.MANAGERS: [self.user_2.id],
+            GroupData.Role.MEMBERS: [self.user_3.id],
         }
         response = self.client.post(
             reverse(
@@ -772,9 +773,9 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (Project.DefaultGroup.MEMBER_GROUPS,),
-            (Project.DefaultGroup.OWNER_GROUPS,),
-            (Project.DefaultGroup.REVIEWER_GROUPS,),
+            (GroupData.Role.MEMBER_GROUPS,),
+            (GroupData.Role.OWNER_GROUPS,),
+            (GroupData.Role.REVIEWER_GROUPS,),
         ]
     )
     def test_assign_role_on_user_roles_update(self, project_role):
@@ -812,9 +813,9 @@ class PeopleGroupProjectRolesTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (Project.DefaultGroup.MEMBER_GROUPS,),
-            (Project.DefaultGroup.OWNER_GROUPS,),
-            (Project.DefaultGroup.REVIEWER_GROUPS,),
+            (GroupData.Role.MEMBER_GROUPS,),
+            (GroupData.Role.OWNER_GROUPS,),
+            (GroupData.Role.REVIEWER_GROUPS,),
         ]
     )
     @patch("services.keycloak.interface.KeycloakService.send_email")
@@ -1105,7 +1106,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         user = UserFactory()
         people_group.members.add(user)
         payload = {
-            PeopleGroup.DefaultGroup.LEADERS: [user.id],
+            GroupData.Role.LEADERS: [user.id],
         }
         response = self.client.post(
             reverse(
@@ -1126,7 +1127,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         user = UserFactory()
         people_group.leaders.add(user)
         payload = {
-            PeopleGroup.DefaultGroup.MEMBERS: [user.id],
+            GroupData.Role.MEMBERS: [user.id],
         }
         response = self.client.post(
             reverse(
@@ -1147,7 +1148,7 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         user = UserFactory()
         people_group.members.add(user)
         payload = {
-            PeopleGroup.DefaultGroup.MANAGERS: [user.id],
+            GroupData.Role.MANAGERS: [user.id],
         }
         response = self.client.post(
             reverse(

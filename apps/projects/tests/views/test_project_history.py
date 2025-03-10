@@ -5,11 +5,11 @@ from rest_framework import status
 
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
+from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import LinkedProjectFactory, ProjectFactory
-from apps.projects.models import Project
 from apps.skills.factories import TagFactory
 
 faker = Faker()
@@ -53,7 +53,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         payload = {
-            Project.DefaultGroup.MEMBERS: [self.user.id],
+            GroupData.Role.MEMBERS: [self.user.id],
         }
         self.client.post(
             reverse("Project-add-member", args=(project.id,)),

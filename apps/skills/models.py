@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from apps.commons.models import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
+from apps.commons.mixins import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser

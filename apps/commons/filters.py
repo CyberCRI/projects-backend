@@ -3,7 +3,7 @@ from django.db.models.constants import LOOKUP_SEP
 from django_filters import filters
 from rest_framework.filters import SearchFilter
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 
 
 # Filter separating value by comma
@@ -23,6 +23,17 @@ class UserMultipleIDFilter(MultiValueCharFilter):
     def filter(self, queryset: QuerySet, value: str) -> QuerySet:  # noqa: A003
         if value:
             return super().filter(queryset, ProjectUser.get_main_ids(value))
+        return queryset
+
+
+class PeopleGroupMultipleIDFilter(MultiValueCharFilter):
+    def __init__(self, group_id_field: str = "id", *args, **kwargs):
+        self.group_id_field = group_id_field
+        super().__init__(*args, **kwargs)
+
+    def filter(self, queryset: QuerySet, value: str) -> QuerySet:  # noqa: A003
+        if value:
+            return super().filter(queryset, PeopleGroup.get_main_ids(value))
         return queryset
 
 
