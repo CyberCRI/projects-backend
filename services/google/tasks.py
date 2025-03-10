@@ -118,8 +118,8 @@ def update_google_group_task(people_group_id: int):
         google_group.sync_members()
 
 
-@clear_memory
 @app.task(name="services.google.tasks.retry_failed_tasks")
+@clear_memory
 def retry_failed_tasks():
     failed_tasks = GoogleSyncErrors.objects.filter(solved=False).order_by("created_at")
     for failed_task in failed_tasks:

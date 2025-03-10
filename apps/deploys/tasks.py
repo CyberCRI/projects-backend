@@ -17,8 +17,8 @@ def migrate():
     call_command("migrate")
 
 
-@clear_memory
 @app.task(name="apps.deploys.tasks.rebuild_index")
+@clear_memory
 def rebuild_index():
     """
     python manage.py opensearch index rebuild --force
@@ -65,8 +65,8 @@ def base_groups_permissions():
         remove_perm(permission, superadmins_group)
 
 
-@clear_memory
 @app.task(name="apps.deploys.tasks.instance_groups_permissions")
+@clear_memory
 def instance_groups_permissions():
     permissions_setup_models = HasPermissionsSetup.__subclasses__()
     for permissions_setup_model in permissions_setup_models:

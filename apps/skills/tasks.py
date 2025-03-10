@@ -11,8 +11,8 @@ from .models import Mentoring
 from .utils import update_esco_data
 
 
-@clear_memory
 @app.task(name="apps.skills.tasks.update_esco_data_task")
+@clear_memory
 def update_esco_data_task():
     update_esco_data()
 
