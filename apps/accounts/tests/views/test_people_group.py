@@ -1208,6 +1208,21 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(people_group.slug, "name-c")
         self.assertSetEqual({"name-a", "name-b"}, set(people_group.outdated_slugs))
 
+        # Check that outdated_slugs are reused if relevant
+        payload = {"name": name_b}
+        response = self.client.patch(
+            reverse(
+                "PeopleGroup-detail", args=(self.organization.code, people_group.id)
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        people_group.refresh_from_db()
+        self.assertEqual(people_group.slug, "name-b")
+        self.assertSetEqual(
+            {"name-a", "name-b", "name-c"}, set(people_group.outdated_slugs)
+        )
+
         # Check that outdated_slugs respect unicity
         payload = {"name": name_a}
         response = self.client.post(

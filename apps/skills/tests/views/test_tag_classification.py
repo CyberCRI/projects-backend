@@ -457,6 +457,22 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
             {"title-a", "title-b"}, set(tag_classification.outdated_slugs)
         )
 
+        # Check that outdated_slugs are reused if relevant
+        payload = {"title": title_b}
+        response = self.client.patch(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, tag_classification.id),
+            ),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        tag_classification.refresh_from_db()
+        self.assertEqual(tag_classification.slug, "title-b")
+        self.assertSetEqual(
+            {"title-a", "title-b", "title-c"}, set(tag_classification.outdated_slugs)
+        )
+
         # Check that outdated_slugs respect unicity
         payload = {"title": title_a, "description": faker.sentence()}
         response = self.client.post(
