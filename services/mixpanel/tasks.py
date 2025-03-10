@@ -1,8 +1,10 @@
+from apps.commons.utils import clear_memory
 from projects.celery import app
 from services.mixpanel.interface import MixpanelService
 from services.mixpanel.models import MixpanelEvent
 
 
+@clear_memory
 @app.task(name="services.mixpanel.tasks.get_new_mixpanel_events")
 def get_new_mixpanel_events():
     if MixpanelEvent.objects.count() == 0:

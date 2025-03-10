@@ -3,6 +3,7 @@ from datetime import date, timedelta
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.commons.utils import clear_memory
 from apps.emailing.utils import render_message, send_email
 from projects.celery import app
 
@@ -10,6 +11,7 @@ from .models import Mentoring
 from .utils import update_esco_data
 
 
+@clear_memory
 @app.task(name="apps.skills.tasks.update_esco_data_task")
 def update_esco_data_task():
     update_esco_data()

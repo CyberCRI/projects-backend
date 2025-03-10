@@ -8,6 +8,7 @@ from apps.accounts.utils import (
     get_superadmins_group_permissions,
 )
 from apps.commons.mixins import HasPermissionsSetup
+from apps.commons.utils import clear_memory
 from apps.skills.models import TagClassification
 from projects.celery import app
 
@@ -16,7 +17,8 @@ def migrate():
     call_command("migrate")
 
 
-@app.task
+@clear_memory
+@app.task(name="apps.deploys.tasks.rebuild_index")
 def rebuild_index():
     """
     python manage.py opensearch index rebuild --force
@@ -24,7 +26,7 @@ def rebuild_index():
     call_command("update_or_rebuild_index")
 
 
-@app.task
+@app.task(name="apps.deploys.tasks.base_groups_permissions")
 def base_groups_permissions():
     """
     Assign base groups permissions
@@ -63,7 +65,8 @@ def base_groups_permissions():
         remove_perm(permission, superadmins_group)
 
 
-@app.task
+@clear_memory
+@app.task(name="apps.deploys.tasks.instance_groups_permissions")
 def instance_groups_permissions():
     permissions_setup_models = HasPermissionsSetup.__subclasses__()
     for permissions_setup_model in permissions_setup_models:
@@ -75,7 +78,7 @@ def instance_groups_permissions():
             instance.setup_permissions(trigger_indexation=False)
 
 
-@app.task
+@app.task(name="apps.deploys.tasks.default_tag_classifications")
 def default_tag_classifications():
     for classification_type in TagClassification.TagClassificationType.values:
         if classification_type != TagClassification.TagClassificationType.CUSTOM:

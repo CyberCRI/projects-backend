@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db.models import Q
 from django.utils import timezone
 
+from apps.commons.utils import clear_memory
 from projects.celery import app
 
 from .models import Project
@@ -12,6 +13,7 @@ from .models import Project
 HistoricalProject = apps.get_model("projects", "HistoricalProject")
 
 
+@clear_memory
 @app.task(name="apps.projects.tasks.remove_old_projects")
 def remove_old_projects():
     max_date = timezone.now() - timedelta(days=settings.DELETED_PROJECT_RETENTION_DAYS)
@@ -19,6 +21,7 @@ def remove_old_projects():
         project.hard_delete()
 
 
+@clear_memory
 @app.task(name="apps.projects.tasks.calculate_projects_scores")
 def calculate_projects_scores():
     for project in Project.objects.all():

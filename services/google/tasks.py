@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import transaction
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.commons.utils import clear_memory
 from projects.celery import app
 from services.google.interface import GoogleService
 
@@ -69,7 +70,7 @@ def update_google_group(people_group: PeopleGroup):
         transaction.on_commit(lambda: update_google_group_task.delay(people_group.pk))
 
 
-@app.task
+@app.task(name="services.google.tasks.create_google_user_task")
 def create_google_user_task(user_id: str):
     google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
@@ -79,7 +80,7 @@ def create_google_user_task(user_id: str):
         google_account.sync_groups()
 
 
-@app.task
+@app.task(name="services.google.tasks.update_google_user_task")
 def update_google_user_task(user_id: str, organizational_unit: str = None):
     google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
@@ -91,7 +92,7 @@ def update_google_user_task(user_id: str, organizational_unit: str = None):
         google_account.sync_groups()
 
 
-@app.task
+@app.task(name="services.google.tasks.suspend_google_user_task")
 def suspend_google_user_task(user_id: str):
     google_account = GoogleAccount.objects.filter(user__id=user_id)
     if google_account.exists():
@@ -99,7 +100,7 @@ def suspend_google_user_task(user_id: str):
         google_account.suspend()
 
 
-@app.task
+@app.task(name="services.google.tasks.create_google_group_task")
 def create_google_group_task(people_group_id: int):
     google_group = GoogleGroup.objects.filter(people_group__id=people_group_id)
     if google_group.exists():
@@ -108,7 +109,7 @@ def create_google_group_task(people_group_id: int):
         google_group.sync_members()
 
 
-@app.task
+@app.task(name="services.google.tasks.update_google_group_task")
 def update_google_group_task(people_group_id: int):
     google_group = GoogleGroup.objects.filter(people_group__id=people_group_id)
     if google_group.exists():
@@ -117,7 +118,8 @@ def update_google_group_task(people_group_id: int):
         google_group.sync_members()
 
 
-@app.task
+@clear_memory
+@app.task(name="services.google.tasks.retry_failed_tasks")
 def retry_failed_tasks():
     failed_tasks = GoogleSyncErrors.objects.filter(solved=False).order_by("created_at")
     for failed_task in failed_tasks:

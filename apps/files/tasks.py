@@ -3,7 +3,7 @@ from projects.celery import app
 from .models import Image
 
 
-@app.task
+@app.task(name="apps.files.tasks.delete_orphan_images")
 def delete_orphan_images(threshold: int = None):
     """Delete all orphan image according to `IMAGE_ORPHAN_THRESHOLD_SECONDS` settings.
 
