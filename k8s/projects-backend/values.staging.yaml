@@ -31,3 +31,8 @@ redis:
   - projects-api/stag-test/values.yaml
   argocdAppName: stag-test-projects-api-redis
   helmReleaseName: projects-api-redis-stag-test
+  values:
+    redis:
+      commonLabels:
+        sablier.enable: '{{.Values.sablier.enabled}}'
+        sablier.groupName: '{{.Values.sablier.groupName}}'

@@ -35,3 +35,8 @@ redis:
   - values.yaml
   - projects-api/values.yaml
   - projects-api/dev-lab/values.yaml
+  values:
+    redis:
+      commonLabels:
+        sablier.enable: '{{.Values.sablier.enabled}}'
+        sablier.groupName: '{{.Values.sablier.groupName}}'
