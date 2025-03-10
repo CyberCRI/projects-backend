@@ -158,22 +158,22 @@ def notify_new_access_request(access_request_pk: int):
     return _notify_new_access_request(access_request_pk)
 
 
-@clear_memory
 @app.task(name="apps.notifications.tasks.notify_pending_access_requests")
+@clear_memory
 def notify_pending_access_requests():
     """Notify organization owners of pending access requests."""
     _notify_pending_access_requests()
 
 
-@clear_memory
 @app.task(name="apps.notifications.tasks.send_notifications_reminder")
+@clear_memory
 def send_notifications_reminder():
     users = ProjectUser.objects.filter(notifications_received__to_send=True).distinct()
     _send_notifications_reminder(users)
 
 
-@clear_memory
 @app.task(name="apps.notifications.tasks.send_invitations_reminder")
+@clear_memory
 def send_invitations_reminder():
     """
     Send a reminder to org admins about invitation links that are about to expire.
@@ -181,8 +181,8 @@ def send_invitations_reminder():
     _send_invitations_reminder()
 
 
-@clear_memory
 @app.task(name="apps.notifications.tasks.notify_new_instructions")
+@clear_memory
 def notify_new_instructions():
     """Notify members of a new instruction."""
     return _notify_new_instructions()
