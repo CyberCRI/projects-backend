@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
+from apps.commons.utils import clear_memory
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Comment, Review
 from apps.invitations.models import AccessRequest, Invitation
@@ -43,7 +44,7 @@ from .utils import (
 )
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_member_added")
 def notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
     """Notify that members has been added to a project.
 
@@ -53,7 +54,7 @@ def notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
     return _notify_member_added(project_pk, user_pk, by_pk, role)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_group_as_member_added")
 def notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int, role: str):
     """Notify that a people group has been added to a project as member.
 
@@ -63,7 +64,7 @@ def notify_group_as_member_added(project_pk: str, group_id: int, by_pk: int, rol
     return _notify_group_as_member_added(project_pk, group_id, by_pk, role)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_member_updated")
 def notify_member_updated(project_pk: str, user_pk: int, by_pk: int, role: str):
     """Notify that members of a project has been updated.
 
@@ -73,7 +74,7 @@ def notify_member_updated(project_pk: str, user_pk: int, by_pk: int, role: str):
     return _notify_member_updated(project_pk, user_pk, by_pk, role)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_member_deleted")
 def notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
     """Notify that members has been deleted from a project.
 
@@ -83,7 +84,7 @@ def notify_member_deleted(project_pk: str, user_pk: int, by_pk: int):
     return _notify_member_deleted(project_pk, user_pk, by_pk)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_group_member_deleted")
 def notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: int):
     """Notify that a group has been deleted from the members of a project.
 
@@ -93,7 +94,7 @@ def notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: in
     return _notify_group_member_deleted(project_pk, people_group_pk, by_pk)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_project_changes")
 def notify_project_changes(project_pk: str, changes: Dict[str, Any], by_pk: int):
     """Notify members and followers of a project when it is modified.
 
@@ -109,67 +110,70 @@ def notify_project_changes(project_pk: str, changes: Dict[str, Any], by_pk: int)
     return _notify_project_changes(project_pk, changes, by_pk)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_review")
 def notify_new_review(review_id: int):
     """Notify members and followers that a new review has been created."""
     return _notify_new_review(review_id)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_ready_for_review")
 def notify_ready_for_review(project_pk: int, by_pk: int):
     """Notify reviewers that a project is ready for review."""
     return _notify_ready_for_review(project_pk, by_pk)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_blogentry")
 def notify_new_blogentry(blogentry_pk: int, by_pk: int):
     """Notify members and followers that a new blog entry has been created."""
     return _notify_new_blogentry(blogentry_pk, by_pk)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_comment")
 def notify_new_comment(comment_id: int):
     """Notify members and followers that a new comment has been added."""
     return _notify_new_comment(comment_id)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_private_message")
 def notify_new_private_message(message_id: int):
     """Notify members and followers that a new private message has been received."""
     return _notify_new_private_message(message_id)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_announcement")
 def notify_new_announcement(announcement_pk: int, by_pk: int):
     """Notify members and followers that a new announcement has been published."""
     return _notify_new_announcement(announcement_pk, by_pk)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_application")
 def notify_new_application(announcement_pk: int, application: Dict[str, Any]):
     """Notify members of a new application to an announcement."""
     return _notify_new_application(announcement_pk, application)
 
 
-@app.task
+@app.task(name="apps.notifications.tasks.notify_new_access_request")
 def notify_new_access_request(access_request_pk: int):
     """Notify organization owners of a new access request."""
     return _notify_new_access_request(access_request_pk)
 
 
-@app.task
+@clear_memory
+@app.task(name="apps.notifications.tasks.notify_pending_access_requests")
 def notify_pending_access_requests():
     """Notify organization owners of pending access requests."""
     _notify_pending_access_requests()
 
 
-@app.task
+@clear_memory
+@app.task(name="apps.notifications.tasks.send_notifications_reminder")
 def send_notifications_reminder():
     users = ProjectUser.objects.filter(notifications_received__to_send=True).distinct()
     _send_notifications_reminder(users)
 
 
-@app.task
+@clear_memory
+@app.task(name="apps.notifications.tasks.send_invitations_reminder")
 def send_invitations_reminder():
     """
     Send a reminder to org admins about invitation links that are about to expire.
@@ -177,7 +181,8 @@ def send_invitations_reminder():
     _send_invitations_reminder()
 
 
-@app.task
+@clear_memory
+@app.task(name="apps.notifications.tasks.notify_new_instructions")
 def notify_new_instructions():
     """Notify members of a new instruction."""
     return _notify_new_instructions()

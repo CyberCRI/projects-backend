@@ -7,7 +7,7 @@ from projects.celery import app
 from .utils import send_email
 
 
-@app.task
+@app.task(name="apps.emailing.tasks.send_email_task")
 def send_email_task(
     subject: str,
     text_content: str,
