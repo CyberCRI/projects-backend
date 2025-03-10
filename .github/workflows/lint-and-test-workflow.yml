@@ -55,7 +55,7 @@ jobs:
       options: --user root
     services:
       postgres:
-        image: pgvector/pgvector:pg17
+        image: pgvector/pgvector:pg14
         env:
           POSTGRES_PASSWORD: password
         ports:
