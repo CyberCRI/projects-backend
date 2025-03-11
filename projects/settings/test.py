@@ -1,4 +1,8 @@
+import multiprocessing
+
 from projects.settings.base import *  # noqa: F401, F403
+
+multiprocessing.set_start_method("fork")
 
 ENVIRONMENT = "test"
 
@@ -27,8 +31,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 GOOGLE_SYNCED_ORGANIZATION = "TEST_GOOGLE_SYNC"
 GOOGLE_EMAIL_PREFIX = "test"
 
-TEST_RUNNER = "django_slowtests.testrunner.DiscoverSlowestTestsRunner"
-NUM_SLOW_TESTS = 10
+# TEST_RUNNER = "django_slowtests.testrunner.DiscoverSlowestTestsRunner"
+# NUM_SLOW_TESTS = 10
 
 
 ##############
