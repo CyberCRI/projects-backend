@@ -100,7 +100,7 @@ exclude = '''
 
 [tool.coverage.run]
 branch = true
-command_line = "manage.py test --no-input --parallel=6 --settings=projects.settings.test"
+command_line = "manage.py test --no-input --no-buffer --parallel=6 --settings=projects.settings.test"
 source = ["apps"]
 
 [tool.coverage.report]
