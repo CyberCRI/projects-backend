@@ -411,9 +411,12 @@ class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
     ) -> Any:
         try:
             return super().get_main_id(object_id, returned_field)
-        except Http404:
-            user = cls.import_from_keycloak(object_id)
-            return getattr(user, returned_field)
+        except Http404 as e:
+            try:
+                user = cls.import_from_keycloak(object_id)
+                return getattr(user, returned_field)
+            except RemoteKeycloakAccountNotFound:
+                raise e
 
     @classmethod
     @transaction.atomic
