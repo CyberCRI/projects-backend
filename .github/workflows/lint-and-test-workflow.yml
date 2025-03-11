@@ -51,7 +51,7 @@ jobs:
         username: ${{ secrets.registry-username }}
         password: ${{ secrets.registry-password }}
       env:
-        DJANGO_SETTINGS_MODULE: projects.settings.test
+        DJANGO_SETTINGS_MODULE: projects.settings.local
         PYTHONUNBUFFERED: 1
       options: --user root
     services:

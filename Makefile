@@ -90,7 +90,7 @@ lint: flake8 bandit
 
 .PHONY: test
 test:
-	coverage run
+	PYTHONUNBUFFERED=1 coverage run
 	coverage report
 
 .PHONY: dropdb
