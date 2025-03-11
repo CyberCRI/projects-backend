@@ -53,7 +53,7 @@ def HasProjectPermission(  # noqa: N802
     codename: str, app: str = "projects"
 ) -> permissions.BasePermission:
     class _HasProjectPermission(permissions.BasePermission, ProjectRelatedPermission):
-        def has_permission(self, request, view):
+        def has_permission(self, request: Request, view: GenericViewSet) -> bool:
             if request.user.is_authenticated:
                 project = self.get_related_project(request, view)
                 if project and app:
@@ -62,9 +62,16 @@ def HasProjectPermission(  # noqa: N802
                     return request.user.has_perm(codename, project)
             return False
 
-        def has_object_permission(self, request, view, obj):
+        def has_object_permission(
+            self, request: Request, view: GenericViewSet, obj: Model
+        ) -> bool:
             if request.user.is_authenticated:
                 project = self.get_related_project(request, view, obj)
+                # If get_related_project returns None with a non-null obj, it might be
+                # because the object is not yet linked to a project. In that case, it is
+                # relevant to retry the permission check with the project_id in the URL.
+                if not project:
+                    project = self.get_related_project(request, view)
                 if project and app:
                     request.user.has_perm(f"{app}.{codename}", project)
                 if project:
