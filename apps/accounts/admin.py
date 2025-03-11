@@ -5,8 +5,8 @@ from django.db.models import Q, QuerySet
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from import_export import fields, resources
-from import_export.admin import ExportActionMixin
+from import_export import fields, resources  # type: ignore
+from import_export.admin import ExportActionMixin  # type: ignore
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.utils import get_group_permissions

@@ -38,7 +38,8 @@ class Command(BaseCommand):
         # english needs french as mentor
         skill = SkillFactory(user=french_user, can_mentor=True)
         payload = {
-            "content": "English needs French as mentor",
+            "content": "English needs French as mentor"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -59,7 +60,8 @@ class Command(BaseCommand):
         # french needs english as mentor
         skill = SkillFactory(user=english_user, can_mentor=True)
         payload = {
-            "content": "French needs English as mentor",
+            "content": "French needs English as mentor"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -80,7 +82,8 @@ class Command(BaseCommand):
         # english needs french as mentoree
         skill = SkillFactory(user=french_user, needs_mentor=True)
         payload = {
-            "content": "English needs French as mentoree",
+            "content": "English needs French as mentoree"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -101,7 +104,8 @@ class Command(BaseCommand):
         # french needs english as mentoree
         skill = SkillFactory(user=english_user, needs_mentor=True)
         payload = {
-            "content": "French needs English as mentoree",
+            "content": "French needs English as mentoree"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -125,7 +129,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
-            "content": "French needs more info from English mentor request",
+            "content": "French needs more info from English mentor request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -149,7 +154,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
-            "content": "English needs more info from French mentor request",
+            "content": "English needs more info from French mentor request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -173,7 +179,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
-            "content": "French needs more info from English mentoree request",
+            "content": "French needs more info from English mentoree request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -197,7 +204,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.PENDING.value,
-            "content": "English needs more info from French mentoree request",
+            "content": "English needs more info from French mentoree request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -221,7 +229,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
-            "content": "French accepts English mentor request",
+            "content": "French accepts English mentor request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -245,7 +254,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
-            "content": "English accepts French mentor request",
+            "content": "English accepts French mentor request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -269,7 +279,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
-            "content": "French accepts English mentoree request",
+            "content": "French accepts English mentoree request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -293,7 +304,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.ACCEPTED.value,
-            "content": "English accepts French mentoree request",
+            "content": "English accepts French mentoree request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -317,7 +329,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
-            "content": "French rejects English mentor request",
+            "content": "French rejects English mentor request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -341,7 +354,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
-            "content": "English rejects French mentor request",
+            "content": "English rejects French mentor request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -365,7 +379,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
-            "content": "French rejects English mentoree request",
+            "content": "French rejects English mentoree request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
@@ -389,7 +404,8 @@ class Command(BaseCommand):
         )
         payload = {
             "status": Mentoring.MentoringStatus.REJECTED.value,
-            "content": "English rejects French mentoree request",
+            "content": "English rejects French mentoree request"
+            "\nwith line break\n\nwith double line break",
             "reply_to": faker.email(),
         }
         response = requests.post(
