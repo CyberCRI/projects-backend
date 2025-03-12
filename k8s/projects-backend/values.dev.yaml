@@ -27,7 +27,10 @@ workflow:
 hostname: api.projects.k8s.lp-i.dev
 
 backend:
-  replicaCount: 1
+  horizontalScaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 2
 
 redis:
   autoSync: false

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 16:50+0100\n"
+"POT-Creation-Date: 2025-03-12 15:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,11 +46,6 @@ msgstr ""
 msgid "You do not have the permission to assign this role"
 msgstr ""
 
-#: apps/accounts/exceptions.py:61
-#, python-brace-format
-msgid "You do not have the permission to assign this role : {role}"
-msgstr ""
-
 #: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
@@ -65,18 +60,8 @@ msgstr ""
 msgid "An error occurred while syncing with Keycloak"
 msgstr ""
 
-#: apps/accounts/exceptions.py:92
-#, python-brace-format
-msgid "An error occurred while syncing with Keycloak : {message}"
-msgstr ""
-
 #: apps/accounts/exceptions.py:102
 msgid "An error occurred while syncing with Google"
-msgstr ""
-
-#: apps/accounts/exceptions.py:107
-#, python-brace-format
-msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 
 #: apps/accounts/exceptions.py:120
@@ -103,24 +88,19 @@ msgstr ""
 msgid "You cannot assign this role to a user"
 msgstr ""
 
-#: apps/accounts/exceptions.py:155
-#, python-brace-format
-msgid "You cannot assign this role to a user : {role}"
-msgstr ""
-
 #: apps/accounts/models.py:127 apps/projects/models.py:157
 msgid "visibility"
 msgstr ""
 
-#: apps/accounts/models.py:759
+#: apps/accounts/models.py:762
 msgid "Hide"
 msgstr ""
 
-#: apps/accounts/models.py:760
+#: apps/accounts/models.py:763
 msgid "Organization"
 msgstr ""
 
-#: apps/accounts/models.py:761
+#: apps/accounts/models.py:764
 msgid "Public"
 msgstr ""
 
@@ -161,11 +141,6 @@ msgstr ""
 msgid "Unknown publication status"
 msgstr ""
 
-#: apps/analytics/exceptions.py:15
-#, python-brace-format
-msgid "Unknown publication status '{publication_status}'"
-msgstr ""
-
 #: apps/commons/fields.py:29 apps/skills/serializers.py:102
 msgid "This field is required."
 msgstr ""
@@ -199,19 +174,8 @@ msgstr ""
 msgid "You don't have the permission to comment on this project"
 msgstr ""
 
-#: apps/feedbacks/exceptions.py:18
-#, python-brace-format
-msgid ""
-"You don't have the permission to comment on this project : {project_title}"
-msgstr ""
-
 #: apps/feedbacks/exceptions.py:28
 msgid "You don't have the permission to follow this project"
-msgstr ""
-
-#: apps/feedbacks/exceptions.py:33
-#, python-brace-format
-msgid "You don't have the permission to follow this project : {project_title}"
 msgstr ""
 
 #: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:116
@@ -230,11 +194,6 @@ msgstr ""
 msgid "The link you are trying to attach is already attached to this project"
 msgstr ""
 
-#: apps/files/exceptions.py:30
-#, python-brace-format
-msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-msgstr ""
-
 #: apps/files/exceptions.py:37
 msgid "You can't change the project of a file"
 msgstr ""
@@ -247,20 +206,8 @@ msgstr ""
 msgid "You can't delete this picture: It is related to another object"
 msgstr ""
 
-#: apps/files/exceptions.py:58
-msgid ""
-"You can't delete this picture: It is related to an instance of "
-"{relation['model']} with pk={relation['pk']} through field "
-"{relation['field']}"
-msgstr ""
-
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
-msgstr ""
-
-#: apps/invitations/exceptions.py:17
-#, python-brace-format
-msgid "The email type '{email_type}' is not valid"
 msgstr ""
 
 #: apps/invitations/exceptions.py:29
@@ -314,8 +261,8 @@ msgstr ""
 #: services/keycloak/templates/keycloak_base.html:66
 msgid ""
 "\n"
-"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">help center</a>.\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">help center</a>.\n"
 "          "
 msgstr ""
 
@@ -1143,11 +1090,6 @@ msgstr ""
 msgid "You don't have the permission to link this project"
 msgstr ""
 
-#: apps/projects/exceptions.py:17
-#, python-brace-format
-msgid "You don't have the permission to link this project : {project_title}"
-msgstr ""
-
 #: apps/projects/exceptions.py:27
 msgid "You do not have the rights to add a project in this organization"
 msgstr ""
@@ -1188,11 +1130,6 @@ msgstr ""
 
 #: apps/projects/exceptions.py:102
 msgid "A project can't be linked to itself"
-msgstr ""
-
-#: apps/projects/exceptions.py:107
-#, python-brace-format
-msgid "The project '{project_title}' can't be linked to itself"
 msgstr ""
 
 #: apps/projects/exceptions.py:122
@@ -1972,11 +1909,6 @@ msgstr ""
 msgid "The given email type is not valid"
 msgstr ""
 
-#: services/keycloak/exceptions.py:44
-#, python-brace-format
-msgid "Email type '{email_type}' is not valid"
-msgstr ""
-
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
 "\n"
@@ -2176,16 +2108,6 @@ msgstr ""
 msgid "Wikipedia API error"
 msgstr ""
 
-#: services/wikipedia/exceptions.py:17
-#, python-brace-format
-msgid "Wikipedia API returned {status_code}"
-msgstr ""
-
 #: services/wikipedia/exceptions.py:26
 msgid "Language is not supported"
-msgstr ""
-
-#: services/wikipedia/exceptions.py:31
-#, python-brace-format
-msgid "Language {language} is not supported"
 msgstr ""

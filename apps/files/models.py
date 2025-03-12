@@ -285,17 +285,16 @@ class Image(
         `first()` by `get()`.
         """
         Project = apps.get_model("projects", "Project")  # noqa
-        return (
-            Project.objects.filter(
-                Q(header_image=self)
-                | Q(images=self)
-                | Q(blog_entries__images=self)
-                | Q(comments__images=self)
-                | Q(messages__images=self)
-            )
-            .distinct()
-            .first()
-        )
+        queryset = Project.objects.filter(
+            Q(header_image=self)
+            | Q(images=self)
+            | Q(blog_entries__images=self)
+            | Q(comments__images=self)
+            | Q(messages__images=self)
+        ).distinct()
+        if queryset.exists():
+            return queryset.first()
+        return None
 
     def duplicate(
         self, owner: Optional["ProjectUser"] = None, upload_to: str = ""

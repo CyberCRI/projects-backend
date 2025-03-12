@@ -38,6 +38,8 @@ def MultiMatchSearchFieldsFilter(  # noqa: N802
                     id=list(queryset.values_list("id", flat=True)),
                 )
                 ids = [hit.id for hit in response.hits]
+                if not ids:
+                    return queryset.none()
                 queryset = queryset.filter(id__in=ids).annotate(
                     ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
                 )

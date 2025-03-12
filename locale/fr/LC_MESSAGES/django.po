@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-10 16:50+0100\n"
+"POT-Creation-Date: 2025-03-12 15:39+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -46,11 +46,6 @@ msgstr "Vous ne pouvez pas ajouter des projets auxquels vous n'avez pas accès"
 msgid "You do not have the permission to assign this role"
 msgstr "Vous n'avez pas la permission d'assigner ce rôle"
 
-#: apps/accounts/exceptions.py:61
-#, python-brace-format
-msgid "You do not have the permission to assign this role : {role}"
-msgstr "Vous n'avez pas la permission d'assigner ce rôle : {role}"
-
 #: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
@@ -67,21 +62,9 @@ msgstr "La permission n'a pas été trouvée"
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
 
-#: apps/accounts/exceptions.py:92
-#, python-brace-format
-msgid "An error occurred while syncing with Keycloak : {message}"
-msgstr ""
-"Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
-
 #: apps/accounts/exceptions.py:102
 msgid "An error occurred while syncing with Google"
 msgstr "Une erreur est survenue lors de la synchronisation avec Google"
-
-#: apps/accounts/exceptions.py:107
-#, python-brace-format
-msgid "An error occurred while syncing with Google : {message}"
-msgstr ""
-"Une erreur est survenue lors de la synchronisation avec Google : {message}"
 
 #: apps/accounts/exceptions.py:120
 msgid "The organization of a group cannot be changed"
@@ -107,24 +90,19 @@ msgstr "Vous essayez de créer une boucle dans la hiérarchie des groupes"
 msgid "You cannot assign this role to a user"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 
-#: apps/accounts/exceptions.py:155
-#, python-brace-format
-msgid "You cannot assign this role to a user : {role}"
-msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
-
 #: apps/accounts/models.py:127 apps/projects/models.py:157
 msgid "visibility"
 msgstr "visibilité"
 
-#: apps/accounts/models.py:759
+#: apps/accounts/models.py:762
 msgid "Hide"
 msgstr "Caché"
 
-#: apps/accounts/models.py:760
+#: apps/accounts/models.py:763
 msgid "Organization"
 msgstr "Organisation"
 
-#: apps/accounts/models.py:761
+#: apps/accounts/models.py:764
 msgid "Public"
 msgstr "Publique"
 
@@ -185,11 +163,6 @@ msgstr ""
 msgid "Unknown publication status"
 msgstr "Statut de publication inconnu"
 
-#: apps/analytics/exceptions.py:15
-#, python-brace-format
-msgid "Unknown publication status '{publication_status}'"
-msgstr "Statut de publication inconnu '{publication_status}'"
-
 #: apps/commons/fields.py:29 apps/skills/serializers.py:102
 msgid "This field is required."
 msgstr "Ce champ est obligatoire."
@@ -226,20 +199,9 @@ msgstr "Bonjour %(given_name)s,"
 msgid "You don't have the permission to comment on this project"
 msgstr "Vous n'avez pas la permission de commenter ce projet"
 
-#: apps/feedbacks/exceptions.py:18
-#, python-brace-format
-msgid ""
-"You don't have the permission to comment on this project : {project_title}"
-msgstr "Vous n'avez pas la permission de commenter ce projet : {project_title}"
-
 #: apps/feedbacks/exceptions.py:28
 msgid "You don't have the permission to follow this project"
 msgstr "Vous n'avez pas la permission de suivre ce projet"
-
-#: apps/feedbacks/exceptions.py:33
-#, python-brace-format
-msgid "You don't have the permission to follow this project : {project_title}"
-msgstr "Vous n'avez pas la permission de suivre ce projet : {project_title}"
 
 #: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:116
 msgid "You cannot reply to a reply"
@@ -257,13 +219,6 @@ msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
 msgid "The link you are trying to attach is already attached to this project"
 msgstr "Le lien que vous essayez d'attacher est déjà lié à ce projet"
 
-#: apps/files/exceptions.py:30
-#, python-brace-format
-msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-msgstr ""
-"Fichier trop volumineux. La taille ne doit pas dépasser {settings."
-"MAX_FILE_SIZE} Mo"
-
 #: apps/files/exceptions.py:37
 msgid "You can't change the project of a file"
 msgstr "Vous ne pouvez pas changer le projet d'un fichier"
@@ -277,23 +232,9 @@ msgid "You can't delete this picture: It is related to another object"
 msgstr ""
 "Vous ne pouvez pas supprimer cette image: elle est liée à un autre objet"
 
-#: apps/files/exceptions.py:58
-msgid ""
-"You can't delete this picture: It is related to an instance of "
-"{relation['model']} with pk={relation['pk']} through field "
-"{relation['field']}"
-msgstr ""
-"Vous ne pouvez pas supprimer cette image: elle est liée à une instance de "
-"{relation['model']} avec pk={relation['pk']} via le champ {relation['field']}"
-
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
 msgstr "Le type d'email n'est pas valide"
-
-#: apps/invitations/exceptions.py:17
-#, python-brace-format
-msgid "The email type '{email_type}' is not valid"
-msgstr "Le type d'email '{email_type}' n'est pas valide"
 
 #: apps/invitations/exceptions.py:29
 msgid "People group must belong to the invitation's organization"
@@ -355,13 +296,13 @@ msgstr ""
 #: services/keycloak/templates/keycloak_base.html:66
 msgid ""
 "\n"
-"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">help center</a>.\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">help center</a>.\n"
 "          "
 msgstr ""
 "\n"
-"          Vous pouvez aussi <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">visiter notre centre d'aide</a>.\n"
+"          Vous pouvez aussi <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">visiter notre centre d'aide</a>.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:71
@@ -1482,11 +1423,6 @@ msgstr "La classification de tags par défaut doit être activée sur le portail
 msgid "You don't have the permission to link this project"
 msgstr "Vous n'avez pas la permission de lier ce projet"
 
-#: apps/projects/exceptions.py:17
-#, python-brace-format
-msgid "You don't have the permission to link this project : {project_title}"
-msgstr "Vous n'avez pas la permission de lier ce projet : {project_title}"
-
 #: apps/projects/exceptions.py:27
 msgid "You do not have the rights to add a project in this organization"
 msgstr "Vous ne pouvez pas ajouter de projet dans cette organisation"
@@ -1530,11 +1466,6 @@ msgstr ""
 #: apps/projects/exceptions.py:102
 msgid "A project can't be linked to itself"
 msgstr "Un projet ne peut pas être lié à lui-même"
-
-#: apps/projects/exceptions.py:107
-#, python-brace-format
-msgid "The project '{project_title}' can't be linked to itself"
-msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 
 #: apps/projects/exceptions.py:122
 msgid "A message cannot be a reply to itself"
@@ -2639,11 +2570,6 @@ msgstr "Le paramètre 'redirect_uri' est obligatoire"
 msgid "The given email type is not valid"
 msgstr "Le type d'email donné n'est pas valide"
 
-#: services/keycloak/exceptions.py:44
-#, python-brace-format
-msgid "Email type '{email_type}' is not valid"
-msgstr "Le type d'email '{email_type}' n'est pas valide"
-
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
 "\n"
@@ -2939,16 +2865,79 @@ msgstr ""
 msgid "Wikipedia API error"
 msgstr "L'API Wikipedia a renvoyé une erreur"
 
-#: services/wikipedia/exceptions.py:17
-#, python-brace-format
-msgid "Wikipedia API returned {status_code}"
-msgstr "L'API Wikipedia a renvoyé une erreur {status_code}"
-
 #: services/wikipedia/exceptions.py:26
 msgid "Language is not supported"
 msgstr "La langue n'est pas disponible"
 
-#: services/wikipedia/exceptions.py:31
 #, python-brace-format
-msgid "Language {language} is not supported"
-msgstr "La langue {language} n'est pas disponible"
+#~ msgid "You do not have the permission to assign this role : {role}"
+#~ msgstr "Vous n'avez pas la permission d'assigner ce rôle : {role}"
+
+#, python-brace-format
+#~ msgid "An error occurred while syncing with Keycloak : {message}"
+#~ msgstr ""
+#~ "Une erreur est survenue lors de la synchronisation avec Keycloak : "
+#~ "{message}"
+
+#, python-brace-format
+#~ msgid "An error occurred while syncing with Google : {message}"
+#~ msgstr ""
+#~ "Une erreur est survenue lors de la synchronisation avec Google : {message}"
+
+#, python-brace-format
+#~ msgid "You cannot assign this role to a user : {role}"
+#~ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
+
+#, python-brace-format
+#~ msgid "Unknown publication status '{publication_status}'"
+#~ msgstr "Statut de publication inconnu '{publication_status}'"
+
+#, python-brace-format
+#~ msgid ""
+#~ "You don't have the permission to comment on this project : {project_title}"
+#~ msgstr ""
+#~ "Vous n'avez pas la permission de commenter ce projet : {project_title}"
+
+#, python-brace-format
+#~ msgid ""
+#~ "You don't have the permission to follow this project : {project_title}"
+#~ msgstr "Vous n'avez pas la permission de suivre ce projet : {project_title}"
+
+#, python-brace-format
+#~ msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
+#~ msgstr ""
+#~ "Fichier trop volumineux. La taille ne doit pas dépasser "
+#~ "{settings.MAX_FILE_SIZE} Mo"
+
+#~ msgid ""
+#~ "You can't delete this picture: It is related to an instance of "
+#~ "{relation['model']} with pk={relation['pk']} through field "
+#~ "{relation['field']}"
+#~ msgstr ""
+#~ "Vous ne pouvez pas supprimer cette image: elle est liée à une instance de "
+#~ "{relation['model']} avec pk={relation['pk']} via le champ "
+#~ "{relation['field']}"
+
+#, python-brace-format
+#~ msgid "The email type '{email_type}' is not valid"
+#~ msgstr "Le type d'email '{email_type}' n'est pas valide"
+
+#, python-brace-format
+#~ msgid "You don't have the permission to link this project : {project_title}"
+#~ msgstr "Vous n'avez pas la permission de lier ce projet : {project_title}"
+
+#, python-brace-format
+#~ msgid "The project '{project_title}' can't be linked to itself"
+#~ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
+
+#, python-brace-format
+#~ msgid "Email type '{email_type}' is not valid"
+#~ msgstr "Le type d'email '{email_type}' n'est pas valide"
+
+#, python-brace-format
+#~ msgid "Wikipedia API returned {status_code}"
+#~ msgstr "L'API Wikipedia a renvoyé une erreur {status_code}"
+
+#, python-brace-format
+#~ msgid "Language {language} is not supported"
+#~ msgstr "La langue {language} n'est pas disponible"
