@@ -39,4 +39,11 @@ redis:
     redis:
       commonLabels:
         sablier.enable: '{{.Values.sablier.enabled}}'
-        sablier.groupName: '{{.Values.sablier.groupName}}'
+        sablier.group: '{{.Values.sablier.groupName}}'
+
+sablier:
+  enabled: true
+
+ingressMiddlewares:
+- traefik-ip-allow-list-with-office@kubernetescrd
+- sablier-projects-common-sablier@kubernetescrd
