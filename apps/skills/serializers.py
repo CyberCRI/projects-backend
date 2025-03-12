@@ -264,7 +264,7 @@ class SkillSerializer(serializers.ModelSerializer):
 
 class MentoringContactSerializer(serializers.Serializer):
     content = serializers.CharField()
-    reply_to = serializers.EmailField(required=False)
+    reply_to = serializers.EmailField(required=False, allow_null=True)
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
@@ -281,7 +281,7 @@ class MentoringResponseSerializer(serializers.Serializer):
         choices=Mentoring.MentoringStatus.choices, required=True
     )
     content = serializers.CharField()
-    reply_to = serializers.EmailField(required=False)
+    reply_to = serializers.EmailField(required=False, allow_null=True)
 
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
