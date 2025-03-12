@@ -497,6 +497,11 @@ CACHE_LOCATIONS_LIST_TTL = 60 * int(
 CACHE_RECOMMENDATION_POOL_TTL = 86400  # 1 day
 CACHE_PROJECT_VIEWS = 86400  # 1 day
 
+# Memory usage settings
+
+FORCE_CLEAN_DB_CACHE = os.getenv("FORCE_CLEAN_DB_CACHE", "False") == "True"
+FORCE_GARBAGE_COLLECT = os.getenv("FORCE_GARBAGE_COLLECT", "False") == "True"
+
 #############
 #   Emails  #
 #############

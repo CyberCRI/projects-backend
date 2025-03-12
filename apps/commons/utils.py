@@ -1,4 +1,5 @@
 import base64
+import gc
 import itertools
 import re
 import uuid
@@ -9,6 +10,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.core.files import File
 from django.core.files.base import ContentFile
+from django.db import reset_queries
 from django.db.models import Func, Model, Value
 from django.forms import IntegerField
 from django.urls import reverse
@@ -309,3 +311,15 @@ def map_action_to_permission(action: str, codename: str) -> Optional[str]:
         "partial_update": f"change_{codename}",
         "destroy": f"delete_{codename}",
     }.get(action, None)
+
+
+def clear_memory(func):
+    def wrapper(*args, **kwargs):
+        result = func(*args, **kwargs)
+        if settings.FORCE_CLEAN_DB_CACHE:
+            reset_queries()
+        if settings.FORCE_GARBAGE_COLLECT:
+            gc.collect()
+        return result
+
+    return wrapper
