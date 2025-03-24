@@ -99,7 +99,14 @@ class CreateBlogEntryImageTestCase(JwtAPITestCase):
     def test_create_blog_entry_image(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {"file": self.get_test_image_file()}
+        payload = {
+            "file": self.get_test_image_file(),
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+        }
         response = self.client.post(
             reverse("BlogEntry-images-list", args=(self.project.id,)),
             data=payload,
@@ -116,6 +123,48 @@ class CreateBlogEntryImageTestCase(JwtAPITestCase):
                     args=(self.project.id, content["id"]),
                 ),
             )
+            self.assertEqual(content["scale_x"], payload["scale_x"])
+            self.assertEqual(content["scale_y"], payload["scale_y"])
+            self.assertEqual(content["left"], payload["left"])
+            self.assertEqual(content["top"], payload["top"])
+            self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
+
+    def test_blog_entry_image_with_relation(self):
+        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN)
+        self.client.force_authenticate(user)
+        payload = {
+            "file": self.get_test_image_file(),
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+        }
+        response = self.client.post(
+            reverse("BlogEntry-images-list", args=(self.project.id,))
+            + f"?blog_entry_id={self.blog_entry.id}",
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertIsNotNone(content["static_url"])
+        self.assertEqual(
+            content["static_url"] + "/",
+            reverse(
+                "BlogEntry-images-detail",
+                args=(self.project.id, content["id"]),
+            ),
+        )
+        self.blog_entry.refresh_from_db()
+        self.assertIn(
+            content["id"], self.blog_entry.images.values_list("id", flat=True)
+        )
+        self.assertEqual(content["scale_x"], payload["scale_x"])
+        self.assertEqual(content["scale_y"], payload["scale_y"])
+        self.assertEqual(content["left"], payload["left"])
+        self.assertEqual(content["top"], payload["top"])
+        self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
 
 class UpdateBlogEntryImageTestCase(JwtAPITestCase):
