@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
+from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import QuerySet
@@ -10,7 +11,7 @@ from django.http import Http404
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
-from apps.commons.mixins import HasPermissionsSetup, OrganizationRelated
+from apps.commons.mixins import HasMultipleIDs, HasPermissionsSetup, OrganizationRelated
 from apps.commons.models import GroupData
 from apps.commons.utils import (
     get_permissions_from_subscopes,
@@ -351,7 +352,7 @@ class Template(models.Model, OrganizationRelated):
             raise Http404()
 
 
-class ProjectCategory(models.Model, OrganizationRelated):
+class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
     """A ProjectCategory is a container for projects of the same type.
 
     Type might be student projects, research project, etc...
@@ -384,7 +385,12 @@ class ProjectCategory(models.Model, OrganizationRelated):
         History of the object.
     """
 
+    slugified_fields: List[str] = ["name"]
+    slug_prefix: str = "category"
+
     name = models.CharField(max_length=100, help_text="name of the category")
+    slug = models.SlugField(unique=True)
+    outdated_slugs = ArrayField(models.SlugField(), default=list)
     description = models.TextField(blank=True, help_text="description of the category")
     background_color = models.CharField(blank=True, max_length=9)
     foreground_color = models.CharField(blank=True, max_length=9)
@@ -424,6 +430,15 @@ class ProjectCategory(models.Model, OrganizationRelated):
 
     def __str__(self) -> str:
         return self.name
+
+    @classmethod
+    def get_id_field_name(cls, object_id: Any) -> str:
+        """Get the name of the field which contains the given ID."""
+        try:
+            int(object_id)
+            return "id"
+        except ValueError:
+            return "slug"
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
