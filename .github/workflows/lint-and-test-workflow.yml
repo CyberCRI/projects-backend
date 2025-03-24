@@ -52,7 +52,6 @@ jobs:
         password: ${{ secrets.registry-password }}
       env:
         DJANGO_SETTINGS_MODULE: projects.settings.local
-        PYTHONUNBUFFERED: 1
       options: --user root
     services:
       postgres:
@@ -91,5 +90,13 @@ jobs:
           - 1025:1025
           - 8025:8025
     steps:
+    - name: Check the code formatting
+      run: make format-check
+    - name: Run the linter
+      run: make lint
+    - name: Check that migrations are up-to-date
+      run: make check-migrations
+    - name: Check that translations are up-to-date
+      run: make makemessages-check
     - name: Run unit tests
       run: make test

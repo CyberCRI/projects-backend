@@ -31,8 +31,8 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 GOOGLE_SYNCED_ORGANIZATION = "TEST_GOOGLE_SYNC"
 GOOGLE_EMAIL_PREFIX = "test"
 
-# TEST_RUNNER = "django_slowtests.testrunner.DiscoverSlowestTestsRunner"
-# NUM_SLOW_TESTS = 10
+TEST_RUNNER = "django_slowtests.testrunner.DiscoverSlowestTestsRunner"
+NUM_SLOW_TESTS = 10
 
 
 ##############
