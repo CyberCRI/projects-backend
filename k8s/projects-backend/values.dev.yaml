@@ -14,6 +14,8 @@ config:
     POSTGRES_DB: dev_projects
     ENVIRONMENT: dev
     DEBUG: "False"
+    FORCE_CLEAN_DB_CACHE: "True"
+    FORCE_GARBAGE_COLLECT: "True"
 
 workflow:
   lifecycle:
