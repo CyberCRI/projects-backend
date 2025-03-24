@@ -8,7 +8,7 @@ from apps.announcements.factories import AnnouncementFactory
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
-from apps.organizations.factories import OrganizationFactory
+from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.projects.factories import (
     BlogEntryFactory,
     GoalFactory,
@@ -17,7 +17,7 @@ from apps.projects.factories import (
     ProjectFactory,
     ProjectMessageFactory,
 )
-from apps.skills.factories import SkillFactory
+from apps.skills.factories import SkillFactory, TagClassificationFactory
 
 faker = Faker()
 
@@ -54,6 +54,18 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         cls.outdated_group_slug = faker.word()
         cls.people_group.outdated_slugs = [cls.outdated_group_slug]
         cls.people_group.save()
+
+        cls.tag_classification = TagClassificationFactory(organization=cls.organization)
+        cls.outdated_tag_classification_slug = faker.word()
+        cls.tag_classification.outdated_slugs = [cls.outdated_tag_classification_slug]
+        cls.tag_classification.save()
+
+        cls.category = ProjectCategoryFactory(
+            organization=cls.organization, background_image=cls.get_test_image()
+        )
+        cls.outdated_category_slug = faker.word()
+        cls.category.outdated_slugs = [cls.outdated_category_slug]
+        cls.category.save()
 
     def test_people_group_multiple_lookups(self):
         self.client.force_authenticate(self.superadmin)
@@ -882,3 +894,94 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_tag_classification_multiple_lookups(self):
+        response = self.client.get(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, self.tag_classification.id),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["slug"], self.tag_classification.slug)
+        response = self.client.get(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, self.tag_classification.slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.tag_classification.id)
+        response = self.client.get(
+            reverse(
+                "TagClassification-detail",
+                args=(self.organization.code, self.outdated_tag_classification_slug),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.tag_classification.id)
+
+    def test_category_multiple_lookups(self):
+        response = self.client.get(
+            reverse(
+                "Category-detail",
+                args=(self.category.id,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["slug"], self.category.slug)
+        response = self.client.get(
+            reverse(
+                "Category-detail",
+                args=(self.category.slug,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.category.id)
+        response = self.client.get(
+            reverse(
+                "Category-detail",
+                args=(self.outdated_category_slug,),
+            )
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["id"], self.category.id)
+
+    def test_category_background_multiple_lookups(self):
+        self.client.force_authenticate(self.superadmin)
+        payload = {
+            "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+        }
+        response = self.client.patch(
+            reverse(
+                "Category-background-detail",
+                args=(self.category.id, self.category.background_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.category.background_image.id)
+        response = self.client.patch(
+            reverse(
+                "Category-background-detail",
+                args=(self.category.slug, self.category.background_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.category.background_image.id)
+        response = self.client.patch(
+            reverse(
+                "Category-background-detail",
+                args=(self.outdated_category_slug, self.category.background_image.id),
+            ),
+            data=payload,
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["id"], self.category.background_image.id)

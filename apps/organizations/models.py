@@ -461,6 +461,7 @@ class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
 
         return {
             "id": categories[category_id].id,
+            "slug": categories[category_id].slug,
             "name": categories[category_id].name,
             "background_color": categories[category_id].background_color,
             "foreground_color": categories[category_id].foreground_color,

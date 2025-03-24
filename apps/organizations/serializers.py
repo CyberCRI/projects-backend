@@ -375,7 +375,8 @@ class ProjectCategorySerializer(
 
     class Meta:
         model = ProjectCategory
-        fields = [
+        read_only_fields = ["slug", "organization", "background_image"]
+        fields = read_only_fields + [
             "id",
             "name",
             "description",
@@ -390,9 +391,6 @@ class ProjectCategorySerializer(
             "children",
             "projects_count",
             "tags",
-            # read-only
-            "background_image",
-            "organization",
             # write-only
             "background_image_id",
             "organization_code",
@@ -402,12 +400,16 @@ class ProjectCategorySerializer(
         hierarchy = []
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
-            hierarchy.append({"id": obj.id, "name": obj.name})
+            hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:
         return [
-            {"id": child.id, "name": child.name}
+            {
+                "id": child.id,
+                "slug": child.slug,
+                "name": child.name,
+            }
             for child in obj.children.all().order_by("name")
         ]
 
@@ -513,6 +515,7 @@ class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
         model = ProjectCategory
         fields = [
             "id",
+            "slug",
             "name",
             "background_color",
             "foreground_color",

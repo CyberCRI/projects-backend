@@ -482,25 +482,6 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
         content = response.json()
         self.assertEqual(content["slug"], "title-a-1")
 
-    def test_multiple_lookups(self):
-        tag_classification = TagClassificationFactory(organization=self.organization)
-        response = self.client.get(
-            reverse(
-                "TagClassification-detail",
-                args=(self.organization.code, tag_classification.id),
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["slug"], tag_classification.slug)
-        response = self.client.get(
-            reverse(
-                "TagClassification-detail",
-                args=(self.organization.code, tag_classification.slug),
-            )
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["id"], tag_classification.id)
-
     def test_validate_title_too_long(self):
         self.client.force_authenticate(self.superadmin)
         payload = {

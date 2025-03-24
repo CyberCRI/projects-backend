@@ -17,6 +17,7 @@ from apps.accounts.serializers import UserSerializer
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
+from apps.commons.views import MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.filters import OrganizationFilter, ProjectCategoryFilter
@@ -34,12 +35,15 @@ from apps.organizations.serializers import (
 from apps.projects.serializers import ProjectLightSerializer
 
 
-class ProjectCategoryViewSet(viewsets.ModelViewSet):
+class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ProjectCategorySerializer
     filterset_class = ProjectCategoryFilter
     organization_code_lookup = "organization__code"
     lookup_field = "id"
-    lookup_value_regex = "[0-9]+"
+    lookup_value_regex = "[^/]+"
+    multiple_lookup_fields = [
+        (ProjectCategory, "id"),
+    ]
 
     def get_queryset(self):
         return (
@@ -80,13 +84,16 @@ class ProjectCategoryViewSet(viewsets.ModelViewSet):
         return Response(project_category.get_hierarchy(), status=status.HTTP_200_OK)
 
 
-class ProjectCategoryBackgroundView(ImageStorageView):
+class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
         | IsOwner
         | HasBasePermission("change_projectcategory", "organizations")
         | HasOrganizationPermission("change_projectcategory"),
+    ]
+    multiple_lookup_fields = [
+        (ProjectCategory, "category_id"),
     ]
 
     def get_queryset(self):
@@ -420,13 +427,16 @@ class OrganizationImagesView(ImageStorageView):
         return None
 
 
-class TemplateImagesView(ImageStorageView):
+class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ReadOnly
         | IsOwner
         | HasBasePermission("change_projectcategory", "organizations")
         | HasOrganizationPermission("change_projectcategory"),
+    ]
+    multiple_lookup_fields = [
+        (ProjectCategory, "category_id"),
     ]
 
     def get_queryset(self):

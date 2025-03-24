@@ -395,3 +395,73 @@ class ValidateProjectCategoryTestCase(JwtAPITestCase):
             child.parent,
             ProjectCategory.update_or_create_root(self.organization),
         )
+
+
+class MiscProjectCategoryTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
+    def test_get_slug(self):
+        name = "My AMazing pROjecT categORy !"
+        category = ProjectCategoryFactory(name=name, organization=self.organization)
+        self.assertEqual(category.slug, "my-amazing-project-category")
+        category = ProjectCategoryFactory(name=name, organization=self.organization)
+        self.assertEqual(category.slug, "my-amazing-project-category-1")
+        category = ProjectCategoryFactory(name=name, organization=self.organization)
+        self.assertEqual(category.slug, "my-amazing-project-category-2")
+        category = ProjectCategoryFactory(name="123", organization=self.organization)
+        self.assertTrue(category.slug.startswith("category-"))
+
+    def test_outdated_slug(self):
+        self.client.force_authenticate(self.superadmin)
+        name_a = "name-a"
+        name_b = "name-b"
+        name_c = "name-c"
+        category = ProjectCategoryFactory(name=name_a, organization=self.organization)
+
+        # Check that the slug is updated and the old one is stored in outdated_slugs
+        payload = {"name": name_b}
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)), payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        category.refresh_from_db()
+        self.assertEqual(category.slug, "name-b")
+        self.assertSetEqual({"name-a"}, set(category.outdated_slugs))
+
+        # Check that multiple_slug is correctly updated
+        payload = {"name": name_c}
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        category.refresh_from_db()
+        self.assertEqual(category.slug, "name-c")
+        self.assertSetEqual({"name-a", "name-b"}, set(category.outdated_slugs))
+
+        # Check that outdated_slugs are reused if relevant
+        payload = {"name": name_b}
+        response = self.client.patch(
+            reverse("Category-detail", args=(category.id,)),
+            payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        category.refresh_from_db()
+        self.assertEqual(category.slug, "name-b")
+        self.assertSetEqual(
+            {"name-a", "name-b", "name-c"}, set(category.outdated_slugs)
+        )
+
+        # Check that outdated_slugs respect unicity
+        payload = {
+            "name": name_a,
+            "organization_code": self.organization.code,
+        }
+        response = self.client.post(reverse("Category-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(content["slug"], "name-a-1")
