@@ -1,8 +1,6 @@
 from abc import abstractmethod
-from typing import Callable
+from typing import Any, Callable, Dict
 
-from django.core.files import File
-from django.core.files.images import ImageFile
 from django.db import transaction
 from django.db.models import QuerySet
 from django.db.models.deletion import ProtectedError
@@ -110,7 +108,7 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
 
         return self.upload_to
 
-    def process_image(self, image: ImageFile) -> File:
+    def validate_image(self, data: Dict[str, Any]):
         """Allows to modify the image before saving it.
 
         For more information about the `ImageFile` object, see:
@@ -118,10 +116,7 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
          * https://docs.djangoproject.com/en/4.0/ref/files/file/#the-imagefile-class
         """
         # Check that image is not too large by calling serializer.is_valid()
-        ImageSerializer(data={"name": image.name, "file": image}).is_valid(
-            raise_exception=True
-        )
-        return image
+        ImageSerializer(data=data).is_valid(raise_exception=True)
 
     @abstractmethod
     def add_image_to_model(self, image):
@@ -152,10 +147,13 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
     )
     def create(self, request, *args, **kwargs):
         """Allows the upload of images."""
-        file = request.data["file"]
-        file = self.process_image(file)
-        filename = file._name
-        image = Image(name=filename, file=file)
+        data = {
+            "file": request.data["file"],
+            "name": request.data["file"]._name,
+            **{k: v for k, v in request.data.items() if k != "file"},
+        }
+        self.validate_image(data)
+        image = Image(**data)
         image._upload_to = self.get_upload_to()
         with transaction.atomic():
             image.owner = request.user

@@ -512,6 +512,13 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def add_image_to_model(self, image, *args, **kwargs):
         if "project_id" in self.kwargs:
+            if "blog_entry_id" in self.request.query_params:
+                blog_entry = BlogEntry.objects.get(
+                    project_id=self.kwargs["project_id"],
+                    id=self.request.query_params["blog_entry_id"],
+                )
+                blog_entry.images.add(image)
+                blog_entry.save()
             return (
                 f"/v1/project/{self.kwargs['project_id']}/blog-entry-image/{image.id}"
             )

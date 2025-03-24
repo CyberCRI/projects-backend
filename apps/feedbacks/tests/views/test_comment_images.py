@@ -114,7 +114,14 @@ class CreateCommentImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
-            payload = {"file": self.get_test_image_file()}
+            payload = {
+                "file": self.get_test_image_file(),
+                "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+            }
             response = self.client.post(
                 reverse("Comment-images-list", args=(project.id,)),
                 data=payload,
@@ -131,12 +138,24 @@ class CreateCommentImageTestCase(JwtAPITestCase):
                         args=(project.id, content["id"]),
                     ),
                 )
+                self.assertEqual(content["scale_x"], payload["scale_x"])
+                self.assertEqual(content["scale_y"], payload["scale_y"])
+                self.assertEqual(content["left"], payload["left"])
+                self.assertEqual(content["top"], payload["top"])
+                self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
             else:
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_comment_image_anonymous(self):
         for project in self.projects.values():
-            payload = {"file": self.get_test_image_file()}
+            payload = {
+                "file": self.get_test_image_file(),
+                "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "left": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "top": faker.pyfloat(min_value=1.0, max_value=2.0),
+                "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
+            }
             response = self.client.post(
                 reverse("Comment-images-list", args=(project.id,)),
                 data=payload,
