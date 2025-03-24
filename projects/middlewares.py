@@ -1,3 +1,6 @@
+from apps.commons.utils import clear_memory
+
+
 class PerRequestClearMiddleware:
     """Middleware used to ensure per-request caches are cleared."""
 
@@ -5,4 +8,4 @@ class PerRequestClearMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        return self.get_response(request)
+        return clear_memory(self.get_response)(request)

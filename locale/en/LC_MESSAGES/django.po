@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-11 14:30+0100\n"
+"POT-Creation-Date: 2025-03-24 13:40+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -461,15 +461,15 @@ msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""
 
-#: apps/notifications/tasks.py:188 apps/notifications/tasks.py:232
+#: apps/notifications/tasks.py:193 apps/notifications/tasks.py:237
 msgid "editor"
 msgstr ""
 
-#: apps/notifications/tasks.py:189 apps/notifications/tasks.py:233
+#: apps/notifications/tasks.py:194 apps/notifications/tasks.py:238
 msgid "participant"
 msgstr ""
 
-#: apps/notifications/tasks.py:190 apps/notifications/tasks.py:234
+#: apps/notifications/tasks.py:195 apps/notifications/tasks.py:239
 msgid "reviewer"
 msgstr ""
 
