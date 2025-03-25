@@ -162,7 +162,7 @@ class LocationProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["id", "title", "purpose", "header_image"]
+        fields = ["id", "slug", "title", "purpose", "header_image"]
 
 
 class LocationSerializer(
