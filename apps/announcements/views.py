@@ -43,10 +43,12 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        qs = Announcement.objects.filter(project__deleted_at__isnull=True)
+        qs = self.request.user.get_project_related_queryset(
+            Announcement.objects.filter(project__deleted_at__isnull=True)
+        )
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
-        return qs.select_related("project")
+        return qs.select_related("project").distinct()
 
     def perform_create(self, serializer):
         announcement = serializer.save()

@@ -135,128 +135,168 @@ class DeleteAnnouncementTestCase(JwtAPITestCase):
             self.assertFalse(Announcement.objects.filter(id=announcement.id).exists())
 
 
-class ReadAnnouncementTestCase(JwtAPITestCase):
+class ReadAndApplyToAnnouncementTestCase(JwtAPITestCase):
     @classmethod
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        projects = {
-            "public": ProjectFactory(
-                organizations=[cls.organization],
-                publication_status=Project.PublicationStatus.PUBLIC,
-            ),
-            "org": ProjectFactory(
-                organizations=[cls.organization],
-                publication_status=Project.PublicationStatus.ORG,
-            ),
-            "private": ProjectFactory(
-                organizations=[cls.organization],
-                publication_status=Project.PublicationStatus.PRIVATE,
-            ),
+        cls.public_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization],
+        )
+        cls.org_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations=[cls.organization],
+        )
+        cls.private_project = ProjectFactory(
+            publication_status=Project.PublicationStatus.PRIVATE,
+            organizations=[cls.organization],
+        )
+        cls.projects = {
+            "public": cls.public_project,
+            "org": cls.org_project,
+            "private": cls.private_project,
         }
+        cls.public_announcement = AnnouncementFactory(project=cls.public_project)
+        cls.org_announcement = AnnouncementFactory(project=cls.org_project)
+        cls.private_announcement = AnnouncementFactory(project=cls.private_project)
         cls.announcements = {
-            "public": AnnouncementFactory(project=projects["public"]),
-            "org": AnnouncementFactory(project=projects["org"]),
-            "private": AnnouncementFactory(project=projects["private"]),
+            "public": cls.public_announcement,
+            "org": cls.org_announcement,
+            "private": cls.private_announcement,
         }
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, "public"),
-            (TestRoles.ANONYMOUS, "org"),
-            (TestRoles.ANONYMOUS, "private"),
-            (TestRoles.DEFAULT, "public"),
-            (TestRoles.DEFAULT, "org"),
-            (TestRoles.DEFAULT, "private"),
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_retrieve_announcement(self, role, publication_status):
-        user = self.get_parameterized_test_user(role)
-        announcement = self.announcements[publication_status]
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Read-announcement-detail", args=(announcement.id,)),
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["id"], announcement.id)
+    def test_list_announcements(self, role, retrieved_announcements):
+        for visibility, announcement in self.announcements.items():
+            user = self.get_parameterized_test_user(
+                role, instances=list(self.projects.values())
+            )
+            self.client.force_authenticate(user)
+            response = self.client.get(
+                reverse("Announcement-list", args=(announcement.project.id,))
+            )
+            self.assertEqual(response.status_code, status.HTTP_200_OK)
+            content = response.json()["results"]
+            if visibility in retrieved_announcements:
+                self.assertEqual(len(content), 1)
+                self.assertEqual(content[0]["id"], announcement.id)
+            else:
+                self.assertEqual(len(content), 0)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
-    def test_list_announcement(self, role):
-        user = self.get_parameterized_test_user(role)
-        self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Read-announcement-list"),
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values())
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()["results"]
-        self.assertEqual(len(content), len(self.announcements))
+        self.client.force_authenticate(user)
+        read_response = self.client.get(reverse("Read-announcement-list"))
+        self.assertEqual(read_response.status_code, status.HTTP_200_OK)
+        content = read_response.json()["results"]
+        self.assertEqual(len(content), len(retrieved_announcements))
         self.assertSetEqual(
             {a["id"] for a in content},
-            {a.id for a in self.announcements.values()},
+            {
+                self.announcements[project_status].id
+                for project_status in retrieved_announcements
+            },
         )
-
-
-class ApplyToAnnouncementTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.projects = {
-            "public": ProjectFactory(
-                organizations=[cls.organization],
-                publication_status=Project.PublicationStatus.PUBLIC,
-            ),
-            "org": ProjectFactory(
-                organizations=[cls.organization],
-                publication_status=Project.PublicationStatus.ORG,
-            ),
-            "private": ProjectFactory(
-                organizations=[cls.organization],
-                publication_status=Project.PublicationStatus.PRIVATE,
-            ),
-        }
-        cls.announcements = {
-            "public": AnnouncementFactory(project=cls.projects["public"]),
-            "org": AnnouncementFactory(project=cls.projects["org"]),
-            "private": AnnouncementFactory(project=cls.projects["private"]),
-        }
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, "public"),
-            (TestRoles.ANONYMOUS, "org"),
-            (TestRoles.ANONYMOUS, "private"),
-            (TestRoles.DEFAULT, "public"),
-            (TestRoles.DEFAULT, "org"),
-            (TestRoles.DEFAULT, "private"),
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
         ]
     )
-    def test_apply_to_announcement(self, role, publication_status):
-        user = self.get_parameterized_test_user(role)
-        project = self.projects[publication_status]
-        announcement = self.announcements[publication_status]
-        if user:
+    def test_retrieve_announcements(self, role, retrieved_announcements):
+        for visibility, announcement in self.announcements.items():
+            user = self.get_parameterized_test_user(
+                role, instances=list(self.projects.values())
+            )
             self.client.force_authenticate(user)
-        payload = {
-            "project_id": project.id,
-            "announcement_id": announcement.id,
-            "applicant_name": faker.last_name(),
-            "applicant_firstname": faker.first_name(),
-            "applicant_email": faker.email(),
-            "applicant_message": faker.text(),
-            "recaptcha": faker.word(),
-        }
-        response = self.client.post(
-            reverse("Announcement-apply", args=(project.id, announcement.id)),
-            data=payload,
+            response = self.client.get(
+                reverse(
+                    "Announcement-detail",
+                    args=(announcement.project.id, announcement.id),
+                )
+            )
+            if visibility in retrieved_announcements:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+                content = response.json()
+                self.assertEqual(content["id"], announcement.id)
+            else:
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values())
         )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.client.force_authenticate(user)
+        read_response = self.client.get(
+            reverse("Read-announcement-detail", args=(announcement.id,))
+        )
+        if visibility in retrieved_announcements:
+            self.assertEqual(read_response.status_code, status.HTTP_200_OK)
+            content = read_response.json()
+            self.assertEqual(content["id"], announcement.id)
+        else:
+            self.assertEqual(read_response.status_code, status.HTTP_404_NOT_FOUND)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, ("public",)),
+            (TestRoles.DEFAULT, ("public",)),
+            (TestRoles.SUPERADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_ADMIN, ("public", "org", "private")),
+            (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
+            (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
+            (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
+            (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),
+        ]
+    )
+    def test_apply_to_announcement(self, role, visible_announcements):
+        user = self.get_parameterized_test_user(
+            role, instances=list(self.projects.values())
+        )
+        self.client.force_authenticate(user)
+        for visibility, announcement in self.announcements.items():
+            payload = {
+                "project_id": announcement.project.id,
+                "announcement_id": announcement.id,
+                "applicant_name": faker.last_name(),
+                "applicant_firstname": faker.first_name(),
+                "applicant_email": faker.email(),
+                "applicant_message": faker.text(),
+                "recaptcha": faker.word(),
+            }
+            response = self.client.post(
+                reverse(
+                    "Announcement-apply",
+                    args=(announcement.project.id, announcement.id),
+                ),
+                data=payload,
+            )
+            if visibility in visible_announcements:
+                self.assertEqual(response.status_code, status.HTTP_200_OK)
+            else:
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class FilterOrderAnnouncementTestCase(JwtAPITestCase):

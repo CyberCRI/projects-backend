@@ -81,7 +81,6 @@ class ListCommentTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if project_status in retrieved_comments:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(len(content), 1)
                 self.assertEqual(content[0]["id"], self.comments[project_status].id)
                 self.assertEqual(
                     content[0]["replies"][0]["id"], self.replies[project_status].id
