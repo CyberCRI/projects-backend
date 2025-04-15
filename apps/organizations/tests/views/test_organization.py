@@ -55,6 +55,7 @@ class CreateOrganizationTestCase(JwtAPITestCase):
     def test_create_organization(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
+        language = random.choice(Language.values)  # nosec
         payload = {
             "name": faker.word(),
             "code": faker.word(),
@@ -67,7 +68,8 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             "website_url": faker.url(),
             "background_color": faker.color(),
             "logo_image_id": self.logo_image.id,
-            "language": random.choice(Language.values),  # nosec
+            "language": language,
+            "languages": list(set([language, random.choice(Language.values)])),  # nosec
             "is_logo_visible_on_parent_dashboard": faker.boolean(),
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
@@ -105,6 +107,7 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             self.assertEqual(content["background_color"], payload["background_color"])
             self.assertEqual(content["logo_image"]["id"], payload["logo_image_id"])
             self.assertEqual(content["language"], payload["language"])
+            self.assertSetEqual(set(content["languages"]), set(payload["languages"]))
             self.assertEqual(
                 content["is_logo_visible_on_parent_dashboard"],
                 payload["is_logo_visible_on_parent_dashboard"],

@@ -8,39 +8,46 @@ from apps.accounts.views import (
 )
 from apps.commons.urls import DetailOnlyNestedRouter
 from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
-from apps.organizations import views
+
+from .views import (
+    OrganizationBannerView,
+    OrganizationImagesView,
+    OrganizationLogoView,
+    OrganizationViewSet,
+    ProjectCategoryBackgroundView,
+    ProjectCategoryViewSet,
+    TemplateImagesView,
+)
 
 categories_router = routers.DefaultRouter()
-categories_router.register(
-    r"category", views.ProjectCategoryViewSet, basename="Category"
-)
+categories_router.register(r"category", ProjectCategoryViewSet, basename="Category")
 
 categories_nested_router = routers.NestedSimpleRouter(
     categories_router, r"category", lookup="category"
 )
 categories_nested_router.register(
-    r"background", views.ProjectCategoryBackgroundView, basename="Category-background"
+    r"background", ProjectCategoryBackgroundView, basename="Category-background"
 )
 categories_nested_router.register(
-    r"template-image", views.TemplateImagesView, basename="Template-images"
+    r"template-image", TemplateImagesView, basename="Template-images"
 )
 
 organizations_router = routers.DefaultRouter()
 organizations_router.register(
-    r"organization", views.OrganizationViewSet, basename="Organization"
+    r"organization", OrganizationViewSet, basename="Organization"
 )
 
 organizations_nested_router = routers.NestedSimpleRouter(
     organizations_router, r"organization", lookup="organization"
 )
 organizations_nested_router.register(
-    r"banner", views.OrganizationBannerView, basename="Organization-banner"
+    r"banner", OrganizationBannerView, basename="Organization-banner"
 )
 organizations_nested_router.register(
-    r"logo", views.OrganizationLogoView, basename="Organization-logo"
+    r"logo", OrganizationLogoView, basename="Organization-logo"
 )
 organizations_nested_router.register(
-    r"image", views.OrganizationImagesView, basename="Organization-images"
+    r"image", OrganizationImagesView, basename="Organization-images"
 )
 organizations_nested_router.register(
     r"people-group", PeopleGroupViewSet, basename="PeopleGroup"

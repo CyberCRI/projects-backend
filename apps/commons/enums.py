@@ -6,9 +6,9 @@ class Language(models.TextChoices):
     Represent a language, e.g: fr
     """
 
-    FR = "fr", "French"
     EN = "en", "English"
-    DE = "de", "German"
+    FR = "fr", "Français"
+    DE = "de", "Deutsch"
 
     @staticmethod
     def default():
