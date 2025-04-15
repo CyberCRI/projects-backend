@@ -8,10 +8,15 @@ class Language(models.TextChoices):
 
     FR = "fr", "French"
     EN = "en", "English"
+    DE = "de", "German"
 
-    @classmethod
-    def default(cls):
+    @staticmethod
+    def default():
         return Language.EN
+
+    @staticmethod
+    def default_list():
+        return [Language.EN]
 
 
 class SDG(models.IntegerChoices):
