@@ -505,6 +505,22 @@ class AdminListUserTestCase(JwtAPITestCase):
             {self.user_1.id, self.user_2.id, self.user_3.id},
         )
 
+    def test_filter_by_current_org_pk(self):
+        self.client.force_authenticate(self.user)
+        other_organization = OrganizationFactory(parent=self.organization)
+        other_organization.admins.add(self.user_4)
+        response = self.client.get(
+            reverse("ProjectUser-admin-list")
+            + f"?current_org_pk={self.organization.pk}"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["results"]), 3)
+        self.assertSetEqual(
+            {u["id"] for u in content["results"]},
+            {self.user_1.id, self.user_2.id, self.user_3.id},
+        )
+
 
 class UserSyncErrorsTestCase(JwtAPITestCase):
     @classmethod
@@ -698,7 +714,6 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][0]["id"], self.user_a.id)
         self.assertEqual(content["results"][1]["id"], self.user_b.id)
         self.assertEqual(content["results"][2]["id"], self.user_c.id)
-        self.assertEqual(content["results"][3]["id"], self.user_d.id)
 
     def test_order_by_role_reverse(self):
         response = self.client.get(
@@ -707,10 +722,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(content["results"][0]["id"], self.user_d.id)
-        self.assertEqual(content["results"][1]["id"], self.user_c.id)
-        self.assertEqual(content["results"][2]["id"], self.user_b.id)
-        self.assertEqual(content["results"][3]["id"], self.user_a.id)
+        self.assertEqual(content["results"][0]["id"], self.user_c.id)
+        self.assertEqual(content["results"][1]["id"], self.user_b.id)
+        self.assertEqual(content["results"][2]["id"], self.user_a.id)
 
     def test_filter_by_role_admin(self):
         response = self.client.get(
@@ -989,7 +1003,7 @@ class MiscUserTestCase(JwtAPITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(content["count"], 12)
+        self.assertEqual(content["count"], 9)
         for user in response.data["results"]:
             if user["id"] in [u.id for u in admins]:
                 self.assertEqual(user["current_org_role"], "admins")
@@ -997,8 +1011,6 @@ class MiscUserTestCase(JwtAPITestCase):
                 self.assertEqual(user["current_org_role"], "facilitators")
             elif user["id"] in [u.id for u in users]:
                 self.assertEqual(user["current_org_role"], "users")
-            else:
-                self.assertIsNone(user["current_org_role"])
 
     def test_get_current_org_role_two_roles(self):
         organization = OrganizationFactory()
