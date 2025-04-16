@@ -3,7 +3,6 @@ from django_filters import rest_framework as filters
 
 from apps.commons.filters import MultiValueCharFilter
 from apps.organizations.utils import get_below_hierarchy_codes
-from apps.projects.models import Project
 
 from .models import Announcement
 
@@ -21,8 +20,7 @@ class AnnouncementFilter(filters.FilterSet):
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
-            project__organizations__code__in=get_below_hierarchy_codes(value),
-            project__publication_status=Project.PublicationStatus.PUBLIC,
+            project__organizations__code__in=get_below_hierarchy_codes(value)
         ).distinct()
 
     def filter_from_date_or_none(self, queryset, name, value):
