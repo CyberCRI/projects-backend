@@ -20,6 +20,7 @@ class PeopleGroupFilter(filters.FilterSet):
 
 class UserFilter(filters.FilterSet):
     organizations = MultiValueCharFilter(method="filter_organizations")
+    current_org_pk = MultiValueCharFilter(method="filter_current_org_pk")
     current_org_role = MultiValueCharFilter(method="filter_current_org_role")
     can_mentor = filters.BooleanFilter(method="filter_can_mentor")
     needs_mentor = filters.BooleanFilter(method="filter_needs_mentor")
@@ -28,6 +29,9 @@ class UserFilter(filters.FilterSet):
 
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(groups__organizations__code__in=value).distinct()
+
+    def filter_current_org_pk(self, queryset, name, value):
+        return queryset.filter(groups__organizations__pk__in=value).distinct()
 
     def filter_current_org_role(self, queryset, name, value):
         """Filter users by role in the current organization."""
