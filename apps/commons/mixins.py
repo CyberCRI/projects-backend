@@ -101,11 +101,13 @@ class HasPermissionsSetup:
         if created:
             self.groups.add(group)
         if not group.data.exists():
-            GroupData.objects.get_or_create(
+            GroupData.objects.update_or_create(
                 group=group,
-                role=name,
-                content_type=self.content_type,
-                object_id=self.pk,
+                defaults={
+                    "role": name,
+                    "content_type": self.content_type,
+                    "object_id": self.pk,
+                },
             )
         return group
 

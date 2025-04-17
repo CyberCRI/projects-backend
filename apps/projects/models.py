@@ -522,7 +522,7 @@ class Project(
     def calculate_score(self) -> "ProjectScore":
         return self.get_or_create_score().set_score()
 
-    # @transaction.atomic
+    @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
         header = self.header_image.duplicate(owner) if self.header_image else None
         project = Project.objects.create(
@@ -539,6 +539,7 @@ class Project(
             main_category=self.main_category,
             duplicated_from=self.id,
         )
+        project.setup_permissions(user=owner)
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())
         project.tags.set(self.tags.all())
@@ -564,7 +565,6 @@ class Project(
         for file in self.files.all():
             file.duplicate(project)
         Stat.objects.create(project=project)
-        project.setup_permissions(user=owner)
         return project
 
 
