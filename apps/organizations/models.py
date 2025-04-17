@@ -95,6 +95,10 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
     background_color = models.CharField(max_length=9, blank=True)
     chat_url = models.URLField(blank=True, max_length=255)
     chat_button_text = models.CharField(blank=True, max_length=255)
+    languages = ArrayField(
+        models.CharField(max_length=2, choices=Language.choices),
+        default=Language.default_list,
+    )
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )

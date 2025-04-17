@@ -6,12 +6,17 @@ class Language(models.TextChoices):
     Represent a language, e.g: fr
     """
 
-    FR = "fr", "French"
     EN = "en", "English"
+    FR = "fr", "Français"
+    DE = "de", "Deutsch"
 
-    @classmethod
-    def default(cls):
+    @staticmethod
+    def default():
         return Language.EN
+
+    @staticmethod
+    def default_list():
+        return [Language.EN]
 
 
 class SDG(models.IntegerChoices):

@@ -179,6 +179,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "description",
             "chat_url",
             "chat_button_text",
+            "languages",
             "language",
             "is_logo_visible_on_parent_dashboard",
             "background_color",

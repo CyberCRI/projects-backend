@@ -18,7 +18,6 @@ from socket import gethostbyname_ex, gethostname
 from celery.schedules import crontab
 from corsheaders.defaults import default_headers
 from django.db.models import options
-from django.utils.translation import gettext_lazy as _
 from single_source import get_version
 
 try:
@@ -262,11 +261,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
 
 LANGUAGES = [
-    ("en", _("English")),
-    ("fr", _("French")),
+    ("en", "English"),
+    ("fr", "Français"),
+    ("de", "Deutsch"),
 ]
 
 LOCALE_PATHS = (BASE_DIR / "locale",)
