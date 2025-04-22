@@ -10,6 +10,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.accounts.models import PeopleGroup
 from apps.accounts.permissions import HasBasePermission
@@ -464,3 +465,12 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 f"/v1/category/{self.kwargs['category_id']}/template-image/{image.id}"
             )
         return None
+
+
+class AvailableLanguagesView(APIView):
+    @extend_schema(responses={200: {"type": "array", "items": {"type": "dict"}}})
+    def get(self, request):
+        return Response(
+            [{"code": code, "name": name} for code, name in settings.LANGUAGES],
+            status=status.HTTP_200_OK,
+        )

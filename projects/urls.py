@@ -33,6 +33,7 @@ from apps.announcements.urls import router as announcements_router
 from apps.commons.urls import ExtendedRouter
 from apps.newsfeed.urls import router as newsfeed_router
 from apps.notifications.urls import router as notifications_router
+from apps.organizations.views import AvailableLanguagesView
 from apps.projects.urls import router as projects_router
 from apps.search.urls import router as search_router
 from apps.skills.urls import router as skills_router
@@ -60,7 +61,8 @@ urlpatterns_v1 = [
     path("", include("apps.organizations.urls")),
     path("", include("apps.emailing.urls")),
     path("healthz/", include(("apps.healthcheck.urls", "healthcheck"))),
-    path("access-token/", AccessTokenView.as_view()),
+    path("access-token/", AccessTokenView.as_view(), name="AccessToken"),
+    path("languages/", AvailableLanguagesView.as_view(), name="Languages"),
     path("", include("django_prometheus.urls")),
 ]
 

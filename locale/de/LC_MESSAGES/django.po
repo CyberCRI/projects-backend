@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-15 16:50+0200\n"
+"POT-Creation-Date: 2025-04-22 16:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,109 +16,110 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: apps/accounts/exceptions.py:17
 msgid "Token contained no recognizable user identification"
-msgstr "Le token n'a pas permis de retrouver un utilisateur"
+msgstr "Das Token enthielt keine erkennbare Benutzeridentifikation"
 
 #: apps/accounts/exceptions.py:23
 msgid "User is inactive"
-msgstr "L'utilisateur·ice est inactif·ve"
+msgstr "Der Benutzer ist inaktiv"
 
 #: apps/accounts/exceptions.py:29
 msgid "Invitation link not found or expired"
-msgstr "Invitation invalide ou expirée"
+msgstr "Einladungslink nicht gefunden oder abgelaufen"
 
 #: apps/accounts/exceptions.py:35
 msgid "Access token has expired"
-msgstr "Le token d'accès a expiré"
+msgstr "Das Zugriffstoken ist abgelaufen"
 
 #: apps/accounts/exceptions.py:41
 msgid "Token prefix is missing"
-msgstr "Le préfixe du token est manquant"
+msgstr "Das Token-Präfix fehlt"
 
 #: apps/accounts/exceptions.py:50 apps/organizations/exceptions.py:18
 msgid "You cannot add projects that you do not have access to"
-msgstr "Vous ne pouvez pas ajouter des projets auxquels vous n'avez pas accès"
+msgstr ""
+"Sie können keine Projekte hinzufügen, zu denen Sie keinen Zugriff haben"
 
 #: apps/accounts/exceptions.py:56
 msgid "You do not have the permission to assign this role"
-msgstr "Vous n'avez pas la permission d'assigner ce rôle"
+msgstr "Sie haben keine Berechtigung, diese Rolle zuzuweisen"
 
 #: apps/accounts/exceptions.py:61
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
-msgstr "Vous n'avez pas la permission d'assigner ce rôle : {role}"
+msgstr "Sie haben keine Berechtigung, diese Rolle zuzuweisen: {role}"
 
 #: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
 msgstr ""
-"Le paramètre email_type est manquant. Les choix sont : admin_created, "
+"Der Abfrageparameter email_type fehlt. Optionen sind: admin_created, "
 "invitation, reset_password"
 
 #: apps/accounts/exceptions.py:81
 msgid "Permission not found"
-msgstr "La permission n'a pas été trouvée"
+msgstr "Berechtigung nicht gefunden"
 
 #: apps/accounts/exceptions.py:87
 msgid "An error occurred while syncing with Keycloak"
-msgstr "Une erreur est survenue lors de la synchronisation avec Keycloak"
+msgstr "Ein Fehler ist bei der Synchronisierung mit Keycloak aufgetreten"
 
 #: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
-"Une erreur est survenue lors de la synchronisation avec Keycloak : {message}"
+"Ein Fehler ist bei der Synchronisierung mit Keycloak aufgetreten: {message}"
 
 #: apps/accounts/exceptions.py:102
 msgid "An error occurred while syncing with Google"
-msgstr "Une erreur est survenue lors de la synchronisation avec Google"
+msgstr "Ein Fehler ist bei der Synchronisierung mit Google aufgetreten"
 
 #: apps/accounts/exceptions.py:107
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
-"Une erreur est survenue lors de la synchronisation avec Google : {message}"
+"Ein Fehler ist bei der Synchronisierung mit Google aufgetreten: {message}"
 
 #: apps/accounts/exceptions.py:120
 msgid "The organization of a group cannot be changed"
-msgstr "L'organisation d'un groupe ne peut pas être modifiée"
+msgstr "Die Organisation einer Gruppe kann nicht geändert werden"
 
 #: apps/accounts/exceptions.py:126
 msgid "The root group cannot have a parent group"
-msgstr "Le groupe racine ne peut pas avoir de groupe parent"
+msgstr "Die Stammgruppe darf keine übergeordnete Gruppe haben"
 
 #: apps/accounts/exceptions.py:132
 msgid "A non-root group must have a parent group"
-msgstr "Un groupe doit avoir un groupe parent"
+msgstr "Eine nicht-Stammgruppe muss eine übergeordnete Gruppe haben"
 
 #: apps/accounts/exceptions.py:138
 msgid "The parent group must belong to the same organization"
-msgstr "Le groupe parent doit appartenir à la même organisation"
+msgstr "Die übergeordnete Gruppe muss derselben Organisation angehören"
 
 #: apps/accounts/exceptions.py:144
 msgid "You are trying to create a loop in the group's hierarchy"
-msgstr "Vous essayez de créer une boucle dans la hiérarchie des groupes"
+msgstr "Sie versuchen, eine Schleife in der Gruppenhierarchie zu erstellen"
 
 #: apps/accounts/exceptions.py:150
 msgid "You cannot assign this role to a user"
-msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
+msgstr "Sie können diese Rolle keinem Benutzer zuweisen"
 
 #: apps/accounts/exceptions.py:155
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
-msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
+msgstr "Sie können diese Rolle keinem Benutzer zuweisen: {role}"
 
 #: apps/accounts/models.py:127 apps/projects/models.py:157
 msgid "visibility"
-msgstr "visibilité"
+msgstr "Sichtbarkeit"
 
 #: apps/accounts/models.py:762
 msgid "Hide"
-msgstr "Caché"
+msgstr "Verbergen"
 
 #: apps/accounts/models.py:763
 msgid "Organization"
@@ -126,7 +127,7 @@ msgstr "Organisation"
 
 #: apps/accounts/models.py:764
 msgid "Public"
-msgstr "Publique"
+msgstr "Öffentlich"
 
 #: apps/accounts/templates/authentication/execute_actions_email_error.html:2
 #, python-format
@@ -142,8 +143,8 @@ msgstr ""
 "\n"
 "<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
 "direction:column;\">\n"
-"    <p style=\"font-size: 24px;\">Une erreur a eu lieu lors du renvoi du "
-"lien:</p>\n"
+"    <p style=\"font-size: 24px;\">Beim erneuten Senden des Links ist ein "
+"Fehler aufgetreten:</p>\n"
 "    <p style=\"font-size: 20px;\">%(error)s</p>\n"
 "</div>\n"
 
@@ -159,8 +160,8 @@ msgstr ""
 "\n"
 "<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
 "direction:column;\">\n"
-"    <p style=\"font-size: 24px;\">Le lien n'a pas été renvoyé car aucune "
-"action n'est requise.</p>\n"
+"    <p style=\"font-size: 24px;\">Der Link wurde nicht erneut gesendet, da "
+"keine Aktion erforderlich ist.</p>\n"
 "</div>\n"
 
 #: apps/accounts/templates/authentication/execute_actions_email_success.html:2
@@ -176,33 +177,34 @@ msgstr ""
 "\n"
 "<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
 "direction:column;\">\n"
-"    <p style=\"font-size: 24px;\">Lien renvoyé avec succès!</p>\n"
-"    <p style=\"font-size: 20px;\">Rafraîchissez votre boîte mail pour le "
-"trouver 😊</p>\n"
+"    <p style=\"font-size: 24px;\">Link erfolgreich erneut gesendet!</p>\n"
+"    <p style=\"font-size: 20px;\">Sie können Ihren Posteingang "
+"aktualisieren, um ihn zu finden 😊</p>\n"
 "</div>\n"
 
 #: apps/analytics/exceptions.py:10
 msgid "Unknown publication status"
-msgstr "Statut de publication inconnu"
+msgstr "Unbekannter Veröffentlichungsstatus"
 
 #: apps/analytics/exceptions.py:15
 #, python-brace-format
 msgid "Unknown publication status '{publication_status}'"
-msgstr "Statut de publication inconnu '{publication_status}'"
+msgstr "Unbekannter Veröffentlichungsstatus '{publication_status}'"
 
 #: apps/commons/fields.py:29 apps/skills/serializers.py:102
 msgid "This field is required."
-msgstr "Ce champ est obligatoire."
+msgstr "Dieses Feld ist erforderlich."
 
 #: apps/commons/fields.py:30
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
-msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
+msgstr "Ungültige ID \"{user_id}\" – Objekt existiert nicht."
 
 #: apps/commons/fields.py:32 apps/skills/serializers.py:107
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
-msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
+msgstr ""
+"Falscher Typ. Erwartet wurde ein String-Wert, erhalten wurde {data_type}."
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -214,68 +216,73 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"                    Bonjour %(given_name)s,\n"
-"                    "
+"          Hallo %(given_name)s,\n"
+"          "
 
 #: apps/emailing/templates/contact/contact/email_with_name.txt:2
 #, python-format
 msgid "Hello %(given_name)s,"
-msgstr "Bonjour %(given_name)s,"
+msgstr "Hallo %(given_name)s,"
 
 #: apps/feedbacks/exceptions.py:12
 msgid "You don't have the permission to comment on this project"
-msgstr "Vous n'avez pas la permission de commenter ce projet"
+msgstr "Sie haben keine Berechtigung, dieses Projekt zu kommentieren"
 
 #: apps/feedbacks/exceptions.py:18
 #, python-brace-format
 msgid ""
 "You don't have the permission to comment on this project : {project_title}"
-msgstr "Vous n'avez pas la permission de commenter ce projet : {project_title}"
+msgstr ""
+"Sie haben keine Berechtigung, dieses Projekt zu kommentieren: {project_title}"
 
 #: apps/feedbacks/exceptions.py:28
 msgid "You don't have the permission to follow this project"
-msgstr "Vous n'avez pas la permission de suivre ce projet"
+msgstr "Sie haben keine Berechtigung, diesem Projekt zu folgen"
 
 #: apps/feedbacks/exceptions.py:33
 #, python-brace-format
 msgid "You don't have the permission to follow this project : {project_title}"
-msgstr "Vous n'avez pas la permission de suivre ce projet : {project_title}"
+msgstr ""
+"Sie haben keine Berechtigung, diesem Projekt zu folgen: {project_title}"
 
 #: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:116
 msgid "You cannot reply to a reply"
-msgstr "Vous ne pouvez pas répondre à une réponse"
+msgstr "Sie können nicht auf eine Antwort antworten"
 
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
-msgstr "Un commentaire ne peut pas être une réponse à lui-même"
+msgstr "Ein Kommentar kann keine Antwort auf sich selbst sein"
 
 #: apps/files/exceptions.py:14
 msgid "The file you are trying to upload is already attached to this project"
-msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
+msgstr ""
+"Die Datei, die Sie hochzuladen versuchen, ist diesem Projekt bereits "
+"angehängt"
 
 #: apps/files/exceptions.py:22
 msgid "The link you are trying to attach is already attached to this project"
-msgstr "Le lien que vous essayez d'attacher est déjà lié à ce projet"
+msgstr ""
+"Der Link, den Sie anzuhängen versuchen, ist diesem Projekt bereits angehängt"
 
 #: apps/files/exceptions.py:30
 #, python-brace-format
 msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
 msgstr ""
-"Fichier trop volumineux. La taille ne doit pas dépasser {settings."
-"MAX_FILE_SIZE} Mo"
+"Datei zu groß. Die Größe darf {settings.MAX_FILE_SIZE} MB nicht überschreiten"
 
 #: apps/files/exceptions.py:37
 msgid "You can't change the project of a file"
-msgstr "Vous ne pouvez pas changer le projet d'un fichier"
+msgstr "Sie können das Projekt einer Datei nicht ändern"
 
 #: apps/files/exceptions.py:43
 msgid "You can't change the project of a link"
-msgstr "Vous ne pouvez pas changer le projet d'un lien"
+msgstr "Sie können das Projekt eines Links nicht ändern"
 
 #: apps/files/exceptions.py:52
 msgid "You can't delete this picture: It is related to another object"
 msgstr ""
-"Vous ne pouvez pas supprimer cette image: elle est liée à un autre objet"
+"Sie können dieses Bild nicht löschen: Es ist mit einem anderen Objekt "
+"verbunden"
 
 #: apps/files/exceptions.py:58
 msgid ""
@@ -283,45 +290,46 @@ msgid ""
 "{relation['model']} with pk={relation['pk']} through field "
 "{relation['field']}"
 msgstr ""
-"Vous ne pouvez pas supprimer cette image: elle est liée à une instance de "
-"{relation['model']} avec pk={relation['pk']} via le champ {relation['field']}"
+"Sie können dieses Bild nicht löschen: Es ist mit einer Instanz von "
+"{relation['model']} mit pk={relation['pk']} über das Feld "
+"{relation['field']} verbunden"
 
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
-msgstr "Le type d'email n'est pas valide"
+msgstr "Der E-Mail-Typ ist ungültig"
 
 #: apps/invitations/exceptions.py:17
 #, python-brace-format
 msgid "The email type '{email_type}' is not valid"
-msgstr "Le type d'email '{email_type}' n'est pas valide"
+msgstr "Der E-Mail-Typ '{email_type}' ist ungültig"
 
 #: apps/invitations/exceptions.py:29
 msgid "People group must belong to the invitation's organization"
-msgstr "Le groupe doit appartenir à l'organisation de l'invitation"
+msgstr "Die Personengruppe muss zur Organisation der Einladung gehören"
 
 #: apps/invitations/exceptions.py:35
 msgid "You cannot change the organization of an invitation"
-msgstr "Vous ne pouvez pas changer l'organisation d'une invitation"
+msgstr "Sie können die Organisation einer Einladung nicht ändern"
 
 #: apps/invitations/exceptions.py:41
 msgid "This user is already a member of this organization"
-msgstr "Cet·te utilisateur·rice est déjà membre de cette organisation"
+msgstr "Dieser Benutzer ist bereits Mitglied dieser Organisation"
 
 #: apps/invitations/exceptions.py:47
 msgid "A user with this email already exists"
-msgstr "Un·e utilisateur·rice avec cette adresse email existe déjà"
+msgstr "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits"
 
 #: apps/invitations/exceptions.py:53
 msgid "This organization does not accept access requests"
-msgstr "Cette organisation n'accepte pas les demandes d'accès"
+msgstr "Diese Organisation akzeptiert keine Zugriffsanfragen"
 
 #: apps/invitations/exceptions.py:59
 msgid "An access request for this email already exists"
-msgstr "Une demande d'accès pour cette adresse email existe déjà"
+msgstr "Eine Zugriffsanfrage für diese E-Mail-Adresse existiert bereits"
 
 #: apps/invitations/exceptions.py:65
 msgid "An access request for this user already exists"
-msgstr "Une demande d'accès pour cet·te utilisateur·rice existe déjà"
+msgstr "Eine Zugriffsanfrage für diesen Benutzer existiert bereits"
 
 #: apps/invitations/templates/access_requests_base.html:56
 #: services/keycloak/templates/keycloak_base.html:56
@@ -331,7 +339,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Besoin d'aide?\n"
+"          Brauchen Sie Hilfe?\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:61
@@ -345,10 +353,10 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Pour toute question ou demande d'assistance, <a class=\"lpi-link\" "
-"href=\"mailto:projects.platform@learningplanetinstitute.org\">vous pouvez "
-"nous contacter par email</a>. Nous reviendrons vers vous pendant les heures "
-"de travail (du lundi au vendredi, de 9h à 18h) aussi vite que possible.\n"
+"          Bei Fragen oder für Unterstützung können Sie uns eine <a "
+"class=\"lpi-link\" href=\"mailto:projects.platform@learningplanetinstitute."
+"org\">E-Mail senden</a>. Wir werden uns so schnell wie möglich während der "
+"Geschäftszeiten (Mo-Fr 9-18 Uhr) bei Ihnen melden.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:66
@@ -360,8 +368,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Vous pouvez aussi <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">visiter notre centre d'aide</a>.\n"
+"          Sie können auch unser <a class=\"lpi-link\" href=\"https://docs."
+"projects.lp-i.org\">Hilfezentrum</a> besuchen.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:71
@@ -374,9 +382,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nous espérons que vous apprécierez notre nouvelle plateforme!\n"
+"          Wir hoffen, Ihnen gefällt unsere neue Plattform!\n"
 "          <br/>\n"
-"          L'équipe du LPI.\n"
+"          Das LPI-Team.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:83
@@ -388,7 +396,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Fait avec ♥ par le Learning Planet Institute.\n"
+"          Mit ❤️ gemacht vom Learning Planet Institute.\n"
 "          "
 
 #: apps/invitations/templates/request_accepted/mail.html:8
@@ -401,7 +409,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Bienvenue sur le portail Projects de %(organization_name)s, "
+"    Willkommen im Projekte-Portal von %(organization_name)s, "
 "%(given_name)s!\n"
 "    "
 
@@ -414,7 +422,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Bonjour %(given_name)s,\n"
+"    Sehr geehrte/r %(given_name)s,\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:18
@@ -426,8 +434,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Vous pouvez maintenant accéder au portail %(organization_name)s sur la "
-"plateforme Projects.\n"
+"    Sie können jetzt auf das Portal von %(organization_name)s auf der "
+"Projekte-Plattform zugreifen.\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:23
@@ -437,7 +445,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Nous espérons que vous apprécierez cette nouvelle plateforme!\n"
+"    Wir hoffen, Ihnen gefällt dieses neue Portal!\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:28
@@ -448,7 +456,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Accéder au portail %(organization_name)s\n"
+"    Anmeldung beim Portal von %(organization_name)s\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.txt:2
@@ -462,11 +470,11 @@ msgid ""
 "Login to %(organization_name)s portal : %(website_url)s\n"
 msgstr ""
 "\n"
-"Bienvenue sur le portail Projects de %(organization_name)s, %(given_name)s!\n"
-"Bonjour %(given_name)s, Vous pouvez maintenant accéder au portail "
-"%(organization_name)s sur la plateforme Projects.\n"
-"Nous espérons que vous apprécierez cette nouvelle plateforme!\n"
-"Accéder au portail %(organization_name)s : %(website_url)s\n"
+"Willkommen im Projekte-Portal von %(organization_name)s, %(given_name)s!\n"
+"Sehr geehrte/r %(given_name)s, Sie können jetzt auf das Portal von "
+"%(organization_name)s auf der Projekte-Plattform zugreifen.\n"
+"Wir hoffen, Ihnen gefällt dieses neue Portal!\n"
+"Anmeldung beim Portal von %(organization_name)s: %(website_url)s\n"
 
 #: apps/invitations/templates/request_accepted/object.txt:2
 #, python-format
@@ -475,7 +483,7 @@ msgid ""
 "Welcome to the %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Bienvenue sur la plateforme Projects de %(org_name)s\n"
+"Willkommen auf der Projekte-Plattform von %(org_name)s\n"
 
 #: apps/invitations/templates/request_declined/mail.html:8
 #, python-format
@@ -486,8 +494,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Votre demande d'accès au portail %(organization_name)s Projects a été "
-"refusée\n"
+"    Ihre Anfrage zur Teilnahme am Projekte-Portal von %(organization_name)s "
+"wurde abgelehnt\n"
 "    "
 
 #: apps/invitations/templates/request_declined/mail.html:18
@@ -499,9 +507,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Merci d'avoir demandé l'accès au portail %(organization_name)s Projects. "
-"Malheureusement, nous ne pouvons pas donner suite à votre demande pour le "
-"moment.\n"
+"    Vielen Dank für Ihre Anfrage zum Zugriff auf das Projekte-Portal von "
+"%(organization_name)s. Leider können wir Ihrer Anfrage derzeit nicht "
+"stattgeben.\n"
 "    "
 
 #: apps/invitations/templates/request_declined/mail.html:23
@@ -514,9 +522,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Si vous pensez qu'il s'agit d'une erreur, veuillez contacter <a "
-"class=\"lpi-link\" href=\"mailto:%(contact_email)s\">l'administrateur du "
-"portail %(organization_name)s Projects</a>.\n"
+"    Wenn Sie glauben, dass dies ein Fehler ist, kontaktieren Sie bitte den "
+"<a class=\"lpi-link\" href=\"mailto:%(contact_email)s\">Administrator des "
+"Projekte-Portals von %(organization_name)s</a>.\n"
 "    "
 
 #: apps/invitations/templates/request_declined/mail.txt:2
@@ -532,14 +540,14 @@ msgid ""
 "%(contact_email)s.\n"
 msgstr ""
 "\n"
-"Votre demande d'accès au portail %(organization_name)s Projects a été "
-"refusée\n"
-"Bonjour %(given_name)s,\n"
-"Merci d'avoir demandé l'accès au portail %(organization_name)s Projects. "
-"Malheureusement, nous ne pouvons pas donner suite à votre demande pour le "
-"moment.\n"
-"Si vous pensez qu'il s'agit d'une erreur, veuillez contacter "
-"%(organization_name)s : %(contact_email)s.\n"
+"Ihre Anfrage zur Teilnahme am Projekte-Portal von %(organization_name)s "
+"wurde abgelehnt\n"
+"Sehr geehrte/r %(given_name)s,\n"
+"Vielen Dank für Ihre Anfrage zum Zugriff auf das Projekte-Portal von "
+"%(organization_name)s. Leider können wir Ihrer Anfrage derzeit nicht "
+"stattgeben.\n"
+"Wenn Sie glauben, dass dies ein Fehler ist, kontaktieren Sie bitte "
+"%(organization_name)s: %(contact_email)s.\n"
 
 #: apps/invitations/templates/request_declined/object.txt:2
 #, python-format
@@ -549,34 +557,37 @@ msgid ""
 "declined\n"
 msgstr ""
 "\n"
-"Votre demande d'accès à la plateforme Projects de %(org_name)s a été "
-"refusée\n"
+"Ihre Zugriffsanfrage für die Projekte-Plattform von %(org_name)s wurde "
+"abgelehnt\n"
 
 #: apps/newsfeed/exceptions.py:9
 msgid "The people groups of a news must belong to the same organization"
-msgstr "Les groupes d'une news doivent appartenir à la même organisation"
+msgstr ""
+"Die Personengruppen einer Nachricht müssen derselben Organisation angehören"
 
 #: apps/newsfeed/exceptions.py:17
 msgid "The people groups of an event must belong to the same organization"
-msgstr "Les groupes d'une actualité doivent appartenir à la même organisation"
+msgstr ""
+"Die Personengruppen einer Veranstaltung müssen derselben Organisation "
+"angehören"
 
 #: apps/newsfeed/exceptions.py:25
 msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr ""
-"Les groupes d'une instruction doivent appartenir à la même organisation"
+"Die Personengruppen einer Anweisung müssen derselben Organisation angehören"
 
 #: apps/notifications/tasks.py:193 apps/notifications/tasks.py:237
 msgid "editor"
-msgstr "éditeur"
+msgstr "Redakteur"
 
 #: apps/notifications/tasks.py:194 apps/notifications/tasks.py:238
 msgid "participant"
-msgstr "participant"
+msgstr "Teilnehmer"
 
 #: apps/notifications/tasks.py:195 apps/notifications/tasks.py:239
 msgid "reviewer"
-msgstr "correcteur"
+msgstr "Gutachter"
 
 #: apps/notifications/templates/group_member_added_other/reminder.txt:2
 #, python-format
@@ -588,11 +599,12 @@ msgid_plural ""
 "%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a ajouté un groupe comme membre du projet %(project)s.\n"
+"%(full_name)s hat eine Gruppe als Mitglied zum Projekt %(project)s "
+"hinzugefügt.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a ajouté %(count)s groupes comme membres du projet "
-"%(project)s.\n"
+"%(full_name)s hat %(count)s Gruppen als Mitglieder zum Projekt %(project)s "
+"hinzugefügt.\n"
 
 #: apps/notifications/templates/group_member_added_self/mail.html:13
 #: apps/notifications/templates/member_added_self/mail.html:13
@@ -610,17 +622,11 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Bonjour %(given_name)s,\n"
+"          Hallo %(given_name)s,\n"
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:18
-#, fuzzy, python-format
-#| msgid ""
-#| "\n"
-#| "          %(full_name)s added the group %(group)s you are part of to the "
-#| "team of project <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
-#| "%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
-#| "          "
+#, python-format
 msgid ""
 "\n"
 "          %(full_name)s added the group %(group_name)s you are part of to "
@@ -629,9 +635,10 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a ajouté le groupe %(group)s dont vous faites partie "
-"à l'équipe du projet <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
-"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          %(full_name)s hat die Gruppe %(group_name)s, der Sie angehören, "
+"zum Team des Projekts <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
+"%(project_slug)s/summary?fromNotification\">%(project_title)s</a> "
+"hinzugefügt.\n"
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:28
@@ -641,7 +648,7 @@ msgstr ""
 #: apps/notifications/templates/project_ready_for_review/mail.html:28
 #: apps/notifications/templates/reminder/mail.html:42
 msgid "Go to project"
-msgstr "Voir le projet"
+msgstr "Zum Projekt gehen"
 
 #: apps/notifications/templates/group_member_added_self/mail.txt:2
 #, python-format
@@ -651,9 +658,8 @@ msgid ""
 "you are part of to the team of project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s a ajouté le groupe "
-"%(group_name)s dont vous faites partie à l'équipe du projet "
-"\"%(project_title)s\".\n"
+"Hallo %(recipient.given_name)s, %(full_name)s hat die Gruppe %(group_name)s, "
+"der Sie angehören, zum Team des Projekts \"%(project_title)s\" hinzugefügt.\n"
 
 #: apps/notifications/templates/group_member_added_self/object.txt:2
 #, python-format
@@ -663,8 +669,8 @@ msgid ""
 "%(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a ajouté le groupe %(group_name)s dont vous faites partie à "
-"l'équipe du projet %(project_title)s.\n"
+"%(full_name)s hat die Gruppe %(group_name)s, der Sie angehören, zum Projekt "
+"%(project_title)s hinzugefügt.\n"
 
 #: apps/notifications/templates/group_member_removed_other/reminder.txt:2
 #, python-format
@@ -676,10 +682,10 @@ msgid_plural ""
 "%(full_name)s removed %(count)s groups from members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a retiré un groupe des membres.\n"
+"%(full_name)s hat eine Gruppe von den Mitgliedern entfernt.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a retiré %(count)s groupes des membres.\n"
+"%(full_name)s hat %(count)s Gruppen von den Mitgliedern entfernt.\n"
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.html:13
 #: apps/notifications/templates/invitation_reminder_one_week/mail.html:13
@@ -690,7 +696,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Bonjour %(name)s,\n"
+"          Hallo %(name)s,\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.html:18
@@ -702,8 +708,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Un lien d’enregistrement que vous avez créé pour le groupe "
-"%(group_name)s arrive à expiration aujourdh'hui.\n"
+"          Ein Registrierungslink, den Sie für die Gruppe %(group_name)s "
+"erstellt haben, läuft heute ab.\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.html:23
@@ -716,8 +722,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Vous pouvez créer un nouveau lien d’enregistrement <a class=\"lpi-"
-"link\" href=\"%(website_url)s/admin/links/list\">ici</a>.\n"
+"          Sie können hier einen neuen Registrierungslink erstellen: <a "
+"class=\"lpi-link\" href=\"%(website_url)s/admin/links/list\">hier</a>.\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.txt:2
@@ -729,13 +735,13 @@ msgid ""
 "You can create a new registration link here.\n"
 msgstr ""
 "\n"
-"Bonjour %(name)s, Un lien d’enregistrement que vous avez créé pour le groupe "
-"%(group_name)s arrive à expiration aujourd'hui.\n"
-"Vous pouvez créer un nouveau lien d’enregistrement ici.\n"
+"Hallo %(name)s, ein Registrierungslink, den Sie für die Gruppe "
+"%(group_name)s erstellt haben, läuft heute ab.\n"
+"Sie können hier einen neuen Registrierungslink erstellen.\n"
 
 #: apps/notifications/templates/invitation_reminder_last_day/object.txt:2
 msgid "Registration link to expire today"
-msgstr "Lien d'enregistrement arrivant à expiration aujourd'hui"
+msgstr "Registrierungslink läuft heute ab"
 
 #: apps/notifications/templates/invitation_reminder_one_week/mail.html:18
 #, python-format
@@ -746,8 +752,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Un lien d’enregistrement que vous avez créé pour le groupe "
-"%(group_name)s arrivera à expiration dans une semaine.\n"
+"          Ein Registrierungslink, den Sie für die Gruppe %(group_name)s "
+"erstellt haben, läuft in einer Woche ab.\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_one_week/mail.txt:2
@@ -759,13 +765,13 @@ msgid ""
 "You can create a new registration link here.\n"
 msgstr ""
 "\n"
-"Bonjour %(name)s, Un lien d’enregistrement que vous avez créé pour le groupe "
-"%(group_name)s arrivera à expiration dans une semaine.\n"
-"Vous pouvez créer un nouveau lien d’enregistrement ici.\n"
+"Hallo %(name)s, ein Registrierungslink, den Sie für die Gruppe "
+"%(group_name)s erstellt haben, läuft in einer Woche ab.\n"
+"Sie können hier einen neuen Registrierungslink erstellen.\n"
 
 #: apps/notifications/templates/invitation_reminder_one_week/object.txt:2
 msgid "Registration link to expire in one week"
-msgstr "Lien d'enregistrement arrivant à expiration dans une semaine"
+msgstr "Registrierungslink läuft in einer Woche ab"
 
 #: apps/notifications/templates/member_added_other/reminder.txt:2
 #, python-format
@@ -777,10 +783,10 @@ msgid_plural ""
 "%(full_name)s added %(count)s new members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a ajouté un membre.\n"
+"%(full_name)s hat ein neues Mitglied hinzugefügt.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a ajouté %(count)s membres.\n"
+"%(full_name)s hat %(count)s neue Mitglieder hinzugefügt.\n"
 
 #: apps/notifications/templates/member_added_self/mail.html:18
 #, python-format
@@ -792,9 +798,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s vous a ajouté à l'équipe du projet <a class=\"lpi-"
-"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
+"          %(full_name)s hat Sie zum Team des Projekts <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> hinzugefügt.\n"
 "          "
 
 #: apps/notifications/templates/member_added_self/mail.txt:2
@@ -805,8 +811,8 @@ msgid ""
 "project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s vous a ajouté à l'équipe du "
-"projet \"%(project_title)s\".\n"
+"Hallo %(recipient.given_name)s, %(full_name)s hat Sie zum Team des Projekts "
+"\"%(project_title)s\" hinzugefügt.\n"
 
 #: apps/notifications/templates/member_added_self/object.txt:2
 #, python-format
@@ -815,7 +821,7 @@ msgid ""
 "%(full_name)s added you to the team of project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s vous a ajouté à l'équipe du projet %(project_title)s.\n"
+"%(full_name)s hat Sie zum Team des Projekts %(project_title)s hinzugefügt.\n"
 
 #: apps/notifications/templates/member_removed_other/reminder.txt:2
 #, python-format
@@ -827,10 +833,10 @@ msgid_plural ""
 "%(full_name)s removed %(count)s members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a retiré un membre.\n"
+"%(full_name)s hat ein Mitglied entfernt.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a retiré %(count)s membres.\n"
+"%(full_name)s hat %(count)s Mitglieder entfernt.\n"
 
 #: apps/notifications/templates/member_updated_other/reminder.txt:2
 #, python-format
@@ -842,10 +848,10 @@ msgid_plural ""
 "%(full_name)s updated %(count)s members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a mis à jour le rôle d'un membre.\n"
+"%(full_name)s hat ein Mitglied aktualisiert.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a mis à jour le rôle de %(count)s membres.\n"
+"%(full_name)s hat %(count)s Mitglieder aktualisiert.\n"
 
 #: apps/notifications/templates/member_updated_self/mail.html:18
 #, python-format
@@ -857,9 +863,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s vous a donné le rôle %(role)s dans le projet <a "
+"          %(full_name)s hat Ihnen die Rechte %(role)s im Projekt <a "
 "class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
+"fromNotification\">%(project_title)s</a> gegeben.\n"
 "          "
 
 #: apps/notifications/templates/member_updated_self/mail.txt:2
@@ -869,8 +875,8 @@ msgid ""
 "%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"%(full_name)s vous a donné le rôle %(role)s dans le projet "
-"\"%(project_title)s\".\n"
+"%(full_name)s hat Ihnen die Rechte %(role)s im Projekt \"%(project_title)s\" "
+"gegeben.\n"
 
 #: apps/notifications/templates/member_updated_self/object.txt:2
 #, python-format
@@ -879,8 +885,8 @@ msgid ""
 "%(full_name)s gave you %(role)s rights in project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s vous a donné le rôle %(role)s dans le projet "
-"%(project_title)s.\n"
+"%(full_name)s hat Ihnen die Rechte %(role)s im Projekt %(project_title)s "
+"gegeben.\n"
 
 #: apps/notifications/templates/new_access_request/mail.html:8
 msgid ""
@@ -889,8 +895,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"          Bonjour,\n"
-"          "
+"            Hallo,\n"
+"            "
 
 #: apps/notifications/templates/new_access_request/mail.html:13
 #, python-format
@@ -901,9 +907,9 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"           Vous avez reçu une nouvelle demande d'accès pour la plateforme "
-"Projects de %(org_name)s\n"
-"    "
+"            Sie haben eine neue Zugriffsanfrage für die Projekte-Plattform "
+"von %(org_name)s erhalten.\n"
+"            "
 
 #: apps/notifications/templates/new_access_request/mail.html:22
 msgid ""
@@ -912,7 +918,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Prénom:\n"
+"          Vorname:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:29
@@ -923,7 +929,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(given_name)s,\n"
+"          %(given_name)s\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:38
@@ -933,7 +939,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nom de famille:\n"
+"          Nachname:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:45
@@ -954,7 +960,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Email:\n"
+"          E-Mail:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:61
@@ -975,7 +981,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Titre:\n"
+"          Titel:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:77
@@ -996,7 +1002,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Message:\n"
+"          Nachricht:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:93
@@ -1019,8 +1025,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Voir <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
-"requests\">la requête sur la plateforme</a>.\n"
+"          Siehe <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
+"requests\">Anfrage auf der Plattform</a>.\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.txt:2
@@ -1038,16 +1044,16 @@ msgid ""
 "platform</a>.\n"
 msgstr ""
 "\n"
-"Bonjour,\n"
-"Vous avez reçu une nouvelle demande d'accès pour la plateforme Projects de "
-"%(org_name)s\n"
-"Prénom: %(given_name)s\n"
-"Nom de famille: %(family_name)s\n"
-"Email: %(email)s\n"
-"Titre: %(job)s\n"
-"Message: %(message)s\n"
-"Voir <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">la "
-"requête sur la plateforme</a>.\n"
+"Hallo,\n"
+"Sie haben eine neue Zugriffsanfrage für die Projekte-Plattform von "
+"%(org_name)s erhalten.\n"
+"Vorname: %(given_name)s\n"
+"Nachname: %(family_name)s\n"
+"E-Mail: %(email)s\n"
+"Titel: %(job)s\n"
+"Nachricht: %(message)s\n"
+"Siehe <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">Anfrage "
+"auf der Plattform</a>.\n"
 
 #: apps/notifications/templates/new_access_request/object.txt:2
 #, python-format
@@ -1056,7 +1062,7 @@ msgid ""
 "New access request for %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Nouvelle demande d'accès pour la plateforme Projects de %(org_name)s\n"
+"Neue Zugriffsanfrage für die Projekte-Plattform von %(org_name)s\n"
 
 #: apps/notifications/templates/new_announcement/reminder.txt:2
 #, python-format
@@ -1068,10 +1074,10 @@ msgid_plural ""
 "%(full_name)s published %(count)s new announcements.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a publié une nouvelle annonce.\n"
+"%(full_name)s hat eine neue Ankündigung veröffentlicht.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a publié %(count)s nouvelles annonces.\n"
+"%(full_name)s hat %(count)s neue Ankündigungen veröffentlicht.\n"
 
 #: apps/notifications/templates/new_application/mail.html:19
 #, python-format
@@ -1085,24 +1091,24 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"                    a postulé à l'annonce "
+"                    hat sich auf die Ankündigung "
 "<strong>\"%(announcement_title)s\"</strong>\n"
-"                    pour le projet <a class=\"lpi-link\" "
+"                    des Projekts <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
+"fromNotification\">%(project_title)s</a> beworben.\n"
 "                    "
 
 #: apps/notifications/templates/new_application/mail.html:29
 msgid "Applicant:"
-msgstr "Candidat:"
+msgstr "Bewerber:"
 
 #: apps/notifications/templates/new_application/mail.html:30
 msgid "Email:"
-msgstr "Email:"
+msgstr "E-Mail:"
 
 #: apps/notifications/templates/new_application/mail.html:34
 msgid "Applicant's message:"
-msgstr "Message du candidat:"
+msgstr "Nachricht des Bewerbers:"
 
 #: apps/notifications/templates/new_application/mail.txt:2
 #, python-format
@@ -1113,8 +1119,9 @@ msgid ""
 "%(announcement_title)s:\n"
 msgstr ""
 "\n"
-"%(application.applicant_firstname)s %(application.applicant_name)s a postulé "
-"à l'annonce %(announcement_title)s pour le projet: %(project_title)s:\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s hat sich "
+"für das Projekt beworben: %(project_title)s Für eine Stelle als "
+"%(announcement_title)s:\n"
 
 #: apps/notifications/templates/new_application/mail.txt:5
 #, python-format
@@ -1123,7 +1130,7 @@ msgid ""
 "Description of the job: %(item.description|safe)s\n"
 msgstr ""
 "\n"
-"Description du poste: %(item.description|safe)s\n"
+"Beschreibung der Stelle: %(item.description|safe)s\n"
 
 #: apps/notifications/templates/new_application/mail.txt:8
 #, python-format
@@ -1132,7 +1139,7 @@ msgid ""
 "User's email: %(application.applicant_email)s\n"
 msgstr ""
 "\n"
-"Adresse mail du candidat: %(application.applicant_email)s\n"
+"E-Mail des Benutzers: %(application.applicant_email)s\n"
 
 #: apps/notifications/templates/new_application/mail.txt:11
 #, python-format
@@ -1141,7 +1148,7 @@ msgid ""
 "User message: %(application.applicant_message|safe)s\n"
 msgstr ""
 "\n"
-"Message du candidat: %(application.applicant_message|safe)s\n"
+"Nachricht des Benutzers: %(application.applicant_message|safe)s\n"
 
 #: apps/notifications/templates/new_application/object.txt:2
 #, python-format
@@ -1151,7 +1158,8 @@ msgid ""
 "%(announcement_title)s.\n"
 msgstr ""
 "\n"
-"%(firstname)s %(lastname)s a postulé à l'annonce: %(announcement_title)s.\n"
+"%(firstname)s %(lastname)s hat sich auf die Ankündigung beworben: "
+"%(announcement_title)s.\n"
 
 #: apps/notifications/templates/new_blogentry/reminder.txt:2
 #, python-format
@@ -1163,10 +1171,10 @@ msgid_plural ""
 "%(full_name)s published %(count)s new blog entries.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a publié une nouvelle entrée de blog.\n"
+"%(full_name)s hat einen neuen Blogeintrag veröffentlicht.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a publié %(count)s nouvelles entrées de blog.\n"
+"%(full_name)s hat %(count)s neue Blogeinträge veröffentlicht.\n"
 
 #: apps/notifications/templates/new_comment/mail.html:18
 #, python-format
@@ -1178,20 +1186,20 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a commenté le projet <a class=\"lpi-link\" "
+"          %(full_name)s hat das Projekt <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
+"fromNotification\">%(project_title)s</a> kommentiert.\n"
 "          "
 
 #: apps/notifications/templates/new_comment/mail.html:26
 #: apps/notifications/templates/new_reply/mail.html:26
 msgid "Comment by"
-msgstr "Commentaire de"
+msgstr "Kommentar von"
 
 #: apps/notifications/templates/new_comment/mail.html:35
 #: apps/notifications/templates/new_reply/mail.html:35
 msgid "Go to comment"
-msgstr "Voir le commentaire"
+msgstr "Zum Kommentar gehen"
 
 #: apps/notifications/templates/new_comment/mail.txt:2
 #: apps/notifications/templates/new_comment/object.txt:2
@@ -1205,10 +1213,11 @@ msgid_plural ""
 "%(full_name)s added %(count)s comments to project %(project_title)s.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a commenté le projet %(project_title)s.\n"
+"%(full_name)s hat das Projekt %(project_title)s kommentiert.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a ajouté %(count)s commentaires au projet %(project_title)s.\n"
+"%(full_name)s hat %(count)s Kommentare zum Projekt %(project_title)s "
+"hinzugefügt.\n"
 
 #: apps/notifications/templates/new_instruction/mail.html:18
 msgid ""
@@ -1217,12 +1226,12 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"           Vous avez reçu une nouvelle instruction.\n"
-"    "
+"          Sie haben eine neue Anweisung erhalten.\n"
+"          "
 
 #: apps/notifications/templates/new_instruction/mail.html:28
 msgid "Go to instruction"
-msgstr "Voir le projet"
+msgstr "Zur Anweisung gehen"
 
 #: apps/notifications/templates/new_instruction/mail.txt:2
 #, python-format
@@ -1231,13 +1240,15 @@ msgid ""
 "Hello %(recipient.given_name)s, You have received a new instruction.\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, Vous avez reçu une nouvelle instruction.\n"
+"Hallo %(recipient.given_name)s, Sie haben eine neue Anweisung erhalten.\n"
 
 #: apps/notifications/templates/new_instruction/object.txt:2
 msgid ""
 "\n"
 "New instruction\n"
 msgstr ""
+"\n"
+"Neue Anweisung\n"
 
 #: apps/notifications/templates/new_instruction/reminder.txt:2
 msgid ""
@@ -1245,7 +1256,7 @@ msgid ""
 "You received a new instruction.\n"
 msgstr ""
 "\n"
-"Vous avez reçu une nouvelle instruction.\n"
+"Sie haben eine neue Anweisung erhalten.\n"
 
 #: apps/notifications/templates/new_private_message/mail.html:18
 #, python-format
@@ -1257,18 +1268,18 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a envoyé un message au projet <a class=\"lpi-link\" "
+"          %(full_name)s hat eine Nachricht auf <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
-"fromNotification\">%(project_title)s</a>.\n"
+"fromNotification\">%(project_title)s</a> gepostet.\n"
 "          "
 
 #: apps/notifications/templates/new_private_message/mail.html:26
 msgid "Message by"
-msgstr "Message de"
+msgstr "Nachricht von"
 
 #: apps/notifications/templates/new_private_message/mail.html:35
 msgid "Go to message"
-msgstr "Voir le message"
+msgstr "Zur Nachricht gehen"
 
 #: apps/notifications/templates/new_private_message/mail.txt:2
 #: apps/notifications/templates/new_private_message/object.txt:2
@@ -1282,10 +1293,11 @@ msgid_plural ""
 "%(full_name)s posted %(count)s messages on project %(project_title)s.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s a envoyé un message au projet %(project_title)s.\n"
+"%(full_name)s hat eine Nachricht zu %(project_title)s gepostet.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s a envoyé %(count)s messages au projet %(project_title)s.\n"
+"%(full_name)s hat %(count)s Nachrichten zum Projekt %(project_title)s "
+"gepostet.\n"
 
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format
@@ -1297,9 +1309,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a répondu à votre commentaire sur le projet <a "
-"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
+"          %(full_name)s hat auf Ihren Kommentar zum Projekt <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> geantwortet.\n"
 "          "
 
 #: apps/notifications/templates/new_reply/mail.txt:2
@@ -1309,8 +1321,8 @@ msgid ""
 "%(full_name)s has replied on your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a répondu à votre commentaire sur le projet "
-"%(project_title)s.\n"
+"%(full_name)s hat auf Ihren Kommentar zum Projekt %(project_title)s "
+"geantwortet.\n"
 
 #: apps/notifications/templates/new_reply/object.txt:2
 #, python-format
@@ -1319,8 +1331,8 @@ msgid ""
 "%(full_name)s replied to your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a répondu à votre commentaire sur le projet "
-"%(project_title)s.\n"
+"%(full_name)s hat auf Ihren Kommentar zum Projekt %(project_title)s "
+"geantwortet.\n"
 
 #: apps/notifications/templates/new_review/mail.html:18
 #, python-format
@@ -1332,14 +1344,14 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a relu le projet <a class=\"lpi-link\" "
+"          %(full_name)s hat das Projekt <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a>.\n"
+"fromNotification\">%(project_title)s</a> bewertet.\n"
 "          "
 
 #: apps/notifications/templates/new_review/mail.html:26
 msgid "Review by"
-msgstr "Commentaire de"
+msgstr "Bewertung von"
 
 #: apps/notifications/templates/new_review/mail.txt:2
 #: apps/notifications/templates/new_review/object.txt:2
@@ -1349,7 +1361,7 @@ msgid ""
 "%(full_name)s reviewed project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a relu le projet %(project_title)s.\n"
+"%(full_name)s hat das Projekt %(project_title)s bewertet.\n"
 
 #: apps/notifications/templates/notifications_base.html:45
 msgid ""
@@ -1360,9 +1372,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          la plateforme pour partager vos projets.<br/>\n"
-"          Créée pour vous par le Learning Planet Institute<br/>\n"
-"          8bis, rue Charles V, 75004 Paris, France\n"
+"          die Plattform zur gemeinsamen Nutzung Ihrer Projekte.<br/>\n"
+"          Für Sie erstellt vom Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, Frankreich\n"
 "          "
 
 #: apps/notifications/templates/notifications_base.html:52
@@ -1370,12 +1382,12 @@ msgid ""
 "You receive this mail because you are subscribed to these notifications on "
 "Projects platform."
 msgstr ""
-"Vous recevez cet email car vous êtes abonné·e aux notifications sur la "
-"plateforme Projects."
+"Sie erhalten diese E-Mail, weil Sie diese Benachrichtigungen auf der "
+"Projekte-Plattform abonniert haben."
 
 #: apps/notifications/templates/notifications_base.html:53
 msgid "Change your notification settings here."
-msgstr "Modifiez vos préférences de notification ici."
+msgstr "Ändern Sie hier Ihre Benachrichtigungseinstellungen."
 
 #: apps/notifications/templates/project_edited/reminder.txt:2
 #, python-format
@@ -1384,7 +1396,7 @@ msgid ""
 "%(full_name)s edited the %(updated_fields)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s a modifié les champs suivants: %(updated_fields)s.\n"
+"%(full_name)s hat die %(updated_fields)s bearbeitet.\n"
 
 #: apps/notifications/templates/project_ready_for_review/mail.html:18
 #, python-format
@@ -1396,9 +1408,10 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a indiqué que le projet <a class=\"lpi-link\" "
+"          %(full_name)s hat das Projekt <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> est prêt à être relu.\n"
+"fromNotification\">%(project_title)s</a> als bereit zur Überprüfung "
+"markiert.\n"
 "          "
 
 #: apps/notifications/templates/project_ready_for_review/mail.txt:2
@@ -1409,8 +1422,8 @@ msgid ""
 "%(project_title)s as ready for review.\n"
 msgstr ""
 "\n"
-"Bonjour %(recipient.given_name)s, %(full_name)s a indiqué que le projet "
-"%(project_title)s est prêt à être relu.\n"
+"Hallo %(recipient.given_name)s, %(full_name)s hat das Projekt "
+"%(project_title)s als bereit zur Überprüfung markiert.\n"
 
 #: apps/notifications/templates/project_ready_for_review/object.txt:2
 #, python-format
@@ -1419,8 +1432,8 @@ msgid ""
 "%(full_name)s marked project %(project_title)s as ready for review.\n"
 msgstr ""
 "\n"
-"%(full_name)s a indiqué que le projet %(project_title)s est prêt à être "
-"relu.\n"
+"%(full_name)s hat das Projekt %(project_title)s als bereit zur Überprüfung "
+"markiert.\n"
 
 #: apps/notifications/templates/reminder/mail.html:19
 #, python-format
@@ -1430,12 +1443,12 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"                    Voici votre résumé d'activité pour le %(dateOfTheDay)s\n"
+"                    Hier sind Ihre Highlights für %(dateOfTheDay)s\n"
 "                    "
 
 #: apps/notifications/templates/reminder/mail.html:30
 msgid "Project"
-msgstr "Projet"
+msgstr "Projekt"
 
 #: apps/notifications/templates/reminder/mail.txt:2
 #, python-format
@@ -1444,183 +1457,186 @@ msgid ""
 "Here are your highlights for %(dateOfTheDay)s\n"
 msgstr ""
 "\n"
-"Voici votre résumé d'activité pour le %(dateOfTheDay)s\n"
+"Hier sind Ihre Highlights für %(dateOfTheDay)s\n"
 
 #: apps/notifications/templates/reminder/object.txt:2
 msgid "New highlights on Projects"
-msgstr "Résumé de l'activité sur Projects"
+msgstr "Neue Highlights auf Projekte"
 
 #: apps/notifications/utils.py:233
 msgid " and "
-msgstr " et "
+msgstr " und "
 
 #: apps/organizations/exceptions.py:11
 msgid "You are trying to create a loop in the organization's hierarchy."
-msgstr "Vous essayez de créer une boucle dans la hiérarchie de l'organisation."
+msgstr ""
+"Sie versuchen, eine Schleife in der Hierarchie der Organisation zu erstellen."
 
 #: apps/organizations/exceptions.py:24
 msgid "The root category cannot have a parent category"
-msgstr "La catégorie racine ne peut pas avoir de catégorie parente"
+msgstr "Die Hauptkategorie darf keine übergeordnete Kategorie haben"
 
 #: apps/organizations/exceptions.py:30
 msgid "A non-root category must have a parent category"
-msgstr "Une catégorie doit avoir une catégorie parente"
+msgstr "Eine nicht-Hauptkategorie muss eine übergeordnete Kategorie haben"
 
 #: apps/organizations/exceptions.py:36
 msgid "The parent category must belong to the same organization"
-msgstr "La catégorie parente doit appartenir à la même organisation"
+msgstr "Die übergeordnete Kategorie muss derselben Organisation angehören"
 
 #: apps/organizations/exceptions.py:42
 msgid "You are trying to create a loop in the category's hierarchy"
-msgstr "Vous essayez de créer une boucle dans la hiérarchie des catégories"
+msgstr ""
+"Sie versuchen, eine Schleife in der Hierarchie der Kategorie zu erstellen"
 
 #: apps/organizations/exceptions.py:48
 msgid "You must choose a default tag classification that is enabled"
-msgstr "La classification de tags par défaut doit être activée sur le portail"
+msgstr ""
+"Sie müssen eine standardmäßige Tag-Klassifizierung wählen, die aktiviert ist"
 
 #: apps/projects/exceptions.py:12
 msgid "You don't have the permission to link this project"
-msgstr "Vous n'avez pas la permission de lier ce projet"
+msgstr "Sie haben keine Berechtigung, dieses Projekt zu verknüpfen"
 
 #: apps/projects/exceptions.py:17
 #, python-brace-format
 msgid "You don't have the permission to link this project : {project_title}"
-msgstr "Vous n'avez pas la permission de lier ce projet : {project_title}"
+msgstr ""
+"Sie haben keine Berechtigung, dieses Projekt zu verknüpfen: {project_title}"
 
 #: apps/projects/exceptions.py:27
 msgid "You do not have the rights to add a project in this organization"
-msgstr "Vous ne pouvez pas ajouter de projet dans cette organisation"
+msgstr ""
+"Sie haben nicht die Rechte, ein Projekt in dieser Organisation hinzuzufügen"
 
 #: apps/projects/exceptions.py:34
 msgid "You cannot modify a locked project"
-msgstr "Vous ne pouvez pas modifier un projet verrouillé"
+msgstr "Sie können ein gesperrtes Projekt nicht ändern"
 
 #: apps/projects/exceptions.py:43
 msgid "The organizations parameter is mandatory"
-msgstr "Le paramètre organizations est obligatoire"
+msgstr "Der Parameter 'organizations' ist obligatorisch"
 
 #: apps/projects/exceptions.py:49
 msgid "The project does not belong to any of the given organizations"
-msgstr "Le projet n'appartient à aucune des organisations données"
+msgstr "Das Projekt gehört keiner der angegebenen Organisationen an"
 
 #: apps/projects/exceptions.py:70
 msgid "You cannot remove all the owners of a project"
-msgstr "Vous ne pouvez pas supprimer tou·te·s les éditeur·ices d'un projet"
+msgstr "Sie können nicht alle Eigentümer eines Projekts entfernen"
 
 #: apps/projects/exceptions.py:76
 msgid "A project must belong to at least one organization"
-msgstr "Un projet doit appartenir à au moins une organisation"
+msgstr "Ein Projekt muss mindestens einer Organisation angehören"
 
 #: apps/projects/exceptions.py:82
 msgid "Only a reviewer can change this project's status"
-msgstr "Seul un correcteur peut modifier le statut de ce projet"
+msgstr "Nur ein Gutachter kann den Status dieses Projekts ändern"
 
 #: apps/projects/exceptions.py:88
 msgid "You cannot empty the description of a project"
-msgstr "Vous ne pouvez pas vider la description d'un projet"
+msgstr "Sie können die Beschreibung eines Projekts nicht leeren"
 
 #: apps/projects/exceptions.py:95
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
 msgstr ""
-"Un projet ne peut pas être dans une catégorie si elle n'appartient pas à "
-"l'une des organisations du projet"
+"Ein Projekt kann sich nicht in einer Kategorie befinden, wenn es keiner der "
+"Organisationen des Projekts angehört"
 
 #: apps/projects/exceptions.py:102
 msgid "A project can't be linked to itself"
-msgstr "Un projet ne peut pas être lié à lui-même"
+msgstr "Ein Projekt kann nicht mit sich selbst verknüpft werden"
 
 #: apps/projects/exceptions.py:107
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
-msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
+msgstr ""
+"Das Projekt '{project_title}' kann nicht mit sich selbst verknüpft werden"
 
 #: apps/projects/exceptions.py:122
 msgid "A message cannot be a reply to itself"
-msgstr "Un message ne peut pas être une réponse à lui-même"
+msgstr "Eine Nachricht kann keine Antwort auf sich selbst sein"
 
 #: apps/projects/models.py:140
 msgid "title"
-msgstr "titre"
+msgstr "Titel"
 
 #: apps/projects/models.py:150
 msgid "main goal"
-msgstr "objectif principal"
+msgstr "Hauptziel"
 
 #: apps/projects/models.py:163
 msgid "life status"
-msgstr "état d'avancement"
+msgstr "Lebensstatus"
 
 #: apps/projects/models.py:174
 msgid "categories"
-msgstr "catégories"
+msgstr "Kategorien"
 
 #: apps/projects/models.py:191
 msgid "sustainable development goals"
-msgstr "objectifs de développement durable"
+msgstr "Ziele für nachhaltige Entwicklung"
 
 #: apps/projects/models.py:197
 msgid "main category"
-msgstr "catégorie principale"
+msgstr "Hauptkategorie"
 
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
 msgstr ""
-"Vous ne pouvez pas changer le statut d'une demande de mentorat que vous avez "
-"créée"
+"Sie können den Status einer von Ihnen erstellten Mentoring-Anfrage nicht "
+"ändern"
 
 #: apps/skills/exceptions.py:21
 msgid "User ID must be provided through url"
-msgstr "L'identifiant de l'utilisateur·ice doit être fourni via l'url"
+msgstr "Die Benutzer-ID muss über die URL angegeben werden"
 
 #: apps/skills/exceptions.py:27
 msgid "This user cannot be a mentor for this skill"
-msgstr "Cet·te utilisateur·ice ne peut pas être mentor·e pour cette compétence"
+msgstr "Dieser Benutzer kann kein Mentor für diese Fähigkeit sein"
 
 #: apps/skills/exceptions.py:33
 msgid "This user does not need a mentor for this skill"
-msgstr ""
-"Cet·te utilisateur·ice n'a pas besoin de mentor·e pour cette compétence"
+msgstr "Dieser Benutzer benötigt keinen Mentor für diese Fähigkeit"
 
 #: apps/skills/exceptions.py:39
 msgid "You already have this skill in your profile"
-msgstr "Vous avez déjà cette compétence dans votre profil"
+msgstr "Sie haben diese Fähigkeit bereits in Ihrem Profil"
 
 #: apps/skills/exceptions.py:45
 msgid "Only custom tags can be updated"
-msgstr "Seuls les tags personnalisés peuvent être mis à jour"
+msgstr "Nur benutzerdefinierte Tags können aktualisiert werden"
 
 #: apps/skills/exceptions.py:51
 msgid "Only custom tags classifications can be updated"
-msgstr ""
-"Seules les classifications de tags personnalisés peuvent être mises à jour"
+msgstr "Nur benutzerdefinierte Tag-Klassifikationen können aktualisiert werden"
 
 #: apps/skills/exceptions.py:57
 msgid "You can only search for 50 Wikipedia tags at a time"
-msgstr "Vous ne pouvez rechercher que 50 tags Wikipedia à la fois"
+msgstr "Sie können jeweils nur nach 50 Wikipedia-Tags suchen"
 
 #: apps/skills/exceptions.py:63
 msgid "You already made a mentoring request for this skill"
-msgstr "Vous avez déjà fait une demande de mentorat pour cette compétence"
+msgstr "Sie haben bereits eine Mentoring-Anfrage für diese Fähigkeit gestellt"
 
 #: apps/skills/exceptions.py:72
 msgid "Tags must belong to the classification's organization"
-msgstr "Les tags doivent appartenir à l'organisation de la classification"
+msgstr "Tags müssen zur Organisation der Klassifizierung gehören"
 
 #: apps/skills/exceptions.py:78
 msgid "Tag title must be 50 characters or less"
-msgstr "Le titre du tag doit comporter 50 caractères ou moins"
+msgstr "Der Tag-Titel darf maximal 50 Zeichen lang sein"
 
 #: apps/skills/exceptions.py:84
 msgid "Tag description must be 500 characters or less"
-msgstr "La description du tag doit comporter 500 caractères ou moins"
+msgstr "Die Tag-Beschreibung darf maximal 500 Zeichen lang sein"
 
 #: apps/skills/serializers.py:104
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
-msgstr ""
-"identifiant invalide \"{tag_classification_id}\" - cet objet n'existe pas."
+msgstr "Ungültige ID \"{tag_classification_id}\" – Objekt existiert nicht."
 
 #: apps/skills/templates/contact_mentor/mail.html:10
 #, python-format
@@ -1630,7 +1646,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Pouvez-vous me mentorer en %(skill)s?\n"
+"            Können Sie mich in %(skill)s betreuen?\n"
 "            "
 
 #: apps/skills/templates/contact_mentor/mail.html:19
@@ -1643,8 +1659,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Voici le message que %(user)s a laissé sur la plateforme "
-"Projects:\n"
+"            Hier ist die Nachricht, die %(user)s auf der Projekte-Plattform "
+"hinterlassen hat:\n"
 "            "
 
 #: apps/skills/templates/contact_mentor/mail.html:30
@@ -1659,7 +1675,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Répondre\n"
+"            Antworten\n"
 "            "
 
 #: apps/skills/templates/contact_mentor/mail.txt:2
@@ -1675,13 +1691,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Pouvez-vous me mentorer en %(skill)s?\n"
+"Können Sie mich in %(skill)s betreuen?\n"
 "\n"
-"Voici le message que %(user)s a laissé sur la plateforme Projects:\n"
+"Hier ist die Nachricht, die %(user)s auf der Projekte-Plattform hinterlassen "
+"hat:\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentor/object.txt:2
 #, python-format
@@ -1690,7 +1707,7 @@ msgid ""
 "Can you mentor %(mentoree_name)s?\n"
 msgstr ""
 "\n"
-"Accepteriez-vous de mentorer %(mentoree_name)s ?\n"
+"Können Sie %(mentoree_name)s betreuen?\n"
 
 #: apps/skills/templates/contact_mentoree/mail.html:10
 #, python-format
@@ -1700,7 +1717,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Voulez-vous être mentoré·e en %(skill)s?\n"
+"            Möchten Sie in %(skill)s betreut werden?\n"
 "            "
 
 #: apps/skills/templates/contact_mentoree/mail.txt:2
@@ -1716,13 +1733,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Voulez-vous être mentoré·e en %(skill)s?\n"
+"Möchten Sie in %(skill)s betreut werden?\n"
 "\n"
-"Voici le message que %(user)s a laissé sur la plateforme Projects:\n"
+"Hier ist die Nachricht, die %(user)s auf der Projekte-Plattform hinterlassen "
+"hat:\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
@@ -1731,7 +1749,7 @@ msgid ""
 "%(mentor_name)s offers to mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s propose de vous mentorer\n"
+"%(mentor_name)s bietet Ihnen Mentoring an\n"
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:10
 #, python-format
@@ -1741,7 +1759,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s a accepté de vous mentorer en %(skill)s!\n"
+"            %(user)s hat zugestimmt, Sie in %(skill)s zu betreuen!\n"
 "            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:19
@@ -1753,8 +1771,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Bonne nouvelle, %(user)s a accepté de vous mentorer. Voici "
-"l'email auquel vous pouvez le ou la contacter : %(email)s.\n"
+"            Gute Nachrichten, %(user)s hat zugestimmt, Sie zu betreuen. Sie "
+"können sie unter %(email)s kontaktieren.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:30
@@ -1768,7 +1786,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Répondre à %(user)s\n"
+"            Antworten an %(user)s\n"
 "            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.txt:2
@@ -1785,14 +1803,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s a accepté de vous mentorer en %(skill)s!\n"
+"%(user)s hat zugestimmt, Sie in %(skill)s zu betreuen!\n"
 "\n"
-"Bonne nouvelle, %(user)s a accepté de vous mentorer. Voici l'email auquel "
-"vous pouvez le ou la contacter : %(email)s.\n"
+"Gute Nachrichten, %(user)s hat zugestimmt, Sie zu betreuen. Sie können sie "
+"unter %(email)s kontaktieren.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Répondre à %(user)s : %(email)s\n"
+"Antworten an %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentor_response_accepted/object.txt:2
 #, python-format
@@ -1801,7 +1819,7 @@ msgid ""
 "%(mentor_name)s has accepted to mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s a accepté de vous mentorer\n"
+"%(mentor_name)s hat zugestimmt, Sie zu betreuen\n"
 
 #: apps/skills/templates/mentor_response_pending/mail.html:10
 #, python-format
@@ -1811,7 +1829,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"           %(user)s a besoin de précisions pour vous mentorer en %(skill)s.\n"
+"            %(user)s benötigt weitere Informationen, um Sie in %(skill)s zu "
+"betreuen.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_pending/mail.html:19
@@ -1824,8 +1843,8 @@ msgid ""
 "            "
 msgstr ""
 "    \n"
-"            %(user)s vous a envoyé le message suivant. Vous pouvez le ou la "
-"contacter à l'adresse suivante: %(email)s.\n"
+"            %(user)s hat folgende Nachricht hinterlassen. Sie können sie "
+"unter %(email)s kontaktieren.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_pending/mail.txt:2
@@ -1841,14 +1860,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s a besoin de précisions pour vous mentorer en %(skill)s.\n"
-" \n"
-"%(user)s vous a envoyé le message suivant. Vous pouvez le ou la contacter à "
-"l'adresse suivante : %(email)s.\n"
+"%(user)s benötigt weitere Informationen, um Sie in %(skill)s zu betreuen.\n"
+"\n"
+"%(user)s hat folgende Nachricht hinterlassen. Sie können sie unter %(email)s "
+"kontaktieren.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Répondre à %(user)s : %(email)s\n"
+"Antworten an %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentor_response_pending/object.txt:2
 #: apps/skills/templates/mentoree_response_pending/object.txt:2
@@ -1858,7 +1877,7 @@ msgid ""
 "%(mentor_name)s needs more information on mentoring\n"
 msgstr ""
 "\n"
-"%(mentor_name)s a besoin de précisions sur le mentorat\n"
+"%(mentor_name)s benötigt weitere Informationen zum Mentoring\n"
 
 #: apps/skills/templates/mentor_response_rejected/mail.html:10
 #, python-format
@@ -1868,7 +1887,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s ne peut pas vous mentorer en %(skill)s!\n"
+"            %(user)s kann Sie in %(skill)s nicht betreuen!\n"
 "            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.html:19
@@ -1879,8 +1898,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Malheureusement, %(user)s ne peut pas vous mentorer en "
-"%(skill)s.\n"
+"            Leider kann %(user)s Sie in %(skill)s nicht betreuen.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.txt:2
@@ -1894,9 +1912,9 @@ msgid ""
 "%(content)s\n"
 msgstr ""
 "\n"
-"%(user)s ne peut pas vous mentorer en %(skill)s!\n"
+"%(user)s kann Sie in %(skill)s nicht betreuen!\n"
 "\n"
-"Malheureusement, %(user)s ne pourra pas vous mentorer.\n"
+"Leider wird %(user)s Sie nicht betreuen können.\n"
 "\n"
 "%(content)s\n"
 
@@ -1907,7 +1925,7 @@ msgid ""
 "%(mentor_name)s can't mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s ne peut pas vous mentorer\n"
+"%(mentor_name)s kann Sie nicht betreuen\n"
 
 #: apps/skills/templates/mentoree_response_accepted/mail.html:10
 #, python-format
@@ -1917,7 +1935,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s a accepté d'être votre mentoré·e en %(skill)s!\n"
+"            %(user)s hat zugestimmt, Ihr Mentee in %(skill)s zu sein!\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_accepted/mail.html:19
@@ -1929,8 +1947,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Bonne nouvelle, %(user)s a accepté d'être votre mentoré·e. Vous "
-"pouvez le ou la contacter à l'adresse suivante : %(email)s.\n"
+"            Gute Nachrichten, %(user)s hat zugestimmt, Ihr Mentee zu sein. "
+"Sie können sie unter %(email)s kontaktieren.\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_accepted/mail.txt:2
@@ -1947,14 +1965,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s a accepté d'être votre mentoré·e en %(skill)s!\n"
+"%(user)s hat zugestimmt, Ihr Mentee in %(skill)s zu sein!\n"
 "\n"
-"Bonne nouvelle, %(user)s a accepté d'être votre mentoré·e. Vous pouvez le ou "
-"la contacter à l'adresse suivante : %(email)s.\n"
+"Gute Nachrichten, %(user)s hat zugestimmt, Ihr Mentee zu sein. Sie können "
+"sie unter %(email)s kontaktieren.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Répondre à %(user)s : %(email)s\n"
+"Antworten an %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentoree_response_accepted/object.txt:2
 #, python-format
@@ -1963,7 +1981,7 @@ msgid ""
 "%(mentor_name)s has accepted to be your mentoree\n"
 msgstr ""
 "\n"
-"%(mentor_name)s a accepté d'être votre mentoré·e\n"
+"%(mentor_name)s hat zugestimmt, Ihr Mentee zu sein\n"
 
 #: apps/skills/templates/mentoree_response_pending/mail.html:10
 #, python-format
@@ -1974,8 +1992,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s a besoin de précisions pour être votre mentoré·e en "
-"%(skill)s.\n"
+"            %(user)s benötigt weitere Informationen, um Ihr Mentee in "
+"%(skill)s zu sein.\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_pending/mail.txt:2
@@ -1991,14 +2009,15 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s a besoin de précisions pour être votre mentoré·e en %(skill)s.\n"
-" \n"
-"%(user)s vous a envoyé le message suivant. Vous pouvez le ou la contacter à "
-"l'adresse suivante : %(email)s.\n"
+"%(user)s benötigt weitere Informationen, um Ihr Mentee in %(skill)s zu "
+"sein.\n"
+"\n"
+"%(user)s hat folgende Nachricht hinterlassen. Sie können sie unter %(email)s "
+"kontaktieren.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Répondre à %(user)s : %(email)s\n"
+"Antworten an %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentoree_response_rejected/mail.html:10
 #, python-format
@@ -2008,7 +2027,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s ne peut pas être votre mentoré·e en %(skill)s!\n"
+"            %(user)s kann nicht Ihr Mentee in %(skill)s sein!\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_rejected/mail.html:19
@@ -2019,8 +2038,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Malheureusement, %(user)s ne peut pas être votre mentoré·e en "
-"%(skill)s.\n"
+"            Leider kann %(user)s nicht Ihr Mentee in %(skill)s sein.\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_rejected/mail.txt:2
@@ -2034,9 +2052,9 @@ msgid ""
 "%(content)s\n"
 msgstr ""
 "\n"
-"%(user)s ne peut pas être votre mentoré·e en %(skill)s!\n"
+"%(user)s kann nicht Ihr Mentee in %(skill)s sein!\n"
 "\n"
-"Malheureusement, %(user)s ne pourra pas être votre mentoré·e.\n"
+"Leider wird %(user)s nicht Ihr Mentee sein können.\n"
 "\n"
 "%(content)s\n"
 
@@ -2047,7 +2065,7 @@ msgid ""
 "%(mentor_name)s can't be your mentoree\n"
 msgstr ""
 "\n"
-"%(mentor_name)s ne peut pas être votre mentoré·e\n"
+"%(mentor_name)s kann nicht Ihr Mentee sein\n"
 
 #: apps/skills/templates/mentorship_base.html:55
 msgid ""
@@ -2056,7 +2074,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Guide du mentorat : conseils pour les mentor·es et les mentoré·es\n"
+"          Mentoring-Leitfaden: Ratschläge für Mentoren und Mentees\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:60
@@ -2070,11 +2088,11 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Chères mentor·es et mentoré·es, 👩‍🏫👨‍🎓\n"
+"          Liebe Mentorinnen und Mentoren, liebe Mentees, 👩‍🏫👨‍🎓\n"
 "          <br/>\n"
-"          L’équipe Projects tient tout d'abord à vous féliciter "
-"chaleureusement de vous être engagé·e·s dans cette aventure de mentorat. "
-"Elle promet d'être riche en découvertes et en succès !\n"
+"          Zunächst einmal möchte das Projekte-Team Ihnen herzlich zu Ihrem "
+"Beginn der Mentoring-Reise gratulieren. Sie wird sicherlich mit spannenden "
+"Entdeckungen und Erfolgen gefüllt sein!\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:67
@@ -2084,7 +2102,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🌟 Pour bien démarrer\n"
+"          🌟 Erste Schritte\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:72
@@ -2095,8 +2113,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nous vous encourageons à regarder cette vidéo pour en savoir plus "
-"sur les rôles de mentor·e et de mentoré·e.\n"
+"          Wir empfehlen Ihnen, sich dieses Video anzusehen, um mehr über die "
+"Rollen von Mentor und Mentee zu erfahren.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:76
@@ -2110,8 +2128,8 @@ msgid ""
 msgstr ""
 "\n"
 "        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
-"watch?v=Og6TiFTim0A\">\n"
-"          Regarder la vidéo\n"
+"watch?v=T_iGnufU1kY\">\n"
+"          Video ansehen\n"
 "        </mj-button>\n"
 "        "
 
@@ -2122,7 +2140,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          En résumé : \n"
+"          Kurz gesagt:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:87
@@ -2141,16 +2159,16 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          - <strong>Un·e mentor·e</strong> joue un rôle de guide "
-"bienveillant·e qui <strong>écoute activement, questionne et oriente sans "
-"imposer de décisions.</strong> En instaurant un climat de confiance propice "
-"aux échanges, il favorise une relation ouverte où il ou elle aide le ou la "
-"mentoré·e à progresser.\n"
+"          - <strong>Ein Mentor</strong> dient als unterstützende Anleitung, "
+"die <strong>aufmerksam zuhört, durchdachte Fragen stellt und Orientierung "
+"bietet, ohne Entscheidungen zu diktieren.</strong> Durch die Förderung einer "
+"vertrauensvollen Umgebung, die offene Kommunikation fördert, unterstützt der "
+"Mentor den Mentee bei seinen Fortschritten.\n"
 "          <br/>\n"
-"          - Quant aux <strong>mentoré·es</strong>, il est essentiel de "
-"<strong>clarifier vos besoins et vos objectifs</strong>. Vous restez "
-"<strong>l'acteur·ice principal·e de votre progression</strong>, en "
-"appliquant les conseils de votre mentor·e pour atteindre vos objectifs.\n"
+"          - <strong>Für Mentees</strong> ist es entscheidend, Ihre "
+"<strong>Bedürfnisse und Ziele klar zu definieren</strong>. Sie sind "
+"<strong>der Hauptakteur Ihrer eigenen Entwicklung</strong> und wenden die "
+"Anleitung Ihres Mentors an, um Ihre Ziele zu erreichen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:95
@@ -2160,7 +2178,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📅 Structures possibles du mentorat :\n"
+"          📅 Mentoring-Strukturen:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:100
@@ -2172,9 +2190,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Voici quelques idées de structure pour votre accompagnement, "
-"appropriez-vous ces formats et ajustez les séances en fonction des besoins "
-"et des disponibilités de chacun·e : \n"
+"          Hier sind einige Vorschläge für die Struktur Ihrer Mentoring-"
+"Sitzungen. Gestalten Sie sie nach Ihren Bedürfnissen und passen Sie jedes "
+"Treffen an die Bedürfnisse und Verfügbarkeit aller Beteiligten an.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:105
@@ -2186,9 +2204,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Séance unique</strong> : Parfait pour un coup de pouce "
-"ponctuel d’une heure, que ce soit pour un retour sur un projet, une décision "
-"importante, ou une réponse à une question spécifique.\n"
+"          🔹 <strong>Einzelne Sitzung</strong>: Ideal für einen schnellen, "
+"einstündigen Impuls. Dies könnte Feedback zu einem Projekt, Hilfe bei einer "
+"wichtigen Entscheidung oder spezifische Ratschläge umfassen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:110
@@ -2199,8 +2217,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Trois séances d’une heure</strong> : Idéal pour "
-"approfondir une problématique. Voici un exemple de déroulé :\n"
+"          🔹 <strong>Drei einstündige Sitzungen</strong>: Ideal, um tiefer "
+"in ein Problem einzutauchen. Hier ist eine mögliche Aufschlüsselung:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:115
@@ -2211,8 +2229,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 👂 <strong>Séance 1</strong> : Compréhension de la "
-"problématique et suggestions initiales.\n"
+"              - 👂 <strong>Sitzung 1</strong>: Das Problem verstehen und "
+"erste Vorschläge machen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:120
@@ -2223,8 +2241,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 📚 <strong>Séance 2</strong> : Partage de recherches et "
-"définition d'objectifs concrets.\n"
+"              - 📚 <strong>Sitzung 2</strong>: Rechercheergebnisse teilen "
+"und klare Ziele setzen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:125
@@ -2235,7 +2253,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🌟 <strong>Séance 3</strong> : Bilan des progrès réalisés.\n"
+"              - 🌟 <strong>Sitzung 3</strong>: Fortschritt überprüfen und "
+"den Ansatz anpassen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:130
@@ -2246,8 +2265,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Accompagnement sur un an (2h/mois)</strong> : Pour un "
-"suivi régulier et durable. Voici un déroulé type pour une séance : \n"
+"          🔹 <strong>Langjähriges Mentoring (2 Stunden/Monat)</strong>: "
+"Perfekt für langfristige Begleitung. Eine typische Sitzung könnte so "
+"aussehen:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:135
@@ -2258,8 +2278,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🏅 <strong>Progrès réalisés</strong> : Discussion sur les "
-"avancées et nouveaux besoins.\n"
+"              - 🏅 <strong>Fortschrittskontrolle</strong>: Erfolge und neue "
+"Herausforderungen besprechen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:140
@@ -2270,8 +2290,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🎯 <strong>Objectifs</strong> : Fixer 2-3 objectifs clairs à "
-"atteindre avant la prochaine séance.\n"
+"              - 🎯 <strong>Ziele</strong>: 2-3 Ziele festlegen, an denen bis "
+"zur nächsten Sitzung gearbeitet werden soll.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:145
@@ -2282,8 +2302,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 📖 <strong>Ressources</strong> : Envoi de contenus (vidéos, "
-"articles, etc.) à explorer entre les séances.\n"
+"              - 📖 <strong>Ressourcen</strong>: Hilfreiche Inhalte (Videos, "
+"Artikel usw.) teilen, die zwischen den Sitzungen erkundet werden können.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:150
@@ -2294,8 +2314,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🗓️ <strong>Prochaine séance</strong> : Planification du "
-"prochain rendez-vous.\n"
+"              - 🗓️ <strong>Nächste Sitzung</strong>: Das nächste Treffen "
+"planen.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:156
@@ -2305,7 +2325,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          ✅ Conseils pratiques pour un mentorat réussi :\n"
+"          ✅ Tipps für erfolgreiches Mentoring:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:161
@@ -2317,8 +2337,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📝 <strong>Préparez vos séances :</strong> Réfléchissez aux sujets "
-"à aborder, aux objectifs à atteindre et aux questions à poser.\n"
+"          📝 <strong>Bereiten Sie sich auf jede Sitzung vor:</strong> Denken "
+"Sie über die Themen nach, die Sie besprechen möchten, die Ziele, die Sie "
+"erreichen wollen, und alle Fragen, die Sie haben.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:166
@@ -2329,8 +2350,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🤝 <strong>Soyez ouvert·e et honnête :</strong> La transparence "
-"est essentielle pour instaurer une relation de confiance.\n"
+"          🤝 <strong>Seien Sie offen und ehrlich:</strong> Vertrauensaufbau "
+"erfordert Transparenz.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:171
@@ -2341,8 +2362,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          👂 <strong>Pratiquez l'écoute active :</strong> Posez des "
-"questions et reformulez pour bien comprendre.\n"
+"          👂 <strong>Üben Sie aktives Zuhören:</strong> Stellen Sie Fragen "
+"und formulieren Sie um, um sicherzustellen, dass Sie alles verstanden "
+"haben.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:176
@@ -2352,8 +2374,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🎯 <strong>Fixez des objectifs concrets</strong> à chaque fin de "
-"séance.\n"
+"          🎯 <strong>Setzen Sie klare Ziele</strong> nach jeder Sitzung.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:181
@@ -2364,8 +2385,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📬 <strong>Partagez des ressources</strong> utilse entre les "
-"séances pour enrichir l'apprentissage.\n"
+"          📬 <strong>Teilen Sie nützliche Ressourcen</strong> zwischen den "
+"Treffen, um das Lernen zu verbessern.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:186
@@ -2376,8 +2397,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📆 <strong>Planifiez toujours le prochain rendez-vous</strong> "
-"pour maintenir le suivi.\n"
+"          📆 <strong>Planen Sie immer die nächste Sitzung</strong>, um den "
+"Fortschritt aufrechtzuerhalten.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:192
@@ -2392,12 +2413,12 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nous espérons que ces conseils vous aideront à mieux appréhender "
-"le mentorat ! Merci à tous et bon mentorat ✨\n"
+"          Wir hoffen, diese Tipps helfen Ihnen, Ihre Mentoring-Erfahrung "
+"besser zu gestalten! Vielen Dank an alle und viel Erfolg beim Mentoring ✨\n"
 "          <br/>\n"
-"          Cordialement,\n"
+"          Mit freundlichen Grüßen,\n"
 "          <br/>\n"
-"          L’équipe Projects\n"
+"          Das Projekte-Team\n"
 "          "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.html:10
@@ -2408,7 +2429,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Pouvez-vous me mentorer en %(skill)s? (dernier rappel)\n"
+"            Können Sie mich in %(skill)s betreuen? (letzte Erinnerung)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.html:19
@@ -2421,8 +2442,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Promis, c'est la dernière fois que nous vous relayons ce message "
-"que %(user)s vous a laissé sur la plateforme Projects.\n"
+"            Dies ist die letzte Erinnerung an die Nachricht, die %(user)s "
+"für Sie auf der Projekte-Plattform hinterlassen hat.\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.txt:2
@@ -2439,14 +2460,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Pouvez-vous me mentorer en %(skill)s? (dernier rappel)\n"
+"Können Sie mich in %(skill)s betreuen? (letzte Erinnerung)\n"
 "\n"
-"Promis, c'est la dernière fois que nous vous relayons ce message que "
-"%(user)s vous a laissé sur la plateforme Projects.\n"
+"Dies ist die letzte Erinnerung an die Nachricht, die %(user)s für Sie auf "
+"der Projekte-Plattform hinterlassen hat.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentor_10_days/object.txt:2
 #, python-format
@@ -2455,7 +2476,7 @@ msgid ""
 "Can you mentor %(mentoree_name)s? (last reminder)\n"
 msgstr ""
 "\n"
-"Accepteriez-vous de mentorer %(mentoree_name)s ? (dernier rappel)\n"
+"Können Sie %(mentoree_name)s betreuen? (letzte Erinnerung)\n"
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.html:10
 #, python-format
@@ -2465,7 +2486,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Pouvez-vous me mentorer en %(skill)s? (rappel)\n"
+"            Können Sie mich in %(skill)s betreuen? (Erinnerung)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.html:19
@@ -2478,9 +2499,9 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s vous a envoyé ce message depuis la plateforme Projects "
-"et il semble que vous n'y ayez pas encore répondu. Bonne nouvelle, il n'est "
-"pas trop tard :)\n"
+"            %(user)s hat Ihnen eine Nachricht auf der Projekte-Plattform "
+"geschickt und es sieht so aus, als hätten Sie noch nicht geantwortet. Gute "
+"Nachrichten, es ist noch nicht zu spät :)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.txt:2
@@ -2497,15 +2518,15 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Pouvez-vous me mentorer en %(skill)s? (rappel)\n"
+"Können Sie mich in %(skill)s betreuen? (Erinnerung)\n"
 "\n"
-"%(user)s vous a envoyé ce message depuis la plateforme Projects et il semble "
-"que vous n'y ayez pas encore répondu. Bonne nouvelle, il n'est pas trop "
-"tard :)\n"
+"%(user)s hat Ihnen eine Nachricht auf der Projekte-Plattform geschickt und "
+"es sieht so aus, als hätten Sie noch nicht geantwortet. Gute Nachrichten, es "
+"ist noch nicht zu spät :)\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentor_3_days/object.txt:2
 #, python-format
@@ -2514,7 +2535,7 @@ msgid ""
 "Can you mentor %(mentoree_name)s? (reminder)\n"
 msgstr ""
 "\n"
-"Accepteriez-vous de mentorer %(mentoree_name)s ? (rappel)\n"
+"Können Sie %(mentoree_name)s betreuen? (Erinnerung)\n"
 
 #: apps/skills/templates/reminder_mentoree_10_days/mail.html:10
 #, python-format
@@ -2524,7 +2545,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Voulez-vous être mentoré·e en %(skill)s? (dernier rappel)\n"
+"            Möchten Sie in %(skill)s betreut werden? (letzte Erinnerung)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentoree_10_days/mail.txt:2
@@ -2541,14 +2562,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Voulez-vous être mentoré·e en %(skill)s? (dernier rappel)\n"
+"Möchten Sie in %(skill)s betreut werden? (letzte Erinnerung)\n"
 "\n"
-"Promis, c'est la dernière fois que nous vous relayons ce message que "
-"%(user)s vous a laissé sur la plateforme Projects.\n"
+"Dies ist die letzte Erinnerung an die Nachricht, die %(user)s für Sie auf "
+"der Projekte-Plattform hinterlassen hat.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentoree_10_days/object.txt:2
 #, python-format
@@ -2557,7 +2578,7 @@ msgid ""
 "Do you want to be mentored in %(skill)s? (last reminder)\n"
 msgstr ""
 "\n"
-"Voulez-vous être mentoré·e en %(skill)s? (dernier rappel)\n"
+"Möchten Sie in %(skill)s betreut werden? (letzte Erinnerung)\n"
 
 #: apps/skills/templates/reminder_mentoree_3_days/mail.html:10
 #, python-format
@@ -2567,7 +2588,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Voulez-vous être mentoré·e en %(skill)s? (rappel)\n"
+"            Möchten Sie in %(skill)s betreut werden? (Erinnerung)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentoree_3_days/mail.txt:2
@@ -2584,15 +2605,15 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Voulez-vous être mentoré·e en %(skill)s? (rappel)\n"
+"Möchten Sie in %(skill)s betreut werden? (Erinnerung)\n"
 "\n"
-"%(user)s vous a envoyé ce message depuis la plateforme Projects et il semble "
-"que vous n'y ayez pas encore répondu. Bonne nouvelle, il n'est pas trop "
-"tard :)\n"
+"%(user)s hat Ihnen eine Nachricht auf der Projekte-Plattform geschickt und "
+"es sieht so aus, als hätten Sie noch nicht geantwortet. Gute Nachrichten, es "
+"ist noch nicht zu spät :)\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentoree_3_days/object.txt:2
 #, python-format
@@ -2601,40 +2622,40 @@ msgid ""
 "Do you want to be mentored in %(skill)s? (reminder)\n"
 msgstr ""
 "\n"
-"Voulez-vous être mentoré·e en %(skill)s? (rappel)\n"
+"Möchten Sie in %(skill)s betreut werden? (Erinnerung)\n"
 
 #: services/google/exceptions.py:7
 msgid "This email is already used by another group"
-msgstr "Cet email est déjà utilisé par un autre groupe"
+msgstr "Diese E-Mail wird bereits von einer anderen Gruppe verwendet"
 
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
-msgstr "Cet email est déjà utilisé par un·e autre utilisateur·ice"
+msgstr "Diese E-Mail wird bereits von einem anderen Benutzer verwendet"
 
 #: services/keycloak/exceptions.py:12
 msgid "Invalid user credentials"
-msgstr ""
+msgstr "Ungültige Benutzerdaten"
 
 #: services/keycloak/exceptions.py:21
 msgid "Given user does not have a keycloak account"
-msgstr "L'utilisateur·ice n'a pas de compte keycloak."
+msgstr "Der angegebene Benutzer hat kein Keycloak-Konto"
 
 #: services/keycloak/exceptions.py:27
 msgid "No user was found with the given keycloak id"
-msgstr "Aucun·e utilisateur·ice n'a été trouvé·e avec l'id keycloak donné"
+msgstr "Es wurde kein Benutzer mit der angegebenen Keycloak-ID gefunden"
 
 #: services/keycloak/exceptions.py:33
 msgid "The 'redirect_uri' parameter is mandatory"
-msgstr "Le paramètre 'redirect_uri' est obligatoire"
+msgstr "Der Parameter 'redirect_uri' ist obligatorisch"
 
 #: services/keycloak/exceptions.py:39
 msgid "The given email type is not valid"
-msgstr "Le type d'email donné n'est pas valide"
+msgstr "Der angegebene E-Mail-Typ ist ungültig"
 
 #: services/keycloak/exceptions.py:44
 #, python-brace-format
 msgid "Email type '{email_type}' is not valid"
-msgstr "Le type d'email '{email_type}' n'est pas valide"
+msgstr "Der E-Mail-Typ „{email_type}“ ist ungültig"
 
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
@@ -2645,10 +2666,10 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Votre compte Projects vient d'être créé. Il ne vous reste plus qu'à "
-"choisir un mot de passe et vous pourrez rejoindre Projects, une plateforme "
-"pour partager des projets au sein de votre organisation et favoriser la "
-"collaboration pour le bien commun.\n"
+"    Ihr Projekte-Konto wurde gerade erstellt. Sie müssen lediglich ein "
+"Passwort wählen und können dann Projects beitreten, einer Plattform zum "
+"Austausch von Projekten in Ihrer Organisation und zur Förderung der "
+"Zusammenarbeit zum Wohle aller.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:18
@@ -2658,7 +2679,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Créer un mot de passe\n"
+"    Mein Passwort erstellen\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:23
@@ -2672,8 +2693,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
-"ignorer cet email.\n"
+"    Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
+"Sorgen zu machen und können sie einfach ignorieren.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:28
@@ -2688,9 +2709,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Le lien expire le %(expiration_date)s à %(expiration_time)s. <a "
-"class=\"lpi-link\" href=\"%(refresh_link)s\">Cliquez ici</a> pour demander "
-"un nouveau lien.\n"
+"    Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Klicken Sie hier</a>, um einen "
+"neuen Link anzufordern.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.txt:2
@@ -2708,16 +2729,16 @@ msgid ""
 "nouveau lien en cliquant sur %(refresh_link)s.\n"
 msgstr ""
 "\n"
-"Bienvenue sur le portail Projects de %(organization_name)s, %(given_name)s!\n"
-"Votre compte Projects vient d'être créé. Il ne vous reste plus qu'à choisir "
-"un mot de passe et vous pourrez rejoindre Projects, une plateforme pour "
-"partager des projets au sein de votre organisation et favoriser la "
-"collaboration pour le bien commun.\n"
-"Créer un mot de passe : %(link)s\n"
-"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
-"ignorer cet email.\n"
-"Le lien expire le %(expiration_date)s à %(expiration_time)s. Demandez un "
-"nouveau lien en cliquant sur %(refresh_link)s.\n"
+"Willkommen im Projekte-Portal von %(organization_name)s, %(given_name)s!\n"
+"Ihr Projekte-Konto wurde gerade erstellt. Sie müssen lediglich ein Passwort "
+"wählen und können dann Projects beitreten, einer Plattform zum Austausch von "
+"Projekten in Ihrer Organisation und zur Förderung der Zusammenarbeit zum "
+"Wohle aller.\n"
+"Mein Passwort erstellen: %(link)s\n"
+"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
+"Sorgen zu machen und können sie einfach ignorieren.\n"
+"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. Fordern Sie "
+"einen neuen Link an, indem Sie auf %(refresh_link)s klicken.\n"
 
 #: services/keycloak/templates/admin_created/object.txt:2
 #, python-format
@@ -2726,7 +2747,7 @@ msgid ""
 "Welcome to your new %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Bienvenue sur votre nouvelle plateforme %(org_name)s Projects\n"
+"Willkommen auf Ihrer neuen %(org_name)s Projekte-Plattform\n"
 
 #: services/keycloak/templates/force_reset_password/mail.html:8
 #, python-format
@@ -2737,8 +2758,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Une demande de réinitialisation de votre mot de passe a été faite pour "
-"votre compte %(organization_name)s Projects.\n"
+"    Für Ihr %(organization_name)s Projekte-Konto wurde eine Anfrage zum "
+"Zurücksetzen Ihres Passworts gestellt.\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:13
@@ -2750,8 +2771,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Quelqu'un a demandé à changer votre mot de passe. Si c'était vous, "
-"cliquez sur le lien ci-dessous pour mettre à jour votre mot de passe.\n"
+"    Jemand hat angefordert, dass wir Ihr Passwort ändern. Wenn Sie das "
+"waren, klicken Sie auf den untenstehenden Link, um Ihr Passwort zu "
+"aktualisieren.\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:18
@@ -2762,7 +2784,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Mettre à jour le mot de passe\n"
+"    Passwort aktualisieren\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.txt:2
@@ -2780,15 +2802,15 @@ msgid ""
 "%(refresh_link)s to request a new link.\n"
 msgstr ""
 "\n"
-"Une demande de réinitialisation de votre mot de passe a été faite pour votre "
-"compte %(organization_name)s Projects.\n"
-"Quelqu'un a demandé à changer votre mot de passe. Si c'était vous, cliquez "
-"sur le lien ci-dessous pour mettre à jour votre mot de passe.\n"
-"Mettre à jour le mot de passe : %(link.link)s\n"
-"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
-"ignorer cet email.\n"
-"Le lien expire le %(expiration_date)s à %(expiration_time)s. Demandez un "
-"nouveau lien en cliquant sur %(refresh_link)s.\n"
+"Für Ihr %(organization_name)s Projekte-Konto wurde eine Anfrage zum "
+"Zurücksetzen Ihres Passworts gestellt.\n"
+"Jemand hat angefordert, dass wir Ihr Passwort ändern. Wenn Sie das waren, "
+"klicken Sie auf den untenstehenden Link, um Ihr Passwort zu aktualisieren.\n"
+"Passwort aktualisieren: %(link.link)s\n"
+"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
+"Sorgen zu machen und können sie einfach ignorieren.\n"
+"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. Klicken Sie "
+"auf %(refresh_link)s, um einen neuen Link anzufordern.\n"
 
 #: services/keycloak/templates/force_reset_password/object.txt:2
 #, python-format
@@ -2797,7 +2819,7 @@ msgid ""
 "Update your %(org_name)s Projects password\n"
 msgstr ""
 "\n"
-"Mettez à jour votre mot de passe %(org_name)s Projects\n"
+"Aktualisieren Sie Ihr %(org_name)s Projekte-Passwort\n"
 
 #: services/keycloak/templates/invitation/mail.html:8
 #, python-format
@@ -2808,8 +2830,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Confirmez votre adresse email pour commencer à utiliser le portail "
-"Projects de %(organization_name)s.\n"
+"    Bestätigen Sie Ihre E-Mail-Adresse, um auf dem Projekte-Portal von "
+"%(organization_name)s loszulegen.\n"
 "    "
 
 #: services/keycloak/templates/invitation/mail.html:13
@@ -2821,8 +2843,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Une fois que vous aurez confirmé que <strong>%(contact_email)s</strong> "
-"est bien votre adresse, nous vous aiderons à découvrir la plateforme.\n"
+"    Sobald Sie bestätigt haben, dass <strong>%(contact_email)s</strong> Ihre "
+"Adresse ist, helfen wir Ihnen beim Einstieg in die Plattform.\n"
 "    "
 
 #: services/keycloak/templates/invitation/mail.html:18
@@ -2832,7 +2854,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Confirmer l'adresse email\n"
+"    E-Mail-Adresse bestätigen\n"
 "    "
 
 #: services/keycloak/templates/invitation/mail.txt:2
@@ -2850,15 +2872,15 @@ msgid ""
 "%(refresh_link)s to request a new link.\n"
 msgstr ""
 "\n"
-"Confirmez votre adresse email pour commencer à utiliser le portail Projects "
-"de %(organization_name)s.\n"
-"Une fois que vous aurez confirmé que <strong>%(contact_email)s</strong> est "
-"bien votre adresse, nous vous aiderons à découvrir la plateforme.\n"
-"Confirmer l'adresse email : %(link)s\n"
-"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
-"ignorer cet email.\n"
-"Le lien expire le %(expiration_date)s à %(expiration_time)s. Demandez un "
-"nouveau lien en cliquant sur %(refresh_link)s.\n"
+"Bestätigen Sie Ihre E-Mail-Adresse, um auf dem Projekte-Portal von "
+"%(organization_name)s loszulegen.\n"
+"Sobald Sie bestätigt haben, dass <strong>%(contact_email)s</strong> Ihre "
+"Adresse ist, helfen wir Ihnen beim Einstieg in die Plattform.\n"
+"E-Mail-Adresse bestätigen: %(link)s\n"
+"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
+"Sorgen zu machen und können sie einfach ignorieren.\n"
+"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. Klicken Sie "
+"auf %(refresh_link)s, um einen neuen Link anzufordern.\n"
 
 #: services/keycloak/templates/invitation/object.txt:2
 #, python-format
@@ -2867,8 +2889,8 @@ msgid ""
 "Confirm your email address to get started on %(org_name)s Projects\n"
 msgstr ""
 "\n"
-"Confirmez votre adresse email pour commencer à utiliser %(org_name)s "
-"Projects\n"
+"Bestätigen Sie Ihre E-Mail-Adresse, um mit %(org_name)s Projekten zu "
+"starten\n"
 
 #: services/keycloak/templates/reset_password/mail.html:8
 msgid ""
@@ -2878,8 +2900,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Une demande de réinitialisation de votre mot de passe a été faite pour "
-"votre compte Projects.\n"
+"    Für Ihr Projekte-Konto wurde eine Anfrage zum Zurücksetzen Ihres "
+"Passworts gestellt.\n"
 "    "
 
 #: services/keycloak/templates/reset_password/mail.html:28
@@ -2890,7 +2912,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Le lien expire le %(expiration_date)s à %(expiration_time)s.\n"
+"    Der Link läuft am %(expiration_date)s um %(expiration_time)s ab.\n"
 "    "
 
 #: services/keycloak/templates/reset_password/mail.txt:2
@@ -2906,14 +2928,14 @@ msgid ""
 "Link expires on %(expiration_date)s at %(expiration_time)s.\n"
 msgstr ""
 "\n"
-"Une demande de réinitialisation de votre mot de passe a été faite pour votre "
-"compte Projects.\n"
-"Quelqu'un a demandé à changer votre mot de passe. Si c'était vous, cliquez "
-"sur le lien ci-dessous pour mettre à jour votre mot de passe.\n"
-"Mettre à jour le mot de passe : %(link.link)s\n"
-"Si vous n'êtes pas à l'origine de cette demande, vous pouvez simplement "
-"ignorer cet email.\n"
-"Le lien expire le %(expiration_date)s à %(expiration_time)s.\n"
+"Für Ihr Projekte-Konto wurde eine Anfrage zum Zurücksetzen Ihres Passworts "
+"gestellt.\n"
+"Jemand hat angefordert, dass wir Ihr Passwort ändern. Wenn Sie das waren, "
+"klicken Sie auf den untenstehenden Link, um Ihr Passwort zu aktualisieren.\n"
+"Passwort aktualisieren: %(link.link)s\n"
+"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
+"Sorgen zu machen und können sie einfach ignorieren.\n"
+"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab.\n"
 
 #: services/keycloak/templates/reset_password/object.txt:2
 msgid ""
@@ -2921,26 +2943,27 @@ msgid ""
 "Update your Projects password\n"
 msgstr ""
 "\n"
-"Mettez à jour votre mot de passe Projects\n"
+"Aktualisieren Sie Ihr Projekte-Passwort\n"
 
 #: services/mistral/exceptions.py:10
 msgid "The given queryset does not match the related model"
 msgstr ""
+"Das angegebene Queryset stimmt nicht mit dem zugehörigen Modell überein"
 
 #: services/wikipedia/exceptions.py:12
 msgid "Wikipedia API error"
-msgstr "L'API Wikipedia a renvoyé une erreur"
+msgstr "Wikipedia API-Fehler"
 
 #: services/wikipedia/exceptions.py:17
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
-msgstr "L'API Wikipedia a renvoyé une erreur {status_code}"
+msgstr "Die Wikipedia-API gab {status_code} zurück"
 
 #: services/wikipedia/exceptions.py:26
 msgid "Language is not supported"
-msgstr "La langue n'est pas disponible"
+msgstr "Sprache wird nicht unterstützt"
 
 #: services/wikipedia/exceptions.py:31
 #, python-brace-format
 msgid "Language {language} is not supported"
-msgstr "La langue {language} n'est pas disponible"
+msgstr "Die Sprache {language} wird nicht unterstützt"
