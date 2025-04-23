@@ -155,8 +155,8 @@ class SeedProjectOrganizationFactory(factory.django.DjangoModelFactory):
         model = Project.organizations.through
         django_get_or_create = ("project", "organization")
 
-    organization = factory.fuzzy.FuzzyChoice(Organization.objects.filter())
-    project = factory.fuzzy.FuzzyChoice(Project.objects.filter())
+    organization = FuzzyChoice(Organization.objects.filter())
+    project = FuzzyChoice(Project.objects.filter())
 
 
 class ProjectMessageFactory(factory.django.DjangoModelFactory):
