@@ -1,6 +1,12 @@
+import multiprocessing
+
 from projects.settings.base import *  # noqa: F401, F403
 
+multiprocessing.set_start_method("fork")
+
 ENVIRONMENT = "test"
+ASGI_APPLICATION = None
+WSGI_APPLICATION = "projects.wsgi.application"
 
 FRONTEND_URL = "http://frontend.com"
 
