@@ -7,7 +7,7 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("organizations", "0020_historicalprojectcategory_outdated_slugs_and_more"),
+        ("organizations", "0022_alter_organization_language_and_more"),
         ("skills", "0008_tagclassification_outdated_slugs"),
     ]
 
