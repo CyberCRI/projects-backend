@@ -1,4 +1,4 @@
-from rest_framework_nested import routers
+from rest_framework.routers import DefaultRouter
 
 from apps.announcements.views import AnnouncementViewSet
 from apps.commons.urls import project_router_register
@@ -28,7 +28,7 @@ from .views import (
     ReadLocationViewSet,
 )
 
-router = routers.SimpleRouter()
+router = DefaultRouter()
 router.register(r"location", ReadLocationViewSet, basename="Read-location")
 router.register(r"project", ProjectViewSet, basename="Project")
 

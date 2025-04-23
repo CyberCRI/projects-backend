@@ -1,12 +1,15 @@
-from django.urls import include, path
-from rest_framework_nested import routers
+from rest_framework.routers import DefaultRouter
 
 from apps.accounts.views import (
     PeopleGroupHeaderView,
     PeopleGroupLogoView,
     PeopleGroupViewSet,
 )
-from apps.commons.urls import DetailOnlyNestedRouter
+from apps.commons.urls import (
+    OneToOneRouter,
+    organization_router_register,
+    people_group_router_register,
+)
 from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 
 from .views import (
@@ -19,69 +22,46 @@ from .views import (
     TemplateImagesView,
 )
 
-categories_router = routers.DefaultRouter()
-categories_router.register(r"category", ProjectCategoryViewSet, basename="Category")
-
-categories_nested_router = routers.NestedSimpleRouter(
-    categories_router, r"category", lookup="category"
+router = DefaultRouter()
+router.register(r"organization", OrganizationViewSet, basename="Organization")
+organization_router_register(
+    router, r"people-group", PeopleGroupViewSet, basename="PeopleGroup"
 )
-categories_nested_router.register(
-    r"background", ProjectCategoryBackgroundView, basename="Category-background"
+organization_router_register(
+    router, r"category", ProjectCategoryViewSet, basename="Category"
 )
-categories_nested_router.register(
-    r"template-image", TemplateImagesView, basename="Template-images"
+organization_router_register(
+    router,
+    r"category/(?P<category_id>[^/]+)/background",
+    ProjectCategoryBackgroundView,
+    basename="Category-background",
 )
-
-organizations_router = routers.DefaultRouter()
-organizations_router.register(
-    r"organization", OrganizationViewSet, basename="Organization"
+organization_router_register(
+    router,
+    r"template/(?P<template_id>[^/]+)/image",
+    TemplateImagesView,
+    basename="Template-images",
 )
-
-organizations_nested_router = routers.NestedSimpleRouter(
-    organizations_router, r"organization", lookup="organization"
+organization_router_register(
+    router, r"banner", OrganizationBannerView, basename="Organization-banner"
 )
-organizations_nested_router.register(
-    r"banner", OrganizationBannerView, basename="Organization-banner"
+organization_router_register(
+    router, r"logo", OrganizationLogoView, basename="Organization-logo"
 )
-organizations_nested_router.register(
-    r"logo", OrganizationLogoView, basename="Organization-logo"
+organization_router_register(
+    router, r"image", OrganizationImagesView, basename="Organization-images"
 )
-organizations_nested_router.register(
-    r"image", OrganizationImagesView, basename="Organization-images"
+organization_router_register(
+    router, r"invitation", InvitationViewSet, basename="Invitation"
 )
-organizations_nested_router.register(
-    r"people-group", PeopleGroupViewSet, basename="PeopleGroup"
-)
-organizations_nested_router.register(
-    r"invitation", InvitationViewSet, basename="Invitation"
-)
-organizations_nested_router.register(
-    r"access-request", AccessRequestViewSet, basename="AccessRequest"
+organization_router_register(
+    router, r"access-request", AccessRequestViewSet, basename="AccessRequest"
 )
 
-details_only_organizations_nested_router = DetailOnlyNestedRouter(
-    organizations_router, r"organization", lookup="organization"
+one_to_one_router = OneToOneRouter()
+people_group_router_register(
+    one_to_one_router, r"logo", PeopleGroupLogoView, basename="PeopleGroup-logo"
 )
-
-details_only_people_groups_nested_router = DetailOnlyNestedRouter(
-    organizations_nested_router, r"people-group", lookup="people_group"
+people_group_router_register(
+    one_to_one_router, r"header", PeopleGroupHeaderView, basename="PeopleGroup-header"
 )
-details_only_people_groups_nested_router.register(
-    r"logo",
-    PeopleGroupLogoView,
-    basename="PeopleGroup-logo",
-)
-details_only_people_groups_nested_router.register(
-    r"header",
-    PeopleGroupHeaderView,
-    basename="PeopleGroup-header",
-)
-
-urlpatterns = [
-    path(r"", include(categories_router.urls)),
-    path(r"", include(categories_nested_router.urls)),
-    path(r"", include(organizations_router.urls)),
-    path(r"", include(organizations_nested_router.urls)),
-    path(r"", include(details_only_organizations_nested_router.urls)),
-    path(r"", include(details_only_people_groups_nested_router.urls)),
-]
