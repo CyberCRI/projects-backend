@@ -2,7 +2,7 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -45,7 +45,6 @@ from .serializers import (
 class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ProjectCategorySerializer
     filterset_class = ProjectCategoryFilter
-    organization_code_lookup = "organization__code"
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [
@@ -53,11 +52,15 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        return (
-            ProjectCategory.objects.filter(is_root=False)
-            .select_related("organization")
-            .prefetch_related("tags")
-        )
+        if "organization_code" in self.kwargs:
+            return (
+                ProjectCategory.objects.filter(
+                    is_root=False, organization__code=self.kwargs["organization_code"]
+                )
+                .select_related("organization")
+                .prefetch_related("tags")
+            )
+        return ProjectCategory.objects.none()
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectcategory")
@@ -69,6 +72,12 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 | HasOrganizationPermission(codename),
             ]
         return super().get_permissions()
+
+    def perform_create(self, serializer):
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
+        serializer.save(organization=organization)
 
     @action(
         detail=True,
@@ -155,8 +164,11 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
     ]
 
     def get_queryset(self):
-        if "category_id" in self.kwargs:
-            return Image.objects.filter(project_category__id=self.kwargs["category_id"])
+        if "category_id" in self.kwargs and "organization_code" in self.kwargs:
+            return Image.objects.filter(
+                project_category__id=self.kwargs["category_id"],
+                project_category__organization__code=self.kwargs["organization_code"],
+            )
         return Image.objects.none()
 
     @staticmethod
@@ -164,11 +176,17 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
         return f"category/background/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "category_id" in self.kwargs:
-            category = ProjectCategory.objects.get(id=self.kwargs["category_id"])
+        if "category_id" in self.kwargs and "organization_code" in self.kwargs:
+            category = ProjectCategory.objects.get(
+                id=self.kwargs["category_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
             category.background_image = image
             category.save()
-            return f"/v1/category/{self.kwargs['category_id']}/background/{image.id}"
+            return (
+                f"/v1/organization/{self.kwargs['organization_code']}"
+                f"/category/{self.kwargs['category_id']}/background/{image.id}"
+            )
         return None
 
 
