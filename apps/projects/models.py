@@ -190,11 +190,8 @@ class Project(
         blank=True,
         verbose_name=_("sustainable development goals"),
     )
-    main_category = HistoricForeignKey(
-        "organizations.ProjectCategory",
-        on_delete=models.SET_NULL,
-        null=True,
-        verbose_name=_("main category"),
+    template = models.ForeignKey(
+        "organizations.Template", on_delete=models.SET_NULL, null=True, blank=True
     )
     groups = models.ManyToManyField(Group, related_name="projects")
     history = HistoricalRecords(
@@ -536,7 +533,7 @@ class Project(
             life_status=self.life_status,
             language=self.language,
             sdgs=self.sdgs,
-            main_category=self.main_category,
+            template=self.template,
             duplicated_from=self.id,
         )
         project.setup_permissions(user=owner)

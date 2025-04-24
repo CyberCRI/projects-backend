@@ -29,7 +29,7 @@ from .exceptions import (
     MissingLockedStatusParameterError,
 )
 from .filters import OrganizationFilter, ProjectCategoryFilter
-from .models import Organization, ProjectCategory
+from .models import Organization, ProjectCategory, Template
 from .permissions import HasOrganizationPermission
 from .serializers import (
     OrganizationAddFeaturedProjectsSerializer,
@@ -39,6 +39,7 @@ from .serializers import (
     OrganizationRemoveTeamMembersSerializer,
     OrganizationSerializer,
     ProjectCategorySerializer,
+    TemplateSerializer,
 )
 
 
@@ -149,6 +150,51 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             raise MissingLockedStatusParameterError
         category.projects.update(is_locked=value)
         return Response(status=status.HTTP_200_OK)
+
+
+class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+    serializer_class = TemplateSerializer
+    lookup_field = "id"
+    lookup_value_regex = "[^/]+"
+
+    def get_queryset(self):
+        if "organization_code" in self.kwargs:
+            return (
+                Template.objects.filter(
+                    organization__code=self.kwargs["organization_code"]
+                )
+                .select_related("organization")
+                .prefetch_related("project_tags")
+            )
+        return Template.objects.none()
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "template")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "organizations")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    @method_decorator(
+        redis_cache_view("templates_list_cache", settings.CACHE_CATEGORIES_LIST_TTL)
+    )
+    def list(self, request, *args, **kwargs):
+        return super(ProjectCategoryViewSet, self).list(request, *args, **kwargs)
+
+    @method_decorator(clear_cache_with_key("categories_list_cache"))
+    @method_decorator(clear_cache_with_key("templates_list_cache"))
+    def dispatch(self, request, *args, **kwargs):
+        return super(ProjectCategoryViewSet, self).dispatch(request, *args, **kwargs)
+
+    def perform_create(self, serializer):
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
+        serializer.save(organization=organization)
 
 
 class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
@@ -516,9 +562,10 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
     ]
 
     def get_queryset(self):
-        if "category_id" in self.kwargs:
+        if "template_id" in self.kwargs and "organization_code" in self.kwargs:
             qs = Image.objects.filter(
-                templates__project_category__id=self.kwargs["category_id"]
+                templates__id=self.kwargs["template_id"],
+                templates__organization__code=self.kwargs["organization_code"],
             )
             # Retrieve images before the template is posted
             if self.request.user.is_authenticated:
@@ -535,9 +582,15 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "category_id" in self.kwargs:
+        if "organization_code" in self.kwargs and "template_id" in self.kwargs:
+            template = Template.objects.get(
+                id=self.kwargs["template_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
+            template.images.add(image)
             return (
-                f"/v1/category/{self.kwargs['category_id']}/template-image/{image.id}"
+                f"/v1/organization/{self.kwargs['organization_code']}"
+                f"/template/{self.kwargs['template_id']}/image/{image.id}"
             )
         return None
 

@@ -1583,10 +1583,6 @@ msgstr "Kategorien"
 msgid "sustainable development goals"
 msgstr "Ziele für nachhaltige Entwicklung"
 
-#: apps/projects/models.py:197
-msgid "main category"
-msgstr "Hauptkategorie"
-
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
 msgstr ""
@@ -2971,3 +2967,6 @@ msgstr "Diese Sprache wird nicht unterstützt"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "Die Sprache {language} wird nicht unterstützt"
+
+#~ msgid "main category"
+#~ msgstr "Hauptkategorie"

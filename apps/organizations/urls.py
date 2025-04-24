@@ -20,6 +20,7 @@ from .views import (
     ProjectCategoryBackgroundView,
     ProjectCategoryViewSet,
     TemplateImagesView,
+    TemplateViewSet,
 )
 
 router = DefaultRouter()
@@ -30,6 +31,7 @@ organization_router_register(
 organization_router_register(
     router, r"category", ProjectCategoryViewSet, basename="Category"
 )
+organization_router_register(router, r"template", TemplateViewSet, basename="Template")
 organization_router_register(
     router,
     r"category/(?P<category_id>[^/]+)/background",

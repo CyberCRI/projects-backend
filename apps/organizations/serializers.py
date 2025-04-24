@@ -340,6 +340,32 @@ class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
         return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]
 
 
+class ProjectTemplateSerializer(OrganizationRelatedSerializer):
+    project_tags = TagRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Template
+        read_only_fields = [
+            "id",
+            "name",
+            "description",
+            "language",
+            "project_title",
+            "project_description",
+            "project_tags",
+            "blogentry_title",
+            "blogentry_content",
+            "goal_title",
+            "goal_description",
+            "review_title",
+            "review_description",
+            "audience",
+            "time_estimation",
+            "share_globally",
+        ]
+        fields = read_only_fields
+
+
 class TemplateSerializer(OrganizationRelatedSerializer):
     project_tags = TagRelatedField(many=True, required=False)
     # read-only
@@ -356,9 +382,8 @@ class TemplateSerializer(OrganizationRelatedSerializer):
 
     class Meta:
         model = Template
-        read_only_fields = ["id", "organization"]
+        read_only_fields = ["id", "organization", "categories"]
         fields = read_only_fields + [
-            "categories",
             "name",
             "description",
             "language",
@@ -374,6 +399,7 @@ class TemplateSerializer(OrganizationRelatedSerializer):
             "audience",
             "time_estimation",
             "share_globally",
+            "categories_ids",
         ]
 
     def save(self, **kwargs):

@@ -30,11 +30,11 @@ from apps.files.serializers import (
     ImageSerializer,
 )
 from apps.notifications.tasks import notify_project_changes
-from apps.organizations.models import Organization, ProjectCategory
+from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
     OrganizationSerializer,
     ProjectCategoryLightSerializer,
-    TemplateSerializer,
+    ProjectTemplateSerializer,
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField
@@ -367,8 +367,10 @@ class ProjectAddTeamMembersSerializer(serializers.Serializer):
         if (
             group.name == project.get_reviewers().name
             and not group.users.all().exists()
-            and project.main_category is not None
-            and project.main_category.only_reviewer_can_publish
+            and any(
+                category.only_reviewer_can_publish
+                for category in project.categories.all()
+            )
         ):
             project.publication_status = Project.PublicationStatus.PRIVATE
             project.save()
@@ -497,7 +499,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
     images = ImageSerializer(many=True, read_only=True)
     blog_entries = BlogEntrySerializer(many=True, read_only=True)
     linked_projects = serializers.SerializerMethodField(read_only=True)
-    template = serializers.SerializerMethodField()
+    template = ProjectTemplateSerializer(read_only=True)
     views = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField(read_only=True)
 
@@ -530,6 +532,12 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         source="images",
         required=False,
     )
+    template_id = serializers.PrimaryKeyRelatedField(
+        required=False,
+        write_only=True,
+        queryset=Template.objects.all(),
+        source="templates",
+    )
 
     class Meta:
         model = Project
@@ -550,7 +558,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             "created_at",
             "updated_at",
             "deleted_at",
-            "template",
             "tags",
             # read only
             "header_image",
@@ -572,6 +579,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             # write_only
             "project_categories_ids",
             "header_image_id",
+            "template_id",
             "organizations_codes",
             "images_ids",
             "team",
@@ -581,13 +589,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
     def get_last_comment(project: Project) -> Optional[Dict]:
         recent = project.comments.filter(reply_on=None).order_by("-created_at")
         return CommentSerializer(recent.first()).data if recent.exists() else None
-
-    def get_template(self, project: Project) -> Optional[Dict]:
-        return (
-            TemplateSerializer(project.main_category.template).data
-            if project.main_category
-            else None
-        )
 
     def get_linked_projects(self, project: Project) -> Dict[str, Any]:
         queryset = LinkedProject.objects.filter(target=project)
@@ -634,20 +635,13 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         return []
 
     def create(self, validated_data):
-        categories = validated_data.get("categories", [])
         team = validated_data.pop("team", {})
-        if len(categories) > 0:
-            validated_data["main_category"] = categories[0]
         project = super(ProjectSerializer, self).create(validated_data)
         ProjectAddTeamMembersSerializer().create({"project": project, **team})
         return project
 
     def update(self, instance, validated_data):
-        categories = validated_data.get("categories", [])
         validated_data.pop("team", {})
-        if instance.main_category not in categories and len(categories) > 0:
-            validated_data["main_category"] = categories[0]
-
         changes = compute_project_changes(instance, validated_data)
         notify_project_changes.delay(
             instance.pk, changes, self.context["request"].user.pk
@@ -677,8 +671,9 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         if (
             not self.instance
             or self.instance.publication_status == value
-            or not getattr(
-                self.instance.main_category, "only_reviewer_can_publish", False
+            or not any(
+                category.only_reviewer_can_publish
+                for category in self.instance.categories.all()
             )
             or user.is_superuser
             or any(
@@ -727,7 +722,6 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     members = serializers.SerializerMethodField(read_only=True)
     comments = serializers.SerializerMethodField(read_only=True)
     linked_projects = serializers.SerializerMethodField(read_only=True)
-    main_category = serializers.SlugRelatedField(read_only=True, slug_field="name")
     delta = serializers.SerializerMethodField(read_only=True)
 
     @staticmethod
@@ -800,7 +794,6 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
             "members",
             "comments",
             "linked_projects",
-            "main_category",
             "categories",
         ]
 
