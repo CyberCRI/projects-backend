@@ -16,7 +16,7 @@ class Language(models.TextChoices):
 
     @staticmethod
     def default_list():
-        return [Language.EN]
+        return [Language.EN, Language.FR]
 
 
 class SDG(models.IntegerChoices):
