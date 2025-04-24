@@ -183,12 +183,12 @@ class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         redis_cache_view("templates_list_cache", settings.CACHE_CATEGORIES_LIST_TTL)
     )
     def list(self, request, *args, **kwargs):
-        return super(ProjectCategoryViewSet, self).list(request, *args, **kwargs)
+        return super(TemplateViewSet, self).list(request, *args, **kwargs)
 
     @method_decorator(clear_cache_with_key("categories_list_cache"))
     @method_decorator(clear_cache_with_key("templates_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(ProjectCategoryViewSet, self).dispatch(request, *args, **kwargs)
+        return super(TemplateViewSet, self).dispatch(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         organization = get_object_or_404(
@@ -554,8 +554,8 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         IsAuthenticatedOrReadOnly,
         ReadOnly
         | IsOwner
-        | HasBasePermission("change_projectcategory", "organizations")
-        | HasOrganizationPermission("change_projectcategory"),
+        | HasBasePermission("change_template", "organizations")
+        | HasOrganizationPermission("change_template"),
     ]
     multiple_lookup_fields = [
         (ProjectCategory, "category_id"),

@@ -183,6 +183,7 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
             ("tag", "tags"),
             ("tagclassification", "tag classifications"),
             ("projectcategory", "project categories"),
+            ("template", "templates"),
             ("review", "reviews"),
             ("comment", "comments"),
             ("follow", "follows"),
@@ -239,6 +240,7 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
                     "tag",
                     "review",
                     "projectcategory",
+                    "template",
                     "tagclassification",
                 ]
             ],
