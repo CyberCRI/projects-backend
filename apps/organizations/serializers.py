@@ -368,8 +368,7 @@ class ProjectTemplateSerializer(OrganizationRelatedSerializer):
 
 class TemplateSerializer(OrganizationRelatedSerializer):
     project_tags = TagRelatedField(many=True, required=False)
-    # read-only
-    organization = OrganizationLightSerializer(read_only=True)
+    organization = SlugRelatedField(read_only=True, slug_field="code")
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     # write-only
     categories_ids = serializers.PrimaryKeyRelatedField(

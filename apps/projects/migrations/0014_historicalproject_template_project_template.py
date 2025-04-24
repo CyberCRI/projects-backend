@@ -8,7 +8,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("organizations", "0023_new_template_model"),
-        ("projects", "0014_remove_historicalproject_main_category_and_more"),
+        ("projects", "0013_alter_historicalproject_language_and_more"),
     ]
 
     operations = [

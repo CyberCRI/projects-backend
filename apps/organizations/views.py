@@ -557,9 +557,6 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasBasePermission("change_template", "organizations")
         | HasOrganizationPermission("change_template"),
     ]
-    multiple_lookup_fields = [
-        (ProjectCategory, "category_id"),
-    ]
 
     def get_queryset(self):
         if "template_id" in self.kwargs and "organization_code" in self.kwargs:

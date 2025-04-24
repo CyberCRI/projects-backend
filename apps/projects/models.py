@@ -190,6 +190,14 @@ class Project(
         blank=True,
         verbose_name=_("sustainable development goals"),
     )
+    main_category = (
+        HistoricForeignKey(  # TODO: remove this field when templates v2 is ready
+            "organizations.ProjectCategory",
+            on_delete=models.SET_NULL,
+            null=True,
+            verbose_name=_("main category"),
+        )
+    )
     template = models.ForeignKey(
         "organizations.Template", on_delete=models.SET_NULL, null=True, blank=True
     )

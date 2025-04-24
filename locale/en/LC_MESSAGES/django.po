@@ -1224,6 +1224,10 @@ msgstr ""
 msgid "sustainable development goals"
 msgstr ""
 
+#: apps/projects/models.py:198
+msgid "main category"
+msgstr ""
+
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
 msgstr ""

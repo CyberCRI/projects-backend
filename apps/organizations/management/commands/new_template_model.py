@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from apps.files.models import Image
 from apps.organizations.models import ProjectCategory, Template
+from apps.projects.models import Project
 
 
 class Command(BaseCommand):
@@ -38,12 +39,20 @@ class Command(BaseCommand):
                         )
                 image = Image.objects.get(id=image_id)
                 template.images.add(image)
-                text = text.replace(
+                new_text = text.replace(
                     image_url,
                     reverse(
                         "Template-images-detail",
                         args=(template.organization.code, template.id, image.id),
                     ),
                 )
-                setattr(template, field, text)
+                setattr(template, field, new_text)
                 template.save()
+                print(f"Updated {field} for template {template.id}")
+                print(f"replaced {text} with {new_text}")
+                template.refresh_from_db()
+                print(f"Success : {text not in getattr(template, field)}")
+        for project in Project.objects.all():
+            Project.objects.filter(id=project.id).update(
+                template=project.main_category.template
+            )

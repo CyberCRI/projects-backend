@@ -276,7 +276,7 @@ class Image(
                 | Q(logo_image=self)
                 | Q(banner_image=self)
                 | Q(project_categories__background_image=self)
-                | Q(project_categories__template__images=self)
+                | Q(templates__images=self)
                 | Q(people_groups__header_image=self)
                 | Q(people_groups__logo_image=self)
                 | Q(news__header_image=self)
