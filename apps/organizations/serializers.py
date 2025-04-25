@@ -418,6 +418,7 @@ class TemplateSerializer(OrganizationRelatedSerializer):
                 upload_to="template/images/",
                 view="Template-images-detail",
                 organization_code=self.instance.organization.code,
+                template_id=self.instance.id,
             )
             self.validated_data[field] = text
             self.instance.images.add(*images)

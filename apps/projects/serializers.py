@@ -536,7 +536,7 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         required=False,
         write_only=True,
         queryset=Template.objects.all(),
-        source="templates",
+        source="template",
     )
 
     class Meta:

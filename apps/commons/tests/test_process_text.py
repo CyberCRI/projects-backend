@@ -11,6 +11,7 @@ from apps.organizations.factories import (
     ProjectCategoryFactory,
     TemplateFactory,
 )
+from apps.organizations.models import Template
 from apps.projects.factories import (
     BlogEntryFactory,
     ProjectFactory,
@@ -201,14 +202,14 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        self.assertEqual(len(content["images"]), 5)
+        template = Template.objects.get(id=content["id"])
+        self.assertEqual(template.images.count(), 5)
         template_id = content["id"]
-        for image in content["images"]:
-            image_id = image["id"]
+        for image in template.images.all():
             self.assertIn(
                 reverse(
                     "Template-images-detail",
-                    args=(self.organization.code, template_id, image_id),
+                    args=(self.organization.code, template_id, image.id),
                 ),
                 content["description"]
                 + content["project_description"]
@@ -219,10 +220,11 @@ class TextProcessingTestCase(JwtAPITestCase):
 
     def test_update_template_contents(self):
         self.client.force_authenticate(self.user)
+        template = TemplateFactory(organization=self.organization)
         texts = [
             self.create_base64_image_text()
             + self.create_unlinked_image_text(
-                "Template-images-detail", self.organization.code, self.template.id
+                "Template-images-detail", self.organization.code, template.id
             )
             for _ in range(5)
         ]
@@ -239,18 +241,18 @@ class TextProcessingTestCase(JwtAPITestCase):
             "review_description": texts[4],
         }
         response = self.client.patch(
-            reverse("Template-detail", args=(self.organization.code, self.template.id)),
+            reverse("Template-detail", args=(self.organization.code, template.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["images"]), 10)
-        for image in content["images"]:
-            image_id = image["id"]
+        template = Template.objects.get(id=content["id"])
+        self.assertEqual(template.images.count(), 10)
+        for image in template.images.all():
             self.assertIn(
                 reverse(
                     "Template-images-detail",
-                    args=(self.organization.code, self.template.id, image_id),
+                    args=(self.organization.code, template.id, image.id),
                 ),
                 content["description"]
                 + content["project_description"]
