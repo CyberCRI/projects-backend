@@ -21,10 +21,17 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
-from apps.organizations.filters import OrganizationFilter, ProjectCategoryFilter
-from apps.organizations.models import Organization, ProjectCategory
-from apps.organizations.permissions import HasOrganizationPermission
-from apps.organizations.serializers import (
+from apps.projects.models import Project
+from apps.projects.serializers import ProjectLightSerializer
+
+from .exceptions import (
+    MissingLifeStatusParameterError,
+    MissingLockedStatusParameterError,
+)
+from .filters import OrganizationFilter, ProjectCategoryFilter
+from .models import Organization, ProjectCategory
+from .permissions import HasOrganizationPermission
+from .serializers import (
     OrganizationAddFeaturedProjectsSerializer,
     OrganizationAddTeamMembersSerializer,
     OrganizationLightSerializer,
@@ -33,7 +40,6 @@ from apps.organizations.serializers import (
     OrganizationSerializer,
     ProjectCategorySerializer,
 )
-from apps.projects.serializers import ProjectLightSerializer
 
 
 class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -83,6 +89,67 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def hierarchy(self, request, *args, **kwargs):
         project_category = self.get_object()
         return Response(project_category.get_hierarchy(), status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "life_status": {
+                        "type": "string",
+                        "enum": Project.LifeStatus.values,
+                    }
+                },
+            }
+        },
+        responses={200: {"type": "object", "properties": {}}},
+    )
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="projects-life-status",
+        url_name="projects-life-status",
+        permission_classes=[
+            IsAuthenticated,
+            HasBasePermission("change_project", "projects")
+            | HasOrganizationPermission("change_project"),
+        ],
+    )
+    def projects_life_status(self, request, *args, **kwargs):
+        category = self.get_object()
+        value = request.data.get("life_status", None)
+        if not value or value not in Project.LifeStatus.values:
+            raise MissingLifeStatusParameterError
+        category.projects.update(life_status=value)
+        return Response(status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {"is_locked": {"type": "boolean"}},
+            }
+        },
+        responses={200: {"type": "object", "properties": {}}},
+    )
+    @action(
+        detail=True,
+        methods=["POST"],
+        url_path="projects-locked-status",
+        url_name="projects-locked-status",
+        permission_classes=[
+            IsAuthenticated,
+            HasBasePermission("lock_project", "projects")
+            | HasOrganizationPermission("lock_project"),
+        ],
+    )
+    def projects_locked_status(self, request, *args, **kwargs):
+        category = self.get_object()
+        value = request.data.get("is_locked", None)
+        if not value or not isinstance(value, bool):
+            raise MissingLockedStatusParameterError
+        category.projects.update(is_locked=value)
+        return Response(status=status.HTTP_200_OK)
 
 
 class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
