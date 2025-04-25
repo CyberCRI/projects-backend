@@ -235,7 +235,13 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
             "life_status": Project.LifeStatus.COMPLETED,
         }
         response = self.client.post(
-            reverse("Category-projects-life-status", args=(self.category.id,)),
+            reverse(
+                "Category-projects-life-status",
+                args=(
+                    self.organization.code,
+                    self.category.id,
+                ),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -269,7 +275,13 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
             "is_locked": True,
         }
         response = self.client.post(
-            reverse("Category-projects-locked-status", args=(self.category.id,)),
+            reverse(
+                "Category-projects-locked-status",
+                args=(
+                    self.organization.code,
+                    self.category.id,
+                ),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)

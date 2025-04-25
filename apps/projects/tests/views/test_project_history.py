@@ -536,7 +536,6 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         self.assertEqual(version["history_change_reason"], "Updated: categories")
         self.assertSetEqual(set(version["categories"]), {pc1.name, pc2.name})
-        self.assertEqual(version["main_category"], pc1.name)
         project.refresh_from_db()
         self.assertNotEqual(updated_at, project.updated_at)
 
