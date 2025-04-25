@@ -301,7 +301,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=["post"],
+        methods=["POST"],
         permission_classes=[
             IsAuthenticated,
             HasBasePermission("lock_project", "projects")
@@ -314,7 +314,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=["post"],
+        methods=["POST"],
         permission_classes=[
             IsAuthenticated,
             HasBasePermission("lock_project", "projects")

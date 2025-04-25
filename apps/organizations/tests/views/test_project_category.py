@@ -9,6 +9,7 @@ from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import ProjectCategory
 from apps.projects.factories import ProjectFactory
+from apps.projects.models import Project
 from apps.skills.factories import TagFactory
 
 faker = Faker()
@@ -173,6 +174,86 @@ class DeleteProjectCategoryTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(ProjectCategory.objects.filter(id=category.id).exists())
+
+
+class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.other_project = ProjectFactory(
+            life_status=Project.LifeStatus.RUNNING,
+            is_locked=False,
+        )
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_project_life_status(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        projects = ProjectFactory.create_batch(
+            2,
+            life_status=Project.LifeStatus.RUNNING,
+            is_locked=False,
+            organizations=[self.organization],
+            categories=[self.category],
+        )
+        payload = {
+            "life_status": Project.LifeStatus.COMPLETED,
+        }
+        response = self.client.post(
+            reverse("Category-projects-life-status", args=(self.category.id,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            for project in projects:
+                project.refresh_from_db()
+                self.assertEqual(project.life_status, Project.LifeStatus.COMPLETED)
+            self.assertEqual(self.other_project.life_status, Project.LifeStatus.RUNNING)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update_project_locked_status(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        projects = ProjectFactory.create_batch(
+            2,
+            life_status=Project.LifeStatus.RUNNING,
+            is_locked=False,
+            organizations=[self.organization],
+            categories=[self.category],
+        )
+        payload = {
+            "is_locked": True,
+        }
+        response = self.client.post(
+            reverse("Category-projects-locked-status", args=(self.category.id,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            for project in projects:
+                project.refresh_from_db()
+                self.assertEqual(project.is_locked, True)
+            self.assertEqual(self.other_project.is_locked, False)
 
 
 class ProjectCategoryTemplateTestCase(JwtAPITestCase):

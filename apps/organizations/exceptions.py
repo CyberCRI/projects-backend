@@ -47,3 +47,15 @@ class DefaultTagClassificationIsNotEnabledError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("You must choose a default tag classification that is enabled")
     default_code = "default_tag_classification_is_not_enabled_error"
+
+
+class MissingLockedStatusParameterError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("`is_locked` parameter is required")
+    default_code = "missing_locked_status_parameter_error"
+
+
+class MissingLifeStatusParameterError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("`life_status` parameter is required")
+    default_code = "missing_life_status_parameter_error"
