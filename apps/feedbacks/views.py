@@ -9,7 +9,6 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from simple_history.utils import update_change_reason
 
 from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
@@ -203,18 +202,10 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         comment = serializer.save(author=self.request.user)
         notify_new_comment.delay(comment.id)
-        update_change_reason(comment.project, "Added comment")
 
     @transaction.atomic
     def perform_destroy(self, instance: Comment):
         instance.soft_delete(self.request.user)
-        instance.project._change_reason = "Deleted comment"
-        instance.project.save()
-
-    @transaction.atomic
-    def perform_update(self, serializer):
-        comment = serializer.save()
-        update_change_reason(comment.project, "Updated comment")
 
 
 class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):

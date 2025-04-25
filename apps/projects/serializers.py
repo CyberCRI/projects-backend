@@ -87,7 +87,8 @@ class BlogEntrySerializer(
     @transaction.atomic
     def save(self, **kwargs):
         if "content" in self.validated_data:
-            if not self.instance:
+            create = not self.instance
+            if create:
                 super(BlogEntrySerializer, self).save(**kwargs)
             text, images = process_text(
                 request=self.context["request"],
@@ -98,6 +99,8 @@ class BlogEntrySerializer(
                 process_template=True,
                 project_id=self.instance.project.id,
             )
+            if create and not images and text == self.validated_data["content"]:
+                return self.instance
             self.validated_data["content"] = text
             self.validated_data["images"] = images + [
                 image for image in self.instance.images.all()
@@ -594,7 +597,8 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
     @transaction.atomic
     def save(self, **kwargs):
         if "description" in self.validated_data:
-            if not self.instance:
+            create = not self.instance
+            if create:
                 super(ProjectSerializer, self).save(**kwargs)
             text, images = process_text(
                 request=self.context["request"],
@@ -605,6 +609,8 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
                 process_template=True,
                 project_id=self.instance.id,
             )
+            if create and not images and text == self.validated_data["description"]:
+                return self.instance
             self.validated_data["description"] = text
             self.validated_data["images"] = images + [
                 image for image in self.instance.images.all()
@@ -865,7 +871,8 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def save(self, **kwargs):
         if "content" in self.validated_data:
-            if not self.instance:
+            create = not self.instance
+            if create:
                 super().save(**kwargs)
             text, images = process_text(
                 request=self.context["request"],
@@ -875,6 +882,8 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
                 view="ProjectMessage-images-detail",
                 project_id=self.instance.project.id,
             )
+            if create and not images and text == self.validated_data["content"]:
+                return self.instance
             self.validated_data["content"] = text
             self.instance.images.add(*images)
         return super().save(**kwargs)

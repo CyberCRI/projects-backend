@@ -643,19 +643,9 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_create(self, serializer):
-        target = serializer.validated_data["target"]
         project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_create(serializer)
-        target._change_reason = "Added linked projects"
-        target.save()
-
-    @transaction.atomic
-    def perform_destroy(self, instance):
-        project = instance.target
-        super(LinkedProjectViewSet, self).perform_destroy(instance)
-        project._change_reason = "Removed linked projects"
-        project.save()
 
     @transaction.atomic
     def perform_update(self, serializer):
@@ -663,9 +653,6 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if project:
             self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
-        target = self.get_object().target
-        target._change_reason = "Updated linked projects"
-        target.save()
 
     @extend_schema(
         request=ProjectAddLinkedProjectSerializer,
@@ -729,10 +716,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         to_unlink = serializer.validated_data["linked_projects"]
-        with transaction.atomic():
-            LinkedProject.objects.filter(project__in=to_unlink, target=project).delete()
-            project._change_reason = "Removed linked projects"
-            project.save()
+        LinkedProject.objects.filter(project__in=to_unlink, target=project).delete()
 
         context = {"request": request}
         return Response(
