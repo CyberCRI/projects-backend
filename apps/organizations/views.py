@@ -64,16 +64,6 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    @method_decorator(
-        redis_cache_view("categories_list_cache", settings.CACHE_CATEGORIES_LIST_TTL)
-    )
-    def list(self, request, *args, **kwargs):
-        return super(ProjectCategoryViewSet, self).list(request, *args, **kwargs)
-
-    @method_decorator(clear_cache_with_key("categories_list_cache"))
-    def dispatch(self, request, *args, **kwargs):
-        return super(ProjectCategoryViewSet, self).dispatch(request, *args, **kwargs)
-
     @action(
         detail=True,
         methods=["GET"],
