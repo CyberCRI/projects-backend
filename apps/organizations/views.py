@@ -179,17 +179,6 @@ class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ]
         return super().get_permissions()
 
-    @method_decorator(
-        redis_cache_view("templates_list_cache", settings.CACHE_CATEGORIES_LIST_TTL)
-    )
-    def list(self, request, *args, **kwargs):
-        return super(TemplateViewSet, self).list(request, *args, **kwargs)
-
-    @method_decorator(clear_cache_with_key("categories_list_cache"))
-    @method_decorator(clear_cache_with_key("templates_list_cache"))
-    def dispatch(self, request, *args, **kwargs):
-        return super(TemplateViewSet, self).dispatch(request, *args, **kwargs)
-
     def perform_create(self, serializer):
         organization = get_object_or_404(
             Organization, code=self.kwargs["organization_code"]
