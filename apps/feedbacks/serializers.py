@@ -174,7 +174,8 @@ class CommentSerializer(
     @transaction.atomic
     def save(self, **kwargs):
         if "content" in self.validated_data:
-            if not self.instance:
+            create = not self.instance
+            if create:
                 super(CommentSerializer, self).save(**kwargs)
             text, images = process_text(
                 request=self.context["request"],
@@ -184,13 +185,13 @@ class CommentSerializer(
                 view="Comment-images-detail",
                 project_id=self.instance.project.id,
             )
+            if create and not images and text == self.validated_data["content"]:
+                return self.instance
             self.validated_data["content"] = text
             self.validated_data["images"] = images + [
                 image for image in self.instance.images.all()
             ]
-        instance = super(CommentSerializer, self).save(**kwargs)
-        instance.project.save()
-        return instance
+        return super(CommentSerializer, self).save(**kwargs)
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
