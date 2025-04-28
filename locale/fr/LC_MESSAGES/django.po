@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-25 15:27+0200\n"
+"POT-Creation-Date: 2025-04-28 17:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1547,6 +1547,10 @@ msgstr "Le projet '{project_title}' ne peut pas être lié à lui-même"
 #: apps/projects/exceptions.py:122
 msgid "A message cannot be a reply to itself"
 msgstr "Un message ne peut pas être une réponse à lui-même"
+
+#: apps/projects/exceptions.py:128
+msgid "You cannot change the type of a project's tab"
+msgstr "Vous ne pouvez pas changer le type d'un onglet de projet"
 
 #: apps/projects/models.py:140
 msgid "title"

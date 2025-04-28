@@ -121,3 +121,9 @@ class ProjectMessageReplyToSelfError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _("A message cannot be a reply to itself")
     default_code = "project_message_reply_to_self_error"
+
+
+class ProjectTabChangeTypeError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _("You cannot change the type of a project's tab")
+    default_code = "project_tab_change_type_error"

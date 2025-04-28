@@ -237,40 +237,24 @@ class Image(
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        Organization = apps.get_model("organizations", "Organization")  # noqa
-        if self.organization_logo.exists():
-            return [self.organization_logo.get()]
-        if self.organization_banner.exists():
-            return [self.organization_banner.get()]
-        if self.organizations.exists():
-            return [self.organizations.get()]
-        if self.project_category.exists():
-            return [self.project_category.get().organization]
-        if self.project_header.exists():
-            return self.project_header.get().organizations.all()
-        if self.projects.exists():
-            return self.projects.get().organizations.all()
-        if self.blog_entries.exists():
-            return self.blog_entries.get().project.organizations.all()
-        if self.comments.exists():
-            return self.comments.get().project.organizations.all()
+        related_project = self.get_related_project()
+        if related_project:
+            return related_project.get_related_organizations()
         if self.user.exists():
-            return Organization.objects.filter(groups__in=self.user.get().groups.all())
-        if self.people_group_logo.exists():
-            return [self.people_group_logo.get().organization]
-        if self.people_group_header.exists():
-            return [self.people_group_header.get().organization]
-        if self.news_header.exists():
-            return [self.news_header.get().organization]
-        if self.news.exists():
-            return [self.news.get().organization]
-        if self.instructions.exists():
-            return [self.instructions.get().organization]
-        if self.events.exists():
-            return [self.events.get().organization]
-        if self.project_messages.exists():
-            return self.project_messages.get().project.organizations.all()
-        return []
+            return self.user.get().get_related_organizations()
+        Organization = apps.get_model("organizations", "Organization")  # noqa
+        return list(
+            Organization.objects.filter(
+                Q(logo=self)
+                | Q(banner=self)
+                | Q(people_group_logo=self)
+                | Q(people_group_header=self)
+                | Q(news_header=self)
+                | Q(news=self)
+                | Q(instructions=self)
+                | Q(events=self)
+            ).distinct()
+        )
 
     def get_related_project(self) -> Optional["Project"]:
         """
@@ -291,6 +275,8 @@ class Image(
             | Q(blog_entries__images=self)
             | Q(comments__images=self)
             | Q(messages__images=self)
+            | Q(additional_tabs__images=self)
+            | Q(additional_tabs__items__images=self)
         ).distinct()
         if queryset.exists():
             return queryset.first()
