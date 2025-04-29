@@ -13,6 +13,7 @@ from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
 from django.http import Http404
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
 
 from apps.accounts.utils import (
@@ -126,6 +127,7 @@ class PeopleGroup(
         max_length=10,
         choices=PublicationStatus.choices,
         default=PublicationStatus.ORG,
+        verbose_name=_("visibility"),
     )
     is_root = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
