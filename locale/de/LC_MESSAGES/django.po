@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-28 17:30+0200\n"
+"POT-Creation-Date: 2025-04-29 11:10+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -111,22 +111,6 @@ msgstr "Sie können diese Rolle keinem Benutzer zuweisen"
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sie können diese Rolle keinem Benutzer zuweisen: {role}"
-
-#: apps/accounts/models.py:127 apps/projects/models.py:157
-msgid "visibility"
-msgstr "Sichtbarkeit"
-
-#: apps/accounts/models.py:762
-msgid "Hide"
-msgstr "Verbergen"
-
-#: apps/accounts/models.py:763
-msgid "Organization"
-msgstr "Organisation"
-
-#: apps/accounts/models.py:764
-msgid "Public"
-msgstr "Öffentlich"
 
 #: apps/accounts/templates/authentication/execute_actions_email_error.html:2
 #, python-format
@@ -1567,30 +1551,6 @@ msgstr "Eine Nachricht kann keine Antwort auf sich selbst sein"
 #: apps/projects/exceptions.py:128
 msgid "You cannot change the type of a project's tab"
 msgstr "Sie können den Typ eines Projekt-Tabs nicht ändern"
-
-#: apps/projects/models.py:140
-msgid "title"
-msgstr "Titel"
-
-#: apps/projects/models.py:150
-msgid "main goal"
-msgstr "Hauptziel"
-
-#: apps/projects/models.py:163
-msgid "life status"
-msgstr "Lebensstatus"
-
-#: apps/projects/models.py:174
-msgid "categories"
-msgstr "Kategorien"
-
-#: apps/projects/models.py:191
-msgid "sustainable development goals"
-msgstr "Ziele für nachhaltige Entwicklung"
-
-#: apps/projects/models.py:197
-msgid "main category"
-msgstr "Hauptkategorie"
 
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
