@@ -13,7 +13,6 @@ from django.db.models import Q, QuerySet, UniqueConstraint
 from django.db.models.manager import Manager
 from django.http import Http404
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
 
 from apps.accounts.utils import (
@@ -102,7 +101,10 @@ class PeopleGroup(
         "self", on_delete=models.SET_NULL, null=True, related_name="children"
     )
     organization = models.ForeignKey(
-        "organizations.Organization", on_delete=models.CASCADE, null=True
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="people_groups",
     )
     header_image = models.ForeignKey(
         "files.Image",
@@ -124,7 +126,6 @@ class PeopleGroup(
         max_length=10,
         choices=PublicationStatus.choices,
         default=PublicationStatus.ORG,
-        verbose_name=_("visibility"),
     )
     is_root = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -759,9 +760,9 @@ class UserScore(models.Model):
 
 class PrivacySettings(models.Model, HasOwner):
     class PrivacyChoices(models.TextChoices):
-        HIDE = "hide", _("Hide")
-        ORGANIZATION = "org", _("Organization")
-        PUBLIC = "pub", _("Public")
+        HIDE = "hide"
+        ORGANIZATION = "org"
+        PUBLIC = "pub"
 
     PRIVACY_CHARFIELD = {
         "max_length": 4,
