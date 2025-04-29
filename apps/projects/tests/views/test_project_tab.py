@@ -43,6 +43,7 @@ class CreateTabTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {
             "type": random.choice(ProjectTab.TabType.values),  # nosec
+            "icon": faker.word(),
             "title": faker.sentence(),
             "description": faker.text(),
         }
@@ -55,6 +56,7 @@ class CreateTabTestCase(JwtAPITestCase):
             tab = ProjectTab.objects.get(id=content["id"])
             self.assertEqual(tab.project.id, self.project.id)
             self.assertEqual(content["type"], payload["type"])
+            self.assertEqual(content["icon"], payload["icon"])
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["description"], payload["description"])
 
@@ -143,6 +145,7 @@ class UpdateProjectTabTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         payload = {
+            "icon": faker.word(),
             "title": faker.sentence(),
             "description": faker.text(),
         }
@@ -153,6 +156,7 @@ class UpdateProjectTabTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
             content = response.json()
+            self.assertEqual(content["icon"], payload["icon"])
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["description"], payload["description"])
 

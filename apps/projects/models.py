@@ -13,7 +13,6 @@ from django.core.cache import cache
 from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -137,7 +136,7 @@ class Project(
     id = models.CharField(
         primary_key=True, auto_created=True, default=uuid_generator, max_length=8
     )
-    title = models.CharField(max_length=255, verbose_name=_("title"))
+    title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     outdated_slugs = ArrayField(models.SlugField(), default=list)
     header_image = models.ForeignKey(
@@ -147,20 +146,18 @@ class Project(
         related_name="project_header",
     )
     description = models.TextField(blank=True, default="")
-    purpose = models.TextField(blank=True, verbose_name=_("main goal"))
+    purpose = models.TextField(blank=True)
     is_locked = models.BooleanField(default=False)
     is_shareable = models.BooleanField(default=False)
     publication_status = models.CharField(
         max_length=10,
         choices=PublicationStatus.choices,
         default=PublicationStatus.PRIVATE,
-        verbose_name=_("visibility"),
     )
     life_status = models.CharField(
         max_length=10,
         choices=LifeStatus.choices,
         default=LifeStatus.RUNNING.value,
-        verbose_name=_("life status"),
     )
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
@@ -169,9 +166,7 @@ class Project(
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True)
     categories = models.ManyToManyField(
-        "organizations.ProjectCategory",
-        related_name="projects",
-        verbose_name=_("categories"),
+        "organizations.ProjectCategory", related_name="projects"
     )
     images = models.ManyToManyField("files.Image", related_name="projects")
     organizations = models.ManyToManyField(
@@ -188,13 +183,11 @@ class Project(
         len(SDG),
         default=list,
         blank=True,
-        verbose_name=_("sustainable development goals"),
     )
     main_category = HistoricForeignKey(
         "organizations.ProjectCategory",
         on_delete=models.SET_NULL,
         null=True,
-        verbose_name=_("main category"),
     )
     groups = models.ManyToManyField(Group, related_name="projects")
     history = HistoricalRecords(
@@ -975,6 +968,7 @@ class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
     )
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    icon = models.CharField(max_length=255, blank=True)
     images = models.ManyToManyField("files.Image", related_name="project_tabs")
 
     def get_related_project(self) -> Project:

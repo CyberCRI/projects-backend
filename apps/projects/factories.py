@@ -173,6 +173,7 @@ class ProjectMessageFactory(factory.django.DjangoModelFactory):
 
 class ProjectTabFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(lambda: ProjectFactory())
+    icon = factory.Faker("word")
     title = factory.Faker("text", max_nb_chars=255)
     description = factory.Faker("text")
     type = FuzzyChoice(ProjectTab.TabType.choices, getter=lambda c: c[0])

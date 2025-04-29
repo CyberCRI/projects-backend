@@ -911,6 +911,7 @@ class ProjectTabSerializer(serializers.ModelSerializer):
             "type",
             "title",
             "description",
+            "icon",
             "images",
         ]
 
