@@ -245,14 +245,17 @@ class Image(
         Organization = apps.get_model("organizations", "Organization")  # noqa
         return list(
             Organization.objects.filter(
-                Q(logo=self)
-                | Q(banner=self)
-                | Q(people_group_logo=self)
-                | Q(people_group_header=self)
-                | Q(news_header=self)
-                | Q(news=self)
-                | Q(instructions=self)
-                | Q(events=self)
+                Q(images=self)
+                | Q(logo_image=self)
+                | Q(banner_image=self)
+                | Q(project_categories__background_image=self)
+                | Q(project_categories__template__images=self)
+                | Q(people_groups__header_image=self)
+                | Q(people_groups__logo_image=self)
+                | Q(news__header_image=self)
+                | Q(news__images=self)
+                | Q(instructions__images=self)
+                | Q(events__images=self)
             ).distinct()
         )
 
