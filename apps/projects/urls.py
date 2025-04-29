@@ -21,6 +21,10 @@ from .views import (
     ProjectImagesView,
     ProjectMessageImagesView,
     ProjectMessageViewSet,
+    ProjectTabImagesView,
+    ProjectTabItemImagesView,
+    ProjectTabItemViewset,
+    ProjectTabViewset,
     ProjectViewSet,
     ReadLocationViewSet,
 )
@@ -72,4 +76,20 @@ project_router_register(
     r"project-message-image",
     ProjectMessageImagesView,
     basename="ProjectMessage-images",
+)
+project_router_register(router, r"tab", ProjectTabViewset, basename="ProjectTab")
+project_router_register(
+    router, r"tab-image", ProjectTabImagesView, basename="ProjectTab-images"
+)
+project_router_register(
+    router,
+    r"tab/(?P<tab_id>[^/]+)/item",
+    ProjectTabItemViewset,
+    basename="ProjectTabItem",
+)
+project_router_register(
+    router,
+    r"tab/(?P<tab_id>[^/]+)/item-image",
+    ProjectTabItemImagesView,
+    basename="ProjectTabItem-images",
 )

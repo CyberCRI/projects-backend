@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-25 15:27+0200\n"
+"POT-Creation-Date: 2025-04-29 14:27+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,20 +108,8 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:127 apps/projects/models.py:157
+#: apps/accounts/models.py:130 apps/projects/models.py:157
 msgid "visibility"
-msgstr ""
-
-#: apps/accounts/models.py:762
-msgid "Hide"
-msgstr ""
-
-#: apps/accounts/models.py:763
-msgid "Organization"
-msgstr ""
-
-#: apps/accounts/models.py:764
-msgid "Public"
 msgstr ""
 
 #: apps/accounts/templates/authentication/execute_actions_email_error.html:2
@@ -1205,6 +1193,10 @@ msgstr ""
 
 #: apps/projects/exceptions.py:122
 msgid "A message cannot be a reply to itself"
+msgstr ""
+
+#: apps/projects/exceptions.py:128
+msgid "You cannot change the type of a project's tab"
 msgstr ""
 
 #: apps/projects/models.py:140

@@ -16,6 +16,8 @@ from .models import (
     Project,
     ProjectMessage,
     ProjectScore,
+    ProjectTab,
+    ProjectTabItem,
 )
 
 
@@ -167,3 +169,23 @@ class ProjectMessageFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = ProjectMessage
+
+
+class ProjectTabFactory(factory.django.DjangoModelFactory):
+    project = factory.LazyFunction(lambda: ProjectFactory())
+    icon = factory.Faker("word")
+    title = factory.Faker("text", max_nb_chars=255)
+    description = factory.Faker("text")
+    type = FuzzyChoice(ProjectTab.TabType.choices, getter=lambda c: c[0])
+
+    class Meta:
+        model = ProjectTab
+
+
+class ProjectTabItemFactory(factory.django.DjangoModelFactory):
+    tab = factory.LazyFunction(lambda: ProjectTabFactory())
+    title = factory.Faker("text", max_nb_chars=255)
+    content = factory.Faker("text")
+
+    class Meta:
+        model = ProjectTabItem

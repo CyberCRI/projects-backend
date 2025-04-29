@@ -944,3 +944,78 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
         return self.author == user
+
+
+class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
+    """A tab in the project page.
+
+    Attributes
+    ----------
+    project: ForeignKey
+        Project this tab belong to.
+    type: CharField
+        Type of the tab. Can be either "text" or "blog".
+    title: CharField
+        Title of the tab.
+    description: TextField
+        Description of the tab.
+    """
+
+    class TabType(models.TextChoices):
+        """Type of a tab."""
+
+        TEXT = "text"
+        BLOG = "blog"
+
+    project = models.ForeignKey(
+        "projects.Project", on_delete=models.CASCADE, related_name="additional_tabs"
+    )
+    type = models.CharField(
+        max_length=32, choices=TabType.choices, default=TabType.TEXT
+    )
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    icon = models.CharField(max_length=255, blank=True)
+    images = models.ManyToManyField("files.Image", related_name="project_tabs")
+
+    def get_related_project(self) -> Project:
+        """Return the projects related to this model."""
+        return self.project
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return self.project.get_related_organizations()
+
+
+class ProjectTabItem(models.Model, ProjectRelated, OrganizationRelated):
+    """An item in a project tab.
+
+    Attributes
+    ----------
+    project: ForeignKey
+        Project this item belong to.
+    title: CharField
+        Title of the item.
+    content: TextField
+        Content of the item.
+    """
+
+    tab = models.ForeignKey(
+        "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"
+    )
+    title = models.CharField(max_length=255)
+    content = models.TextField(blank=True)
+    images = models.ManyToManyField("files.Image", related_name="project_tab_items")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def get_related_project(self) -> Project:
+        """Return the projects related to this model."""
+        return self.tab.project
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return self.tab.project.get_related_organizations()

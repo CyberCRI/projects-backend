@@ -102,7 +102,10 @@ class PeopleGroup(
         "self", on_delete=models.SET_NULL, null=True, related_name="children"
     )
     organization = models.ForeignKey(
-        "organizations.Organization", on_delete=models.CASCADE, null=True
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        null=True,
+        related_name="people_groups",
     )
     header_image = models.ForeignKey(
         "files.Image",
@@ -759,9 +762,9 @@ class UserScore(models.Model):
 
 class PrivacySettings(models.Model, HasOwner):
     class PrivacyChoices(models.TextChoices):
-        HIDE = "hide", _("Hide")
-        ORGANIZATION = "org", _("Organization")
-        PUBLIC = "pub", _("Public")
+        HIDE = "hide"
+        ORGANIZATION = "org"
+        PUBLIC = "pub"
 
     PRIVACY_CHARFIELD = {
         "max_length": 4,

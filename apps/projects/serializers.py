@@ -47,10 +47,20 @@ from .exceptions import (
     ProjectCategoryOrganizationError,
     ProjectMessageReplyOnReplyError,
     ProjectMessageReplyToSelfError,
+    ProjectTabChangeTypeError,
     ProjectWithNoOrganizationError,
     RemoveLastProjectOwnerError,
 )
-from .models import BlogEntry, Goal, LinkedProject, Location, Project, ProjectMessage
+from .models import (
+    BlogEntry,
+    Goal,
+    LinkedProject,
+    Location,
+    Project,
+    ProjectMessage,
+    ProjectTab,
+    ProjectTabItem,
+)
 from .utils import compute_project_changes, get_views_from_serializer
 
 
@@ -887,3 +897,44 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
             self.validated_data["content"] = text
             self.instance.images.add(*images)
         return super().save(**kwargs)
+
+
+class ProjectTabSerializer(serializers.ModelSerializer):
+    images = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Image.objects.all(), required=False
+    )
+
+    class Meta:
+        model = ProjectTab
+        read_only_fields = ["id"]
+        fields = read_only_fields + [
+            "type",
+            "title",
+            "description",
+            "icon",
+            "images",
+        ]
+
+    def validate_type(self, value: str):
+        if self.instance and self.instance.type != value:
+            raise ProjectTabChangeTypeError
+        return value
+
+
+class ProjectTabItemSerializer(serializers.ModelSerializer):
+    images = serializers.PrimaryKeyRelatedField(
+        many=True, queryset=Image.objects.all(), required=False
+    )
+
+    class Meta:
+        model = ProjectTabItem
+        read_only_fields = [
+            "id",
+            "created_at",
+            "updated_at",
+        ]
+        fields = read_only_fields + [
+            "title",
+            "content",
+            "images",
+        ]
