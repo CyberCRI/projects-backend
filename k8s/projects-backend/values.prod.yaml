@@ -6,6 +6,7 @@ corsAllowedDomains:
 - profschercheurs.org
 - keycloak.k8s.lp-i.org # keycloak login page (in-cluster test)
 - id.learningplanetinstitute.org # keycloak login page
+- edusynergy.provest-cove.eu
 
 config:
   nonSensitive:
