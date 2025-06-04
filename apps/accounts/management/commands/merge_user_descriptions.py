@@ -6,12 +6,12 @@ from apps.accounts.models import ProjectUser
 class Command(BaseCommand):
     def handle(self, *args, **options):
         personnal_header = {
-            "en": "<p><strong>Personal Description</strong></p>",
-            "fr": "<p><strong>Description personnelle</strong></p>",
+            "en": "<p><strong>Personal Bio</strong></p>",
+            "fr": "<p><strong>Bio personnelle</strong></p>",
         }
         professional_header = {
-            "en": "<p><strong>Professional Description</strong></p>",
-            "fr": "<p><strong>Description professionnelle</strong></p>",
+            "en": "<p><strong>Professional Bio</strong></p>",
+            "fr": "<p><strong>Bio professionnelle</strong></p>",
         }
         for user in ProjectUser.objects.all():
             language = user.language
