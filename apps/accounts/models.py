@@ -338,9 +338,12 @@ class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
         validators=[MaxValueValidator(limit_value=date.today)],
     )
     pronouns = models.CharField(max_length=32, blank=True)
+    description = models.TextField(blank=True)
+    # TODO: remove these two fields in the future
     personal_description = models.TextField(blank=True)
-    short_description = models.TextField(blank=True)
     professional_description = models.TextField(blank=True)
+
+    short_description = models.TextField(blank=True)
     location = models.TextField(blank=True)
     job = models.CharField(max_length=255, blank=True)
     profile_picture = models.ForeignKey(
@@ -724,14 +727,9 @@ class UserScore(models.Model):
         has_expert_skills = self.user.skills.filter(level=4).exists()
         has_competent_skills = self.user.skills.filter(level=3).exists()
         has_rich_content = (
-            "<img" in self.user.personal_description
-            or "<iframe" in self.user.personal_description
-            or "<img" in self.user.professional_description
-            or "<iframe" in self.user.professional_description
+            "<img" in self.user.description or "<iframe" in self.user.description
         )
-        description_length = len(self.user.personal_description) + len(
-            self.user.professional_description
-        )
+        description_length = len(self.user.description)
         return (
             int(has_job)
             + int(has_expert_skills)

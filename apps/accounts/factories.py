@@ -26,9 +26,8 @@ class UserFactory(factory.django.DjangoModelFactory):
 
     birthdate = factory.Faker("date_of_birth", minimum_age=1)
     pronouns = factory.Faker("pystr", min_chars=8, max_chars=8)
-    personal_description = factory.Faker("text")
+    description = factory.Faker("text")
     short_description = factory.Faker("text")
-    professional_description = factory.Faker("text")
     location = factory.Faker("sentence")
     job = factory.Faker("sentence")
     sdgs = factory.List([sdg_factory() for _ in range(FuzzyInteger(0, 17).fuzz())])

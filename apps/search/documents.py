@@ -64,8 +64,7 @@ class UserDocument(Document):
         return " ".join(
             [
                 strip_tags(instance.short_description),
-                strip_tags(instance.personal_description),
-                strip_tags(instance.professional_description),
+                strip_tags(instance.description),
             ]
         )
 
