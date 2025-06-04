@@ -46,7 +46,12 @@ def attachment_link_preview_path(instance, filename: str):
     )
 
 
-def attachment_directory_path(instance, filename: str):
+def organization_attachment_directory_path(instance: "OrganizationAttachmentFile", filename: str):
+    date_part = f"{datetime.datetime.today():%Y-%m-%d}"
+    return f"organization/attachments/{instance.organization.pk}/{instance.attachment_type}/{date_part}-{filename}"
+
+
+def attachment_directory_path(instance: "AttachmentFile", filename: str):
     date_part = f"{datetime.datetime.today():%Y-%m-%d}"
     return f"project/attachments/{instance.project.pk}/{instance.attachment_type}/{date_part}-{filename}"
 
@@ -107,6 +112,26 @@ class AttachmentLink(
             site_url=self.site_url,
             title=self.title,
         )
+
+
+class OrganizationAttachmentFile(models.Model, OrganizationRelated):
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="attachment_files",
+    )
+    attachment_type = models.CharField(
+        max_length=10, choices=AttachmentType.choices, default=AttachmentType.FILE
+    )
+    file = models.FileField(upload_to=organization_attachment_directory_path)
+    mime = models.CharField(max_length=100)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    hashcode = models.CharField(max_length=64, default="")
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return [self.organization]
 
 
 class AttachmentFile(
@@ -316,7 +341,3 @@ class Image(
         image.save()
         return image
 
-
-class PeopleResource(models.Model):
-    people_id = models.CharField(max_length=255)
-    people_data = models.JSONField(default=dict)
