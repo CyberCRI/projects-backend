@@ -260,4 +260,6 @@ class HasMultipleIDs:
                 return slug
             same_slug_count += 1
             slug = f"{raw_slug}-{same_slug_count}"
+            if self.get_id_field_name(slug) != "slug":
+                slug = f"{self.slug_prefix}-{slug}"
         return slug

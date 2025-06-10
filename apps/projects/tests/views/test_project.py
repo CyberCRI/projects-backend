@@ -1026,6 +1026,18 @@ class MiscProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization], title=title)
         self.assertEqual(project.slug, "my-amazing-test-project-2")
 
+    def test_slug_id_conflict_after_increment(self):
+        title = "abcd 1"
+        project = ProjectFactory(organizations=[self.organization], title=title)
+        self.assertEqual(project.slug, "abcd-1")
+        project = ProjectFactory(organizations=[self.organization], title=title)
+        self.assertEqual(project.slug, "project-abcd-1-1")
+        project = ProjectFactory(organizations=[self.organization], title=title)
+        self.assertEqual(project.slug, "project-abcd-1-2")
+        title = "abcd 1 1"
+        project = ProjectFactory(organizations=[self.organization], title=title)
+        self.assertEqual(project.slug, "project-abcd-1-1-1")
+
     def test_outdated_slug(self):
         self.client.force_authenticate(self.superadmin)
 
