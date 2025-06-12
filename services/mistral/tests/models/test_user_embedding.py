@@ -14,24 +14,14 @@ faker = Faker()
 
 
 class UserEmbeddingVisibilityTestCase(JwtAPITestCase):
-    def test_set_visibility_with_personal_description(self):
-        user = UserFactory(
-            personal_description=faker.text(), professional_description=""
-        )
-        embedding = UserEmbeddingFactory(item=user)
-        embedding.set_visibility()
-        self.assertTrue(embedding.is_visible)
-
-    def test_set_visibility_with_professional_description(self):
-        user = UserFactory(
-            personal_description="", professional_description=faker.text()
-        )
+    def test_set_visibility_with_description(self):
+        user = UserFactory(description=faker.text())
         embedding = UserEmbeddingFactory(item=user)
         embedding.set_visibility()
         self.assertTrue(embedding.is_visible)
 
     def test_set_visibility_with_skills(self):
-        user = UserFactory(personal_description="", professional_description="")
+        user = UserFactory(description="")
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=3)
         embedding.set_visibility()
@@ -40,17 +30,13 @@ class UserEmbeddingVisibilityTestCase(JwtAPITestCase):
     def test_set_visibility_with_project(self):
         project = ProjectFactory()
         ProjectEmbeddingFactory(item=project, is_visible=True, embedding=1024 * [1])
-        user = UserFactory(
-            personal_description="",
-            professional_description="",
-            groups=[project.get_members()],
-        )
+        user = UserFactory(description="", groups=[project.get_members()])
         embedding = UserEmbeddingFactory(item=user)
         embedding.set_visibility()
         self.assertTrue(embedding.is_visible)
 
     def test_set_visibility_not_visible(self):
-        user = UserFactory(personal_description="", professional_description="")
+        user = UserFactory(description="")
         embedding = UserEmbeddingFactory(item=user)
         SkillFactory(user=user, level=2)
         embedding.set_visibility()

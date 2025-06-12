@@ -249,8 +249,7 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
 
     def get_is_visible(self) -> bool:
         return (
-            len(self.user.personal_description) > 10
-            or len(self.user.professional_description) > 10
+            len(self.user.description) > 10
             or self.user.skills.filter(level__gte=3).exists()
         )
 
@@ -277,8 +276,7 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
         competent_skills = ", ".join(competent_skills) if competent_skills else ""
         description = "\n".join(
             [
-                strip_tags(self.user.personal_description)[:5000],
-                strip_tags(self.user.professional_description)[:5000],
+                strip_tags(self.user.description)[:10000],
             ]
         )
         prompt = [
