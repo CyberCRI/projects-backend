@@ -1356,7 +1356,7 @@ msgstr ""
 "\n"
 "          het platform gemaakt om je projecten te delen.<br/>\n"
 "          Voor jou gemaakt door het Learning Planet Institute<br/>\n"
-"          8bis, rue Charles V, 75004 Parijs, Frankrijk\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
 "          "
 
 #: apps/notifications/templates/notifications_base.html:52

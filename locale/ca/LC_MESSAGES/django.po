@@ -1349,8 +1349,8 @@ msgid ""
 msgstr ""
 "\n"
 "          la plataforma creada per compartir els teus projectes.<br/>\n"
-"          Creat per a tu per l'Institut Learning Planet<br/>\n"
-"          8bis, rue Charles V, 75004 París, França\n"
+"          Creat per a tu per Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
 "          "
 
 #: apps/notifications/templates/notifications_base.html:52

@@ -1360,7 +1360,7 @@ msgstr ""
 "\n"
 "          Die Plattform, um deine Projekte mit der Welt zu teilen.<br/>\n"
 "          Bereitgestellt vom Learning Planet Institute<br/>\n"
-"          8bis, rue Charles V, 75004 Paris, Frankreich\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
 "          "
 
 #: apps/notifications/templates/notifications_base.html:52

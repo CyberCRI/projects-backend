@@ -369,7 +369,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Valmistatud ❤️-ga Learning Planet Instituudi poolt.\n"
+"          Valmistatud ❤️-ga Learning Planet Institute poolt.\n"
 "          "
 
 #: apps/invitations/templates/request_accepted/mail.html:8
@@ -1328,8 +1328,8 @@ msgid ""
 msgstr ""
 "\n"
 "          platvorm, mis on loodud teie projektide jagamiseks.<br/>\n"
-"          Loodud teile Learning Planet Instituudi poolt<br/>\n"
-"          8bis, rue Charles V, 75004 Pariis, Prantsusmaa\n"
+"          Loodud teile Learning Planet Institute poolt<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
 "          "
 
 #: apps/notifications/templates/notifications_base.html:52
