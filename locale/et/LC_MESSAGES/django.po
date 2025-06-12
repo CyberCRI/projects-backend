@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 14:27+0200\n"
+"POT-Creation-Date: 2025-06-12 10:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,101 +20,99 @@ msgstr ""
 
 #: apps/accounts/exceptions.py:17
 msgid "Token contained no recognizable user identification"
-msgstr "Das Token enthielt keine erkennbare Benutzeridentifikation"
+msgstr "Token ei sisalda äratuntavat kasutajatunnustust"
 
 #: apps/accounts/exceptions.py:23
 msgid "User is inactive"
-msgstr "Der Benutzer ist inaktiv"
+msgstr "Kasutaja on mitteaktiivne"
 
 #: apps/accounts/exceptions.py:29
 msgid "Invitation link not found or expired"
-msgstr "Einladungslink nicht gefunden oder abgelaufen"
+msgstr "Kutselinki ei leitud või see on aegunud"
 
 #: apps/accounts/exceptions.py:35
 msgid "Access token has expired"
-msgstr "Der Zugriffstoken ist abgelaufen"
+msgstr "Juurdepääsutoken on aegunud"
 
 #: apps/accounts/exceptions.py:41
 msgid "Token prefix is missing"
-msgstr "Das Token-Präfix fehlt"
+msgstr "Tokeni eesliide on puudu"
 
 #: apps/accounts/exceptions.py:50 apps/organizations/exceptions.py:18
 msgid "You cannot add projects that you do not have access to"
-msgstr "Sie können keine Projekt hinzufügen, zu denen Sie keinen Zugriff haben"
+msgstr "Sa ei saa lisada projekte, millele sul puudub ligipääs"
 
 #: apps/accounts/exceptions.py:56
 msgid "You do not have the permission to assign this role"
-msgstr "Sie haben keine Berechtigung diese Rolle zuzuweisen"
+msgstr "Sul ei ole luba selle rolli määramiseks"
 
 #: apps/accounts/exceptions.py:61
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
-msgstr "Sie haben keine Berechtigung diese Rolle zuzuweisen: {role}"
+msgstr "Sul ei ole luba selle rolli määramiseks: {role}"
 
 #: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
 msgstr ""
-"Der Parameter email_type fehlt. Optionen sind: admin_created, invitation, "
-"reset_password"
+"Päringuparameeter email_type on puudu. Valikud on: admin_created, "
+"invitation, reset_password"
 
 #: apps/accounts/exceptions.py:81
 msgid "Permission not found"
-msgstr "Berechtigung nicht gefunden"
+msgstr "Luba ei leitud"
 
 #: apps/accounts/exceptions.py:87
 msgid "An error occurred while syncing with Keycloak"
-msgstr "Ein Fehler ist bei der Synchronisierung mit Keycloak aufgetreten"
+msgstr "Keycloakiga sünkroonimisel ilmnes viga"
 
 #: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
-msgstr ""
-"Ein Fehler ist bei der Synchronisierung mit Keycloak aufgetreten: {message}"
+msgstr "Keycloakiga sünkroonimisel ilmnes viga: {message}"
 
 #: apps/accounts/exceptions.py:102
 msgid "An error occurred while syncing with Google"
-msgstr "Ein Fehler ist bei der Synchronisierung mit Google aufgetreten"
+msgstr "Google'iga sünkroonimisel ilmnes viga"
 
 #: apps/accounts/exceptions.py:107
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
-msgstr ""
-"Ein Fehler ist bei der Synchronisierung mit Google aufgetreten: {message}"
+msgstr "Google'iga sünkroonimisel ilmnes viga: {message}"
 
 #: apps/accounts/exceptions.py:120
 msgid "The organization of a group cannot be changed"
-msgstr "Die Organisation einer Gruppe kann nicht geändert werden"
+msgstr "Grupi organisatsiooni ei saa muuta"
 
 #: apps/accounts/exceptions.py:126
 msgid "The root group cannot have a parent group"
-msgstr "Die Stammgruppe darf keine übergeordnete Gruppe haben"
+msgstr "Juurgrupil ei saa olla peagruppi"
 
 #: apps/accounts/exceptions.py:132
 msgid "A non-root group must have a parent group"
-msgstr "Eine nicht-Stammgruppe muss eine übergeordnete Gruppe haben"
+msgstr "Mitte-juurgrupil peab olema peagrupp"
 
 #: apps/accounts/exceptions.py:138
 msgid "The parent group must belong to the same organization"
-msgstr "Die übergeordnete Gruppe muss derselben Organisation angehören"
+msgstr "Peagrupp peab kuuluma samasse organisatsiooni"
 
 #: apps/accounts/exceptions.py:144
 msgid "You are trying to create a loop in the group's hierarchy"
-msgstr "Sie versuchen, eine Schleife in der Gruppenhierarchie zu erstellen"
+msgstr "Püüad luua ahelat grupi hierarhias"
 
 #: apps/accounts/exceptions.py:150
 msgid "You cannot assign this role to a user"
-msgstr "Sie können diese Rolle keinem Benutzer zuweisen"
+msgstr "Sa ei saa seda rolli kasutajale määrata"
 
 #: apps/accounts/exceptions.py:155
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
-msgstr "Sie können diese Rolle keinem Benutzer zuweisen: {role}"
+msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
 
 #: apps/accounts/models.py:130 apps/projects/models.py:157
 msgid "visibility"
-msgstr "Sichtbarkeit"
+msgstr "nähtavus"
 
 #: apps/accounts/templates/authentication/execute_actions_email_error.html:2
 #, python-format
@@ -130,8 +128,7 @@ msgstr ""
 "\n"
 "<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
 "direction:column;\">\n"
-"    <p style=\"font-size: 24px;\">Beim erneuten Senden des Links ist ein "
-"Fehler aufgetreten:</p>\n"
+"    <p style=\"font-size: 24px;\">Lingi uuesti saatmisel ilmnes viga:</p>\n"
 "    <p style=\"font-size: 20px;\">%(error)s</p>\n"
 "</div>\n"
 
@@ -147,8 +144,8 @@ msgstr ""
 "\n"
 "<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
 "direction:column;\">\n"
-"    <p style=\"font-size: 24px;\">Der Link wurde nicht erneut gesendet, da "
-"keine Aktion erforderlich ist.</p>\n"
+"    <p style=\"font-size: 24px;\">Link jäeti uuesti saatmata, sest tegevus "
+"pole vajalik.</p>\n"
 "</div>\n"
 
 #: apps/accounts/templates/authentication/execute_actions_email_success.html:2
@@ -164,34 +161,33 @@ msgstr ""
 "\n"
 "<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
 "direction:column;\">\n"
-"    <p style=\"font-size: 24px;\">Link erfolgreich erneut gesendet!</p>\n"
-"    <p style=\"font-size: 20px;\">Sie können Ihren Posteingang "
-"aktualisieren, um ihn zu finden 😊</p>\n"
+"    <p style=\"font-size: 24px;\">Link on edukalt uuesti saadetud!</p>\n"
+"    <p style=\"font-size: 20px;\">Värskenda oma postkasti, et see leida 😊</"
+"p>\n"
 "</div>\n"
 
 #: apps/analytics/exceptions.py:10
 msgid "Unknown publication status"
-msgstr "Unbekannter Veröffentlichungsstatus"
+msgstr "Tundmatu avaldamise olek"
 
 #: apps/analytics/exceptions.py:15
 #, python-brace-format
 msgid "Unknown publication status '{publication_status}'"
-msgstr "Unbekannter Veröffentlichungsstatus '{publication_status}'"
+msgstr "Tundmatu avaldamise olek '{publication_status}'"
 
 #: apps/commons/fields.py:29 apps/skills/serializers.py:102
 msgid "This field is required."
-msgstr "Dieses Feld ist erforderlich."
+msgstr "See väli on kohustuslik."
 
 #: apps/commons/fields.py:30
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
-msgstr "Ungültige ID \"{user_id}\" – Objekt existiert nicht."
+msgstr "Vigane ID \"{user_id}\" - objekti ei eksisteeri."
 
 #: apps/commons/fields.py:32 apps/skills/serializers.py:107
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
-msgstr ""
-"Falscher Typ. Erwartet wurde ein String-Wert, erhalten wurde {data_type}."
+msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -203,73 +199,65 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"          Hallo %(given_name)s,\n"
-"          "
+"                    Tere %(given_name)s,\n"
+"                    "
 
 #: apps/emailing/templates/contact/contact/email_with_name.txt:2
 #, python-format
 msgid "Hello %(given_name)s,"
-msgstr "Hallo %(given_name)s,"
+msgstr "Tere %(given_name)s,"
 
 #: apps/feedbacks/exceptions.py:12
 msgid "You don't have the permission to comment on this project"
-msgstr "Sie haben keine Berechtigung, dieses Projekt zu kommentieren"
+msgstr "Sul puudub luba selle projekti kommenteerimiseks"
 
 #: apps/feedbacks/exceptions.py:18
 #, python-brace-format
 msgid ""
 "You don't have the permission to comment on this project : {project_title}"
-msgstr ""
-"Sie haben keine Berechtigung, dieses Projekt zu kommentieren: {project_title}"
+msgstr "Sul puudub luba selle projekti kommenteerimiseks: {project_title}"
 
 #: apps/feedbacks/exceptions.py:28
 msgid "You don't have the permission to follow this project"
-msgstr "Sie haben keine Berechtigung, diesem Projekt zu folgen"
+msgstr "Sul puudub luba selle projekti jälgimiseks"
 
 #: apps/feedbacks/exceptions.py:33
 #, python-brace-format
 msgid "You don't have the permission to follow this project : {project_title}"
-msgstr ""
-"Sie haben keine Berechtigung, diesem Projekt zu folgen: {project_title}"
+msgstr "Sul puudub luba selle projekti jälgimiseks: {project_title}"
 
 #: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:116
 msgid "You cannot reply to a reply"
-msgstr "Sie können nicht auf eine Antwort antworten"
+msgstr "Sa ei saa vastusele vastata"
 
 #: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
-msgstr "Ein Kommentar kann keine Antwort auf sich selbst sein"
+msgstr "Kommentaar ei saa olla vastus iseendale"
 
 #: apps/files/exceptions.py:14
 msgid "The file you are trying to upload is already attached to this project"
-msgstr ""
-"Die Datei, die Sie hochzuladen versuchen, ist diesem Projekt bereits "
-"angehängt"
+msgstr "Fail, mida proovid üles laadida, on juba selle projektiga seotud"
 
 #: apps/files/exceptions.py:22
 msgid "The link you are trying to attach is already attached to this project"
-msgstr ""
-"Der Link, den Sie anzuhängen versuchen, ist diesem Projekt bereits angehängt"
+msgstr "Link, mida proovid lisada, on juba selle projektiga seotud"
 
 #: apps/files/exceptions.py:30
 #, python-brace-format
 msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-msgstr ""
-"Datei zu groß. Die Größe darf {settings.MAX_FILE_SIZE} MB nicht überschreiten"
+msgstr "Fail on liiga suur. Suurus ei tohi ületada {settings.MAX_FILE_SIZE} MB"
 
 #: apps/files/exceptions.py:37
 msgid "You can't change the project of a file"
-msgstr "Sie können das Projekt einer Datei nicht ändern"
+msgstr "Sa ei saa faili projekti muuta"
 
 #: apps/files/exceptions.py:43
 msgid "You can't change the project of a link"
-msgstr "Sie können das Projekt eines Links nicht ändern"
+msgstr "Sa ei saa lingi projekti muuta"
 
 #: apps/files/exceptions.py:52
 msgid "You can't delete this picture: It is related to another object"
-msgstr ""
-"Sie können dieses Bild nicht löschen: Es ist mit einem anderen Objekt "
-"verbunden"
+msgstr "Sa ei saa seda pilti kustutada: see on seotud teise objektiga"
 
 #: apps/files/exceptions.py:58
 msgid ""
@@ -277,46 +265,45 @@ msgid ""
 "{relation['model']} with pk={relation['pk']} through field "
 "{relation['field']}"
 msgstr ""
-"Sie können dieses Bild nicht löschen: Es ist mit einer Instanz von "
-"{relation['model']} mit pk={relation['pk']} über das Feld "
-"{relation['field']} verbunden"
+"Sa ei saa seda pilti kustutada: see on seotud {relation['model']} "
+"eksemplariga, mille pk={relation['pk']} läbi välja {relation['field']}"
 
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
-msgstr "Der E-Mail-Typ ist ungültig"
+msgstr "E-posti tüüp ei ole kehtiv"
 
 #: apps/invitations/exceptions.py:17
 #, python-brace-format
 msgid "The email type '{email_type}' is not valid"
-msgstr "Der E-Mail-Typ '{email_type}' ist ungültig"
+msgstr "E-posti tüüp '{email_type}' ei ole kehtiv"
 
 #: apps/invitations/exceptions.py:29
 msgid "People group must belong to the invitation's organization"
-msgstr "Die Personengruppe muss zur Organisation der Einladung gehören"
+msgstr "Inimeste grupp peab kuuluma kutse organisatsiooni"
 
 #: apps/invitations/exceptions.py:35
 msgid "You cannot change the organization of an invitation"
-msgstr "Sie können die Organisation einer Einladung nicht ändern"
+msgstr "Sa ei saa kutse organisatsiooni muuta"
 
 #: apps/invitations/exceptions.py:41
 msgid "This user is already a member of this organization"
-msgstr "Dieser Benutzer ist bereits Mitglied dieser Organisation"
+msgstr "See kasutaja on juba selle organisatsiooni liige"
 
 #: apps/invitations/exceptions.py:47
 msgid "A user with this email already exists"
-msgstr "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits"
+msgstr "Selle e-posti aadressiga kasutaja on juba olemas"
 
 #: apps/invitations/exceptions.py:53
 msgid "This organization does not accept access requests"
-msgstr "Diese Organisation akzeptiert keine Zugriffsanfragen"
+msgstr "See organisatsioon ei aktsepteeri ligipääsutaotlusi"
 
 #: apps/invitations/exceptions.py:59
 msgid "An access request for this email already exists"
-msgstr "Eine Zugriffsanfrage für diese E-Mail-Adresse existiert bereits"
+msgstr "Sellele e-posti aadressile on juba ligipääsutaotlus olemas"
 
 #: apps/invitations/exceptions.py:65
 msgid "An access request for this user already exists"
-msgstr "Eine Zugriffsanfrage für diesen Benutzer existiert bereits"
+msgstr "Sellele kasutajale on juba ligipääsutaotlus olemas"
 
 #: apps/invitations/templates/access_requests_base.html:56
 #: services/keycloak/templates/keycloak_base.html:56
@@ -326,7 +313,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Brauchen Sie Hilfe?\n"
+"          Vajad abi?\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:61
@@ -340,10 +327,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Bei Fragen oder für Unterstützung können Sie uns eine <a "
-"class=\"lpi-link\" href=\"mailto:projects.platform@learningplanetinstitute."
-"org\">E-Mail senden</a>. Wir werden uns so schnell wie möglich während der "
-"Geschäftszeiten (Mo-Fr 9-18 Uhr) bei Ihnen melden.\n"
+"          Küsimuste või abi saamiseks võite meile <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">e-kirja saata</"
+"a>. Vastame teile tööajal (E-R 9.00-18.00) nii kiiresti kui võimalik.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:66
@@ -355,8 +341,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Sie können auch unser <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">Hilfezentrum</a> besuchen.\n"
+"          Võite külastada ka meie <a class=\"lpi-link\" href=\"https://docs."
+"projects.lp-i.org\">abikeskust</a>.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:71
@@ -369,9 +355,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Wir hoffen, dass Ihnen unsere neue Plattform gefällt!\n"
+"          Loodame, et naudite meie uut platvormi!\n"
 "          <br/>\n"
-"          Das LPI-Team.\n"
+"          LPI meeskond.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:83
@@ -383,7 +369,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Mit ❤️ vom Learning Planet Institute.\n"
+"          Valmistatud ❤️-ga Learning Planet Institute poolt.\n"
 "          "
 
 #: apps/invitations/templates/request_accepted/mail.html:8
@@ -396,7 +382,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Willkommen im Projekt-Portal von %(organization_name)s, %(given_name)s!\n"
+"    Tere tulemast %(organization_name)s projektide portaali, "
+"%(given_name)s!\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:13
@@ -408,7 +395,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Sehr geehrte/r %(given_name)s,\n"
+"    Lugupeetud %(given_name)s,\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:18
@@ -420,8 +407,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Sie können jetzt auf das Portal von %(organization_name)s auf der "
-"Projekt-Plattform zugreifen.\n"
+"    Nüüd on teil juurdepääs %(organization_name)s portaalile Projektide "
+"platvormil.\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:23
@@ -431,7 +418,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Wir hoffen, Ihnen gefällt dieses neue Portal!\n"
+"    Loodame, et naudite seda uut portaali!\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.html:28
@@ -442,7 +429,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Anmeldung beim Portal von %(organization_name)s\n"
+"    Logi sisse %(organization_name)s portaali\n"
 "    "
 
 #: apps/invitations/templates/request_accepted/mail.txt:2
@@ -456,11 +443,11 @@ msgid ""
 "Login to %(organization_name)s portal : %(website_url)s\n"
 msgstr ""
 "\n"
-"Willkommen im Projekt-Portal von %(organization_name)s, %(given_name)s!\n"
-"Sehr geehrte/r %(given_name)s, Sie können jetzt auf das Portal von "
-"%(organization_name)s auf der Projekt-Plattform zugreifen.\n"
-"Wir hoffen, Ihnen gefällt dieses neue Portal!\n"
-"Anmeldung beim Portal von %(organization_name)s: %(website_url)s\n"
+"Tere tulemast %(organization_name)s projektide portaali, %(given_name)s!\n"
+"Lugupeetud %(given_name)s, Nüüd on teil juurdepääs %(organization_name)s "
+"portaalile Projektide platvormil.\n"
+"Loodame, et naudite seda uut portaali!\n"
+"Logi sisse %(organization_name)s portaali: %(website_url)s\n"
 
 #: apps/invitations/templates/request_accepted/object.txt:2
 #, python-format
@@ -469,7 +456,7 @@ msgid ""
 "Welcome to the %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Willkommen auf der Projekt-Plattform von %(org_name)s\n"
+"Tere tulemast %(org_name)s Projektide platvormile\n"
 
 #: apps/invitations/templates/request_declined/mail.html:8
 #, python-format
@@ -480,8 +467,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Ihre Anfrage zur Teilnahme am Projekt-Portal von %(organization_name)s "
-"wurde abgelehnt\n"
+"    Teie taotlus liituda %(organization_name)s Projektide portaaliga on "
+"tagasi lükatud\n"
 "    "
 
 #: apps/invitations/templates/request_declined/mail.html:18
@@ -493,9 +480,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Vielen Dank für Ihre Anfrage zum Zugriff auf das Projekt-Portal von "
-"%(organization_name)s. Leider können wir Ihrer Anfrage derzeit nicht "
-"stattgeben.\n"
+"    Täname teid ligipääsu taotlemise eest %(organization_name)s Projektide "
+"portaali. Kahjuks ei saa me teie taotlust praegu rahuldada.\n"
 "    "
 
 #: apps/invitations/templates/request_declined/mail.html:23
@@ -508,9 +494,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Wenn Sie glauben, dass dies ein Fehler ist, kontaktieren Sie bitte den "
-"<a class=\"lpi-link\" href=\"mailto:%(contact_email)s\">Administrator des "
-"Projekt-Portals von %(organization_name)s</a>.\n"
+"    Kui arvate, et see on viga, võtke palun ühendust <a class=\"lpi-link\" "
+"href=\"mailto:%(contact_email)s\">%(organization_name)s Projektide portaali "
+"administraatoriga</a>.\n"
 "    "
 
 #: apps/invitations/templates/request_declined/mail.txt:2
@@ -526,14 +512,13 @@ msgid ""
 "%(contact_email)s.\n"
 msgstr ""
 "\n"
-"Ihre Anfrage zur Teilnahme am Projekt-Portal von %(organization_name)s wurde "
-"abgelehnt\n"
-"Sehr geehrte/r %(given_name)s,\n"
-"Vielen Dank für Ihre Anfrage zum Zugriff auf das Projekt-Portal von "
-"%(organization_name)s. Leider können wir Ihrer Anfrage derzeit nicht "
-"stattgeben.\n"
-"Wenn Sie glauben, dass dies ein Fehler ist, kontaktieren Sie bitte "
-"%(organization_name)s: %(contact_email)s.\n"
+"Teie taotlus liituda %(organization_name)s Projektide portaaliga on tagasi "
+"lükatud\n"
+"Lugupeetud %(given_name)s,\n"
+"Täname teid ligipääsu taotlemise eest %(organization_name)s Projektide "
+"portaali. Kahjuks ei saa me teie taotlust praegu rahuldada.\n"
+"Kui arvate, et see on viga, võtke palun ühendust %(organization_name)s: "
+"%(contact_email)s.\n"
 
 #: apps/invitations/templates/request_declined/object.txt:2
 #, python-format
@@ -543,37 +528,32 @@ msgid ""
 "declined\n"
 msgstr ""
 "\n"
-"Ihre Zugriffsanfrage für die Projekt-Plattform von %(org_name)s wurde "
-"abgelehnt\n"
+"Teie ligipääsutaotlus %(org_name)s Projektide platvormile on tagasi lükatud\n"
 
 #: apps/newsfeed/exceptions.py:9
 msgid "The people groups of a news must belong to the same organization"
-msgstr ""
-"Die Personengruppen einer Nachricht müssen derselben Organisation angehören"
+msgstr "Uudiste inimrühmad peavad kuuluma samasse organisatsiooni"
 
 #: apps/newsfeed/exceptions.py:17
 msgid "The people groups of an event must belong to the same organization"
-msgstr ""
-"Die Personengruppen einer Veranstaltung müssen derselben Organisation "
-"angehören"
+msgstr "Sündmuse inimrühmad peavad kuuluma samasse organisatsiooni"
 
 #: apps/newsfeed/exceptions.py:25
 msgid ""
 "The people groups of an instruction must belong to the same organization"
-msgstr ""
-"Die Personengruppen einer Anweisung müssen derselben Organisation angehören"
+msgstr "Juhiste inimrühmad peavad kuuluma samasse organisatsiooni"
 
 #: apps/notifications/tasks.py:193 apps/notifications/tasks.py:237
 msgid "editor"
-msgstr "Redakteur"
+msgstr "toimetaja"
 
 #: apps/notifications/tasks.py:194 apps/notifications/tasks.py:238
 msgid "participant"
-msgstr "Teilnehmer"
+msgstr "osaleja"
 
 #: apps/notifications/tasks.py:195 apps/notifications/tasks.py:239
 msgid "reviewer"
-msgstr "Gutachter"
+msgstr "hindaja"
 
 #: apps/notifications/templates/group_member_added_other/reminder.txt:2
 #, python-format
@@ -585,12 +565,10 @@ msgid_plural ""
 "%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat eine Gruppe als Mitglied zum Projekt %(project)s "
-"hinzugefügt.\n"
+"%(full_name)s lisas projekti %(project)s liikmeks grupi.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s Gruppen als Mitglieder zum Projekt %(project)s "
-"hinzugefügt.\n"
+"%(full_name)s lisas projekti %(project)s liikmeks %(count)s gruppi.\n"
 
 #: apps/notifications/templates/group_member_added_self/mail.html:13
 #: apps/notifications/templates/member_added_self/mail.html:13
@@ -608,7 +586,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Hallo %(given_name)s,\n"
+"          Tere %(given_name)s,\n"
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:18
@@ -621,10 +599,10 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat die Gruppe %(group_name)s, der Sie angehören, "
-"zum Team des Projekts <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
+"          %(full_name)s lisas grupi %(group_name)s, mille osa te olete, "
+"projekti <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
 "%(project_slug)s/summary?fromNotification\">%(project_title)s</a> "
-"hinzugefügt.\n"
+"meeskonda.\n"
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:28
@@ -634,7 +612,7 @@ msgstr ""
 #: apps/notifications/templates/project_ready_for_review/mail.html:28
 #: apps/notifications/templates/reminder/mail.html:42
 msgid "Go to project"
-msgstr "Projekt öffnen"
+msgstr "Mine projekti juurde"
 
 #: apps/notifications/templates/group_member_added_self/mail.txt:2
 #, python-format
@@ -644,8 +622,8 @@ msgid ""
 "you are part of to the team of project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Hallo %(recipient.given_name)s, %(full_name)s hat die Gruppe %(group_name)s, "
-"der Sie angehören, zum Team des Projekts \"%(project_title)s\" hinzugefügt.\n"
+"Tere %(recipient.given_name)s, %(full_name)s lisas grupi %(group_name)s, "
+"mille osa te olete, projekti \"%(project_title)s\" meeskonda.\n"
 
 #: apps/notifications/templates/group_member_added_self/object.txt:2
 #, python-format
@@ -655,8 +633,8 @@ msgid ""
 "%(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat die Gruppe %(group_name)s, der Sie angehören, zum Projekt "
-"%(project_title)s hinzugefügt.\n"
+"%(full_name)s lisas grupi %(group_name)s, mille osa te olete, projekti "
+"%(project_title)s.\n"
 
 #: apps/notifications/templates/group_member_removed_other/reminder.txt:2
 #, python-format
@@ -668,10 +646,10 @@ msgid_plural ""
 "%(full_name)s removed %(count)s groups from members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat eine Gruppe von den Mitgliedern entfernt.\n"
+"%(full_name)s eemaldas liikmetest grupi.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s Gruppen von den Mitgliedern entfernt.\n"
+"%(full_name)s eemaldas liikmetest %(count)s gruppi.\n"
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.html:13
 #: apps/notifications/templates/invitation_reminder_one_week/mail.html:13
@@ -682,7 +660,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Hallo %(name)s,\n"
+"          Tere, %(name)s,\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.html:18
@@ -694,8 +672,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Ein Registrierungslink, den Sie für die Gruppe %(group_name)s "
-"erstellt haben, läuft heute ab.\n"
+"          Teie loodud registreerimislink grupile %(group_name)s aegub täna.\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.html:23
@@ -708,8 +685,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Sie können hier einen neuen Registrierungslink erstellen: <a "
-"class=\"lpi-link\" href=\"%(website_url)s/admin/links/list\">hier</a>.\n"
+"          Uue registreerimislingi saate luua <a class=\"lpi-link\" "
+"href=\"%(website_url)s/admin/links/list\">siin</a>.\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_last_day/mail.txt:2
@@ -721,13 +698,13 @@ msgid ""
 "You can create a new registration link here.\n"
 msgstr ""
 "\n"
-"Hallo %(name)s, ein Registrierungslink, den Sie für die Gruppe "
-"%(group_name)s erstellt haben, läuft heute ab.\n"
-"Sie können hier einen neuen Registrierungslink erstellen.\n"
+"Tere %(name)s, Teie loodud registreerimislink grupile %(group_name)s aegub "
+"täna.\n"
+"Uue registreerimislingi saate luua siin.\n"
 
 #: apps/notifications/templates/invitation_reminder_last_day/object.txt:2
 msgid "Registration link to expire today"
-msgstr "Registrierungslink läuft heute ab"
+msgstr "Registreerimislink aegub täna"
 
 #: apps/notifications/templates/invitation_reminder_one_week/mail.html:18
 #, python-format
@@ -738,8 +715,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Ein Registrierungslink, den Sie für die Gruppe %(group_name)s "
-"erstellt haben, läuft in einer Woche ab.\n"
+"          Teie loodud registreerimislink grupile %(group_name)s aegub nädala "
+"pärast.\n"
 "          "
 
 #: apps/notifications/templates/invitation_reminder_one_week/mail.txt:2
@@ -751,13 +728,13 @@ msgid ""
 "You can create a new registration link here.\n"
 msgstr ""
 "\n"
-"Hallo %(name)s, ein Registrierungslink, den Sie für die Gruppe "
-"%(group_name)s erstellt haben, läuft in einer Woche ab.\n"
-"Sie können hier einen neuen Registrierungslink erstellen.\n"
+"Tere %(name)s, Teie loodud registreerimislink grupile %(group_name)s aegub "
+"nädala pärast.\n"
+"Uue registreerimislingi saate luua siin.\n"
 
 #: apps/notifications/templates/invitation_reminder_one_week/object.txt:2
 msgid "Registration link to expire in one week"
-msgstr "Registrierungslink läuft in einer Woche ab"
+msgstr "Registreerimislink aegub ühe nädala pärast"
 
 #: apps/notifications/templates/member_added_other/reminder.txt:2
 #, python-format
@@ -769,10 +746,10 @@ msgid_plural ""
 "%(full_name)s added %(count)s new members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat ein neues Mitglied hinzugefügt.\n"
+"%(full_name)s lisas uue liikme.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s neue Mitglieder hinzugefügt.\n"
+"%(full_name)s lisas %(count)s uut liiget.\n"
 
 #: apps/notifications/templates/member_added_self/mail.html:18
 #, python-format
@@ -784,9 +761,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat Sie zum Team des Projekts <a class=\"lpi-link\" "
+"          %(full_name)s lisas teid projekti <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> hinzugefügt.\n"
+"fromNotification\">%(project_title)s</a> meeskonda.\n"
 "          "
 
 #: apps/notifications/templates/member_added_self/mail.txt:2
@@ -797,8 +774,8 @@ msgid ""
 "project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"Hallo %(recipient.given_name)s, %(full_name)s hat Sie zum Team des Projekts "
-"\"%(project_title)s\" hinzugefügt.\n"
+"Tere %(recipient.given_name)s, %(full_name)s lisas teid projekti "
+"\"%(project_title)s\" meeskonda.\n"
 
 #: apps/notifications/templates/member_added_self/object.txt:2
 #, python-format
@@ -807,7 +784,7 @@ msgid ""
 "%(full_name)s added you to the team of project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat Sie zum Team des Projekts %(project_title)s hinzugefügt.\n"
+"%(full_name)s lisas teid projekti %(project_title)s meeskonda.\n"
 
 #: apps/notifications/templates/member_removed_other/reminder.txt:2
 #, python-format
@@ -819,10 +796,10 @@ msgid_plural ""
 "%(full_name)s removed %(count)s members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat ein Mitglied entfernt.\n"
+"%(full_name)s eemaldas liikme.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s Mitglieder entfernt.\n"
+"%(full_name)s eemaldas %(count)s liiget.\n"
 
 #: apps/notifications/templates/member_updated_other/reminder.txt:2
 #, python-format
@@ -834,10 +811,10 @@ msgid_plural ""
 "%(full_name)s updated %(count)s members.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat ein Mitglied aktualisiert.\n"
+"%(full_name)s uuendas liiget.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s Mitglieder aktualisiert.\n"
+"%(full_name)s uuendas %(count)s liiget.\n"
 
 #: apps/notifications/templates/member_updated_self/mail.html:18
 #, python-format
@@ -849,9 +826,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat Ihnen die Rechte %(role)s im Projekt <a "
+"          %(full_name)s andis teile %(role)s õigused projektis <a "
 "class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> gegeben.\n"
+"fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/member_updated_self/mail.txt:2
@@ -861,8 +838,7 @@ msgid ""
 "%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"%(full_name)s hat Ihnen die Rechte %(role)s im Projekt \"%(project_title)s\" "
-"gegeben.\n"
+"%(full_name)s andis teile %(role)s õigused projektis \"%(project_title)s\".\n"
 
 #: apps/notifications/templates/member_updated_self/object.txt:2
 #, python-format
@@ -871,8 +847,7 @@ msgid ""
 "%(full_name)s gave you %(role)s rights in project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat Ihnen die Rechte %(role)s im Projekt %(project_title)s "
-"gegeben.\n"
+"%(full_name)s andis teile %(role)s õigused projektis %(project_title)s.\n"
 
 #: apps/notifications/templates/new_access_request/mail.html:8
 msgid ""
@@ -881,7 +856,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Hallo,\n"
+"            Tere,\n"
 "            "
 
 #: apps/notifications/templates/new_access_request/mail.html:13
@@ -893,8 +868,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Sie haben eine neue Zugriffsanfrage für die Projekt-Plattform "
-"von %(org_name)s erhalten.\n"
+"            Olete saanud uue juurdepääsutaotluse %(org_name)s Projektide "
+"platvormile.\n"
 "            "
 
 #: apps/notifications/templates/new_access_request/mail.html:22
@@ -904,7 +879,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Vorname:\n"
+"          Eesnimi:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:29
@@ -925,7 +900,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nachname:\n"
+"          Perekonnanimi:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:45
@@ -946,7 +921,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          E-Mail:\n"
+"          E-post:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:61
@@ -967,7 +942,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Titel:\n"
+"          Ametinimetus:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:77
@@ -988,7 +963,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Nachricht:\n"
+"          Sõnum:\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.html:93
@@ -1011,8 +986,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Siehe <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
-"requests\">Anfrage auf der Plattform</a>.\n"
+"          Vaata <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
+"requests\">taotlust platvormil</a>.\n"
 "          "
 
 #: apps/notifications/templates/new_access_request/mail.txt:2
@@ -1030,16 +1005,15 @@ msgid ""
 "platform</a>.\n"
 msgstr ""
 "\n"
-"Hallo,\n"
-"Sie haben eine neue Zugriffsanfrage für die Projekt-Plattform von "
-"%(org_name)s erhalten.\n"
-"Vorname: %(given_name)s\n"
-"Nachname: %(family_name)s\n"
-"E-Mail: %(email)s\n"
-"Titel: %(job)s\n"
-"Nachricht: %(message)s\n"
-"Siehe <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">Anfrage "
-"auf der Plattform</a>.\n"
+"Tere,\n"
+"Olete saanud uue juurdepääsutaotluse %(org_name)s Projektide platvormile.\n"
+"Eesnimi: %(given_name)s\n"
+"Perekonnanimi: %(family_name)s\n"
+"E-post: %(email)s\n"
+"Ametinimetus: %(job)s\n"
+"Sõnum:%(message)s\n"
+"Vaata <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">taotlust "
+"platvormil</a>.\n"
 
 #: apps/notifications/templates/new_access_request/object.txt:2
 #, python-format
@@ -1048,7 +1022,7 @@ msgid ""
 "New access request for %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Neue Zugriffsanfrage für die Projekt-Plattform von %(org_name)s\n"
+"Uus juurdepääsutaotlus %(org_name)s Projektide platvormile\n"
 
 #: apps/notifications/templates/new_announcement/reminder.txt:2
 #, python-format
@@ -1060,10 +1034,10 @@ msgid_plural ""
 "%(full_name)s published %(count)s new announcements.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat eine neue Stellenanzeige veröffentlicht.\n"
+"%(full_name)s avaldas uue teadaande.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s neue Stellenanzeigen veröffentlicht.\n"
+"%(full_name)s avaldas %(count)s uut teadaannet.\n"
 
 #: apps/notifications/templates/new_application/mail.html:19
 #, python-format
@@ -1077,24 +1051,23 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"                    hat sich auf die Stellenanzeige "
-"<strong>\"%(announcement_title)s\"</strong>\n"
-"                    des Projekts <a class=\"lpi-link\" "
-"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> beworben.\n"
+"                    kandideeris teadaande "
+"<strong>\"%(announcement_title)s\"</strong> alusel\n"
+"                    projekti <a class=\"lpi-link\" href=\"%(website_url)s/"
+"projects/%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
 "                    "
 
 #: apps/notifications/templates/new_application/mail.html:29
 msgid "Applicant:"
-msgstr "Bewerber:"
+msgstr "Taotleja:"
 
 #: apps/notifications/templates/new_application/mail.html:30
 msgid "Email:"
-msgstr "E-Mail:"
+msgstr "E-post:"
 
 #: apps/notifications/templates/new_application/mail.html:34
 msgid "Applicant's message:"
-msgstr "Nachricht des Bewerbers:"
+msgstr "Taotleja sõnum:"
 
 #: apps/notifications/templates/new_application/mail.txt:2
 #, python-format
@@ -1105,8 +1078,8 @@ msgid ""
 "%(announcement_title)s:\n"
 msgstr ""
 "\n"
-"%(application.applicant_firstname)s %(application.applicant_name)s hat sich "
-"für das Projekt beworben: %(project_title)s Für eine Stelle als "
+"%(application.applicant_firstname)s %(application.applicant_name)s "
+"kandideeris projektile: %(project_title)s tööpakkumisele "
 "%(announcement_title)s:\n"
 
 #: apps/notifications/templates/new_application/mail.txt:5
@@ -1116,7 +1089,7 @@ msgid ""
 "Description of the job: %(item.description|safe)s\n"
 msgstr ""
 "\n"
-"Beschreibung der Stelle: %(item.description|safe)s\n"
+"Töökoha kirjeldus: %(item.description|safe)s\n"
 
 #: apps/notifications/templates/new_application/mail.txt:8
 #, python-format
@@ -1125,7 +1098,7 @@ msgid ""
 "User's email: %(application.applicant_email)s\n"
 msgstr ""
 "\n"
-"E-Mail des Benutzers: %(application.applicant_email)s\n"
+"Kasutaja e-post: %(application.applicant_email)s\n"
 
 #: apps/notifications/templates/new_application/mail.txt:11
 #, python-format
@@ -1134,7 +1107,7 @@ msgid ""
 "User message: %(application.applicant_message|safe)s\n"
 msgstr ""
 "\n"
-"Nachricht des Benutzers: %(application.applicant_message|safe)s\n"
+"Kasutaja sõnum: %(application.applicant_message|safe)s\n"
 
 #: apps/notifications/templates/new_application/object.txt:2
 #, python-format
@@ -1144,8 +1117,7 @@ msgid ""
 "%(announcement_title)s.\n"
 msgstr ""
 "\n"
-"%(firstname)s %(lastname)s hat sich auf die Stellenanzeige beworben: "
-"%(announcement_title)s.\n"
+"%(firstname)s %(lastname)s kandideeris teadaandele: %(announcement_title)s.\n"
 
 #: apps/notifications/templates/new_blogentry/reminder.txt:2
 #, python-format
@@ -1157,10 +1129,10 @@ msgid_plural ""
 "%(full_name)s published %(count)s new blog entries.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat einen neuen Blogeintrag veröffentlicht.\n"
+"%(full_name)s avaldas uue blogipostituse.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s neue Blogeinträge veröffentlicht.\n"
+"%(full_name)s avaldas %(count)s uut blogipostitust.\n"
 
 #: apps/notifications/templates/new_comment/mail.html:18
 #, python-format
@@ -1172,20 +1144,20 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat das Projekt <a class=\"lpi-link\" "
+"          %(full_name)s kommenteeris projekti <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> kommentiert.\n"
+"fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/new_comment/mail.html:26
 #: apps/notifications/templates/new_reply/mail.html:26
 msgid "Comment by"
-msgstr "Kommentar von"
+msgstr "Kommenteeris"
 
 #: apps/notifications/templates/new_comment/mail.html:35
 #: apps/notifications/templates/new_reply/mail.html:35
 msgid "Go to comment"
-msgstr "Zum Kommentar gehen"
+msgstr "Mine kommentaari juurde"
 
 #: apps/notifications/templates/new_comment/mail.txt:2
 #: apps/notifications/templates/new_comment/object.txt:2
@@ -1199,11 +1171,10 @@ msgid_plural ""
 "%(full_name)s added %(count)s comments to project %(project_title)s.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat das Projekt %(project_title)s kommentiert.\n"
+"%(full_name)s kommenteeris projekti %(project_title)s.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s Kommentare zum Projekt %(project_title)s "
-"hinzugefügt.\n"
+"%(full_name)s lisas projekti %(project_title)s %(count)s kommentaari.\n"
 
 #: apps/notifications/templates/new_instruction/mail.html:18
 msgid ""
@@ -1212,12 +1183,12 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Sie haben eine neue Anweisung erhalten.\n"
+"          Olete saanud uue juhise.\n"
 "          "
 
 #: apps/notifications/templates/new_instruction/mail.html:28
 msgid "Go to instruction"
-msgstr "Zur Anweisung gehen"
+msgstr "Mine juhise juurde"
 
 #: apps/notifications/templates/new_instruction/mail.txt:2
 #, python-format
@@ -1226,7 +1197,7 @@ msgid ""
 "Hello %(recipient.given_name)s, You have received a new instruction.\n"
 msgstr ""
 "\n"
-"Hallo %(recipient.given_name)s, Sie haben eine neue Anweisung erhalten.\n"
+"Tere %(recipient.given_name)s, Olete saanud uue juhise.\n"
 
 #: apps/notifications/templates/new_instruction/object.txt:2
 msgid ""
@@ -1234,7 +1205,7 @@ msgid ""
 "New instruction\n"
 msgstr ""
 "\n"
-"Neue Anweisung\n"
+"Uus juhis\n"
 
 #: apps/notifications/templates/new_instruction/reminder.txt:2
 msgid ""
@@ -1242,7 +1213,7 @@ msgid ""
 "You received a new instruction.\n"
 msgstr ""
 "\n"
-"Sie haben eine neue Anweisung erhalten.\n"
+"Saite uue juhise.\n"
 
 #: apps/notifications/templates/new_private_message/mail.html:18
 #, python-format
@@ -1254,18 +1225,18 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat eine Nachricht auf <a class=\"lpi-link\" "
+"          %(full_name)s postitas sõnumi <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
-"fromNotification\">%(project_title)s</a> gepostet.\n"
+"fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/new_private_message/mail.html:26
 msgid "Message by"
-msgstr "Nachricht von"
+msgstr "Sõnumi postitas"
 
 #: apps/notifications/templates/new_private_message/mail.html:35
 msgid "Go to message"
-msgstr "Zur Nachricht gehen"
+msgstr "Mine sõnumi juurde"
 
 #: apps/notifications/templates/new_private_message/mail.txt:2
 #: apps/notifications/templates/new_private_message/object.txt:2
@@ -1279,11 +1250,10 @@ msgid_plural ""
 "%(full_name)s posted %(count)s messages on project %(project_title)s.\n"
 msgstr[0] ""
 "\n"
-"%(full_name)s hat eine Nachricht zu %(project_title)s gepostet.\n"
+"%(full_name)s postitas sõnumi projekti %(project_title)s.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s hat %(count)s Nachrichten zum Projekt %(project_title)s "
-"gepostet.\n"
+"%(full_name)s postitas projekti %(project_title)s %(count)s sõnumit.\n"
 
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format
@@ -1295,9 +1265,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat auf Ihren Kommentar zum Projekt <a class=\"lpi-"
+"          %(full_name)s vastas teie kommentaarile projekti <a class=\"lpi-"
 "link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> geantwortet.\n"
+"fromNotification\">%(project_title)s</a> kohta.\n"
 "          "
 
 #: apps/notifications/templates/new_reply/mail.txt:2
@@ -1307,8 +1277,8 @@ msgid ""
 "%(full_name)s has replied on your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat auf Ihren Kommentar zum Projekt %(project_title)s "
-"geantwortet.\n"
+"%(full_name)s on vastanud teie kommentaarile projekti %(project_title)s "
+"kohta.\n"
 
 #: apps/notifications/templates/new_reply/object.txt:2
 #, python-format
@@ -1317,8 +1287,7 @@ msgid ""
 "%(full_name)s replied to your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat auf Ihren Kommentar zum Projekt %(project_title)s "
-"geantwortet.\n"
+"%(full_name)s vastas teie kommentaarile projekti %(project_title)s kohta.\n"
 
 #: apps/notifications/templates/new_review/mail.html:18
 #, python-format
@@ -1330,14 +1299,14 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat das Projekt <a class=\"lpi-link\" "
+"          %(full_name)s vaatas üle projekti <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> bewertet.\n"
+"fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/new_review/mail.html:26
 msgid "Review by"
-msgstr "Bewertung von"
+msgstr "Ülevaate autor"
 
 #: apps/notifications/templates/new_review/mail.txt:2
 #: apps/notifications/templates/new_review/object.txt:2
@@ -1347,7 +1316,7 @@ msgid ""
 "%(full_name)s reviewed project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat das Projekt %(project_title)s bewertet.\n"
+"%(full_name)s vaatas üle projekti %(project_title)s.\n"
 
 #: apps/notifications/templates/notifications_base.html:45
 msgid ""
@@ -1358,8 +1327,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Die Plattform, um deine Projekte mit der Welt zu teilen.<br/>\n"
-"          Bereitgestellt vom Learning Planet Institute<br/>\n"
+"          platvorm, mis on loodud teie projektide jagamiseks.<br/>\n"
+"          Loodud teile Learning Planet Institute poolt<br/>\n"
 "          8bis, rue Charles V, 75004 Paris, France\n"
 "          "
 
@@ -1368,12 +1337,12 @@ msgid ""
 "You receive this mail because you are subscribed to these notifications on "
 "Projects platform."
 msgstr ""
-"Sie erhalten diese E-Mail, weil Sie diese Benachrichtigungen auf der Projekt-"
-"Plattform abonniert haben."
+"Saate selle kirja, sest olete tellinud need teavitused Platvormi Projektid "
+"kaudu."
 
 #: apps/notifications/templates/notifications_base.html:53
 msgid "Change your notification settings here."
-msgstr "Ändern Sie hier Ihre Benachrichtigungseinstellungen."
+msgstr "Muuda oma teavituste seadeid siin."
 
 #: apps/notifications/templates/project_edited/reminder.txt:2
 #, python-format
@@ -1382,7 +1351,7 @@ msgid ""
 "%(full_name)s edited the %(updated_fields)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat die %(updated_fields)s bearbeitet.\n"
+"%(full_name)s muutis %(updated_fields)s.\n"
 
 #: apps/notifications/templates/project_ready_for_review/mail.html:18
 #, python-format
@@ -1394,10 +1363,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s hat das Projekt <a class=\"lpi-link\" "
+"          %(full_name)s märkis projekti <a class=\"lpi-link\" "
 "href=\"%(website_url)s/projects/%(project_slug)s/summary?"
-"fromNotification\">%(project_title)s</a> als bereit zur Überprüfung "
-"markiert.\n"
+"fromNotification\">%(project_title)s</a> ülevaatamiseks valmis.\n"
 "          "
 
 #: apps/notifications/templates/project_ready_for_review/mail.txt:2
@@ -1408,8 +1376,8 @@ msgid ""
 "%(project_title)s as ready for review.\n"
 msgstr ""
 "\n"
-"Hallo %(recipient.given_name)s, %(full_name)s hat das Projekt "
-"%(project_title)s zur Überprüfung freigegeben.\n"
+"Tere %(recipient.given_name)s, %(full_name)s märkis projekti "
+"%(project_title)s ülevaatamiseks valmis.\n"
 
 #: apps/notifications/templates/project_ready_for_review/object.txt:2
 #, python-format
@@ -1418,8 +1386,7 @@ msgid ""
 "%(full_name)s marked project %(project_title)s as ready for review.\n"
 msgstr ""
 "\n"
-"%(full_name)s hat das Projekt %(project_title)s zur Überprüfung "
-"freigegeben.\n"
+"%(full_name)s märkis projekti %(project_title)s ülevaatamiseks valmis.\n"
 
 #: apps/notifications/templates/reminder/mail.html:19
 #, python-format
@@ -1429,7 +1396,7 @@ msgid ""
 "                    "
 msgstr ""
 "\n"
-"                    Hier sind Ihre Highlights für %(dateOfTheDay)s\n"
+"                    Siin on teie esiletõstud %(dateOfTheDay)s jaoks\n"
 "                    "
 
 #: apps/notifications/templates/reminder/mail.html:30
@@ -1443,197 +1410,190 @@ msgid ""
 "Here are your highlights for %(dateOfTheDay)s\n"
 msgstr ""
 "\n"
-"Hier sind Ihre Highlights für %(dateOfTheDay)s\n"
+"Siin on teie esiletõstud %(dateOfTheDay)s jaoks\n"
 
 #: apps/notifications/templates/reminder/object.txt:2
 msgid "New highlights on Projects"
-msgstr "Neue Highlights"
+msgstr "Uued esiletõstud projektides"
 
 #: apps/notifications/utils.py:233
 msgid " and "
-msgstr " und "
+msgstr " ja "
 
 #: apps/organizations/exceptions.py:11
 msgid "You are trying to create a loop in the organization's hierarchy."
-msgstr ""
-"Sie versuchen, eine Schleife in der Hierarchie der Organisation zu erstellen."
+msgstr "Püüate luua ahelat organisatsiooni hierarhias."
 
 #: apps/organizations/exceptions.py:24
 msgid "The root category cannot have a parent category"
-msgstr "Die Hauptkategorie darf keine übergeordnete Kategorie haben"
+msgstr "Juurekategoorial ei saa olla vanemkategooriat"
 
 #: apps/organizations/exceptions.py:30
 msgid "A non-root category must have a parent category"
-msgstr "Eine nicht-Hauptkategorie muss eine übergeordnete Kategorie haben"
+msgstr "Mitte-juurekategoorial peab olema vanemkategooria"
 
 #: apps/organizations/exceptions.py:36
 msgid "The parent category must belong to the same organization"
-msgstr "Die übergeordnete Kategorie muss derselben Organisation angehören"
+msgstr "Vanemkategooria peab kuuluma samasse organisatsiooni"
 
 #: apps/organizations/exceptions.py:42
 msgid "You are trying to create a loop in the category's hierarchy"
-msgstr ""
-"Sie versuchen, eine Schleife in der Hierarchie der Kategorie zu erstellen"
+msgstr "Püüate luua ahelat kategooria hierarhias"
 
 #: apps/organizations/exceptions.py:48
 msgid "You must choose a default tag classification that is enabled"
-msgstr "Du musst eine Tag-Klassifikation auswählen die aktiviert ist."
+msgstr "Peate valima vaikimisi lubatud sildiklassifikatsiooni"
 
 #: apps/organizations/exceptions.py:54
 msgid "`is_locked` parameter is required"
-msgstr "Der Parameter `is_locked` ist obligatorisch"
+msgstr "`is_locked` parameeter on kohustuslik"
 
 #: apps/organizations/exceptions.py:60
 msgid "`life_status` parameter is required"
-msgstr "Der Parameter `life_status` ist obligatorisch"
+msgstr "`life_status` parameeter on kohustuslik"
 
 #: apps/projects/exceptions.py:12
 msgid "You don't have the permission to link this project"
-msgstr "Sie haben keine Berechtigung, dieses Projekt zu verknüpfen"
+msgstr "Sul puudub luba selle projekti linkimiseks"
 
 #: apps/projects/exceptions.py:17
 #, python-brace-format
 msgid "You don't have the permission to link this project : {project_title}"
-msgstr ""
-"Sie haben keine Berechtigung, dieses Projekt zu verknüpfen: {project_title}"
+msgstr "Sul puudub luba selle projekti linkimiseks: {project_title}"
 
 #: apps/projects/exceptions.py:27
 msgid "You do not have the rights to add a project in this organization"
-msgstr ""
-"Sie haben nicht die Rechte, ein Projekt in dieser Organisation hinzuzufügen"
+msgstr "Sul puudub õigus lisada projekti sellesse organisatsiooni"
 
 #: apps/projects/exceptions.py:34
 msgid "You cannot modify a locked project"
-msgstr "Sie können ein gesperrtes Projekt nicht ändern"
+msgstr "Sa ei saa lukustatud projekti muuta"
 
 #: apps/projects/exceptions.py:43
 msgid "The organizations parameter is mandatory"
-msgstr "Der Parameter 'Organisationen' ist obligatorisch"
+msgstr "Organisatsioonide parameeter on kohustuslik"
 
 #: apps/projects/exceptions.py:49
 msgid "The project does not belong to any of the given organizations"
-msgstr "Das Projekt gehört keiner der angegebenen Organisationen an"
+msgstr "Projekt ei kuulu ühessegi antud organisatsiooni"
 
 #: apps/projects/exceptions.py:70
 msgid "You cannot remove all the owners of a project"
-msgstr "Sie können nicht alle Eigentümer eines Projekts entfernen"
+msgstr "Sa ei saa eemaldada kõiki projekti omanikke"
 
 #: apps/projects/exceptions.py:76
 msgid "A project must belong to at least one organization"
-msgstr "Ein Projekt muss mindestens einer Organisation angehören"
+msgstr "Projekt peab kuuluma vähemalt ühte organisatsiooni"
 
 #: apps/projects/exceptions.py:82
 msgid "Only a reviewer can change this project's status"
-msgstr "Nur ein Gutachter kann den Status dieses Projekts ändern"
+msgstr "Ainult ülevaataja saab selle projekti staatust muuta"
 
 #: apps/projects/exceptions.py:88
 msgid "You cannot empty the description of a project"
-msgstr "Sie können die Beschreibung eines Projekts nicht leeren"
+msgstr "Sa ei saa projekti kirjeldust tühjendada"
 
 #: apps/projects/exceptions.py:95
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
 msgstr ""
-"Ein Projekt kann sich nicht in einer Kategorie befinden, wenn es keiner der "
-"Organisationen des Projekts angehört"
+"Projekt ei saa kuuluda kategooriasse, kui see ei kuulu ühte projekti "
+"organisatsioonidest"
 
 #: apps/projects/exceptions.py:102
 msgid "A project can't be linked to itself"
-msgstr "Ein Projekt kann nicht mit sich selbst verknüpft werden"
+msgstr "Projekti ei saa iseendaga siduda"
 
 #: apps/projects/exceptions.py:107
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
-msgstr ""
-"Das Projekt '{project_title}' kann nicht mit sich selbst verknüpft werden"
+msgstr "Projekti '{project_title}' ei saa iseendaga siduda"
 
 #: apps/projects/exceptions.py:122
 msgid "A message cannot be a reply to itself"
-msgstr "Eine Nachricht kann keine Antwort auf sich selbst sein"
+msgstr "Sõnum ei saa olla vastus iseendale"
 
 #: apps/projects/exceptions.py:128
 msgid "You cannot change the type of a project's tab"
-msgstr "Sie können den Typ eines Projekt-Tabs nicht ändern"
+msgstr "Sa ei saa muuta projekti vahelehe tüüpi"
 
 #: apps/projects/models.py:140
 msgid "title"
-msgstr "Titel"
+msgstr "pealkiri"
 
 #: apps/projects/models.py:150
 msgid "main goal"
-msgstr "Hauptziel"
+msgstr "peamine eesmärk"
 
 #: apps/projects/models.py:163
 msgid "life status"
-msgstr "Lebensstatus"
+msgstr "elutsükli olek"
 
 #: apps/projects/models.py:174
 msgid "categories"
-msgstr "Kategorien"
+msgstr "kategooriad"
 
 #: apps/projects/models.py:191
 msgid "sustainable development goals"
-msgstr "Ziele für nachhaltige Entwicklung"
+msgstr "säästva arengu eesmärgid"
 
 #: apps/projects/models.py:197
 msgid "main category"
-msgstr "Hauptkategorie"
+msgstr "peamine kategooria"
 
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
-msgstr ""
-"Sie können den Status einer von Ihnen erstellten Mentoring-Anfrage nicht "
-"ändern"
+msgstr "Sa ei saa muuta loodud mentorlustaotluse staatust"
 
 #: apps/skills/exceptions.py:21
 msgid "User ID must be provided through url"
-msgstr "Die Benutzer-ID muss über die URL angegeben werden"
+msgstr "Kasutaja ID peab olema esitatud URL-i kaudu"
 
 #: apps/skills/exceptions.py:27
 msgid "This user cannot be a mentor for this skill"
-msgstr "Dieser Benutzer kann kein Mentor für diese Fähigkeit sein"
+msgstr "See kasutaja ei saa olla selle oskuse mentor"
 
 #: apps/skills/exceptions.py:33
 msgid "This user does not need a mentor for this skill"
-msgstr "Dieser Benutzer benötigt keinen Mentor für diese Fähigkeit"
+msgstr "See kasutaja ei vaja selle oskuse jaoks mentorit"
 
 #: apps/skills/exceptions.py:39
 msgid "You already have this skill in your profile"
-msgstr "Sie haben diese Fähigkeit bereits in Ihrem Profil"
+msgstr "See oskus on juba teie profiilis olemas"
 
 #: apps/skills/exceptions.py:45
 msgid "Only custom tags can be updated"
-msgstr "Nur benutzerdefinierte Tags können aktualisiert werden"
+msgstr "Ainult kohandatud silte saab uuendada"
 
 #: apps/skills/exceptions.py:51
 msgid "Only custom tags classifications can be updated"
-msgstr "Nur benutzerdefinierte Tag-Klassifikationen können aktualisiert werden"
+msgstr "Ainult kohandatud siltide klassifikatsioone saab uuendada"
 
 #: apps/skills/exceptions.py:57
 msgid "You can only search for 50 Wikipedia tags at a time"
-msgstr "Sie können jeweils nur nach 50 Wikipedia-Tags suchen"
+msgstr "Saate korraga otsida vaid 50 Wikipedia silti"
 
 #: apps/skills/exceptions.py:63
 msgid "You already made a mentoring request for this skill"
-msgstr "Sie haben bereits eine Mentoring-Anfrage für diese Fähigkeit gestellt"
+msgstr "Olete juba selle oskuse kohta mentorlustaotluse esitanud"
 
 #: apps/skills/exceptions.py:72
 msgid "Tags must belong to the classification's organization"
-msgstr "Tags müssen zur Organisation der Klassifizierung gehören"
+msgstr "Sildid peavad kuuluma klassifikatsiooni organisatsiooni"
 
 #: apps/skills/exceptions.py:78
 msgid "Tag title must be 50 characters or less"
-msgstr "Der Tag-Titel darf maximal 50 Zeichen lang sein"
+msgstr "Sildi pealkiri peab olema 50 tähemärki või vähem"
 
 #: apps/skills/exceptions.py:84
 msgid "Tag description must be 500 characters or less"
-msgstr "Die Tag-Beschreibung darf maximal 500 Zeichen lang sein"
+msgstr "Sildi kirjeldus peab olema 500 tähemärki või vähem"
 
 #: apps/skills/serializers.py:104
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
-msgstr "Ungültige ID \"{tag_classification_id}\" – Objekt existiert nicht."
+msgstr "Vigane ID \"{tag_classification_id}\" - objekti ei eksisteeri."
 
 #: apps/skills/templates/contact_mentor/mail.html:10
 #, python-format
@@ -1643,7 +1603,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Können Sie mich in %(skill)s betreuen?\n"
+"            Kas saate mind juhendada %(skill)s valdkonnas?\n"
 "            "
 
 #: apps/skills/templates/contact_mentor/mail.html:19
@@ -1656,8 +1616,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Hier ist die Nachricht, die %(user)s auf der Projekt-Plattform "
-"hinterlassen hat:\n"
+"            Siin on sõnum, mille %(user)s on jätnud Projektide platvormile:\n"
 "            "
 
 #: apps/skills/templates/contact_mentor/mail.html:30
@@ -1672,7 +1631,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Antworten\n"
+"            Vasta\n"
 "            "
 
 #: apps/skills/templates/contact_mentor/mail.txt:2
@@ -1688,14 +1647,13 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Können Sie mich in %(skill)s betreuen?\n"
+"Kas saate mind juhendada %(skill)s valdkonnas?\n"
 "\n"
-"Hier ist die Nachricht, die %(user)s auf der Projekt-Plattform hinterlassen "
-"hat:\n"
+"Siin on sõnum, mille %(user)s on jätnud Projektide platvormile:\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Vasta: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentor/object.txt:2
 #, python-format
@@ -1704,7 +1662,7 @@ msgid ""
 "Can you mentor %(mentoree_name)s?\n"
 msgstr ""
 "\n"
-"Können Sie %(mentoree_name)s betreuen?\n"
+"Kas saate juhendada %(mentoree_name)s?\n"
 
 #: apps/skills/templates/contact_mentoree/mail.html:10
 #, python-format
@@ -1714,7 +1672,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Möchten Sie in %(skill)s betreut werden?\n"
+"            Kas soovite, et teid juhendataks %(skill)s valdkonnas?\n"
 "            "
 
 #: apps/skills/templates/contact_mentoree/mail.txt:2
@@ -1730,14 +1688,13 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Möchten Sie in %(skill)s betreut werden?\n"
+"Kas soovite, et teid juhendataks %(skill)s valdkonnas?\n"
 "\n"
-"Hier ist die Nachricht, die %(user)s auf der Projekt-Plattform hinterlassen "
-"hat:\n"
+"Siin on sõnum, mille %(user)s on jätnud Projektide platvormile:\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Vasta: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
@@ -1746,7 +1703,7 @@ msgid ""
 "%(mentor_name)s offers to mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s bietet Ihnen Mentoring an\n"
+"%(mentor_name)s pakub teile mentorlust\n"
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:10
 #, python-format
@@ -1756,7 +1713,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s hat zugestimmt, Sie in %(skill)s zu betreuen!\n"
+"            %(user)s on nõustunud teid juhendama %(skill)s valdkonnas!\n"
 "            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:19
@@ -1768,8 +1725,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Gute Nachrichten, %(user)s hat zugestimmt, Sie zu betreuen. Sie "
-"können sie unter %(email)s kontaktieren.\n"
+"            Hea uudis, %(user)s on nõustunud teid juhendama. Saate nendega "
+"ühendust võtta aadressil %(email)s.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:30
@@ -1783,7 +1740,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Antworten an %(user)s\n"
+"            Vasta kasutajale %(user)s\n"
 "            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.txt:2
@@ -1800,14 +1757,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s hat zugestimmt, Sie in %(skill)s zu betreuen!\n"
+"%(user)s on nõustunud teid juhendama %(skill)s valdkonnas!\n"
 "\n"
-"Gute Nachrichten, %(user)s hat zugestimmt, Sie zu betreuen. Sie können sie "
-"unter %(email)s kontaktieren.\n"
+"Hea uudis, %(user)s on nõustunud teid juhendama. Saate nendega ühendust "
+"võtta aadressil %(email)s.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten an %(user)s: %(email)s\n"
+"Vasta kasutajale %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentor_response_accepted/object.txt:2
 #, python-format
@@ -1816,7 +1773,7 @@ msgid ""
 "%(mentor_name)s has accepted to mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s hat zugestimmt, Sie zu betreuen\n"
+"%(mentor_name)s on nõustunud teid juhendama\n"
 
 #: apps/skills/templates/mentor_response_pending/mail.html:10
 #, python-format
@@ -1826,8 +1783,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s benötigt weitere Informationen, um Sie in %(skill)s zu "
-"betreuen.\n"
+"            %(user)s vajab lisateavet, et teid %(skill)s valdkonnas "
+"juhendada.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_pending/mail.html:19
@@ -1840,8 +1797,8 @@ msgid ""
 "            "
 msgstr ""
 "    \n"
-"            %(user)s hat folgende Nachricht hinterlassen. Sie können sie "
-"unter %(email)s kontaktieren.\n"
+"            %(user)s on jätnud järgmise sõnumi. Saate nendega ühendust võtta "
+"aadressil %(email)s.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_pending/mail.txt:2
@@ -1857,14 +1814,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s benötigt weitere Informationen, um Sie in %(skill)s zu betreuen.\n"
-"\n"
-"%(user)s hat folgende Nachricht hinterlassen. Sie können sie unter %(email)s "
-"kontaktieren.\n"
+"%(user)s vajab lisateavet, et teid juhendada %(skill)s valdkonnas.\n"
+" \n"
+"%(user)s on jätnud järgmise sõnumi. Saate nendega ühendust võtta aadressil "
+"%(email)s.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten an %(user)s: %(email)s\n"
+"Vasta kasutajale %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentor_response_pending/object.txt:2
 #: apps/skills/templates/mentoree_response_pending/object.txt:2
@@ -1874,7 +1831,7 @@ msgid ""
 "%(mentor_name)s needs more information on mentoring\n"
 msgstr ""
 "\n"
-"%(mentor_name)s benötigt weitere Informationen zum Mentoring\n"
+"%(mentor_name)s vajab mentorluse kohta lisateavet\n"
 
 #: apps/skills/templates/mentor_response_rejected/mail.html:10
 #, python-format
@@ -1884,7 +1841,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s kann Sie in %(skill)s nicht betreuen!\n"
+"            %(user)s ei saa teid juhendada %(skill)s valdkonnas!\n"
 "            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.html:19
@@ -1895,7 +1852,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Leider kann %(user)s Sie in %(skill)s nicht betreuen.\n"
+"            Kahjuks ei saa %(user)s teid juhendada %(skill)s valdkonnas.\n"
 "            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.txt:2
@@ -1909,9 +1866,9 @@ msgid ""
 "%(content)s\n"
 msgstr ""
 "\n"
-"%(user)s kann Sie in %(skill)s nicht betreuen!\n"
+"%(user)s ei saa teid juhendada %(skill)s valdkonnas!\n"
 "\n"
-"Leider wird %(user)s Sie nicht betreuen können.\n"
+"Kahjuks ei saa %(user)s teid juhendada.\n"
 "\n"
 "%(content)s\n"
 
@@ -1922,7 +1879,7 @@ msgid ""
 "%(mentor_name)s can't mentor you\n"
 msgstr ""
 "\n"
-"%(mentor_name)s kann Sie nicht betreuen\n"
+"%(mentor_name)s ei saa teid juhendada\n"
 
 #: apps/skills/templates/mentoree_response_accepted/mail.html:10
 #, python-format
@@ -1932,7 +1889,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s hat zugestimmt, Ihr Mentee in %(skill)s zu sein!\n"
+"            %(user)s on nõustunud olema teie juhendatav %(skill)s "
+"valdkonnas!\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_accepted/mail.html:19
@@ -1944,8 +1902,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Gute Nachrichten, %(user)s hat zugestimmt, Ihr Mentee zu sein. "
-"Sie können sie unter %(email)s kontaktieren.\n"
+"            Hea uudis, %(user)s on nõustunud olema teie juhendatav. Saate "
+"nendega ühendust võtta aadressil %(email)s.\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_accepted/mail.txt:2
@@ -1962,14 +1920,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s hat zugestimmt, Ihr Mentee in %(skill)s zu sein!\n"
+"%(user)s on nõustunud olema teie juhendatav %(skill)s valdkonnas!\n"
 "\n"
-"Gute Nachrichten, %(user)s hat zugestimmt, Ihr Mentee zu sein. Sie können "
-"sie unter %(email)s kontaktieren.\n"
+"Hea uudis, %(user)s on nõustunud olema teie juhendatav. Saate nendega "
+"ühendust võtta aadressil %(email)s.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten an %(user)s: %(email)s\n"
+"Vasta kasutajale %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentoree_response_accepted/object.txt:2
 #, python-format
@@ -1978,7 +1936,7 @@ msgid ""
 "%(mentor_name)s has accepted to be your mentoree\n"
 msgstr ""
 "\n"
-"%(mentor_name)s hat zugestimmt, Ihr Mentee zu sein\n"
+"%(mentor_name)s on nõustunud olema teie juhendatav\n"
 
 #: apps/skills/templates/mentoree_response_pending/mail.html:10
 #, python-format
@@ -1989,8 +1947,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s benötigt weitere Informationen, um Ihr Mentee in "
-"%(skill)s zu sein.\n"
+"            %(user)s vajab lisateavet, et olla teie juhendatav %(skill)s "
+"valdkonnas.\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_pending/mail.txt:2
@@ -2006,15 +1964,14 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s benötigt weitere Informationen, um Ihr Mentee in %(skill)s zu "
-"sein.\n"
-"\n"
-"%(user)s hat folgende Nachricht hinterlassen. Sie können sie unter %(email)s "
-"kontaktieren.\n"
+"%(user)s vajab lisateavet, et olla teie juhendatav %(skill)s valdkonnas.\n"
+" \n"
+"%(user)s on jätnud järgmise sõnumi. Saate nendega ühendust võtta aadressil "
+"%(email)s.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten an %(user)s: %(email)s\n"
+"Vasta kasutajale %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentoree_response_rejected/mail.html:10
 #, python-format
@@ -2024,7 +1981,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s kann nicht Ihr Mentee in %(skill)s sein!\n"
+"            %(user)s ei saa olla teie juhendatav %(skill)s valdkonnas!\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_rejected/mail.html:19
@@ -2035,7 +1992,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Leider kann %(user)s nicht Ihr Mentee in %(skill)s sein.\n"
+"            Kahjuks ei saa %(user)s olla teie juhendatav %(skill)s "
+"valdkonnas.\n"
 "            "
 
 #: apps/skills/templates/mentoree_response_rejected/mail.txt:2
@@ -2049,9 +2007,9 @@ msgid ""
 "%(content)s\n"
 msgstr ""
 "\n"
-"%(user)s kann nicht Ihr Mentee in %(skill)s sein!\n"
+"%(user)s ei saa olla teie juhendatav %(skill)s valdkonnas!\n"
 "\n"
-"Leider wird %(user)s nicht Ihr Mentee sein können.\n"
+"Kahjuks ei saa %(user)s olla teie juhendatav.\n"
 "\n"
 "%(content)s\n"
 
@@ -2062,7 +2020,7 @@ msgid ""
 "%(mentor_name)s can't be your mentoree\n"
 msgstr ""
 "\n"
-"%(mentor_name)s kann nicht Ihr Mentee sein\n"
+"%(mentor_name)s ei saa olla teie juhendatav\n"
 
 #: apps/skills/templates/mentorship_base.html:55
 msgid ""
@@ -2071,7 +2029,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Mentoring-Leitfaden: Ratschläge für Mentoren und Mentees\n"
+"          Mentorluse juhend: nõuanded mentoritele ja juhendatavatele\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:60
@@ -2085,11 +2043,11 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Liebe Mentorinnen und Mentoren, liebe Mentees, 👩‍🏫👨‍🎓\n"
+"          Kallid Mentorid ja Juhendatavad, 👩‍🏫👨‍🎓\n"
 "          <br/>\n"
-"          Zunächst einmal möchte das Projekt-Team Ihnen herzlich zu Ihrem "
-"Beginn der Mentoring-Reise gratulieren. Sie wird sicherlich mit spannenden "
-"Entdeckungen und Erfolgen gefüllt sein!\n"
+"          Kõigepealt soovib Projektide meeskond teid südamest õnnitleda "
+"mentorluseteekonna alustamise puhul. See on kindlasti täis põnevaid avastusi "
+"ja saavutusi!\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:67
@@ -2099,7 +2057,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🌟 Erste Schritte\n"
+"          🌟 Alustamiseks\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:72
@@ -2110,8 +2068,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Wir empfehlen Ihnen, sich dieses Video anzusehen, um mehr über die "
-"Rollen von Mentor und Mentee zu erfahren.\n"
+"          Soovitame teil vaadata seda videot, et saada rohkem teavet nii "
+"mentori kui ka juhendatava rollide kohta.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:76
@@ -2126,7 +2084,7 @@ msgstr ""
 "\n"
 "        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
 "watch?v=T_iGnufU1kY\">\n"
-"          Video ansehen\n"
+"          Vaata videot\n"
 "        </mj-button>\n"
 "        "
 
@@ -2137,7 +2095,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Kurz gesagt:\n"
+"          Lühidalt:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:87
@@ -2156,16 +2114,15 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          - <strong>Ein Mentor</strong> dient als unterstützende Anleitung, "
-"die <strong>aufmerksam zuhört, durchdachte Fragen stellt und Orientierung "
-"bietet, ohne Entscheidungen zu diktieren.</strong> Durch die Förderung einer "
-"vertrauensvollen Umgebung, die offene Kommunikation fördert, unterstützt der "
-"Mentor den Mentee bei seinen Fortschritten.\n"
+"          - <strong>Mentor</strong> on toetav juhendaja, kes <strong>kuulab "
+"tähelepanelikult, esitab läbimõeldud küsimusi ja pakub suuniseid otsuseid "
+"dikteerimata.</strong> Edendades usaldusväärset keskkonda, mis soodustab "
+"avatud suhtlust, aitab mentor juhendataval edasi liikuda.\n"
 "          <br/>\n"
-"          - <strong>Für Mentees</strong> ist es entscheidend, Ihre "
-"<strong>Bedürfnisse und Ziele klar zu definieren</strong>. Sie sind "
-"<strong>der Hauptakteur Ihrer eigenen Entwicklung</strong> und wenden die "
-"Anleitung Ihres Mentors an, um Ihre Ziele zu erreichen.\n"
+"          - <strong>Juhendatavatele</strong> on oluline selgelt "
+"<strong>määratleda oma vajadused ja eesmärgid</strong>. Olete <strong>oma "
+"arengu peamine tegija</strong>, rakendades oma mentori juhiseid oma "
+"eesmärkide saavutamiseks.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:95
@@ -2175,7 +2132,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📅 Mentoring-Strukturen:\n"
+"          📅 Mentorluse struktuurid:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:100
@@ -2187,9 +2144,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Hier sind einige Vorschläge für die Struktur Ihrer Mentoring-"
-"Sitzungen. Gestalten Sie sie nach Ihren Bedürfnissen und passen Sie jedes "
-"Treffen an die Bedürfnisse und Verfügbarkeit aller Beteiligten an.\n"
+"          Siin on mõned soovituslikud struktuurid teie mentorlusseansside "
+"jaoks. Kohandage neid vastavalt oma vajadustele ja kohandage iga kohtumist "
+"vastavalt kõigi osalejate vajadustele ja saadavusele.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:105
@@ -2201,9 +2158,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Einzelne Sitzung</strong>: Ideal für einen schnellen, "
-"einstündigen Impuls. Dies könnte Feedback zu einem Projekt, Hilfe bei einer "
-"wichtigen Entscheidung oder spezifische Ratschläge umfassen.\n"
+"          🔹 <strong>Üks seanss</strong>: Ideaalne kiireks, ühe tunni "
+"pikkuseks impulsi andmiseks. See võib olla projekti tagasiside, abi olulise "
+"otsuse tegemisel või spetsiifiline nõuanne.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:110
@@ -2214,8 +2171,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Drei einstündige Sitzungen</strong>: Ideal, um tiefer "
-"in ein Problem einzutauchen. Hier ist eine mögliche Aufschlüsselung:\n"
+"          🔹 <strong>Kolm ühetunnist seanssi</strong>: Suurepärane "
+"probleemidesse süvenemiseks. Siin on võimalik jaotus:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:115
@@ -2226,8 +2183,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 👂 <strong>Sitzung 1</strong>: Das Problem verstehen und "
-"erste Vorschläge machen.\n"
+"              - 👂 <strong>Seanss 1</strong>: Mõistke probleemi ja andke "
+"esialgsed soovitused.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:120
@@ -2238,8 +2195,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 📚 <strong>Sitzung 2</strong>: Gemeinsam Forschung "
-"austauschen und eindeutige Ziele definieren.\n"
+"              - 📚 <strong>Seanss 2</strong>: Jagage uuringuid ja seadke "
+"selged eesmärgid.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:125
@@ -2250,8 +2207,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🌟 <strong>Sitzung 3</strong>: Fortschritt überprüfen und "
-"den Ansatz anpassen.\n"
+"              - 🌟 <strong>Seanss 3</strong>: Vaadake üle edusammud ja "
+"kohandage lähenemist.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:130
@@ -2262,9 +2219,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Langjähriges Mentoring (2 Stunden/Monat)</strong>: "
-"Perfekt für langfristige Begleitung. Eine typische Sitzung könnte so "
-"aussehen:\n"
+"          🔹 <strong>Aastane mentorlus (2 tundi kuus)</strong>: Ideaalne "
+"pikaajaliseks juhendamiseks. Tüüpiline seanss võib välja näha järgmine:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:135
@@ -2275,8 +2231,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🏅 <strong>Fortschrittskontrolle</strong>: Erfolge und neue "
-"Herausforderungen besprechen.\n"
+"              - 🏅 <strong>Edusammude ülevaade</strong>: Arutage saavutusi "
+"ja uusi väljakutseid.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:140
@@ -2287,8 +2243,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🎯 <strong>Ziele</strong>: 2-3 Ziele festlegen, an denen bis "
-"zur nächsten Sitzung gearbeitet werden soll.\n"
+"              - 🎯 <strong>Eesmärgid</strong>: Seadke 2-3 eesmärki, millega "
+"tegeleda enne järgmist seanssi.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:145
@@ -2299,8 +2255,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 📖 <strong>Ressourcen</strong>: Hilfreiche Inhalte (Videos, "
-"Artikel usw.) teilen, die zwischen den Sitzungen erkundet werden können.\n"
+"              - 📖 <strong>Ressursid</strong>: Jagage kasulikku sisu "
+"(videod, artiklid jne), mida seansside vahel uurida.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:150
@@ -2311,8 +2267,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"              - 🗓️ <strong>Nächste Sitzung</strong>: Das nächste Treffen "
-"planen.\n"
+"              - 🗓️ <strong>Järgmine seanss</strong>: Planeerige eelseisev "
+"kohtumine.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:156
@@ -2322,7 +2278,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          ✅ Tipps für erfolgreiches Mentoring:\n"
+"          ✅ Nõuanded eduka mentorluse jaoks:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:161
@@ -2334,9 +2290,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📝 <strong>Bereiten Sie sich auf jede Sitzung vor:</strong> Denken "
-"Sie über die Themen nach, die Sie besprechen möchten, die Ziele, die Sie "
-"erreichen wollen, und alle Fragen, die Sie haben.\n"
+"          📝 <strong>Valmistuge igaks seansiks:</strong> Mõelge teemadele, "
+"mida soovite arutada, eesmärkidele, mida soovite saavutada, ja kõikidele "
+"küsimustele, mis teil on.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:166
@@ -2347,8 +2303,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🤝 <strong>Seien Sie offen und ehrlich:</strong> Vertrauensaufbau "
-"erfordert Transparenz.\n"
+"          🤝 <strong>Ole avatud ja aus:</strong> Usalduse loomine nõuab "
+"läbipaistvust.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:171
@@ -2359,9 +2315,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          👂 <strong>Üben Sie aktives Zuhören:</strong> Stellen Sie Fragen "
-"und formulieren Sie um, um sicherzustellen, dass Sie alles verstanden "
-"haben.\n"
+"          👂 <strong>Harjutage aktiivset kuulamist:</strong> Esitage "
+"küsimusi ja sõnastage ümber, et veenduda oma arusaamises.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:176
@@ -2371,7 +2326,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🎯 <strong>Setzen Sie klare Ziele</strong> nach jeder Sitzung.\n"
+"          🎯 <strong>Seadke selged eesmärgid</strong> pärast iga seanssi.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:181
@@ -2382,8 +2337,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📬 <strong>Teilen Sie nützliche Ressourcen</strong> zwischen den "
-"Treffen, um das Lernen zu erhöhen.\n"
+"          📬 <strong>Jagage kasulikke ressursse</strong> kohtumiste vahel, "
+"et õppimist edendada.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:186
@@ -2394,8 +2349,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📆 <strong>Planen Sie immer die nächste Sitzung</strong>, um den "
-"Fortschritt aufrechtzuerhalten.\n"
+"          📆 <strong>Planeerige alati järgmine seanss</strong>, et hoida "
+"edusamme.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:192
@@ -2410,12 +2365,12 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          Wir hoffen, diese Tipps helfen Ihnen, Ihre Mentoring-Erfahrung "
-"besser zu gestalten! Vielen Dank an alle und viel Erfolg beim Mentoring ✨\n"
+"          Loodame, et need näpunäited aitavad teil paremini oma "
+"mentorluskogemust hallata! Aitäh teile kõigile ja head mentorlust ✨\n"
 "          <br/>\n"
-"          Mit freundlichen Grüßen,\n"
+"          Parimate soovidega,\n"
 "          <br/>\n"
-"          Das Projekt-Team\n"
+"          Projektide meeskond\n"
 "          "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.html:10
@@ -2426,7 +2381,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Können Sie mich in %(skill)s betreuen? (letzte Erinnerung)\n"
+"            Kas saate mind juhendada %(skill)s valdkonnas? (viimane "
+"meeldetuletus)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.html:19
@@ -2439,8 +2395,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Dies ist die letzte Erinnerung an die Nachricht, die %(user)s "
-"für Sie auf der Projekt-Plattform hinterlassen hat.\n"
+"            See on viimane kord, kui jagame seda sõnumit, mille %(user)s on "
+"teile Projektide platvormil jätnud.\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.txt:2
@@ -2457,14 +2413,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Können Sie mich in %(skill)s betreuen? (letzte Erinnerung)\n"
+"Kas saate mind juhendada %(skill)s valdkonnas? (viimane meeldetuletus)\n"
 "\n"
-"Dies ist die letzte Erinnerung an die Nachricht, die %(user)s für Sie auf "
-"der Projekt-Plattform hinterlassen hat.\n"
+"See on viimane kord, kui jagame seda sõnumit, mille %(user)s on teile "
+"Projektide platvormil jätnud.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Vasta: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentor_10_days/object.txt:2
 #, python-format
@@ -2473,7 +2429,7 @@ msgid ""
 "Can you mentor %(mentoree_name)s? (last reminder)\n"
 msgstr ""
 "\n"
-"Können Sie %(mentoree_name)s betreuen? (letzte Erinnerung)\n"
+"Kas saate juhendada %(mentoree_name)s? (viimane meeldetuletus)\n"
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.html:10
 #, python-format
@@ -2483,7 +2439,7 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Können Sie mich in %(skill)s betreuen? (Erinnerung)\n"
+"            Kas saate mind juhendada %(skill)s valdkonnas? (meeldetuletus)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.html:19
@@ -2496,9 +2452,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            %(user)s hat Ihnen eine Nachricht auf der Projekt-Plattform "
-"geschickt und es sieht so aus, als hätten Sie noch nicht geantwortet. Gute "
-"Nachricht, es ist noch nicht zu spät :)\n"
+"            %(user)s saatis teile sõnumi Projektide platvormil ja tundub, et "
+"te pole veel vastanud. Hea uudis, pole veel liiga hilja :)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.txt:2
@@ -2515,15 +2470,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Können Sie mich in %(skill)s betreuen? (Erinnerung)\n"
+"Kas saate mind juhendada %(skill)s valdkonnas? (meeldetuletus)\n"
 "\n"
-"%(user)s hat Ihnen eine Nachricht auf der Projekt-Plattform geschickt und es "
-"sieht so aus, als hätten Sie noch nicht geantwortet. Gute Nachricht, es ist "
-"noch nicht zu spät :)\n"
+"%(user)s saatis teile sõnumi Projektide platvormil ja tundub, et te pole "
+"veel vastanud. Hea uudis, pole veel liiga hilja :)\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Vasta: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentor_3_days/object.txt:2
 #, python-format
@@ -2532,7 +2486,7 @@ msgid ""
 "Can you mentor %(mentoree_name)s? (reminder)\n"
 msgstr ""
 "\n"
-"Können Sie %(mentoree_name)s betreuen? (Erinnerung)\n"
+"Kas saate juhendada %(mentoree_name)s? (meeldetuletus)\n"
 
 #: apps/skills/templates/reminder_mentoree_10_days/mail.html:10
 #, python-format
@@ -2542,7 +2496,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Möchten Sie in %(skill)s betreut werden? (letzte Erinnerung)\n"
+"            Kas soovite, et teid juhendataks %(skill)s valdkonnas? (viimane "
+"meeldetuletus)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentoree_10_days/mail.txt:2
@@ -2559,14 +2514,15 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Möchten Sie in %(skill)s betreut werden? (letzte Erinnerung)\n"
+"Kas soovite, et teid juhendataks %(skill)s valdkonnas? (viimane "
+"meeldetuletus)\n"
 "\n"
-"Dies ist die letzte Erinnerung an die Nachricht, die %(user)s für Sie auf "
-"der Projekt-Plattform hinterlassen hat.\n"
+"See on viimane kord, kui jagame seda sõnumit, mille %(user)s on teile "
+"Projektide platvormil jätnud.\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Vasta: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentoree_10_days/object.txt:2
 #, python-format
@@ -2575,7 +2531,8 @@ msgid ""
 "Do you want to be mentored in %(skill)s? (last reminder)\n"
 msgstr ""
 "\n"
-"Möchten Sie in %(skill)s betreut werden? (letzte Erinnerung)\n"
+"Kas soovite, et teid juhendataks %(skill)s valdkonnas? (viimane "
+"meeldetuletus)\n"
 
 #: apps/skills/templates/reminder_mentoree_3_days/mail.html:10
 #, python-format
@@ -2585,7 +2542,8 @@ msgid ""
 "            "
 msgstr ""
 "\n"
-"            Möchten Sie in %(skill)s betreut werden? (Erinnerung)\n"
+"            Kas soovite, et teid juhendataks %(skill)s valdkonnas? "
+"(meeldetuletus)\n"
 "            "
 
 #: apps/skills/templates/reminder_mentoree_3_days/mail.txt:2
@@ -2602,15 +2560,14 @@ msgid ""
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
 "\n"
-"Möchten Sie in %(skill)s betreut werden? (Erinnerung)\n"
+"Kas soovite, et teid juhendataks %(skill)s valdkonnas? (meeldetuletus)\n"
 "\n"
-"%(user)s hat Ihnen eine Nachricht auf der Projekt-Plattform geschickt und es "
-"sieht so aus, als hätten Sie noch nicht geantwortet. Gute Nachricht, es ist "
-"noch nicht zu spät :)\n"
+"%(user)s saatis teile sõnumi Projektide platvormil ja tundub, et te pole "
+"veel vastanud. Hea uudis, pole veel liiga hilja :)\n"
 "\n"
 "%(content)s\n"
 "\n"
-"Antworten: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+"Vasta: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentoree_3_days/object.txt:2
 #, python-format
@@ -2619,40 +2576,40 @@ msgid ""
 "Do you want to be mentored in %(skill)s? (reminder)\n"
 msgstr ""
 "\n"
-"Möchten Sie in %(skill)s betreut werden? (Erinnerung)\n"
+"Kas soovite, et teid juhendataks %(skill)s valdkonnas? (meeldetuletus)\n"
 
 #: services/google/exceptions.py:7
 msgid "This email is already used by another group"
-msgstr "Diese E-Mail wird bereits von einer anderen Gruppe verwendet"
+msgstr "See e-postiaadress on juba teise grupi poolt kasutusel"
 
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
-msgstr "Diese E-Mail wird bereits von einem anderen Benutzer verwendet"
+msgstr "See e-postiaadress on juba teise kasutaja poolt kasutusel"
 
 #: services/keycloak/exceptions.py:12
 msgid "Invalid user credentials"
-msgstr "Ungültige Benutzerdaten"
+msgstr "Kehtetud kasutaja mandaadid"
 
 #: services/keycloak/exceptions.py:21
 msgid "Given user does not have a keycloak account"
-msgstr "Der angegebene Benutzer hat kein Keycloak-Konto"
+msgstr "Antud kasutajal puudub Keycloaki konto"
 
 #: services/keycloak/exceptions.py:27
 msgid "No user was found with the given keycloak id"
-msgstr "Es wurde kein Benutzer mit der angegebenen Keycloak-ID gefunden"
+msgstr "Antud Keycloaki ID-ga kasutajat ei leitud"
 
 #: services/keycloak/exceptions.py:33
 msgid "The 'redirect_uri' parameter is mandatory"
-msgstr "Der Parameter 'redirect_uri' ist obligatorisch"
+msgstr "Parameeter 'redirect_uri' on kohustuslik"
 
 #: services/keycloak/exceptions.py:39
 msgid "The given email type is not valid"
-msgstr "Der angegebene E-Mail-Typ ist ungültig"
+msgstr "Antud e-posti tüüp ei ole kehtiv"
 
 #: services/keycloak/exceptions.py:44
 #, python-brace-format
 msgid "Email type '{email_type}' is not valid"
-msgstr "Der E-Mail-Typ „{email_type}“ ist ungültig"
+msgstr "E-posti tüüp '{email_type}' ei ole kehtiv"
 
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
@@ -2663,10 +2620,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Dein Projects-Konto wurde soeben erstellt. Du musst nur noch ein "
-"Passwort festlegen – dann kannst du Projects nutzen, eine Plattform zum "
-"Teilen von Projekten in deiner Organisation und zur Förderung von "
-"Zusammenarbeit für das Gemeinwohl.\n"
+"    Teie projektide konto on just loodud. Peate vaid valima parooli ja saate "
+"liituda Projektidega, platvormiga, et jagada projekte oma organisatsioonis "
+"ja edendada koostööd ühise heaolu nimel.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:18
@@ -2676,7 +2632,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Mein Passwort erstellen\n"
+"    Loo minu parool\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:23
@@ -2690,8 +2646,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
-"Sorgen zu machen und können sie einfach ignorieren.\n"
+"    Kui te ei ole seda e-kirja tellinud, siis ärge muretsege, võite selle "
+"rahulikult ignoreerida.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:28
@@ -2706,9 +2662,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. <a "
-"class=\"lpi-link\" href=\"%(refresh_link)s\">Klicken Sie hier</a>, um einen "
-"neuen Link anzufordern.\n"
+"    Link aegub %(expiration_date)s kell %(expiration_time)s. <a class=\"lpi-"
+"link\" href=\"%(refresh_link)s\">Klõpsake siin</a> uue lingi taotlemiseks.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.txt:2
@@ -2726,16 +2681,15 @@ msgid ""
 "nouveau lien en cliquant sur %(refresh_link)s.\n"
 msgstr ""
 "\n"
-"Willkommen im Projekt-Portal von %(organization_name)s, %(given_name)s!\n"
-"Ihr Projekt-Konto wurde soeben erstellt. Du musst nur noch ein Passwort "
-"festlegen – dann kannst du Projects nutzen, eine Plattform zum Teilen von "
-"Projekten in deiner Organisation und zur Förderung von Zusammenarbeit für "
-"das Gemeinwohl.\n"
-"Mein Passwort erstellen: %(link)s\n"
-"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
-"Sorgen zu machen und können sie einfach ignorieren.\n"
-"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. Fordern Sie "
-"einen neuen Link an, indem Sie auf %(refresh_link)s klicken.\n"
+"Tere tulemast %(organization_name)s projektide portaali, %(given_name)s!\n"
+"Teie projektide konto on just loodud. Peate vaid valima parooli ja saate "
+"liituda Projektidega, platvormiga, et jagada projekte oma organisatsioonis "
+"ja edendada koostööd ühise heaolu nimel.\n"
+"Loo minu parool: %(link)s\n"
+"Kui te ei ole seda e-kirja tellinud, siis ärge muretsege, võite selle "
+"rahulikult ignoreerida.\n"
+"Link aegub %(expiration_date)s kell %(expiration_time)s. Uue lingi saamiseks "
+"klõpsake %(refresh_link)s.\n"
 
 #: services/keycloak/templates/admin_created/object.txt:2
 #, python-format
@@ -2744,7 +2698,7 @@ msgid ""
 "Welcome to your new %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Willkommen auf Ihrer neuen %(org_name)s Projekt-Plattform\n"
+"Tere tulemast teie uuele %(org_name)s Projektide platvormile\n"
 
 #: services/keycloak/templates/force_reset_password/mail.html:8
 #, python-format
@@ -2755,8 +2709,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Für Ihr %(organization_name)s Projekt-Konto wurde eine Anfrage zum "
-"Zurücksetzen Ihres Passworts gestellt.\n"
+"    Teie %(organization_name)s Projektide konto jaoks on esitatud parooli "
+"lähtestamise taotlus.\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:13
@@ -2768,9 +2722,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Jemand hat angefordert, dass wir Ihr Passwort ändern. Wenn Sie das "
-"waren, klicken Sie auf den untenstehenden Link, um Ihr Passwort zu "
-"aktualisieren.\n"
+"    Keegi palus, et me teie parooli muudaksime. Kui see olite teie, siis "
+"klõpsake alloleval lingil, et oma parooli uuendada.\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:18
@@ -2781,7 +2734,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Passwort aktualisieren\n"
+"    Uuenda parool\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.txt:2
@@ -2799,15 +2752,15 @@ msgid ""
 "%(refresh_link)s to request a new link.\n"
 msgstr ""
 "\n"
-"Für Ihr %(organization_name)s Projekt-Konto wurde eine Anfrage zum "
-"Zurücksetzen Ihres Passworts gestellt.\n"
-"Jemand hat angefordert, dass wir Ihr Passwort ändern. Wenn Sie das waren, "
-"klicken Sie auf den untenstehenden Link, um Ihr Passwort zu aktualisieren.\n"
-"Passwort aktualisieren: %(link.link)s\n"
-"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
-"Sorgen zu machen und können sie einfach ignorieren.\n"
-"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. Klicken Sie "
-"auf %(refresh_link)s, um einen neuen Link anzufordern.\n"
+"Teie %(organization_name)s Projektide konto jaoks on esitatud parooli "
+"lähtestamise taotlus.\n"
+"Keegi palus, et me teie parooli muudaksime. Kui see olite teie, siis "
+"klõpsake alloleval lingil, et oma parooli uuendada.\n"
+"Uuenda parool: %(link.link)s\n"
+"Kui te seda e-kirja ei tellinud, pole vaja muretseda, võite selle rahulikult "
+"ignoreerida.\n"
+"Link aegub %(expiration_date)s kell %(expiration_time)s. Uue lingi "
+"taotlemiseks klõpsake %(refresh_link)s.\n"
 
 #: services/keycloak/templates/force_reset_password/object.txt:2
 #, python-format
@@ -2816,7 +2769,7 @@ msgid ""
 "Update your %(org_name)s Projects password\n"
 msgstr ""
 "\n"
-"Aktualisieren Sie Ihr %(org_name)s Projekt-Passwort\n"
+"Uuenda oma %(org_name)s Projektide parooli\n"
 
 #: services/keycloak/templates/invitation/mail.html:8
 #, python-format
@@ -2827,8 +2780,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Bestätigen Sie Ihre E-Mail-Adresse, um auf dem Projekt-Portal von "
-"%(organization_name)s loszulegen.\n"
+"    Kinnitage oma e-posti aadress, et alustada tööd %(organization_name)s "
+"projektide portaalis.\n"
 "    "
 
 #: services/keycloak/templates/invitation/mail.html:13
@@ -2840,8 +2793,8 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Sobald Sie bestätigt haben, dass <strong>%(contact_email)s</strong> Ihre "
-"Adresse ist, helfen wir Ihnen beim Einstieg in die Plattform.\n"
+"    Kui olete kinnitanud, et <strong>%(contact_email)s</strong> on teie "
+"aadress, aitame teil platvormiga alustada.\n"
 "    "
 
 #: services/keycloak/templates/invitation/mail.html:18
@@ -2851,7 +2804,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    E-Mail-Adresse bestätigen\n"
+"    Kinnita e-posti aadress\n"
 "    "
 
 #: services/keycloak/templates/invitation/mail.txt:2
@@ -2869,15 +2822,15 @@ msgid ""
 "%(refresh_link)s to request a new link.\n"
 msgstr ""
 "\n"
-"Bestätigen Sie Ihre E-Mail-Adresse, um auf dem Projekt-Portal von "
-"%(organization_name)s loszulegen.\n"
-"Sobald Sie bestätigt haben, dass <strong>%(contact_email)s</strong> Ihre "
-"Adresse ist, helfen wir Ihnen beim Einstieg in die Plattform.\n"
-"E-Mail-Adresse bestätigen: %(link)s\n"
-"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
-"Sorgen zu machen und können sie einfach ignorieren.\n"
-"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab. Klicken Sie "
-"auf %(refresh_link)s, um einen neuen Link anzufordern.\n"
+"Kinnita oma e-posti aadress, et alustada tööd %(organization_name)s "
+"projektide portaalis.\n"
+"Kui olete kinnitanud, et <strong>%(contact_email)s</strong> on teie aadress, "
+"aitame teil platvormiga alustada.\n"
+"Kinnita e-posti aadress: %(link)s\n"
+"Kui te seda e-kirja ei tellinud, pole vaja muretseda, võite selle rahulikult "
+"ignoreerida.\n"
+"Link aegub %(expiration_date)s kell %(expiration_time)s. Uue lingi "
+"taotlemiseks klõpsake %(refresh_link)s.\n"
 
 #: services/keycloak/templates/invitation/object.txt:2
 #, python-format
@@ -2886,8 +2839,7 @@ msgid ""
 "Confirm your email address to get started on %(org_name)s Projects\n"
 msgstr ""
 "\n"
-"Bestätigen Sie Ihre E-Mail-Adresse, um mit %(org_name)s Projekten zu "
-"starten\n"
+"Kinnita oma e-posti aadress, et alustada tööd %(org_name)s Projektides\n"
 
 #: services/keycloak/templates/reset_password/mail.html:8
 msgid ""
@@ -2897,8 +2849,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Für Ihr Projekt-Konto wurde eine Anfrage zum Zurücksetzen Ihres "
-"Passworts gestellt.\n"
+"    Teie Projektide konto jaoks on esitatud parooli lähtestamise taotlus.\n"
 "    "
 
 #: services/keycloak/templates/reset_password/mail.html:28
@@ -2909,7 +2860,7 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Der Link läuft am %(expiration_date)s um %(expiration_time)s ab.\n"
+"    Link aegub %(expiration_date)s kell %(expiration_time)s.\n"
 "    "
 
 #: services/keycloak/templates/reset_password/mail.txt:2
@@ -2925,14 +2876,13 @@ msgid ""
 "Link expires on %(expiration_date)s at %(expiration_time)s.\n"
 msgstr ""
 "\n"
-"Für Ihr Projekt-Konto wurde eine Anfrage zum Zurücksetzen Ihres Passworts "
-"gestellt.\n"
-"Jemand hat angefordert, dass wir Ihr Passwort ändern. Wenn Sie das waren, "
-"klicken Sie auf den untenstehenden Link, um Ihr Passwort zu aktualisieren.\n"
-"Passwort aktualisieren: %(link.link)s\n"
-"Wenn Sie diese E-Mail nicht angefordert haben, brauchen Sie sich keine "
-"Sorgen zu machen und können sie einfach ignorieren.\n"
-"Der Link läuft am %(expiration_date)s um %(expiration_time)s ab.\n"
+"Teie Projektide konto jaoks on esitatud parooli lähtestamise taotlus.\n"
+"Keegi palus, et me teie parooli muudaksime. Kui see olite teie, siis "
+"klõpsake alloleval lingil, et oma parooli uuendada.\n"
+"Uuenda parool: %(link.link)s\n"
+"Kui te seda e-kirja ei tellinud, pole vaja muretseda, võite selle rahulikult "
+"ignoreerida.\n"
+"Link aegub %(expiration_date)s kell %(expiration_time)s.\n"
 
 #: services/keycloak/templates/reset_password/object.txt:2
 msgid ""
@@ -2940,27 +2890,26 @@ msgid ""
 "Update your Projects password\n"
 msgstr ""
 "\n"
-"Aktualisieren Sie Ihr Projekt-Passwort\n"
+"Uuenda oma Projektide parooli\n"
 
 #: services/mistral/exceptions.py:10
 msgid "The given queryset does not match the related model"
-msgstr ""
-"Das angegebene Queryset stimmt nicht mit dem zugehörigen Modell überein"
+msgstr "Antud päringu tulemus ei vasta seotud mudelile"
 
 #: services/wikipedia/exceptions.py:12
 msgid "Wikipedia API error"
-msgstr "Wikipedia API-Fehler"
+msgstr "Wikipedia API viga"
 
 #: services/wikipedia/exceptions.py:17
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
-msgstr "Die Wikipedia-API gab {status_code} zurück"
+msgstr "Wikipedia API tagastas {status_code}"
 
 #: services/wikipedia/exceptions.py:26
 msgid "Language is not supported"
-msgstr "Diese Sprache wird nicht unterstützt"
+msgstr "Keel ei ole toetatud"
 
 #: services/wikipedia/exceptions.py:31
 #, python-brace-format
 msgid "Language {language} is not supported"
-msgstr "Die Sprache {language} wird nicht unterstützt"
+msgstr "Keel {language} ei ole toetatud"

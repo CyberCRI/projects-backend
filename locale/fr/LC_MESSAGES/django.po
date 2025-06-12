@@ -602,13 +602,7 @@ msgstr ""
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:18
-#, fuzzy, python-format
-#| msgid ""
-#| "\n"
-#| "          %(full_name)s added the group %(group)s you are part of to the "
-#| "team of project <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
-#| "%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
-#| "          "
+#, python-format
 msgid ""
 "\n"
 "          %(full_name)s added the group %(group_name)s you are part of to "
@@ -617,7 +611,7 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a ajouté le groupe %(group)s dont vous faites partie "
+"          %(full_name)s a ajouté le groupe %(group_name)s dont vous faites partie "
 "à l'équipe du projet <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
 "%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
 "          "

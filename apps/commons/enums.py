@@ -9,6 +9,9 @@ class Language(models.TextChoices):
     EN = "en", "English"
     FR = "fr", "Français"
     DE = "de", "Deutsch"
+    NL = "nl", "Dutch"
+    ET = "et", "Estonian"
+    CA = "ca", "Catalan"
 
     @staticmethod
     def default():
