@@ -242,12 +242,9 @@ msgid "The file you are trying to upload is already attached to this project"
 msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
 
 #: apps/files/exceptions.py:22
-#, fuzzy
-#| msgid ""
-#| "The file you are trying to upload is already attached to this project"
 msgid ""
 "The file you are trying to upload is already attached to this organization"
-msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
+msgstr "Le fichier que vous essayez d'attacher est déjà lié à cette organisation"
 
 #: apps/files/exceptions.py:30
 msgid "The link you are trying to attach is already attached to this project"

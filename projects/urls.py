@@ -50,14 +50,13 @@ router.extend(accounts_router)
 router.extend(analytics_router)
 router.extend(announcements_router)
 router.extend(files_router)
-router.extend(projects_router)
-
-
-router.extend(notifications_router)
-router.extend(search_router)
-router.extend(mistral_router)
 router.extend(newsfeed_router)
+router.extend(notifications_router)
+router.extend(projects_router)
+router.extend(search_router)
 router.extend(skills_router)
+router.extend(mistral_router)
+
 
 urlpatterns_v1 = [
     path("", include(router.urls)),

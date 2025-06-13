@@ -240,12 +240,9 @@ msgid "The file you are trying to upload is already attached to this project"
 msgstr "El fitxer que intentes pujar ja està adjuntat a aquest projecte"
 
 #: apps/files/exceptions.py:22
-#, fuzzy
-#| msgid ""
-#| "The file you are trying to upload is already attached to this project"
 msgid ""
 "The file you are trying to upload is already attached to this organization"
-msgstr "El fitxer que intentes pujar ja està adjuntat a aquest projecte"
+msgstr "El fitxer que intentes pujar ja està adjuntat a aquest organització"
 
 #: apps/files/exceptions.py:30
 msgid "The link you are trying to attach is already attached to this project"
