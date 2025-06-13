@@ -29,8 +29,8 @@ from apps.accounts.urls import router as accounts_router
 from apps.analytics.urls import router as analytics_router
 from apps.announcements.urls import router as announcements_router
 from apps.commons.urls import ExtendedRouter, OneToOneExtendedRouter
-from apps.files.urls import router as files_router
 from apps.emailing.urls import router as emailing_router
+from apps.files.urls import router as files_router
 from apps.newsfeed.urls import router as newsfeed_router
 from apps.notifications.urls import router as notifications_router
 from apps.organizations.urls import one_to_one_router as organizations_one_to_one_router
