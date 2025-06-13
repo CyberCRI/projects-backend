@@ -1,4 +1,4 @@
-from rest_framework_nested.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register, project_router_register
 from apps.files.views import (
@@ -7,7 +7,7 @@ from apps.files.views import (
     OrganizationAttachmentFileViewSet,
 )
 
-router = SimpleRouter()
+router = DefaultRouter()
 
 organization_router_register(
     router,
