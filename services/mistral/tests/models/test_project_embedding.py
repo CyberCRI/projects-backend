@@ -46,8 +46,8 @@ class VectorizeProjectTestCase(JwtAPITestCase, MistralTestCaseMixin):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_with_description(self, mocked_embeddings, mocked_chat):
         project = ProjectFactory(
             description=faker.text(), organizations=[self.organization]
@@ -62,8 +62,8 @@ class VectorizeProjectTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(embedding.embedding, vector)
         self.assertNotEqual(embedding.prompt_hashcode, "")
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_with_blog_entries(self, mocked_embeddings, mocked_chat):
         project = ProjectFactory(description="", organizations=[self.organization])
         embedding = ProjectEmbeddingFactory(item=project)
@@ -77,8 +77,8 @@ class VectorizeProjectTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(embedding.embedding, vector)
         self.assertNotEqual(embedding.prompt_hashcode, "")
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_vectorize_not_visible(self, mocked_embeddings, mocked_chat):
         project = ProjectFactory(description="", organizations=[self.organization])
         embedding = ProjectEmbeddingFactory(item=project)

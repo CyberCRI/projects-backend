@@ -49,8 +49,8 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_user_embedding(self, mocked_embeddings, mocked_chat):
         project_1 = ProjectFactory(organizations=[self.organization])
         project_2 = ProjectFactory(organizations=[self.organization])
