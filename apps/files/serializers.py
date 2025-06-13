@@ -23,9 +23,16 @@ from .exceptions import (
     ChangeLinkProjectError,
     DuplicatedFileError,
     DuplicatedLinkError,
+    DuplicatedOrganizationFileError,
     FileTooLargeError,
 )
-from .models import AttachmentFile, AttachmentLink, AttachmentType, Image
+from .models import (
+    AttachmentFile,
+    AttachmentLink,
+    AttachmentType,
+    Image,
+    OrganizationAttachmentFile,
+)
 
 
 # From https://github.com/glemmaPaul/django-stdimage-serializer (however the repo is not maintained anymore)
@@ -214,6 +221,50 @@ class AttachmentLinkSerializer(
         if "project" in self.validated_data:
             return self.validated_data["project"].get_related_organizations()
         return []
+
+
+class OrganizationAttachmentFileSerializer(serializers.ModelSerializer):
+    file = serializers.FileField()
+    hashcode = serializers.CharField(write_only=True, required=False)
+
+    class Meta:
+        model = OrganizationAttachmentFile
+        fields = [
+            "id",
+            "file",
+            "title",
+            "description",
+            "attachment_type",
+            "mime",
+            "hashcode",
+        ]
+
+    def to_internal_value(self, data):
+        if "file" in data:
+            file = data["file"]
+            data["hashcode"] = hashlib.sha256(file.read()).hexdigest()
+            file.seek(0)  # Reset file position so it starts at 0
+        elif "hashcode" in data:
+            del data["hashcode"]
+        return super().to_internal_value(data)
+
+    def validate_hashcode(self, hashcode: str):
+        organization_code = self.context.get("organization_code", None)
+        if organization_code:
+            queryset = self.Meta.model.objects.filter(
+                organization__code=organization_code, hashcode=hashcode
+            )
+            if self.instance:
+                queryset = queryset.exclude(id=self.instance.id)
+            if queryset.exists():
+                raise DuplicatedOrganizationFileError
+        return hashcode
+
+    def validate_file(self, file):
+        limit = settings.MAX_FILE_SIZE * 1024 * 1024
+        if file.size > limit:
+            raise FileTooLargeError
+        return file
 
 
 class AttachmentFileSerializer(

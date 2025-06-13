@@ -8,7 +8,6 @@ from apps.feedbacks.views import (
     ProjectFollowViewSet,
     ReviewViewSet,
 )
-from apps.files.views import AttachmentFileViewSet, AttachmentLinkViewSet
 
 from .views import (
     BlogEntryImagesView,
@@ -38,15 +37,6 @@ project_router_register(
     r"history",
     HistoricalProjectViewSet,
     basename="Project-versions",
-)
-project_router_register(
-    router,
-    r"file",
-    AttachmentFileViewSet,
-    basename="AttachmentFile",
-)
-project_router_register(
-    router, r"link", AttachmentLinkViewSet, basename="AttachmentLink"
 )
 project_router_register(router, r"blog-entry", BlogEntryViewSet, basename="BlogEntry")
 project_router_register(

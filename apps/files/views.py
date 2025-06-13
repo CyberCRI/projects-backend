@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict
 from django.db import transaction
 from django.db.models import QuerySet
 from django.db.models.deletion import ProtectedError
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -15,17 +15,20 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
+from apps.commons.utils import map_action_to_permission
 from apps.commons.views import MultipleIDViewsetMixin
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
 
 from .exceptions import ProtectedImageError
-from .models import AttachmentFile, AttachmentLink, Image
+from .models import AttachmentFile, AttachmentLink, Image, OrganizationAttachmentFile
 from .serializers import (
     AttachmentFileSerializer,
     AttachmentLinkSerializer,
     ImageSerializer,
+    OrganizationAttachmentFileSerializer,
 )
 
 
@@ -52,6 +55,48 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             )
             return qs.filter(project=self.kwargs["project_id"])
         return AttachmentLink.objects.none()
+
+
+class OrganizationAttachmentFileViewSet(viewsets.ModelViewSet):
+    parser_classes = [MultiPartParser]
+    serializer_class = OrganizationAttachmentFileSerializer
+    filter_backends = [DjangoFilterBackend]
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "organizationattachmentfile")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "organizations")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def get_queryset(self) -> QuerySet:
+        if "organization_code" in self.kwargs:
+            return OrganizationAttachmentFile.objects.filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return OrganizationAttachmentFile.objects.none()
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
+
+    def perform_create(self, serializer):
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
+        serializer.save(organization=organization)
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        return redirect(instance.file.url)
 
 
 class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):

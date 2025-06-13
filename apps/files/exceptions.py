@@ -16,6 +16,14 @@ class DuplicatedFileError(ValidationError):
     default_code = "duplicated_file_error"
 
 
+class DuplicatedOrganizationFileError(ValidationError):
+    status_code = status.HTTP_400_BAD_REQUEST
+    default_detail = _(
+        "The file you are trying to upload is already attached to this organization"
+    )
+    default_code = "duplicated_organization_file_error"
+
+
 class DuplicatedLinkError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _(

@@ -4,6 +4,7 @@ import factory
 from django.core.files.uploadedfile import SimpleUploadedFile
 from faker import Faker
 
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 
 from .models import (
@@ -11,6 +12,7 @@ from .models import (
     AttachmentLink,
     AttachmentLinkCategory,
     AttachmentType,
+    OrganizationAttachmentFile,
 )
 
 faker = Faker()
@@ -22,6 +24,28 @@ def get_random_binary_file(size: int = 128) -> bytes:
         faker.binary(size),
         content_type="text/plain",
     )
+
+
+class OrganizationAttachmentFileFactory(factory.django.DjangoModelFactory):
+
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
+    attachment_type = AttachmentType.FILE
+    file = factory.django.FileField(
+        filename="file.dat", from_func=get_random_binary_file
+    )
+    mime = factory.Faker("text", max_nb_chars=100)
+    title = factory.Faker("text", max_nb_chars=255)
+
+    @factory.lazy_attribute
+    def hashcode(self):
+        hashcode = hashlib.sha256(self.file.read()).hexdigest()
+        self.file.seek(0)
+        return hashcode
+
+    class Meta:
+        model = OrganizationAttachmentFile
 
 
 class AttachmentFileFactory(factory.django.DjangoModelFactory):

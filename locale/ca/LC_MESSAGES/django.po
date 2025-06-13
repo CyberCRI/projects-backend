@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-04 17:37+0200\n"
+"POT-Creation-Date: 2025-06-13 11:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -216,8 +216,7 @@ msgstr "No tens permís per comentar en aquest projecte"
 #, python-brace-format
 msgid ""
 "You don't have the permission to comment on this project : {project_title}"
-msgstr ""
-"No tens permís per comentar en aquest projecte: {project_title}"
+msgstr "No tens permís per comentar en aquest projecte: {project_title}"
 
 #: apps/feedbacks/exceptions.py:28
 msgid "You don't have the permission to follow this project"
@@ -241,27 +240,33 @@ msgid "The file you are trying to upload is already attached to this project"
 msgstr "El fitxer que intentes pujar ja està adjuntat a aquest projecte"
 
 #: apps/files/exceptions.py:22
+msgid ""
+"The file you are trying to upload is already attached to this organization"
+msgstr "El fitxer que intentes pujar ja està adjuntat a aquest organització"
+
+#: apps/files/exceptions.py:30
 msgid "The link you are trying to attach is already attached to this project"
 msgstr "L'enllaç que intentes adjuntar ja està adjuntat a aquest projecte"
 
-#: apps/files/exceptions.py:30
+#: apps/files/exceptions.py:38
 #, python-brace-format
 msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-msgstr "Fitxer massa gran. La mida no ha de superar {settings.MAX_FILE_SIZE} MB"
+msgstr ""
+"Fitxer massa gran. La mida no ha de superar {settings.MAX_FILE_SIZE} MB"
 
-#: apps/files/exceptions.py:37
+#: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
 msgstr "No pots canviar el projecte d'un fitxer"
 
-#: apps/files/exceptions.py:43
+#: apps/files/exceptions.py:51
 msgid "You can't change the project of a link"
 msgstr "No pots canviar el projecte d'un enllaç"
 
-#: apps/files/exceptions.py:52
+#: apps/files/exceptions.py:60
 msgid "You can't delete this picture: It is related to another object"
 msgstr "No pots esborrar aquesta imatge: està relacionada amb un altre objecte"
 
-#: apps/files/exceptions.py:58
+#: apps/files/exceptions.py:66
 msgid ""
 "You can't delete this picture: It is related to an instance of "
 "{relation['model']} with pk={relation['pk']} through field "
@@ -535,16 +540,20 @@ msgid ""
 "declined\n"
 msgstr ""
 "\n"
-"La teva sol·licitud d'accés per a la plataforma de Projectes de "
-"%(org_name)s ha estat denegada\n"
+"La teva sol·licitud d'accés per a la plataforma de Projectes de %(org_name)s "
+"ha estat denegada\n"
 
 #: apps/newsfeed/exceptions.py:9
 msgid "The people groups of a news must belong to the same organization"
-msgstr "Els grups de persones d'una notícia han de pertànyer a la mateixa organització"
+msgstr ""
+"Els grups de persones d'una notícia han de pertànyer a la mateixa "
+"organització"
 
 #: apps/newsfeed/exceptions.py:17
 msgid "The people groups of an event must belong to the same organization"
-msgstr "Els grups de persones d'un esdeveniment han de pertànyer a la mateixa organització"
+msgstr ""
+"Els grups de persones d'un esdeveniment han de pertànyer a la mateixa "
+"organització"
 
 #: apps/newsfeed/exceptions.py:25
 msgid ""
@@ -612,8 +621,7 @@ msgstr ""
 "\n"
 "          %(full_name)s ha afegit el grup %(group_name)s del qual formes "
 "part a l'equip del projecte <a class=\"lpi-link\" href=\"%(website_url)s/"
-"projects/%(project_slug)s/summary?fromNotification\">%(project_title)s</a"
-">.\n"
+"projects/%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:28
@@ -840,8 +848,8 @@ msgid ""
 msgstr ""
 "\n"
 "          %(full_name)s t'ha donat drets de %(role)s al projecte <a "
-"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/"
-"summary?fromNotification\">%(project_title)s</a>.\n"
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/member_updated_self/mail.txt:2
@@ -851,8 +859,8 @@ msgid ""
 "%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
 msgstr ""
 "\n"
-"%(full_name)s t'ha donat drets de %(role)s al projecte \"%(project_title)s"
-"\".\n"
+"%(full_name)s t'ha donat drets de %(role)s al projecte "
+"\"%(project_title)s\".\n"
 
 #: apps/notifications/templates/member_updated_self/object.txt:2
 #, python-format
@@ -1027,8 +1035,8 @@ msgstr ""
 "Correu electrònic: %(email)s\n"
 "Títol: %(job)s\n"
 "Missatge:%(message)s\n"
-"Veure la <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests"
-"\">sol·licitud a la plataforma</a>.\n"
+"Veure la <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
+"requests\">sol·licitud a la plataforma</a>.\n"
 
 #: apps/notifications/templates/new_access_request/object.txt:2
 #, python-format
@@ -1037,8 +1045,7 @@ msgid ""
 "New access request for %(org_name)s Projects platform\n"
 msgstr ""
 "\n"
-"Nova sol·licitud d'accés per a la plataforma de projectes de "
-"%(org_name)s\n"
+"Nova sol·licitud d'accés per a la plataforma de projectes de %(org_name)s\n"
 
 #: apps/notifications/templates/new_announcement/reminder.txt:2
 #, python-format
@@ -1192,8 +1199,7 @@ msgstr[0] ""
 "%(full_name)s ha comentat el projecte %(project_title)s.\n"
 msgstr[1] ""
 "\n"
-"%(full_name)s ha afegit %(count)s comentaris al projecte "
-"%(project_title)s.\n"
+"%(full_name)s ha afegit %(count)s comentaris al projecte %(project_title)s.\n"
 
 #: apps/notifications/templates/new_instruction/mail.html:18
 msgid ""
@@ -1286,8 +1292,8 @@ msgid ""
 msgstr ""
 "\n"
 "          %(full_name)s ha respost al teu comentari al projecte <a "
-"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/"
-"summary?fromNotification\">%(project_title)s</a>.\n"
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/new_reply/mail.txt:2
@@ -1297,8 +1303,7 @@ msgid ""
 "%(full_name)s has replied on your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s ha respost al teu comentari al projecte "
-"%(project_title)s.\n"
+"%(full_name)s ha respost al teu comentari al projecte %(project_title)s.\n"
 
 #: apps/notifications/templates/new_reply/object.txt:2
 #, python-format
@@ -1307,8 +1312,7 @@ msgid ""
 "%(full_name)s replied to your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s ha respost al teu comentari al projecte "
-"%(project_title)s.\n"
+"%(full_name)s ha respost al teu comentari al projecte %(project_title)s.\n"
 
 #: apps/notifications/templates/new_review/mail.html:18
 #, python-format
@@ -1464,7 +1468,9 @@ msgstr "Estàs intentant crear un bucle a la jerarquia de la categoria"
 
 #: apps/organizations/exceptions.py:48
 msgid "You must choose a default tag classification that is enabled"
-msgstr "Has de triar una classificació d'etiquetes predeterminada que estigui activada"
+msgstr ""
+"Has de triar una classificació d'etiquetes predeterminada que estigui "
+"activada"
 
 #: apps/organizations/exceptions.py:54
 msgid "`is_locked` parameter is required"
@@ -1590,7 +1596,8 @@ msgstr "Només es poden actualitzar les etiquetes personalitzades"
 
 #: apps/skills/exceptions.py:51
 msgid "Only custom tags classifications can be updated"
-msgstr "Només es poden actualitzar les classificacions d'etiquetes personalitzades"
+msgstr ""
+"Només es poden actualitzar les classificacions d'etiquetes personalitzades"
 
 #: apps/skills/exceptions.py:57
 msgid "You can only search for 50 Wikipedia tags at a time"
@@ -1672,8 +1679,7 @@ msgstr ""
 "\n"
 "Em pots fer de mentor en %(skill)s?\n"
 "\n"
-"Aquí teniu el missatge que %(user)s ha deixat a la plataforma de Projectes:"
-"\n"
+"Aquí teniu el missatge que %(user)s ha deixat a la plataforma de Projectes:\n"
 "\n"
 "%(content)s\n"
 "\n"
@@ -1714,8 +1720,7 @@ msgstr ""
 "\n"
 "Vols ser mentoritzat en %(skill)s?\n"
 "\n"
-"Aquí teniu el missatge que %(user)s ha deixat a la plataforma de Projectes:"
-"\n"
+"Aquí teniu el missatge que %(user)s ha deixat a la plataforma de Projectes:\n"
 "\n"
 "%(content)s\n"
 "\n"
@@ -1987,8 +1992,7 @@ msgid ""
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
 "\n"
-"%(user)s necessita més informació per ser el teu mentoritzat en %(skill)s."
-"\n"
+"%(user)s necessita més informació per ser el teu mentoritzat en %(skill)s.\n"
 " \n"
 "%(user)s ha deixat el següent missatge. Pots contactar-los a %(email)s.\n"
 "\n"
@@ -2139,13 +2143,12 @@ msgstr ""
 "\n"
 "          - <strong>Un mentor</strong> és un guia de suport que "
 "<strong>escolta atentament, fa preguntes reflexives i ofereix orientació "
-"sense dictar decisions.</strong> Fomentant un entorn de confiança que "
-"promou la comunicació oberta, el mentor ajuda el mentoritzat a progressar."
-"\n"
+"sense dictar decisions.</strong> Fomentant un entorn de confiança que promou "
+"la comunicació oberta, el mentor ajuda el mentoritzat a progressar.\n"
 "          <br/>\n"
 "          - <strong>Per als mentoritzats,</strong> és crucial "
-"<strong>definir clarament les vostres necessitats i objectius</strong>. "
-"Sou <strong>l'agent principal del vostre propi desenvolupament</strong>, "
+"<strong>definir clarament les vostres necessitats i objectius</strong>. Sou "
+"<strong>l'agent principal del vostre propi desenvolupament</strong>, "
 "aplicant la guia del vostre mentor per assolir els vostres objectius.\n"
 "          "
 
@@ -2183,8 +2186,8 @@ msgid ""
 msgstr ""
 "\n"
 "          🔹 <strong>Sessió única</strong>: Ideal per a un impuls ràpid "
-"d'una hora. Això podria ser per obtenir retroalimentació sobre un projecte,"
-" ajuda amb una decisió important o consells específics.\n"
+"d'una hora. Això podria ser per obtenir retroalimentació sobre un projecte, "
+"ajuda amb una decisió important o consells específics.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:110
@@ -2195,8 +2198,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          🔹 <strong>Tres sessions d'una hora</strong>: Ideal per aprofundir"
-" en un problema. Aquí teniu un possible desglossament:\n"
+"          🔹 <strong>Tres sessions d'una hora</strong>: Ideal per aprofundir "
+"en un problema. Aquí teniu un possible desglossament:\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:115
@@ -2374,8 +2377,8 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          📆 <strong>Programau sempre la propera sessió</strong> per mantenir"
-" el progrés.\n"
+"          📆 <strong>Programau sempre la propera sessió</strong> per "
+"mantenir el progrés.\n"
 "          "
 
 #: apps/skills/templates/mentorship_base.html:192
@@ -2642,8 +2645,7 @@ msgstr ""
 "\n"
 "    El vostre compte de Projectes s'acaba de crear. Només heu de triar una "
 "contrasenya i podreu unir-vos a Projectes, una plataforma per compartir "
-"projectes a la vostra organització i fomentar la col·laboració pel bé comú."
-"\n"
+"projectes a la vostra organització i fomentar la col·laboració pel bé comú.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.html:18
@@ -2684,8 +2686,8 @@ msgid ""
 msgstr ""
 "\n"
 "    L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. <a "
-"class=\"lpi-link\" href=\"%(refresh_link)s\">Feu clic aquí</a> per sol·licitar"
-" un nou enllaç.\n"
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Feu clic aquí</a> per "
+"sol·licitar un nou enllaç.\n"
 "    "
 
 #: services/keycloak/templates/admin_created/mail.txt:2
@@ -2703,17 +2705,15 @@ msgid ""
 "nouveau lien en cliquant sur %(refresh_link)s.\n"
 msgstr ""
 "\n"
-"Benvingut al portal de Projectes de %(organization_name)s, %(given_name)s!"
-"\n"
+"Benvingut al portal de Projectes de %(organization_name)s, %(given_name)s!\n"
 "El vostre compte de Projectes s'acaba de crear. Només heu de triar una "
 "contrasenya i podreu unir-vos a Projectes, una plataforma per compartir "
-"projectes a la vostra organització i fomentar la col·laboració pel bé comú."
-"\n"
+"projectes a la vostra organització i fomentar la col·laboració pel bé comú.\n"
 "Crear la meva contrasenya: %(link)s\n"
 "Si no heu sol·licitat aquest correu electrònic, no us preocupeu, el podeu "
 "ignorar amb seguretat.\n"
-"L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. Demaneu "
-"un nou enllaç fent clic a %(refresh_link)s.\n"
+"L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. Demaneu un "
+"nou enllaç fent clic a %(refresh_link)s.\n"
 
 #: services/keycloak/templates/admin_created/object.txt:2
 #, python-format
@@ -2746,8 +2746,9 @@ msgid ""
 "    "
 msgstr ""
 "\n"
-"    Algú ha sol·licitat que canviem la vostra contrasenya. Si heu estat vosaltres,"
-" feu clic a l'enllaç següent per actualitzar la vostra contrasenya.\n"
+"    Algú ha sol·licitat que canviem la vostra contrasenya. Si heu estat "
+"vosaltres, feu clic a l'enllaç següent per actualitzar la vostra "
+"contrasenya.\n"
 "    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:18
@@ -2784,8 +2785,8 @@ msgstr ""
 "Actualitzar contrasenya: %(link.link)s\n"
 "Si no heu sol·licitat aquest correu electrònic, no us preocupeu, el podeu "
 "ignorar amb seguretat.\n"
-"L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. Feu clic"
-" a %(refresh_link)s per sol·licitar un nou enllaç.\n"
+"L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. Feu clic a "
+"%(refresh_link)s per sol·licitar un nou enllaç.\n"
 
 #: services/keycloak/templates/force_reset_password/object.txt:2
 #, python-format
@@ -2854,8 +2855,8 @@ msgstr ""
 "Confirmar adreça de correu electrònic: %(link)s\n"
 "Si no heu sol·licitat aquest correu electrònic, no us preocupeu, el podeu "
 "ignorar amb seguretat.\n"
-"L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. Feu clic"
-" a %(refresh_link)s per sol·licitar un nou enllaç.\n"
+"L'enllaç caduca el %(expiration_date)s a les %(expiration_time)s. Feu clic a "
+"%(refresh_link)s per sol·licitar un nou enllaç.\n"
 
 #: services/keycloak/templates/invitation/object.txt:2
 #, python-format

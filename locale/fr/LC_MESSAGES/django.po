@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-04-29 14:27+0200\n"
+"POT-Creation-Date: 2025-06-13 11:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -242,30 +242,35 @@ msgid "The file you are trying to upload is already attached to this project"
 msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
 
 #: apps/files/exceptions.py:22
+msgid ""
+"The file you are trying to upload is already attached to this organization"
+msgstr "Le fichier que vous essayez d'attacher est déjà lié à cette organisation"
+
+#: apps/files/exceptions.py:30
 msgid "The link you are trying to attach is already attached to this project"
 msgstr "Le lien que vous essayez d'attacher est déjà lié à ce projet"
 
-#: apps/files/exceptions.py:30
+#: apps/files/exceptions.py:38
 #, python-brace-format
 msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
 msgstr ""
 "Fichier trop volumineux. La taille ne doit pas dépasser {settings."
 "MAX_FILE_SIZE} Mo"
 
-#: apps/files/exceptions.py:37
+#: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
 msgstr "Vous ne pouvez pas changer le projet d'un fichier"
 
-#: apps/files/exceptions.py:43
+#: apps/files/exceptions.py:51
 msgid "You can't change the project of a link"
 msgstr "Vous ne pouvez pas changer le projet d'un lien"
 
-#: apps/files/exceptions.py:52
+#: apps/files/exceptions.py:60
 msgid "You can't delete this picture: It is related to another object"
 msgstr ""
 "Vous ne pouvez pas supprimer cette image: elle est liée à un autre objet"
 
-#: apps/files/exceptions.py:58
+#: apps/files/exceptions.py:66
 msgid ""
 "You can't delete this picture: It is related to an instance of "
 "{relation['model']} with pk={relation['pk']} through field "
@@ -611,9 +616,9 @@ msgid ""
 "          "
 msgstr ""
 "\n"
-"          %(full_name)s a ajouté le groupe %(group_name)s dont vous faites partie "
-"à l'équipe du projet <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
-"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          %(full_name)s a ajouté le groupe %(group_name)s dont vous faites "
+"partie à l'équipe du projet <a class=\"lpi-link\" href=\"%(website_url)s/"
+"projects/%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
 "          "
 
 #: apps/notifications/templates/group_member_added_self/mail.html:28
