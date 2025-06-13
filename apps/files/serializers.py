@@ -249,16 +249,15 @@ class OrganizationAttachmentFileSerializer(serializers.ModelSerializer):
         return super().to_internal_value(data)
 
     def validate_hashcode(self, hashcode: str):
-        if (
-            self.instance
-            and self.instance.attachment_files.filter(hashcode=hashcode)
-            .exclude(id=self.instance.id)
-            .exists()
-        ) or (
-            not self.instance
-            and self.instance.attachment_files.filter(hashcode=hashcode).exists()
-        ):
-            raise DuplicatedOrganizationFileError
+        organization_code = self.context.get("organization_code", None)
+        if organization_code:
+            queryset = self.Meta.model.objects.filter(
+                organization__code=organization_code, hashcode=hashcode
+            )
+            if self.instance:
+                queryset = queryset.exclude(id=self.instance.id)
+            if queryset.exists():
+                raise DuplicatedOrganizationFileError
         return hashcode
 
     def validate_file(self, file):

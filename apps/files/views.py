@@ -15,6 +15,7 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
+from apps.commons.utils import map_action_to_permission
 from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
@@ -62,19 +63,30 @@ class OrganizationAttachmentFileViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        ReadOnly
-        | HasBasePermission("", "organizations")
-        | HasOrganizationPermission(""),
-    ]
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "organizationattachmentfile")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "organizations")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
         if "organization_code" in self.kwargs:
-            return OrganizationAttachmentFile.filter(
+            return OrganizationAttachmentFile.objects.filter(
                 organization__code=self.kwargs["organization_code"]
             )
         return OrganizationAttachmentFile.objects.none()
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization_code": self.kwargs.get("organization_code", None),
+        }
 
     def perform_create(self, serializer):
         organization = get_object_or_404(

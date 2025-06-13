@@ -179,6 +179,7 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
             ("news", "news"),
             ("event", "event"),
             ("instruction", "instructions"),
+            ("organizationattachmentfile", "organization files"),
         )
         write_only_subscopes = (
             ("tag", "tags"),
