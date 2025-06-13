@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-11 17:58+0200\n"
+"POT-Creation-Date: 2025-06-13 11:31+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -244,31 +244,40 @@ msgstr ""
 "Het bestand dat je probeert te uploaden is al aan dit project gekoppeld"
 
 #: apps/files/exceptions.py:22
+#, fuzzy
+#| msgid ""
+#| "The file you are trying to upload is already attached to this project"
+msgid ""
+"The file you are trying to upload is already attached to this organization"
+msgstr ""
+"Het bestand dat je probeert te uploaden is al aan dit project gekoppeld"
+
+#: apps/files/exceptions.py:30
 msgid "The link you are trying to attach is already attached to this project"
 msgstr "De link die je probeert te koppelen is al aan dit project gekoppeld"
 
-#: apps/files/exceptions.py:30
+#: apps/files/exceptions.py:38
 #, python-brace-format
 msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
 msgstr ""
 "Bestand te groot. De grootte mag niet meer dan {settings.MAX_FILE_SIZE} MB "
 "bedragen"
 
-#: apps/files/exceptions.py:37
+#: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
 msgstr "Je kunt het project van een bestand niet wijzigen"
 
-#: apps/files/exceptions.py:43
+#: apps/files/exceptions.py:51
 msgid "You can't change the project of a link"
 msgstr "Je kunt het project van een link niet wijzigen"
 
-#: apps/files/exceptions.py:52
+#: apps/files/exceptions.py:60
 msgid "You can't delete this picture: It is related to another object"
 msgstr ""
 "Je kunt deze afbeelding niet verwijderen: deze is gerelateerd aan een ander "
 "object"
 
-#: apps/files/exceptions.py:58
+#: apps/files/exceptions.py:66
 msgid ""
 "You can't delete this picture: It is related to an instance of "
 "{relation['model']} with pk={relation['pk']} through field "
@@ -1305,7 +1314,8 @@ msgid ""
 "%(full_name)s has replied on your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s heeft gereageerd op jouw opmerking over project %(project_title)s.\n"
+"%(full_name)s heeft gereageerd op jouw opmerking over project "
+"%(project_title)s.\n"
 
 #: apps/notifications/templates/new_reply/object.txt:2
 #, python-format
@@ -1314,7 +1324,8 @@ msgid ""
 "%(full_name)s replied to your comment on project %(project_title)s.\n"
 msgstr ""
 "\n"
-"%(full_name)s heeft gereageerd op jouw opmerking over project %(project_title)s.\n"
+"%(full_name)s heeft gereageerd op jouw opmerking over project "
+"%(project_title)s.\n"
 
 #: apps/notifications/templates/new_review/mail.html:18
 #, python-format

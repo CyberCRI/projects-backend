@@ -46,7 +46,9 @@ def attachment_link_preview_path(instance, filename: str):
     )
 
 
-def organization_attachment_directory_path(instance: "OrganizationAttachmentFile", filename: str):
+def organization_attachment_directory_path(
+    instance: "OrganizationAttachmentFile", filename: str
+):
     date_part = f"{datetime.datetime.today():%Y-%m-%d}"
     return f"organization/attachments/{instance.organization.pk}/{instance.attachment_type}/{date_part}-{filename}"
 
@@ -340,4 +342,3 @@ class Image(
         image._upload_to = lambda instance, filename: upload_to
         image.save()
         return image
-
