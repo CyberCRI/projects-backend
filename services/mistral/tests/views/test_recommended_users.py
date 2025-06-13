@@ -251,8 +251,8 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             [self.users[user].id for user in retrieved_users[:2]],
         )
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_get_recommended_users_create_embedding_vector(
         self, mocked_embeddings, mocked_chat
     ):
@@ -277,8 +277,8 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             [self.users[user].id for user in ["org", "private", "public_2", "public"]],
         )
 
-    @patch("services.mistral.interface.MistralService.service.chat")
-    @patch("services.mistral.interface.MistralService.service.embeddings")
+    @patch("services.mistral.interface.MistralService.service.chat.complete")
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_get_recommended_users_create_embedding_object(
         self, mocked_embeddings, mocked_chat
     ):
