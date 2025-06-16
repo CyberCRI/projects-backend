@@ -1,0 +1,31 @@
+query TextualDocuments($limit: Int, $offset: Int, $where: TextualDocumentWhere) {
+  textualDocuments(limit: $limit, offset: $offset, where: $where) {
+    uid
+    abstracts {
+      language
+      value
+    }
+    has_contributions {
+      contributor {
+        uid
+      }
+    }
+    recorded_by {
+      harvested_for {
+        uid
+      }
+      harvester
+      titles {
+        language
+        value
+      }
+    }
+    titles {
+      value
+      language
+    }
+  }
+  textualDocumentsAggregate(where: $where) {
+    count
+  }
+}
