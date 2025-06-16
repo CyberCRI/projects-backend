@@ -3,7 +3,7 @@ corsAllowedDomains:
 - lpi-dev.cloud-iam.com # keycloak login page
 - keycloak-test.k8s.lp-i.dev # keycloak login page (in-cluster test)
 - keycloak.k8s.lp-i.dev # keycloak login page (in-cluster)
-- smart-topical-beagle.ngrok-free.app  # ngrok tunnel for local dev (Julien)
+- localhost:8080
 
 config:
   nonSensitive:
