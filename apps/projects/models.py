@@ -699,6 +699,7 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name_plural = "Blog entries"
 
     @transaction.atomic
     def save(self, *args, **kwargs):
