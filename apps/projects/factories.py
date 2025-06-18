@@ -32,7 +32,6 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
     purpose = factory.Faker("text")
     is_shareable = factory.Faker("boolean")
     sdgs = factory.List([sdg_factory() for _ in range(FuzzyInteger(0, 17).fuzz())])
-    main_category = None
 
     class Meta:
         model = Project
@@ -69,12 +68,10 @@ class ProjectFactory(SeedProjectFactory):
         if not create:
             return
         if extracted and len(extracted) > 0:
-            self.main_category = extracted[0]
             for category in extracted:
                 self.categories.add(category)
         else:
             category = ProjectCategoryFactory(organization=self.organizations.first())
-            self.main_category = category
             self.categories.add(category)
 
 
@@ -155,8 +152,8 @@ class SeedProjectOrganizationFactory(factory.django.DjangoModelFactory):
         model = Project.organizations.through
         django_get_or_create = ("project", "organization")
 
-    organization = factory.fuzzy.FuzzyChoice(Organization.objects.filter())
-    project = factory.fuzzy.FuzzyChoice(Project.objects.filter())
+    organization = FuzzyChoice(Organization.objects.filter())
+    project = FuzzyChoice(Project.objects.filter())
 
 
 class ProjectMessageFactory(factory.django.DjangoModelFactory):

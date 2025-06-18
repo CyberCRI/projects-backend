@@ -1,24 +1,24 @@
 from rest_framework.routers import DefaultRouter, DynamicRoute, Route
 from rest_framework.views import View
-from rest_framework_nested.routers import NestedMixin
 
 
 class ExtendedRouter(DefaultRouter):
     """
-    Extends `DefaultRouter` class to add a method for extending url routes from another router.
+    Extendable router class that allows adding routes from other routers.
     """
 
-    def extend(self, router):
+    def extend(self, *routers: DefaultRouter):
         """
         Extend the routes with url routes of the passed in router.
 
         Args:
-             router: SimpleRouter instance containing route definitions.
+             router: DefaultRouter instance containing route definitions.
         """
-        self.registry.extend(router.registry)
+        for router in routers:
+            self.registry.extend(router.registry)
 
 
-class DetailOnlyNestedRouter(NestedMixin, DefaultRouter):
+class OneToOneRouter(DefaultRouter):
     """Remove the `list` action and move all action to the `-list` url.
 
     This is useful for one to one nested object, since giving the object's PK
@@ -54,12 +54,18 @@ class DetailOnlyNestedRouter(NestedMixin, DefaultRouter):
     ]
 
 
+class OneToOneExtendedRouter(OneToOneRouter, ExtendedRouter):
+    """
+    Extendable ListOnly router class that allows adding routes from other routers.
+    """
+
+
 def organization_router_register(
     router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
     prefix = r"organization/(?P<organization_code>[^/]+)"
     if path:
-        prefix += "/" + path
+        prefix += r"/" + path
     router.register(prefix, viewset, basename)
 
 
@@ -68,7 +74,7 @@ def organization_project_router_register(
 ):
     prefix = r"organization/(?P<organization_code>[^/]+)/project/(?P<project_id>[^/]+)"
     if path:
-        prefix += "/" + path
+        prefix += r"/" + path
     router.register(prefix, viewset, basename)
 
 
@@ -77,7 +83,7 @@ def project_router_register(
 ):
     prefix = r"project/(?P<project_id>[^/]+)"
     if path:
-        prefix += "/" + path
+        prefix += r"/" + path
     router.register(prefix, viewset, basename)
 
 
@@ -89,7 +95,7 @@ def people_group_router_register(
         r"people-group/(?P<people_group_id>[^/]+)"
     )
     if path:
-        prefix += "/" + path
+        prefix += r"/" + path
     router.register(prefix, viewset, basename)
 
 
@@ -98,7 +104,7 @@ def organization_user_router_register(
 ):
     prefix = r"organization/(?P<organization_code>[^/]+)/user/(?P<user_id>[^/]+)"
     if path:
-        prefix += "/" + path
+        prefix += r"/" + path
     router.register(prefix, viewset, basename)
 
 
@@ -107,5 +113,5 @@ def user_router_register(
 ):
     prefix = r"user/(?P<user_id>[^/]+)"
     if path:
-        prefix += "/" + path
+        prefix += r"/" + path
     router.register(prefix, viewset, basename)

@@ -100,7 +100,7 @@ class JwtAPITestCase(APITestCase):
         role,
         instances: Optional[List[models.Model]] = None,
         owned_instance: Optional[models.Model] = None,
-    ):
+    ) -> ProjectUser:
         if instances:
             instances_type = set([type(instance) for instance in instances])
             if len(instances_type) > 1:

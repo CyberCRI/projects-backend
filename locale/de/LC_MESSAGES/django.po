@@ -1583,7 +1583,7 @@ msgstr "Kategorien"
 msgid "sustainable development goals"
 msgstr "Ziele für nachhaltige Entwicklung"
 
-#: apps/projects/models.py:197
+#: apps/projects/models.py:198
 msgid "main category"
 msgstr "Hauptkategorie"
 
