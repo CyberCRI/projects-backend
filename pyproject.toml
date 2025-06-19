@@ -75,7 +75,7 @@ pytest = "^7.1.2"
 pytest-django = "^4.5.2"
 tblib = "^1.7.0"
 toml = "^0.10.2"
-urllib3 = "^1.26.19"
+urllib3 = "^2.5.0"
 django-slowtests = "^1.1.1"
 
 [build-system]
