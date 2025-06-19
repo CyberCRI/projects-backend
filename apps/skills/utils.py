@@ -55,12 +55,13 @@ def update_esco_tag_data(esco_tag: Tag) -> Tag:
     return esco_tag
 
 
-def update_esco_data(force_update: bool = False):
+def update_esco_data(force_update: bool = False, garbage_collect_frequency: int = 500):
     new_tags = create_missing_esco_tags()
     tags = Tag.objects.filter(type=Tag.TagType.ESCO) if force_update else new_tags
     for i, tag in enumerate(tags):
-        if i % 500 == 0:
+        if i % garbage_collect_frequency == 0:
             gc.collect()
+        logger.info(f"Updating ESCO tag {i + 1}/{len(tags)} ")
         update_esco_tag_data(tag)
 
 
