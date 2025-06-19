@@ -68,10 +68,11 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
             self.assertEqual(notification.organization, self.organization)
             self.assertFalse(notification.to_send)
             self.assertFalse(notification.is_viewed)
-            self.assertEqual(notification.count, 1)
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, [notified.email])
-        self.assertEqual(mail.outbox[0].subject, "New instruction")
+            self.assertEqual(notification.count, 2)
+        self.assertEqual(len(mail.outbox), 2)
+        for email_sent in mail.outbox:
+            self.assertEqual(email_sent.to, [notified.email])
+            self.assertEqual(email_sent.subject, "New instruction")
 
         global_instruction.refresh_from_db()
         group_instruction.refresh_from_db()
@@ -83,4 +84,4 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
         _notify_new_instructions()
         notifications = Notification.objects.all()
         self.assertEqual(notifications.count(), 2)
-        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(len(mail.outbox), 2)
