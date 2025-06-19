@@ -1,3 +1,4 @@
+import gc
 import logging
 from typing import Dict, List
 
@@ -57,7 +58,9 @@ def update_esco_tag_data(esco_tag: Tag) -> Tag:
 def update_esco_data(force_update: bool = False):
     new_tags = create_missing_esco_tags()
     tags = Tag.objects.filter(type=Tag.TagType.ESCO) if force_update else new_tags
-    for tag in tags:
+    for i, tag in enumerate(tags):
+        if i % 500 == 0:
+            gc.collect()
         update_esco_tag_data(tag)
 
 
@@ -101,8 +104,18 @@ def update_or_create_wikipedia_tags(wikipedia_qids: List[str]) -> List[Tag]:
     return tags
 
 
-def update_wikipedia_data():
+def update_wikipedia_data(chunk_size: int = 50):
     wikipedia_qids = Tag.objects.filter(type=Tag.TagType.WIKIPEDIA).values_list(
         "external_id", flat=True
     )
-    update_or_create_wikipedia_tags(wikipedia_qids)
+    chunk_size = min(chunk_size, 50)  # Wikimedia API limit is 50 QIDs per request
+    for chunk_index in range(0, len(wikipedia_qids), chunk_size):
+        wikipedia_qids_chunk = wikipedia_qids[chunk_index : chunk_index + chunk_size]
+        if not wikipedia_qids_chunk:
+            continue
+        logger.info(
+            f"Updating Wikipedia tags for chunk {chunk_index // chunk_size + 1} "
+            f"(total {len(wikipedia_qids) // chunk_size + 1} chunks)"
+        )
+        update_or_create_wikipedia_tags(wikipedia_qids_chunk)
+        gc.collect()

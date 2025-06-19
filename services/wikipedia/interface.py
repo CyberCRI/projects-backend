@@ -60,6 +60,8 @@ class WikipediaService:
         """
         if not wikipedia_qids:
             return []
+        if len(wikipedia_qids) > 50:
+            raise ValueError("The maximum number of Wikipedia QIDs is 50 per request.")
         response = cls.wbgetentities(wikipedia_qids)
         if response.status_code != status.HTTP_200_OK:
             raise WikibaseAPIException(response.status_code)
@@ -82,17 +84,18 @@ class WikipediaService:
                         "value"
                     ]
                     for language in settings.REQUIRED_LANGUAGES
-                    if language in content[wikipedia_qid]["labels"]
+                    if language in content[wikipedia_qid].get("labels", [])
                 },
                 **{
                     f"description_{language}": content[wikipedia_qid]["descriptions"][
                         language
                     ]["value"]
                     for language in settings.REQUIRED_LANGUAGES
-                    if language in content[wikipedia_qid]["descriptions"]
+                    if language in content[wikipedia_qid].get("descriptions", [])
                 },
             }
             for wikipedia_qid in wikipedia_qids
+            if "missing" not in content[wikipedia_qid]
         ]
 
     @classmethod
