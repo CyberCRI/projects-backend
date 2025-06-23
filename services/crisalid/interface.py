@@ -32,15 +32,15 @@ class CrisalidService:
             query = f.read()
         return self.client.execute(gql(query), variable_values=kwargs)
 
-    def people(
+    def profiles(
         self, limit: int = 100, offset: int = 0, **kwargs
     ) -> Tuple[List[Dict[str, Any]], Optional[int]]:
         """
-        Get a list of people from the Crisalid API.
+        Get a list of profiles from the Crisalid API.
 
         Args:
-            - limit (int): The number of people to return.
-            - offset (int): The number of people to skip.
+            - limit (int): The number of profiles to return.
+            - offset (int): The number of profiles to skip.
             - kwargs: Additional query parameters.
 
         Returns:
@@ -52,15 +52,15 @@ class CrisalidService:
         next_page = offset + limit if offset + limit < count else None
         return response["people"], next_page
 
-    def person(self, uid: str) -> Dict[str, Any]:
+    def profile(self, uid: str) -> Dict[str, Any]:
         """
-        Get a person from the Crisalid API.
+        Get a profile from the Crisalid API.
 
         Args:
-            - uid (str): The UID of the person.
+            - uid (str): The UID of the profile.
 
         Returns:
-            - Dict[str, Any]: The person.
+            - Dict[str, Any]: The profile.
         """
         response = self.query("people", where={"uid_EQ": uid})
         total = response["peopleAggregate"]["count"]
@@ -85,7 +85,7 @@ class CrisalidService:
             - Tuple[List[Dict[str, Any]], Optional[int]]: The list of textual documents
                 and the next page offset.
         """
-        response = self.query("textual_document", limit=limit, offset=offset, **kwargs)
+        response = self.query("textual_documents", limit=limit, offset=offset, **kwargs)
         count = response["textualDocumentsAggregate"]["count"]
         next_page = offset + limit if offset + limit < count else None
         return response["textualDocuments"], next_page
@@ -100,7 +100,7 @@ class CrisalidService:
         Returns:
             - Dict[str, Any]: The textual document.
         """
-        response = self.query("textual_document", where={"uid_EQ": uid})
+        response = self.query("textual_documents", where={"uid_EQ": uid})
         total = response["textualDocumentsAggregate"]["count"]
         if total == 0:
             return None

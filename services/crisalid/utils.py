@@ -1,37 +1,48 @@
 import gc
 from typing import Any, Dict
 
+from django.contrib.contenttypes.models import ContentType
+
 from apps.accounts.models import ProjectUser
 
+from .models import CrisalidId, ResearchDocument, Researcher, ResearchInstitution, ResearchTeam
 from .interface import CrisalidService
 
 
-def format_crisalid_people(data: Dict[str, Any]) -> Dict[str, Any]:
+def format_crisalid_profile(data: Dict[str, Any]) -> Dict[str, Any]:
     return {
-        "external_id": data["uid"],
+        "id": data["uid"],
         "given_name": data["names"][0]["first_names"][0]["value"],
         "family_name": data["names"][0]["last_names"][0]["value"],
     }
 
 
-def import_crisalid_person(data: Dict[str, Any]) -> ProjectUser:
-    person = format_crisalid_people(data)
-    external_id = person.pop("external_id")
-    user, _ = ProjectUser.objects.update_or_create(
-        external_id=external_id, defaults=person
+def import_crisalid_profile(data: Dict[str, Any]) -> Researcher:
+    data = format_crisalid_profile(data)
+    crisalid_id, created = CrisalidId.objects.get_or_create(
+        content_type=ContentType.objects.get_for_model(Researcher),
+        id_type=CrisalidId.IDType.CRISALID,
+        value=data["id"],
     )
-    return user
+    if created:
+        user = ProjectUser.objects.create(
+            given_name=data["given_name"],
+            family_name=data["family_name"],
+            email="fake@example.com",
+            external_id=data["id"],
+        )
+        researcher = Researcher.objects.create(user=user)
+        researcher.crisalid_ids.add(crisalid_id)
+        return researcher
+    return Researcher.objects.get(crisalid_ids=crisalid_id)
 
 
-def import_crisalid_people():
+def import_crisalid_profiles():
     service = CrisalidService()
     offset = 0
     while offset is not None:
-        people, offset = service.people(limit=100, offset=offset)
-        people = list(map(format_crisalid_people, people))
-        ProjectUser.objects.bulk_create(
-            people,
-            ignore_conflicts=True,
-            update_fields=[],
-        )
-        gc.collect()
+        profiles, offset = service.profiles(limit=100, offset=offset)
+        for profile in profiles:
+            import_crisalid_profile(profile)
+        gc.collect()  # Clean up memory after processing each batch
+
