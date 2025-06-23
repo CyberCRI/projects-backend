@@ -32,11 +32,7 @@ class CrisalidId(models.Model):
 
 
 class CrisalidDataModel(models.Model):
-    crisalid_ids = models.ManyToManyField(
-        "crisalid.CrisalidId",
-        related_name="researchers",
-        blank=True,
-    )
+    crisalid_ids = models.ManyToManyField("crisalid.CrisalidId", blank=True)
 
     class Meta:
         abstract = True
@@ -49,13 +45,13 @@ class Researcher(CrisalidDataModel):
         related_name="researchers",
     )
     employments = models.ManyToManyField(
-        "crisalid.ResearchEmployment",
+        "crisalid.ResearchInstitution",
         related_name="researchers",
         through="crisalid.ResearchEmployment",
         blank=True,
     )
     memberships = models.ManyToManyField(
-        "crisalid.ResearchMembership",
+        "crisalid.ResearchTeam",
         related_name="researchers",
         through="crisalid.ResearchMembership",
         blank=True,
@@ -71,6 +67,7 @@ class ResearchInstitution(CrisalidDataModel):
     """
     Represents an institution in the Crisalid system.
     """
+
     name = models.CharField(max_length=255)
 
 
@@ -78,6 +75,7 @@ class ResearchTeam(CrisalidDataModel):
     """
     Represents a research team in the Crisalid system.
     """
+
     name = models.CharField(max_length=255)
     institutions = models.ManyToManyField(
         "crisalid.ResearchInstitution",
@@ -107,15 +105,10 @@ class ResearchEmployment(CrisalidDataModel):
     """
     Represents an employment relationship between a researcher and an institution.
     """
-    researcher = models.ForeignKey(
-        "crisalid.Researcher",
-        on_delete=models.CASCADE,
-        related_name="employments",
-    )
+
+    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
     institution = models.ForeignKey(
-        "crisalid.ResearchInstitution",
-        on_delete=models.CASCADE,
-        related_name="employments",
+        "crisalid.ResearchInstitution", on_delete=models.CASCADE
     )
     role = models.CharField(max_length=255)
     start_date = models.DateField()
@@ -126,16 +119,9 @@ class ResearchMembership(CrisalidDataModel):
     """
     Represents a membership relationship between a researcher and a research team.
     """
-    researcher = models.ForeignKey(
-        "crisalid.Researcher",
-        on_delete=models.CASCADE,
-        related_name="memberships",
-    )
-    team = models.ForeignKey(
-        "crisalid.ResearchTeam",
-        on_delete=models.CASCADE,
-        related_name="memberships",
-    )
+
+    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
+    team = models.ForeignKey("crisalid.ResearchTeam", on_delete=models.CASCADE)
     role = models.CharField(max_length=255)
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
