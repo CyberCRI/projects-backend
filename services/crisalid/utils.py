@@ -5,8 +5,8 @@ from django.contrib.contenttypes.models import ContentType
 
 from apps.accounts.models import ProjectUser
 
-from .models import CrisalidId, ResearchDocument, Researcher, ResearchInstitution, ResearchTeam
 from .interface import CrisalidService
+from .models import CrisalidId, Researcher
 
 
 def format_crisalid_profile(data: Dict[str, Any]) -> Dict[str, Any]:
@@ -45,4 +45,3 @@ def import_crisalid_profiles():
         for profile in profiles:
             import_crisalid_profile(profile)
         gc.collect()  # Clean up memory after processing each batch
-
