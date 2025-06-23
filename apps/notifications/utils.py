@@ -560,4 +560,7 @@ class NewInstructionNotificationManager(NotificationTaskManager):
                 .exclude(id=self.sender.id)
                 .distinct()
             )
-        return self.organization.get_all_members().exclude(id=self.sender.id).distinct()
+        queryset = self.organization.get_all_members()
+        if self.sender:
+            return queryset.exclude(id=self.sender.id).distinct()
+        return queryset
