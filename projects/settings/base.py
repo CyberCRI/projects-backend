@@ -147,6 +147,7 @@ INSTALLED_APPS = [
     "services.keycloak",
     "services.mistral",
     "services.mixpanel",
+    "services.translator",
     "services.wikipedia",
     # deploys should be the last one
     "apps.deploys",
