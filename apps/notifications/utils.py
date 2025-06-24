@@ -553,14 +553,11 @@ class NewInstructionNotificationManager(NotificationTaskManager):
 
     def get_recipients(self) -> List[ProjectUser]:
         if self.item.people_groups.exists():
-            return (
-                ProjectUser.objects.filter(
-                    groups__people_groups__in=self.item.people_groups.all(),
-                )
-                .exclude(id=self.sender.id)
-                .distinct()
+            queryset = ProjectUser.objects.filter(
+                groups__people_groups__in=self.item.people_groups.all()
             )
-        queryset = self.organization.get_all_members()
+        else:
+            queryset = self.organization.get_all_members()
         if self.sender:
             return queryset.exclude(id=self.sender.id).distinct()
-        return queryset
+        return queryset.distinct()
