@@ -1,11 +1,15 @@
+from typing import Optional
+
 from django.conf import settings
 from django.contrib import admin
 
 from services.keycloak.interface import KeycloakService
 
-from .models import Organization
+from .exports import ProjectTemplateExportMixin
+from .models import Organization, Template
 
 
+@admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = (
         "code",
@@ -46,4 +50,19 @@ class OrganizationAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-admin.site.register(Organization, OrganizationAdmin)
+@admin.register(Template)
+class TemplateAdmin(admin.ModelAdmin, ProjectTemplateExportMixin):
+    list_display = (
+        "id",
+        "get_organization",
+        "project_category",
+    )
+    list_filter = ("project_category__organization",)
+    actions = ["export_data"]
+
+    def get_organization(self, template: Template) -> Optional[str]:
+        if template.project_category and template.project_category.organization:
+            return template.project_category.organization
+        return None
+
+    get_organization.short_description = "Organization"
