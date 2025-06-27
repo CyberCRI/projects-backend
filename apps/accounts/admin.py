@@ -39,8 +39,8 @@ class UserAdmin(ExportActionMixin, RoleBasedAccessAdmin):
     )
 
     def get_queryset_for_organizations(
-        self, queryset: QuerySet, organizations: QuerySet[Organization]
-    ) -> QuerySet:
+        self, queryset: QuerySet[ProjectUser], organizations: QuerySet[Organization]
+    ) -> QuerySet[ProjectUser]:
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
