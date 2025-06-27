@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-13 11:31+0200\n"
+"POT-Creation-Date: 2025-06-27 18:23+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:130 apps/projects/models.py:157
+#: apps/accounts/models.py:130 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilité"
 
@@ -244,7 +244,8 @@ msgstr "Le fichier que vous essayez d'attacher est déjà lié à ce projet"
 #: apps/files/exceptions.py:22
 msgid ""
 "The file you are trying to upload is already attached to this organization"
-msgstr "Le fichier que vous essayez d'attacher est déjà lié à cette organisation"
+msgstr ""
+"Le fichier que vous essayez d'attacher est déjà lié à cette organisation"
 
 #: apps/files/exceptions.py:30
 msgid "The link you are trying to attach is already attached to this project"
@@ -1539,27 +1540,27 @@ msgstr "Un message ne peut pas être une réponse à lui-même"
 msgid "You cannot change the type of a project's tab"
 msgstr "Vous ne pouvez pas changer le type d'un onglet de projet"
 
-#: apps/projects/models.py:140
+#: apps/projects/models.py:144
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:150
+#: apps/projects/models.py:154
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:163
+#: apps/projects/models.py:167
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:178
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:191
+#: apps/projects/models.py:195
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:197
+#: apps/projects/models.py:201
 msgid "main category"
 msgstr "catégorie principale"
 
