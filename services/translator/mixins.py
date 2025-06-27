@@ -21,33 +21,46 @@ class HasAutoTranslatedFields:
     to know that the translations need to be updated.
     """
 
+    translated_fields = []
+    html_translated_fields = []
     _original_translated_fields_values: Dict[str, str] = {}
-
-    class Meta:
-        translated_fields = []
-        html_translated_fields = []
 
     def __init__(self, *args, **kwargs):
         self._original_translated_fields_values = {
             field: getattr(self, field, "")
-            for field in self.Meta.translated_fields + self.Meta.html_translated_fields
+            for field in self.translated_fields + self.html_translated_fields
         }
         super().__init__(*args, **kwargs)
 
-    def save(self, *args, **kwargs):
+    def update_translated_fields(self, force_update: bool = True):
         """
-        Save the model instance and update the translated fields.
+        Mark the translated fields as not up to date if they have changed. This method
+        should be called whenever the model instance is updated.
+
+        It can also be called explicitly if needed, for example to force trigger the
+        update of translated fields without saving the model.
+
+        Arguments:
+            force_update (bool): If True, will update the translated fields even if they
+                have not changed. Defaults to True.
         """
         content_type = ContentType.objects.get_for_model(self.__class__)
-        for field in self.Meta.translated_fields + self.Meta.html_translated_fields:
-            if getattr(self, field) != self._original_translated_fields_values[field]:
+        for field in self.translated_fields + self.html_translated_fields:
+            if (
+                force_update
+                or getattr(self, field)
+                != self._original_translated_fields_values[field]
+            ):
                 AutoTranslatedField.objects.update_or_create(
                     content_type=content_type,
                     object_id=self.pk,
                     field_name=field,
                     defaults={
                         "up_to_date": False,
-                        "html_field": field in self.Meta.html_translated_fields,
+                        "html_field": field in self.html_translated_fields,
                     },
                 )
+
+    def save(self, *args, **kwargs):
+        self.update_translated_fields(force_update=False)
         return super().save(*args, **kwargs)

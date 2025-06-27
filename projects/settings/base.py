@@ -575,6 +575,8 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 options.DEFAULT_NAMES += (
     "subscopes",
     "write_only_subscopes",
+    "translated_fields",
+    "html_translated_fields",
 )
 
 ##############
@@ -661,3 +663,11 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 ##############
 
 ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")
+
+
+##############
+# TRANSLATOR #
+##############
+
+AZURE_TRANSLATOR_KEY = os.getenv("AZURE_TRANSLATOR_KEY", "")
+AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
