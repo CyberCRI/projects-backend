@@ -3,6 +3,7 @@ import zipfile
 from typing import List
 
 from bs4 import BeautifulSoup
+from django.contrib import admin
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 
@@ -40,10 +41,11 @@ class ProjectTemplateExportMixin:
             headers.append(h3_tag.get_text(strip=True))
         return headers
 
+    @admin.action(description="Export projects descriptions by template header")
     def export_data(
         self, request: HttpRequest, queryset: QuerySet[Template]
     ) -> HttpResponse:
-        zip_filename = "templates.zip"
+        zip_filename = "templates_projects.zip"
         with zipfile.ZipFile(zip_filename, "w") as zipf:
             for template in queryset:
                 projects = Project.objects.filter(main_category__template=template)
@@ -64,7 +66,7 @@ class ProjectTemplateExportMixin:
                 zip_file.read(),
                 content_type="application/zip",
                 headers={
-                    "Content-Disposition": "attachment; filename=templates.zip",
+                    "Content-Disposition": f"attachment; filename={zip_filename}",
                 },
             )
         os.remove(zip_filename)

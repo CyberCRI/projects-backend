@@ -2,7 +2,9 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib import admin
+from django.db.models import QuerySet
 
+from apps.commons.admin import RoleBasedAccessAdmin
 from services.keycloak.interface import KeycloakService
 
 from .exports import ProjectTemplateExportMixin
@@ -51,7 +53,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 @admin.register(Template)
-class TemplateAdmin(admin.ModelAdmin, ProjectTemplateExportMixin):
+class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
     list_display = (
         "id",
         "get_organization",
@@ -66,3 +68,13 @@ class TemplateAdmin(admin.ModelAdmin, ProjectTemplateExportMixin):
         return None
 
     get_organization.short_description = "Organization"
+
+    def get_queryset_for_organizations(
+        self, queryset: QuerySet[Template], organizations: QuerySet[Organization]
+    ) -> QuerySet[Template]:
+        """
+        Filter the queryset based on the organizations the user has admin access to.
+        """
+        return queryset.filter(
+            project_category__organization__in=organizations
+        ).distinct()
