@@ -28,6 +28,7 @@ from apps.commons.mixins import (
 )
 from apps.commons.models import GroupData
 from apps.commons.utils import get_write_permissions_from_subscopes
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -66,6 +67,7 @@ class SoftDeleteManager(models.Manager):
 
 class Project(
     HasMultipleIDs,
+    HasAutoTranslatedFields,
     HasPermissionsSetup,
     ProjectRelated,
     OrganizationRelated,
@@ -118,6 +120,8 @@ class Project(
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
+    translated_fields = ["title"]
+    html_translated_fields = ["description"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -200,6 +204,10 @@ class Project(
     history = HistoricalRecords(
         related_name="archive",
         m2m_fields=[tags, categories],
+        excluded_fields=[
+            *[f"title_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+            *[f"description_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+        ],
     )
     duplicated_from = models.CharField(
         max_length=8, null=True, blank=True, default=None

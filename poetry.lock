@@ -115,6 +115,23 @@ tests = ["cloudpickle", "hypothesis", "mypy (>=1.11.1)", "pympler", "pytest (>=4
 tests-mypy = ["mypy (>=1.11.1)", "pytest-mypy-plugins"]
 
 [[package]]
+name = "azure-ai-translation-text"
+version = "1.0.1"
+description = "Microsoft Azure Ai Translation Text Client Library for Python"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "azure-ai-translation-text-1.0.1.tar.gz", hash = "sha256:8fff37f7ea4f82f25ad6328374859d6bad022d2f30fde9b30b5ee4cf1f7c1769"},
+    {file = "azure_ai_translation_text-1.0.1-py3-none-any.whl", hash = "sha256:2c60d1adcda68809dd9f431ec0b8ac1b1977a69037d10751a39c233bc6bc42d8"},
+]
+
+[package.dependencies]
+azure-core = ">=1.30.0"
+isodate = ">=0.6.1"
+typing-extensions = ">=4.6.0"
+
+[[package]]
 name = "azure-core"
 version = "1.31.0"
 description = "Microsoft Azure Core Library for Python"
@@ -3694,4 +3711,4 @@ brotli = ["brotli"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "c91a6a25daceb598256ea2d3f9c0459d8ee21b28593de47945051f2cf9f4bfb8"
+content-hash = "ddc79447f95108facee678ab6a70fbecf08d29c6cf928f937a3b378613193c5e"

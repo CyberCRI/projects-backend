@@ -108,7 +108,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:130 apps/projects/models.py:157
+#: apps/accounts/models.py:130 apps/projects/models.py:161
 msgid "visibility"
 msgstr ""
 
@@ -1204,27 +1204,27 @@ msgstr ""
 msgid "You cannot change the type of a project's tab"
 msgstr ""
 
-#: apps/projects/models.py:140
+#: apps/projects/models.py:144
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:150
+#: apps/projects/models.py:154
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:163
+#: apps/projects/models.py:167
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:178
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:191
+#: apps/projects/models.py:195
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:197
+#: apps/projects/models.py:201
 msgid "main category"
 msgstr ""
 
