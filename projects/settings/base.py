@@ -475,6 +475,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.notify_new_instructions",
         "schedule": crontab(minute=0, hour="*"),
     },
+    "update_automatic_translations": {
+        "task": "apps.translations.tasks.automatic_translations",
+        "schedule": crontab(minute=10, hour="*"),
+    },
 }
 
 # Cache settings
@@ -575,8 +579,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 options.DEFAULT_NAMES += (
     "subscopes",
     "write_only_subscopes",
-    "translated_fields",
-    "html_translated_fields",
 )
 
 ##############

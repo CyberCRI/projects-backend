@@ -9,11 +9,9 @@ class HasAutoTranslatedFields:
     """
     A model that has fields that can be automatically translated.
 
-    Models based on this mixin must implement a `Meta` class with the following
-    attributes:
-    - `translated_fields`: A list of field names that should be automatically translated.
-    - `html_translated_fields`: A list of field names that should be automatically translated
-      and are HTML fields.
+    Models based on this mixin must implement the following attribute:
+    - `auto_translated_fields`: A list of field names that should be automatically
+      translated.
 
     When the model is saved, it will check if any of the translated fields
     have changed. If they have, it will create or update an `AutoTranslatedField`
@@ -21,14 +19,12 @@ class HasAutoTranslatedFields:
     to know that the translations need to be updated.
     """
 
-    translated_fields = []
-    html_translated_fields = []
-    _original_translated_fields_values: Dict[str, str] = {}
+    auto_translated_fields = []
+    _original_auto_translated_fields_values: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
-        self._original_translated_fields_values = {
-            field: getattr(self, field, "")
-            for field in self.translated_fields + self.html_translated_fields
+        self._original_auto_translated_fields_values = {
+            field: getattr(self, field, "") for field in self.auto_translated_fields
         }
         super().__init__(*args, **kwargs)
 
@@ -45,20 +41,17 @@ class HasAutoTranslatedFields:
                 have not changed. Defaults to True.
         """
         content_type = ContentType.objects.get_for_model(self.__class__)
-        for field in self.translated_fields + self.html_translated_fields:
+        for field in self.auto_translated_fields:
             if (
                 force_update
                 or getattr(self, field)
-                != self._original_translated_fields_values[field]
+                != self._original_auto_translated_fields_values[field]
             ):
                 AutoTranslatedField.objects.update_or_create(
                     content_type=content_type,
                     object_id=self.pk,
                     field_name=field,
-                    defaults={
-                        "up_to_date": False,
-                        "html_field": field in self.html_translated_fields,
-                    },
+                    defaults={"up_to_date": False},
                 )
 
     def save(self, *args, **kwargs):
