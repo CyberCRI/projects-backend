@@ -16,18 +16,12 @@ class AutoTranslatedField(models.Model):
             The name of the field to be translated.
         up_to_date: BooleanField
             Indicates if the translation is up to date.
-        html_field: BooleanField
-            Indicates if the field is an HTML field or a plain text field.
-        is_active: BooleanField
-            Indicates if the translation is activated for the field.
     """
 
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.CharField(max_length=255)
     field_name = models.CharField(max_length=255)
     up_to_date = models.BooleanField(default=False)
-    html_field = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
 
     class Meta:
         unique_together = ("content_type", "object_id", "field_name")

@@ -19,6 +19,7 @@ from apps.commons.models import GroupData
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
+    TranslatedModelSerializer,
 )
 from apps.commons.utils import process_text
 from apps.feedbacks.models import Comment, Follow
@@ -213,13 +214,14 @@ class LocationSerializer(
         return None
 
 
-class ProjectSuperLightSerializer(serializers.ModelSerializer):
+class ProjectSuperLightSerializer(TranslatedModelSerializer):
     class Meta:
         model = Project
-        fields = ["id", "slug", "title"]
+        read_only_fields = ["translated_title"]
+        fields = read_only_fields + ["id", "slug", "title"]
 
 
-class ProjectLightSerializer(serializers.ModelSerializer):
+class ProjectLightSerializer(TranslatedModelSerializer):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -228,7 +230,8 @@ class ProjectLightSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = [
+        read_only_fields = ["translated_title"]
+        fields = read_only_fields + [
             "id",
             "slug",
             "title",
@@ -536,6 +539,8 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         read_only_fields = [
             "is_locked",
             "slug",
+            "translated_title",
+            "translated_description",
         ]
         fields = read_only_fields + [
             "id",

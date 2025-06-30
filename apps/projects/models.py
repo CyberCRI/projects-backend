@@ -120,8 +120,7 @@ class Project(
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
-    translated_fields = ["title"]
-    html_translated_fields = ["description"]
+    auto_translated_fields = ["title", "description"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -142,6 +141,7 @@ class Project(
         primary_key=True, auto_created=True, default=uuid_generator, max_length=8
     )
     title = models.CharField(max_length=255, verbose_name=_("title"))
+    translated_title = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(unique=True)
     outdated_slugs = ArrayField(models.SlugField(), default=list)
     header_image = models.ForeignKey(
@@ -151,6 +151,7 @@ class Project(
         related_name="project_header",
     )
     description = models.TextField(blank=True, default="")
+    translated_description = models.TextField(blank=True, default="")
     purpose = models.TextField(blank=True, verbose_name=_("main goal"))
     is_locked = models.BooleanField(default=False)
     is_shareable = models.BooleanField(default=False)

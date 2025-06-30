@@ -6,5 +6,5 @@ from .models import Project
 
 @register(Project)
 class ProjectTranslationOptions(TranslationOptions):
-    fields = ("title", "description")
+    fields = ("translated_title", "translated_description")
     required_languages = settings.REQUIRED_LANGUAGES

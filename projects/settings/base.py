@@ -481,6 +481,10 @@ CELERY_BEAT_SCHEDULE = {
     },
     "clean_duplicate_search_objects": {
         "task": "apps.search.tasks.clean_duplicate_search_objects",
+        "schedule": crontab(minute=10, hour="*"),
+    },
+    "update_automatic_translations": {
+        "task": "apps.translations.tasks.automatic_translations",
         "schedule": crontab(minute=15, hour="*"),
     },
 }
@@ -595,8 +599,6 @@ DATA_UPLOAD_MAX_NUMBER_FIELDS = 10000
 options.DEFAULT_NAMES += (
     "subscopes",
     "write_only_subscopes",
-    "translated_fields",
-    "html_translated_fields",
 )
 
 ##############
