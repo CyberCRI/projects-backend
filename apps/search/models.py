@@ -47,9 +47,6 @@ class SearchObject(models.Model):
     type = models.CharField(max_length=50, choices=SearchObjectType.choices)
     last_update = models.DateTimeField(null=True)
 
-    class Meta:
-        unique_together = (("type", "user", "project", "people_group"),)
-
     @property
     def item(self):
         match self.type:

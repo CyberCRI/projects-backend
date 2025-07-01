@@ -470,6 +470,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "services.google.tasks.retry_failed_tasks",
         "schedule": crontab(minute="*/10", hour="*"),
     },
+    "clean_duplicate_search_objects": {
+        "task": "apps.search.tasks.clean_duplicate_search_objects",
+        "schedule": crontab(minute=15, hour="*/2"),
+    },
     "send_instruction_notification": {
         "task": "apps.notifications.tasks.notify_new_instructions",
         "schedule": crontab(minute=0, hour="*"),
