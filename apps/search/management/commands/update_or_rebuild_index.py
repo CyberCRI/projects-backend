@@ -1,6 +1,7 @@
 import subprocess  # nosec B404
 
 from django.core.management.base import BaseCommand
+from django.db import transaction
 from django_opensearch_dsl.registries import registry
 from opensearchpy.exceptions import NotFoundError
 
@@ -21,6 +22,8 @@ class Command(BaseCommand):
             except NotFoundError:
                 index.create()
                 self.stdout.write(f"Created index {index._name}")
-        self.subprocess_call_command(
-            "opensearch", "document", "index", "--force", "--refresh"
+        transaction.on_commit(
+            self.subprocess_call_command(
+                "opensearch", "document", "index", "--force", "--refresh"
+            )
         )
