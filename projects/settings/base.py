@@ -474,6 +474,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.notify_new_instructions",
         "schedule": crontab(minute=0, hour="*"),
     },
+    "clean_duplicate_search_objects": {
+        "task": "apps.search.tasks.clean_duplicate_search_objects",
+        "schedule": crontab(minute=15, hour="*"),
+    },
 }
 
 # Cache settings
