@@ -46,18 +46,20 @@ class ProjectTemplateExportMixin:
         self, request: HttpRequest, queryset: QuerySet[Template]
     ) -> HttpResponse:
         zip_filename = "templates_projects.zip"
+        separator = "----SEPARATOR----"
         with zipfile.ZipFile(zip_filename, "w") as zipf:
             for template in queryset:
                 projects = Project.objects.filter(main_category__template=template)
                 headers = self._get_template_headers(template)
-                lines = ["project_id," + ",".join([f'"{h}"' for h in headers]) + "\n"]
+                lines = [["project_id", *headers]]
 
                 for project in projects:
                     project_data = self._get_project_data(project, headers)
-                    line = ",".join([f'"{project_data.get(h)}"' for h in headers])
-                    lines.append(f"{project.id}," + line + "\n")
-
+                    lines.append(
+                        [str(project.id), *[project_data.get(h) for h in headers]]
+                    )
                 with open(f"{template.id}.csv", "w") as f:
+                    lines = [separator.join(line) + "\n" for line in lines]
                     f.writelines(lines)
                 zipf.write(f"{template.id}.csv", arcname=f"{template.id}.csv")
                 os.remove(f"{template.id}.csv")
