@@ -654,9 +654,9 @@ class ProjectSerializer(
             validated_data["main_category"] = categories[0]
 
         changes = compute_project_changes(instance, validated_data)
-        # notify_project_changes.delay(
-        #     instance.pk, changes, self.context["request"].user.pk
-        # )
+        notify_project_changes.delay(
+            instance.pk, changes, self.context["request"].user.pk
+        )
         return super(ProjectSerializer, self).update(instance, validated_data)
 
     def validate_organizations_codes(self, value: List[Organization]):

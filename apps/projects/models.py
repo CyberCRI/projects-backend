@@ -204,8 +204,9 @@ class Project(
         related_name="archive",
         m2m_fields=[tags, categories],
         excluded_fields=[
-            *[f"title_{lang}" for lang in settings.REQUIRED_LANGUAGES],
-            *[f"description_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+            f"{field}_{lang}"
+            for field in auto_translated_fields
+            for lang in settings.REQUIRED_LANGUAGES
         ],
     )
     duplicated_from = models.CharField(
