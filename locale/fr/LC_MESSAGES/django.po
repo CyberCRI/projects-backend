@@ -112,7 +112,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:130 apps/projects/models.py:162
+#: apps/accounts/models.py:130 apps/projects/models.py:160
 msgid "visibility"
 msgstr "visibilité"
 
@@ -1544,23 +1544,23 @@ msgstr "Vous ne pouvez pas changer le type d'un onglet de projet"
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:155
+#: apps/projects/models.py:153
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:168
+#: apps/projects/models.py:166
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:179
+#: apps/projects/models.py:177
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:196
+#: apps/projects/models.py:194
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 
-#: apps/projects/models.py:202
+#: apps/projects/models.py:200
 msgid "main category"
 msgstr "catégorie principale"
 

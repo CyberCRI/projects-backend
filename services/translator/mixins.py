@@ -1,11 +1,37 @@
 from typing import Dict
 
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
 
 from .models import AutoTranslatedField
 
 
-class HasAutoTranslatedFields:
+class TranslatedModelMeta(models.base.ModelBase):
+    """
+    Metaclass for models that have fields that can be automatically translated.
+    It dynamically creates translated fields for each language specified in
+    `settings.REQUIRED_LANGUAGES`.
+
+    This allows us to avoid using the `django-modeltranslation` library while because
+    it would force us to have the original value linked to the default language field.
+
+    Using this metaclass, we can create fields like `title_en`, `title_fr`, while
+    keeping the original field `title` as the default language field.
+    """
+
+    def __new__(cls, name, bases, attrs):
+        for field in attrs.get("auto_translated_fields", []):
+            base_field = attrs[field]
+            for lang in settings.REQUIRED_LANGUAGES:
+                attrs[f"{field}_{lang}"] = base_field.__class__(
+                    *base_field.deconstruct()[2],
+                    **{**base_field.deconstruct()[3], "blank": True, "null": True},
+                )
+        return super().__new__(cls, name, bases, attrs)
+
+
+class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     """
     A model that has fields that can be automatically translated.
 

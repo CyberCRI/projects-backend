@@ -19,7 +19,6 @@ from apps.commons.models import GroupData
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
-    TranslatedModelSerializer,
 )
 from apps.commons.utils import process_text
 from apps.feedbacks.models import Comment, Follow
@@ -39,6 +38,7 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -171,7 +171,7 @@ class GoalSerializer(
         return None
 
 
-class LocationProjectSerializer(serializers.ModelSerializer):
+class LocationProjectSerializer(AutoTranslatedModelSerializer):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -214,14 +214,13 @@ class LocationSerializer(
         return None
 
 
-class ProjectSuperLightSerializer(TranslatedModelSerializer):
+class ProjectSuperLightSerializer(AutoTranslatedModelSerializer):
     class Meta:
         model = Project
-        read_only_fields = ["translated_title"]
-        fields = read_only_fields + ["id", "slug", "title"]
+        fields = ["id", "slug", "title"]
 
 
-class ProjectLightSerializer(TranslatedModelSerializer):
+class ProjectLightSerializer(AutoTranslatedModelSerializer):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -230,8 +229,7 @@ class ProjectLightSerializer(TranslatedModelSerializer):
 
     class Meta:
         model = Project
-        read_only_fields = ["translated_title"]
-        fields = read_only_fields + [
+        fields = [
             "id",
             "slug",
             "title",
@@ -482,7 +480,11 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
         }
 
 
-class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+class ProjectSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     team = ProjectAddTeamMembersSerializer(required=False, source="*")
     tags = TagRelatedField(many=True, required=False)
 
@@ -539,8 +541,6 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
         read_only_fields = [
             "is_locked",
             "slug",
-            "translated_title",
-            "translated_description",
         ]
         fields = read_only_fields + [
             "id",
@@ -654,9 +654,9 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             validated_data["main_category"] = categories[0]
 
         changes = compute_project_changes(instance, validated_data)
-        notify_project_changes.delay(
-            instance.pk, changes, self.context["request"].user.pk
-        )
+        # notify_project_changes.delay(
+        #     instance.pk, changes, self.context["request"].user.pk
+        # )
         return super(ProjectSerializer, self).update(instance, validated_data)
 
     def validate_organizations_codes(self, value: List[Organization]):

@@ -20,7 +20,7 @@ def update_auto_translated_field(field: AutoTranslatedField):
     if languages:
         translations = AzureTranslatorService.translate_text_content(content, languages)
         translations = {
-            f"translated_{field_name}_{translation['to']}": translation["text"]
+            f"{field_name}_{translation['to']}": translation["text"]
             for translation in translations
         }
         instance._meta.model.objects.filter(pk=instance.pk).update(**translations)
