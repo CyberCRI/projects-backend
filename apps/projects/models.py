@@ -141,7 +141,6 @@ class Project(
         primary_key=True, auto_created=True, default=uuid_generator, max_length=8
     )
     title = models.CharField(max_length=255, verbose_name=_("title"))
-    translated_title = models.CharField(max_length=255, blank=True, default="")
     slug = models.SlugField(unique=True)
     outdated_slugs = ArrayField(models.SlugField(), default=list)
     header_image = models.ForeignKey(
@@ -151,7 +150,6 @@ class Project(
         related_name="project_header",
     )
     description = models.TextField(blank=True, default="")
-    translated_description = models.TextField(blank=True, default="")
     purpose = models.TextField(blank=True, verbose_name=_("main goal"))
     is_locked = models.BooleanField(default=False)
     is_shareable = models.BooleanField(default=False)
@@ -206,8 +204,8 @@ class Project(
         related_name="archive",
         m2m_fields=[tags, categories],
         excluded_fields=[
-            *[f"translated_title_{lang}" for lang in settings.REQUIRED_LANGUAGES],
-            *[f"translated_description_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+            *[f"title_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+            *[f"description_{lang}" for lang in settings.REQUIRED_LANGUAGES],
         ],
     )
     duplicated_from = models.CharField(
