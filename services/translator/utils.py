@@ -16,13 +16,20 @@ def update_auto_translated_field(field: AutoTranslatedField):
     organizations = [
         o for o in instance.get_related_organizations() if o.auto_translate_content
     ]
-    languages = list(set(lang for org in organizations for lang in org.languages))
+    languages = list(
+        dict.fromkeys([lang for org in organizations for lang in org.languages])
+    )
     if languages:
-        translations = AzureTranslatorService.translate_text_content(content, languages)
-        translations = {
-            f"{field_name}_{translation['to']}": translation["text"]
-            for translation in translations
-        }
+        if content:
+            translations = AzureTranslatorService.translate_text_content(
+                content, languages
+            )
+            translations = {
+                f"{field_name}_{translation['to']}": translation["text"]
+                for translation in translations
+            }
+        else:
+            translations = {f"{field_name}_{lang}": content for lang in languages}
         instance._meta.model.objects.filter(pk=instance.pk).update(**translations)
     field.up_to_date = True
     field.save()

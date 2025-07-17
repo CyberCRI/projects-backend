@@ -274,6 +274,7 @@ class Project(
         ]:
             group.delete()
         self.save()
+        self._delete_auto_translated_fields()
 
     @transaction.atomic
     def hard_delete(self):
