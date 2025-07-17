@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -749,7 +750,14 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         while previous:
             previous_reason = previous.history_change_reason
             if previous_reason:
-                delta = version.diff_against(previous)
+                delta = version.diff_against(
+                    previous,
+                    excluded_fields=[
+                        f"{field}_{lang}"
+                        for field in Project.auto_translated_fields
+                        for lang in settings.REQUIRED_LANGUAGES
+                    ],
+                )
                 return {
                     change.field: {"old_version": change.old, "new_version": change.new}
                     for change in delta.changes
