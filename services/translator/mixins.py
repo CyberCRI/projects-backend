@@ -49,10 +49,10 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     _original_auto_translated_fields_values: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._original_auto_translated_fields_values = {
             field: getattr(self, field, "") for field in self.auto_translated_fields
         }
-        super().__init__(*args, **kwargs)
 
     def update_translated_fields(self, force_update: bool = True):
         """
@@ -75,11 +75,28 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
             ):
                 AutoTranslatedField.objects.update_or_create(
                     content_type=content_type,
-                    object_id=self.pk,
+                    object_id=str(self.pk),
                     field_name=field,
                     defaults={"up_to_date": False},
                 )
 
+    def _delete_auto_translated_fields(self):
+        AutoTranslatedField.objects.filter(
+            content_type=ContentType.objects.get_for_model(self.__class__),
+            object_id=str(self.pk),
+        ).delete()
+
     def save(self, *args, **kwargs):
-        self.update_translated_fields(force_update=False)
-        return super().save(*args, **kwargs)
+        instance = super().save(*args, **kwargs)
+        if not AutoTranslatedField.objects.filter(
+            content_type=ContentType.objects.get_for_model(self.__class__),
+            object_id=str(self.pk),
+        ).exists():
+            self.update_translated_fields(force_update=True)
+        else:
+            self.update_translated_fields(force_update=False)
+        return instance
+
+    def delete(self, using=None, keep_parents=False):
+        self._delete_auto_translated_fields()
+        super().delete(using=using, keep_parents=keep_parents)
