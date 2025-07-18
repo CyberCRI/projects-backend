@@ -1,3 +1,4 @@
+import csv
 import os
 import zipfile
 from typing import List
@@ -50,15 +51,16 @@ class ProjectTemplateExportMixin:
             for template in queryset:
                 projects = Project.objects.filter(main_category__template=template)
                 headers = self._get_template_headers(template)
-                lines = ["project_id," + ",".join([f'"{h}"' for h in headers]) + "\n"]
+                lines = [["project_id", *headers]]
 
                 for project in projects:
                     project_data = self._get_project_data(project, headers)
-                    line = ",".join([f'"{project_data.get(h)}"' for h in headers])
-                    lines.append(f"{project.id}," + line + "\n")
-
+                    lines.append(
+                        [str(project.id), *[project_data.get(h) for h in headers]]
+                    )
                 with open(f"{template.id}.csv", "w") as f:
-                    f.writelines(lines)
+                    writer = csv.writer(f, delimiter=",", quoting=csv.QUOTE_ALL)
+                    writer.writerows(lines)
                 zipf.write(f"{template.id}.csv", arcname=f"{template.id}.csv")
                 os.remove(f"{template.id}.csv")
         with open(zip_filename, "rb") as zip_file:
