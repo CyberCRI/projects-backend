@@ -4,6 +4,7 @@ from django.db import models
 
 from apps.commons.enums import Language
 from apps.commons.mixins import HasOwner, OrganizationRelated
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -58,7 +59,7 @@ class Newsfeed(models.Model):
     )
 
 
-class News(models.Model, OrganizationRelated):
+class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """News instance.
 
     Attributes
@@ -83,6 +84,8 @@ class News(models.Model, OrganizationRelated):
     visible_by_all: BooleanField
         If the news is visible by all the users, connected or not, member of a group or not.
     """
+
+    auto_translated_fields: List[str] = ["title", "content"]
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
@@ -109,7 +112,7 @@ class News(models.Model, OrganizationRelated):
         return [self.organization]
 
 
-class Instruction(models.Model, OrganizationRelated, HasOwner):
+class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models.Model):
     """Instruction instance.
     Attributes
     ----------
@@ -135,6 +138,8 @@ class Instruction(models.Model, OrganizationRelated, HasOwner):
     visible_by_all: BooleanField
         If the news is visible by all the users, connected or not, member of a group or not.
     """
+
+    auto_translated_fields: List[str] = ["title", "content"]
 
     owner = models.ForeignKey(
         "accounts.ProjectUser",
@@ -175,7 +180,7 @@ class Instruction(models.Model, OrganizationRelated, HasOwner):
         return self.owner == user
 
 
-class Event(models.Model, OrganizationRelated):
+class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """News isntance.
 
     Attributes
@@ -198,6 +203,8 @@ class Event(models.Model, OrganizationRelated):
     visible_by_all: BooleanField
         If the news is visible by all the users, connected or not, member of a group or not.
     """
+
+    auto_translated_fields: List[str] = ["title", "content"]
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")

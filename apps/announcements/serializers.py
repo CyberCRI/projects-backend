@@ -10,11 +10,12 @@ from apps.commons.serializers import (
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .models import Announcement
 
 
-class ProjectAnnouncementSerializer(serializers.ModelSerializer):
+class ProjectAnnouncementSerializer(AutoTranslatedModelSerializer):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
