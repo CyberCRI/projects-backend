@@ -17,6 +17,7 @@ from apps.commons.mixins import (
     OrganizationRelated,
     ProjectRelated,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .enums import AttachmentLinkCategory, AttachmentType
 from .utils import resize_and_autorotate
@@ -59,8 +60,18 @@ def attachment_directory_path(instance: "AttachmentFile", filename: str):
 
 
 class AttachmentLink(
-    models.Model, ProjectRelated, OrganizationRelated, DuplicableModel
+    HasAutoTranslatedFields,
+    DuplicableModel,
+    ProjectRelated,
+    OrganizationRelated,
+    models.Model,
 ):
+    """
+    A link that is attached to a project.
+    """
+
+    auto_translated_fields: List[str] = ["title", "description"]
+
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="links"
     )
@@ -116,7 +127,15 @@ class AttachmentLink(
         )
 
 
-class OrganizationAttachmentFile(models.Model, OrganizationRelated):
+class OrganizationAttachmentFile(
+    HasAutoTranslatedFields, OrganizationRelated, models.Model
+):
+    """
+    An attachment file that is related to an organization.
+    """
+
+    auto_translated_fields: List[str] = ["title", "description"]
+
     organization = models.ForeignKey(
         "organizations.Organization",
         on_delete=models.CASCADE,
@@ -137,8 +156,18 @@ class OrganizationAttachmentFile(models.Model, OrganizationRelated):
 
 
 class AttachmentFile(
-    models.Model, ProjectRelated, OrganizationRelated, DuplicableModel
+    HasAutoTranslatedFields,
+    DuplicableModel,
+    ProjectRelated,
+    OrganizationRelated,
+    models.Model,
 ):
+    """
+    An attachment file that is related to a project.
+    """
+
+    auto_translated_fields: List[str] = ["title", "description"]
+
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="files"
     )

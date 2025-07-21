@@ -120,7 +120,7 @@ class Project(
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
-    auto_translated_fields = ["title", "description"]
+    auto_translated_fields: List[str] = ["title", "description", "purpose"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -686,7 +686,13 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
         return self.target.get_related_organizations()
 
 
-class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class BlogEntry(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    DuplicableModel,
+    models.Model,
+):
     """A blog entry in a project.
 
     Attributes
@@ -704,6 +710,8 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
     updated_at: DateTimeField
         Date of the last change made to the blog entry.
     """
+
+    auto_translated_fields: List[str] = ["title", "content"]
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="blog_entries"
@@ -764,7 +772,13 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
         return blog_entry
 
 
-class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class Goal(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    DuplicableModel,
+    models.Model,
+):
     """Goal of a project.
 
     Attributes
@@ -782,6 +796,8 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     status: CharField,
         Status of the Goal.
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class GoalStatus(models.TextChoices):
         NONE = "na"
@@ -831,7 +847,13 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
         )
 
 
-class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class Location(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    DuplicableModel,
+    models.Model,
+):
     """A project location on Earth.
 
     Attributes
@@ -851,6 +873,8 @@ class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableMode
     type: CharField
         Type of the location (team or impact).
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class LocationType(models.TextChoices):
         """Type of a location."""
@@ -890,7 +914,13 @@ class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableMode
         )
 
 
-class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner):
+class ProjectMessage(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    HasOwner,
+    models.Model,
+):
     """
     A message in a project.
 
@@ -913,6 +943,8 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
     images: ManyToManyField files.Image
         Images used by the message.
     """
+
+    auto_translated_fields: List[str] = ["content"]
 
     project = models.ForeignKey(
         "projects.Project",
@@ -964,7 +996,12 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
         return self.author == user
 
 
-class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectTab(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    models.Model,
+):
     """A tab in the project page.
 
     Attributes
@@ -978,6 +1015,8 @@ class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
     description: TextField
         Description of the tab.
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -1005,7 +1044,12 @@ class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
         return self.project.get_related_organizations()
 
 
-class ProjectTabItem(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectTabItem(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    models.Model,
+):
     """An item in a project tab.
 
     Attributes
@@ -1017,6 +1061,8 @@ class ProjectTabItem(models.Model, ProjectRelated, OrganizationRelated):
     content: TextField
         Content of the item.
     """
+
+    auto_translated_fields: List[str] = ["title", "content"]
 
     tab = models.ForeignKey(
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"

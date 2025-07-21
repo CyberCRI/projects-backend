@@ -17,12 +17,18 @@ from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
-class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
+class Organization(
+    HasAutoTranslatedFields,
+    HasPermissionsSetup,
+    OrganizationRelated,
+    models.Model,
+):
     """An Organization is a set of ProjectCategories contained in an OrganizationDirectory.
 
     Attributes
@@ -76,6 +82,14 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
     identity_providers: ManyToManyField
         Identity providers authorized to access the organization.
     """
+
+    auto_translated_fields: List[str] = [
+        "name",
+        "dashboard_title",
+        "dashboard_subtitle",
+        "description",
+        "chat_button_text",
+    ]
 
     code = models.CharField(max_length=50, unique=True)
     website_url = models.CharField(max_length=255)
@@ -321,7 +335,7 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
         ).distinct()
 
 
-class Template(models.Model, OrganizationRelated):
+class Template(OrganizationRelated, models.Model):
     """Templates are used to guide the creation a new project by providing placeholders.
 
     Attributes
@@ -359,7 +373,9 @@ class Template(models.Model, OrganizationRelated):
             raise Http404()
 
 
-class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
+class ProjectCategory(
+    HasAutoTranslatedFields, HasMultipleIDs, OrganizationRelated, models.Model
+):
     """A ProjectCategory is a container for projects of the same type.
 
     Type might be student projects, research project, etc...
@@ -392,6 +408,7 @@ class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
         History of the object.
     """
 
+    auto_translated_fields: List[str] = ["name", "description"]
     slugified_fields: List[str] = ["name"]
     slug_prefix: str = "category"
 

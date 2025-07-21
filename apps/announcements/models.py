@@ -3,13 +3,20 @@ from typing import TYPE_CHECKING, List, Optional
 from django.db import models
 
 from apps.commons.mixins import DuplicableModel, OrganizationRelated, ProjectRelated
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.organizations.models import Organization
     from apps.projects.models import Project
 
 
-class Announcement(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class Announcement(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    OrganizationRelated,
+    DuplicableModel,
+    models.Model,
+):
     """Information about an announcement working on a Project.
 
     Attributes
@@ -33,6 +40,8 @@ class Announcement(models.Model, ProjectRelated, OrganizationRelated, Duplicable
     updated_at: DateTimeField
         Date of the last change made to the announcement.
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class AnnouncementType(models.TextChoices):
         NONE = ("na", "Not applicable")

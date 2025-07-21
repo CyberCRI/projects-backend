@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -45,7 +45,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     to know that the translations need to be updated.
     """
 
-    auto_translated_fields = []
+    auto_translated_fields: List[str] = []
     _original_auto_translated_fields_values: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):

@@ -5,6 +5,7 @@ from django.utils import timezone
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.commons.mixins import HasOwner, OrganizationRelated, ProjectRelated
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     from apps.projects.models import Project
 
 
-class Follow(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
+class Follow(HasOwner, ProjectRelated, OrganizationRelated, models.Model):
     """Represent a user following a project.
 
     Attributes
@@ -85,7 +86,9 @@ class Follow(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         ]
 
 
-class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
+class Comment(
+    HasAutoTranslatedFields, HasOwner, ProjectRelated, OrganizationRelated, models.Model
+):
     """A comment written by a user about some project, may be an answer to another comment.
 
     Attributes
@@ -111,6 +114,8 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
     history: HistoricalRecords
         History of the object.
     """
+
+    auto_translated_fields: List[str] = ["content"]
 
     project = HistoricForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="comments"
@@ -175,7 +180,9 @@ class Comment(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
         ordering = ["-created_at"]
 
 
-class Review(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
+class Review(
+    HasAutoTranslatedFields, HasOwner, ProjectRelated, OrganizationRelated, models.Model
+):
     """A review made by a User about a Project.
 
     Attributes
@@ -195,6 +202,8 @@ class Review(models.Model, HasOwner, ProjectRelated, OrganizationRelated):
     updated_at: DateTimeField
         Date of the last change made to the review.
     """
+
+    auto_translated_fields: List[str] = ["description", "title"]
 
     description = models.TextField(blank=True)
     title = models.CharField(max_length=100)
