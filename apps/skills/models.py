@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 from apps.commons.mixins import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -90,12 +91,18 @@ class Tag(models.Model, OrganizationRelated):
         return []
 
 
-class TagClassification(HasMultipleIDs, OrganizationRelated, models.Model):
+class TagClassification(
+    HasAutoTranslatedFields,
+    HasMultipleIDs,
+    OrganizationRelated,
+    models.Model,
+):
     """
     Subset of tags that can be used as Skills, Hobbies or Project tags.
     Users are allowed to create their own tags and classifications.
     """
 
+    auto_translated_fields: List[str] = ["title", "description"]
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "tag-classification"
     reserved_slugs = ["enabled-for-projects", "enabled-for-skills"]
@@ -257,7 +264,7 @@ class Mentoring(models.Model, HasOwners, OrganizationRelated):
         return [self.organization]
 
 
-class MentoringMessage(models.Model, HasOwner):
+class MentoringMessage(HasAutoTranslatedFields, HasOwner, models.Model):
     """
     Message sent in a mentoring conversation.
 
@@ -272,6 +279,8 @@ class MentoringMessage(models.Model, HasOwner):
     created_at: DateTimeField
         The date and time the message was created.
     """
+
+    auto_translated_fields: List[str] = ["content"]
 
     mentoring = models.ForeignKey(
         "skills.Mentoring", on_delete=models.CASCADE, related_name="messages"
