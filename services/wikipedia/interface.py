@@ -39,7 +39,14 @@ class WikipediaService:
             "limit": limit,
             "continue": offset,
         }
-        return requests.get(cls.MEDIAWIKI_API_URL, params)
+        return requests.get(
+            cls.MEDIAWIKI_API_URL,
+            params,
+            headers={
+                "Content-type": "application/json",
+                "User-Agent": "Learning Planet Institute Projects",
+            },
+        )
 
     @classmethod
     def wbgetentities(cls, wikipedia_qids: List[str]) -> requests.Response:
@@ -51,7 +58,14 @@ class WikipediaService:
             "format": "json",
             "ids": "|".join(wikipedia_qids),
         }
-        return requests.get(cls.MEDIAWIKI_API_URL, params)
+        return requests.get(
+            cls.MEDIAWIKI_API_URL,
+            params,
+            headers={
+                "Content-type": "application/json",
+                "User-Agent": "Learning Planet Institute Projects",
+            },
+        )
 
     @classmethod
     def get_by_ids(cls, wikipedia_qids: List[str]) -> List[Dict[str, str]]:
