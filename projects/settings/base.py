@@ -434,6 +434,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.files.tasks.delete_orphan_images",
         "schedule": crontab(minute=0, hour=2),
     },
+    "delete-orphan-tags": {
+        "task": "apps.skills.tasks.delete_orphan_wikipedia_tags",
+        "schedule": crontab(minute=0, hour=2),
+    },
     "calculate_projects_scores": {
         "task": "apps.projects.tasks.calculate_projects_scores",
         "schedule": crontab(minute=0, hour=3),
@@ -521,9 +525,10 @@ EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False)
 
 EMAIL_REPORT_RECIPIENTS = ["projects.platform@learningplanetinstitute.org"]
 
-# Time (in seconds) after which an image is considered an orphan if it was not assigned to
-# any model.
+# Time (in seconds) after which an image or a tag is considered an orphan if it was not
+# assigned to any model.
 IMAGE_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
+TAG_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
 
 # MJML
 MJML_BACKEND_MODE = "httpserver"
@@ -603,6 +608,7 @@ OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
     "django_opensearch_dsl.signals.CelerySignalProcessor",
 )
 OPENSEARCH_INDEX_PREFIX = os.getenv("OPENSEARCH_INDEX_PREFIX", "proj-local")
+
 
 #####################
 #   Static files    #

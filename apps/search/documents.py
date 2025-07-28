@@ -233,6 +233,9 @@ class ProjectDocument(Document):
 class TagDocument(Document):
     class Index:
         name = f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"
+        settings = {
+            "max_terms_count": 100000,
+        }
 
     class Django:
         model = Tag

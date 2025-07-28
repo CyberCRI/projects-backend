@@ -7,7 +7,7 @@ from apps.commons.utils import clear_memory
 from apps.emailing.utils import render_message, send_email
 from projects.celery import app
 
-from .models import Mentoring
+from .models import Mentoring, Tag
 from .utils import update_esco_data
 
 
@@ -77,3 +77,11 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
 def mentoring_reminder():
     _send_mentoring_reminder(3)
     _send_mentoring_reminder(10)
+
+
+@app.task(name="apps.skills.tasks.delete_orphan_wikipedia_tags")
+def delete_orphan_wikipedia_tags():
+    tags = Tag.get_orphan_tags(type=Tag.TagType.WIKIPEDIA)
+    ids = list(tags.values_list("id", flat=True))
+    tags.delete()  # Delete the DB entries
+    return ids
