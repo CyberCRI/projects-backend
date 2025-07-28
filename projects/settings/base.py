@@ -147,6 +147,7 @@ INSTALLED_APPS = [
     "services.keycloak",
     "services.mistral",
     "services.mixpanel",
+    "services.translator",
     "services.wikipedia",
     # deploys should be the last one
     "apps.deploys",
@@ -478,6 +479,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.notify_new_instructions",
         "schedule": crontab(minute=0, hour="*"),
     },
+    "update_automatic_translations": {
+        "task": "apps.translations.tasks.automatic_translations",
+        "schedule": crontab(minute=10, hour="*"),
+    },
     "clean_duplicate_search_objects": {
         "task": "apps.search.tasks.clean_duplicate_search_objects",
         "schedule": crontab(minute=15, hour="*"),
@@ -670,3 +675,11 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 ##############
 
 ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")
+
+
+##############
+# TRANSLATOR #
+##############
+
+AZURE_TRANSLATOR_KEY = os.getenv("AZURE_TRANSLATOR_KEY", "")
+AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
