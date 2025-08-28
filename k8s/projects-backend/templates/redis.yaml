@@ -46,4 +46,11 @@ spec:
     managedNamespaceMetadata:
       labels:
         pod-security.kubernetes.io/enforce: restricted
+  {{- if .Values.sablier.enabled }}
+  ignoreDifferences:
+  - group: apps
+    kind: Deployment
+    jqPathExpressions:
+    - .spec.replicas # Ignore replicas on sablier scale down
+  {{- end }}
 {{- end }}
