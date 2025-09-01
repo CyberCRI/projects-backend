@@ -6,6 +6,7 @@ from .models import BlogEntry, Project
 class ProjectResource(resources.ModelResource):
     members_names = fields.Field()
     members_emails = fields.Field()
+    groups_names = fields.Field()
     categories = fields.Field()
     tags = fields.Field()
 
