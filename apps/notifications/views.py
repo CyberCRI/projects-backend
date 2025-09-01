@@ -157,7 +157,7 @@ class ContactViewSet(viewsets.GenericViewSet):
         send_email_task.delay(
             f"[Contact] {serializer.validated_data['subject']}",
             text_content,
-            settings.EMAIL_REPORT_RECIPIENTS,
+            settings.EMAIL_CONTACT_RECIPIENTS,
             html_content=html_content,
         )
 

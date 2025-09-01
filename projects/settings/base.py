@@ -523,7 +523,12 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "projects@mg.lp-i.dev")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False)
 
-EMAIL_REPORT_RECIPIENTS = ["projects.platform@learningplanetinstitute.org"]
+EMAIL_CONTACT_RECIPIENTS = os.getenv(
+    "EMAIL_CONTACT_RECIPIENTS", "projects.platform@learningplanetinstitute.org"
+).split(",")
+EMAIL_REPORT_RECIPIENTS = os.getenv(
+    "EMAIL_REPORT_RECIPIENTS", "projects.platform@learningplanetinstitute.org"
+).split(",")
 
 # Time (in seconds) after which an image or a tag is considered an orphan if it was not
 # assigned to any model.
