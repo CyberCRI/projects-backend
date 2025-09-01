@@ -513,6 +513,14 @@ class Project(
             self.owners.all() | self.reviewers.all() | self.members.all()
         ).distinct()
 
+    def get_all_groups(self) -> QuerySet["PeopleGroup"]:
+        """Return all groups."""
+        return (
+            self.member_groups.all()
+            | self.owner_groups.all()
+            | self.reviewer_groups.all()
+        ).distinct()
+
     def get_or_create_score(self) -> "ProjectScore":
         score, created = ProjectScore.objects.get_or_create(project=self)
         if created:

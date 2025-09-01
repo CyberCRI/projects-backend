@@ -35,8 +35,8 @@ class DuplicatedLinkError(ValidationError):
 class FileTooLargeError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
     default_detail = _(
-        f"File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-    )
+        "File too large. Size should not exceed {max_file_size} MB"
+    ).format(max_file_size=settings.MAX_FILE_SIZE)
     default_code = "file_too_large_error"
 
 
@@ -63,7 +63,9 @@ class ProtectedImageError(APIException):
     def __init__(self, relation: Optional[dict] = None):
         detail = (
             _(
-                f"You can't delete this picture: It is related to an instance of {relation['model']} with pk={relation['pk']} through field {relation['field']}"
+                "You can't delete this picture: It is related to an instance of {model} with pk={pk} through field {field}"
+            ).format(
+                model=relation["model"], pk=relation["pk"], field=relation["field"]
             )
             if relation
             else self.default_detail

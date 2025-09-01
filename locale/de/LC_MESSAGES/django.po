@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-13 11:31+0200\n"
+"POT-Creation-Date: 2025-09-01 14:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgstr "Sie haben keine Berechtigung diese Rolle zuzuweisen"
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Sie haben keine Berechtigung diese Rolle zuzuweisen: {role}"
 
-#: apps/accounts/exceptions.py:74
+#: apps/accounts/exceptions.py:76
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -59,55 +59,55 @@ msgstr ""
 "Der Parameter email_type fehlt. Optionen sind: admin_created, invitation, "
 "reset_password"
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:83
 msgid "Permission not found"
 msgstr "Berechtigung nicht gefunden"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:89
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Ein Fehler ist bei der Synchronisierung mit Keycloak aufgetreten"
 
-#: apps/accounts/exceptions.py:92
+#: apps/accounts/exceptions.py:94
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr ""
 "Ein Fehler ist bei der Synchronisierung mit Keycloak aufgetreten: {message}"
 
-#: apps/accounts/exceptions.py:102
+#: apps/accounts/exceptions.py:106
 msgid "An error occurred while syncing with Google"
 msgstr "Ein Fehler ist bei der Synchronisierung mit Google aufgetreten"
 
-#: apps/accounts/exceptions.py:107
+#: apps/accounts/exceptions.py:111
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr ""
 "Ein Fehler ist bei der Synchronisierung mit Google aufgetreten: {message}"
 
-#: apps/accounts/exceptions.py:120
+#: apps/accounts/exceptions.py:126
 msgid "The organization of a group cannot be changed"
 msgstr "Die Organisation einer Gruppe kann nicht geändert werden"
 
-#: apps/accounts/exceptions.py:126
+#: apps/accounts/exceptions.py:132
 msgid "The root group cannot have a parent group"
 msgstr "Die Stammgruppe darf keine übergeordnete Gruppe haben"
 
-#: apps/accounts/exceptions.py:132
+#: apps/accounts/exceptions.py:138
 msgid "A non-root group must have a parent group"
 msgstr "Eine nicht-Stammgruppe muss eine übergeordnete Gruppe haben"
 
-#: apps/accounts/exceptions.py:138
+#: apps/accounts/exceptions.py:144
 msgid "The parent group must belong to the same organization"
 msgstr "Die übergeordnete Gruppe muss derselben Organisation angehören"
 
-#: apps/accounts/exceptions.py:144
+#: apps/accounts/exceptions.py:150
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Sie versuchen, eine Schleife in der Gruppenhierarchie zu erstellen"
 
-#: apps/accounts/exceptions.py:150
+#: apps/accounts/exceptions.py:156
 msgid "You cannot assign this role to a user"
 msgstr "Sie können diese Rolle keinem Benutzer zuweisen"
 
-#: apps/accounts/exceptions.py:155
+#: apps/accounts/exceptions.py:161
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sie können diese Rolle keinem Benutzer zuweisen: {role}"
@@ -226,17 +226,17 @@ msgstr ""
 msgid "You don't have the permission to follow this project"
 msgstr "Sie haben keine Berechtigung, diesem Projekt zu folgen"
 
-#: apps/feedbacks/exceptions.py:33
+#: apps/feedbacks/exceptions.py:34
 #, python-brace-format
 msgid "You don't have the permission to follow this project : {project_title}"
 msgstr ""
 "Sie haben keine Berechtigung, diesem Projekt zu folgen: {project_title}"
 
-#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:116
+#: apps/feedbacks/exceptions.py:47 apps/projects/exceptions.py:120
 msgid "You cannot reply to a reply"
 msgstr "Sie können nicht auf eine Antwort antworten"
 
-#: apps/feedbacks/exceptions.py:51
+#: apps/feedbacks/exceptions.py:53
 msgid "A comment cannot be a reply to itself"
 msgstr "Ein Kommentar kann keine Antwort auf sich selbst sein"
 
@@ -260,9 +260,9 @@ msgstr ""
 
 #: apps/files/exceptions.py:38
 #, python-brace-format
-msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
+msgid "File too large. Size should not exceed {max_file_size} MB"
 msgstr ""
-"Datei zu groß. Die Größe darf {settings.MAX_FILE_SIZE} MB nicht überschreiten"
+"Datei zu groß. Die Größe darf {max_file_size} MB nicht überschreiten"
 
 #: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
@@ -279,14 +279,13 @@ msgstr ""
 "verbunden"
 
 #: apps/files/exceptions.py:66
+#, python-brace-format
 msgid ""
-"You can't delete this picture: It is related to an instance of "
-"{relation['model']} with pk={relation['pk']} through field "
-"{relation['field']}"
+"You can't delete this picture: It is related to an instance of {model} with "
+"pk={pk} through field {field}"
 msgstr ""
 "Sie können dieses Bild nicht löschen: Es ist mit einer Instanz von "
-"{relation['model']} mit pk={relation['pk']} über das Feld "
-"{relation['field']} verbunden"
+"{model} mit pk={pk} über das Feld {field} verbunden"
 
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
@@ -297,31 +296,31 @@ msgstr "Der E-Mail-Typ ist ungültig"
 msgid "The email type '{email_type}' is not valid"
 msgstr "Der E-Mail-Typ '{email_type}' ist ungültig"
 
-#: apps/invitations/exceptions.py:29
+#: apps/invitations/exceptions.py:31
 msgid "People group must belong to the invitation's organization"
 msgstr "Die Personengruppe muss zur Organisation der Einladung gehören"
 
-#: apps/invitations/exceptions.py:35
+#: apps/invitations/exceptions.py:37
 msgid "You cannot change the organization of an invitation"
 msgstr "Sie können die Organisation einer Einladung nicht ändern"
 
-#: apps/invitations/exceptions.py:41
+#: apps/invitations/exceptions.py:43
 msgid "This user is already a member of this organization"
 msgstr "Dieser Benutzer ist bereits Mitglied dieser Organisation"
 
-#: apps/invitations/exceptions.py:47
+#: apps/invitations/exceptions.py:49
 msgid "A user with this email already exists"
 msgstr "Ein Benutzer mit dieser E-Mail-Adresse existiert bereits"
 
-#: apps/invitations/exceptions.py:53
+#: apps/invitations/exceptions.py:55
 msgid "This organization does not accept access requests"
 msgstr "Diese Organisation akzeptiert keine Zugriffsanfragen"
 
-#: apps/invitations/exceptions.py:59
+#: apps/invitations/exceptions.py:61
 msgid "An access request for this email already exists"
 msgstr "Eine Zugriffsanfrage für diese E-Mail-Adresse existiert bereits"
 
-#: apps/invitations/exceptions.py:65
+#: apps/invitations/exceptions.py:67
 msgid "An access request for this user already exists"
 msgstr "Eine Zugriffsanfrage für diesen Benutzer existiert bereits"
 
@@ -348,22 +347,23 @@ msgid ""
 msgstr ""
 "\n"
 "          Bei Fragen oder für Unterstützung können Sie uns eine <a "
-"class=\"lpi-link\" href=\"mailto:projects.platform@learningplanetinstitute."
-"org\">E-Mail senden</a>. Wir werden uns so schnell wie möglich während der "
-"Geschäftszeiten (Mo-Fr 9-18 Uhr) bei Ihnen melden.\n"
+"class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">E-Mail senden</"
+"a>. Wir werden uns so schnell wie möglich während der Geschäftszeiten (Mo-Fr "
+"9-18 Uhr) bei Ihnen melden.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:66
 #: services/keycloak/templates/keycloak_base.html:66
 msgid ""
 "\n"
-"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">help center</a>.\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">help center</a>.\n"
 "          "
 msgstr ""
 "\n"
-"          Sie können auch unser <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">Hilfezentrum</a> besuchen.\n"
+"          Sie können auch unser <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">Hilfezentrum</a> besuchen.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:71
@@ -1498,46 +1498,46 @@ msgstr "Der Parameter `life_status` ist obligatorisch"
 msgid "You don't have the permission to link this project"
 msgstr "Sie haben keine Berechtigung, dieses Projekt zu verknüpfen"
 
-#: apps/projects/exceptions.py:17
+#: apps/projects/exceptions.py:18
 #, python-brace-format
 msgid "You don't have the permission to link this project : {project_title}"
 msgstr ""
 "Sie haben keine Berechtigung, dieses Projekt zu verknüpfen: {project_title}"
 
-#: apps/projects/exceptions.py:27
+#: apps/projects/exceptions.py:29
 msgid "You do not have the rights to add a project in this organization"
 msgstr ""
 "Sie haben nicht die Rechte, ein Projekt in dieser Organisation hinzuzufügen"
 
-#: apps/projects/exceptions.py:34
+#: apps/projects/exceptions.py:36
 msgid "You cannot modify a locked project"
 msgstr "Sie können ein gesperrtes Projekt nicht ändern"
 
-#: apps/projects/exceptions.py:43
+#: apps/projects/exceptions.py:45
 msgid "The organizations parameter is mandatory"
 msgstr "Der Parameter 'Organisationen' ist obligatorisch"
 
-#: apps/projects/exceptions.py:49
+#: apps/projects/exceptions.py:51
 msgid "The project does not belong to any of the given organizations"
 msgstr "Das Projekt gehört keiner der angegebenen Organisationen an"
 
-#: apps/projects/exceptions.py:70
+#: apps/projects/exceptions.py:72
 msgid "You cannot remove all the owners of a project"
 msgstr "Sie können nicht alle Eigentümer eines Projekts entfernen"
 
-#: apps/projects/exceptions.py:76
+#: apps/projects/exceptions.py:78
 msgid "A project must belong to at least one organization"
 msgstr "Ein Projekt muss mindestens einer Organisation angehören"
 
-#: apps/projects/exceptions.py:82
+#: apps/projects/exceptions.py:84
 msgid "Only a reviewer can change this project's status"
 msgstr "Nur ein Gutachter kann den Status dieses Projekts ändern"
 
-#: apps/projects/exceptions.py:88
+#: apps/projects/exceptions.py:90
 msgid "You cannot empty the description of a project"
 msgstr "Sie können die Beschreibung eines Projekts nicht leeren"
 
-#: apps/projects/exceptions.py:95
+#: apps/projects/exceptions.py:97
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
@@ -1545,21 +1545,21 @@ msgstr ""
 "Ein Projekt kann sich nicht in einer Kategorie befinden, wenn es keiner der "
 "Organisationen des Projekts angehört"
 
-#: apps/projects/exceptions.py:102
+#: apps/projects/exceptions.py:104
 msgid "A project can't be linked to itself"
 msgstr "Ein Projekt kann nicht mit sich selbst verknüpft werden"
 
-#: apps/projects/exceptions.py:107
+#: apps/projects/exceptions.py:109
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr ""
 "Das Projekt '{project_title}' kann nicht mit sich selbst verknüpft werden"
 
-#: apps/projects/exceptions.py:122
+#: apps/projects/exceptions.py:126
 msgid "A message cannot be a reply to itself"
 msgstr "Eine Nachricht kann keine Antwort auf sich selbst sein"
 
-#: apps/projects/exceptions.py:128
+#: apps/projects/exceptions.py:132
 msgid "You cannot change the type of a project's tab"
 msgstr "Sie können den Typ eines Projekt-Tabs nicht ändern"
 

@@ -14,7 +14,7 @@ class WikibaseAPIException(APIException):
 
     def __init__(self, status_code: Optional[int] = None):
         detail = (
-            _(f"Wikipedia API returned {status_code}")
+            _("Wikipedia API returned {status_code}").format(status_code=status_code)
             if status_code
             else self.default_detail
         )
@@ -28,7 +28,7 @@ class UnsupportedWikipediaLanguageError(APIException):
 
     def __init__(self, language: Optional[str] = None):
         detail = (
-            _(f"Language {language} is not supported")
+            _("Language {language} is not supported").format(language=language)
             if language
             else self.default_detail
         )

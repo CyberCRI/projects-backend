@@ -14,6 +14,8 @@ class UserResource(resources.ModelResource):
             "given_name",
             "family_name",
             "job",
+            "mobile_phone",
+            "landline_phone",
             "portals",
             "language",
             "location",

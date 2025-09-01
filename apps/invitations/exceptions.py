@@ -14,7 +14,9 @@ class InvalidEmailTypeError(APIException):
 
     def __init__(self, email_type: Optional[str] = None):
         detail = (
-            _(f"The email type '{email_type}' is not valid")
+            _("The email type '{email_type}' is not valid").format(
+                email_type=email_type
+            )
             if email_type
             else self.default_detail
         )

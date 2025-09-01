@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-06-13 11:31+0200\n"
+"POT-Creation-Date: 2025-09-01 14:48+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -51,7 +51,7 @@ msgstr "Sul ei ole luba selle rolli määramiseks"
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "Sul ei ole luba selle rolli määramiseks: {role}"
 
-#: apps/accounts/exceptions.py:74
+#: apps/accounts/exceptions.py:76
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -59,53 +59,53 @@ msgstr ""
 "Päringuparameeter email_type on puudu. Valikud on: admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:81
+#: apps/accounts/exceptions.py:83
 msgid "Permission not found"
 msgstr "Luba ei leitud"
 
-#: apps/accounts/exceptions.py:87
+#: apps/accounts/exceptions.py:89
 msgid "An error occurred while syncing with Keycloak"
 msgstr "Keycloakiga sünkroonimisel ilmnes viga"
 
-#: apps/accounts/exceptions.py:92
+#: apps/accounts/exceptions.py:94
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr "Keycloakiga sünkroonimisel ilmnes viga: {message}"
 
-#: apps/accounts/exceptions.py:102
+#: apps/accounts/exceptions.py:106
 msgid "An error occurred while syncing with Google"
 msgstr "Google'iga sünkroonimisel ilmnes viga"
 
-#: apps/accounts/exceptions.py:107
+#: apps/accounts/exceptions.py:111
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr "Google'iga sünkroonimisel ilmnes viga: {message}"
 
-#: apps/accounts/exceptions.py:120
+#: apps/accounts/exceptions.py:126
 msgid "The organization of a group cannot be changed"
 msgstr "Grupi organisatsiooni ei saa muuta"
 
-#: apps/accounts/exceptions.py:126
+#: apps/accounts/exceptions.py:132
 msgid "The root group cannot have a parent group"
 msgstr "Juurgrupil ei saa olla peagruppi"
 
-#: apps/accounts/exceptions.py:132
+#: apps/accounts/exceptions.py:138
 msgid "A non-root group must have a parent group"
 msgstr "Mitte-juurgrupil peab olema peagrupp"
 
-#: apps/accounts/exceptions.py:138
+#: apps/accounts/exceptions.py:144
 msgid "The parent group must belong to the same organization"
 msgstr "Peagrupp peab kuuluma samasse organisatsiooni"
 
-#: apps/accounts/exceptions.py:144
+#: apps/accounts/exceptions.py:150
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Püüad luua ahelat grupi hierarhias"
 
-#: apps/accounts/exceptions.py:150
+#: apps/accounts/exceptions.py:156
 msgid "You cannot assign this role to a user"
 msgstr "Sa ei saa seda rolli kasutajale määrata"
 
-#: apps/accounts/exceptions.py:155
+#: apps/accounts/exceptions.py:161
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
@@ -221,16 +221,16 @@ msgstr "Sul puudub luba selle projekti kommenteerimiseks: {project_title}"
 msgid "You don't have the permission to follow this project"
 msgstr "Sul puudub luba selle projekti jälgimiseks"
 
-#: apps/feedbacks/exceptions.py:33
+#: apps/feedbacks/exceptions.py:34
 #, python-brace-format
 msgid "You don't have the permission to follow this project : {project_title}"
 msgstr "Sul puudub luba selle projekti jälgimiseks: {project_title}"
 
-#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:116
+#: apps/feedbacks/exceptions.py:47 apps/projects/exceptions.py:120
 msgid "You cannot reply to a reply"
 msgstr "Sa ei saa vastusele vastata"
 
-#: apps/feedbacks/exceptions.py:51
+#: apps/feedbacks/exceptions.py:53
 msgid "A comment cannot be a reply to itself"
 msgstr "Kommentaar ei saa olla vastus iseendale"
 
@@ -249,8 +249,8 @@ msgstr "Link, mida proovid lisada, on juba selle projektiga seotud"
 
 #: apps/files/exceptions.py:38
 #, python-brace-format
-msgid "File too large. Size should not exceed {settings.MAX_FILE_SIZE} MB"
-msgstr "Fail on liiga suur. Suurus ei tohi ületada {settings.MAX_FILE_SIZE} MB"
+msgid "File too large. Size should not exceed {max_file_size} MB"
+msgstr "Fail on liiga suur. Suurus ei tohi ületada {max_file_size} MB"
 
 #: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
@@ -265,13 +265,13 @@ msgid "You can't delete this picture: It is related to another object"
 msgstr "Sa ei saa seda pilti kustutada: see on seotud teise objektiga"
 
 #: apps/files/exceptions.py:66
+#, python-brace-format
 msgid ""
-"You can't delete this picture: It is related to an instance of "
-"{relation['model']} with pk={relation['pk']} through field "
-"{relation['field']}"
+"You can't delete this picture: It is related to an instance of {model} with "
+"pk={pk} through field {field}"
 msgstr ""
-"Sa ei saa seda pilti kustutada: see on seotud {relation['model']} "
-"eksemplariga, mille pk={relation['pk']} läbi välja {relation['field']}"
+"Sa ei saa seda pilti kustutada: see on seotud {model} "
+"eksemplariga, mille pk={pk} läbi välja {field}"
 
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
@@ -282,31 +282,31 @@ msgstr "E-posti tüüp ei ole kehtiv"
 msgid "The email type '{email_type}' is not valid"
 msgstr "E-posti tüüp '{email_type}' ei ole kehtiv"
 
-#: apps/invitations/exceptions.py:29
+#: apps/invitations/exceptions.py:31
 msgid "People group must belong to the invitation's organization"
 msgstr "Inimeste grupp peab kuuluma kutse organisatsiooni"
 
-#: apps/invitations/exceptions.py:35
+#: apps/invitations/exceptions.py:37
 msgid "You cannot change the organization of an invitation"
 msgstr "Sa ei saa kutse organisatsiooni muuta"
 
-#: apps/invitations/exceptions.py:41
+#: apps/invitations/exceptions.py:43
 msgid "This user is already a member of this organization"
 msgstr "See kasutaja on juba selle organisatsiooni liige"
 
-#: apps/invitations/exceptions.py:47
+#: apps/invitations/exceptions.py:49
 msgid "A user with this email already exists"
 msgstr "Selle e-posti aadressiga kasutaja on juba olemas"
 
-#: apps/invitations/exceptions.py:53
+#: apps/invitations/exceptions.py:55
 msgid "This organization does not accept access requests"
 msgstr "See organisatsioon ei aktsepteeri ligipääsutaotlusi"
 
-#: apps/invitations/exceptions.py:59
+#: apps/invitations/exceptions.py:61
 msgid "An access request for this email already exists"
 msgstr "Sellele e-posti aadressile on juba ligipääsutaotlus olemas"
 
-#: apps/invitations/exceptions.py:65
+#: apps/invitations/exceptions.py:67
 msgid "An access request for this user already exists"
 msgstr "Sellele kasutajale on juba ligipääsutaotlus olemas"
 
@@ -341,13 +341,13 @@ msgstr ""
 #: services/keycloak/templates/keycloak_base.html:66
 msgid ""
 "\n"
-"          You can also visit our <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">help center</a>.\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">help center</a>.\n"
 "          "
 msgstr ""
 "\n"
-"          Võite külastada ka meie <a class=\"lpi-link\" href=\"https://docs."
-"projects.lp-i.org\">abikeskust</a>.\n"
+"          Võite külastada ka meie <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">abikeskust</a>.\n"
 "          "
 
 #: apps/invitations/templates/access_requests_base.html:71
@@ -1461,44 +1461,44 @@ msgstr "`life_status` parameeter on kohustuslik"
 msgid "You don't have the permission to link this project"
 msgstr "Sul puudub luba selle projekti linkimiseks"
 
-#: apps/projects/exceptions.py:17
+#: apps/projects/exceptions.py:18
 #, python-brace-format
 msgid "You don't have the permission to link this project : {project_title}"
 msgstr "Sul puudub luba selle projekti linkimiseks: {project_title}"
 
-#: apps/projects/exceptions.py:27
+#: apps/projects/exceptions.py:29
 msgid "You do not have the rights to add a project in this organization"
 msgstr "Sul puudub õigus lisada projekti sellesse organisatsiooni"
 
-#: apps/projects/exceptions.py:34
+#: apps/projects/exceptions.py:36
 msgid "You cannot modify a locked project"
 msgstr "Sa ei saa lukustatud projekti muuta"
 
-#: apps/projects/exceptions.py:43
+#: apps/projects/exceptions.py:45
 msgid "The organizations parameter is mandatory"
 msgstr "Organisatsioonide parameeter on kohustuslik"
 
-#: apps/projects/exceptions.py:49
+#: apps/projects/exceptions.py:51
 msgid "The project does not belong to any of the given organizations"
 msgstr "Projekt ei kuulu ühessegi antud organisatsiooni"
 
-#: apps/projects/exceptions.py:70
+#: apps/projects/exceptions.py:72
 msgid "You cannot remove all the owners of a project"
 msgstr "Sa ei saa eemaldada kõiki projekti omanikke"
 
-#: apps/projects/exceptions.py:76
+#: apps/projects/exceptions.py:78
 msgid "A project must belong to at least one organization"
 msgstr "Projekt peab kuuluma vähemalt ühte organisatsiooni"
 
-#: apps/projects/exceptions.py:82
+#: apps/projects/exceptions.py:84
 msgid "Only a reviewer can change this project's status"
 msgstr "Ainult ülevaataja saab selle projekti staatust muuta"
 
-#: apps/projects/exceptions.py:88
+#: apps/projects/exceptions.py:90
 msgid "You cannot empty the description of a project"
 msgstr "Sa ei saa projekti kirjeldust tühjendada"
 
-#: apps/projects/exceptions.py:95
+#: apps/projects/exceptions.py:97
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
@@ -1506,20 +1506,20 @@ msgstr ""
 "Projekt ei saa kuuluda kategooriasse, kui see ei kuulu ühte projekti "
 "organisatsioonidest"
 
-#: apps/projects/exceptions.py:102
+#: apps/projects/exceptions.py:104
 msgid "A project can't be linked to itself"
 msgstr "Projekti ei saa iseendaga siduda"
 
-#: apps/projects/exceptions.py:107
+#: apps/projects/exceptions.py:109
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr "Projekti '{project_title}' ei saa iseendaga siduda"
 
-#: apps/projects/exceptions.py:122
+#: apps/projects/exceptions.py:126
 msgid "A message cannot be a reply to itself"
 msgstr "Sõnum ei saa olla vastus iseendale"
 
-#: apps/projects/exceptions.py:128
+#: apps/projects/exceptions.py:132
 msgid "You cannot change the type of a project's tab"
 msgstr "Sa ei saa muuta projekti vahelehe tüüpi"
 

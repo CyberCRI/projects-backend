@@ -12,7 +12,9 @@ class UnknownPublicationStatusError(ValidationError):
 
     def __init__(self, publication_status: Optional[str] = None):
         detail = (
-            _(f"Unknown publication status '{publication_status}'")
+            _("Unknown publication status '{publication_status}'").format(
+                publication_status=publication_status
+            )
             if publication_status
             else self.default_detail
         )
