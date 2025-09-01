@@ -41,7 +41,7 @@ class InvalidKeycloakEmailTypeError(APIException):
 
     def __init__(self, email_type: Optional[str] = None):
         detail = (
-            _(f"Email type '{email_type}' is not valid")
+            _("Email type '{email_type}' is not valid").format(email_type=email_type)
             if email_type
             else self.default_detail
         )

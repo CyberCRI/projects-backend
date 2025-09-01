@@ -15,8 +15,8 @@ class CommentProjectPermissionDeniedError(PermissionDenied):
     def __init__(self, project_title: Optional[str] = None):
         detail = (
             _(
-                f"You don't have the permission to comment on this project : {project_title}"
-            )
+                "You don't have the permission to comment on this project : {project_title}"
+            ).format(project_title=project_title)
             if project_title
             else self.default_detail
         )
@@ -30,7 +30,9 @@ class FollowProjectPermissionDeniedError(PermissionDenied):
 
     def __init__(self, project_title: Optional[str] = None):
         detail = (
-            _(f"You don't have the permission to follow this project : {project_title}")
+            _(
+                "You don't have the permission to follow this project : {project_title}"
+            ).format(project_title=project_title)
             if project_title
             else self.default_detail
         )
