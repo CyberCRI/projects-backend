@@ -19,6 +19,7 @@ class ProjectResource(resources.ModelResource):
             "description",
             "members_names",
             "members_emails",
+            "groups_names",
             "publication_status",
             "life_status",
             "categories",
@@ -35,6 +36,9 @@ class ProjectResource(resources.ModelResource):
 
     def dehydrate_members_emails(self, project: Project):
         return ",".join([f"{u.email}" for u in project.get_all_members()])
+
+    def dehydrate_groups_names(self, project: Project):
+        return ",".join([f"{g.name}" for g in project.get_all_groups()])
 
     def dehydrate_categories(self, project: Project):
         return ",".join([f"{c.name}" for c in project.categories.all()])
