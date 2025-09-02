@@ -448,6 +448,10 @@ class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
         organizations_codes = keycloak_user.get("attributes", {}).get(
             "idp_organizations", []
         )
+        organizations_codes = [code.split(",") for code in organizations_codes]
+        organizations_codes = [
+            item for sublist in organizations_codes for item in sublist
+        ]
         organizations = Organization.objects.filter(code__in=organizations_codes)
         user.groups.add(
             get_default_group(),
@@ -461,6 +465,10 @@ class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
             organizations_codes = keycloak_user.get("attributes", {}).get(
                 "idp_organizations", []
             )
+            organizations_codes = [code.split(",") for code in organizations_codes]
+            organizations_codes = [
+                item for sublist in organizations_codes for item in sublist
+            ]
             organizations = Organization.objects.filter(
                 code__in=organizations_codes
             ).exclude(groups__users=self)
