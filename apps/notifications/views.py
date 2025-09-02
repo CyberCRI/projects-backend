@@ -104,6 +104,7 @@ class ReportViewSet(viewsets.GenericViewSet):
             text_content,
             settings.EMAIL_REPORT_RECIPIENTS,
             html_content=html_content,
+            reply_to=[serializer.validated_data["reported_by"]],
         )
 
         return Response(status=status.HTTP_200_OK)
@@ -129,6 +130,7 @@ class ReportViewSet(viewsets.GenericViewSet):
             text_content,
             settings.EMAIL_REPORT_RECIPIENTS,
             html_content=html_content,
+            reply_to=[serializer.validated_data["reported_by"]],
         )
 
         return Response(status=status.HTTP_200_OK)
@@ -159,6 +161,7 @@ class ContactViewSet(viewsets.GenericViewSet):
             text_content,
             settings.EMAIL_CONTACT_RECIPIENTS,
             html_content=html_content,
+            reply_to=[serializer.validated_data["email"]],
         )
 
         return Response(status=status.HTTP_200_OK)
