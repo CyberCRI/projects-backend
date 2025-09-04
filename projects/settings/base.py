@@ -148,6 +148,7 @@ INSTALLED_APPS = [
     "services.mistral",
     "services.mixpanel",
     "services.wikipedia",
+    "services.crisalid",
     # deploys should be the last one
     "apps.deploys",
 ]
@@ -675,3 +676,11 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 ##############
 
 ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")
+
+
+##############
+#  CRISALID  #
+##############
+
+CRISALID_API_URL = os.getenv("CRISALID_API_URL", "http://crisalid-apollo:4000")
+CRISALID_API_TOKEN = os.getenv("CRISALID_API_TOKEN", "crisalid-apollo-key")
