@@ -5,3 +5,5 @@ updates:
     schedule:
       interval: "daily"
     directory: devops-toolbox
+    pull-request-branch-name:
+      separator: "-"
