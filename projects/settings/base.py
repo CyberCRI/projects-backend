@@ -523,9 +523,15 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "projects@mg.lp-i.dev")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False)
 
+EMAIL_CONTACT_SENDER = os.getenv(
+    "EMAIL_CONTACT_SENDER", "contact.projects@learningplanetinstitute.org"
+)
 EMAIL_CONTACT_RECIPIENTS = os.getenv(
     "EMAIL_CONTACT_RECIPIENTS", "projects.platform@learningplanetinstitute.org"
 ).split(",")
+EMAIL_REPORT_SENDER = os.getenv(
+    "EMAIL_REPORT_SENDER", "contact.projects@learningplanetinstitute.org"
+)
 EMAIL_REPORT_RECIPIENTS = os.getenv(
     "EMAIL_REPORT_RECIPIENTS", "projects.platform@learningplanetinstitute.org"
 ).split(",")

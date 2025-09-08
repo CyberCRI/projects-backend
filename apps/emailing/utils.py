@@ -18,10 +18,16 @@ def send_email(
     from_email: str = settings.EMAIL_HOST_USER,
     html_content: Optional[str] = None,
     reply_to: Optional[List[str]] = None,
+    cc: Optional[List[str]] = None,
 ):
     try:
         message = EmailMultiAlternatives(
-            subject, text_content, from_email=from_email, to=to, reply_to=reply_to
+            subject,
+            text_content,
+            from_email=from_email,
+            to=to,
+            reply_to=reply_to,
+            cc=cc,
         )
         if html_content is not None:
             message.attach_alternative(html_content, "text/html")
@@ -38,10 +44,17 @@ def send_email_with_attached_file(
     file_type: str,
     from_email: str = settings.EMAIL_HOST_USER,
     html_content: Optional[str] = None,
+    reply_to: Optional[List[str]] = None,
+    cc: Optional[List[str]] = None,
 ):
     try:
         message = EmailMultiAlternatives(
-            subject, text_content, from_email=from_email, to=to
+            subject,
+            text_content,
+            from_email=from_email,
+            to=to,
+            reply_to=reply_to,
+            cc=cc,
         )
         message.attach(filename=file.name, content=file.read(), mimetype=file_type)
         if html_content is not None:
