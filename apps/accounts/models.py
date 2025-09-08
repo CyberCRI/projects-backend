@@ -296,7 +296,7 @@ class ProjectUser(
     Override Django base user by a user of projects app
     """
 
-    auto_translated_fields = ["description", "short_description", "job"]
+    auto_translated_fields: List[str] = ["description", "short_description", "job"]
     slugified_fields: List[str] = ["given_name", "family_name"]
     slug_prefix: str = "user"
 
