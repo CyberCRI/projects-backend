@@ -159,6 +159,7 @@ class Comment(
         self.save()
         if hasattr(self.project, "stat"):
             self.project.stat.update_comments_and_replies()
+        self._delete_auto_translated_fields()
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""

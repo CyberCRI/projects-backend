@@ -5,8 +5,13 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from faker import Faker
 
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.test import JwtAPITestCase
+from apps.feedbacks.factories import CommentFactory
+from apps.feedbacks.models import Comment
 from apps.organizations.factories import OrganizationFactory
+from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from services.translator.models import AutoTranslatedField
@@ -43,66 +48,211 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             }
         ]
 
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization_data = {
+            field: faker.word() for field in Organization.auto_translated_fields
+        }
+        cls.organization_1 = OrganizationFactory(
+            auto_translate_content=True, **cls.organization_data
+        )
+        cls.organization_2 = OrganizationFactory(
+            auto_translate_content=True, **cls.organization_data
+        )
+        cls.organization_3 = OrganizationFactory(
+            auto_translate_content=False, **cls.organization_data
+        )
+        cls.instances = [
+            {
+                "model": Organization,
+                "data": cls.organization_data,
+                "instance_1": cls.organization_1,
+                "instance_2": cls.organization_2,
+                "instance_3": cls.organization_3,
+            }
+        ]
+
+        cls.project_data = {
+            field: faker.word() for field in Project.auto_translated_fields
+        }
+        cls.project_1 = ProjectFactory(
+            organizations=[cls.organization_1], **cls.project_data
+        )
+        cls.project_2 = ProjectFactory(
+            organizations=[cls.organization_2], **cls.project_data
+        )
+        cls.project_3 = ProjectFactory(
+            organizations=[cls.organization_3], **cls.project_data
+        )
+        cls.instances.append(
+            {
+                "model": Project,
+                "data": cls.project_data,
+                "instance_1": cls.project_1,
+                "instance_2": cls.project_2,
+                "instance_3": cls.project_3,
+            }
+        )
+
+        cls.user_data = {
+            field: faker.word() for field in ProjectUser.auto_translated_fields
+        }
+        cls.user_1 = UserFactory(
+            groups=[cls.organization_1.get_users()], **cls.user_data
+        )
+        cls.user_2 = UserFactory(
+            groups=[cls.organization_2.get_users()], **cls.user_data
+        )
+        cls.user_3 = UserFactory(
+            groups=[cls.organization_3.get_users()], **cls.user_data
+        )
+        cls.instances.append(
+            {
+                "model": ProjectUser,
+                "data": cls.user_data,
+                "instance_1": cls.user_1,
+                "instance_2": cls.user_2,
+                "instance_3": cls.user_3,
+            }
+        )
+
+        cls.group_data = {
+            field: faker.word() for field in PeopleGroup.auto_translated_fields
+        }
+        cls.group_1 = PeopleGroupFactory(
+            organization=cls.organization_1, **cls.group_data
+        )
+        cls.group_2 = PeopleGroupFactory(
+            organization=cls.organization_2, **cls.group_data
+        )
+        cls.group_3 = PeopleGroupFactory(
+            organization=cls.organization_3, **cls.group_data
+        )
+        cls.instances.append(
+            {
+                "model": PeopleGroup,
+                "data": cls.group_data,
+                "instance_1": cls.group_1,
+                "instance_2": cls.group_2,
+                "instance_3": cls.group_3,
+            }
+        )
+
+        cls.comment_data = {
+            field: faker.word() for field in Comment.auto_translated_fields
+        }
+        cls.comment_1 = CommentFactory(
+            project=cls.project_1, author=cls.user_1, **cls.comment_data
+        )
+        cls.comment_2 = CommentFactory(
+            project=cls.project_2, author=cls.user_2, **cls.comment_data
+        )
+        cls.comment_3 = CommentFactory(
+            project=cls.project_3, author=cls.user_3, **cls.comment_data
+        )
+        cls.instances.append(
+            {
+                "model": Comment,
+                "data": cls.comment_data,
+                "instance_1": cls.comment_1,
+                "instance_2": cls.comment_2,
+                "instance_3": cls.comment_3,
+            }
+        )
+
     @patch("azure.ai.translation.text.TextTranslationClient.translate")
-    def test_update_translated_fields(self, mock_translate):
+    def test_update_project_translated_fields(self, mock_translate):
+        """
+        This test is fully automated, do not directly update it unless you know what
+        you are doing.
+
+        To add new models to be tested, add them to the `self.instances` list in the
+        `setUpTestData` class method instead of modifying this test with the following
+        structure:
+
+        ```
+        {
+            "model": The model class,
+            "data": A dict with the translated fields and their initial values,
+            "instance_1": An instance of the model related to organization_1,
+            "instance_2": An instance of the model related to organization_2,
+            "instance_3": An instance of the model related to organization_3,
+        }
+        ```
+
+        It may not be necessary to test every model's translated fields, as they
+        all use the same mechanism. However, it is useful to have at least one test for:
+
+        - The main models of the application (Project, ProjectUser, Organization)
+        - A model related to an organization (PeopleGroup)
+        - A model related to a project (Comment)
+        """
+
         mock_translate.side_effect = self.translator_side_effect
 
-        organization_1 = OrganizationFactory(auto_translate_content=True)
-        organization_2 = OrganizationFactory(auto_translate_content=False)
-        title = faker.sentence()
-        description = faker.sentence()
-        project_1 = ProjectFactory(
-            organizations=[organization_1], title=title, description=description
-        )
-        project_2 = ProjectFactory(
-            organizations=[organization_1], title=title, description=description
-        )
-        project_3 = ProjectFactory(
-            organizations=[organization_2], title=title, description=description
-        )
+        # Mark all fields as up to date to remove noise
+        AutoTranslatedField.objects.update(up_to_date=True)
 
-        AutoTranslatedField.objects.filter(
-            content_type=ContentType.objects.get_for_model(Project),
-            object_id=project_2.pk,
-        ).update(up_to_date=True)
+        # Mark some fields as not up to date (instance 1 and 3 of each model)
+        for data in self.instances:
+            AutoTranslatedField.objects.filter(
+                content_type=ContentType.objects.get_for_model(data["model"]),
+                object_id__in=[data["instance_1"].pk, data["instance_3"].pk],
+            ).update(up_to_date=False)
 
+        # Run the automatic translations task
         automatic_translations()
 
+        # Check that the mock was called with the expected parameters
         mock_translate.assert_has_calls(
             [
                 call(
-                    body=[title],
-                    to_language=[str(lang) for lang in organization_1.languages],
-                ),
-                call(
-                    body=[description],
-                    to_language=[str(lang) for lang in organization_1.languages],
-                ),
+                    body=[getattr(instance, field)],
+                    to_language=[str(lang) for lang in self.organization_1.languages],
+                )
+                for instance, field in [
+                    *[
+                        (data["instance_1"], field)
+                        for data in self.instances
+                        for field in data["model"].auto_translated_fields
+                    ],
+                ]
             ]
         )
 
-        project_1.refresh_from_db()
-        project_2.refresh_from_db()
-        project_3.refresh_from_db()
-
+        # Check that all fields are now up to date
         self.assertEqual(
             AutoTranslatedField.objects.filter(up_to_date=False).count(), 0
         )
-        for project in [project_1, project_2, project_3]:
-            self.assertEqual(project.title, title)
-            self.assertEqual(project.description, description)
-        for lang in settings.REQUIRED_LANGUAGES:
-            if lang in organization_1.languages:
-                self.assertEqual(
-                    getattr(project_1, f"title_{lang}"), f"{lang} : {title}"
-                )
-                self.assertEqual(
-                    getattr(project_1, f"description_{lang}"), f"{lang} : {description}"
-                )
-            else:
-                self.assertIsNone(getattr(project_1, f"title_{lang}"))
-                self.assertEqual(getattr(project_1, f"description_{lang}"), "")
-            self.assertIsNone(getattr(project_2, f"title_{lang}"))
-            self.assertEqual(getattr(project_2, f"description_{lang}"), "")
-            self.assertIsNone(getattr(project_3, f"title_{lang}"))
-            self.assertEqual(getattr(project_3, f"description_{lang}"), "")
+
+        # Check that the translations were correctly applied
+        for data in self.instances:
+            # Initial fields must be unchanged
+            for instance in [
+                data["instance_1"],
+                data["instance_2"],
+                data["instance_3"],
+            ]:
+                instance.refresh_from_db()
+                for field in data["model"].auto_translated_fields:
+                    self.assertEqual(getattr(instance, field), data["data"][field])
+
+            # Translated fields must be correctly set for instance_1
+            instance = data["instance_1"]
+            for lang in settings.REQUIRED_LANGUAGES:
+                if lang in self.organization_1.languages:
+                    for field in data["model"].auto_translated_fields:
+                        self.assertEqual(
+                            getattr(instance, f"{field}_{lang}"),
+                            f"{lang} : {data['data'][field]}",
+                        )
+                else:
+                    for field in data["model"].auto_translated_fields:
+                        self.assertEqual(getattr(instance, f"{field}_{lang}") or "", "")
+
+            # Translated fields must be empty for instance_2 and instance_3
+            for instance in [data["instance_2"], data["instance_3"]]:
+                for lang in settings.REQUIRED_LANGUAGES:
+                    for field in data["model"].auto_translated_fields:
+                        self.assertEqual(getattr(instance, f"{field}_{lang}") or "", "")

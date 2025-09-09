@@ -34,7 +34,9 @@ class ProjectTranslatedFieldsTestCase(JwtAPITestCase):
         auto_translated_fields = AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=content["id"]
         )
-        self.assertEqual(auto_translated_fields.count(), 3)
+        self.assertEqual(
+            auto_translated_fields.count(), len(Project.auto_translated_fields)
+        )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
             set(Project.auto_translated_fields),
@@ -49,9 +51,9 @@ class ProjectTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=project.pk
         ).update(up_to_date=True)
 
+        # Update one translated field
         payload = {
-            "title": faker.sentence(),
-            "description": faker.sentence(),
+            Project.auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse("Project-detail", args=(project.pk,)),
@@ -61,7 +63,31 @@ class ProjectTranslatedFieldsTestCase(JwtAPITestCase):
         auto_translated_fields = AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=project.pk
         )
-        self.assertEqual(auto_translated_fields.count(), 3)
+        self.assertEqual(
+            auto_translated_fields.count(), len(Project.auto_translated_fields)
+        )
+        for field in auto_translated_fields:
+            if field.field_name in payload:
+                self.assertFalse(field.up_to_date)
+            else:
+                self.assertTrue(field.up_to_date)
+
+        # Update all translated fields
+        payload = {
+            translated_field: faker.word()
+            for translated_field in Project.auto_translated_fields
+        }
+        response = self.client.patch(
+            reverse("Project-detail", args=(project.pk,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        auto_translated_fields = AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=project.pk
+        )
+        self.assertEqual(
+            auto_translated_fields.count(), len(Project.auto_translated_fields)
+        )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
             set(Project.auto_translated_fields),
