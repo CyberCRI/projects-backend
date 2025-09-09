@@ -298,7 +298,9 @@ class Mentoring(models.Model, HasOwners, OrganizationRelated):
         return [self.organization]
 
 
-class MentoringMessage(HasAutoTranslatedFields, HasOwner, models.Model):
+class MentoringMessage(
+    HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.Model
+):
     """
     Message sent in a mentoring conversation.
 
@@ -329,6 +331,9 @@ class MentoringMessage(HasAutoTranslatedFields, HasOwner, models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def get_related_organizations(self):
+        return [self.mentoring.organization]
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""

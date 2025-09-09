@@ -6,14 +6,34 @@ from django.contrib.contenttypes.models import ContentType
 from faker import Faker
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
-from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.accounts.models import ProjectUser
+from apps.announcements.factories import AnnouncementFactory
 from apps.commons.test import JwtAPITestCase
-from apps.feedbacks.factories import CommentFactory
-from apps.feedbacks.models import Comment
-from apps.organizations.factories import OrganizationFactory
+from apps.feedbacks.factories import CommentFactory, ReviewFactory
+from apps.files.factories import (
+    AttachmentFileFactory,
+    AttachmentLinkFactory,
+    OrganizationAttachmentFileFactory,
+)
+from apps.invitations.factories import AccessRequestFactory, InvitationFactory
+from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
 from apps.organizations.models import Organization
-from apps.projects.factories import ProjectFactory
+from apps.projects.factories import (
+    BlogEntryFactory,
+    GoalFactory,
+    LocationFactory,
+    ProjectFactory,
+    ProjectMessageFactory,
+    ProjectTabFactory,
+    ProjectTabItemFactory,
+)
 from apps.projects.models import Project
+from apps.skills.factories import (
+    MentorCreatedMentoringFactory,
+    MentoringMessageFactory,
+    TagClassificationFactory,
+)
 from services.translator.models import AutoTranslatedField
 from services.translator.tasks import automatic_translations
 
@@ -73,28 +93,6 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             }
         ]
 
-        cls.project_data = {
-            field: faker.word() for field in Project.auto_translated_fields
-        }
-        cls.project_1 = ProjectFactory(
-            organizations=[cls.organization_1], **cls.project_data
-        )
-        cls.project_2 = ProjectFactory(
-            organizations=[cls.organization_2], **cls.project_data
-        )
-        cls.project_3 = ProjectFactory(
-            organizations=[cls.organization_3], **cls.project_data
-        )
-        cls.instances.append(
-            {
-                "model": Project,
-                "data": cls.project_data,
-                "instance_1": cls.project_1,
-                "instance_2": cls.project_2,
-                "instance_3": cls.project_3,
-            }
-        )
-
         cls.user_data = {
             field: faker.word() for field in ProjectUser.auto_translated_fields
         }
@@ -117,47 +115,128 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             }
         )
 
-        cls.group_data = {
-            field: faker.word() for field in PeopleGroup.auto_translated_fields
+        cls.project_data = {
+            field: faker.word() for field in Project.auto_translated_fields
         }
-        cls.group_1 = PeopleGroupFactory(
-            organization=cls.organization_1, **cls.group_data
+        cls.project_1 = ProjectFactory(
+            organizations=[cls.organization_1], **cls.project_data
         )
-        cls.group_2 = PeopleGroupFactory(
-            organization=cls.organization_2, **cls.group_data
+        cls.project_2 = ProjectFactory(
+            organizations=[cls.organization_2], **cls.project_data
         )
-        cls.group_3 = PeopleGroupFactory(
-            organization=cls.organization_3, **cls.group_data
+        cls.project_3 = ProjectFactory(
+            organizations=[cls.organization_3], **cls.project_data
         )
         cls.instances.append(
             {
-                "model": PeopleGroup,
-                "data": cls.group_data,
-                "instance_1": cls.group_1,
-                "instance_2": cls.group_2,
-                "instance_3": cls.group_3,
+                "model": Project,
+                "data": cls.project_data,
+                "instance_1": cls.project_1,
+                "instance_2": cls.project_2,
+                "instance_3": cls.project_3,
             }
         )
 
-        cls.comment_data = {
-            field: faker.word() for field in Comment.auto_translated_fields
+        # Create instances for models related to organizations
+        for factory in [
+            PeopleGroupFactory,
+            OrganizationAttachmentFileFactory,
+            InvitationFactory,
+            AccessRequestFactory,
+            NewsFactory,
+            InstructionFactory,
+            EventFactory,
+            ProjectCategoryFactory,
+            TagClassificationFactory,
+        ]:
+            model = factory._meta.model
+            data = {field: faker.word() for field in model.auto_translated_fields}
+            instance_1 = factory(organization=cls.organization_1, **data)
+            instance_2 = factory(organization=cls.organization_2, **data)
+            instance_3 = factory(organization=cls.organization_3, **data)
+            cls.instances.append(
+                {
+                    "model": model,
+                    "data": data,
+                    "instance_1": instance_1,
+                    "instance_2": instance_2,
+                    "instance_3": instance_3,
+                }
+            )
+
+        # Create instances for models related to projects
+        for factory in [
+            AnnouncementFactory,
+            CommentFactory,
+            ReviewFactory,
+            AttachmentLinkFactory,
+            AttachmentFileFactory,
+            BlogEntryFactory,
+            GoalFactory,
+            LocationFactory,
+            ProjectMessageFactory,
+            ProjectTabFactory,
+        ]:
+            model = factory._meta.model
+            data = {field: faker.word() for field in model.auto_translated_fields}
+            instance_1 = factory(project=cls.project_1, **data)
+            instance_2 = factory(project=cls.project_2, **data)
+            instance_3 = factory(project=cls.project_3, **data)
+            cls.instances.append(
+                {
+                    "model": model,
+                    "data": data,
+                    "instance_1": instance_1,
+                    "instance_2": instance_2,
+                    "instance_3": instance_3,
+                }
+            )
+
+        # MentoringMessage has indirect relation to organizations through Mentoring
+        mentoring_1 = MentorCreatedMentoringFactory(
+            organization=cls.organization_1, mentor=cls.user_1, mentoree=cls.user_1
+        )
+        mentoring_2 = MentorCreatedMentoringFactory(
+            organization=cls.organization_2, mentor=cls.user_2, mentoree=cls.user_2
+        )
+        mentoring_3 = MentorCreatedMentoringFactory(
+            organization=cls.organization_3, mentor=cls.user_3, mentoree=cls.user_3
+        )
+        data = {
+            field: faker.word()
+            for field in MentoringMessageFactory._meta.model.auto_translated_fields
         }
-        cls.comment_1 = CommentFactory(
-            project=cls.project_1, author=cls.user_1, **cls.comment_data
-        )
-        cls.comment_2 = CommentFactory(
-            project=cls.project_2, author=cls.user_2, **cls.comment_data
-        )
-        cls.comment_3 = CommentFactory(
-            project=cls.project_3, author=cls.user_3, **cls.comment_data
-        )
         cls.instances.append(
             {
-                "model": Comment,
-                "data": cls.comment_data,
-                "instance_1": cls.comment_1,
-                "instance_2": cls.comment_2,
-                "instance_3": cls.comment_3,
+                "model": MentoringMessageFactory._meta.model,
+                "data": data,
+                "instance_1": MentoringMessageFactory(
+                    mentoring=mentoring_1, sender=cls.user_1, **data
+                ),
+                "instance_2": MentoringMessageFactory(
+                    mentoring=mentoring_2, sender=cls.user_2, **data
+                ),
+                "instance_3": MentoringMessageFactory(
+                    mentoring=mentoring_3, sender=cls.user_3, **data
+                ),
+            }
+        )
+
+        # ProjectTabItem has indirect relation to organizations through ProjectTab
+        tabs = [
+            i for i in cls.instances if i["model"] == ProjectTabFactory._meta.model
+        ][0]
+        data = {
+            field: faker.word()
+            for field in ProjectTabItemFactory._meta.model.auto_translated_fields
+        }
+        cls.instances.append(
+            {
+                "model": ProjectTabItemFactory._meta.model,
+                "data": data,
+                "instance_1": ProjectTabItemFactory(tab=tabs["instance_1"], **data),
+                "instance_2": ProjectTabItemFactory(tab=tabs["instance_2"], **data),
+                "instance_3": ProjectTabItemFactory(tab=tabs["instance_3"], **data),
             }
         )
 
@@ -180,13 +259,6 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             "instance_3": An instance of the model related to organization_3,
         }
         ```
-
-        It may not be necessary to test every model's translated fields, as they
-        all use the same mechanism. However, it is useful to have at least one test for:
-
-        - The main models of the application (Project, ProjectUser, Organization)
-        - A model related to an organization (PeopleGroup)
-        - A model related to a project (Comment)
         """
 
         mock_translate.side_effect = self.translator_side_effect
