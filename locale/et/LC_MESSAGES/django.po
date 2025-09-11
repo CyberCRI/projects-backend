@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 14:48+0200\n"
+"POT-Creation-Date: 2025-09-11 15:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -175,7 +175,7 @@ msgstr "Tundmatu avaldamise olek"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Tundmatu avaldamise olek '{publication_status}'"
 
-#: apps/commons/fields.py:29 apps/skills/serializers.py:102
+#: apps/commons/fields.py:29 apps/skills/serializers.py:107
 msgid "This field is required."
 msgstr "See väli on kohustuslik."
 
@@ -184,7 +184,7 @@ msgstr "See väli on kohustuslik."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Vigane ID \"{user_id}\" - objekti ei eksisteeri."
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:107
+#: apps/commons/fields.py:32 apps/skills/serializers.py:112
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
@@ -270,8 +270,8 @@ msgid ""
 "You can't delete this picture: It is related to an instance of {model} with "
 "pk={pk} through field {field}"
 msgstr ""
-"Sa ei saa seda pilti kustutada: see on seotud {model} "
-"eksemplariga, mille pk={pk} läbi välja {field}"
+"Sa ei saa seda pilti kustutada: see on seotud {model} eksemplariga, mille "
+"pk={pk} läbi välja {field}"
 
 #: apps/invitations/exceptions.py:12
 msgid "The email type is not valid"
@@ -1595,7 +1595,7 @@ msgstr "Sildi pealkiri peab olema 50 tähemärki või vähem"
 msgid "Tag description must be 500 characters or less"
 msgstr "Sildi kirjeldus peab olema 500 tähemärki või vähem"
 
-#: apps/skills/serializers.py:104
+#: apps/skills/serializers.py:109
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Vigane ID \"{tag_classification_id}\" - objekti ei eksisteeri."

@@ -15,7 +15,9 @@ from services.translator.serializers import AutoTranslatedModelSerializer
 from .models import Announcement
 
 
-class ProjectAnnouncementSerializer(AutoTranslatedModelSerializer):
+class ProjectAnnouncementSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -32,7 +34,10 @@ class ProjectAnnouncementSerializer(AutoTranslatedModelSerializer):
 
 
 class AnnouncementSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project = ProjectAnnouncementSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(

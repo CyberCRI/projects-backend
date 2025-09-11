@@ -10,6 +10,7 @@ from rest_framework.fields import empty
 
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
 from apps.commons.serializers import LazySerializer, TranslatedModelSerializer
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     TagDescriptionTooLongError,
@@ -21,7 +22,9 @@ from .exceptions import (
 from .models import Mentoring, Skill, Tag, TagClassification
 
 
-class TagClassificationLightSerializer(serializers.ModelSerializer):
+class TagClassificationLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
@@ -37,7 +40,9 @@ class TagClassificationLightSerializer(serializers.ModelSerializer):
         fields = read_only_fields
 
 
-class TagClassificationSerializer(serializers.ModelSerializer):
+class TagClassificationSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
     is_owned = serializers.SerializerMethodField()
     is_enabled_for_projects = serializers.SerializerMethodField()

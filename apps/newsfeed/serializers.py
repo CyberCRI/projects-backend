@@ -8,6 +8,7 @@ from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectLightSerializer
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     EventPeopleGroupOrganizationError,
@@ -17,7 +18,11 @@ from .exceptions import (
 from .models import Event, Instruction, News, Newsfeed
 
 
-class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+class NewsSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     header_image = ImageSerializer(read_only=True)
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
@@ -59,7 +64,11 @@ class NewsSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer)
         return value
 
 
-class InstructionSerializer(OrganizationRelatedSerializer):
+class InstructionSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -120,7 +129,11 @@ class NewsfeedSerializer(serializers.ModelSerializer):
         ]
 
 
-class EventSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+class EventSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )

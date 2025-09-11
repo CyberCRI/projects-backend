@@ -12,7 +12,9 @@ from services.translator.serializers import AutoTranslatedModelSerializer
 from .models import SearchObject
 
 
-class ProjectSearchSerializer(AutoTranslatedModelSerializer):
+class ProjectSearchSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)

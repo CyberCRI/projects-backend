@@ -13,7 +13,9 @@ class AzureTranslatorService:
     )
 
     @classmethod
-    def translate_text_content(cls, content: str, languages: List[str]) -> Tuple[List[dict], str]:
+    def translate_text_content(
+        cls, content: str, languages: List[str]
+    ) -> Tuple[List[dict], str]:
         """
         Translate text content to the specified languages.
         """

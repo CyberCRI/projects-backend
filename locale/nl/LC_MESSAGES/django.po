@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 14:48+0200\n"
+"POT-Creation-Date: 2025-09-11 15:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -178,7 +178,7 @@ msgstr "Onbekende publicatiestatus"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Onbekende publicatiestatus '{publication_status}'"
 
-#: apps/commons/fields.py:29 apps/skills/serializers.py:102
+#: apps/commons/fields.py:29 apps/skills/serializers.py:107
 msgid "This field is required."
 msgstr "Dit veld is verplicht."
 
@@ -187,7 +187,7 @@ msgstr "Dit veld is verplicht."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Ongeldige id \"{user_id}\" - object bestaat niet."
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:107
+#: apps/commons/fields.py:32 apps/skills/serializers.py:112
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Onjuist type. Verwachte stringwaarde, ontvangen {data_type}."
@@ -257,8 +257,7 @@ msgstr "De link die je probeert te koppelen is al aan dit project gekoppeld"
 #, python-brace-format
 msgid "File too large. Size should not exceed {max_file_size} MB"
 msgstr ""
-"Bestand te groot. De grootte mag niet meer dan {max_file_size} MB "
-"bedragen"
+"Bestand te groot. De grootte mag niet meer dan {max_file_size} MB bedragen"
 
 #: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
@@ -1628,7 +1627,7 @@ msgstr "Tagtitel moet 50 tekens of minder zijn"
 msgid "Tag description must be 500 characters or less"
 msgstr "Tagbeschrijving moet 500 tekens of minder zijn"
 
-#: apps/skills/serializers.py:104
+#: apps/skills/serializers.py:109
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Ongeldige id \"{tag_classification_id}\" - object bestaat niet."

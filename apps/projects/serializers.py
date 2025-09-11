@@ -67,7 +67,10 @@ from .utils import compute_project_changes, get_views_from_serializer
 
 
 class BlogEntrySerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -142,7 +145,10 @@ class BlogEntrySerializer(
 
 
 class GoalSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -172,7 +178,9 @@ class GoalSerializer(
         return None
 
 
-class LocationProjectSerializer(AutoTranslatedModelSerializer):
+class LocationProjectSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -181,7 +189,10 @@ class LocationProjectSerializer(AutoTranslatedModelSerializer):
 
 
 class LocationSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project = LocationProjectSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -215,13 +226,17 @@ class LocationSerializer(
         return None
 
 
-class ProjectSuperLightSerializer(AutoTranslatedModelSerializer):
+class ProjectSuperLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     class Meta:
         model = Project
         fields = ["id", "slug", "title"]
 
 
-class ProjectLightSerializer(AutoTranslatedModelSerializer):
+class ProjectLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -853,7 +868,9 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProjectMessageSerializer(serializers.ModelSerializer):
+class ProjectMessageSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     content = WritableSerializerMethodField(write_field=serializers.CharField())
     reply_on = serializers.PrimaryKeyRelatedField(
         queryset=ProjectMessage.objects.all(),
@@ -912,7 +929,7 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
         return super().save(**kwargs)
 
 
-class ProjectTabSerializer(serializers.ModelSerializer):
+class ProjectTabSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
     images = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Image.objects.all(), required=False
     )
@@ -934,7 +951,9 @@ class ProjectTabSerializer(serializers.ModelSerializer):
         return value
 
 
-class ProjectTabItemSerializer(serializers.ModelSerializer):
+class ProjectTabItemSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     images = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Image.objects.all(), required=False
     )
