@@ -986,6 +986,7 @@ class ProjectMessage(
     def soft_delete(self):
         self.deleted_at = timezone.localtime(timezone.now())
         self.save()
+        self._delete_auto_translated_fields()
 
     def get_owner(self):
         """Get the owner of the object."""

@@ -27,8 +27,8 @@ class AnnouncementTranslatedFieldsTestCase(JwtAPITestCase):
     def test_create_announcement(self):
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "title": faker.sentence(),
-            "description": faker.text(),
+            "title": faker.word(),
+            "description": faker.word(),
             "project_id": self.project.id,
         }
         response = self.client.post(

@@ -26,8 +26,8 @@ class OrganizationTranslatedFieldsTestCase(JwtAPITestCase):
         payload = {
             "name": faker.word(),
             "code": faker.word(),
-            "dashboard_title": faker.sentence(),
-            "dashboard_subtitle": faker.sentence(),
+            "dashboard_title": faker.word(),
+            "dashboard_subtitle": faker.word(),
             "website_url": faker.url(),
             "logo_image_id": logo_image.id,
         }

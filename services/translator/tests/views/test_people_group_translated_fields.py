@@ -24,8 +24,8 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
     def test_create_people_group(self):
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "name": faker.name(),
-            "description": faker.text(),
+            "name": faker.word(),
+            "description": faker.word(),
             "email": faker.email(),
         }
         response = self.client.post(

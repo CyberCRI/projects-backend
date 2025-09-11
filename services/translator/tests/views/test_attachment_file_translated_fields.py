@@ -29,7 +29,7 @@ class AttachmentFileTranslatedFieldsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {
             "mime": "text/plain",
-            "title": faker.text(max_nb_chars=50),
+            "title": faker.word(),
             "file": SimpleUploadedFile(
                 "test_attachment_file.txt",
                 b"test attachment file",

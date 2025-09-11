@@ -34,8 +34,8 @@ class AttachmentLinkTranslatedFieldsTestCase(JwtAPITestCase):
 
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "title": faker.sentence(),
-            "description": faker.text(),
+            "title": faker.word(),
+            "description": faker.word(),
             "site_url": faker.url(),
             "project_id": self.project.id,
         }

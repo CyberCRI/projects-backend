@@ -27,7 +27,7 @@ class CommentTranslatedFieldsTestCase(JwtAPITestCase):
     def test_create_comment(self):
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "content": faker.text(),
+            "content": faker.word(),
             "project_id": self.project.id,
         }
         response = self.client.post(

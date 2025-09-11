@@ -26,7 +26,7 @@ class ProjectTranslatedFieldsTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {
             "organizations_codes": [self.organization.code],
-            "title": faker.sentence(),
+            "title": faker.word(),
         }
         response = self.client.post(reverse("Project-list"), data=payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
