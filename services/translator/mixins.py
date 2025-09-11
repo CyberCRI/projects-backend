@@ -24,6 +24,9 @@ class TranslatedModelMeta(models.base.ModelBase):
         for field in attrs.get("auto_translated_fields", []):
             base_field = attrs[field]
             for lang in settings.REQUIRED_LANGUAGES:
+                attrs[f"{field}_detected_language"] = models.CharField(
+                    max_length=10, blank=True, null=True
+                )
                 attrs[f"{field}_{lang}"] = base_field.__class__(
                     *base_field.deconstruct()[2],
                     **{**base_field.deconstruct()[3], "blank": True, "null": True},

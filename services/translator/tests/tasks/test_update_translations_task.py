@@ -312,6 +312,8 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
 
             # Translated fields must be correctly set for instance_1
             instance = data["instance_1"]
+            for field in data["model"].auto_translated_fields:
+                self.assertEqual(getattr(instance, f"{field}_detected_language"), "en")
             for lang in settings.REQUIRED_LANGUAGES:
                 if lang in self.organization_1.languages:
                     for field in data["model"].auto_translated_fields:

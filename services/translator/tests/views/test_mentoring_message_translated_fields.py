@@ -6,7 +6,7 @@ from rest_framework import status
 from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from apps.skills.factories import MentorCreatedMentoringFactory
-from apps.skills.models import MentoringMessage
+from apps.skills.models import Mentoring, MentoringMessage
 from services.translator.models import AutoTranslatedField
 
 faker = Faker()
@@ -24,6 +24,7 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
     def test_create_mentoring_message(self):
         self.client.force_authenticate(self.user)
         payload = {
+            "status": Mentoring.MentoringStatus.PENDING.value,
             "content": faker.word(),
             "reply_to": faker.email(),
         }
@@ -33,7 +34,7 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
             ),
             data=payload,
         )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         auto_translated_fields = AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=content["id"]

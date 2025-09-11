@@ -31,6 +31,7 @@ class EventTranslatedFieldsTestCase(JwtAPITestCase):
             "title": faker.word(),
             "content": faker.word(),
             "event_date": datetime.date.today().isoformat(),
+            "people_groups": [],
         }
         response = self.client.post(
             reverse("Event-list", args=(self.organization.code,)),

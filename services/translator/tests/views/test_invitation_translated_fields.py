@@ -4,7 +4,7 @@ from django.utils.timezone import make_aware
 from faker import Faker
 from rest_framework import status
 
-from apps.accounts.factories import UserFactory
+from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
 from apps.invitations.factories import InvitationFactory
@@ -20,12 +20,14 @@ class InvitationTranslatedFieldsTestCase(JwtAPITestCase):
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.content_type = ContentType.objects.get_for_model(Invitation)
 
     def test_create_invitation(self):
         self.client.force_authenticate(self.superadmin)
         payload = {
+            "people_group_id": self.people_group.id,
             "expire_at": make_aware(faker.date_time()),
             "description": faker.word(),
         }

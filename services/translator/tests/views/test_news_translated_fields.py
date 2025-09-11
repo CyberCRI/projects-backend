@@ -31,6 +31,7 @@ class NewsTranslatedFieldsTestCase(JwtAPITestCase):
             "title": faker.word(),
             "content": faker.word(),
             "publication_date": datetime.date.today().isoformat(),
+            "people_groups": [],
         }
         response = self.client.post(
             reverse("News-list", args=(self.organization.code,)),

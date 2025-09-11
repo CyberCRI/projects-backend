@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 from azure.ai.translation.text import TextTranslationClient
 from azure.core.credentials import AzureKeyCredential
@@ -13,10 +13,10 @@ class AzureTranslatorService:
     )
 
     @classmethod
-    def translate_text_content(cls, content: str, languages: List[str]) -> str:
+    def translate_text_content(cls, content: str, languages: List[str]) -> Tuple[List[dict], str]:
         """
         Translate text content to the specified languages.
         """
-        return cls.service.translate(body=[content], to_language=languages)[0][
-            "translations"
-        ]
+        response = cls.service.translate(body=[content], to_language=languages)
+        response = response[0]
+        return response["translations"], response["detectedLanguage"]["language"]

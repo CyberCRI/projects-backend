@@ -17,6 +17,7 @@ class AutoTranslatedModelSerializer(serializers.ModelSerializer):
         translated_fields = getattr(self.Meta.model, "auto_translated_fields", [])
         for field in fields:
             if field in translated_fields:
+                read_only_fields.append(f"{field}_detected_language")
                 for lang in settings.REQUIRED_LANGUAGES:
                     read_only_fields.append(f"{field}_{lang}")
         self.Meta.read_only_fields = read_only_fields
@@ -29,6 +30,7 @@ class AutoTranslatedModelSerializer(serializers.ModelSerializer):
         for field in fields:
             all_fields.append(field)
             if field in translated_fields:
+                all_fields.append(f"{field}_detected_language")
                 for lang in settings.REQUIRED_LANGUAGES:
                     all_fields.append(f"{field}_{lang}")
         return all_fields
