@@ -13,13 +13,14 @@ T = TypeVar("T", bound=HasAutoTranslatedFields)
 
 
 class Command(BaseCommand):
-    def create_autotranslated_fields(self, queryset: QuerySet[T]):
+    def init_autotranslated_fields(self, queryset: QuerySet[T]):
         """
         Create AutoTranslatedField entries for new fields marked for
         auto-translation in the model's `auto_translated_fields`.
         """
         content_type = ContentType.objects.get_for_model(queryset.model)
         translated_fields = queryset.model.auto_translated_fields
+        initial_count = AutoTranslatedField.objects.count()
         AutoTranslatedField.objects.bulk_create(
             [
                 AutoTranslatedField(
@@ -36,8 +37,9 @@ class Command(BaseCommand):
             ignore_conflicts=True,
             unique_fields=["content_type", "object_id", "field_name"],
         )
+        created = AutoTranslatedField.objects.count() - initial_count
         print(
-            f"Updated AutoTranslatedField for {queryset.count()} {queryset.model.__name__} instances"
+            f"Initialized {created} AutoTranslatedField for {queryset.count()} {queryset.model.__name__} instances"
         )
 
     def delete_autotranslated_fields(self, queryset: QuerySet[T]):
@@ -48,11 +50,13 @@ class Command(BaseCommand):
         model = queryset.model
         content_type = ContentType.objects.get_for_model(model)
         translated_fields = model.auto_translated_fields
+        initial_count = AutoTranslatedField.objects.count()
         AutoTranslatedField.objects.filter(content_type=content_type).exclude(
             field_name__in=translated_fields
         ).delete()
+        deleted = initial_count - AutoTranslatedField.objects.count()
         print(
-            f"Deleted obsolete AutoTranslatedField for {queryset.count()} {queryset.model.__name__} instances"
+            f"Deleted {deleted} obsolete AutoTranslatedField for {queryset.count()} {queryset.model.__name__} instances"
         )
 
     def handle(self, *args, **options):
@@ -72,5 +76,5 @@ class Command(BaseCommand):
         ]
         for queryset in translated_instances:
             queryset = queryset.distinct()
-            self.create_autotranslated_fields(queryset)
+            self.init_autotranslated_fields(queryset)
             self.delete_autotranslated_fields(queryset)
