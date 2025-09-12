@@ -10,6 +10,7 @@ config:
     DJANGO_SETTINGS_MODULE: projects.settings.develop
     AZURE_ACCOUNT_NAME: criparisdevlabprojects
     AZURE_TRANSLATOR_REGION: francecentral
+    AZURE_TRANSLATOR_ENDPOINT: https://api.cognitive.microsofttranslator.com
     POSTGRES_HOST: dev-lab-projects-backend.postgres.database.azure.com
     KEYCLOAK_SERVER_URL: https://keycloak.k8s.lp-i.dev/
     KEYCLOAK_PUBLIC_KEY: MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoqKT4wfb7HoHnKD5W7E+mqLn8c+HwPooc7yS5BDOUqxIaHV41OkylEAodz9WDC3tu8Ik2KLS1Uv/cY2fJ3Z44Czc/dWC5dviPrbUuWgH41t9HiivzOlBlkc8PvZHP/DEGQCmAutzAyB6UnkUJRBJ7wKR8U6rMvp6YlD4YxsFC9bR0xEkZ0FbhAqj+FXQVyp9ghPt9P22QFoTu+SntZSe297AYPFmpvyfsAO/RIWBYpY++xAAqqz17eSXyRgHtQAkECS53UhHOV5JoayfSIbAY2dZpvbPOxRaLOmGnlAiYxxFPmkgyafKbUZ/2H7vn7sFYB+cTgg1IFN1KL8OK7NJ5wIDAQAB

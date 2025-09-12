@@ -694,3 +694,6 @@ ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")
 
 AZURE_TRANSLATOR_KEY = os.getenv("AZURE_TRANSLATOR_KEY", "")
 AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
+AZURE_TRANSLATOR_ENDPOINT = os.getenv(
+    "AZURE_TRANSLATOR_ENDPOINT", "https://api.cognitive.microsofttranslator.com"
+)

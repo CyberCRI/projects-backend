@@ -9,7 +9,9 @@ class AzureTranslatorService:
 
     credentials = AzureKeyCredential(settings.AZURE_TRANSLATOR_KEY)
     service = TextTranslationClient(
-        credential=credentials, region=settings.AZURE_TRANSLATOR_REGION
+        credential=credentials,
+        region=settings.AZURE_TRANSLATOR_REGION,
+        endpoint=settings.AZURE_TRANSLATOR_ENDPOINT,
     )
 
     @classmethod
