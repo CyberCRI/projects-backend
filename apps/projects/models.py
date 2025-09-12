@@ -23,7 +23,6 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
-    OrganizationRelated,
     ProjectRelated,
 )
 from apps.commons.models import GroupData
@@ -70,7 +69,6 @@ class Project(
     HasAutoTranslatedFields,
     HasPermissionsSetup,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -117,6 +115,9 @@ class Project(
     history: HistoricalRecords
         History of this project.
     """
+
+    project_query_string: str = ""
+    organization_query_string: str = "organizations"
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
@@ -585,7 +586,7 @@ class Project(
         return project
 
 
-class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectScore(models.Model, ProjectRelated):
     project = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="score"
     )
@@ -655,7 +656,7 @@ class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
         return self
 
 
-class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
+class LinkedProject(models.Model, ProjectRelated):
     """Store unidirectional link between projects.
 
     Attributes
@@ -665,6 +666,9 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
     target: ForeignKey
         `Project` the first one is being linked to.
     """
+
+    project_query_string: str = "target"
+    organization_query_string: str = "target__organizations"
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="linked_to"
@@ -689,7 +693,6 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
 class BlogEntry(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -775,7 +778,6 @@ class BlogEntry(
 class Goal(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -850,7 +852,6 @@ class Goal(
 class Location(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -917,7 +918,6 @@ class Location(
 class ProjectMessage(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     HasOwner,
     models.Model,
 ):
@@ -1000,7 +1000,6 @@ class ProjectMessage(
 class ProjectTab(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """A tab in the project page.
@@ -1048,7 +1047,6 @@ class ProjectTab(
 class ProjectTabItem(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """An item in a project tab.
@@ -1062,6 +1060,9 @@ class ProjectTabItem(
     content: TextField
         Content of the item.
     """
+
+    project_query_string: str = "tab__project"
+    organization_query_string: str = "tab__project__organizations"
 
     auto_translated_fields: List[str] = ["title", "content"]
 

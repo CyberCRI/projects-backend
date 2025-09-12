@@ -63,7 +63,6 @@ class AttachmentLink(
     HasAutoTranslatedFields,
     DuplicableModel,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """
@@ -159,7 +158,6 @@ class AttachmentFile(
     HasAutoTranslatedFields,
     DuplicableModel,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """
@@ -224,9 +222,7 @@ class AttachmentFile(
         )
 
 
-class Image(
-    models.Model, HasOwner, OrganizationRelated, ProjectRelated, DuplicableModel
-):
+class Image(models.Model, HasOwner, ProjectRelated, DuplicableModel):
     name = models.CharField(max_length=255)
     file = StdImageField(
         upload_to=dynamic_upload_to,

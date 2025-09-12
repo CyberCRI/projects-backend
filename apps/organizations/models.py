@@ -83,6 +83,7 @@ class Organization(
         Identity providers authorized to access the organization.
     """
 
+    organization_query_string: str = ""
     auto_translated_fields: List[str] = [
         "name",
         "dashboard_title",
@@ -351,6 +352,8 @@ class Template(OrganizationRelated, models.Model):
     images: ManyToManyField
         Images used by the template.
     """
+
+    organization_query_string: str = "project_category__organization"
 
     title_placeholder = models.CharField(max_length=255, default="", blank=True)
     description_placeholder = models.TextField(default="", blank=True)

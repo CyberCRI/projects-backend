@@ -316,6 +316,7 @@ class MentoringMessage(
         The date and time the message was created.
     """
 
+    organization_query_string: str = "mentoring__organization"
     auto_translated_fields: List[str] = ["content"]
 
     mentoring = models.ForeignKey(
