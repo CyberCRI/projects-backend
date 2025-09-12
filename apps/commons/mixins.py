@@ -38,7 +38,7 @@ class OrganizationRelated:
         raise NotImplementedError()
 
 
-class ProjectRelated(OrganizationRelated):
+class ProjectRelated:
     """Abstract class for models related to `Project`."""
 
     organization_query_string: str = "project__organizations"
@@ -55,8 +55,25 @@ class ProjectRelated(OrganizationRelated):
             return Q(**{cls.project_query_string: value})
         return Q(**{key: value})
 
+    @classmethod
+    def organization_query(cls, key: str, value: Any) -> Q:
+        """Return the query string to use to filter by organization."""
+        if not key and not cls.organization_query_string:
+            raise ValueError(
+                "You cannot query without a key or organization_query_string."
+            )
+        if cls.organization_query_string and key:
+            return Q(**{f"{cls.organization_query_string}__{key}": value})
+        if cls.organization_query_string:
+            return Q(**{cls.organization_query_string: value})
+        return Q(**{key: value})
+
     def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
+        raise NotImplementedError()
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
         raise NotImplementedError()
 
 
