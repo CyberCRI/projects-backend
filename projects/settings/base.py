@@ -475,6 +475,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "services.google.tasks.retry_failed_tasks",
         "schedule": crontab(minute="*/10", hour="*"),
     },
+    "update_automatic_translations": {
+        "task": "apps.translations.tasks.automatic_translations",
+        "schedule": crontab(minute="*/15", hour="*"),
+    },
     "send_instruction_notification": {
         "task": "apps.notifications.tasks.notify_new_instructions",
         "schedule": crontab(minute=0, hour="*"),
@@ -482,10 +486,6 @@ CELERY_BEAT_SCHEDULE = {
     "clean_duplicate_search_objects": {
         "task": "apps.search.tasks.clean_duplicate_search_objects",
         "schedule": crontab(minute=10, hour="*"),
-    },
-    "update_automatic_translations": {
-        "task": "apps.translations.tasks.automatic_translations",
-        "schedule": crontab(minute=15, hour="*"),
     },
 }
 
