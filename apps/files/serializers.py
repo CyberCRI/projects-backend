@@ -17,6 +17,7 @@ from apps.commons.serializers import (
 )
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     ChangeFileProjectError,
@@ -84,7 +85,10 @@ class StdImageField(serializers.ImageField):
 
 
 class AttachmentLinkSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -223,7 +227,9 @@ class AttachmentLinkSerializer(
         return []
 
 
-class OrganizationAttachmentFileSerializer(serializers.ModelSerializer):
+class OrganizationAttachmentFileSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     file = serializers.FileField()
     hashcode = serializers.CharField(write_only=True, required=False)
 
@@ -268,7 +274,10 @@ class OrganizationAttachmentFileSerializer(serializers.ModelSerializer):
 
 
 class AttachmentFileSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"

@@ -7,11 +7,14 @@ from apps.feedbacks.models import Follow
 from apps.files.serializers import ImageSerializer
 from apps.organizations.serializers import ProjectCategoryLightSerializer
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .models import SearchObject
 
 
-class ProjectSearchSerializer(serializers.ModelSerializer):
+class ProjectSearchSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)

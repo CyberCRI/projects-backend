@@ -4,7 +4,7 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.organizations.factories import OrganizationFactory
 
-from .models import Mentoring, Skill, Tag, TagClassification
+from .models import Mentoring, MentoringMessage, Skill, Tag, TagClassification
 
 faker = Faker()
 
@@ -94,3 +94,14 @@ class MentorCreatedMentoringFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = Mentoring
+
+
+class MentoringMessageFactory(factory.django.DjangoModelFactory):
+    mentoring = factory.LazyFunction(
+        lambda: MentoreeCreatedMentoringFactory()
+    )  # Subfactory seems to not trigger `create()`
+    sender = factory.SubFactory(UserFactory)
+    content = factory.Faker("sentence")
+
+    class Meta:
+        model = MentoringMessage

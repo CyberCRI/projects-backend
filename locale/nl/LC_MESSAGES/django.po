@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 14:48+0200\n"
+"POT-Creation-Date: 2025-09-11 15:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Je kunt deze rol niet toewijzen aan een gebruiker"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker: {role}"
 
-#: apps/accounts/models.py:130 apps/projects/models.py:157
+#: apps/accounts/models.py:136 apps/projects/models.py:160
 msgid "visibility"
 msgstr "zichtbaarheid"
 
@@ -178,7 +178,7 @@ msgstr "Onbekende publicatiestatus"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Onbekende publicatiestatus '{publication_status}'"
 
-#: apps/commons/fields.py:29 apps/skills/serializers.py:102
+#: apps/commons/fields.py:29 apps/skills/serializers.py:107
 msgid "This field is required."
 msgstr "Dit veld is verplicht."
 
@@ -187,7 +187,7 @@ msgstr "Dit veld is verplicht."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Ongeldige id \"{user_id}\" - object bestaat niet."
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:107
+#: apps/commons/fields.py:32 apps/skills/serializers.py:112
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Onjuist type. Verwachte stringwaarde, ontvangen {data_type}."
@@ -257,8 +257,7 @@ msgstr "De link die je probeert te koppelen is al aan dit project gekoppeld"
 #, python-brace-format
 msgid "File too large. Size should not exceed {max_file_size} MB"
 msgstr ""
-"Bestand te groot. De grootte mag niet meer dan {max_file_size} MB "
-"bedragen"
+"Bestand te groot. De grootte mag niet meer dan {max_file_size} MB bedragen"
 
 #: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
@@ -1555,27 +1554,27 @@ msgstr "Een bericht kan geen antwoord op zichzelf zijn"
 msgid "You cannot change the type of a project's tab"
 msgstr "Je kunt het type van een projecttabblad niet wijzigen"
 
-#: apps/projects/models.py:140
+#: apps/projects/models.py:143
 msgid "title"
 msgstr "titel"
 
-#: apps/projects/models.py:150
+#: apps/projects/models.py:153
 msgid "main goal"
 msgstr "hoofddoel"
 
-#: apps/projects/models.py:163
+#: apps/projects/models.py:166
 msgid "life status"
 msgstr "levensstatus"
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:177
 msgid "categories"
 msgstr "categorieën"
 
-#: apps/projects/models.py:191
+#: apps/projects/models.py:194
 msgid "sustainable development goals"
 msgstr "duurzame ontwikkelingsdoelen"
 
-#: apps/projects/models.py:197
+#: apps/projects/models.py:200
 msgid "main category"
 msgstr "hoofdcategorie"
 
@@ -1628,7 +1627,7 @@ msgstr "Tagtitel moet 50 tekens of minder zijn"
 msgid "Tag description must be 500 characters or less"
 msgstr "Tagbeschrijving moet 500 tekens of minder zijn"
 
-#: apps/skills/serializers.py:104
+#: apps/skills/serializers.py:109
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Ongeldige id \"{tag_classification_id}\" - object bestaat niet."

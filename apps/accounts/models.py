@@ -37,10 +37,15 @@ from keycloak import KeycloakGetError
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
+from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroup(
-    HasMultipleIDs, HasPermissionsSetup, OrganizationRelated, models.Model
+    HasAutoTranslatedFields,
+    HasMultipleIDs,
+    HasPermissionsSetup,
+    OrganizationRelated,
+    models.Model,
 ):
     """
     A group of users.
@@ -76,6 +81,7 @@ class PeopleGroup(
             The visibility setting of the group.
     """
 
+    auto_translated_fields: List[str] = ["name", "description", "short_description"]
     slugified_fields: List[str] = ["name"]
     slug_prefix: str = "group"
 
@@ -283,11 +289,14 @@ class PeopleGroup(
         ]
 
 
-class ProjectUser(HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser):
+class ProjectUser(
+    HasAutoTranslatedFields, HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser
+):
     """
     Override Django base user by a user of projects app
     """
 
+    auto_translated_fields: List[str] = ["description", "short_description", "job"]
     slugified_fields: List[str] = ["given_name", "family_name"]
     slug_prefix: str = "user"
 

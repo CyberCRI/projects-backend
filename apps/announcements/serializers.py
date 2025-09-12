@@ -10,11 +10,14 @@ from apps.commons.serializers import (
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .models import Announcement
 
 
-class ProjectAnnouncementSerializer(serializers.ModelSerializer):
+class ProjectAnnouncementSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -31,7 +34,10 @@ class ProjectAnnouncementSerializer(serializers.ModelSerializer):
 
 
 class AnnouncementSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project = ProjectAnnouncementSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(

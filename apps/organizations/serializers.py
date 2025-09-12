@@ -24,6 +24,7 @@ from apps.skills.serializers import (
     TagRelatedField,
 )
 from services.keycloak.serializers import IdentityProviderSerializer
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     CategoryHierarchyLoopError,
@@ -122,7 +123,11 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
-class OrganizationSerializer(OrganizationRelatedSerializer):
+class OrganizationSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     parent_code = SlugRelatedField(
         many=False,
         required=False,
@@ -271,7 +276,11 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
         return super(OrganizationSerializer, self).update(instance, validated_data)
 
 
-class OrganizationLightSerializer(OrganizationRelatedSerializer):
+class OrganizationLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     logo_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -344,7 +353,9 @@ class TemplateSerializer(OrganizationRelatedSerializer):
 
 
 class ProjectCategorySerializer(
-    OrganizationRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     template = TemplateSerializer(required=False, allow_null=True, default=None)
     parent = serializers.PrimaryKeyRelatedField(
@@ -509,7 +520,11 @@ class ProjectCategorySerializer(
         return super().update(instance, validated_data)
 
 
-class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
+class ProjectCategoryLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     organization = SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:

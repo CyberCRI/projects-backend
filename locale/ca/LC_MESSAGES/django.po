@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-01 14:48+0200\n"
+"POT-Creation-Date: 2025-09-11 15:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No pots assignar aquest rol a un usuari"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:130 apps/projects/models.py:157
+#: apps/accounts/models.py:136 apps/projects/models.py:160
 msgid "visibility"
 msgstr "visibilitat"
 
@@ -176,7 +176,7 @@ msgstr "Estat de publicació desconegut"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Estat de publicació desconegut '{publication_status}'"
 
-#: apps/commons/fields.py:29 apps/skills/serializers.py:102
+#: apps/commons/fields.py:29 apps/skills/serializers.py:107
 msgid "This field is required."
 msgstr "Aquest camp és obligatori."
 
@@ -185,7 +185,7 @@ msgstr "Aquest camp és obligatori."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Id no vàlid \"{user_id}\" - l'objecte no existeix."
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:107
+#: apps/commons/fields.py:32 apps/skills/serializers.py:112
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Tipus incorrecte. S'esperava un valor str, s'ha rebut {data_type}."
@@ -251,8 +251,7 @@ msgstr "L'enllaç que intentes adjuntar ja està adjuntat a aquest projecte"
 #: apps/files/exceptions.py:38
 #, python-brace-format
 msgid "File too large. Size should not exceed {max_file_size} MB"
-msgstr ""
-"Fitxer massa gran. La mida no ha de superar {max_file_size} MB"
+msgstr "Fitxer massa gran. La mida no ha de superar {max_file_size} MB"
 
 #: apps/files/exceptions.py:45
 msgid "You can't change the project of a file"
@@ -1545,27 +1544,27 @@ msgstr "Un missatge no pot ser una resposta a si mateix"
 msgid "You cannot change the type of a project's tab"
 msgstr "No pots canviar el tipus d'una pestanya d'un projecte"
 
-#: apps/projects/models.py:140
+#: apps/projects/models.py:143
 msgid "title"
 msgstr "títol"
 
-#: apps/projects/models.py:150
+#: apps/projects/models.py:153
 msgid "main goal"
 msgstr "objectiu principal"
 
-#: apps/projects/models.py:163
+#: apps/projects/models.py:166
 msgid "life status"
 msgstr "estat de vida"
 
-#: apps/projects/models.py:174
+#: apps/projects/models.py:177
 msgid "categories"
 msgstr "categories"
 
-#: apps/projects/models.py:191
+#: apps/projects/models.py:194
 msgid "sustainable development goals"
 msgstr "objectius de desenvolupament sostenible"
 
-#: apps/projects/models.py:197
+#: apps/projects/models.py:200
 msgid "main category"
 msgstr "categoria principal"
 
@@ -1618,7 +1617,7 @@ msgstr "El títol de l'etiqueta ha de tenir 50 caràcters o menys"
 msgid "Tag description must be 500 characters or less"
 msgstr "La descripció de l'etiqueta ha de tenir 500 caràcters o menys"
 
-#: apps/skills/serializers.py:104
+#: apps/skills/serializers.py:109
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Id no vàlid \"{tag_classification_id}\" - l'objecte no existeix."
