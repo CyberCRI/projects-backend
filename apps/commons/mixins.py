@@ -18,13 +18,42 @@ if TYPE_CHECKING:
 class OrganizationRelated:
     """Abstract class for models related to an `Organization`."""
 
+    organization_query_string: str = "organization"
+
+    @classmethod
+    def organization_query(cls, key: str, value: Any) -> Q:
+        """Return the query string to use to filter by organization."""
+        if not key and not cls.organization_query_string:
+            raise ValueError(
+                "You cannot query without a key or organization_query_string."
+            )
+        if cls.organization_query_string and key:
+            return Q(**{f"{cls.organization_query_string}__{key}": value})
+        if cls.organization_query_string:
+            return Q(**{cls.organization_query_string: value})
+        return Q(**{key: value})
+
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         raise NotImplementedError()
 
 
-class ProjectRelated:
+class ProjectRelated(OrganizationRelated):
     """Abstract class for models related to `Project`."""
+
+    organization_query_string: str = "project__organizations"
+    project_query_string: str = "project"
+
+    @classmethod
+    def project_query(cls, key: str, value: str) -> Q:
+        """Return the query string to use to filter by project."""
+        if not key and not cls.project_query_string:
+            raise ValueError("You cannot query without a key or project_query_string.")
+        if cls.project_query_string and key:
+            return Q(**{f"{cls.project_query_string}__{key}": value})
+        if cls.project_query_string:
+            return Q(**{cls.project_query_string: value})
+        return Q(**{key: value})
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""

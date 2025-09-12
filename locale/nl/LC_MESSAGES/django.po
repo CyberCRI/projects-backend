@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 15:30+0200\n"
+"POT-Creation-Date: 2025-09-12 15:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Je kunt deze rol niet toewijzen aan een gebruiker"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker: {role}"
 
-#: apps/accounts/models.py:136 apps/projects/models.py:160
+#: apps/accounts/models.py:136 apps/projects/models.py:161
 msgid "visibility"
 msgstr "zichtbaarheid"
 
@@ -1554,27 +1554,27 @@ msgstr "Een bericht kan geen antwoord op zichzelf zijn"
 msgid "You cannot change the type of a project's tab"
 msgstr "Je kunt het type van een projecttabblad niet wijzigen"
 
-#: apps/projects/models.py:143
+#: apps/projects/models.py:144
 msgid "title"
 msgstr "titel"
 
-#: apps/projects/models.py:153
+#: apps/projects/models.py:154
 msgid "main goal"
 msgstr "hoofddoel"
 
-#: apps/projects/models.py:166
+#: apps/projects/models.py:167
 msgid "life status"
 msgstr "levensstatus"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:178
 msgid "categories"
 msgstr "categorieën"
 
-#: apps/projects/models.py:194
+#: apps/projects/models.py:195
 msgid "sustainable development goals"
 msgstr "duurzame ontwikkelingsdoelen"
 
-#: apps/projects/models.py:200
+#: apps/projects/models.py:201
 msgid "main category"
 msgstr "hoofdcategorie"
 
