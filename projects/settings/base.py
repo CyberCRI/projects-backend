@@ -271,6 +271,7 @@ LANGUAGES = [
     ("nl", "Dutch"),
     ("et", "Estonian"),
     ("ca", "Catalan"),
+    ("es", "Español"),
 ]
 
 LOCALE_PATHS = (BASE_DIR / "locale",)
