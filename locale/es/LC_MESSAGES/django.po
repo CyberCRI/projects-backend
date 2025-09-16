@@ -2052,6 +2052,9 @@ msgid ""
 "          🌟 To get started\n"
 "          "
 msgstr ""
+"\n"
+"          🌟 Para empezar\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:72
 msgid ""
@@ -2060,6 +2063,10 @@ msgid ""
 "of both mentor and mentoree.\n"
 "          "
 msgstr ""
+"\n"
+"          Te animamos a ver este vídeo para aprender más sobre los roles "
+"tanto del mentor como del alumno.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:76
 msgid ""
@@ -2070,6 +2077,12 @@ msgid ""
 "        </mj-button>\n"
 "        "
 msgstr ""
+"\n"
+"        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
+"watch?v=T_iGnufU1kY\">\n"
+"          Ver vídeo\n"
+"        </mj-button>\n"
+"        "
 
 #: apps/skills/templates/mentorship_base.html:82
 msgid ""
@@ -2077,6 +2090,9 @@ msgid ""
 "          In brief : \n"
 "          "
 msgstr ""
+"\n"
+"          En resumen:\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:87
 msgid ""
@@ -2093,6 +2109,17 @@ msgid ""
 "achieve your objectives.\n"
 "          "
 msgstr ""
+"\n"
+"          - <strong>Un mentor</strong> actúa como una guía de apoyo que "
+"<strong>escucha atentamente, hace preguntas reflexivas y ofrece dirección "
+"sin dictar decisiones.</strong> Al fomentar un entorno de confianza que "
+"promueve la comunicación abierta, el mentor ayuda al alumno a progresar.\n"
+"          <br/>\n"
+"          - <strong>Para los alumnos,</strong> es crucial <strong>definir "
+"claramente sus necesidades y objetivos.</strong> Eres <strong>el agente "
+"principal de tu propio desarrollo,</strong> aplicando la guía de tu mentor "
+"para lograr tus objetivos.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:95
 msgid ""
@@ -2100,6 +2127,9 @@ msgid ""
 "          📅 Mentoring structures :\n"
 "          "
 msgstr ""
+"\n"
+"          📅 Estructuras de mentoría:\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:100
 msgid ""
@@ -2109,6 +2139,11 @@ msgid ""
 "availability of everyone involved.\n"
 "          "
 msgstr ""
+"\n"
+"          Aquí hay algunas estructuras sugeridas para tus sesiones de mentoría. "
+"Adáptalas y ajusta cada reunión para que se adecúe a las necesidades y "
+"disponibilidad de todos los involucrados.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:105
 msgid ""
@@ -2118,6 +2153,11 @@ msgid ""
 "decision, or specific advice.\n"
 "          "
 msgstr ""
+"\n"
+"          🔹 <strong>Sesión única</strong>: Ideal para un impulso rápido de una "
+"hora. Puede ser para recibir comentarios sobre un proyecto, ayuda con una "
+"decisión importante o un consejo específico.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:110
 msgid ""
@@ -2126,6 +2166,10 @@ msgid ""
 "deeper into a problem. Here’s a possible breakdown:\n"
 "          "
 msgstr ""
+"\n"
+"          🔹 <strong>Tres sesiones de una hora</strong>: Ideal para profundizar "
+"en un problema. Aquí tienes un posible desglose:\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:115
 msgid ""
@@ -2134,6 +2178,10 @@ msgid ""
 "provide initial suggestions.\n"
 "          "
 msgstr ""
+"\n"
+"              - 👂 <strong>Sesión 1</strong>: Entender el problema y dar "
+"sugerencias iniciales.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:120
 msgid ""
@@ -2142,6 +2190,10 @@ msgid ""
 "goals.\n"
 "          "
 msgstr ""
+"\n"
+"              - 📚 <strong>Sesión 2</strong>: Compartir investigación y "
+"establecer metas claras.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:125
 msgid ""
@@ -2150,6 +2202,10 @@ msgid ""
 "the approach.\n"
 "          "
 msgstr ""
+"\n"
+"              - 🌟 <strong>Sesión 3</strong>: Revisar el progreso y ajustar "
+"el enfoque.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:130
 msgid ""
@@ -2158,6 +2214,10 @@ msgid ""
 "for long-term guidance. A typical session might look like this:\n"
 "          "
 msgstr ""
+"\n"
+"          🔹 <strong>Mentoría de un año (2 horas/mes)</strong>: Perfecta para "
+"una guía a largo plazo. Una sesión típica podría ser así:\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:135
 msgid ""
@@ -2166,6 +2226,10 @@ msgid ""
 "and new challenges.\n"
 "          "
 msgstr ""
+"\n"
+"              - 🏅 <strong>Revisión de progreso</strong>: Discutir logros y "
+"nuevos desafíos.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:140
 msgid ""
@@ -2174,6 +2238,10 @@ msgid ""
 "before the next session.\n"
 "          "
 msgstr ""
+"\n"
+"              - 🎯 <strong>Metas</strong>: Establecer 2-3 objetivos para "
+"trabajar antes de la próxima sesión.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:145
 msgid ""
@@ -2182,6 +2250,10 @@ msgid ""
 "(videos, articles, etc.) to explore between sessions.\n"
 "          "
 msgstr ""
+"\n"
+"              - 📖 <strong>Recursos</strong>: Compartir contenido útil "
+"(vídeos, artículos, etc.) para explorar entre sesiones.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:150
 msgid ""
@@ -2190,6 +2262,10 @@ msgid ""
 "meeting.\n"
 "          "
 msgstr ""
+"\n"
+"              - 🗓️ <strong>Próxima sesión</strong>: Programar la próxima "
+"reunión.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:156
 msgid ""
@@ -2197,6 +2273,9 @@ msgid ""
 "          ✅ Tips for successful mentoring :\n"
 "          "
 msgstr ""
+"\n"
+"          ✅ Consejos para una mentoría exitosa:\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:161
 msgid ""
@@ -2206,6 +2285,11 @@ msgid ""
 "have.\n"
 "          "
 msgstr ""
+"\n"
+"          📝 <strong>Prepárate para cada sesión:</strong> Piensa en los "
+"temas que quieres discutir, los objetivos que quieres lograr y cualquier "
+"pregunta que tengas.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:166
 msgid ""
@@ -2214,6 +2298,10 @@ msgid ""
 "transparency.\n"
 "          "
 msgstr ""
+"\n"
+"          🤝 <strong>Sé abierto y honesto:</strong> Construir confianza "
+"requiere transparencia.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:171
 msgid ""
@@ -2222,6 +2310,10 @@ msgid ""
 "rephrase to confirm you’ve understood.\n"
 "          "
 msgstr ""
+"\n"
+"          👂 <strong>Practica la escucha activa:</strong> Haz preguntas y "
+"parafrasea para confirmar que has entendido.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:176
 msgid ""
@@ -2229,6 +2321,9 @@ msgid ""
 "          🎯 <strong>Set clear goals</strong> after each session.\n"
 "          "
 msgstr ""
+"\n"
+"          🎯 <strong>Establece metas claras</strong> después de cada sesión.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:181
 msgid ""
@@ -2237,6 +2332,10 @@ msgid ""
 "enhance learning.\n"
 "          "
 msgstr ""
+"\n"
+"          📬 <strong>Comparte recursos útiles</strong> entre reuniones para "
+"mejorar el aprendizaje.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:186
 msgid ""
@@ -2245,6 +2344,10 @@ msgid ""
 "progress.\n"
 "          "
 msgstr ""
+"\n"
+"          📆 <strong>Siempre programa la próxima sesión</strong> para "
+"mantener el progreso.\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:192
 msgid ""
@@ -2257,6 +2360,14 @@ msgid ""
 "          The Projects team\n"
 "          "
 msgstr ""
+"\n"
+"          ¡Esperamos que estos consejos te ayuden a navegar mejor tu experiencia "
+"de mentoría! Gracias a todos, y ¡feliz mentoría! ✨\n"
+"          <br/>\n"
+"          Saludos cordiales,\n"
+"          <br/>\n"
+"          El equipo de Proyectos\n"
+"          "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.html:10
 #, python-format
@@ -2265,6 +2376,9 @@ msgid ""
 "            Can you mentor me in %(skill)s? (last reminder)\n"
 "            "
 msgstr ""
+"\n"
+"            ¿Puedes ser mi mentor/a en %(skill)s? (último recordatorio)\n"
+"            "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.html:19
 #: apps/skills/templates/reminder_mentoree_10_days/mail.html:19
@@ -2275,6 +2389,10 @@ msgid ""
 "left for you on the Projects platform.\n"
 "            "
 msgstr ""
+"\n"
+"            Es la última vez que compartiremos este mensaje que %(user)s ha "
+"dejado para ti en la plataforma de Proyectos.\n"
+"            "
 
 #: apps/skills/templates/reminder_mentor_10_days/mail.txt:2
 #, python-format
@@ -2289,6 +2407,15 @@ msgid ""
 "\n"
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
+"\n"
+"¿Puedes ser mi mentor/a en %(skill)s? (último recordatorio)\n"
+"\n"
+"Es la última vez que compartiremos este mensaje que %(user)s ha dejado para "
+"ti en la plataforma de Proyectos.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentor_10_days/object.txt:2
 #, python-format
@@ -2296,6 +2423,8 @@ msgid ""
 "\n"
 "Can you mentor %(mentoree_name)s? (last reminder)\n"
 msgstr ""
+"\n"
+"¿Puedes ser mentor/a de %(mentoree_name)s? (último recordatorio)\n"
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.html:10
 #, python-format
@@ -2304,6 +2433,9 @@ msgid ""
 "            Can you mentor me in %(skill)s? (reminder)\n"
 "            "
 msgstr ""
+"\n"
+"            ¿Puedes ser mi mentor/a en %(skill)s? (recordatorio)\n"
+"            "
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.html:19
 #: apps/skills/templates/reminder_mentoree_3_days/mail.html:19
@@ -2314,6 +2446,10 @@ msgid ""
 "looks like you haven't responded yet. Good news, it's not too late :)\n"
 "            "
 msgstr ""
+"\n"
+"            %(user)s te ha enviado un mensaje en la plataforma de Proyectos y "
+"parece que aún no has respondido. Buenas noticias, no es demasiado tarde :)\n"
+"            "
 
 #: apps/skills/templates/reminder_mentor_3_days/mail.txt:2
 #, python-format
@@ -2328,6 +2464,15 @@ msgid ""
 "\n"
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
+"\n"
+"¿Puedes ser mi mentor/a en %(skill)s? (recordatorio)\n"
+"\n"
+"%(user)s te ha enviado un mensaje en la plataforma de Proyectos y parece que "
+"aún no has respondido. Buenas noticias, no es demasiado tarde :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentor_3_days/object.txt:2
 #, python-format
@@ -2335,6 +2480,8 @@ msgid ""
 "\n"
 "Can you mentor %(mentoree_name)s? (reminder)\n"
 msgstr ""
+"\n"
+"¿Puedes ser mentor/a de %(mentoree_name)s? (recordatorio)\n"
 
 #: apps/skills/templates/reminder_mentoree_10_days/mail.html:10
 #, python-format
@@ -2343,6 +2490,9 @@ msgid ""
 "            Do you want to be mentored in %(skill)s? (last reminder)\n"
 "            "
 msgstr ""
+"\n"
+"            ¿Quieres que te guíen en %(skill)s? (último recordatorio)\n"
+"            "
 
 #: apps/skills/templates/reminder_mentoree_10_days/mail.txt:2
 #, python-format
@@ -2357,6 +2507,15 @@ msgid ""
 "\n"
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (último recordatorio)\n"
+"\n"
+"Es la última vez que compartiremos este mensaje que %(user)s ha dejado para "
+"ti en la plataforma de Proyectos.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentoree_10_days/object.txt:2
 #, python-format
@@ -2364,6 +2523,8 @@ msgid ""
 "\n"
 "Do you want to be mentored in %(skill)s? (last reminder)\n"
 msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (último recordatorio)\n"
 
 #: apps/skills/templates/reminder_mentoree_3_days/mail.html:10
 #, python-format
@@ -2372,6 +2533,9 @@ msgid ""
 "            Do you want to be mentored in %(skill)s? (reminder)\n"
 "            "
 msgstr ""
+"\n"
+"            ¿Quieres que te guíen en %(skill)s? (recordatorio)\n"
+"            "
 
 #: apps/skills/templates/reminder_mentoree_3_days/mail.txt:2
 #, python-format
@@ -2386,6 +2550,15 @@ msgid ""
 "\n"
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (recordatorio)\n"
+"\n"
+"%(user)s te ha enviado un mensaje en la plataforma de Proyectos y parece que "
+"aún no has respondido. Buenas noticias, no es demasiado tarde :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/reminder_mentoree_3_days/object.txt:2
 #, python-format
@@ -2393,39 +2566,41 @@ msgid ""
 "\n"
 "Do you want to be mentored in %(skill)s? (reminder)\n"
 msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (recordatorio)\n"
 
 #: services/google/exceptions.py:7
 msgid "This email is already used by another group"
-msgstr ""
+msgstr "Este correo electrónico ya está en uso por otro grupo"
 
 #: services/google/exceptions.py:13
 msgid "This email is already used by another user"
-msgstr ""
+msgstr "Este correo electrónico ya está en uso por otro usuario"
 
 #: services/keycloak/exceptions.py:12
 msgid "Invalid user credentials"
-msgstr ""
+msgstr "Credenciales de usuario no válidas"
 
 #: services/keycloak/exceptions.py:21
 msgid "Given user does not have a keycloak account"
-msgstr ""
+msgstr "El usuario dado no tiene una cuenta de keycloak"
 
 #: services/keycloak/exceptions.py:27
 msgid "No user was found with the given keycloak id"
-msgstr ""
+msgstr "No se encontró ningún usuario con el ID de keycloak dado"
 
 #: services/keycloak/exceptions.py:33
 msgid "The 'redirect_uri' parameter is mandatory"
-msgstr ""
+msgstr "El parámetro 'redirect_uri' es obligatorio"
 
 #: services/keycloak/exceptions.py:39
 msgid "The given email type is not valid"
-msgstr ""
+msgstr "El tipo de correo electrónico proporcionado no es válido"
 
 #: services/keycloak/exceptions.py:44
 #, python-brace-format
 msgid "Email type '{email_type}' is not valid"
-msgstr ""
+msgstr "El tipo de correo electrónico '{email_type}' no es válido"
 
 #: services/keycloak/templates/admin_created/mail.html:13
 msgid ""
@@ -2435,6 +2610,11 @@ msgid ""
 "in your organization and foster collaboration for the common good.\n"
 "    "
 msgstr ""
+"\n"
+"    Tu cuenta de Proyectos acaba de ser creada. Solo tienes que elegir una "
+"contraseña y podrás unirte a Proyectos, una plataforma para compartir "
+"proyectos en tu organización y fomentar la colaboración para el bien común.\n"
+"    "
 
 #: services/keycloak/templates/admin_created/mail.html:18
 msgid ""
@@ -2442,6 +2622,9 @@ msgid ""
 "    Create my password\n"
 "    "
 msgstr ""
+"\n"
+"    Crear mi contraseña\n"
+"    "
 
 #: services/keycloak/templates/admin_created/mail.html:23
 #: services/keycloak/templates/force_reset_password/mail.html:23
@@ -2453,6 +2636,10 @@ msgid ""
 "can safely ignore it.\n"
 "    "
 msgstr ""
+"\n"
+"    Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"    "
 
 #: services/keycloak/templates/admin_created/mail.html:28
 #: services/keycloak/templates/force_reset_password/mail.html:28
@@ -2465,6 +2652,11 @@ msgid ""
 "link.\n"
 "    "
 msgstr ""
+"\n"
+"    El enlace expira el %(expiration_date)s a las %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Haz clic aquí</a> para solicitar "
+"un nuevo enlace.\n"
+"    "
 
 #: services/keycloak/templates/admin_created/mail.txt:2
 #, python-format
@@ -2480,6 +2672,16 @@ msgid ""
 "Link expires on %(expiration_date)s at %(expiration_time)s. Demandez un "
 "nouveau lien en cliquant sur %(refresh_link)s.\n"
 msgstr ""
+"\n"
+"¡Bienvenido/a al portal de Proyectos de %(organization_name)s, %(given_name)s!\n"
+"Tu cuenta de Proyectos acaba de ser creada. Solo tienes que elegir una "
+"contraseña y podrás unirte a Proyectos, una plataforma para compartir "
+"proyectos en tu organización y fomentar la colaboración para el bien común.\n"
+"Crear mi contraseña: %(link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Solicita "
+"un nuevo enlace haciendo clic en %(refresh_link)s.\n"
 
 #: services/keycloak/templates/admin_created/object.txt:2
 #, python-format
@@ -2487,6 +2689,8 @@ msgid ""
 "\n"
 "Welcome to your new %(org_name)s Projects platform\n"
 msgstr ""
+"\n"
+"Bienvenido/a a tu nueva plataforma de Proyectos de %(org_name)s\n"
 
 #: services/keycloak/templates/force_reset_password/mail.html:8
 #, python-format
@@ -2496,6 +2700,10 @@ msgid ""
 "%(organization_name)s Projects account.\n"
 "    "
 msgstr ""
+"\n"
+"    Se ha realizado una solicitud para restablecer tu contraseña para tu "
+"cuenta de Proyectos de %(organization_name)s.\n"
+"    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:13
 #: services/keycloak/templates/reset_password/mail.html:13
@@ -2505,6 +2713,10 @@ msgid ""
 "on the link below to update your password.\n"
 "    "
 msgstr ""
+"\n"
+"    Alguien solicitó que cambiáramos tu contraseña. Si fuiste tú, haz clic "
+"en el enlace de abajo para actualizar tu contraseña.\n"
+"    "
 
 #: services/keycloak/templates/force_reset_password/mail.html:18
 #: services/keycloak/templates/reset_password/mail.html:18
@@ -2513,6 +2725,9 @@ msgid ""
 "    Update password\n"
 "    "
 msgstr ""
+"\n"
+"    Actualizar contraseña\n"
+"    "
 
 #: services/keycloak/templates/force_reset_password/mail.txt:2
 #, python-format
@@ -2528,6 +2743,16 @@ msgid ""
 "Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
 "%(refresh_link)s to request a new link.\n"
 msgstr ""
+"\n"
+"Se ha realizado una solicitud para restablecer tu contraseña para tu cuenta "
+"de Proyectos de %(organization_name)s.\n"
+"Alguien solicitó que cambiáramos tu contraseña. Si fuiste tú, haz clic en el "
+"enlace de abajo para actualizar tu contraseña.\n"
+"Actualizar contraseña: %(link.link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Haz clic "
+"en %(refresh_link)s para solicitar un nuevo enlace.\n"
 
 #: services/keycloak/templates/force_reset_password/object.txt:2
 #, python-format
@@ -2535,6 +2760,8 @@ msgid ""
 "\n"
 "Update your %(org_name)s Projects password\n"
 msgstr ""
+"\n"
+"Actualiza tu contraseña de Proyectos de %(org_name)s\n"
 
 #: services/keycloak/templates/invitation/mail.html:8
 #, python-format
@@ -2544,6 +2771,10 @@ msgid ""
 "%(organization_name)s.\n"
 "    "
 msgstr ""
+"\n"
+"    Confirma tu dirección de correo electrónico para empezar en el portal de "
+"Proyectos de %(organization_name)s.\n"
+"    "
 
 #: services/keycloak/templates/invitation/mail.html:13
 #, python-format
@@ -2553,6 +2784,10 @@ msgid ""
 "address, we'll help you get started on the platform.\n"
 "    "
 msgstr ""
+"\n"
+"    Una vez que hayas confirmado que <strong>%(contact_email)s</strong> es tu "
+"dirección, te ayudaremos a empezar en la plataforma.\n"
+"    "
 
 #: services/keycloak/templates/invitation/mail.html:18
 msgid ""
@@ -2560,6 +2795,9 @@ msgid ""
 "    Confirm email address\n"
 "    "
 msgstr ""
+"\n"
+"    Confirmar dirección de correo electrónico\n"
+"    "
 
 #: services/keycloak/templates/invitation/mail.txt:2
 #, python-format
@@ -2575,6 +2813,16 @@ msgid ""
 "Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
 "%(refresh_link)s to request a new link.\n"
 msgstr ""
+"\n"
+"Confirma tu dirección de correo electrónico para empezar en el portal de "
+"Proyectos de %(organization_name)s.\n"
+"Una vez que hayas confirmado que <strong>%(contact_email)s</strong> es tu "
+"dirección, te ayudaremos a empezar en la plataforma.\n"
+"Confirmar dirección de correo electrónico: %(link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Haz clic "
+"en %(refresh_link)s para solicitar un nuevo enlace.\n"
 
 #: services/keycloak/templates/invitation/object.txt:2
 #, python-format
@@ -2582,6 +2830,9 @@ msgid ""
 "\n"
 "Confirm your email address to get started on %(org_name)s Projects\n"
 msgstr ""
+"\n"
+"Confirma tu dirección de correo electrónico para empezar en Proyectos de "
+"%(org_name)s\n"
 
 #: services/keycloak/templates/reset_password/mail.html:8
 msgid ""
@@ -2590,6 +2841,10 @@ msgid ""
 "account.\n"
 "    "
 msgstr ""
+"\n"
+"    Se ha realizado una solicitud para restablecer tu contraseña para tu "
+"cuenta de Proyectos.\n"
+"    "
 
 #: services/keycloak/templates/reset_password/mail.html:28
 #, python-format
@@ -2598,6 +2853,9 @@ msgid ""
 "    Link expires on %(expiration_date)s at %(expiration_time)s.\n"
 "    "
 msgstr ""
+"\n"
+"    El enlace expira el %(expiration_date)s a las %(expiration_time)s.\n"
+"    "
 
 #: services/keycloak/templates/reset_password/mail.txt:2
 #, python-format
@@ -2611,31 +2869,42 @@ msgid ""
 "safely ignore it.\n"
 "Link expires on %(expiration_date)s at %(expiration_time)s.\n"
 msgstr ""
+"\n"
+"Se ha realizado una solicitud para restablecer tu contraseña para tu cuenta "
+"de Proyectos.\n"
+"Alguien solicitó que cambiáramos tu contraseña. Si fuiste tú, haz clic en el "
+"enlace de abajo para actualizar tu contraseña.\n"
+"Actualizar contraseña: %(link.link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s.\n"
 
 #: services/keycloak/templates/reset_password/object.txt:2
 msgid ""
 "\n"
 "Update your Projects password\n"
 msgstr ""
+"\n"
+"Actualiza tu contraseña de Proyectos\n"
 
 #: services/mistral/exceptions.py:10
 msgid "The given queryset does not match the related model"
-msgstr ""
+msgstr "El queryset proporcionado no coincide con el modelo relacionado"
 
 #: services/wikipedia/exceptions.py:12
 msgid "Wikipedia API error"
-msgstr ""
+msgstr "Error de la API de Wikipedia"
 
 #: services/wikipedia/exceptions.py:17
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
-msgstr ""
+msgstr "La API de Wikipedia devolvió {status_code}"
 
 #: services/wikipedia/exceptions.py:26
 msgid "Language is not supported"
-msgstr ""
+msgstr "El idioma no es compatible"
 
 #: services/wikipedia/exceptions.py:31
 #, python-brace-format
 msgid "Language {language} is not supported"
-msgstr ""
+msgstr "El idioma {language} no es compatible"
