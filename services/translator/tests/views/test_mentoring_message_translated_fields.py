@@ -35,9 +35,9 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
+        message = self.mentoring.messages.last()
         auto_translated_fields = AutoTranslatedField.objects.filter(
-            content_type=self.content_type, object_id=content["id"]
+            content_type=self.content_type, object_id=message.id
         )
         self.assertEqual(
             auto_translated_fields.count(), len(MentoringMessage.auto_translated_fields)
