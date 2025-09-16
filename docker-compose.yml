@@ -1,6 +1,6 @@
 include:
   - path: ./keycloak-lpi-theme/theme/docker-compose.yml
-    project_directory: ./keycloak-lpi-theme/theme
+    project_directory: ./keycloak-lpi-theme/theme/
     env_file: ./.env
 
 services:
