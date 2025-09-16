@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple
 
 from azure.ai.translation.text import TextTranslationClient
 from azure.core.credentials import AzureKeyCredential
@@ -15,8 +15,10 @@ class AzureTranslatorService:
     )
 
     @classmethod
-    def clean_translation(cls, text: str) -> str:
-        return text.replace("\xa0»", '"').replace("\xa0", "")
+    def clean_translation(cls, text: Optional[str]) -> Optional[str]:
+        if text:
+            return text.replace("\xa0»", '"').replace("\xa0", "")
+        return text
 
     @classmethod
     def translate_text_content(
@@ -30,7 +32,7 @@ class AzureTranslatorService:
         detected_language = response.detected_language.language
         translations = response.translations
         translations = [
-            {**translation, "text": cls.clean_translation(translation.text)}
+            {"to": translation.to, "text": cls.clean_translation(translation.text)}
             for translation in translations
         ]
         return translations, detected_language
