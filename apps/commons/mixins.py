@@ -39,7 +39,24 @@ class OrganizationRelated:
 
 
 class ProjectRelated(OrganizationRelated):
-    """Abstract class for models related to `Project`."""
+    """
+    Abstract class for models related to `Project`.
+    This class extends `OrganizationRelated` because projects are OrganizationRelated
+    themselves, so any model related to a project is also related to one or more
+    organizations.
+
+    For MRO consistency, this class must come before `OrganizationRelated` in the
+    inheritance order:
+
+    ```
+    class MyModel(..., ProjectRelated, OrganizationRelated, ...):
+        ...
+    ```
+
+    Most of the time, it is not necessary to use both mixins, but for some models it is
+    better to explicitly state both relations, as the relation to the organization might
+    exist outside of the relation to the project.
+    """
 
     organization_query_string: str = "project__organizations"
     project_query_string: str = "project"
