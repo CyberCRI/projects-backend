@@ -38,14 +38,14 @@ class OrganizationRelated:
         raise NotImplementedError()
 
 
-class ProjectRelated:
+class ProjectRelated(OrganizationRelated):
     """Abstract class for models related to `Project`."""
 
     organization_query_string: str = "project__organizations"
     project_query_string: str = "project"
 
     @classmethod
-    def project_query(cls, key: str, value: str) -> Q:
+    def project_query(cls, key: str, value: Any) -> Q:
         """Return the query string to use to filter by project."""
         if not key and not cls.project_query_string:
             raise ValueError("You cannot query without a key or project_query_string.")
