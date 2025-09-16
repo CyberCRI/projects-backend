@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, List, Optional
 
 from django.db import models
 
-from apps.commons.mixins import DuplicableModel, OrganizationRelated, ProjectRelated
+from apps.commons.mixins import DuplicableModel, ProjectRelated
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 class Announcement(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):

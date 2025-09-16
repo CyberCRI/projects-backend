@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -63,7 +63,6 @@ class AttachmentLink(
     HasAutoTranslatedFields,
     DuplicableModel,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """
@@ -159,7 +158,6 @@ class AttachmentFile(
     HasAutoTranslatedFields,
     DuplicableModel,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """
@@ -225,7 +223,7 @@ class AttachmentFile(
 
 
 class Image(
-    models.Model, HasOwner, OrganizationRelated, ProjectRelated, DuplicableModel
+    models.Model, HasOwner, ProjectRelated, OrganizationRelated, DuplicableModel
 ):
     name = models.CharField(max_length=255)
     file = StdImageField(
@@ -290,6 +288,43 @@ class Image(
         if self.user.exists():
             return self.user.get()
         return self.owner
+
+    @classmethod
+    def project_query(cls, key: str, value: Any) -> Q:
+        """Return the query string to use to filter by project."""
+        query = f"__{key}" if key else ""
+        return (
+            Q(**{f"projects{query}": value})
+            | Q(**{f"project_header{query}": value})
+            | Q(**{f"blog_entries__project{query}": value})
+            | Q(**{f"project_messages__project{query}": value})
+            | Q(**{f"project_tabs__project{query}": value})
+            | Q(**{f"project_tab_items__tab__project{query}": value})
+            | Q(**{f"comments__project{query}": value})
+        )
+
+    @classmethod
+    def organization_query(cls, key: str, value: Any) -> Q:
+        query = f"__{key}" if key else ""
+        return (
+            Q(**{f"projects__organizations{query}": value})
+            | Q(**{f"project_header__organizations{query}": value})
+            | Q(**{f"blog_entries__project__organizations{query}": value})
+            | Q(**{f"project_messages__project__organizations{query}": value})
+            | Q(**{f"project_tabs__project__organizations{query}": value})
+            | Q(**{f"project_tab_items__tab__project__organizations{query}": value})
+            | Q(**{f"comments__project__organizations{query}": value})
+            | Q(**{f"organization_logo{query}": value})
+            | Q(**{f"organization_banner{query}": value})
+            | Q(**{f"organizations{query}": value})
+            | Q(**{f"project_category__organization{query}": value})
+            | Q(**{f"templates__project_category__organization{query}": value})
+            | Q(**{f"people_group_header__organization{query}": value})
+            | Q(**{f"people_group_logo__organization{query}": value})
+            | Q(**{f"news__organization{query}": value})
+            | Q(**{f"instructions__organization{query}": value})
+            | Q(**{f"events__organization{query}": value})
+        )
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""

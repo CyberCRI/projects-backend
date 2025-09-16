@@ -4,7 +4,7 @@ from django.db import models, transaction
 from django.utils import timezone
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
-from apps.commons.mixins import HasOwner, OrganizationRelated, ProjectRelated
+from apps.commons.mixins import HasOwner, ProjectRelated
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from apps.projects.models import Project
 
 
-class Follow(HasOwner, ProjectRelated, OrganizationRelated, models.Model):
+class Follow(HasOwner, ProjectRelated, models.Model):
     """Represent a user following a project.
 
     Attributes
@@ -86,9 +86,7 @@ class Follow(HasOwner, ProjectRelated, OrganizationRelated, models.Model):
         ]
 
 
-class Comment(
-    HasAutoTranslatedFields, HasOwner, ProjectRelated, OrganizationRelated, models.Model
-):
+class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
     """A comment written by a user about some project, may be an answer to another comment.
 
     Attributes
@@ -181,9 +179,7 @@ class Comment(
         ordering = ["-created_at"]
 
 
-class Review(
-    HasAutoTranslatedFields, HasOwner, ProjectRelated, OrganizationRelated, models.Model
-):
+class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
     """A review made by a User about a Project.
 
     Attributes
