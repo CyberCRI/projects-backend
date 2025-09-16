@@ -17,6 +17,7 @@ from .views import (
     ProjectCategoryBackgroundView,
     ProjectCategoryViewSet,
     TemplateImagesView,
+    TermsAndConditionsViewSet,
 )
 
 categories_router = routers.DefaultRouter()
@@ -57,6 +58,9 @@ organizations_nested_router.register(
 )
 organizations_nested_router.register(
     r"access-request", AccessRequestViewSet, basename="AccessRequest"
+)
+organizations_nested_router.register(
+    r"terms-and-conditions", TermsAndConditionsViewSet, basename="TermsAndConditions"
 )
 
 details_only_organizations_nested_router = DetailOnlyNestedRouter(
