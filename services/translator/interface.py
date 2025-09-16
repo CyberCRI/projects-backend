@@ -15,6 +15,10 @@ class AzureTranslatorService:
     )
 
     @classmethod
+    def clean_translation(cls, text: str) -> str:
+        return text.replace("\xa0»", '"').replace("\xa0", "")
+
+    @classmethod
     def translate_text_content(
         cls, content: str, languages: List[str]
     ) -> Tuple[List[dict], str]:
@@ -23,4 +27,10 @@ class AzureTranslatorService:
         """
         response = cls.service.translate(body=[content], to_language=languages)
         response = response[0]
-        return response["translations"], response["detectedLanguage"]["language"]
+        detected_language = response.detected_language.language
+        translations = response.translations
+        translations = [
+            {**translation, "text": cls.clean_translation(translation.text)}
+            for translation in translations
+        ]
+        return translations, detected_language
