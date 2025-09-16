@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from typing import Dict, List
 from unittest.mock import call, patch
 
@@ -56,16 +57,17 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
 
         Returns
         -------
-        - A json response that simulates the Azure translator API response.
+        - A list of SimpleNamespace objects that simulates the Azure translator API response.
         """
 
         return [
-            {
-                "detectedLanguage": {"language": "en", "score": 1.0},
-                "translations": [
-                    {"text": f"{lang} : {body[0]}", "to": lang} for lang in to_language
+            SimpleNamespace(
+                detected_language=SimpleNamespace(language="en", score=1.0),
+                translations=[
+                    SimpleNamespace(text=f"{lang} : {body[0]}", to=lang)
+                    for lang in to_language
                 ],
-            }
+            )
         ]
 
     @classmethod
