@@ -1,3 +1,6 @@
 [submodule "devops-toolbox"]
 	path = devops-toolbox
 	url = ../sops.git
+[submodule "keycloak-lpi-theme"]
+	path = keycloak-lpi-theme
+	url = git@github.com:CyberCRI/keycloak-lpi-theme.git
