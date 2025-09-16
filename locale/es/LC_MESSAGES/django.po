@@ -993,6 +993,7 @@ msgstr ""
 "\n"
 "          Ver <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
 "requests\">solicitud en la plataforma</a>.\n"
+"          "
 
 #: apps/notifications/templates/new_access_request/mail.txt:2
 #, python-format
