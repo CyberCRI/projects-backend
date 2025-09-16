@@ -978,6 +978,9 @@ msgid ""
 "          %(message)s\n"
 "          "
 msgstr ""
+"\n"
+"          %(message)s\n"
+"          "
 
 #: apps/notifications/templates/new_access_request/mail.html:102
 #, python-format
@@ -987,6 +990,9 @@ msgid ""
 "requests\">request in platform</a>.\n"
 "          "
 msgstr ""
+"\n"
+"          Ver <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
+"requests\">solicitud en la plataforma</a>.\n"
 
 #: apps/notifications/templates/new_access_request/mail.txt:2
 #, python-format
@@ -1002,6 +1008,17 @@ msgid ""
 "See <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">request in "
 "platform</a>.\n"
 msgstr ""
+"\n"
+"Hola,\n"
+"Has recibido una nueva solicitud de acceso para la plataforma de Proyectos de "
+"%(org_name)s.\n"
+"Nombre: %(given_name)s\n"
+"Apellido: %(family_name)s\n"
+"Correo electrónico: %(email)s\n"
+"Cargo: %(job)s\n"
+"Mensaje: %(message)s\n"
+"Ver <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">solicitud en "
+"la plataforma</a>.\n"
 
 #: apps/notifications/templates/new_access_request/object.txt:2
 #, python-format
@@ -1009,6 +1026,8 @@ msgid ""
 "\n"
 "New access request for %(org_name)s Projects platform\n"
 msgstr ""
+"\n"
+"Nueva solicitud de acceso para la plataforma de Proyectos de %(org_name)s\n"
 
 #: apps/notifications/templates/new_announcement/reminder.txt:2
 #, python-format
@@ -1019,7 +1038,11 @@ msgid_plural ""
 "\n"
 "%(full_name)s published %(count)s new announcements.\n"
 msgstr[0] ""
+"\n"
+"%(full_name)s publicó un nuevo anuncio.\n"
 msgstr[1] ""
+"\n"
+"%(full_name)s publicó %(count)s nuevos anuncios.\n"
 
 #: apps/notifications/templates/new_application/mail.html:19
 #, python-format
@@ -1032,18 +1055,25 @@ msgid ""
 "fromNotification\">%(project_title)s</a>.\n"
 "                    "
 msgstr ""
+"\n"
+"                    solicitó el anuncio "
+"<strong>\"%(announcement_title)s\"</strong>\n"
+"                    del proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"                    "
 
 #: apps/notifications/templates/new_application/mail.html:29
 msgid "Applicant:"
-msgstr ""
+msgstr "Solicitante:"
 
 #: apps/notifications/templates/new_application/mail.html:30
 msgid "Email:"
-msgstr ""
+msgstr "Correo electrónico:"
 
 #: apps/notifications/templates/new_application/mail.html:34
 msgid "Applicant's message:"
-msgstr ""
+msgstr "Mensaje del solicitante:"
 
 #: apps/notifications/templates/new_application/mail.txt:2
 #, python-format
@@ -1053,6 +1083,9 @@ msgid ""
 "to on the project: %(project_title)s For a job work of "
 "%(announcement_title)s:\n"
 msgstr ""
+"\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s aplicó en el "
+"proyecto: %(project_title)s para un trabajo de %(announcement_title)s:\n"
 
 #: apps/notifications/templates/new_application/mail.txt:5
 #, python-format
@@ -1060,6 +1093,8 @@ msgid ""
 "\n"
 "Description of the job: %(item.description|safe)s\n"
 msgstr ""
+"\n"
+"Descripción del trabajo: %(item.description|safe)s\n"
 
 #: apps/notifications/templates/new_application/mail.txt:8
 #, python-format
@@ -1067,6 +1102,8 @@ msgid ""
 "\n"
 "User's email: %(application.applicant_email)s\n"
 msgstr ""
+"\n"
+"Correo electrónico del usuario: %(application.applicant_email)s\n"
 
 #: apps/notifications/templates/new_application/mail.txt:11
 #, python-format
@@ -1074,6 +1111,8 @@ msgid ""
 "\n"
 "User message: %(application.applicant_message|safe)s\n"
 msgstr ""
+"\n"
+"Mensaje del usuario: %(application.applicant_message|safe)s\n"
 
 #: apps/notifications/templates/new_application/object.txt:2
 #, python-format
@@ -1082,6 +1121,9 @@ msgid ""
 "%(firstname)s %(lastname)s applied to the announcement: "
 "%(announcement_title)s.\n"
 msgstr ""
+"\n"
+"%(firstname)s %(lastname)s aplicó al anuncio: "
+"%(announcement_title)s.\n"
 
 #: apps/notifications/templates/new_blogentry/reminder.txt:2
 #, python-format
@@ -1092,7 +1134,11 @@ msgid_plural ""
 "\n"
 "%(full_name)s published %(count)s new blog entries.\n"
 msgstr[0] ""
+"\n"
+"%(full_name)s publicó una nueva entrada de blog.\n"
 msgstr[1] ""
+"\n"
+"%(full_name)s publicó %(count)s nuevas entradas de blog.\n"
 
 #: apps/notifications/templates/new_comment/mail.html:18
 #, python-format
@@ -1103,16 +1149,21 @@ msgid ""
 "fromNotification\">%(project_title)s</a>.\n"
 "          "
 msgstr ""
+"\n"
+"          %(full_name)s comentó el proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
 
 #: apps/notifications/templates/new_comment/mail.html:26
 #: apps/notifications/templates/new_reply/mail.html:26
 msgid "Comment by"
-msgstr ""
+msgstr "Comentario de"
 
 #: apps/notifications/templates/new_comment/mail.html:35
 #: apps/notifications/templates/new_reply/mail.html:35
 msgid "Go to comment"
-msgstr ""
+msgstr "Ir al comentario"
 
 #: apps/notifications/templates/new_comment/mail.txt:2
 #: apps/notifications/templates/new_comment/object.txt:2
@@ -1125,7 +1176,11 @@ msgid_plural ""
 "\n"
 "%(full_name)s added %(count)s comments to project %(project_title)s.\n"
 msgstr[0] ""
+"\n"
+"%(full_name)s comentó el proyecto %(project_title)s.\n"
 msgstr[1] ""
+"\n"
+"%(full_name)s agregó %(count)s comentarios al proyecto %(project_title)s.\n"
 
 #: apps/notifications/templates/new_instruction/mail.html:18
 msgid ""
@@ -1133,10 +1188,13 @@ msgid ""
 "          You have received a new instruction.\n"
 "          "
 msgstr ""
+"\n"
+"          Has recibido una nueva instrucción.\n"
+"          "
 
 #: apps/notifications/templates/new_instruction/mail.html:28
 msgid "Go to instruction"
-msgstr ""
+msgstr "Ir a la instrucción"
 
 #: apps/notifications/templates/new_instruction/mail.txt:2
 #, python-format
@@ -1144,18 +1202,24 @@ msgid ""
 "\n"
 "Hello %(recipient.given_name)s, You have received a new instruction.\n"
 msgstr ""
+"\n"
+"Hola %(recipient.given_name)s, has recibido una nueva instrucción.\n"
 
 #: apps/notifications/templates/new_instruction/object.txt:2
 msgid ""
 "\n"
 "New instruction\n"
 msgstr ""
+"\n"
+"Nueva instrucción\n"
 
 #: apps/notifications/templates/new_instruction/reminder.txt:2
 msgid ""
 "\n"
 "You received a new instruction.\n"
 msgstr ""
+"\n"
+"Has recibido una nueva instrucción.\n"
 
 #: apps/notifications/templates/new_private_message/mail.html:18
 #, python-format
@@ -1166,14 +1230,19 @@ msgid ""
 "fromNotification\">%(project_title)s</a>.\n"
 "          "
 msgstr ""
+"\n"
+"          %(full_name)s publicó un mensaje en <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
 
 #: apps/notifications/templates/new_private_message/mail.html:26
 msgid "Message by"
-msgstr ""
+msgstr "Mensaje de"
 
 #: apps/notifications/templates/new_private_message/mail.html:35
 msgid "Go to message"
-msgstr ""
+msgstr "Ir al mensaje"
 
 #: apps/notifications/templates/new_private_message/mail.txt:2
 #: apps/notifications/templates/new_private_message/object.txt:2
@@ -1186,7 +1255,11 @@ msgid_plural ""
 "\n"
 "%(full_name)s posted %(count)s messages on project %(project_title)s.\n"
 msgstr[0] ""
+"\n"
+"%(full_name)s publicó un mensaje en %(project_title)s.\n"
 msgstr[1] ""
+"\n"
+"%(full_name)s publicó %(count)s mensajes en el proyecto %(project_title)s.\n"
 
 #: apps/notifications/templates/new_reply/mail.html:18
 #, python-format
@@ -1197,6 +1270,11 @@ msgid ""
 "fromNotification\">%(project_title)s</a>.\n"
 "          "
 msgstr ""
+"\n"
+"          %(full_name)s respondió a tu comentario en el proyecto <a "
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
 
 #: apps/notifications/templates/new_reply/mail.txt:2
 #, python-format
@@ -1204,6 +1282,8 @@ msgid ""
 "\n"
 "%(full_name)s has replied on your comment on project %(project_title)s.\n"
 msgstr ""
+"\n"
+"%(full_name)s ha respondido a tu comentario en el proyecto %(project_title)s.\n"
 
 #: apps/notifications/templates/new_reply/object.txt:2
 #, python-format
@@ -1211,6 +1291,8 @@ msgid ""
 "\n"
 "%(full_name)s replied to your comment on project %(project_title)s.\n"
 msgstr ""
+"\n"
+"%(full_name)s respondió a tu comentario en el proyecto %(project_title)s.\n"
 
 #: apps/notifications/templates/new_review/mail.html:18
 #, python-format
@@ -1221,10 +1303,15 @@ msgid ""
 "fromNotification\">%(project_title)s</a>.\n"
 "          "
 msgstr ""
+"\n"
+"          %(full_name)s revisó el proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
 
 #: apps/notifications/templates/new_review/mail.html:26
 msgid "Review by"
-msgstr ""
+msgstr "Revisión de"
 
 #: apps/notifications/templates/new_review/mail.txt:2
 #: apps/notifications/templates/new_review/object.txt:2
@@ -1233,6 +1320,8 @@ msgid ""
 "\n"
 "%(full_name)s reviewed project %(project_title)s.\n"
 msgstr ""
+"\n"
+"%(full_name)s revisó el proyecto %(project_title)s.\n"
 
 #: apps/notifications/templates/notifications_base.html:45
 msgid ""
@@ -1242,16 +1331,21 @@ msgid ""
 "          8bis, rue Charles V, 75004 Paris, France\n"
 "          "
 msgstr ""
+"\n"
+"          la plataforma hecha para compartir tus proyectos.<br/>\n"
+"          Creada para ti por el Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 París, Francia\n"
+"          "
 
 #: apps/notifications/templates/notifications_base.html:52
 msgid ""
 "You receive this mail because you are subscribed to these notifications on "
 "Projects platform."
-msgstr ""
+msgstr "Recibes este correo porque estás suscrito a estas notificaciones en la plataforma de Proyectos."
 
 #: apps/notifications/templates/notifications_base.html:53
 msgid "Change your notification settings here."
-msgstr ""
+msgstr "Cambia tus ajustes de notificación aquí."
 
 #: apps/notifications/templates/project_edited/reminder.txt:2
 #, python-format
@@ -1259,6 +1353,8 @@ msgid ""
 "\n"
 "%(full_name)s edited the %(updated_fields)s.\n"
 msgstr ""
+"\n"
+"%(full_name)s editó los %(updated_fields)s.\n"
 
 #: apps/notifications/templates/project_ready_for_review/mail.html:18
 #, python-format
@@ -1269,6 +1365,11 @@ msgid ""
 "fromNotification\">%(project_title)s</a> as ready for review.\n"
 "          "
 msgstr ""
+"\n"
+"          %(full_name)s marcó el proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> como listo para revisión.\n"
+"          "
 
 #: apps/notifications/templates/project_ready_for_review/mail.txt:2
 #, python-format
@@ -1277,6 +1378,9 @@ msgid ""
 "Hello %(recipient.given_name)s, %(full_name)s marked project "
 "%(project_title)s as ready for review.\n"
 msgstr ""
+"\n"
+"Hola %(recipient.given_name)s, %(full_name)s marcó el proyecto "
+"%(project_title)s como listo para revisión.\n"
 
 #: apps/notifications/templates/project_ready_for_review/object.txt:2
 #, python-format
@@ -1284,6 +1388,8 @@ msgid ""
 "\n"
 "%(full_name)s marked project %(project_title)s as ready for review.\n"
 msgstr ""
+"\n"
+"%(full_name)s marcó el proyecto %(project_title)s como listo para revisión.\n"
 
 #: apps/notifications/templates/reminder/mail.html:19
 #, python-format
@@ -1292,10 +1398,13 @@ msgid ""
 "                    Here are your highlights for %(dateOfTheDay)s\n"
 "                    "
 msgstr ""
+"\n"
+"                    Estos son tus puntos destacados para %(dateOfTheDay)s\n"
+"                    "
 
 #: apps/notifications/templates/reminder/mail.html:30
 msgid "Project"
-msgstr ""
+msgstr "Proyecto"
 
 #: apps/notifications/templates/reminder/mail.txt:2
 #, python-format
@@ -1303,187 +1412,189 @@ msgid ""
 "\n"
 "Here are your highlights for %(dateOfTheDay)s\n"
 msgstr ""
+"\n"
+"Estos son tus puntos destacados para %(dateOfTheDay)s\n"
 
 #: apps/notifications/templates/reminder/object.txt:2
 msgid "New highlights on Projects"
-msgstr ""
+msgstr "Novedades en Proyectos"
 
 #: apps/notifications/utils.py:233
 msgid " and "
-msgstr ""
+msgstr " y "
 
 #: apps/organizations/exceptions.py:11
 msgid "You are trying to create a loop in the organization's hierarchy."
-msgstr ""
+msgstr "Estás intentando crear un bucle en la jerarquía de la organización."
 
 #: apps/organizations/exceptions.py:24
 msgid "The root category cannot have a parent category"
-msgstr ""
+msgstr "La categoría raíz no puede tener una categoría padre"
 
 #: apps/organizations/exceptions.py:30
 msgid "A non-root category must have a parent category"
-msgstr ""
+msgstr "Una categoría no raíz debe tener una categoría padre"
 
 #: apps/organizations/exceptions.py:36
 msgid "The parent category must belong to the same organization"
-msgstr ""
+msgstr "La categoría padre debe pertenecer a la misma organización"
 
 #: apps/organizations/exceptions.py:42
 msgid "You are trying to create a loop in the category's hierarchy"
-msgstr ""
+msgstr "Estás intentando crear un bucle en la jerarquía de la categoría"
 
 #: apps/organizations/exceptions.py:48
 msgid "You must choose a default tag classification that is enabled"
-msgstr ""
+msgstr "Debes elegir una clasificación de etiquetas predeterminada que esté habilitada"
 
 #: apps/organizations/exceptions.py:54
 msgid "`is_locked` parameter is required"
-msgstr ""
+msgstr "El parámetro `is_locked` es obligatorio"
 
 #: apps/organizations/exceptions.py:60
 msgid "`life_status` parameter is required"
-msgstr ""
+msgstr "El parámetro `life_status` es obligatorio"
 
 #: apps/projects/exceptions.py:12
 msgid "You don't have the permission to link this project"
-msgstr ""
+msgstr "No tienes permiso para enlazar este proyecto"
 
 #: apps/projects/exceptions.py:18
 #, python-brace-format
 msgid "You don't have the permission to link this project : {project_title}"
-msgstr ""
+msgstr "No tienes permiso para enlazar este proyecto: {project_title}"
 
 #: apps/projects/exceptions.py:29
 msgid "You do not have the rights to add a project in this organization"
-msgstr ""
+msgstr "No tienes los derechos para añadir un proyecto en esta organización"
 
 #: apps/projects/exceptions.py:36
 msgid "You cannot modify a locked project"
-msgstr ""
+msgstr "No puedes modificar un proyecto bloqueado"
 
 #: apps/projects/exceptions.py:45
 msgid "The organizations parameter is mandatory"
-msgstr ""
+msgstr "El parámetro de organizaciones es obligatorio"
 
 #: apps/projects/exceptions.py:51
 msgid "The project does not belong to any of the given organizations"
-msgstr ""
+msgstr "El proyecto no pertenece a ninguna de las organizaciones dadas"
 
 #: apps/projects/exceptions.py:72
 msgid "You cannot remove all the owners of a project"
-msgstr ""
+msgstr "No puedes eliminar todos los propietarios de un proyecto"
 
 #: apps/projects/exceptions.py:78
 msgid "A project must belong to at least one organization"
-msgstr ""
+msgstr "Un proyecto debe pertenecer al menos a una organización"
 
 #: apps/projects/exceptions.py:84
 msgid "Only a reviewer can change this project's status"
-msgstr ""
+msgstr "Solo un revisor puede cambiar el estado de este proyecto"
 
 #: apps/projects/exceptions.py:90
 msgid "You cannot empty the description of a project"
-msgstr ""
+msgstr "No puedes dejar vacía la descripción de un proyecto"
 
 #: apps/projects/exceptions.py:97
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
-msgstr ""
+msgstr "Un proyecto no puede estar en una categoría si no pertenece a una de las organizaciones del proyecto"
 
 #: apps/projects/exceptions.py:104
 msgid "A project can't be linked to itself"
-msgstr ""
+msgstr "Un proyecto no se puede enlazar a sí mismo"
 
 #: apps/projects/exceptions.py:109
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
-msgstr ""
+msgstr "El proyecto '{project_title}' no se puede enlazar a sí mismo"
 
 #: apps/projects/exceptions.py:126
 msgid "A message cannot be a reply to itself"
-msgstr ""
+msgstr "Un mensaje no puede ser una respuesta a sí mismo"
 
 #: apps/projects/exceptions.py:132
 msgid "You cannot change the type of a project's tab"
-msgstr ""
+msgstr "No puedes cambiar el tipo de una pestaña de proyecto"
 
 #: apps/projects/models.py:143
 msgid "title"
-msgstr ""
+msgstr "título"
 
 #: apps/projects/models.py:153
 msgid "main goal"
-msgstr ""
+msgstr "objetivo principal"
 
 #: apps/projects/models.py:166
 msgid "life status"
-msgstr ""
+msgstr "estado de vida"
 
 #: apps/projects/models.py:177
 msgid "categories"
-msgstr ""
+msgstr "categorías"
 
 #: apps/projects/models.py:194
 msgid "sustainable development goals"
-msgstr ""
+msgstr "objetivos de desarrollo sostenible"
 
 #: apps/projects/models.py:200
 msgid "main category"
-msgstr ""
+msgstr "categoría principal"
 
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
-msgstr ""
+msgstr "No puedes cambiar el estado de una solicitud de mentoría que creaste"
 
 #: apps/skills/exceptions.py:21
 msgid "User ID must be provided through url"
-msgstr ""
+msgstr "La ID de usuario debe ser proporcionada a través de la URL"
 
 #: apps/skills/exceptions.py:27
 msgid "This user cannot be a mentor for this skill"
-msgstr ""
+msgstr "Este usuario no puede ser mentor de esta habilidad"
 
 #: apps/skills/exceptions.py:33
 msgid "This user does not need a mentor for this skill"
-msgstr ""
+msgstr "Este usuario no necesita un mentor para esta habilidad"
 
 #: apps/skills/exceptions.py:39
 msgid "You already have this skill in your profile"
-msgstr ""
+msgstr "Ya tienes esta habilidad en tu perfil"
 
 #: apps/skills/exceptions.py:45
 msgid "Only custom tags can be updated"
-msgstr ""
+msgstr "Solo se pueden actualizar las etiquetas personalizadas"
 
 #: apps/skills/exceptions.py:51
 msgid "Only custom tags classifications can be updated"
-msgstr ""
+msgstr "Solo se pueden actualizar las clasificaciones de etiquetas personalizadas"
 
 #: apps/skills/exceptions.py:57
 msgid "You can only search for 50 Wikipedia tags at a time"
-msgstr ""
+msgstr "Solo puedes buscar 50 etiquetas de Wikipedia a la vez"
 
 #: apps/skills/exceptions.py:63
 msgid "You already made a mentoring request for this skill"
-msgstr ""
+msgstr "Ya has realizado una solicitud de mentoría para esta habilidad"
 
 #: apps/skills/exceptions.py:72
 msgid "Tags must belong to the classification's organization"
-msgstr ""
+msgstr "Las etiquetas deben pertenecer a la organización de la clasificación"
 
 #: apps/skills/exceptions.py:78
 msgid "Tag title must be 50 characters or less"
-msgstr ""
+msgstr "El título de la etiqueta debe tener 50 caracteres o menos"
 
 #: apps/skills/exceptions.py:84
 msgid "Tag description must be 500 characters or less"
-msgstr ""
+msgstr "La descripción de la etiqueta debe tener 500 caracteres o menos"
 
 #: apps/skills/serializers.py:109
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
-msgstr ""
+msgstr "ID no válida \"{tag_classification_id}\" - el objeto no existe."
 
 #: apps/skills/templates/contact_mentor/mail.html:10
 #, python-format
@@ -1492,6 +1603,9 @@ msgid ""
 "            Can you mentor me in %(skill)s?\n"
 "            "
 msgstr ""
+"\n"
+"            ¿Puedes ser mi mentor/a en %(skill)s?\n"
+"            "
 
 #: apps/skills/templates/contact_mentor/mail.html:19
 #: apps/skills/templates/contact_mentoree/mail.html:19
@@ -1502,6 +1616,9 @@ msgid ""
 "platform:\n"
 "            "
 msgstr ""
+"\n"
+"            Este es el mensaje que %(user)s ha dejado en la plataforma de Proyectos:\n"
+"            "
 
 #: apps/skills/templates/contact_mentor/mail.html:30
 #: apps/skills/templates/contact_mentoree/mail.html:30
@@ -1514,6 +1631,9 @@ msgid ""
 "            Reply\n"
 "            "
 msgstr ""
+"\n"
+"            Responder\n"
+"            "
 
 #: apps/skills/templates/contact_mentor/mail.txt:2
 #, python-format
@@ -1527,6 +1647,14 @@ msgid ""
 "\n"
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
+"\n"
+"¿Puedes ser mi mentor/a en %(skill)s?\n"
+"\n"
+"Este es el mensaje que %(user)s ha dejado en la plataforma de Proyectos:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentor/object.txt:2
 #, python-format
@@ -1534,6 +1662,8 @@ msgid ""
 "\n"
 "Can you mentor %(mentoree_name)s?\n"
 msgstr ""
+"\n"
+"¿Puedes ser mentor/a de %(mentoree_name)s?\n"
 
 #: apps/skills/templates/contact_mentoree/mail.html:10
 #, python-format
@@ -1542,6 +1672,9 @@ msgid ""
 "            Do you want to be mentored in %(skill)s?\n"
 "            "
 msgstr ""
+"\n"
+"            ¿Quieres que te guíen en %(skill)s?\n"
+"            "
 
 #: apps/skills/templates/contact_mentoree/mail.txt:2
 #, python-format
@@ -1555,6 +1688,14 @@ msgid ""
 "\n"
 "Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s?\n"
+"\n"
+"Este es el mensaje que %(user)s ha dejado en la plataforma de Proyectos:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
 
 #: apps/skills/templates/contact_mentoree/object.txt:2
 #, python-format
@@ -1562,6 +1703,8 @@ msgid ""
 "\n"
 "%(mentor_name)s offers to mentor you\n"
 msgstr ""
+"\n"
+"%(mentor_name)s se ofrece a ser tu mentor/a\n"
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:10
 #, python-format
@@ -1570,6 +1713,9 @@ msgid ""
 "            %(user)s has accepted to mentor you in %(skill)s!\n"
 "            "
 msgstr ""
+"\n"
+"            ¡%(user)s ha aceptado ser tu mentor/a en %(skill)s!\n"
+"            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:19
 #, python-format
@@ -1579,6 +1725,10 @@ msgid ""
 "them at %(email)s.\n"
 "            "
 msgstr ""
+"\n"
+"            Buenas noticias, %(user)s ha aceptado ser tu mentor/a. Puedes "
+"contactarle en %(email)s.\n"
+"            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.html:30
 #: apps/skills/templates/mentor_response_pending/mail.html:30
@@ -1590,6 +1740,9 @@ msgid ""
 "            Reply to %(user)s\n"
 "            "
 msgstr ""
+"\n"
+"            Responder a %(user)s\n"
+"            "
 
 #: apps/skills/templates/mentor_response_accepted/mail.txt:2
 #, python-format
@@ -1604,6 +1757,15 @@ msgid ""
 "\n"
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
+"\n"
+"¡%(user)s ha aceptado ser tu mentor/a en %(skill)s!\n"
+"\n"
+"Buenas noticias, %(user)s ha aceptado ser tu mentor/a. Puedes contactarle en "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentor_response_accepted/object.txt:2
 #, python-format
@@ -1611,6 +1773,8 @@ msgid ""
 "\n"
 "%(mentor_name)s has accepted to mentor you\n"
 msgstr ""
+"\n"
+"%(mentor_name)s ha aceptado ser tu mentor/a\n"
 
 #: apps/skills/templates/mentor_response_pending/mail.html:10
 #, python-format
@@ -1619,6 +1783,9 @@ msgid ""
 "            %(user)s needs more information to mentor you in %(skill)s.\n"
 "            "
 msgstr ""
+"\n"
+"            %(user)s necesita más información para ser tu mentor/a en %(skill)s.\n"
+"            "
 
 #: apps/skills/templates/mentor_response_pending/mail.html:19
 #: apps/skills/templates/mentoree_response_pending/mail.html:19
@@ -1629,6 +1796,10 @@ msgid ""
 "%(email)s.\n"
 "            "
 msgstr ""
+"    \n"
+"            %(user)s ha dejado el siguiente mensaje. Puedes contactarle en "
+"%(email)s.\n"
+"            "
 
 #: apps/skills/templates/mentor_response_pending/mail.txt:2
 #, python-format
@@ -1642,6 +1813,14 @@ msgid ""
 "\n"
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
+"\n"
+"%(user)s necesita más información para ser tu mentor/a en %(skill)s.\n"
+" \n"
+"%(user)s ha dejado el siguiente mensaje. Puedes contactarle en %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentor_response_pending/object.txt:2
 #: apps/skills/templates/mentoree_response_pending/object.txt:2
@@ -1650,6 +1829,8 @@ msgid ""
 "\n"
 "%(mentor_name)s needs more information on mentoring\n"
 msgstr ""
+"\n"
+"%(mentor_name)s necesita más información sobre la mentoría\n"
 
 #: apps/skills/templates/mentor_response_rejected/mail.html:10
 #, python-format
@@ -1658,6 +1839,9 @@ msgid ""
 "            %(user)s can't mentor you in %(skill)s!\n"
 "            "
 msgstr ""
+"\n"
+"            ¡%(user)s no puede ser tu mentor/a en %(skill)s!\n"
+"            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.html:19
 #, python-format
@@ -1666,6 +1850,9 @@ msgid ""
 "            Unfortunately, %(user)s can't mentor you in %(skill)s.\n"
 "            "
 msgstr ""
+"\n"
+"            Desafortunadamente, %(user)s no puede ser tu mentor/a en %(skill)s.\n"
+"            "
 
 #: apps/skills/templates/mentor_response_rejected/mail.txt:2
 #, python-format
@@ -1677,6 +1864,12 @@ msgid ""
 "\n"
 "%(content)s\n"
 msgstr ""
+"\n"
+"¡%(user)s no puede ser tu mentor/a en %(skill)s!\n"
+"\n"
+"Desafortunadamente, %(user)s no podrá ser tu mentor/a.\n"
+"\n"
+"%(content)s\n"
 
 #: apps/skills/templates/mentor_response_rejected/object.txt:2
 #, python-format
@@ -1684,6 +1877,8 @@ msgid ""
 "\n"
 "%(mentor_name)s can't mentor you\n"
 msgstr ""
+"\n"
+"%(mentor_name)s no puede ser tu mentor/a\n"
 
 #: apps/skills/templates/mentoree_response_accepted/mail.html:10
 #, python-format
@@ -1692,6 +1887,9 @@ msgid ""
 "            %(user)s has accepted to be your mentoree in %(skill)s!\n"
 "            "
 msgstr ""
+"\n"
+"            ¡%(user)s ha aceptado ser tu alumno/a en %(skill)s!\n"
+"            "
 
 #: apps/skills/templates/mentoree_response_accepted/mail.html:19
 #, python-format
@@ -1701,6 +1899,10 @@ msgid ""
 "contact them at %(email)s.\n"
 "            "
 msgstr ""
+"\n"
+"            Buenas noticias, %(user)s ha aceptado ser tu alumno/a. Puedes "
+"contactarle en %(email)s.\n"
+"            "
 
 #: apps/skills/templates/mentoree_response_accepted/mail.txt:2
 #, python-format
@@ -1715,6 +1917,15 @@ msgid ""
 "\n"
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
+"\n"
+"¡%(user)s ha aceptado ser tu alumno/a en %(skill)s!\n"
+"\n"
+"Buenas noticias, %(user)s ha aceptado ser tu alumno/a. Puedes contactarle en "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentoree_response_accepted/object.txt:2
 #, python-format
@@ -1722,6 +1933,8 @@ msgid ""
 "\n"
 "%(mentor_name)s has accepted to be your mentoree\n"
 msgstr ""
+"\n"
+"%(mentor_name)s ha aceptado ser tu alumno/a\n"
 
 #: apps/skills/templates/mentoree_response_pending/mail.html:10
 #, python-format
@@ -1731,6 +1944,10 @@ msgid ""
 "%(skill)s.\n"
 "            "
 msgstr ""
+"\n"
+"            %(user)s necesita más información para ser tu alumno/a en "
+"%(skill)s.\n"
+"            "
 
 #: apps/skills/templates/mentoree_response_pending/mail.txt:2
 #, python-format
@@ -1744,6 +1961,14 @@ msgid ""
 "\n"
 "Reply to %(user)s : %(email)s\n"
 msgstr ""
+"\n"
+"%(user)s necesita más información para ser tu alumno/a en %(skill)s.\n"
+" \n"
+"%(user)s ha dejado el siguiente mensaje. Puedes contactarle en %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
 
 #: apps/skills/templates/mentoree_response_rejected/mail.html:10
 #, python-format
@@ -1752,6 +1977,9 @@ msgid ""
 "            %(user)s can't be your mentoree in %(skill)s!\n"
 "            "
 msgstr ""
+"\n"
+"            ¡%(user)s no puede ser tu alumno/a en %(skill)s!\n"
+"            "
 
 #: apps/skills/templates/mentoree_response_rejected/mail.html:19
 #, python-format
@@ -1760,6 +1988,9 @@ msgid ""
 "            Unfortunately, %(user)s can't be your mentoree in %(skill)s.\n"
 "            "
 msgstr ""
+"\n"
+"            Desafortunadamente, %(user)s no puede ser tu alumno/a en %(skill)s.\n"
+"            "
 
 #: apps/skills/templates/mentoree_response_rejected/mail.txt:2
 #, python-format
@@ -1771,6 +2002,12 @@ msgid ""
 "\n"
 "%(content)s\n"
 msgstr ""
+"\n"
+"¡%(user)s no puede ser tu alumno/a en %(skill)s!\n"
+"\n"
+"Desafortunadamente, %(user)s no podrá ser tu alumno/a.\n"
+"\n"
+"%(content)s\n"
 
 #: apps/skills/templates/mentoree_response_rejected/object.txt:2
 #, python-format
@@ -1778,6 +2015,8 @@ msgid ""
 "\n"
 "%(mentor_name)s can't be your mentoree\n"
 msgstr ""
+"\n"
+"%(mentor_name)s no puede ser tu alumno/a\n"
 
 #: apps/skills/templates/mentorship_base.html:55
 msgid ""
@@ -1785,6 +2024,9 @@ msgid ""
 "          Mentoring guide : advice for mentors and mentorees\n"
 "          "
 msgstr ""
+"\n"
+"          Guía de mentoría: consejos para mentores y alumnos\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:60
 msgid ""
@@ -1796,6 +2038,13 @@ msgid ""
 "exciting discoveries and achievements!\n"
 "          "
 msgstr ""
+"\n"
+"          Estimados/as Mentores y Alumnos, 👩‍🏫👨‍🎓\n"
+"          <br/>\n"
+"          En primer lugar, el equipo de Proyectos desea felicitarles "
+"calurosamente por embarcarse en este viaje de mentoría. ¡Seguro que estará "
+"lleno de emocionantes descubrimientos y logros!\n"
+"          "
 
 #: apps/skills/templates/mentorship_base.html:67
 msgid ""
