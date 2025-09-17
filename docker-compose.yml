@@ -76,6 +76,7 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
       DEBUG: ${DEBUG}
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL}
     volumes:
       - .:/app
 
