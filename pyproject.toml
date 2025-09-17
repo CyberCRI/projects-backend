@@ -85,7 +85,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
-skip_glob = ["**/migrations/*.py", "**/devops-toolbox/**.py"]
+skip_glob = ["**/migrations/*.py", "**/devops-toolbox/**.py", "**/keycloak-lpi-theme/**.py"]
 
 [tool.black]
 exclude = '''
@@ -95,6 +95,7 @@ exclude = '''
     | \.venv
     | .+/migrations
     | devops-toolbox
+    | keycloak-lpi-theme
   )/
 )
 '''
