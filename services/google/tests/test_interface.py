@@ -3,12 +3,12 @@ import uuid
 from typing import Callable
 
 from django.conf import settings
+from keycloak import KeycloakGetError
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, skipUnlessGoogle
 from apps.organizations.factories import OrganizationFactory
-from keycloak import KeycloakGetError
 from services.google.factories import (
     RemoteGoogleAccountFactory,
     RemoteGoogleGroupFactory,
