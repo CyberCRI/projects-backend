@@ -54,8 +54,8 @@ services:
     ports:
       - 15500:15500
 
-  projects:
-    container_name: projects
+  projects-backend:
+    container_name: projects-backend
     build:
       context: .
       args:
@@ -75,6 +75,7 @@ services:
         condition: service_healthy
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
+      DEBUG: ${DEBUG}
     volumes:
       - .:/app
 
@@ -85,7 +86,7 @@ services:
     command: celery -A projects worker -B -l info
     restart: unless-stopped
     depends_on:
-      - projects
+      - projects-backend
       - redis
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
