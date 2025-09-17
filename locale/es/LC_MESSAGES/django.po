@@ -1,0 +1,2911 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-16 14:58+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/accounts/exceptions.py:17
+msgid "Token contained no recognizable user identification"
+msgstr "El token no contenía una identificación de usuario reconocible"
+
+#: apps/accounts/exceptions.py:23
+msgid "User is inactive"
+msgstr "El usuario está inactivo"
+
+#: apps/accounts/exceptions.py:29
+msgid "Invitation link not found or expired"
+msgstr "Enlace de invitación no encontrado o caducado"
+
+#: apps/accounts/exceptions.py:35
+msgid "Access token has expired"
+msgstr "El token de acceso ha caducado"
+
+#: apps/accounts/exceptions.py:41
+msgid "Token prefix is missing"
+msgstr "Falta el prefijo del token"
+
+#: apps/accounts/exceptions.py:50 apps/organizations/exceptions.py:18
+msgid "You cannot add projects that you do not have access to"
+msgstr "No puedes añadir proyectos a los que no tienes acceso"
+
+#: apps/accounts/exceptions.py:56
+msgid "You do not have the permission to assign this role"
+msgstr "No tienes permiso para asignar este rol"
+
+#: apps/accounts/exceptions.py:61
+#, python-brace-format
+msgid "You do not have the permission to assign this role : {role}"
+msgstr "No tienes permiso para asignar este rol: {role}"
+
+#: apps/accounts/exceptions.py:76
+msgid ""
+"email_type query parameter is missing. Choices are : admin_created, "
+"invitation, reset_password"
+msgstr "Falta el parámetro de consulta email_type. Las opciones son: admin_created, invitation, reset_password"
+
+#: apps/accounts/exceptions.py:83
+msgid "Permission not found"
+msgstr "Permiso no encontrado"
+
+#: apps/accounts/exceptions.py:89
+msgid "An error occurred while syncing with Keycloak"
+msgstr "Ocurrió un error al sincronizar con Keycloak"
+
+#: apps/accounts/exceptions.py:94
+#, python-brace-format
+msgid "An error occurred while syncing with Keycloak : {message}"
+msgstr "Ocurrió un error al sincronizar con Keycloak: {message}"
+
+#: apps/accounts/exceptions.py:106
+msgid "An error occurred while syncing with Google"
+msgstr "Ocurrió un error al sincronizar con Google"
+
+#: apps/accounts/exceptions.py:111
+#, python-brace-format
+msgid "An error occurred while syncing with Google : {message}"
+msgstr "Ocurrió un error al sincronizar con Google: {message}"
+
+#: apps/accounts/exceptions.py:126
+msgid "The organization of a group cannot be changed"
+msgstr "La organización de un grupo no se puede cambiar"
+
+#: apps/accounts/exceptions.py:132
+msgid "The root group cannot have a parent group"
+msgstr "El grupo raíz no puede tener un grupo padre"
+
+#: apps/accounts/exceptions.py:138
+msgid "A non-root group must have a parent group"
+msgstr "Un grupo no raíz debe tener un grupo padre"
+
+#: apps/accounts/exceptions.py:144
+msgid "The parent group must belong to the same organization"
+msgstr "El grupo padre debe pertenecer a la misma organización"
+
+#: apps/accounts/exceptions.py:150
+msgid "You are trying to create a loop in the group's hierarchy"
+msgstr "Estás intentando crear un bucle en la jerarquía del grupo"
+
+#: apps/accounts/exceptions.py:156
+msgid "You cannot assign this role to a user"
+msgstr "No puedes asignar este rol a un usuario"
+
+#: apps/accounts/exceptions.py:161
+#, python-brace-format
+msgid "You cannot assign this role to a user : {role}"
+msgstr "No puedes asignar este rol a un usuario: {role}"
+
+#: apps/accounts/models.py:136 apps/projects/models.py:160
+msgid "visibility"
+msgstr "visibilidad"
+
+#: apps/accounts/templates/authentication/execute_actions_email_error.html:2
+#, python-format
+msgid ""
+"\n"
+"<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
+"direction:column;\">\n"
+"    <p style=\"font-size: 24px;\">An error happened while resending the link:"
+"</p>\n"
+"    <p style=\"font-size: 20px;\">%(error)s</p>\n"
+"</div>\n"
+msgstr ""
+"\n"
+"<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
+"direction:column;\">\n"
+"    <p style=\"font-size: 24px;\">Ocurrió un error al reenviar el enlace:</p>\n"
+"    <p style=\"font-size: 20px;\">%(error)s</p>\n"
+"</div>\n"
+
+#: apps/accounts/templates/authentication/execute_actions_email_not_sent.html:2
+msgid ""
+"\n"
+"<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
+"direction:column;\">\n"
+"    <p style=\"font-size: 24px;\">Link was not resent because no action is "
+"required.</p>\n"
+"</div>\n"
+msgstr ""
+"\n"
+"<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
+"direction:column;\">\n"
+"    <p style=\"font-size: 24px;\">El enlace no se reenvió porque no se "
+"requiere ninguna acción.</p>\n"
+"</div>\n"
+
+#: apps/accounts/templates/authentication/execute_actions_email_success.html:2
+msgid ""
+"\n"
+"<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
+"direction:column;\">\n"
+"    <p style=\"font-size: 24px;\">Link resent successfully!</p>\n"
+"    <p style=\"font-size: 20px;\">You can refresh your mailbox to find it 😊"
+"</p>\n"
+"</div>\n"
+msgstr ""
+"\n"
+"<div style=\"font-family:Arial;display:flex;align-items:center;flex-"
+"direction:column;\">\n"
+"    <p style=\"font-size: 24px;\">¡Enlace reenviado con éxito!</p>\n"
+"    <p style=\"font-size: 20px;\">Puedes actualizar tu bandeja de entrada "
+"para encontrarlo 😊</p>\n"
+"</div>\n"
+
+#: apps/analytics/exceptions.py:10
+msgid "Unknown publication status"
+msgstr "Estado de publicación desconocido"
+
+#: apps/analytics/exceptions.py:15
+#, python-brace-format
+msgid "Unknown publication status '{publication_status}'"
+msgstr "Estado de publicación desconocido '{publication_status}'"
+
+#: apps/commons/fields.py:29 apps/skills/serializers.py:107
+msgid "This field is required."
+msgstr "Este campo es obligatorio."
+
+#: apps/commons/fields.py:30
+#, python-brace-format
+msgid "Invalid id \"{user_id}\" - object does not exist."
+msgstr "ID no válido \"{user_id}\" - el objeto no existe."
+
+#: apps/commons/fields.py:32 apps/skills/serializers.py:112
+#, python-brace-format
+msgid "Incorrect type. Expected str value, received {data_type}."
+msgstr "Tipo incorrecto. Se esperaba un valor de cadena, se recibió {data_type}."
+
+#: apps/emailing/templates/contact/contact/email_with_name.html:13
+#: apps/notifications/templates/new_application/mail.html:13
+#: apps/notifications/templates/reminder/mail.html:14
+#, python-format
+msgid ""
+"\n"
+"                    Hello %(given_name)s,\n"
+"                    "
+msgstr ""
+"\n"
+"                    Hola %(given_name)s,\n"
+"                    "
+
+#: apps/emailing/templates/contact/contact/email_with_name.txt:2
+#, python-format
+msgid "Hello %(given_name)s,"
+msgstr "Hola %(given_name)s,"
+
+#: apps/feedbacks/exceptions.py:12
+msgid "You don't have the permission to comment on this project"
+msgstr "No tienes permiso para comentar en este proyecto"
+
+#: apps/feedbacks/exceptions.py:18
+#, python-brace-format
+msgid ""
+"You don't have the permission to comment on this project : {project_title}"
+msgstr "No tienes permiso para comentar en este proyecto: {project_title}"
+
+#: apps/feedbacks/exceptions.py:28
+msgid "You don't have the permission to follow this project"
+msgstr "No tienes permiso para seguir este proyecto"
+
+#: apps/feedbacks/exceptions.py:34
+#, python-brace-format
+msgid "You don't have the permission to follow this project : {project_title}"
+msgstr "No tienes permiso para seguir este proyecto: {project_title}"
+
+#: apps/feedbacks/exceptions.py:47 apps/projects/exceptions.py:120
+msgid "You cannot reply to a reply"
+msgstr "No puedes responder a una respuesta"
+
+#: apps/feedbacks/exceptions.py:53
+msgid "A comment cannot be a reply to itself"
+msgstr "Un comentario no puede ser una respuesta a sí mismo"
+
+#: apps/files/exceptions.py:14
+msgid "The file you are trying to upload is already attached to this project"
+msgstr "El archivo que intentas subir ya está adjunto a este proyecto"
+
+#: apps/files/exceptions.py:22
+msgid ""
+"The file you are trying to upload is already attached to this organization"
+msgstr "El archivo que intentas subir ya está adjunto a esta organización"
+
+#: apps/files/exceptions.py:30
+msgid "The link you are trying to attach is already attached to this project"
+msgstr "El enlace que intentas adjuntar ya está adjunto a este proyecto"
+
+#: apps/files/exceptions.py:38
+#, python-brace-format
+msgid "File too large. Size should not exceed {max_file_size} MB"
+msgstr "Archivo demasiado grande. El tamaño no debe superar los {max_file_size} MB"
+
+#: apps/files/exceptions.py:45
+msgid "You can't change the project of a file"
+msgstr "No puedes cambiar el proyecto de un archivo"
+
+#: apps/files/exceptions.py:51
+msgid "You can't change the project of a link"
+msgstr "No puedes cambiar el proyecto de un enlace"
+
+#: apps/files/exceptions.py:60
+msgid "You can't delete this picture: It is related to another object"
+msgstr "No puedes borrar esta imagen: está relacionada con otro objeto"
+
+#: apps/files/exceptions.py:66
+#, python-brace-format
+msgid ""
+"You can't delete this picture: It is related to an instance of {model} with "
+"pk={pk} through field {field}"
+msgstr ""
+"No puedes borrar esta imagen: está relacionada con una instancia de {model} "
+"con pk={pk} a través del campo {field}"
+
+#: apps/invitations/exceptions.py:12
+msgid "The email type is not valid"
+msgstr "El tipo de correo electrónico no es válido"
+
+#: apps/invitations/exceptions.py:17
+#, python-brace-format
+msgid "The email type '{email_type}' is not valid"
+msgstr "El tipo de correo electrónico '{email_type}' no es válido"
+
+#: apps/invitations/exceptions.py:31
+msgid "People group must belong to the invitation's organization"
+msgstr "El grupo de personas debe pertenecer a la organización de la invitación"
+
+#: apps/invitations/exceptions.py:37
+msgid "You cannot change the organization of an invitation"
+msgstr "No puedes cambiar la organización de una invitación"
+
+#: apps/invitations/exceptions.py:43
+msgid "This user is already a member of this organization"
+msgstr "Este usuario ya es miembro de esta organización"
+
+#: apps/invitations/exceptions.py:49
+msgid "A user with this email already exists"
+msgstr "Ya existe un usuario con este correo electrónico"
+
+#: apps/invitations/exceptions.py:55
+msgid "This organization does not accept access requests"
+msgstr "Esta organización no acepta solicitudes de acceso"
+
+#: apps/invitations/exceptions.py:61
+msgid "An access request for this email already exists"
+msgstr "Ya existe una solicitud de acceso para este correo electrónico"
+
+#: apps/invitations/exceptions.py:67
+msgid "An access request for this user already exists"
+msgstr "Ya existe una solicitud de acceso para este usuario"
+
+#: apps/invitations/templates/access_requests_base.html:56
+#: services/keycloak/templates/keycloak_base.html:56
+msgid ""
+"\n"
+"          Need any help?\n"
+"          "
+msgstr ""
+"\n"
+"          ¿Necesitas ayuda?\n"
+"          "
+
+#: apps/invitations/templates/access_requests_base.html:61
+#: services/keycloak/templates/keycloak_base.html:61
+msgid ""
+"\n"
+"          For questions or assistance, you can <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">email us</a>. "
+"We will come back to you during business hours (mon-fri 9am-6pm) as fast as "
+"we can.\n"
+"          "
+msgstr ""
+"\n"
+"          Para preguntas o asistencia, puedes <a class=\"lpi-link\" "
+"href=\"mailto:projects.platform@learningplanetinstitute.org\">enviarnos un correo</a>. "
+"Te responderemos durante el horario de oficina (de lunes a viernes, de 9 a 18 h) "
+"tan rápido como podamos.\n"
+"          "
+
+#: apps/invitations/templates/access_requests_base.html:66
+#: services/keycloak/templates/keycloak_base.html:66
+msgid ""
+"\n"
+"          You can also visit our <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">help center</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          También puedes visitar nuestro <a class=\"lpi-link\" href=\"https://"
+"docs.projects.lp-i.org\">centro de ayuda</a>.\n"
+"          "
+
+#: apps/invitations/templates/access_requests_base.html:71
+#: services/keycloak/templates/keycloak_base.html:71
+msgid ""
+"\n"
+"          We hope you'll enjoy our new platform!\n"
+"          <br/>\n"
+"          The LPI team.\n"
+"          "
+msgstr ""
+"\n"
+"          ¡Esperamos que disfrutes de nuestra nueva plataforma!\n"
+"          <br/>\n"
+"          El equipo LPI.\n"
+"          "
+
+#: apps/invitations/templates/access_requests_base.html:83
+#: apps/skills/templates/mentorship_base.html:206
+#: services/keycloak/templates/keycloak_base.html:83
+msgid ""
+"\n"
+"          Made with ❤️ by Learning Planet Institute.\n"
+"          "
+msgstr ""
+"\n"
+"          Hecho con ❤️ por Learning Planet Institute.\n"
+"          "
+
+#: apps/invitations/templates/request_accepted/mail.html:8
+#: services/keycloak/templates/admin_created/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Welcome to the Projects portal of %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+msgstr ""
+"\n"
+"    ¡Bienvenido al portal de Proyectos de %(organization_name)s, "
+"%(given_name)s!\n"
+"    "
+
+#: apps/invitations/templates/request_accepted/mail.html:13
+#: apps/invitations/templates/request_declined/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"    Dear %(given_name)s,\n"
+"    "
+msgstr ""
+"\n"
+"    Estimado/a %(given_name)s,\n"
+"    "
+
+#: apps/invitations/templates/request_accepted/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"    You can now access the %(organization_name)s portal on Projects "
+"platform.\n"
+"    "
+msgstr ""
+"\n"
+"    Ahora puedes acceder al portal de %(organization_name)s en la "
+"plataforma de Proyectos.\n"
+"    "
+
+#: apps/invitations/templates/request_accepted/mail.html:23
+msgid ""
+"\n"
+"    We hope you'll enjoy this new portal!\n"
+"    "
+msgstr ""
+"\n"
+"    ¡Esperamos que disfrutes de este nuevo portal!\n"
+"    "
+
+#: apps/invitations/templates/request_accepted/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Login to %(organization_name)s portal\n"
+"    "
+msgstr ""
+"\n"
+"    Iniciar sesión en el portal de %(organization_name)s\n"
+"    "
+
+#: apps/invitations/templates/request_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
+"Dear %(given_name)s, You can now access the %(organization_name)s portal on "
+"Projects platform.\n"
+"We hope you'll enjoy this new portal!\n"
+"Login to %(organization_name)s portal : %(website_url)s\n"
+msgstr ""
+"\n"
+"¡Bienvenido al portal de Proyectos de %(organization_name)s, %(given_name)s!\n"
+"Estimado/a %(given_name)s, ahora puedes acceder al portal de %(organization_name)s "
+"en la plataforma de Proyectos.\n"
+"¡Esperamos que disfrutes de este nuevo portal!\n"
+"Iniciar sesión en el portal de %(organization_name)s: %(website_url)s\n"
+
+#: apps/invitations/templates/request_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the %(org_name)s Projects platform\n"
+msgstr ""
+"\n"
+"Bienvenido a la plataforma de Proyectos de %(org_name)s\n"
+
+#: apps/invitations/templates/request_declined/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Your request to join the %(organization_name)s Projects portal has been "
+"declined\n"
+"    "
+msgstr ""
+"\n"
+"    Tu solicitud para unirte al portal de Proyectos de %(organization_name)s ha "
+"sido denegada\n"
+"    "
+
+#: apps/invitations/templates/request_declined/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"    Thank you for requesting access to the %(organization_name)s Projects "
+"portal. Unfortunately, we are unable to grant your request at this time.\n"
+"    "
+msgstr ""
+"\n"
+"    Gracias por solicitar acceso al portal de Proyectos de %(organization_name)s. "
+"Lamentablemente, no podemos concederte el acceso en este momento.\n"
+"    "
+
+#: apps/invitations/templates/request_declined/mail.html:23
+#, python-format
+msgid ""
+"\n"
+"    If you think this is a mistake, please contact the <a class=\"lpi-link\" "
+"href=\"mailto:%(contact_email)s\">%(organization_name)s Projects portal "
+"administrator</a>.\n"
+"    "
+msgstr ""
+"\n"
+"    Si crees que se trata de un error, ponte en contacto con el <a class=\"lpi-link\" "
+"href=\"mailto:%(contact_email)s\">administrador del portal de Proyectos de "
+"%(organization_name)s</a>.\n"
+"    "
+
+#: apps/invitations/templates/request_declined/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Your request to join the %(organization_name)s Projects portal has been "
+"declined\n"
+"Dear %(given_name)s,\n"
+"Thank you for requesting access to the %(organization_name)s Projects "
+"portal. Unfortunately, we are unable to grant your request at this time.\n"
+"If you think this is a mistake, please contact the %(organization_name)s : "
+"%(contact_email)s.\n"
+msgstr ""
+"\n"
+"Tu solicitud para unirte al portal de Proyectos de %(organization_name)s ha "
+"sido denegada\n"
+"Estimado/a %(given_name)s,\n"
+"Gracias por solicitar acceso al portal de Proyectos de %(organization_name)s. "
+"Lamentablemente, no podemos concederte el acceso en este momento.\n"
+"Si crees que se trata de un error, ponte en contacto con %(organization_name)s: "
+"%(contact_email)s.\n"
+
+#: apps/invitations/templates/request_declined/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Your access request for the %(org_name)s Projects platform has been "
+"declined\n"
+msgstr ""
+"\n"
+"Tu solicitud de acceso para la plataforma de Proyectos de %(org_name)s ha sido "
+"denegada\n"
+
+#: apps/newsfeed/exceptions.py:9
+msgid "The people groups of a news must belong to the same organization"
+msgstr "Los grupos de personas de una noticia deben pertenecer a la misma organización"
+
+#: apps/newsfeed/exceptions.py:17
+msgid "The people groups of an event must belong to the same organization"
+msgstr "Los grupos de personas de un evento deben pertenecer a la misma organización"
+
+#: apps/newsfeed/exceptions.py:25
+msgid ""
+"The people groups of an instruction must belong to the same organization"
+msgstr "Los grupos de personas de una instrucción deben pertenecer a la misma organización"
+
+#: apps/notifications/tasks.py:193 apps/notifications/tasks.py:237
+msgid "editor"
+msgstr "editor"
+
+#: apps/notifications/tasks.py:194 apps/notifications/tasks.py:238
+msgid "participant"
+msgstr "participante"
+
+#: apps/notifications/tasks.py:195 apps/notifications/tasks.py:239
+msgid "reviewer"
+msgstr "revisor"
+
+#: apps/notifications/templates/group_member_added_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added a group as member to the project %(project)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s groups as members to the project %(project)s.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s agregó un grupo como miembro al proyecto %(project)s.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s agregó %(count)s grupos como miembros al proyecto %(project)s.\n"
+
+#: apps/notifications/templates/group_member_added_self/mail.html:13
+#: apps/notifications/templates/member_added_self/mail.html:13
+#: apps/notifications/templates/member_updated_self/mail.html:13
+#: apps/notifications/templates/new_comment/mail.html:13
+#: apps/notifications/templates/new_instruction/mail.html:13
+#: apps/notifications/templates/new_private_message/mail.html:13
+#: apps/notifications/templates/new_reply/mail.html:13
+#: apps/notifications/templates/new_review/mail.html:13
+#: apps/notifications/templates/project_ready_for_review/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(given_name)s,\n"
+"          "
+msgstr ""
+"\n"
+"          Hola %(given_name)s,\n"
+"          "
+
+#: apps/notifications/templates/group_member_added_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s added the group %(group_name)s you are part of to "
+"the team of project <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
+"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s agregó el grupo %(group_name)s del que formas parte al "
+"equipo del proyecto <a class=\"lpi-link\" href=\"%(website_url)s/projects/"
+"%(project_slug)s/summary?fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/group_member_added_self/mail.html:28
+#: apps/notifications/templates/member_added_self/mail.html:28
+#: apps/notifications/templates/member_updated_self/mail.html:28
+#: apps/notifications/templates/new_review/mail.html:35
+#: apps/notifications/templates/project_ready_for_review/mail.html:28
+#: apps/notifications/templates/reminder/mail.html:42
+msgid "Go to project"
+msgstr "Ir al proyecto"
+
+#: apps/notifications/templates/group_member_added_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s added the group %(group_name)s "
+"you are part of to the team of project \"%(project_title)s\".\n"
+msgstr ""
+"\n"
+"Hola %(recipient.given_name)s, %(full_name)s agregó el grupo %(group_name)s "
+"del que formas parte al equipo del proyecto \"%(project_title)s\".\n"
+
+#: apps/notifications/templates/group_member_added_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added group %(group_name)s you are part of to project "
+"%(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s agregó el grupo %(group_name)s del que formas parte al proyecto "
+"%(project_title)s.\n"
+
+#: apps/notifications/templates/group_member_removed_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s removed a group from members.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s removed %(count)s groups from members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s eliminó un grupo de los miembros.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s eliminó %(count)s grupos de los miembros.\n"
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.html:13
+#: apps/notifications/templates/invitation_reminder_one_week/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"          Hello %(name)s,\n"
+"          "
+msgstr ""
+"\n"
+"          Hola %(name)s,\n"
+"          "
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          A registration link you created for the group %(group_name)s will "
+"expire today.\n"
+"          "
+msgstr ""
+"\n"
+"          Un enlace de registro que creaste para el grupo %(group_name)s "
+"caducará hoy.\n"
+"          "
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.html:23
+#: apps/notifications/templates/invitation_reminder_one_week/mail.html:23
+#, python-format
+msgid ""
+"\n"
+"          You can create a new registration link <a class=\"lpi-link\" "
+"href=\"%(website_url)s/admin/links/list\">here</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          Puedes crear un nuevo enlace de registro <a class=\"lpi-link\" "
+"href=\"%(website_url)s/admin/links/list\">aquí</a>.\n"
+"          "
+
+#: apps/notifications/templates/invitation_reminder_last_day/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(name)s, A registration link you created for the group %(group_name)s "
+"will expire today.\n"
+"You can create a new registration link here.\n"
+msgstr ""
+"\n"
+"Hola %(name)s, un enlace de registro que creaste para el grupo %(group_name)s "
+"caducará hoy.\n"
+"Puedes crear un nuevo enlace de registro aquí.\n"
+
+#: apps/notifications/templates/invitation_reminder_last_day/object.txt:2
+msgid "Registration link to expire today"
+msgstr "Enlace de registro que caduca hoy"
+
+#: apps/notifications/templates/invitation_reminder_one_week/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          A registration link you created for the group %(group_name)s will "
+"expire in a week.\n"
+"          "
+msgstr ""
+"\n"
+"          Un enlace de registro que creaste para el grupo %(group_name)s "
+"caducará en una semana.\n"
+"          "
+
+#: apps/notifications/templates/invitation_reminder_one_week/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(name)s, A registration link you created for the group %(group_name)s "
+"will expire in a week.\n"
+"You can create a new registration link here.\n"
+msgstr ""
+"\n"
+"Hola %(name)s, un enlace de registro que creaste para el grupo %(group_name)s "
+"caducará en una semana.\n"
+"Puedes crear un nuevo enlace de registro aquí.\n"
+
+#: apps/notifications/templates/invitation_reminder_one_week/object.txt:2
+msgid "Registration link to expire in one week"
+msgstr "Enlace de registro que caduca en una semana"
+
+#: apps/notifications/templates/member_added_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added a new member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s new members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s agregó un nuevo miembro.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s agregó %(count)s nuevos miembros.\n"
+
+#: apps/notifications/templates/member_added_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s added you to the team of project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s te agregó al equipo del proyecto <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/member_added_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s added you to the team of "
+"project \"%(project_title)s\".\n"
+msgstr ""
+"\n"
+"Hola %(recipient.given_name)s, %(full_name)s te agregó al equipo del "
+"proyecto \"%(project_title)s\".\n"
+
+#: apps/notifications/templates/member_added_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s added you to the team of project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s te agregó al equipo del proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/member_removed_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s removed a member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s removed %(count)s members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s eliminó a un miembro.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s eliminó a %(count)s miembros.\n"
+
+#: apps/notifications/templates/member_updated_other/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s updated a member.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s updated %(count)s members.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s actualizó a un miembro.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s actualizó a %(count)s miembros.\n"
+
+#: apps/notifications/templates/member_updated_self/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s gave you %(role)s rights in project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s te otorgó derechos de %(role)s en el proyecto <a "
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/member_updated_self/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s gave you %(role)s rights in project \"%(project_title)s\".\n"
+msgstr ""
+"\n"
+"%(full_name)s te otorgó derechos de %(role)s en el proyecto \"%(project_title)s\".\n"
+
+#: apps/notifications/templates/member_updated_self/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s gave you %(role)s rights in project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s te otorgó derechos de %(role)s en el proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/new_access_request/mail.html:8
+msgid ""
+"\n"
+"            Hello,\n"
+"            "
+msgstr ""
+"\n"
+"            Hola,\n"
+"            "
+
+#: apps/notifications/templates/new_access_request/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"            You have received a new access request for %(org_name)s Projects "
+"platform.\n"
+"            "
+msgstr ""
+"\n"
+"            Has recibido una nueva solicitud de acceso para la plataforma de "
+"Proyectos de %(org_name)s.\n"
+"            "
+
+#: apps/notifications/templates/new_access_request/mail.html:22
+msgid ""
+"\n"
+"          First name:\n"
+"          "
+msgstr ""
+"\n"
+"          Nombre:\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:29
+#, python-format
+msgid ""
+"\n"
+"          %(given_name)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(given_name)s\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:38
+msgid ""
+"\n"
+"          Last name:\n"
+"          "
+msgstr ""
+"\n"
+"          Apellido:\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:45
+#, python-format
+msgid ""
+"\n"
+"          %(family_name)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(family_name)s\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:54
+msgid ""
+"\n"
+"          Email:\n"
+"          "
+msgstr ""
+"\n"
+"          Correo electrónico:\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:61
+#, python-format
+msgid ""
+"\n"
+"          %(email)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(email)s\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:70
+msgid ""
+"\n"
+"          Title:\n"
+"          "
+msgstr ""
+"\n"
+"          Cargo:\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:77
+#, python-format
+msgid ""
+"\n"
+"          %(job)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(job)s\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:86
+msgid ""
+"\n"
+"          Message:\n"
+"          "
+msgstr ""
+"\n"
+"          Mensaje:\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:93
+#, python-format
+msgid ""
+"\n"
+"          %(message)s\n"
+"          "
+msgstr ""
+"\n"
+"          %(message)s\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.html:102
+#, python-format
+msgid ""
+"\n"
+"          See <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
+"requests\">request in platform</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          Ver <a class=\"lpi-link\" href=\"%(website_url)s/admin/"
+"requests\">solicitud en la plataforma</a>.\n"
+"          "
+
+#: apps/notifications/templates/new_access_request/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello,\n"
+"You have received a new access request for %(org_name)s Projects platform.\n"
+"First name: %(given_name)s\n"
+"Last name: %(family_name)s\n"
+"Email: %(email)s\n"
+"Title: %(job)s\n"
+"Message:%(message)s\n"
+"See <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">request in "
+"platform</a>.\n"
+msgstr ""
+"\n"
+"Hola,\n"
+"Has recibido una nueva solicitud de acceso para la plataforma de Proyectos de "
+"%(org_name)s.\n"
+"Nombre: %(given_name)s\n"
+"Apellido: %(family_name)s\n"
+"Correo electrónico: %(email)s\n"
+"Cargo: %(job)s\n"
+"Mensaje: %(message)s\n"
+"Ver <a class=\"lpi-link\" href=\"%(website_url)s/admin/requests\">solicitud en "
+"la plataforma</a>.\n"
+
+#: apps/notifications/templates/new_access_request/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"New access request for %(org_name)s Projects platform\n"
+msgstr ""
+"\n"
+"Nueva solicitud de acceso para la plataforma de Proyectos de %(org_name)s\n"
+
+#: apps/notifications/templates/new_announcement/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s published a new announcement.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s published %(count)s new announcements.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s publicó un nuevo anuncio.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s publicó %(count)s nuevos anuncios.\n"
+
+#: apps/notifications/templates/new_application/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"                    applied to the announcement "
+"<strong>\"%(announcement_title)s\"</strong>\n"
+"                    of the project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"                    "
+msgstr ""
+"\n"
+"                    solicitó el anuncio "
+"<strong>\"%(announcement_title)s\"</strong>\n"
+"                    del proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"                    "
+
+#: apps/notifications/templates/new_application/mail.html:29
+msgid "Applicant:"
+msgstr "Solicitante:"
+
+#: apps/notifications/templates/new_application/mail.html:30
+msgid "Email:"
+msgstr "Correo electrónico:"
+
+#: apps/notifications/templates/new_application/mail.html:34
+msgid "Applicant's message:"
+msgstr "Mensaje del solicitante:"
+
+#: apps/notifications/templates/new_application/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s applied "
+"to on the project: %(project_title)s For a job work of "
+"%(announcement_title)s:\n"
+msgstr ""
+"\n"
+"%(application.applicant_firstname)s %(application.applicant_name)s aplicó en el "
+"proyecto: %(project_title)s para un trabajo de %(announcement_title)s:\n"
+
+#: apps/notifications/templates/new_application/mail.txt:5
+#, python-format
+msgid ""
+"\n"
+"Description of the job: %(item.description|safe)s\n"
+msgstr ""
+"\n"
+"Descripción del trabajo: %(item.description|safe)s\n"
+
+#: apps/notifications/templates/new_application/mail.txt:8
+#, python-format
+msgid ""
+"\n"
+"User's email: %(application.applicant_email)s\n"
+msgstr ""
+"\n"
+"Correo electrónico del usuario: %(application.applicant_email)s\n"
+
+#: apps/notifications/templates/new_application/mail.txt:11
+#, python-format
+msgid ""
+"\n"
+"User message: %(application.applicant_message|safe)s\n"
+msgstr ""
+"\n"
+"Mensaje del usuario: %(application.applicant_message|safe)s\n"
+
+#: apps/notifications/templates/new_application/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(firstname)s %(lastname)s applied to the announcement: "
+"%(announcement_title)s.\n"
+msgstr ""
+"\n"
+"%(firstname)s %(lastname)s aplicó al anuncio: "
+"%(announcement_title)s.\n"
+
+#: apps/notifications/templates/new_blogentry/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s published a new blog entry.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s published %(count)s new blog entries.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s publicó una nueva entrada de blog.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s publicó %(count)s nuevas entradas de blog.\n"
+
+#: apps/notifications/templates/new_comment/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s commented project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s comentó el proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/new_comment/mail.html:26
+#: apps/notifications/templates/new_reply/mail.html:26
+msgid "Comment by"
+msgstr "Comentario de"
+
+#: apps/notifications/templates/new_comment/mail.html:35
+#: apps/notifications/templates/new_reply/mail.html:35
+msgid "Go to comment"
+msgstr "Ir al comentario"
+
+#: apps/notifications/templates/new_comment/mail.txt:2
+#: apps/notifications/templates/new_comment/object.txt:2
+#: apps/notifications/templates/new_comment/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s commented project %(project_title)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s added %(count)s comments to project %(project_title)s.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s comentó el proyecto %(project_title)s.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s agregó %(count)s comentarios al proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/new_instruction/mail.html:18
+msgid ""
+"\n"
+"          You have received a new instruction.\n"
+"          "
+msgstr ""
+"\n"
+"          Has recibido una nueva instrucción.\n"
+"          "
+
+#: apps/notifications/templates/new_instruction/mail.html:28
+msgid "Go to instruction"
+msgstr "Ir a la instrucción"
+
+#: apps/notifications/templates/new_instruction/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, You have received a new instruction.\n"
+msgstr ""
+"\n"
+"Hola %(recipient.given_name)s, has recibido una nueva instrucción.\n"
+
+#: apps/notifications/templates/new_instruction/object.txt:2
+msgid ""
+"\n"
+"New instruction\n"
+msgstr ""
+"\n"
+"Nueva instrucción\n"
+
+#: apps/notifications/templates/new_instruction/reminder.txt:2
+msgid ""
+"\n"
+"You received a new instruction.\n"
+msgstr ""
+"\n"
+"Has recibido una nueva instrucción.\n"
+
+#: apps/notifications/templates/new_private_message/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s posted a message on <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s publicó un mensaje en <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/private-exchange?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/new_private_message/mail.html:26
+msgid "Message by"
+msgstr "Mensaje de"
+
+#: apps/notifications/templates/new_private_message/mail.html:35
+msgid "Go to message"
+msgstr "Ir al mensaje"
+
+#: apps/notifications/templates/new_private_message/mail.txt:2
+#: apps/notifications/templates/new_private_message/object.txt:2
+#: apps/notifications/templates/new_private_message/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s posted a message on %(project_title)s.\n"
+msgid_plural ""
+"\n"
+"%(full_name)s posted %(count)s messages on project %(project_title)s.\n"
+msgstr[0] ""
+"\n"
+"%(full_name)s publicó un mensaje en %(project_title)s.\n"
+msgstr[1] ""
+"\n"
+"%(full_name)s publicó %(count)s mensajes en el proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/new_reply/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s replied to your comment on project <a class=\"lpi-"
+"link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s respondió a tu comentario en el proyecto <a "
+"class=\"lpi-link\" href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/new_reply/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s has replied on your comment on project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s ha respondido a tu comentario en el proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/new_reply/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s replied to your comment on project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s respondió a tu comentario en el proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/new_review/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s reviewed project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s revisó el proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a>.\n"
+"          "
+
+#: apps/notifications/templates/new_review/mail.html:26
+msgid "Review by"
+msgstr "Revisión de"
+
+#: apps/notifications/templates/new_review/mail.txt:2
+#: apps/notifications/templates/new_review/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s reviewed project %(project_title)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s revisó el proyecto %(project_title)s.\n"
+
+#: apps/notifications/templates/notifications_base.html:45
+msgid ""
+"\n"
+"          the platform made to share your projects.<br/>\n"
+"          Created for you by the Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 Paris, France\n"
+"          "
+msgstr ""
+"\n"
+"          la plataforma hecha para compartir tus proyectos.<br/>\n"
+"          Creada para ti por el Learning Planet Institute<br/>\n"
+"          8bis, rue Charles V, 75004 París, Francia\n"
+"          "
+
+#: apps/notifications/templates/notifications_base.html:52
+msgid ""
+"You receive this mail because you are subscribed to these notifications on "
+"Projects platform."
+msgstr "Recibes este correo porque estás suscrito a estas notificaciones en la plataforma de Proyectos."
+
+#: apps/notifications/templates/notifications_base.html:53
+msgid "Change your notification settings here."
+msgstr "Cambia tus ajustes de notificación aquí."
+
+#: apps/notifications/templates/project_edited/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s edited the %(updated_fields)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s editó los %(updated_fields)s.\n"
+
+#: apps/notifications/templates/project_ready_for_review/mail.html:18
+#, python-format
+msgid ""
+"\n"
+"          %(full_name)s marked project <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> as ready for review.\n"
+"          "
+msgstr ""
+"\n"
+"          %(full_name)s marcó el proyecto <a class=\"lpi-link\" "
+"href=\"%(website_url)s/projects/%(project_slug)s/summary?"
+"fromNotification\">%(project_title)s</a> como listo para revisión.\n"
+"          "
+
+#: apps/notifications/templates/project_ready_for_review/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(recipient.given_name)s, %(full_name)s marked project "
+"%(project_title)s as ready for review.\n"
+msgstr ""
+"\n"
+"Hola %(recipient.given_name)s, %(full_name)s marcó el proyecto "
+"%(project_title)s como listo para revisión.\n"
+
+#: apps/notifications/templates/project_ready_for_review/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s marked project %(project_title)s as ready for review.\n"
+msgstr ""
+"\n"
+"%(full_name)s marcó el proyecto %(project_title)s como listo para revisión.\n"
+
+#: apps/notifications/templates/reminder/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"                    Here are your highlights for %(dateOfTheDay)s\n"
+"                    "
+msgstr ""
+"\n"
+"                    Estos son tus puntos destacados para %(dateOfTheDay)s\n"
+"                    "
+
+#: apps/notifications/templates/reminder/mail.html:30
+msgid "Project"
+msgstr "Proyecto"
+
+#: apps/notifications/templates/reminder/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Here are your highlights for %(dateOfTheDay)s\n"
+msgstr ""
+"\n"
+"Estos son tus puntos destacados para %(dateOfTheDay)s\n"
+
+#: apps/notifications/templates/reminder/object.txt:2
+msgid "New highlights on Projects"
+msgstr "Novedades en Proyectos"
+
+#: apps/notifications/utils.py:233
+msgid " and "
+msgstr " y "
+
+#: apps/organizations/exceptions.py:11
+msgid "You are trying to create a loop in the organization's hierarchy."
+msgstr "Estás intentando crear un bucle en la jerarquía de la organización."
+
+#: apps/organizations/exceptions.py:24
+msgid "The root category cannot have a parent category"
+msgstr "La categoría raíz no puede tener una categoría padre"
+
+#: apps/organizations/exceptions.py:30
+msgid "A non-root category must have a parent category"
+msgstr "Una categoría no raíz debe tener una categoría padre"
+
+#: apps/organizations/exceptions.py:36
+msgid "The parent category must belong to the same organization"
+msgstr "La categoría padre debe pertenecer a la misma organización"
+
+#: apps/organizations/exceptions.py:42
+msgid "You are trying to create a loop in the category's hierarchy"
+msgstr "Estás intentando crear un bucle en la jerarquía de la categoría"
+
+#: apps/organizations/exceptions.py:48
+msgid "You must choose a default tag classification that is enabled"
+msgstr "Debes elegir una clasificación de etiquetas predeterminada que esté habilitada"
+
+#: apps/organizations/exceptions.py:54
+msgid "`is_locked` parameter is required"
+msgstr "El parámetro `is_locked` es obligatorio"
+
+#: apps/organizations/exceptions.py:60
+msgid "`life_status` parameter is required"
+msgstr "El parámetro `life_status` es obligatorio"
+
+#: apps/projects/exceptions.py:12
+msgid "You don't have the permission to link this project"
+msgstr "No tienes permiso para enlazar este proyecto"
+
+#: apps/projects/exceptions.py:18
+#, python-brace-format
+msgid "You don't have the permission to link this project : {project_title}"
+msgstr "No tienes permiso para enlazar este proyecto: {project_title}"
+
+#: apps/projects/exceptions.py:29
+msgid "You do not have the rights to add a project in this organization"
+msgstr "No tienes los derechos para añadir un proyecto en esta organización"
+
+#: apps/projects/exceptions.py:36
+msgid "You cannot modify a locked project"
+msgstr "No puedes modificar un proyecto bloqueado"
+
+#: apps/projects/exceptions.py:45
+msgid "The organizations parameter is mandatory"
+msgstr "El parámetro de organizaciones es obligatorio"
+
+#: apps/projects/exceptions.py:51
+msgid "The project does not belong to any of the given organizations"
+msgstr "El proyecto no pertenece a ninguna de las organizaciones dadas"
+
+#: apps/projects/exceptions.py:72
+msgid "You cannot remove all the owners of a project"
+msgstr "No puedes eliminar todos los propietarios de un proyecto"
+
+#: apps/projects/exceptions.py:78
+msgid "A project must belong to at least one organization"
+msgstr "Un proyecto debe pertenecer al menos a una organización"
+
+#: apps/projects/exceptions.py:84
+msgid "Only a reviewer can change this project's status"
+msgstr "Solo un revisor puede cambiar el estado de este proyecto"
+
+#: apps/projects/exceptions.py:90
+msgid "You cannot empty the description of a project"
+msgstr "No puedes dejar vacía la descripción de un proyecto"
+
+#: apps/projects/exceptions.py:97
+msgid ""
+"A project cannot be in a category if it doesn't belong to one of the "
+"project's organizations"
+msgstr "Un proyecto no puede estar en una categoría si no pertenece a una de las organizaciones del proyecto"
+
+#: apps/projects/exceptions.py:104
+msgid "A project can't be linked to itself"
+msgstr "Un proyecto no se puede enlazar a sí mismo"
+
+#: apps/projects/exceptions.py:109
+#, python-brace-format
+msgid "The project '{project_title}' can't be linked to itself"
+msgstr "El proyecto '{project_title}' no se puede enlazar a sí mismo"
+
+#: apps/projects/exceptions.py:126
+msgid "A message cannot be a reply to itself"
+msgstr "Un mensaje no puede ser una respuesta a sí mismo"
+
+#: apps/projects/exceptions.py:132
+msgid "You cannot change the type of a project's tab"
+msgstr "No puedes cambiar el tipo de una pestaña de proyecto"
+
+#: apps/projects/models.py:143
+msgid "title"
+msgstr "título"
+
+#: apps/projects/models.py:153
+msgid "main goal"
+msgstr "objetivo principal"
+
+#: apps/projects/models.py:166
+msgid "life status"
+msgstr "estado de vida"
+
+#: apps/projects/models.py:177
+msgid "categories"
+msgstr "categorías"
+
+#: apps/projects/models.py:194
+msgid "sustainable development goals"
+msgstr "objetivos de desarrollo sostenible"
+
+#: apps/projects/models.py:200
+msgid "main category"
+msgstr "categoría principal"
+
+#: apps/skills/exceptions.py:11
+msgid "You cannot change the status of a mentoring request you created"
+msgstr "No puedes cambiar el estado de una solicitud de mentoría que creaste"
+
+#: apps/skills/exceptions.py:21
+msgid "User ID must be provided through url"
+msgstr "La ID de usuario debe ser proporcionada a través de la URL"
+
+#: apps/skills/exceptions.py:27
+msgid "This user cannot be a mentor for this skill"
+msgstr "Este usuario no puede ser mentor de esta habilidad"
+
+#: apps/skills/exceptions.py:33
+msgid "This user does not need a mentor for this skill"
+msgstr "Este usuario no necesita un mentor para esta habilidad"
+
+#: apps/skills/exceptions.py:39
+msgid "You already have this skill in your profile"
+msgstr "Ya tienes esta habilidad en tu perfil"
+
+#: apps/skills/exceptions.py:45
+msgid "Only custom tags can be updated"
+msgstr "Solo se pueden actualizar las etiquetas personalizadas"
+
+#: apps/skills/exceptions.py:51
+msgid "Only custom tags classifications can be updated"
+msgstr "Solo se pueden actualizar las clasificaciones de etiquetas personalizadas"
+
+#: apps/skills/exceptions.py:57
+msgid "You can only search for 50 Wikipedia tags at a time"
+msgstr "Solo puedes buscar 50 etiquetas de Wikipedia a la vez"
+
+#: apps/skills/exceptions.py:63
+msgid "You already made a mentoring request for this skill"
+msgstr "Ya has realizado una solicitud de mentoría para esta habilidad"
+
+#: apps/skills/exceptions.py:72
+msgid "Tags must belong to the classification's organization"
+msgstr "Las etiquetas deben pertenecer a la organización de la clasificación"
+
+#: apps/skills/exceptions.py:78
+msgid "Tag title must be 50 characters or less"
+msgstr "El título de la etiqueta debe tener 50 caracteres o menos"
+
+#: apps/skills/exceptions.py:84
+msgid "Tag description must be 500 characters or less"
+msgstr "La descripción de la etiqueta debe tener 500 caracteres o menos"
+
+#: apps/skills/serializers.py:109
+#, python-brace-format
+msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
+msgstr "ID no válida \"{tag_classification_id}\" - el objeto no existe."
+
+#: apps/skills/templates/contact_mentor/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Can you mentor me in %(skill)s?\n"
+"            "
+msgstr ""
+"\n"
+"            ¿Puedes ser mi mentor/a en %(skill)s?\n"
+"            "
+
+#: apps/skills/templates/contact_mentor/mail.html:19
+#: apps/skills/templates/contact_mentoree/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Here is the message that %(user)s has left on the Projects "
+"platform:\n"
+"            "
+msgstr ""
+"\n"
+"            Este es el mensaje que %(user)s ha dejado en la plataforma de Proyectos:\n"
+"            "
+
+#: apps/skills/templates/contact_mentor/mail.html:30
+#: apps/skills/templates/contact_mentoree/mail.html:30
+#: apps/skills/templates/reminder_mentor_10_days/mail.html:30
+#: apps/skills/templates/reminder_mentor_3_days/mail.html:30
+#: apps/skills/templates/reminder_mentoree_10_days/mail.html:30
+#: apps/skills/templates/reminder_mentoree_3_days/mail.html:30
+msgid ""
+"\n"
+"            Reply\n"
+"            "
+msgstr ""
+"\n"
+"            Responder\n"
+"            "
+
+#: apps/skills/templates/contact_mentor/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s?\n"
+"\n"
+"Here is the message that %(user)s has left on the Projects platform:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"¿Puedes ser mi mentor/a en %(skill)s?\n"
+"\n"
+"Este es el mensaje que %(user)s ha dejado en la plataforma de Proyectos:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+
+#: apps/skills/templates/contact_mentor/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor %(mentoree_name)s?\n"
+msgstr ""
+"\n"
+"¿Puedes ser mentor/a de %(mentoree_name)s?\n"
+
+#: apps/skills/templates/contact_mentoree/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s?\n"
+"            "
+msgstr ""
+"\n"
+"            ¿Quieres que te guíen en %(skill)s?\n"
+"            "
+
+#: apps/skills/templates/contact_mentoree/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s?\n"
+"\n"
+"Here is the message that %(user)s has left on the Projects platform:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s?\n"
+"\n"
+"Este es el mensaje que %(user)s ha dejado en la plataforma de Proyectos:\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+
+#: apps/skills/templates/contact_mentoree/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s offers to mentor you\n"
+msgstr ""
+"\n"
+"%(mentor_name)s se ofrece a ser tu mentor/a\n"
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has accepted to mentor you in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            ¡%(user)s ha aceptado ser tu mentor/a en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Good news, %(user)s has accepted to mentor you. You can contact "
+"them at %(email)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Buenas noticias, %(user)s ha aceptado ser tu mentor/a. Puedes "
+"contactarle en %(email)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_accepted/mail.html:30
+#: apps/skills/templates/mentor_response_pending/mail.html:30
+#: apps/skills/templates/mentoree_response_accepted/mail.html:30
+#: apps/skills/templates/mentoree_response_pending/mail.html:30
+#, python-format
+msgid ""
+"\n"
+"            Reply to %(user)s\n"
+"            "
+msgstr ""
+"\n"
+"            Responder a %(user)s\n"
+"            "
+
+#: apps/skills/templates/mentor_response_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s has accepted to mentor you in %(skill)s!\n"
+"\n"
+"Good news, %(user)s has accepted to mentor you. You can contact them at "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"¡%(user)s ha aceptado ser tu mentor/a en %(skill)s!\n"
+"\n"
+"Buenas noticias, %(user)s ha aceptado ser tu mentor/a. Puedes contactarle en "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
+
+#: apps/skills/templates/mentor_response_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s has accepted to mentor you\n"
+msgstr ""
+"\n"
+"%(mentor_name)s ha aceptado ser tu mentor/a\n"
+
+#: apps/skills/templates/mentor_response_pending/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s needs more information to mentor you in %(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s necesita más información para ser tu mentor/a en %(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_pending/mail.html:19
+#: apps/skills/templates/mentoree_response_pending/mail.html:19
+#, python-format
+msgid ""
+"    \n"
+"            %(user)s has left the following message. You can contact them at "
+"%(email)s.\n"
+"            "
+msgstr ""
+"    \n"
+"            %(user)s ha dejado el siguiente mensaje. Puedes contactarle en "
+"%(email)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_pending/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s needs more information to mentor you in %(skill)s.\n"
+" \n"
+"%(user)s has left the following message. You can contact them at %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"%(user)s necesita más información para ser tu mentor/a en %(skill)s.\n"
+" \n"
+"%(user)s ha dejado el siguiente mensaje. Puedes contactarle en %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
+
+#: apps/skills/templates/mentor_response_pending/object.txt:2
+#: apps/skills/templates/mentoree_response_pending/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s needs more information on mentoring\n"
+msgstr ""
+"\n"
+"%(mentor_name)s necesita más información sobre la mentoría\n"
+
+#: apps/skills/templates/mentor_response_rejected/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s can't mentor you in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            ¡%(user)s no puede ser tu mentor/a en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentor_response_rejected/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Unfortunately, %(user)s can't mentor you in %(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Desafortunadamente, %(user)s no puede ser tu mentor/a en %(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentor_response_rejected/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s can't mentor you in %(skill)s!\n"
+"\n"
+"Unfortunately, %(user)s will not be able to mentor you.\n"
+"\n"
+"%(content)s\n"
+msgstr ""
+"\n"
+"¡%(user)s no puede ser tu mentor/a en %(skill)s!\n"
+"\n"
+"Desafortunadamente, %(user)s no podrá ser tu mentor/a.\n"
+"\n"
+"%(content)s\n"
+
+#: apps/skills/templates/mentor_response_rejected/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s can't mentor you\n"
+msgstr ""
+"\n"
+"%(mentor_name)s no puede ser tu mentor/a\n"
+
+#: apps/skills/templates/mentoree_response_accepted/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s has accepted to be your mentoree in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            ¡%(user)s ha aceptado ser tu alumno/a en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_accepted/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Good news, %(user)s has accepted to be your mentoree. You can "
+"contact them at %(email)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Buenas noticias, %(user)s ha aceptado ser tu alumno/a. Puedes "
+"contactarle en %(email)s.\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_accepted/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s has accepted to be your mentoree in %(skill)s!\n"
+"\n"
+"Good news, %(user)s has accepted to be your mentoree. You can contact them "
+"at %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"¡%(user)s ha aceptado ser tu alumno/a en %(skill)s!\n"
+"\n"
+"Buenas noticias, %(user)s ha aceptado ser tu alumno/a. Puedes contactarle en "
+"%(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
+
+#: apps/skills/templates/mentoree_response_accepted/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s has accepted to be your mentoree\n"
+msgstr ""
+"\n"
+"%(mentor_name)s ha aceptado ser tu alumno/a\n"
+
+#: apps/skills/templates/mentoree_response_pending/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s needs more information to be your mentoree in "
+"%(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s necesita más información para ser tu alumno/a en "
+"%(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_pending/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s needs more information to be your mentoree in %(skill)s.\n"
+" \n"
+"%(user)s has left the following message. You can contact them at %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply to %(user)s : %(email)s\n"
+msgstr ""
+"\n"
+"%(user)s necesita más información para ser tu alumno/a en %(skill)s.\n"
+" \n"
+"%(user)s ha dejado el siguiente mensaje. Puedes contactarle en %(email)s.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder a %(user)s: %(email)s\n"
+
+#: apps/skills/templates/mentoree_response_rejected/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            %(user)s can't be your mentoree in %(skill)s!\n"
+"            "
+msgstr ""
+"\n"
+"            ¡%(user)s no puede ser tu alumno/a en %(skill)s!\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_rejected/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            Unfortunately, %(user)s can't be your mentoree in %(skill)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Desafortunadamente, %(user)s no puede ser tu alumno/a en %(skill)s.\n"
+"            "
+
+#: apps/skills/templates/mentoree_response_rejected/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(user)s can't be your mentoree in %(skill)s!\n"
+"\n"
+"Unfortunately, %(user)s will not be able to be your mentoree.\n"
+"\n"
+"%(content)s\n"
+msgstr ""
+"\n"
+"¡%(user)s no puede ser tu alumno/a en %(skill)s!\n"
+"\n"
+"Desafortunadamente, %(user)s no podrá ser tu alumno/a.\n"
+"\n"
+"%(content)s\n"
+
+#: apps/skills/templates/mentoree_response_rejected/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(mentor_name)s can't be your mentoree\n"
+msgstr ""
+"\n"
+"%(mentor_name)s no puede ser tu alumno/a\n"
+
+#: apps/skills/templates/mentorship_base.html:55
+msgid ""
+"\n"
+"          Mentoring guide : advice for mentors and mentorees\n"
+"          "
+msgstr ""
+"\n"
+"          Guía de mentoría: consejos para mentores y alumnos\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:60
+msgid ""
+"\n"
+"          Dear Mentors and Mentorees, 👩‍🏫👨‍🎓\n"
+"          <br/>\n"
+"          First of all, the Projects team would like to warmly congratulate "
+"you for embarking on your mentorship journey. It’s sure to be filled with "
+"exciting discoveries and achievements!\n"
+"          "
+msgstr ""
+"\n"
+"          Estimados/as Mentores y Alumnos, 👩‍🏫👨‍🎓\n"
+"          <br/>\n"
+"          En primer lugar, el equipo de Proyectos desea felicitarles "
+"calurosamente por embarcarse en este viaje de mentoría. ¡Seguro que estará "
+"lleno de emocionantes descubrimientos y logros!\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:67
+msgid ""
+"\n"
+"          🌟 To get started\n"
+"          "
+msgstr ""
+"\n"
+"          🌟 Para empezar\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:72
+msgid ""
+"\n"
+"          We encourage you to watch this video to learn more about the roles "
+"of both mentor and mentoree.\n"
+"          "
+msgstr ""
+"\n"
+"          Te animamos a ver este vídeo para aprender más sobre los roles "
+"tanto del mentor como del alumno.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:76
+msgid ""
+"\n"
+"        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
+"watch?v=T_iGnufU1kY\">\n"
+"          Watch video\n"
+"        </mj-button>\n"
+"        "
+msgstr ""
+"\n"
+"        <mj-button css-class=\"lpi-button\" href=\"https://www.youtube.com/"
+"watch?v=T_iGnufU1kY\">\n"
+"          Ver vídeo\n"
+"        </mj-button>\n"
+"        "
+
+#: apps/skills/templates/mentorship_base.html:82
+msgid ""
+"\n"
+"          In brief : \n"
+"          "
+msgstr ""
+"\n"
+"          En resumen:\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:87
+msgid ""
+"\n"
+"          - <strong>A mentor</strong> serves as a supportive guide who "
+"<strong>listens attentively, asks thoughtful questions, and offers direction "
+"without dictating decisions.</strong> By fostering a trusting environment "
+"that promotes open communication, the mentor assists the mentoree in making "
+"progress.\n"
+"          <br/>\n"
+"          - <strong>For mentorees,</strong> it's crucial to clearly "
+"<strong>define your needs and goals</strong>. You are <strong>the primary "
+"agent of your own development</strong>, applying your mentor's guidance to "
+"achieve your objectives.\n"
+"          "
+msgstr ""
+"\n"
+"          - <strong>Un mentor</strong> actúa como una guía de apoyo que "
+"<strong>escucha atentamente, hace preguntas reflexivas y ofrece dirección "
+"sin dictar decisiones.</strong> Al fomentar un entorno de confianza que "
+"promueve la comunicación abierta, el mentor ayuda al alumno a progresar.\n"
+"          <br/>\n"
+"          - <strong>Para los alumnos,</strong> es crucial <strong>definir "
+"claramente sus necesidades y objetivos.</strong> Eres <strong>el agente "
+"principal de tu propio desarrollo,</strong> aplicando la guía de tu mentor "
+"para lograr tus objetivos.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:95
+msgid ""
+"\n"
+"          📅 Mentoring structures :\n"
+"          "
+msgstr ""
+"\n"
+"          📅 Estructuras de mentoría:\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:100
+msgid ""
+"\n"
+"          Here are a few suggested structures for your mentoring sessions. "
+"Make them your own and adjust each meeting to suit the needs and "
+"availability of everyone involved.\n"
+"          "
+msgstr ""
+"\n"
+"          Aquí hay algunas estructuras sugeridas para tus sesiones de mentoría. "
+"Adáptalas y ajusta cada reunión para que se adecúe a las necesidades y "
+"disponibilidad de todos los involucrados.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:105
+msgid ""
+"\n"
+"          🔹 <strong>Single session</strong> : Ideal for a quick, one-hour "
+"boost. This could be for feedback on a project, help with an important "
+"decision, or specific advice.\n"
+"          "
+msgstr ""
+"\n"
+"          🔹 <strong>Sesión única</strong>: Ideal para un impulso rápido de una "
+"hora. Puede ser para recibir comentarios sobre un proyecto, ayuda con una "
+"decisión importante o un consejo específico.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:110
+msgid ""
+"\n"
+"          🔹 <strong>Three one-hour sessions</strong> : Great for diving "
+"deeper into a problem. Here’s a possible breakdown:\n"
+"          "
+msgstr ""
+"\n"
+"          🔹 <strong>Tres sesiones de una hora</strong>: Ideal para profundizar "
+"en un problema. Aquí tienes un posible desglose:\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:115
+msgid ""
+"\n"
+"              - 👂 <strong>Session 1</strong> : Understand the issue and "
+"provide initial suggestions.\n"
+"          "
+msgstr ""
+"\n"
+"              - 👂 <strong>Sesión 1</strong>: Entender el problema y dar "
+"sugerencias iniciales.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:120
+msgid ""
+"\n"
+"              - 📚 <strong>Session 2</strong> : Share research and set clear "
+"goals.\n"
+"          "
+msgstr ""
+"\n"
+"              - 📚 <strong>Sesión 2</strong>: Compartir investigación y "
+"establecer metas claras.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:125
+msgid ""
+"\n"
+"              - 🌟 <strong>Session 3</strong> : Review progress and adjust "
+"the approach.\n"
+"          "
+msgstr ""
+"\n"
+"              - 🌟 <strong>Sesión 3</strong>: Revisar el progreso y ajustar "
+"el enfoque.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:130
+msgid ""
+"\n"
+"          🔹 <strong>Year-long mentoring (2 hours/month)</strong> : Perfect "
+"for long-term guidance. A typical session might look like this:\n"
+"          "
+msgstr ""
+"\n"
+"          🔹 <strong>Mentoría de un año (2 horas/mes)</strong>: Perfecta para "
+"una guía a largo plazo. Una sesión típica podría ser así:\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:135
+msgid ""
+"\n"
+"              - 🏅 <strong>Progress review</strong> : Discuss achievements "
+"and new challenges.\n"
+"          "
+msgstr ""
+"\n"
+"              - 🏅 <strong>Revisión de progreso</strong>: Discutir logros y "
+"nuevos desafíos.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:140
+msgid ""
+"\n"
+"              - 🎯 <strong>Goals</strong> : Set 2-3 objectives to work on "
+"before the next session.\n"
+"          "
+msgstr ""
+"\n"
+"              - 🎯 <strong>Metas</strong>: Establecer 2-3 objetivos para "
+"trabajar antes de la próxima sesión.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:145
+msgid ""
+"\n"
+"              - 📖 <strong>Resources</strong> : Share helpful content "
+"(videos, articles, etc.) to explore between sessions.\n"
+"          "
+msgstr ""
+"\n"
+"              - 📖 <strong>Recursos</strong>: Compartir contenido útil "
+"(vídeos, artículos, etc.) para explorar entre sesiones.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:150
+msgid ""
+"\n"
+"              - 🗓️ <strong>Next session</strong> : Schedule the upcoming "
+"meeting.\n"
+"          "
+msgstr ""
+"\n"
+"              - 🗓️ <strong>Próxima sesión</strong>: Programar la próxima "
+"reunión.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:156
+msgid ""
+"\n"
+"          ✅ Tips for successful mentoring :\n"
+"          "
+msgstr ""
+"\n"
+"          ✅ Consejos para una mentoría exitosa:\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:161
+msgid ""
+"\n"
+"          📝 <strong>Prepare for each session :</strong> Think about the "
+"topics you want to discuss, goals you want to achieve, and any questions you "
+"have.\n"
+"          "
+msgstr ""
+"\n"
+"          📝 <strong>Prepárate para cada sesión:</strong> Piensa en los "
+"temas que quieres discutir, los objetivos que quieres lograr y cualquier "
+"pregunta que tengas.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:166
+msgid ""
+"\n"
+"          🤝 <strong>Be open and honest :</strong> Building trust requires "
+"transparency.\n"
+"          "
+msgstr ""
+"\n"
+"          🤝 <strong>Sé abierto y honesto:</strong> Construir confianza "
+"requiere transparencia.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:171
+msgid ""
+"\n"
+"          👂 <strong>Practice active listening :</strong> Ask questions and "
+"rephrase to confirm you’ve understood.\n"
+"          "
+msgstr ""
+"\n"
+"          👂 <strong>Practica la escucha activa:</strong> Haz preguntas y "
+"parafrasea para confirmar que has entendido.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:176
+msgid ""
+"\n"
+"          🎯 <strong>Set clear goals</strong> after each session.\n"
+"          "
+msgstr ""
+"\n"
+"          🎯 <strong>Establece metas claras</strong> después de cada sesión.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:181
+msgid ""
+"\n"
+"          📬 <strong>Share useful resources</strong> between meetings to "
+"enhance learning.\n"
+"          "
+msgstr ""
+"\n"
+"          📬 <strong>Comparte recursos útiles</strong> entre reuniones para "
+"mejorar el aprendizaje.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:186
+msgid ""
+"\n"
+"          📆 <strong>Always schedule the next session</strong> to maintain "
+"progress.\n"
+"          "
+msgstr ""
+"\n"
+"          📆 <strong>Siempre programa la próxima sesión</strong> para "
+"mantener el progreso.\n"
+"          "
+
+#: apps/skills/templates/mentorship_base.html:192
+msgid ""
+"\n"
+"          We hope these tips help you better navigate your mentorship "
+"experience ! Thank you all, and happy mentoring ✨\n"
+"          <br/>\n"
+"          Best regards,\n"
+"          <br/>\n"
+"          The Projects team\n"
+"          "
+msgstr ""
+"\n"
+"          ¡Esperamos que estos consejos te ayuden a navegar mejor tu experiencia "
+"de mentoría! Gracias a todos, y ¡feliz mentoría! ✨\n"
+"          <br/>\n"
+"          Saludos cordiales,\n"
+"          <br/>\n"
+"          El equipo de Proyectos\n"
+"          "
+
+#: apps/skills/templates/reminder_mentor_10_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Can you mentor me in %(skill)s? (last reminder)\n"
+"            "
+msgstr ""
+"\n"
+"            ¿Puedes ser mi mentor/a en %(skill)s? (último recordatorio)\n"
+"            "
+
+#: apps/skills/templates/reminder_mentor_10_days/mail.html:19
+#: apps/skills/templates/reminder_mentoree_10_days/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            It's the last time we'll share this message that %(user)s has "
+"left for you on the Projects platform.\n"
+"            "
+msgstr ""
+"\n"
+"            Es la última vez que compartiremos este mensaje que %(user)s ha "
+"dejado para ti en la plataforma de Proyectos.\n"
+"            "
+
+#: apps/skills/templates/reminder_mentor_10_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s? (last reminder)\n"
+"\n"
+"It's the last time we'll share this message that %(user)s has left for you "
+"on the Projects platform.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"¿Puedes ser mi mentor/a en %(skill)s? (último recordatorio)\n"
+"\n"
+"Es la última vez que compartiremos este mensaje que %(user)s ha dejado para "
+"ti en la plataforma de Proyectos.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+
+#: apps/skills/templates/reminder_mentor_10_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor %(mentoree_name)s? (last reminder)\n"
+msgstr ""
+"\n"
+"¿Puedes ser mentor/a de %(mentoree_name)s? (último recordatorio)\n"
+
+#: apps/skills/templates/reminder_mentor_3_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Can you mentor me in %(skill)s? (reminder)\n"
+"            "
+msgstr ""
+"\n"
+"            ¿Puedes ser mi mentor/a en %(skill)s? (recordatorio)\n"
+"            "
+
+#: apps/skills/templates/reminder_mentor_3_days/mail.html:19
+#: apps/skills/templates/reminder_mentoree_3_days/mail.html:19
+#, python-format
+msgid ""
+"\n"
+"            %(user)s sent you a message on the Projects platform and it "
+"looks like you haven't responded yet. Good news, it's not too late :)\n"
+"            "
+msgstr ""
+"\n"
+"            %(user)s te ha enviado un mensaje en la plataforma de Proyectos y "
+"parece que aún no has respondido. Buenas noticias, no es demasiado tarde :)\n"
+"            "
+
+#: apps/skills/templates/reminder_mentor_3_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor me in %(skill)s? (reminder)\n"
+"\n"
+"%(user)s sent you a message on the Projects platform and it looks like you "
+"haven't responded yet. Good news, it's not too late :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"¿Puedes ser mi mentor/a en %(skill)s? (recordatorio)\n"
+"\n"
+"%(user)s te ha enviado un mensaje en la plataforma de Proyectos y parece que "
+"aún no has respondido. Buenas noticias, no es demasiado tarde :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+
+#: apps/skills/templates/reminder_mentor_3_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Can you mentor %(mentoree_name)s? (reminder)\n"
+msgstr ""
+"\n"
+"¿Puedes ser mentor/a de %(mentoree_name)s? (recordatorio)\n"
+
+#: apps/skills/templates/reminder_mentoree_10_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s? (last reminder)\n"
+"            "
+msgstr ""
+"\n"
+"            ¿Quieres que te guíen en %(skill)s? (último recordatorio)\n"
+"            "
+
+#: apps/skills/templates/reminder_mentoree_10_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (last reminder)\n"
+"\n"
+"It's the last time we'll share this message that %(user)s has left for you "
+"on the Projects platform.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (último recordatorio)\n"
+"\n"
+"Es la última vez que compartiremos este mensaje que %(user)s ha dejado para "
+"ti en la plataforma de Proyectos.\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+
+#: apps/skills/templates/reminder_mentoree_10_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (last reminder)\n"
+msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (último recordatorio)\n"
+
+#: apps/skills/templates/reminder_mentoree_3_days/mail.html:10
+#, python-format
+msgid ""
+"\n"
+"            Do you want to be mentored in %(skill)s? (reminder)\n"
+"            "
+msgstr ""
+"\n"
+"            ¿Quieres que te guíen en %(skill)s? (recordatorio)\n"
+"            "
+
+#: apps/skills/templates/reminder_mentoree_3_days/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (reminder)\n"
+"\n"
+"%(user)s sent you a message on the Projects platform and it looks like you "
+"haven't responded yet. Good news, it's not too late :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Reply : %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (recordatorio)\n"
+"\n"
+"%(user)s te ha enviado un mensaje en la plataforma de Proyectos y parece que "
+"aún no has respondido. Buenas noticias, no es demasiado tarde :)\n"
+"\n"
+"%(content)s\n"
+"\n"
+"Responder: %(organization.website_url)s/mentorship/respond/%(instance.id)s\n"
+
+#: apps/skills/templates/reminder_mentoree_3_days/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Do you want to be mentored in %(skill)s? (reminder)\n"
+msgstr ""
+"\n"
+"¿Quieres que te guíen en %(skill)s? (recordatorio)\n"
+
+#: services/google/exceptions.py:7
+msgid "This email is already used by another group"
+msgstr "Este correo electrónico ya está en uso por otro grupo"
+
+#: services/google/exceptions.py:13
+msgid "This email is already used by another user"
+msgstr "Este correo electrónico ya está en uso por otro usuario"
+
+#: services/keycloak/exceptions.py:12
+msgid "Invalid user credentials"
+msgstr "Credenciales de usuario no válidas"
+
+#: services/keycloak/exceptions.py:21
+msgid "Given user does not have a keycloak account"
+msgstr "El usuario dado no tiene una cuenta de keycloak"
+
+#: services/keycloak/exceptions.py:27
+msgid "No user was found with the given keycloak id"
+msgstr "No se encontró ningún usuario con el ID de keycloak dado"
+
+#: services/keycloak/exceptions.py:33
+msgid "The 'redirect_uri' parameter is mandatory"
+msgstr "El parámetro 'redirect_uri' es obligatorio"
+
+#: services/keycloak/exceptions.py:39
+msgid "The given email type is not valid"
+msgstr "El tipo de correo electrónico proporcionado no es válido"
+
+#: services/keycloak/exceptions.py:44
+#, python-brace-format
+msgid "Email type '{email_type}' is not valid"
+msgstr "El tipo de correo electrónico '{email_type}' no es válido"
+
+#: services/keycloak/templates/admin_created/mail.html:13
+msgid ""
+"\n"
+"    Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organization and foster collaboration for the common good.\n"
+"    "
+msgstr ""
+"\n"
+"    Tu cuenta de Proyectos acaba de ser creada. Solo tienes que elegir una "
+"contraseña y podrás unirte a Proyectos, una plataforma para compartir "
+"proyectos en tu organización y fomentar la colaboración para el bien común.\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:18
+msgid ""
+"\n"
+"    Create my password\n"
+"    "
+msgstr ""
+"\n"
+"    Crear mi contraseña\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:23
+#: services/keycloak/templates/force_reset_password/mail.html:23
+#: services/keycloak/templates/invitation/mail.html:23
+#: services/keycloak/templates/reset_password/mail.html:23
+msgid ""
+"\n"
+"    If you didn’t request this email, there is nothing to worry about, you "
+"can safely ignore it.\n"
+"    "
+msgstr ""
+"\n"
+"    Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.html:28
+#: services/keycloak/templates/force_reset_password/mail.html:28
+#: services/keycloak/templates/invitation/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Link expires on %(expiration_date)s at %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Click here</a> to request a new "
+"link.\n"
+"    "
+msgstr ""
+"\n"
+"    El enlace expira el %(expiration_date)s a las %(expiration_time)s. <a "
+"class=\"lpi-link\" href=\"%(refresh_link)s\">Haz clic aquí</a> para solicitar "
+"un nuevo enlace.\n"
+"    "
+
+#: services/keycloak/templates/admin_created/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to the Projects portal of %(organization_name)s, %(given_name)s!\n"
+"Your Projects account has just been created. You just have to choose a "
+"password and you will be able to join Projects, a platform to share projects "
+"in your organization and foster collaboration for the common good.\n"
+"Create my password : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Demandez un "
+"nouveau lien en cliquant sur %(refresh_link)s.\n"
+msgstr ""
+"\n"
+"¡Bienvenido/a al portal de Proyectos de %(organization_name)s, %(given_name)s!\n"
+"Tu cuenta de Proyectos acaba de ser creada. Solo tienes que elegir una "
+"contraseña y podrás unirte a Proyectos, una plataforma para compartir "
+"proyectos en tu organización y fomentar la colaboración para el bien común.\n"
+"Crear mi contraseña: %(link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Solicita "
+"un nuevo enlace haciendo clic en %(refresh_link)s.\n"
+
+#: services/keycloak/templates/admin_created/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Welcome to your new %(org_name)s Projects platform\n"
+msgstr ""
+"\n"
+"Bienvenido/a a tu nueva plataforma de Proyectos de %(org_name)s\n"
+
+#: services/keycloak/templates/force_reset_password/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"    "
+msgstr ""
+"\n"
+"    Se ha realizado una solicitud para restablecer tu contraseña para tu "
+"cuenta de Proyectos de %(organization_name)s.\n"
+"    "
+
+#: services/keycloak/templates/force_reset_password/mail.html:13
+#: services/keycloak/templates/reset_password/mail.html:13
+msgid ""
+"\n"
+"    Someone requested that we change your password. If this was you, click "
+"on the link below to update your password.\n"
+"    "
+msgstr ""
+"\n"
+"    Alguien solicitó que cambiáramos tu contraseña. Si fuiste tú, haz clic "
+"en el enlace de abajo para actualizar tu contraseña.\n"
+"    "
+
+#: services/keycloak/templates/force_reset_password/mail.html:18
+#: services/keycloak/templates/reset_password/mail.html:18
+msgid ""
+"\n"
+"    Update password\n"
+"    "
+msgstr ""
+"\n"
+"    Actualizar contraseña\n"
+"    "
+
+#: services/keycloak/templates/force_reset_password/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"A request to reset your password has been made for your "
+"%(organization_name)s Projects account.\n"
+"Someone requested that we change your password. If this was you, click on "
+"the link below to update your password.\n"
+"Update password : %(link.link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+"\n"
+"Se ha realizado una solicitud para restablecer tu contraseña para tu cuenta "
+"de Proyectos de %(organization_name)s.\n"
+"Alguien solicitó que cambiáramos tu contraseña. Si fuiste tú, haz clic en el "
+"enlace de abajo para actualizar tu contraseña.\n"
+"Actualizar contraseña: %(link.link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Haz clic "
+"en %(refresh_link)s para solicitar un nuevo enlace.\n"
+
+#: services/keycloak/templates/force_reset_password/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Update your %(org_name)s Projects password\n"
+msgstr ""
+"\n"
+"Actualiza tu contraseña de Proyectos de %(org_name)s\n"
+
+#: services/keycloak/templates/invitation/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Confirm your email address to get started on the Projects portal of "
+"%(organization_name)s.\n"
+"    "
+msgstr ""
+"\n"
+"    Confirma tu dirección de correo electrónico para empezar en el portal de "
+"Proyectos de %(organization_name)s.\n"
+"    "
+
+#: services/keycloak/templates/invitation/mail.html:13
+#, python-format
+msgid ""
+"\n"
+"    Once you have confirmed that <strong>%(contact_email)s</strong> is your "
+"address, we'll help you get started on the platform.\n"
+"    "
+msgstr ""
+"\n"
+"    Una vez que hayas confirmado que <strong>%(contact_email)s</strong> es tu "
+"dirección, te ayudaremos a empezar en la plataforma.\n"
+"    "
+
+#: services/keycloak/templates/invitation/mail.html:18
+msgid ""
+"\n"
+"    Confirm email address\n"
+"    "
+msgstr ""
+"\n"
+"    Confirmar dirección de correo electrónico\n"
+"    "
+
+#: services/keycloak/templates/invitation/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Confirm your email address to get started on the Projects portal of "
+"%(organization_name)s.\n"
+"Once you have confirmed that <strong>%(contact_email)s</strong> is your "
+"address, we'll help you get started on the platform.\n"
+"Confirm email address : %(link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click on "
+"%(refresh_link)s to request a new link.\n"
+msgstr ""
+"\n"
+"Confirma tu dirección de correo electrónico para empezar en el portal de "
+"Proyectos de %(organization_name)s.\n"
+"Una vez que hayas confirmado que <strong>%(contact_email)s</strong> es tu "
+"dirección, te ayudaremos a empezar en la plataforma.\n"
+"Confirmar dirección de correo electrónico: %(link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Haz clic "
+"en %(refresh_link)s para solicitar un nuevo enlace.\n"
+
+#: services/keycloak/templates/invitation/object.txt:2
+#, python-format
+msgid ""
+"\n"
+"Confirm your email address to get started on %(org_name)s Projects\n"
+msgstr ""
+"\n"
+"Confirma tu dirección de correo electrónico para empezar en Proyectos de "
+"%(org_name)s\n"
+
+#: services/keycloak/templates/reset_password/mail.html:8
+msgid ""
+"\n"
+"    A request to reset your password has been made for your Projects "
+"account.\n"
+"    "
+msgstr ""
+"\n"
+"    Se ha realizado una solicitud para restablecer tu contraseña para tu "
+"cuenta de Proyectos.\n"
+"    "
+
+#: services/keycloak/templates/reset_password/mail.html:28
+#, python-format
+msgid ""
+"\n"
+"    Link expires on %(expiration_date)s at %(expiration_time)s.\n"
+"    "
+msgstr ""
+"\n"
+"    El enlace expira el %(expiration_date)s a las %(expiration_time)s.\n"
+"    "
+
+#: services/keycloak/templates/reset_password/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"A request to reset your password has been made for your Projects account.\n"
+"Someone requested that we change your password. If this was you, click on "
+"the link below to update your password.\n"
+"Update password : %(link.link)s\n"
+"If you didn’t request this email, there is nothing to worry about, you can "
+"safely ignore it.\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s.\n"
+msgstr ""
+"\n"
+"Se ha realizado una solicitud para restablecer tu contraseña para tu cuenta "
+"de Proyectos.\n"
+"Alguien solicitó que cambiáramos tu contraseña. Si fuiste tú, haz clic en el "
+"enlace de abajo para actualizar tu contraseña.\n"
+"Actualizar contraseña: %(link.link)s\n"
+"Si no solicitaste este correo electrónico, no hay de qué preocuparse, "
+"puedes ignorarlo sin problema.\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s.\n"
+
+#: services/keycloak/templates/reset_password/object.txt:2
+msgid ""
+"\n"
+"Update your Projects password\n"
+msgstr ""
+"\n"
+"Actualiza tu contraseña de Proyectos\n"
+
+#: services/mistral/exceptions.py:10
+msgid "The given queryset does not match the related model"
+msgstr "El queryset proporcionado no coincide con el modelo relacionado"
+
+#: services/wikipedia/exceptions.py:12
+msgid "Wikipedia API error"
+msgstr "Error de la API de Wikipedia"
+
+#: services/wikipedia/exceptions.py:17
+#, python-brace-format
+msgid "Wikipedia API returned {status_code}"
+msgstr "La API de Wikipedia devolvió {status_code}"
+
+#: services/wikipedia/exceptions.py:26
+msgid "Language is not supported"
+msgstr "El idioma no es compatible"
+
+#: services/wikipedia/exceptions.py:31
+#, python-brace-format
+msgid "Language {language} is not supported"
+msgstr "El idioma {language} no es compatible"
