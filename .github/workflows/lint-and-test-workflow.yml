@@ -95,8 +95,8 @@ jobs:
     - name: Run the linter
       run: make lint
     - name: Check that migrations are up-to-date
-      run: make check-migrations
+      run: make migrations-check
     - name: Check that translations are up-to-date
-      run: make makemessages-check
+      run: make locales-check
     - name: Run unit tests
       run: make test

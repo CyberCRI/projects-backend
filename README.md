@@ -115,7 +115,7 @@ This will return errors that you need to fix manually. If there are some, fix th
 
 ```bash
 # inside the container
-make makemessages
+make locales
 ```
 
 This will detect changes in translated messages. Even if you didn't add, remove or modify any translated message. This might update some files because of line changes on translations caused by your changes.

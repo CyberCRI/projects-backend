@@ -34,14 +34,14 @@ check:
 # Checks for issues before starting
 	python manage.py check --deploy --fail-level="${DJANGO_CHECK_FAIL_LEVEL}"
 
-.PHONY: makemessages
-makemessages:
+.PHONY: locales
+locales:
 # Create translation files
 	python manage.py makemessages --all
 
 TEMP_TRANSLATION_FILES := $(shell mktemp -d --suffix -projects-back-makemessages)
-.PHONY: makemessages-check
-makemessages-check:
+.PHONY: locales-check
+locales-check:
 # Copy translation files to a temp directory
 	mkdir -p ${TEMP_TRANSLATION_FILES}/current ${TEMP_TRANSLATION_FILES}/new
 	for trans_file in $(shell find locale/ -name '*.po'); do cp -r "$$trans_file" ${TEMP_TRANSLATION_FILES}/current/${trans_file}; done
@@ -57,6 +57,10 @@ makemessages-check:
 collectstatic:
 # Collect statics to static/
 	python manage.py collectstatic --no-input --skip-checks
+
+.PHONY: migrations
+migrations:
+	python manage.py makemigrations
 
 .PHONY: migrate
 migrate:
@@ -101,8 +105,8 @@ dropdb:
 createdb:
 	./scripts/create_db.sh
 
-.PHONY: check-migrations
-check-migrations:
+.PHONY: migrations-check
+migrations-check:
 	python manage.py makemigrations --noinput --check
 
 .PHONY: post-deploy
@@ -116,3 +120,10 @@ list-index:
 .PHONY: rebuild-index
 rebuild-index:
 	python manage.py update_or_rebuild_index
+
+.PHONY: precommit
+precommit:
+	${MAKE} format
+	${MAKE} lint
+	${MAKE} locales
+	${MAKE} migrations
