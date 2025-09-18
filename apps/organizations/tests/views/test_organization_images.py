@@ -49,7 +49,7 @@ class CreateOrganizationImageTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -103,7 +103,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             (TestRoles.OWNER, status.HTTP_200_OK),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -151,7 +151,7 @@ class DeleteOrganizationImageTestCase(JwtAPITestCase):
             (TestRoles.OWNER, status.HTTP_204_NO_CONTENT),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )

@@ -2,11 +2,12 @@ import uuid
 
 from django.conf import settings
 from django.db import transaction
+from django.db.models import QuerySet
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from rest_framework import status, viewsets
+from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -29,7 +30,7 @@ from .exceptions import (
     MissingLockedStatusParameterError,
 )
 from .filters import OrganizationFilter, ProjectCategoryFilter
-from .models import Organization, ProjectCategory
+from .models import Organization, ProjectCategory, TermsAndConditions
 from .permissions import HasOrganizationPermission
 from .serializers import (
     OrganizationAddFeaturedProjectsSerializer,
@@ -39,6 +40,7 @@ from .serializers import (
     OrganizationRemoveTeamMembersSerializer,
     OrganizationSerializer,
     ProjectCategorySerializer,
+    TermsAndConditionsSerializer,
 )
 
 
@@ -522,6 +524,32 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 f"/v1/category/{self.kwargs['category_id']}/template-image/{image.id}"
             )
         return None
+
+
+class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+    serializer_class = TermsAndConditionsSerializer
+    organization_code_lookup = "organization__code"
+    lookup_field = "id"
+    lookup_value_regex = "[^/]+"
+    permission_classes = [
+        IsAuthenticated,
+        HasBasePermission("change_organization", "organizations")
+        | HasOrganizationPermission("change_organization"),
+    ]
+
+    def get_queryset(self) -> QuerySet[TermsAndConditions]:
+        if "organization_code" in self.kwargs:
+            return TermsAndConditions.objects.filter(
+                organization__code=self.kwargs["organization_code"]
+            )
+        return TermsAndConditions.objects.none()
+
+    def perform_update(self, serializer: TermsAndConditionsSerializer):
+        instance = self.get_object()
+        if serializer.validated_data.get("content") != instance.content:
+            serializer.save(version=instance.version + 1)
+        else:
+            serializer.save()
 
 
 class AvailableLanguagesView(APIView):
