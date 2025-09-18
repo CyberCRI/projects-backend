@@ -110,7 +110,11 @@ msgstr "No puedes asignar este rol a un usuario"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No puedes asignar este rol a un usuario: {role}"
 
+<<<<<<< HEAD
 #: apps/accounts/models.py:137 apps/projects/models.py:161
+=======
+#: apps/accounts/models.py:136 apps/projects/models.py:161
+>>>>>>> 6cffa55f (update some make commands)
 msgid "visibility"
 msgstr "visibilidad"
 
