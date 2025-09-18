@@ -1,4 +1,5 @@
 import base64
+import io
 import logging
 import os
 import uuid
@@ -7,8 +8,10 @@ from unittest import skipUnless, util
 
 from django.conf import settings
 from django.core.files import File
+from django.core.files.base import ContentFile
 from django.db import models
 from faker import Faker
+from PIL import Image as PILImage
 from rest_framework.test import APIClient, APITestCase
 
 from apps.accounts.authentication import BearerToken
@@ -202,9 +205,11 @@ class JwtAPITestCase(APITestCase):
     @classmethod
     def get_test_image_file(cls) -> File:
         """Return a dummy test image file."""
-        return File(
-            open(f"{settings.STATIC_ROOT}/test_image.png", "rb")  # noqa: SIM115
-        )
+        thumb_io = io.BytesIO()
+        with PILImage.new("RGB", [1, 1]) as thumb:
+            thumb.save(thumb_io, format="JPEG")
+        data = thumb_io.getvalue()
+        return File(ContentFile(data), name=f"{uuid.uuid4()}.jpg")
 
     @classmethod
     def get_oversized_test_image_file(cls) -> File:
