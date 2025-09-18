@@ -1,5 +1,6 @@
 import base64
 import gc
+import io
 import itertools
 import re
 import uuid
@@ -14,6 +15,7 @@ from django.db import reset_queries
 from django.db.models import Func, Model, Value
 from django.forms import IntegerField
 from django.urls import reverse
+from PIL import Image as PILImage
 from rest_framework.request import Request
 
 from apps.files.models import Image
@@ -221,7 +223,11 @@ def process_unlinked_images(instance: Model, text: str) -> List[Image]:
 
 def get_test_image_file() -> File:
     """Return a dummy test image file."""
-    return File(open(f"{settings.STATIC_ROOT}/test_image.png", "rb"))  # noqa: SIM115
+    thumb_io = io.BytesIO()
+    with PILImage.new("RGB", [1, 1]) as thumb:
+        thumb.save(thumb_io, format="JPEG")
+    data = thumb_io.getvalue()
+    return File(ContentFile(data), name=f"{uuid.uuid4()}.jpg")
 
 
 def get_test_image() -> Image:
