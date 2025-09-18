@@ -21,12 +21,16 @@ SPECTACULAR_SETTINGS["SWAGGER_UI_SETTINGS"]["url"] = "/api/schema/"  # noqa: F40
 #   CELERY   #
 ##############
 
-CELERY_BEAT_SCHEDULE = {
-    "send_notifications_reminder": {
-        "task": "apps.notifications.tasks.send_notifications_reminder",
-        "schedule": crontab(minute="*", hour="*"),
+CELERY_BEAT_SCHEDULE = (
+    {
+        "send_notifications_reminder": {
+            "task": "apps.notifications.tasks.send_notifications_reminder",
+            "schedule": crontab(minute="0", hour="*"),
+        }
     }
-}
+    if os.getenv("CELERY_ENABLED", "False") == "True"
+    else {}
+)
 
 ##############
 #  KEYCLOAK  #
