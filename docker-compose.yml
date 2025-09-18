@@ -1,3 +1,8 @@
+include:
+  - path: ./keycloak-lpi-theme/theme/docker-compose.yml
+    project_directory: ./keycloak-lpi-theme/theme/
+    env_file: ./.env
+
 services:
   postgres:
     image: pgvector/pgvector:pg14
@@ -49,8 +54,8 @@ services:
     ports:
       - 15500:15500
 
-  projects:
-    container_name: projects
+  projects-backend:
+    container_name: projects-backend
     build:
       context: .
       args:
@@ -63,10 +68,15 @@ services:
     ports:
       - 8000:8000
     depends_on:
-      - postgres
-      - keycloak
+      keycloak:
+        condition: service_healthy
+        restart: true
+      postgres:
+        condition: service_healthy
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
+      DEBUG: ${DEBUG}
+      KEYCLOAK_SERVER_URL: ${KEYCLOAK_SERVER_URL}
     volumes:
       - .:/app
 
@@ -77,32 +87,10 @@ services:
     command: celery -A projects worker -B -l info
     restart: unless-stopped
     depends_on:
-      - projects
+      - projects-backend
       - redis
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
-
-  mailhog:
-    image: mailhog/mailhog
-    ports:
-      - 1025:1025
-      - 8025:8025
-
-  keycloak:
-    build:
-      context: .
-      dockerfile: Dockerfile.keycloak
-    ports:
-      - 8001:8080
-    environment:
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-    healthcheck:
-      test: ["CMD", "curl", "-LIsSfo", "/dev/null", "http://127.0.0.1:8080/realms/lp/.well-known/openid-configuration"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
   opensearch-node:
     image: opensearchproject/opensearch:latest

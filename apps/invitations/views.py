@@ -3,6 +3,7 @@ import uuid
 
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
+from keycloak import KeycloakGetError, KeycloakPostError, KeycloakPutError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
@@ -21,7 +22,6 @@ from apps.commons.utils import map_action_to_permission
 from apps.notifications.tasks import notify_new_access_request
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from keycloak import KeycloakGetError, KeycloakPostError, KeycloakPutError
 
 from .filters import AccessRequestFilter
 from .models import AccessRequest, Invitation

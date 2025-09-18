@@ -15,6 +15,7 @@ from django.http import Http404
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
+from keycloak import KeycloakGetError
 
 from apps.accounts.utils import (
     default_onboarding_status,
@@ -33,7 +34,6 @@ from apps.commons.models import GroupData
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from keycloak import KeycloakGetError
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount

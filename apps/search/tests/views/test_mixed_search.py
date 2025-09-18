@@ -101,7 +101,7 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @staticmethod
     def get_object_id_from_search_object(
-        search_object: Dict[str, Any]
+        search_object: Dict[str, Any],
     ) -> Union[int, str, None]:
         if search_object["type"] == SearchObject.SearchObjectType.PEOPLE_GROUP:
             return search_object["people_group"]["id"]

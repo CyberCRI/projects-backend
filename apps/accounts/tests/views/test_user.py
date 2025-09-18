@@ -8,6 +8,7 @@ from django.utils.timezone import make_aware
 from faker import Faker
 from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm
+from keycloak import KeycloakDeleteError
 from parameterized import parameterized
 from rest_framework import status
 
@@ -21,7 +22,6 @@ from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.skills.factories import SkillFactory, TagFactory
-from keycloak import KeycloakDeleteError
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 

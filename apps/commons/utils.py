@@ -233,7 +233,7 @@ def get_test_image() -> Image:
 
 
 def get_permissions_from_subscopes(
-    subscopes: List[Tuple[str, str]]
+    subscopes: List[Tuple[str, str]],
 ) -> Tuple[Tuple[str, str]]:
     """
     Get the permissions representations from the subscopes.
@@ -261,7 +261,7 @@ def get_permissions_from_subscopes(
 
 
 def get_write_permissions_from_subscopes(
-    subscopes: List[Tuple[str, str]]
+    subscopes: List[Tuple[str, str]],
 ) -> Tuple[Tuple[str, str]]:
     """
     Get the write permissions representations from the subscopes.
