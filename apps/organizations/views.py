@@ -531,6 +531,11 @@ class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet
     organization_code_lookup = "organization__code"
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    permission_classes = [
+        IsAuthenticated,
+        HasBasePermission("change_organization", "organizations")
+        | HasOrganizationPermission("change_organization"),
+    ]
 
     def get_queryset(self) -> QuerySet[TermsAndConditions]:
         if "organization_code" in self.kwargs:
