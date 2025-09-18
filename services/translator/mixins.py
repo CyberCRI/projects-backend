@@ -54,7 +54,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._original_auto_translated_fields_values = {
-            field: getattr(self, field, "") for field in self.auto_translated_fields
+            field: self.__dict__.get(field, "") for field in self.auto_translated_fields
         }
 
     def update_translated_fields(self, force_update: bool = True):
