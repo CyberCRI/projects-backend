@@ -259,6 +259,7 @@ class Organization(
                     "review",
                     "projectcategory",
                     "tagclassification",
+                    "organization",
                 ]
             ],
         ]
@@ -520,11 +521,10 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
 
     auto_translated_fields: List[str] = ["content"]
 
-    organization = models.ForeignKey(
+    organization = models.OneToOneField(
         "organizations.Organization",
         on_delete=models.CASCADE,
         related_name="terms_and_conditions",
-        unique=True,
     )
     version = models.IntegerField(default=1)
     content = models.TextField(blank=True, default="")
