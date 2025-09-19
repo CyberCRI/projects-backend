@@ -531,14 +531,24 @@ class Project(
             | self.reviewer_groups.all()
         ).distinct()
 
+    def _get_score_instance(self) -> "ProjectScore":
+        try:
+            return self.score
+        except Project.score.RelatedObjectDoesNotExist:
+            self.score = ProjectScore(project=self)
+            return self.score
+
     def get_or_create_score(self) -> "ProjectScore":
-        score, created = ProjectScore.objects.get_or_create(project=self)
-        if created:
-            return score.set_score()
+        score = self._get_score_instance()
+        if not score.pk:
+            score.set_score()
+            score.save()
         return score
 
     def calculate_score(self) -> "ProjectScore":
-        return self.get_or_create_score().set_score()
+        score = self._get_score_instance()
+        score.set_score()
+        return score
 
     @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
@@ -652,7 +662,6 @@ class ProjectScore(models.Model, ProjectRelated):
         self.popularity = popularity
         self.activity = activity
         self.score = score
-        self.save()
         return self
 
 
