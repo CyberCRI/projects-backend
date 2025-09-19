@@ -724,14 +724,24 @@ class ProjectUser(
         ]
         return list(set(groups_permissions))
 
+    def _get_score_instance(self) -> "UserScore":
+        try:
+            return self.score
+        except ProjectUser.score.RelatedObjectDoesNotExist:
+            self.score = UserScore(user=self)
+            return self.score
+
     def get_or_create_score(self) -> "UserScore":
-        score, created = UserScore.objects.get_or_create(user=self)
-        if created:
-            return score.set_score()
+        score = self._get_score_instance()
+        if not score.pk:
+            score.set_score()
+            score.save()
         return score
 
     def calculate_score(self) -> "UserScore":
-        return self.get_or_create_score().set_score()
+        score = self._get_score_instance()
+        score.set_score()
+        return score
 
 
 class UserScore(models.Model):
@@ -744,8 +754,12 @@ class UserScore(models.Model):
 
     def get_completeness(self) -> float:
         has_job = bool(self.user.job)
-        has_expert_skills = self.user.skills.filter(level=4).exists()
-        has_competent_skills = self.user.skills.filter(level=3).exists()
+
+        skills_level = (
+            self.user.skills.all().values_list("level", flat=True).distinct("level")
+        )
+        has_expert_skills = 4 in skills_level
+        has_competent_skills = 3 in skills_level
         has_rich_content = (
             "<img" in self.user.description or "<iframe" in self.user.description
         )
@@ -774,7 +788,6 @@ class UserScore(models.Model):
         self.completeness = completeness
         self.activity = activity
         self.score = score
-        self.save()
         return self
 
 
