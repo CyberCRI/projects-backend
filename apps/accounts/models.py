@@ -506,32 +506,32 @@ class ProjectUser(
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
     def get_project_queryset(self) -> QuerySet["Project"]:
-        if self._project_queryset is None:
-            if self.is_superuser:
-                self._project_queryset = Project.objects.all()
-            else:
-                public_projects = Project.objects.filter(
-                    publication_status=Project.PublicationStatus.PUBLIC
-                )
-                member_projects = get_objects_for_user(self, "projects.view_project")
-                org_user_projects = Project.objects.filter(
-                    publication_status=Project.PublicationStatus.ORG,
-                    organizations__in=get_objects_for_user(
-                        self, "organizations.view_org_project"
-                    ),
-                )
-                org_admin_projects = Project.objects.filter(
-                    organizations__in=get_objects_for_user(
-                        self, "organizations.view_project"
-                    )
-                )
-                qs = (
-                    public_projects.union(member_projects)
-                    .union(org_user_projects)
-                    .union(org_admin_projects)
-                )
-                self._project_queryset = Project.objects.filter(id__in=qs.values("id"))
-        return self._project_queryset.distinct()
+        """get Project queryset
+
+        :return: the queryset filtered of Project
+        """
+
+        if self._project_queryset is not None:
+            return self._project_queryset
+
+        q_filter = Q(publication_status=Project.PublicationStatus.PUBLIC)
+        q_filter |= Q(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations__in=get_objects_for_user(
+                self, "organizations.view_org_project"
+            ),
+        )
+        q_filter |= Q(
+            organizations__in=get_objects_for_user(self, "organizations.view_project")
+        )
+        q_filter |= Q(id__in=get_objects_for_user(self, "projects.view_project"))
+
+        # if user is superuser, we reset all preview filters ( to return all elements)
+        if self.is_superuser:
+            q_filter = Q()
+
+        self._project_queryset = Project.objects.filter(q_filter).distinct()
+        return self._project_queryset
 
     def get_news_queryset(self) -> QuerySet["News"]:
         if self._news_queryset is None:
