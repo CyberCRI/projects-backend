@@ -1,11 +1,10 @@
 from django.conf import settings
-from django.db.models import BigIntegerField, F, Prefetch, Q, QuerySet
+from django.db.models import F, Q, QuerySet
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework.decorators import action
 from rest_framework.settings import api_settings
 
-from apps.commons.utils import ArrayPosition
 from apps.commons.views import ListViewSet
 
 from .filters import SearchObjectFilter
