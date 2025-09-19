@@ -41,9 +41,9 @@ class ProjectSearchSerializer(
         if "request" in self.context:
             user = self.context["request"].user
             if not user.is_anonymous:
-                follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                follow = Follow.objects.filter(follower=user, project=project).first()
+                if follow is not None:
+                    return {"is_followed": True, "follow_id": follow.id}
         return {"is_followed": False, "follow_id": None}
 
 
