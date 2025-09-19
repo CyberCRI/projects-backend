@@ -704,7 +704,10 @@ class ProjectUser(
     def get_permissions_representations(self) -> List[str]:
         """Return a list of the permissions representations."""
         groups_permissions = [
-            get_group_permissions(group) for group in self.groups.all()
+            get_group_permissions(group)
+            for group in self.groups.select_related("data")
+            .prefetch_related("permissions")
+            .all()
         ]
         groups_permissions = [
             permission
