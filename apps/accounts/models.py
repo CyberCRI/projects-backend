@@ -628,34 +628,32 @@ class ProjectUser(
         return self._user_queryset.distinct()
 
     def get_people_group_queryset(self) -> QuerySet["PeopleGroup"]:
-        if self._people_group_queryset is None:
-            if self.is_superuser:
-                self._people_group_queryset = PeopleGroup.objects.all()
-            else:
-                public_groups = PeopleGroup.objects.filter(
-                    publication_status=PeopleGroup.PublicationStatus.PUBLIC
-                )
-                member_groups = get_objects_for_user(self, "accounts.view_peoplegroup")
-                org_user_groups = PeopleGroup.objects.filter(
-                    publication_status=PeopleGroup.PublicationStatus.ORG,
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_org_peoplegroup"
-                    ),
-                )
-                org_admin_groups = PeopleGroup.objects.filter(
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_peoplegroup"
-                    )
-                )
-                qs = (
-                    public_groups.union(member_groups)
-                    .union(org_user_groups)
-                    .union(org_admin_groups)
-                )
-                self._people_group_queryset = PeopleGroup.objects.filter(
-                    id__in=qs.values("id")
-                )
-        return self._people_group_queryset.distinct()
+        """get peopleGroup list authorized from the user requested
+
+        :return: the queryset filtered of PeopleGroup
+        """
+        if self._people_group_queryset is not None:
+            return self._people_group_queryset
+
+        q_filter = Q(publication_status=PeopleGroup.PublicationStatus.PUBLIC)
+        q_filter |= Q(id__in=get_objects_for_user(self, "accounts.view_peoplegroup"))
+        q_filter |= Q(publication_status=PeopleGroup.PublicationStatus.ORG) & Q(
+            organization__in=get_objects_for_user(
+                self, "organizations.view_org_peoplegroup"
+            )
+        )
+        q_filter |= Q(
+            organization__in=get_objects_for_user(
+                self, "organizations.view_peoplegroup"
+            )
+        )
+
+        # if user is superuser, we reset all preview filters ( to return all elements)
+        if self.is_superuser:
+            q_filter = Q()
+
+        self._people_group_queryset = PeopleGroup.objects.filter(q_filter).distinct()
+        return self._people_group_queryset
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
