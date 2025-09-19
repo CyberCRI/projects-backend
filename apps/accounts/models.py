@@ -1,6 +1,7 @@
 import math
 import uuid
 from datetime import date
+from functools import cached_property
 from typing import Any, List, Optional, Union
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -389,14 +390,15 @@ class ProjectUser(
             return str(self.keycloak_account.keycloak_id)
         return None
 
-    @property
+    @cached_property
     def is_superuser(self) -> bool:
         """
         Return True if user is in the superadmins group
         """
-        return self in get_superadmins_group().users.all()
+        group = get_superadmins_group()
+        return self.groups.filter(pk=group.pk).exists()
 
-    @property
+    @cached_property
     def is_staff(self) -> bool:
         """
         Needs to return True if user can access admin site
