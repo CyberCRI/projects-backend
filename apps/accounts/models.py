@@ -699,7 +699,7 @@ class ProjectUser(
 
     def can_see_project(self, project: "Project") -> bool:
         """Whether the user can see the project."""
-        return project in self.get_project_queryset()
+        return self.get_project_queryset().contains(project)
 
     def get_permissions_representations(self) -> List[str]:
         """Return a list of the permissions representations."""
