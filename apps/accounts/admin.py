@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from django.contrib import admin
 from django.contrib.auth.models import Group, Permission
 from django.db import transaction
@@ -10,6 +12,7 @@ from import_export.admin import ExportActionMixin  # type: ignore
 from apps.commons.admin import RoleBasedAccessAdmin
 from apps.emailing.models import Email
 from apps.organizations.models import Organization
+from apps.projects.models import Project
 from services.keycloak.interface import KeycloakService
 
 from .exports import UserResource
@@ -135,15 +138,15 @@ class GroupAdmin(admin.ModelAdmin):
         return format_html(f'<b style="color:{color};">{permissions_up_to_date}</b>')
 
     def permissions_up_to_date(self, instance: Group) -> str:
-        if instance.projects.exists():
+        with suppress(Project.DoesNotExist):
             return self.format_permissions_up_to_date(
                 instance.projects.get().permissions_up_to_date
             )
-        if instance.people_groups.exists():
+        with suppress(PeopleGroup.DoesNotExist):
             return self.format_permissions_up_to_date(
                 instance.people_groups.get().permissions_up_to_date
             )
-        if instance.organizations.exists():
+        with suppress(Organization.DoesNotExist):
             return self.format_permissions_up_to_date(
                 instance.organizations.get().permissions_up_to_date
             )
