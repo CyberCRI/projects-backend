@@ -24,12 +24,6 @@ class SearchViewSet(ListViewSet):
         groups = self.request.user.get_people_group_queryset()
         projects = self.request.user.get_project_queryset()
         users = self.request.user.get_user_queryset()
-        project_prefetch = Prefetch(
-            "project", queryset=projects.prefetch_related("categories")
-        )
-        people_group_prefetch = Prefetch(
-            "people_group", queryset=groups.select_related("organization")
-        )
         queryset = SearchObject.objects.filter(
             (
                 Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
@@ -38,7 +32,7 @@ class SearchViewSet(ListViewSet):
             )
             | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
             | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
-        ).prefetch_related(project_prefetch, people_group_prefetch)
+        ).select_related("user", "project", "people_group")
         if order:
             return queryset.order_by(F("last_update").desc(nulls_last=True))
         return queryset
@@ -76,7 +70,10 @@ class SearchViewSet(ListViewSet):
     @action(detail=False, methods=["GET"], url_path="(?P<search>.+)")
     def search(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
-        search_objects_ids = list(queryset.values_list("id", flat=True))
+        search_objects = list(queryset)
+
+        # generate ids for opensearch
+        search_objects_ids = [sobj.id for sobj in search_objects]
 
         query = self.kwargs.get("search", "")
         indices = [
@@ -122,16 +119,17 @@ class SearchViewSet(ListViewSet):
             search_object_id=search_objects_ids,
         )
         search_objects_ids = [hit.search_object_id for hit in response.hits]
-        ordered_queryset = (
-            SearchObject.objects.filter(id__in=search_objects_ids)
-            .annotate(
-                ordering=ArrayPosition(
-                    search_objects_ids, F("id"), base_field=BigIntegerField()
-                )
-            )
-            .order_by("ordering")
+
+        # remove searhc id not hits in opensearch
+        filtered_search_object = [
+            obj for obj in search_objects if obj.id in search_objects_ids
+        ]
+        # sort filtered_search_object by hits index
+        ordered_search_objs = sorted(
+            filtered_search_object, key=lambda obj: search_objects_ids.index(obj.id)
         )
+
         self.pagination_class = SearchPagination(response.hits.total.value)
-        page = self.paginate_queryset(ordered_queryset)
+        page = self.paginate_queryset(ordered_search_objs)
         serializer = self.get_serializer(page, many=True)
         return self.get_paginated_response(serializer.data)
