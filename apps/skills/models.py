@@ -193,7 +193,7 @@ class TagClassification(
             or classification_type == cls.TagClassificationType.CUSTOM
         ):
             raise ValueError("Invalid classification type")
-        classification, _ = cls.objects.get_or_create(
+        classification, _ = cls.objects.prefetch_related("tags").get_or_create(
             type=classification_type,
             defaults={
                 "title": classification_type,
