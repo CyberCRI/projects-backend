@@ -310,6 +310,7 @@ class ProjectUser(
         self._news_queryset: Optional[QuerySet["News"]] = None
         self._event_queryset: Optional[QuerySet["Event"]] = None
         self._instruction_queryset: Optional[QuerySet["Instruction"]] = None
+        self._related_organizations: list["Organization"] = None
 
     # AbstractUser unused fields
     username_validator = None
@@ -499,7 +500,11 @@ class ProjectUser(
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        return list(Organization.objects.filter(groups__users=self).distinct())
+        if self._related_organizations is None:
+            self._related_organizations = list(
+                Organization.objects.filter(groups__users=self).distinct()
+            )
+        return self._related_organizations
 
     def get_full_name(self) -> str:
         """Return the first_name plus the last_name, with a space in between."""
