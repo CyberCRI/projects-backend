@@ -244,6 +244,7 @@ class Project(
     def __init__(self, *args, **kwargs):
         super(Project, self).__init__(*args, **kwargs)
         self._original_description = self.description
+        self._related_organizations = None
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -375,7 +376,9 @@ class Project(
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        return self.organizations.all()
+        if self._related_organizations is None:
+            self._related_organizations = list(self.organizations.all())
+        return self._related_organizations
 
     def get_default_owners_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
