@@ -267,8 +267,9 @@ class ProjectLightSerializer(
             user = self.context["request"].user
             if not user.is_anonymous:
                 follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
 
@@ -621,8 +622,9 @@ class ProjectSerializer(
             user = self.context["request"].user
             if not user.is_anonymous:
                 follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
     @transaction.atomic
