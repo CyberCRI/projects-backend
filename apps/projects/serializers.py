@@ -705,11 +705,11 @@ class ProjectSerializer(
             )
             or user.is_superuser
             or any(
-                (user in o.admins.all() or user in o.facilitators.all())
+                (o.admins.all() | o.facilitators.all()).contains(user)
                 for o in self.instance.organizations.all()
             )
-            or user in self.instance.reviewers.all()
-            or user in self.instance.reviewer_groups_users.all()
+            or self.instance.reviewers.contains(user)
+            or self.instance.reviewer_groups_users.contains(user)
         ):
             return value
         raise OnlyReviewerCanChangeStatusError
