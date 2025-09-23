@@ -81,11 +81,21 @@ class PostDeployProcess(models.Model):
             cls._tasks = {
                 key: value for key, value in cls._tasks.items() if value.run_in_tests
             }
+        bulk_update_or_create = []
         for task in cls._tasks.values():
-            cls.objects.update_or_create(
-                task_name=task.task_name,
-                defaults={"priority": task.priority},
+            bulk_update_or_create.append(
+                cls(task_name=task.task_name, priority=task.priority)
             )
+
+        # when using bulk_create with update_conflicts=True
+        # is like when object match the "unique_fields", update the "update_fields"
+        # otherwise insert
+        cls.objects.bulk_create(
+            bulk_update_or_create,
+            update_conflicts=True,
+            unique_fields=["task_name"],
+            update_fields=["priority"],
+        )
         cls.objects.exclude(task_name__in=cls._tasks.keys()).delete()
 
     @classmethod
