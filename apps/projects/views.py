@@ -104,7 +104,22 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        return self.request.user.get_project_queryset().prefetch_related("categories")
+        return (
+            self.request.user.get_project_queryset()
+            .select_related("header_image")
+            .prefetch_related(
+                "categories",
+                "tags",
+                "organizations",
+                "reviews",
+                "locations",
+                "announcements",
+                "links",
+                "files",
+                "images",
+                "blog_entries",
+            )
+        )
 
     def get_serializer_class(self):
         is_summary = (
