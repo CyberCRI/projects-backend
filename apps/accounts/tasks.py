@@ -14,7 +14,9 @@ def calculate_users_scores():
     bulk_update: list[UserScore] = []
     bulk_create: list[UserScore] = []
 
-    for user in ProjectUser.objects.prefetch_related("skills").all():
+    for user in (
+        ProjectUser.objects.select_related("score").prefetch_related("skills").all()
+    ):
         user.calculate_score()
         if user.score.pk:
             bulk_update.append(user.score)
