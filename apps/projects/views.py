@@ -492,8 +492,12 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
-            return self.request.user.get_project_related_queryset(
-                BlogEntry.objects.filter(project=self.kwargs["project_id"])
+            return (
+                self.request.user.get_project_related_queryset(
+                    BlogEntry.objects.filter(project=self.kwargs["project_id"])
+                )
+                .prefetch_related("images")
+                .select_related("project")
             )
         return BlogEntry.objects.none()
 
