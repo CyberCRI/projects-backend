@@ -23,15 +23,25 @@ class SearchViewSet(ListViewSet):
         groups = self.request.user.get_people_group_queryset()
         projects = self.request.user.get_project_queryset()
         users = self.request.user.get_user_queryset()
-        queryset = SearchObject.objects.filter(
-            (
-                Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
-                & Q(people_group__in=groups)
-                & Q(people_group__is_root=False)
+        queryset = (
+            SearchObject.objects.filter(
+                (
+                    Q(type=SearchObject.SearchObjectType.PEOPLE_GROUP)
+                    & Q(people_group__in=groups)
+                    & Q(people_group__is_root=False)
+                )
+                | (
+                    Q(type=SearchObject.SearchObjectType.PROJECT)
+                    & Q(project__in=projects)
+                )
+                | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
             )
-            | (Q(type=SearchObject.SearchObjectType.PROJECT) & Q(project__in=projects))
-            | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
-        ).select_related("user", "project", "people_group")
+            .select_related("user", "project__header_image", "people_group")
+            .prefetch_related(
+                "people_group__organization",
+                "project__categories",
+            )
+        )
         if order:
             return queryset.order_by(F("last_update").desc(nulls_last=True))
         return queryset
