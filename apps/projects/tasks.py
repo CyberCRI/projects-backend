@@ -31,9 +31,13 @@ def calculate_projects_scores():
     bulk_update: list[ProjectScore] = []
     bulk_create: list[ProjectScore] = []
 
-    for project in Project.objects.prefetch_related(
-        "links", "files", "blog_entries", "locations", "goals", "follows"
-    ).all():
+    for project in (
+        Project.objects.select_related("score")
+        .prefetch_related(
+            "links", "files", "blog_entries", "locations", "goals", "follows"
+        )
+        .all()
+    ):
         project.calculate_score()
         if project.score.pk:
             bulk_update.append(project.score)
