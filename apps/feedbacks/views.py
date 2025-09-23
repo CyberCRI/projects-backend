@@ -193,7 +193,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 Q(reply_on__isnull=False)
                 | (Q(deleted_at__isnull=False) & Q(replies=None))
             )
-        return qs.select_related("author")
+        return qs.select_related("author").prefetch_related("replies", "images")
 
     def create(self, request, *args, **kwargs):
         get_object_or_404(
