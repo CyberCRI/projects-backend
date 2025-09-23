@@ -139,9 +139,12 @@ class UserFollowViewSet(FollowViewSet):
         serializer.is_valid(raise_exception=True)
         user = ProjectUser.objects.get(id=kwargs["user_id"])
         with transaction.atomic():
+            bulk_create = []
             for follow in serializer.validated_data["follows"]:
                 self.check_linked_project_permission(follow["project"])
-                Follow.objects.create(project=follow["project"], follower=user)
+                bulk_create.append(Follow(project=follow["project"], follower=user))
+            Follow.objects.bulk_create(bulk_create)
+
         context = {"request": request}
         return Response(
             FollowSerializer(
