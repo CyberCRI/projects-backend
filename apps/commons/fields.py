@@ -213,9 +213,8 @@ class PrivacySettingFieldMixin:
         request = self.context.get("request")
         assert request is not None
 
-        if (
-            instance == request.user
-            or get_superadmins_group() in request.user.groups.all()
+        if instance == request.user or request.user.groups.contains(
+            get_superadmins_group()
         ):
             return True
         settings, _ = PrivacySettings.objects.get_or_create(user=instance)
