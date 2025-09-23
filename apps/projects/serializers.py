@@ -601,8 +601,10 @@ class ProjectSerializer(
 
     @staticmethod
     def get_last_comment(project: Project) -> Optional[Dict]:
-        recent = project.comments.filter(reply_on=None).order_by("-created_at")
-        return CommentSerializer(recent.first()).data if recent.exists() else None
+        last_comment = (
+            project.comments.filter(reply_on=None).order_by("-created_at").first()
+        )
+        return CommentSerializer(last_comment).data if last_comment else None
 
     def get_template(self, project: Project) -> Optional[Dict]:
         return (
