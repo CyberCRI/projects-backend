@@ -781,7 +781,9 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
             if self.action in ["retrieve", "list"]:
                 queryset = queryset.exclude(reply_on__isnull=False)
-            return queryset.select_related("author")
+            return queryset.select_related("author").prefetch_related(
+                "replies", "images"
+            )
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):
