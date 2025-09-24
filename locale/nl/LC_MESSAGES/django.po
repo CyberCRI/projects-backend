@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-12 15:22+0200\n"
+"POT-Creation-Date: 2025-09-24 11:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Je kunt deze rol niet toewijzen aan een gebruiker"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker: {role}"
 
-#: apps/accounts/models.py:136 apps/projects/models.py:161
+#: apps/accounts/models.py:137 apps/projects/models.py:161
 msgid "visibility"
 msgstr "zichtbaarheid"
 
@@ -178,16 +178,16 @@ msgstr "Onbekende publicatiestatus"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Onbekende publicatiestatus '{publication_status}'"
 
-#: apps/commons/fields.py:29 apps/skills/serializers.py:107
+#: apps/commons/fields.py:30 apps/skills/serializers.py:107
 msgid "This field is required."
 msgstr "Dit veld is verplicht."
 
-#: apps/commons/fields.py:30
+#: apps/commons/fields.py:31
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Ongeldige id \"{user_id}\" - object bestaat niet."
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:112
+#: apps/commons/fields.py:33 apps/skills/serializers.py:112
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Onjuist type. Verwachte stringwaarde, ontvangen {data_type}."
