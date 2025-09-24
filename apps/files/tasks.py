@@ -14,8 +14,8 @@ def delete_orphan_images(threshold: int = None):
         was not assigned to any model. Default to
         `settings.IMAGE_ORPHAN_THRESHOLD_SECONDS`.
     """
-    deleted = []
-    for image in Image.get_orphan_images(threshold):
-        deleted.append(image.pk)
-        image.delete()  # Delete the DB entry
+
+    qs = Image.get_orphan_images(threshold)
+    deleted = list(qs.values_list("pk", flat=True))
+    qs.delete()
     return deleted
