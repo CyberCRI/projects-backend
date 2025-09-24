@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from contextlib import suppress
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.apps import apps
@@ -279,13 +280,17 @@ class Image(
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
-        if self.user.exists():
+        from apps.accounts.models import ProjectUser
+
+        with suppress(ProjectUser.DoesNotExist):
             return self.user.get() == user
         return self.owner == user
 
     def get_owner(self):
         """Get the owner of the object."""
-        if self.user.exists():
+        from apps.accounts.models import ProjectUser
+
+        with suppress(ProjectUser.DoesNotExist):
             return self.user.get()
         return self.owner
 
@@ -331,8 +336,12 @@ class Image(
         related_project = self.get_related_project()
         if related_project:
             return related_project.get_related_organizations()
-        if self.user.exists():
+
+        from apps.accounts.models import ProjectUser
+
+        with suppress(ProjectUser.DoesNotExist):
             return self.user.get().get_related_organizations()
+
         Organization = apps.get_model("organizations", "Organization")  # noqa
         return list(
             Organization.objects.filter(
@@ -372,7 +381,7 @@ class Image(
             | Q(additional_tabs__images=self)
             | Q(additional_tabs__items__images=self)
         ).distinct()
-        if queryset.exists():
+        with suppress(Project.DoesNotExist):
             return queryset.first()
         return None
 
