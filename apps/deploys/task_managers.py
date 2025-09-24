@@ -1,5 +1,7 @@
 from typing import Callable
 
+from django.db.models import Count, Q
+
 from apps.commons.mixins import HasPermissionsSetup
 
 from .tasks import (
@@ -100,10 +102,15 @@ class InstanceGroupsPermissions(PostDeployTask):
 
     def get_progress(self):
         models = HasPermissionsSetup.__subclasses__()
-        updated_objects = sum(
-            [m.objects.filter(permissions_up_to_date=True).count() for m in models]
-        )
-        total_objects = sum([m.objects.count() for m in models])
+        updated_objects = total_objects = 0
+        for model in models:
+            result = model.objects.aggregate(
+                updated_objects=Count("id", filter=Q(permissions_up_to_date=True)),
+                total=Count("id"),
+            )
+            updated_objects += result["updated_objects"]
+            total_objects += result["total"]
+
         return f"{str(round((updated_objects / total_objects)*100, 2))}%"
 
 

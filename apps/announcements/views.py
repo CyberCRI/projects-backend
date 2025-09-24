@@ -48,7 +48,7 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
-        return qs.select_related("project").distinct()
+        return qs.select_related("project__header_image").distinct()
 
     def perform_create(self, serializer):
         announcement = serializer.save()
