@@ -4,13 +4,22 @@ import logging
 from collections import defaultdict
 from typing import Callable
 
+import jsonschema
 import pika
 from django.conf import settings
+from pika.adapters.blocking_connection import BlockingChannel
 
 logger = logging.getLogger(__name__)
 
 
 # Event/Type from crisalid https://github.com/CRISalid-esr/crisalid-ikg/tree/dev-main/app/amqp
+class CrisalidTypeEnum(enum.StrEnum):
+    PERSONE = "persone"
+    RESEARCH = "research_structure"
+    HARVESTING = "harvesting_result_event"
+    DOCUMENT = "document"
+
+
 class CrisalidEventEnum(enum.StrEnum):
     UPDATED = "updated"
     CREATED = "created"
@@ -18,11 +27,23 @@ class CrisalidEventEnum(enum.StrEnum):
     UNCHANGED = "unchanged"
 
 
-class CrisalidTypeEnum(enum.StrEnum):
-    PERSONE = "persone"
-    RESEARCH = "research_structure"
-    HARVESTING = "harvesting_result_event"
-    DOCUMENT = "document"
+# schema received from crisalid
+CRISALID_MESSAGE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "type": {
+            "enum": [v.value for v in CrisalidTypeEnum],
+        },
+        "event": {
+            "enum": [v.value for v in CrisalidEventEnum],
+        },
+        "fields": {
+            "type": "object"
+            # TODO(remi): speficied all fields types ?
+        },
+    },
+    "required": ["type", "event", "fields"],
+}
 
 
 class CrisalidBusClient:
@@ -34,26 +55,33 @@ class CrisalidBusClient:
         self.conn: pika.BlockingConnection | None = None
         self._run: bool = True
         self._consumer: dict[CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]] = (
-            defaultdict(lambda: defaultdict(None))
+            defaultdict(lambda: defaultdict(lambda: None))
         )
 
-    def callback(
+    def add_callback(
         self, type: CrisalidTypeEnum, event: CrisalidEventEnum, callback: Callable
     ):
         assert (
-            event not in self._consumer[type]
+            event.value not in self._consumer[type.value]
         ), f"Event {type}::{event}, is already set"
+
         # add callback
-        self._consumer[type][event] = callback
+        self._consumer[type.value][event.value] = callback
         return callback
 
     def connect(self):
         assert self.conn is None, "rabimqt is already started"
 
         parameters = {
-            "host": settings.CRISALID_BUS["HOST"],
+            "host": settings.CRISALID_BUS["host"],
             "port": settings.CRISALID_BUS["port"],
         }
+
+        if not all(parameters.values()):
+            logger.critical(
+                "Can't instantiate CrisalidBus: invalid parameters, %s", parameters
+            )
+            return
 
         # run in loop to retry when connection is lost
         while self._run:
@@ -102,12 +130,12 @@ class CrisalidBusClient:
         self.disconnect()
 
     def _dispatch(
-        self, chanel: pika.BlockingChanel, method: str, properties: dict, body: str
+        self, chanel: BlockingChannel, method: str, properties: dict, body: str
     ):
         """Global callback to get message, and dispatch on every listener"""
 
         logger.debug("Receive message method=%r", method)
-        logger.debug("payload: %s", payload)
+        logger.debug("body: %s", body)
 
         # all message sended is json "stringify"
         try:
@@ -116,12 +144,11 @@ class CrisalidBusClient:
             logger.exception("Impossible to decode json body: %s", str(e))
             return
 
-        if "type" not in payload:
-            logger.error("Invalid payload, 'type' not set")
-            return
-
-        if "event" not in payload:
-            logger.error("Invalid payload, 'event' not set")
+        # validate schema
+        try:
+            jsonschema.validate(payload, CRISALID_MESSAGE_SCHEMA)
+        except jsonschema.exceptions.ValidationError as e:
+            logger.exception("Can't validate payload format: %s", str(e))
             return
 
         type = payload["type"]
@@ -134,18 +161,8 @@ class CrisalidBusClient:
         logger.debug("Call %s", event_callback)
 
         # call callack in celery queue
-        event_callback.apply(payload)
+        event_callback(payload)
 
 
-# init only one class, TODO: nedd to create a singleton type ?
+# TODO(remi): nedd to create a singleton type ?
 crisalid_bus_client = CrisalidBusClient()
-
-
-def callback(type: CrisalidTypeEnum, event: CrisalidEventEnum):
-    """Decorator to easier add callback to event crisalid bus"""
-
-    def _wraps(func):
-        crisalid_bus_client.callback(type, event, func)
-        return func
-
-    return _wraps

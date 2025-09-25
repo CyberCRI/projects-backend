@@ -706,3 +706,8 @@ AZURE_TRANSLATOR_ENDPOINT = os.getenv(
 
 CRISALID_API_URL = os.getenv("CRISALID_API_URL", "http://crisalid-apollo:4000")
 CRISALID_API_TOKEN = os.getenv("CRISALID_API_TOKEN", "crisalid-apollo-key")
+
+CRISALID_BUS = {
+    "host": os.getenv("CRISALID_BUS_HOST"),
+    "port": os.getenv("CRISALID_BUS_PORT"),
+}
