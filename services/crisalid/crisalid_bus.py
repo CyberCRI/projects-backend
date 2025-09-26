@@ -52,6 +52,7 @@ class CrisalidBusClient:
 
     def __init__(self):
         self.conn: pika.BlockingConnection | None = None
+        self._channel = pika.chanel.Channel
         self._run: bool = True
         self._consumer: dict[CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]] = (
             defaultdict(lambda: defaultdict(lambda: None))
@@ -93,16 +94,16 @@ class CrisalidBusClient:
                 self.conn = pika.BlockingConnection(
                     pika.ConnectionParameters(**parameters)
                 )
-                channel = self.conn.channel()
+                self._channel = self.conn.channel()
 
-                channel.queue_declare(queue=CrisalidBusClient.QUEUE_NAME)
-                channel.basic_consume(
+                self._channel.queue_declare(queue=CrisalidBusClient.QUEUE_NAME)
+                self._channel.basic_consume(
                     queue=CrisalidBusClient.QUEUE_NAME,
                     auto_ack=True,
                     on_message_callback=self._dispatch,
                 )
 
-                logger.info("Start Consuming")
+                logger.info("Start channel Consuming")
                 self._channel.start_consuming()
                 break
 
@@ -126,6 +127,8 @@ class CrisalidBusClient:
 
         self.conn.close()
         self.conn = None
+        self._channel.cancel()
+        self._channel = None
 
     def __delete__(self):
         # for disconnect when class is deleted
