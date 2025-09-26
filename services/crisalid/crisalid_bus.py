@@ -52,7 +52,7 @@ class CrisalidBusClient:
 
     def __init__(self):
         self.conn: pika.BlockingConnection | None = None
-        self._channel = pika.chanel.Channel
+        self._channel = pika.channel.Channel
         self._run: bool = True
         self._consumer: dict[CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]] = (
             defaultdict(lambda: defaultdict(lambda: None))
