@@ -21,10 +21,10 @@ class TestCrisalidBus(test.TestCase):
                 "event": CrisalidEventEnum.CREATED.value,
                 "fields": cls.fields,
             }
-        )
-        cls.chanel = None
-        cls.properties = {}
-        cls.method = ""
+        ).encode()
+        cls.chanel = Mock()
+        cls.properties = Mock()
+        cls.method = Mock()
 
     def setUp(self):
         self.client = CrisalidBusClient()
@@ -64,12 +64,12 @@ class TestCrisalidBus(test.TestCase):
         )
 
         # this run withtout called any callback, invalid payload "string"
-        payload = ""
+        payload = b""
         self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
         # empty object {}
-        payload = json.dumps({})
+        payload = json.dumps({}).encode()
         self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
@@ -80,7 +80,7 @@ class TestCrisalidBus(test.TestCase):
                 "event": CrisalidEventEnum.CREATED.value,
                 "type": "invalid_type",
             }
-        )
+        ).encode()
         self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
@@ -91,7 +91,7 @@ class TestCrisalidBus(test.TestCase):
                 "type": CrisalidTypeEnum.DOCUMENT.value,
                 "event": "invalid_event",
             }
-        )
+        ).encode()
         self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
@@ -102,6 +102,18 @@ class TestCrisalidBus(test.TestCase):
                 "type": CrisalidTypeEnum.DOCUMENT.value,
                 "event": CrisalidEventEnum.CREATED.value,
             }
-        )
+        ).encode()
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
+        callback.assert_not_called()
+
+        # invalid decode str
+        # invalid fields
+        payload = json.dumps(
+            {
+                "fields": "",
+                "type": CrisalidTypeEnum.DOCUMENT.value,
+                "event": CrisalidEventEnum.CREATED.value,
+            }
+        ).encode("ascii")
         self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()

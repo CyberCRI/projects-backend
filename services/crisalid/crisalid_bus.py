@@ -7,7 +7,6 @@ from typing import Callable
 import jsonschema
 import pika
 from django.conf import settings
-from pika.adapters.blocking_connection import BlockingChannel
 
 logger = logging.getLogger(__name__)
 
@@ -59,14 +58,17 @@ class CrisalidBusClient:
         )
 
     def add_callback(
-        self, type: CrisalidTypeEnum, event: CrisalidEventEnum, callback: Callable
+        self,
+        crisalid_type: CrisalidTypeEnum,
+        crisalid_event: CrisalidEventEnum,
+        callback: Callable,
     ):
         assert (
-            event.value not in self._consumer[type.value]
-        ), f"Event {type}::{event}, is already set"
+            crisalid_type.value not in self._consumer[crisalid_type.value]
+        ), f"Event {crisalid_type}::{crisalid_event}, is already set"
 
         # add callback
-        self._consumer[type.value][event.value] = callback
+        self._consumer[crisalid_type.value][crisalid_event.value] = callback
         return callback
 
     def connect(self):
@@ -130,16 +132,24 @@ class CrisalidBusClient:
         self.disconnect()
 
     def _dispatch(
-        self, chanel: BlockingChannel, method: str, properties: dict, body: str
+        self,
+        chanel: pika.channel.Channel,
+        method: pika.spec.Basic.Deliver,
+        properties: pika.spec.BasicProperties,
+        body: bytes,
     ):
         """Global callback to get message, and dispatch on every listener"""
 
-        logger.debug("Receive message method=%r", method)
+        logger.debug("Receive message tag=%r", method.delivery_tag)
         logger.debug("body: %s", body)
 
         # all message sended is json "stringify"
         try:
-            payload = json.loads(body)
+            body_str = body.decode()
+            payload = json.loads(body_str)
+        except UnicodeDecodeError as e:
+            logger.exception("Impossible to decode bytes body: %s", str(e))
+            return
         except (TypeError, ValueError) as e:
             logger.exception("Impossible to decode json body: %s", str(e))
             return
@@ -151,13 +161,13 @@ class CrisalidBusClient:
             logger.exception("Can't validate payload format: %s", str(e))
             return
 
-        type = payload["type"]
-        event = payload["event"]
-        if not self._consumer[type][event]:
-            logger.info("Not listener for event: %r", event)
+        crisalid_type = payload["type"]
+        crisalid_event = payload["event"]
+        if not self._consumer[crisalid_type][crisalid_event]:
+            logger.info("Not listener for event: %s::%s", crisalid_type, crisalid_event)
             return
 
-        event_callback = self._consumer[type][event]
+        event_callback = self._consumer[crisalid_type][crisalid_event]
         logger.debug("Call %s", event_callback)
 
         # call callack in celery queue
