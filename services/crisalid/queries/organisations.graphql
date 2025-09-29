@@ -1,0 +1,15 @@
+query Organisations($limit: Int, $offset: Int, $where: OrganisationWhere) {
+  organisations(limit: $limit, offset: $offset, where: $where) {
+    uid
+    acronym
+    types
+    names {
+      language
+      value
+    }
+    identifiers {
+      type
+      value
+    }
+  }
+}
