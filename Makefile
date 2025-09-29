@@ -83,7 +83,7 @@ bandit:
 
 .PHONY: flake8
 flake8:
-	flake8 .
+	flake8 apps projects services
 
 .PHONY: lint
 lint: flake8 bandit
