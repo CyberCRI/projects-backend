@@ -12,7 +12,7 @@ build:
 
 .PHONY: bash
 bash:
-	docker exec -it projects bash
+	docker exec -it projects-backend bash
 
 .PHONY: fullstack
 fullstack:
