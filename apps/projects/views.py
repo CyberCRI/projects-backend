@@ -104,7 +104,22 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        return self.request.user.get_project_queryset().prefetch_related("categories")
+        return (
+            self.request.user.get_project_queryset()
+            .select_related("header_image")
+            .prefetch_related(
+                "categories",
+                "tags",
+                "organizations",
+                "reviews",
+                "locations",
+                "announcements",
+                "links",
+                "files",
+                "images",
+                "blog_entries",
+            )
+        )
 
     def get_serializer_class(self):
         is_summary = (
@@ -477,8 +492,12 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
-            return self.request.user.get_project_related_queryset(
-                BlogEntry.objects.filter(project=self.kwargs["project_id"])
+            return (
+                self.request.user.get_project_related_queryset(
+                    BlogEntry.objects.filter(project=self.kwargs["project_id"])
+                )
+                .prefetch_related("images")
+                .select_related("project")
             )
         return BlogEntry.objects.none()
 
@@ -762,7 +781,9 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
             if self.action in ["retrieve", "list"]:
                 queryset = queryset.exclude(reply_on__isnull=False)
-            return queryset.select_related("author")
+            return queryset.select_related("author").prefetch_related(
+                "replies", "images"
+            )
         return ProjectMessage.objects.none()
 
     def perform_create(self, serializer):

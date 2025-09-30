@@ -64,30 +64,31 @@ class Email(models.Model):
         return self.sent_to.count() == self.recipients.count()
 
     def send(self):
-        for user in self.recipients.all():
-            if user not in self.sent_to.all():
-                try:
-                    language = user.language
-                    subject = getattr(self, f"subject_{language}")
-                    context = {
-                        "message": getattr(self, f"content_{language}"),
-                        "recipient": user,
-                    }
-                    text, html = render_message(
-                        f"contact/contact/{self.template}", user.language, **context
-                    )
-                    if (
-                        self.send_to == self.EmailTypeChoices.PRIMARY
-                        or not user.personal_email
-                    ):
-                        send_email(subject, text, [user.email], html_content=html)
-                    else:
-                        send_email(
-                            subject, text, [user.personal_email], html_content=html
-                        )
-                    self.sent_to.add(user)
-                except SMTPException as e:
-                    logger.error(f"Failed to send email to user {user.email} : {e}")
+        users_not_sent = self.recipients.exclude(id__in=self.sent_to.all())
+        users_sent = []
+        for user in users_not_sent:
+            try:
+                language = user.language
+                subject = getattr(self, f"subject_{language}")
+                context = {
+                    "message": getattr(self, f"content_{language}"),
+                    "recipient": user,
+                }
+                text, html = render_message(
+                    f"contact/contact/{self.template}", user.language, **context
+                )
+                if (
+                    self.send_to == self.EmailTypeChoices.PRIMARY
+                    or not user.personal_email
+                ):
+                    send_email(subject, text, [user.email], html_content=html)
+                else:
+                    send_email(subject, text, [user.personal_email], html_content=html)
+                users_sent.append(user)
+            except SMTPException as e:
+                logger.error(f"Failed to send email to user {user.email} : {e}")
+        # add all sended user to the send_to list
+        self.sent_to.add(*users_sent)
 
     def send_test(self, user: "ProjectUser"):
         for language in settings.REQUIRED_LANGUAGES:

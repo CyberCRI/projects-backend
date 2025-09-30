@@ -1,5 +1,6 @@
 import logging
 import uuid
+from contextlib import suppress
 
 from django.conf import settings
 from django.contrib.auth.backends import ModelBackend
@@ -118,7 +119,7 @@ class ProjectJWTAuthentication(JWTAuthentication):
             token=uuid.UUID(validated_token.decode("utf-8")),
             expire_at__gt=timezone.localtime(timezone.now()),
         )
-        if queryset.exists():
+        with suppress(Invitation.DoesNotExist):
             return InvitationUser(invitation=queryset.get())
         raise InvalidInvitationError
 

@@ -1,4 +1,5 @@
 import inspect
+from contextlib import suppress
 
 from django.contrib.auth.models import Group
 from django.db.models import QuerySet
@@ -200,9 +201,10 @@ class PrivacySettingFieldMixin:
                 if getattr(user, self.source_attrs[0]) == value
             ][0]
         if self.source_attrs:
-            queryset = ProjectUser.objects.filter(**{self.source_attrs[0]: value})
-            if queryset.count() == 1:
-                return queryset.get()
+            with suppress(
+                ProjectUser.MultipleObjectsReturned, ProjectUser.DoesNotExist
+            ):
+                return ProjectUser.objects.get(**{self.source_attrs[0]: value})
         return None
 
     def _check_privacy_settings(self, value):
@@ -211,9 +213,8 @@ class PrivacySettingFieldMixin:
         request = self.context.get("request")
         assert request is not None
 
-        if (
-            instance == request.user
-            or get_superadmins_group() in request.user.groups.all()
+        if instance == request.user or request.user.groups.contains(
+            get_superadmins_group()
         ):
             return True
         settings, _ = PrivacySettings.objects.get_or_create(user=instance)

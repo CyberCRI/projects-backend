@@ -1,6 +1,7 @@
 import math
 import uuid
 from datetime import date
+from functools import cached_property
 from typing import Any, List, Optional, Union
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -309,6 +310,7 @@ class ProjectUser(
         self._news_queryset: Optional[QuerySet["News"]] = None
         self._event_queryset: Optional[QuerySet["Event"]] = None
         self._instruction_queryset: Optional[QuerySet["Instruction"]] = None
+        self._related_organizations: list["Organization"] = None
 
     # AbstractUser unused fields
     username_validator = None
@@ -389,14 +391,15 @@ class ProjectUser(
             return str(self.keycloak_account.keycloak_id)
         return None
 
-    @property
+    @cached_property
     def is_superuser(self) -> bool:
         """
         Return True if user is in the superadmins group
         """
-        return self in get_superadmins_group().users.all()
+        group = get_superadmins_group()
+        return self.groups.filter(pk=group.pk).exists()
 
-    @property
+    @cached_property
     def is_staff(self) -> bool:
         """
         Needs to return True if user can access admin site
@@ -497,39 +500,43 @@ class ProjectUser(
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        return list(Organization.objects.filter(groups__users=self).distinct())
+        if self._related_organizations is None:
+            self._related_organizations = list(
+                Organization.objects.filter(groups__users=self).distinct()
+            )
+        return self._related_organizations
 
     def get_full_name(self) -> str:
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
     def get_project_queryset(self) -> QuerySet["Project"]:
-        if self._project_queryset is None:
-            if self.is_superuser:
-                self._project_queryset = Project.objects.all()
-            else:
-                public_projects = Project.objects.filter(
-                    publication_status=Project.PublicationStatus.PUBLIC
-                )
-                member_projects = get_objects_for_user(self, "projects.view_project")
-                org_user_projects = Project.objects.filter(
-                    publication_status=Project.PublicationStatus.ORG,
-                    organizations__in=get_objects_for_user(
-                        self, "organizations.view_org_project"
-                    ),
-                )
-                org_admin_projects = Project.objects.filter(
-                    organizations__in=get_objects_for_user(
-                        self, "organizations.view_project"
-                    )
-                )
-                qs = (
-                    public_projects.union(member_projects)
-                    .union(org_user_projects)
-                    .union(org_admin_projects)
-                )
-                self._project_queryset = Project.objects.filter(id__in=qs.values("id"))
-        return self._project_queryset.distinct()
+        """get Project queryset
+
+        :return: the queryset filtered of Project
+        """
+
+        if self._project_queryset is not None:
+            return self._project_queryset
+
+        q_filter = Q(publication_status=Project.PublicationStatus.PUBLIC)
+        q_filter |= Q(
+            publication_status=Project.PublicationStatus.ORG,
+            organizations__in=get_objects_for_user(
+                self, "organizations.view_org_project"
+            ),
+        )
+        q_filter |= Q(
+            organizations__in=get_objects_for_user(self, "organizations.view_project")
+        )
+        q_filter |= Q(id__in=get_objects_for_user(self, "projects.view_project"))
+
+        # if user is superuser, we reset all preview filters ( to return all elements)
+        if self.is_superuser:
+            q_filter = Q()
+
+        self._project_queryset = Project.objects.filter(q_filter).distinct()
+        return self._project_queryset
 
     def get_news_queryset(self) -> QuerySet["News"]:
         if self._news_queryset is None:
@@ -598,62 +605,64 @@ class ProjectUser(
         return self._event_queryset.distinct()
 
     def get_user_queryset(self) -> QuerySet["ProjectUser"]:
-        if self._user_queryset is None:
-            if self.is_superuser:
-                self._user_queryset = ProjectUser.objects.all()
-            else:
-                request_user = ProjectUser.objects.filter(id=self.id)
-                public_users = ProjectUser.objects.filter(
-                    privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
-                )
-                org_user_users = ProjectUser.objects.filter(
-                    privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION,
-                    groups__organizations__in=get_objects_for_user(
-                        self, "organizations.view_org_projectuser"
-                    ),
-                )
-                org_admin_users = ProjectUser.objects.filter(
-                    groups__organizations__in=get_objects_for_user(
-                        self, "organizations.view_projectuser"
-                    )
-                )
-                qs = (
-                    request_user.union(public_users)
-                    .union(org_user_users)
-                    .union(org_admin_users)
-                )
-                self._user_queryset = ProjectUser.objects.filter(id__in=qs.values("id"))
-        return self._user_queryset.distinct()
+        """get ProjectUser queryset
+
+        :return: the queryset filtered of ProjectUser
+        """
+
+        if self._user_queryset is not None:
+            return self._user_queryset
+
+        q_filter = Q(id=self.id)
+        q_filter |= Q(
+            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.PUBLIC
+        )
+        q_filter |= Q(
+            privacy_settings__publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION
+        ) & Q(
+            groups__organizations__in=get_objects_for_user(
+                self, "organizations.view_org_projectuser"
+            )
+        )
+        q_filter |= Q(
+            groups__organizations__in=get_objects_for_user(
+                self, "organizations.view_projectuser"
+            )
+        )
+
+        # if user is superuser, we reset all preview filters ( to return all elements)
+        if self.is_superuser:
+            q_filter = Q()
+        self._user_queryset = ProjectUser.objects.filter(q_filter).distinct()
+        return self._user_queryset
 
     def get_people_group_queryset(self) -> QuerySet["PeopleGroup"]:
-        if self._people_group_queryset is None:
-            if self.is_superuser:
-                self._people_group_queryset = PeopleGroup.objects.all()
-            else:
-                public_groups = PeopleGroup.objects.filter(
-                    publication_status=PeopleGroup.PublicationStatus.PUBLIC
-                )
-                member_groups = get_objects_for_user(self, "accounts.view_peoplegroup")
-                org_user_groups = PeopleGroup.objects.filter(
-                    publication_status=PeopleGroup.PublicationStatus.ORG,
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_org_peoplegroup"
-                    ),
-                )
-                org_admin_groups = PeopleGroup.objects.filter(
-                    organization__in=get_objects_for_user(
-                        self, "organizations.view_peoplegroup"
-                    )
-                )
-                qs = (
-                    public_groups.union(member_groups)
-                    .union(org_user_groups)
-                    .union(org_admin_groups)
-                )
-                self._people_group_queryset = PeopleGroup.objects.filter(
-                    id__in=qs.values("id")
-                )
-        return self._people_group_queryset.distinct()
+        """get peopleGroup list authorized from the user requested
+
+        :return: the queryset filtered of PeopleGroup
+        """
+        if self._people_group_queryset is not None:
+            return self._people_group_queryset
+
+        q_filter = Q(publication_status=PeopleGroup.PublicationStatus.PUBLIC)
+        q_filter |= Q(id__in=get_objects_for_user(self, "accounts.view_peoplegroup"))
+        q_filter |= Q(publication_status=PeopleGroup.PublicationStatus.ORG) & Q(
+            organization__in=get_objects_for_user(
+                self, "organizations.view_org_peoplegroup"
+            )
+        )
+        q_filter |= Q(
+            organization__in=get_objects_for_user(
+                self, "organizations.view_peoplegroup"
+            )
+        )
+
+        # if user is superuser, we reset all preview filters ( to return all elements)
+        if self.is_superuser:
+            q_filter = Q()
+
+        self._people_group_queryset = PeopleGroup.objects.filter(q_filter).distinct()
+        return self._people_group_queryset
 
     def get_project_related_queryset(
         self, queryset: QuerySet, project_related_name: str = "project"
@@ -695,12 +704,15 @@ class ProjectUser(
 
     def can_see_project(self, project: "Project") -> bool:
         """Whether the user can see the project."""
-        return project in self.get_project_queryset()
+        return self.get_project_queryset().contains(project)
 
     def get_permissions_representations(self) -> List[str]:
         """Return a list of the permissions representations."""
         groups_permissions = [
-            get_group_permissions(group) for group in self.groups.all()
+            get_group_permissions(group)
+            for group in self.groups.select_related("data")
+            .prefetch_related("permissions")
+            .all()
         ]
         groups_permissions = [
             permission
@@ -722,14 +734,24 @@ class ProjectUser(
         ]
         return list(set(groups_permissions))
 
+    def _get_score_instance(self) -> "UserScore":
+        try:
+            return self.score
+        except ProjectUser.score.RelatedObjectDoesNotExist:
+            self.score = UserScore(user=self)
+            return self.score
+
     def get_or_create_score(self) -> "UserScore":
-        score, created = UserScore.objects.get_or_create(user=self)
-        if created:
-            return score.set_score()
+        score = self._get_score_instance()
+        if not score.pk:
+            score.set_score()
+            score.save()
         return score
 
     def calculate_score(self) -> "UserScore":
-        return self.get_or_create_score().set_score()
+        score = self._get_score_instance()
+        score.set_score()
+        return score
 
 
 class UserScore(models.Model):
@@ -742,8 +764,12 @@ class UserScore(models.Model):
 
     def get_completeness(self) -> float:
         has_job = bool(self.user.job)
-        has_expert_skills = self.user.skills.filter(level=4).exists()
-        has_competent_skills = self.user.skills.filter(level=3).exists()
+
+        skills_level = (
+            self.user.skills.all().values_list("level", flat=True).distinct("level")
+        )
+        has_expert_skills = 4 in skills_level
+        has_competent_skills = 3 in skills_level
         has_rich_content = (
             "<img" in self.user.description or "<iframe" in self.user.description
         )
@@ -772,7 +798,6 @@ class UserScore(models.Model):
         self.completeness = completeness
         self.activity = activity
         self.score = score
-        self.save()
         return self
 
 
