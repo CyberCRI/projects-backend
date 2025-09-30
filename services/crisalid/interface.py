@@ -4,14 +4,13 @@ from django.conf import settings
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
-
 class CrisalidService:
     QUERIES_DIRECTORY = "services/crisalid/queries"
 
     def __init__(self):
         self.transport = RequestsHTTPTransport(
             url=f"{settings.CRISALID_API_URL}/graphql",
-            headers={"x-api-key": settings.CRISALID_API_TOKEN},
+            headers={"X-API-Key": settings.CRISALID_API_TOKEN},
         )
         self.client = Client(
             transport=self.transport, fetch_schema_from_transport=False

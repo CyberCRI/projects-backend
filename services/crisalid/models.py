@@ -1,127 +1,133 @@
-"""
-Il faut qu’on crée les correspondances entre nos schémas et ceux de la base Neo4j.
-Il y a 3 types de données qu’on veut importer avec les liens qui peuvent exister entre elles :
-    - Institutions et structures de recherche
-    - Documents (thèses, livres, rapports, etc.)
-    - Personnes
-        Les personnes ont plusieurs identifiants, plusieurs noms (prise en compte des changements de nom, marriage, etc.).
-        Elles ont un lien aux documents en fonction de leur contribution. Ces liens peuvent prendre des formes différents.
-        Elles ont des liens aux institutions (type employment) et aux structures de recherche (type membership).
-        Ces liens ne veulent pas dire la même chose. On peut faire partie d’une structure de recherche sans être lié par un contrat de travail.
-"""
-
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
-
-
-class CrisalidId(models.Model):
-    """
-    Represents a unique identifier for a Crisalid entity.
-    """
-
-    class IDType(models.TextChoices):
-        ORCID = "ORCID"
-        CRISALID = "CRISALID"
-
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    id_type = models.CharField(max_length=50, choices=IDType.choices)
-    value = models.CharField(max_length=255)
-
-    class Meta:
-        unique_together = ("content_type", "id_type", "value")
-
+from django.db.models.functions import Lower
 
 class CrisalidDataModel(models.Model):
-    crisalid_ids = models.ManyToManyField("crisalid.CrisalidId", blank=True)
+    crisalid_uid = models.CharField(max_length=255, blank=True, null=True)
+    ddd = models.CharField(max_length=255, blank=True, null=True, default=None)
 
     class Meta:
         abstract = True
+        constraints = (
+            models.UniqueConstraint(
+                "crisalid_uid",
+                name="%(app_label)s_%(class)s_unique_crisalid_uid"
+            ),
+        )
+
+class Identifier(models.Model):
+    class Harvester(models.TextChoices):
+        """Harvester from crisalid (where the source comme from)"""
+        HAL = "hal"
+        SCANR = "scanr"
+        OPENALEX = "openalex"
+        IDREF = "idref"
+        SCOPUS = "scopus"
+        ORCID = "orcid"
+        LOCAL = "local"
+
+    harvester = models.CharField(max_length=50, choices=Harvester.choices)
+    value = models.CharField(max_length=255)
+
+    class Meta:
+        constraints = (
+            # we cant have the same harvester, docuement type linked to a document
+            models.UniqueConstraint(
+                Lower("harvester"),
+                Lower("value"),
+                name="unique_harvester"
+            ),
+        )
+    
+    def __str__(self):
+        return f"{self.harvester} :: {self.value}"
 
 
 class Researcher(CrisalidDataModel):
-    user = models.ForeignKey(
+    """Link to a crisalid """
+    user = models.OneToOneField(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
-        related_name="researchers",
+        related_name="researcher",
+        # if no user linked to projects
+        null=True
     )
-    employments = models.ManyToManyField(
-        "crisalid.ResearchInstitution",
-        related_name="researchers",
-        through="crisalid.ResearchEmployment",
-        blank=True,
-    )
-    memberships = models.ManyToManyField(
-        "crisalid.ResearchTeam",
-        related_name="researchers",
-        through="crisalid.ResearchMembership",
-        blank=True,
-    )
-    documents = models.ManyToManyField(
-        "crisalid.ResearchDocument",
-        related_name="authors",
-        blank=True,
-    )
+    display_name = models.CharField(max_length=200, blank=True, null=True)
+    identifiers = models.ManyToManyField("crisalid.Identifier", related_name="researchers")
 
+    def __str__(self):
+        # TODO(remi): get display_name from user Porjects if exists
+        return f"{self.display_name}"
 
-class ResearchInstitution(CrisalidDataModel):
-    """
-    Represents an institution in the Crisalid system.
-    """
-
-    name = models.CharField(max_length=255)
-
-
-class ResearchTeam(CrisalidDataModel):
-    """
-    Represents a research team in the Crisalid system.
-    """
-
-    name = models.CharField(max_length=255)
-    institutions = models.ManyToManyField(
-        "crisalid.ResearchInstitution",
-        related_name="teams",
-        blank=True,
-    )
-
-
-class ResearchDocument(CrisalidDataModel):
+class Document(CrisalidDataModel):
     """
     Represents a research document in the Crisalid system.
     """
+    title = models.CharField(max_length=255)
+    publication_date = models.DateField(blank=False, null=True)
+    authors = models.ManyToManyField("crisalid.Researcher", related_name="documents")
+
+
+class DocumentSource(CrisalidDataModel):
+    """Represents the data source/link of a document/publications"""
 
     class DocumentType(models.TextChoices):
-        THESIS = "THESIS"
-        BOOK = "BOOK"
-        REPORT = "REPORT"
-        ARTICLE = "ARTICLE"
+        """
+        Document type from crisalid
+        https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/document_type.py#L9
+        """
+        AUDIOVISUAL_DOCUMENT = "Audiovisual Document"
+        BLOG_POST = "Blog Post"
+        BOOK = "Book"
+        BOOK_REVIEW = "Book Review"
+        CHAPTER = "Chapter"
+        CONFERENCE_OUTPUT = "Conference Output"
+        CONFERENCE_PAPER = "Conference Paper"
+        CONFERENCE_POSTER = "Conference Poster"
+        DATA_MANAGEMENT_PLAN = "Data Management Plan"
+        DATA_PAPER = "Data Paper"
+        DATASET = "Dataset"
+        DICTIONARY = "Reference Book"
+        DOCUMENT = "Document"
+        EDITORIAL = "Editorial"
+        ERRATUM = "Erratum"
+        GRANT = "Grant"
+        IMAGE = "Image"
+        LECTURE = "Lecture"
+        LETTER = "Letter"
+        MANUAL = "Manual"
+        MAP = "Map"
+        MASTER_THESIS = "Master Thesis"
+        METADATA_DOCUMENT = "Metadata Document"
+        NOTE = "Note"
+        OTHER = "Other"
+        PATENT = "Patent"
+        PEER_REVIEW = "Peer review"
+        PREPRINT = "Preprint"
+        PROCEEDINGS = "Proceedings"
+        REPORT = "Report"
+        RESEARCH_REPORT = "Research Report"
+        REVIEW = "Review Paper"
+        REVIEW_ARTICLE = "Review Article"
+        SOFTWARE = "Software"
+        STANDARD = "Standard"
+        STILL_IMAGE = "Still Image"
+        TECHNICAL_REPORT = "Technical Report"
+        THESIS = "Thesis"
+        WORKING_PAPER = "Working Paper"
+        UNKNOWN = "Unknown"
 
-    type = models.CharField(max_length=50, choices=DocumentType.choices)
-    title = models.CharField(max_length=255)
-    link = models.URLField(blank=True, null=True)
-    publication_date = models.DateField(blank=True, null=True)
+    document_type = models.CharField(max_length=50, choices=DocumentType.choices, null=True, blank=True)
+    value = models.TextField()
+    identifier = models.ForeignKey("crisalid.Identifier", on_delete=models.CASCADE, related_name="documents")
+    document = models.ForeignKey("crisalid.Document", on_delete=models.CASCADE, related_name="sources")
 
-
-class ResearchEmployment(CrisalidDataModel):
-    """
-    Represents an employment relationship between a researcher and an institution.
-    """
-
-    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
-    institution = models.ForeignKey(
-        "crisalid.ResearchInstitution", on_delete=models.CASCADE
-    )
-    role = models.CharField(max_length=255)
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True)
-
-
-class ResearchMembership(CrisalidDataModel):
-    """
-    Represents a membership relationship between a researcher and a research team.
-    """
-
-    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
-    team = models.ForeignKey("crisalid.ResearchTeam", on_delete=models.CASCADE)
-    role = models.CharField(max_length=255)
-    start_date = models.DateField()
-    end_date = models.DateField(blank=True, null=True)
+    class Meta:
+        constraints = (
+            # we cant have the same identifier, docuement type linked to a document
+            models.UniqueConstraint(
+                "identifier",
+                "document",
+                "document_type",
+                name="unique_document_identifier"
+            ),
+        )

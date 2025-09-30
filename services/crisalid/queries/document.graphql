@@ -1,0 +1,30 @@
+query PopulateFromCrisalid($limit: Int, $offset: Int) {
+  documents(limit: $limit, offset: $offset) {
+    uid,
+    publication_date,
+    document_type
+
+    titles {
+      language
+      value
+    }
+
+    recorded_by {
+      harvester
+      uid,
+
+      harvested_for {
+        display_name
+        uid
+
+        identifiers {
+          type
+          value
+        }
+
+      }
+
+    }
+
+  }
+}
