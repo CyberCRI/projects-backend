@@ -84,9 +84,11 @@ class ProjectJWTAuthentication(JWTAuthentication):
         self._reassign_users_groups_permissions(user)
         return user, token
 
-    def _reassign_users_groups_permissions(self, user: "ProjectUser"):
+    def _reassign_users_groups_permissions(self, user: ProjectUser):
         """Reassign the permissions of the given group to its users."""
         for model in HasPermissionsSetup.__subclasses__():
+            if model.__module__.startswith("__fake__"):
+                continue
             instances = model.objects.filter(
                 permissions_up_to_date=False, groups__users=user
             )
