@@ -74,6 +74,7 @@ class CreateUserTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertTrue(content["onboarding_status"]["show_welcome"])
+            self.assertEqual(content["signed_terms_and_conditions"], {})
             self.assertEqual(content["email"], payload["email"])
             self.assertEqual(content["given_name"], payload["given_name"])
             self.assertEqual(content["family_name"], payload["family_name"])
@@ -132,6 +133,7 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         self.assertTrue(content["onboarding_status"]["show_welcome"])
+        self.assertEqual(content["signed_terms_and_conditions"], {})
         self.assertEqual(content["email"], payload["email"])
         self.assertEqual(content["given_name"], payload["given_name"])
         self.assertEqual(content["family_name"], payload["family_name"])
@@ -198,6 +200,7 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertTrue(user.exists())
         user = user.get()
         self.assertTrue(user.onboarding_status["show_welcome"])
+        self.assertEqual(user.signed_terms_and_conditions, {})
         self.assertSetEqual(
             {g.name for g in user.groups.all()},
             {

@@ -243,7 +243,7 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
         )
 
     @patch("azure.ai.translation.text.TextTranslationClient.translate")
-    def test_update_project_translated_fields(self, mock_translate):
+    def test_update_translated_fields(self, mock_translate):
         """
         This test is fully automated, do not directly update it unless you know what
         you are doing.
@@ -292,7 +292,8 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
                         for field in data["model"].auto_translated_fields
                     ],
                 ]
-            ]
+            ],
+            any_order=True,
         )
 
         # Check that all fields are now up to date

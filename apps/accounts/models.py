@@ -341,6 +341,7 @@ class ProjectUser(
     )
     created_at = models.DateTimeField(auto_now_add=True)
     onboarding_status = models.JSONField(default=default_onboarding_status)
+    signed_terms_and_conditions = models.JSONField(default=dict)
 
     # Profile fields
     birthdate = models.DateField(
