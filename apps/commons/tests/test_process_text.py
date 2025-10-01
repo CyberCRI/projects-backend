@@ -154,7 +154,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        self.assertEqual(len(content["images"]), 2)
+        self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
                 reverse("Comment-images-detail", args=(project.id, image_id)),
@@ -176,7 +176,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["images"]), 2)
+        self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
                 reverse("Comment-images-detail", args=(self.project.id, image_id)),
