@@ -170,6 +170,7 @@ class OrganizationSerializer(
         read_only=True,
         slug_field="code",
     )
+    attachment_files_count = serializers.SerializerMethodField()
     # write_only
     banner_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -218,6 +219,7 @@ class OrganizationSerializer(
             "children",
             "google_sync_enabled",
             "identity_providers",
+            "attachment_files_count",
             # write_only
             "banner_image_id",
             "logo_image_id",
@@ -274,6 +276,9 @@ class OrganizationSerializer(
 
     def get_google_sync_enabled(self, organization: Organization) -> bool:
         return organization.code == settings.GOOGLE_SYNCED_ORGANIZATION
+
+    def get_attachment_files_count(self, organization: Organization) -> int:
+        return organization.attachment_files.count()
 
     def create(self, validated_data):
         team = validated_data.pop("team", {})
