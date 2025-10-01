@@ -366,6 +366,7 @@ class Template(OrganizationRelated, models.Model):
     images = models.ManyToManyField("files.Image", related_name="templates")
     goal_title = models.CharField(max_length=255, blank=True)
     goal_description = models.TextField(blank=True)
+    comment = models.TextField(blank=True)
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )

@@ -141,8 +141,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_create_comment_content(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Comment-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text("Comment-images-detail", self.project.id)
         )
         self.client.force_authenticate(self.user)
         project = self.project
@@ -152,7 +154,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        self.assertEqual(len(content["images"]), 2)
+        self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
                 reverse("Comment-images-detail", args=(project.id, image_id)),
@@ -160,8 +162,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_update_comment_content(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Comment-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text("Comment-images-detail", self.project.id)
         )
         self.client.force_authenticate(self.user)
         comment = CommentFactory(project=self.project)
@@ -172,7 +176,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["images"]), 2)
+        self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
                 reverse("Comment-images-detail", args=(self.project.id, image_id)),

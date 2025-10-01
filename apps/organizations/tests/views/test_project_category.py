@@ -281,6 +281,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
                 "blogentry_placeholder": faker.text(),
                 "goal_title": faker.sentence(),
                 "goal_description": faker.text(),
+                "comment": faker.text(),
             },
         }
         response = self.client.post(reverse("Category-list"), data=payload)
@@ -309,6 +310,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         self.assertEqual(
             template["goal_description"], payload_template["goal_description"]
         )
+        self.assertEqual(template["comment"], payload_template["comment"])
 
     def test_update_template(self):
         self.client.force_authenticate(self.superadmin)
@@ -322,6 +324,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
                 "blogentry_placeholder": faker.text(),
                 "goal_title": faker.sentence(),
                 "goal_description": faker.text(),
+                "comment": faker.text(),
             },
         }
         response = self.client.patch(
@@ -352,6 +355,7 @@ class ProjectCategoryTemplateTestCase(JwtAPITestCase):
         self.assertEqual(
             template["goal_description"], payload_template["goal_description"]
         )
+        self.assertEqual(template["comment"], payload_template["comment"])
 
     def test_partial_update_template(self):
         self.client.force_authenticate(self.superadmin)
