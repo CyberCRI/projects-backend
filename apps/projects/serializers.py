@@ -267,8 +267,9 @@ class ProjectLightSerializer(
             user = self.context["request"].user
             if not user.is_anonymous:
                 follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
 
@@ -600,8 +601,10 @@ class ProjectSerializer(
 
     @staticmethod
     def get_last_comment(project: Project) -> Optional[Dict]:
-        recent = project.comments.filter(reply_on=None).order_by("-created_at")
-        return CommentSerializer(recent.first()).data if recent.exists() else None
+        last_comment = (
+            project.comments.filter(reply_on=None).order_by("-created_at").first()
+        )
+        return CommentSerializer(last_comment).data if last_comment else None
 
     def get_template(self, project: Project) -> Optional[Dict]:
         return (
@@ -621,8 +624,9 @@ class ProjectSerializer(
             user = self.context["request"].user
             if not user.is_anonymous:
                 follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
     @transaction.atomic
@@ -703,11 +707,11 @@ class ProjectSerializer(
             )
             or user.is_superuser
             or any(
-                (user in o.admins.all() or user in o.facilitators.all())
+                (o.admins.all() | o.facilitators.all()).contains(user)
                 for o in self.instance.organizations.all()
             )
-            or user in self.instance.reviewers.all()
-            or user in self.instance.reviewer_groups_users.all()
+            or self.instance.reviewers.contains(user)
+            or self.instance.reviewer_groups_users.contains(user)
         ):
             return value
         raise OnlyReviewerCanChangeStatusError

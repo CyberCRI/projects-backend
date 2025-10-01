@@ -1,11 +1,11 @@
 servedUrls:
-  - '{{ printf ".%s" .Values.hostname }}' # .example.com will match both example.com and www.example.com
-  - '{{ tpl $.Values.fullName $ }}' # The full name of the k8s service, called from inside the namespace
-  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.namespace }}' # The full name of the k8s service, called from outside the namespace
-  - '{{ tpl $.Values.fullName $ }}.{{ $.Values.namespace }}.svc.cluster.local' # Alternative to the full name of the k8s service, called from outside the namespace
-  - '127.0.0.1' # The localhost, test if this is required
-  - '.localhost' # The localhost, test if this is required
-  - '0.0.0.0' # The localhost, test if this is required
+- '{{ printf ".%s" .Values.hostname }}' # .example.com will match both example.com and www.example.com
+- '{{ tpl $.Values.fullName $ }}' # The full name of the k8s service, called from inside the namespace
+- '{{ tpl $.Values.fullName $ }}.{{ $.Values.namespace }}' # The full name of the k8s service, called from outside the namespace
+- '{{ tpl $.Values.fullName $ }}.{{ $.Values.namespace }}.svc.cluster.local' # Alternative to the full name of the k8s service, called from outside the namespace
+- '127.0.0.1' # The localhost, test if this is required
+- '.localhost' # The localhost, test if this is required
+- '0.0.0.0' # The localhost, test if this is required
 
 additionnalServedUrls: [] # Use this if you want to add custom urls to the list above from the argocd application
 
@@ -20,9 +20,9 @@ config:
     BEHIND_HTTPS_PROXY: "True"
     ANALYTICS_URL: http://projects-analytics
     MJML_HTTPSERVER_URL: http://mjml-server.mjml/v1/render
-    CELERY_BROKER_URL: '{{ printf "redis://%s-master:6379/0" .Values.redis.helmReleaseName }}'
-    CELERY_RESULT_BACKEND: '{{ printf "redis://%s-master:6379/0" .Values.redis.helmReleaseName }}'
-    CACHE_REDIS_URL: '{{ printf "redis://%s-master:6379/1" .Values.redis.helmReleaseName }}'
+    CELERY_BROKER_URL: "redis://redis-backend:6379/0"
+    CELERY_RESULT_BACKEND: "redis://redis-backend:6379/0"
+    CACHE_REDIS_URL: "redis://redis-backend:6379/1"
     EMAIL_HOST: projects-mailhog
     EMAIL_PORT: "1025"
     # Debug
@@ -52,7 +52,6 @@ image:
   path: projects-backend
   tag: "{{ .Values.application.revision }}"
 
-
 ingressPath: /
 ingressMiddlewares: []
 
@@ -79,14 +78,14 @@ backend:
     targetCPUUtilizationPercentage: 50
   networkPolicyAdditionalIngresses:
   - from:
-      # Incoming traffic from projects namespace
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: "{{ .Values.namespace }}"
-      # Incoming traffic from monitoring namespace
-      - namespaceSelector:
-          matchLabels:
-            kubernetes.io/metadata.name: "{{ .Values.monitoringNamespace }}"
+    # Incoming traffic from projects namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: "{{ .Values.namespace }}"
+    # Incoming traffic from monitoring namespace
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: "{{ .Values.monitoringNamespace }}"
     ports:
     - protocol: TCP
       port: http

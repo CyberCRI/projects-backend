@@ -392,7 +392,7 @@ def _send_notifications_reminder(users: dict):
             )
         if len(notifications) > 0:
             subject, _ = render_message("reminder/object", user.language)
-            subject = f"\N{sparkles} {subject} \N{sparkles}"
+            subject = f"\N{SPARKLES} {subject} \N{SPARKLES}"
             context = {
                 "dateOfTheDay": format_date(date.today(), locale=user.language),
                 "notifications": notifications,

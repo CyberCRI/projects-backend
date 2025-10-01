@@ -411,15 +411,18 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
     def get_user_queryset(self):
         organization = self.get_organization()
         request_user = self.request.user
+        organization_members_id: list[int] = organization.get_all_members().values_list(
+            "id", flat=True
+        )
         user_queryset = self.request.user.get_user_queryset().filter(
-            id__in=organization.get_all_members().values_list("id", flat=True)
+            id__in=organization_members_id
         )
         if request_user.is_authenticated:
-            if request_user.is_superuser or request_user in (
+            if request_user.is_superuser or (
                 organization.admins.all() | organization.facilitators.all()
-            ):
+            ).contains(request_user):
                 return user_queryset
-            if request_user in organization.get_all_members():
+            if request_user.id in organization_members_id:
                 return user_queryset.filter(
                     Q(
                         privacy_settings__skills__in=[
@@ -537,15 +540,18 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
     def get_user_queryset(self):
         organization = self.get_organization()
         request_user = self.request.user
+        organization_menbers_id: list[int] = organization.get_all_members().values_list(
+            "id", flat=True
+        )
         user_queryset = self.request.user.get_user_queryset().filter(
-            id__in=organization.get_all_members().values_list("id", flat=True)
+            id__in=organization_menbers_id
         )
         if request_user.is_authenticated:
-            if request_user.is_superuser or request_user in (
+            if request_user.is_superuser or (
                 organization.admins.all() | organization.facilitators.all()
-            ):
+            ).contains(request_user):
                 return user_queryset
-            if request_user in organization.get_all_members():
+            if request_user.id in organization_menbers_id:
                 return user_queryset.filter(
                     Q(
                         privacy_settings__skills__in=[

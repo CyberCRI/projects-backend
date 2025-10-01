@@ -193,7 +193,7 @@ class TagClassification(
             or classification_type == cls.TagClassificationType.CUSTOM
         ):
             raise ValueError("Invalid classification type")
-        classification, _ = cls.objects.get_or_create(
+        classification, _ = cls.objects.prefetch_related("tags").get_or_create(
             type=classification_type,
             defaults={
                 "title": classification_type,
@@ -316,6 +316,7 @@ class MentoringMessage(
         The date and time the message was created.
     """
 
+    organization_query_string: str = "mentoring__organization"
     auto_translated_fields: List[str] = ["content"]
 
     mentoring = models.ForeignKey(

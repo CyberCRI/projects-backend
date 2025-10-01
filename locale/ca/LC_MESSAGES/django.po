@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-11 15:30+0200\n"
+"POT-Creation-Date: 2025-09-24 11:30+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No pots assignar aquest rol a un usuari"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:136 apps/projects/models.py:160
+#: apps/accounts/models.py:137 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilitat"
 
@@ -176,16 +176,16 @@ msgstr "Estat de publicació desconegut"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Estat de publicació desconegut '{publication_status}'"
 
-#: apps/commons/fields.py:29 apps/skills/serializers.py:107
+#: apps/commons/fields.py:30 apps/skills/serializers.py:107
 msgid "This field is required."
 msgstr "Aquest camp és obligatori."
 
-#: apps/commons/fields.py:30
+#: apps/commons/fields.py:31
 #, python-brace-format
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Id no vàlid \"{user_id}\" - l'objecte no existeix."
 
-#: apps/commons/fields.py:32 apps/skills/serializers.py:112
+#: apps/commons/fields.py:33 apps/skills/serializers.py:112
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Tipus incorrecte. S'esperava un valor str, s'ha rebut {data_type}."
@@ -1544,27 +1544,27 @@ msgstr "Un missatge no pot ser una resposta a si mateix"
 msgid "You cannot change the type of a project's tab"
 msgstr "No pots canviar el tipus d'una pestanya d'un projecte"
 
-#: apps/projects/models.py:143
+#: apps/projects/models.py:144
 msgid "title"
 msgstr "títol"
 
-#: apps/projects/models.py:153
+#: apps/projects/models.py:154
 msgid "main goal"
 msgstr "objectiu principal"
 
-#: apps/projects/models.py:166
+#: apps/projects/models.py:167
 msgid "life status"
 msgstr "estat de vida"
 
-#: apps/projects/models.py:177
+#: apps/projects/models.py:178
 msgid "categories"
 msgstr "categories"
 
-#: apps/projects/models.py:194
+#: apps/projects/models.py:195
 msgid "sustainable development goals"
 msgstr "objectius de desenvolupament sostenible"
 
-#: apps/projects/models.py:200
+#: apps/projects/models.py:201
 msgid "main category"
 msgstr "categoria principal"
 

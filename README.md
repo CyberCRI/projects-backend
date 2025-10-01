@@ -21,7 +21,7 @@ cd projects-backend
 
 if you want to set your environnement variables (Mostly third-parties secrets):
 ```bash
-cp .env.example .env
+cp .env.sample .env
 ```
 You can ask the other devs for the secret values to fill the `.env` file.
 
@@ -115,7 +115,7 @@ This will return errors that you need to fix manually. If there are some, fix th
 
 ```bash
 # inside the container
-make makemessages
+make locales
 ```
 
 This will detect changes in translated messages. Even if you didn't add, remove or modify any translated message. This might update some files because of line changes on translations caused by your changes.

@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from django.urls import reverse
 from faker import Faker
+from keycloak import KeycloakError, KeycloakGetError, KeycloakPostError
 from parameterized import parameterized
 from rest_framework import status
 
@@ -13,7 +14,6 @@ from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.invitations.factories import AccessRequestFactory
 from apps.invitations.models import AccessRequest
 from apps.organizations.factories import OrganizationFactory
-from keycloak import KeycloakError, KeycloakGetError, KeycloakPostError
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -303,6 +303,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
                 self.assertTrue(user.exists())
                 user = user.get()
                 self.assertTrue(user.onboarding_status["show_welcome"])
+                self.assertEqual(user.signed_terms_and_conditions, {})
                 self.assertEqual(user.email, access_request.email)
                 self.assertEqual(user.given_name, access_request.given_name)
                 self.assertEqual(user.family_name, access_request.family_name)

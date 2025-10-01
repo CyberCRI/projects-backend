@@ -1,6 +1,7 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, List, Optional
+from contextlib import suppress
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.apps import apps
 from django.conf import settings
@@ -63,7 +64,6 @@ class AttachmentLink(
     HasAutoTranslatedFields,
     DuplicableModel,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """
@@ -159,7 +159,6 @@ class AttachmentFile(
     HasAutoTranslatedFields,
     DuplicableModel,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """
@@ -225,7 +224,7 @@ class AttachmentFile(
 
 
 class Image(
-    models.Model, HasOwner, OrganizationRelated, ProjectRelated, DuplicableModel
+    models.Model, HasOwner, ProjectRelated, OrganizationRelated, DuplicableModel
 ):
     name = models.CharField(max_length=255)
     file = StdImageField(
@@ -281,23 +280,68 @@ class Image(
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
-        if self.user.exists():
+        from apps.accounts.models import ProjectUser
+
+        with suppress(ProjectUser.DoesNotExist):
             return self.user.get() == user
         return self.owner == user
 
     def get_owner(self):
         """Get the owner of the object."""
-        if self.user.exists():
+        from apps.accounts.models import ProjectUser
+
+        with suppress(ProjectUser.DoesNotExist):
             return self.user.get()
         return self.owner
+
+    @classmethod
+    def project_query(cls, key: str, value: Any) -> Q:
+        """Return the query string to use to filter by project."""
+        query = f"__{key}" if key else ""
+        return (
+            Q(**{f"projects{query}": value})
+            | Q(**{f"project_header{query}": value})
+            | Q(**{f"blog_entries__project{query}": value})
+            | Q(**{f"project_messages__project{query}": value})
+            | Q(**{f"project_tabs__project{query}": value})
+            | Q(**{f"project_tab_items__tab__project{query}": value})
+            | Q(**{f"comments__project{query}": value})
+        )
+
+    @classmethod
+    def organization_query(cls, key: str, value: Any) -> Q:
+        query = f"__{key}" if key else ""
+        return (
+            Q(**{f"projects__organizations{query}": value})
+            | Q(**{f"project_header__organizations{query}": value})
+            | Q(**{f"blog_entries__project__organizations{query}": value})
+            | Q(**{f"project_messages__project__organizations{query}": value})
+            | Q(**{f"project_tabs__project__organizations{query}": value})
+            | Q(**{f"project_tab_items__tab__project__organizations{query}": value})
+            | Q(**{f"comments__project__organizations{query}": value})
+            | Q(**{f"organization_logo{query}": value})
+            | Q(**{f"organization_banner{query}": value})
+            | Q(**{f"organizations{query}": value})
+            | Q(**{f"project_category__organization{query}": value})
+            | Q(**{f"templates__project_category__organization{query}": value})
+            | Q(**{f"people_group_header__organization{query}": value})
+            | Q(**{f"people_group_logo__organization{query}": value})
+            | Q(**{f"news__organization{query}": value})
+            | Q(**{f"instructions__organization{query}": value})
+            | Q(**{f"events__organization{query}": value})
+        )
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         related_project = self.get_related_project()
         if related_project:
             return related_project.get_related_organizations()
-        if self.user.exists():
+
+        from apps.accounts.models import ProjectUser
+
+        with suppress(ProjectUser.DoesNotExist):
             return self.user.get().get_related_organizations()
+
         Organization = apps.get_model("organizations", "Organization")  # noqa
         return list(
             Organization.objects.filter(
@@ -337,7 +381,7 @@ class Image(
             | Q(additional_tabs__images=self)
             | Q(additional_tabs__items__images=self)
         ).distinct()
-        if queryset.exists():
+        with suppress(Project.DoesNotExist):
             return queryset.first()
         return None
 

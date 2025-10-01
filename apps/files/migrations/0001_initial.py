@@ -231,8 +231,8 @@ class Migration(migrations.Migration):
             bases=(
                 models.Model,
                 apps.commons.mixins.HasOwner,
-                apps.commons.mixins.OrganizationRelated,
                 apps.commons.mixins.ProjectRelated,
+                apps.commons.mixins.OrganizationRelated,
             ),
         ),
         migrations.CreateModel(

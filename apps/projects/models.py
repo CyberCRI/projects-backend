@@ -23,7 +23,6 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
-    OrganizationRelated,
     ProjectRelated,
 )
 from apps.commons.models import GroupData
@@ -70,7 +69,6 @@ class Project(
     HasAutoTranslatedFields,
     HasPermissionsSetup,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -117,6 +115,9 @@ class Project(
     history: HistoricalRecords
         History of this project.
     """
+
+    project_query_string: str = ""
+    organization_query_string: str = "organizations"
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
@@ -243,6 +244,7 @@ class Project(
     def __init__(self, *args, **kwargs):
         super(Project, self).__init__(*args, **kwargs)
         self._original_description = self.description
+        self._related_organizations = None
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -374,7 +376,9 @@ class Project(
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        return self.organizations.all()
+        if self._related_organizations is None:
+            self._related_organizations = list(self.organizations.all())
+        return self._related_organizations
 
     def get_default_owners_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
@@ -530,14 +534,24 @@ class Project(
             | self.reviewer_groups.all()
         ).distinct()
 
+    def _get_score_instance(self) -> "ProjectScore":
+        try:
+            return self.score
+        except Project.score.RelatedObjectDoesNotExist:
+            self.score = ProjectScore(project=self)
+            return self.score
+
     def get_or_create_score(self) -> "ProjectScore":
-        score, created = ProjectScore.objects.get_or_create(project=self)
-        if created:
-            return score.set_score()
+        score = self._get_score_instance()
+        if not score.pk:
+            score.set_score()
+            score.save()
         return score
 
     def calculate_score(self) -> "ProjectScore":
-        return self.get_or_create_score().set_score()
+        score = self._get_score_instance()
+        score.set_score()
+        return score
 
     @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
@@ -585,7 +599,7 @@ class Project(
         return project
 
 
-class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectScore(models.Model, ProjectRelated):
     project = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="score"
     )
@@ -651,11 +665,10 @@ class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
         self.popularity = popularity
         self.activity = activity
         self.score = score
-        self.save()
         return self
 
 
-class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
+class LinkedProject(models.Model, ProjectRelated):
     """Store unidirectional link between projects.
 
     Attributes
@@ -665,6 +678,9 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
     target: ForeignKey
         `Project` the first one is being linked to.
     """
+
+    project_query_string: str = "target"
+    organization_query_string: str = "target__organizations"
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="linked_to"
@@ -689,7 +705,6 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
 class BlogEntry(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -775,7 +790,6 @@ class BlogEntry(
 class Goal(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -850,7 +864,6 @@ class Goal(
 class Location(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -917,7 +930,6 @@ class Location(
 class ProjectMessage(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     HasOwner,
     models.Model,
 ):
@@ -1000,7 +1012,6 @@ class ProjectMessage(
 class ProjectTab(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """A tab in the project page.
@@ -1048,7 +1059,6 @@ class ProjectTab(
 class ProjectTabItem(
     HasAutoTranslatedFields,
     ProjectRelated,
-    OrganizationRelated,
     models.Model,
 ):
     """An item in a project tab.
@@ -1062,6 +1072,9 @@ class ProjectTabItem(
     content: TextField
         Content of the item.
     """
+
+    project_query_string: str = "tab__project"
+    organization_query_string: str = "tab__project__organizations"
 
     auto_translated_fields: List[str] = ["title", "content"]
 

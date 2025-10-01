@@ -35,9 +35,19 @@ from .exceptions import (
     ParentCategoryOrganizationError,
     RootCategoryParentError,
 )
-from .models import Organization, ProjectCategory, Template
+from .models import Organization, ProjectCategory, Template, TermsAndConditions
 
 logger = logging.getLogger(__name__)
+
+
+class TermsAndConditionsSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+
+    class Meta:
+        model = TermsAndConditions
+        read_only_fields = ["id", "version"]
+        fields = read_only_fields + ["content"]
 
 
 class OrganizationAddTeamMembersSerializer(serializers.Serializer):
@@ -150,6 +160,7 @@ class OrganizationSerializer(
     default_projects_tags = TagRelatedField(many=True, required=False)
     default_skills_tags = TagRelatedField(many=True, required=False)
     # read_only
+    terms_and_conditions = TermsAndConditionsSerializer(read_only=True)
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     identity_providers = IdentityProviderSerializer(many=True, read_only=True)
@@ -201,6 +212,7 @@ class OrganizationSerializer(
             "default_projects_tags",
             "default_skills_tags",
             # read_only
+            "terms_and_conditions",
             "banner_image",
             "logo_image",
             "children",

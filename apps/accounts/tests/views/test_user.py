@@ -8,6 +8,7 @@ from django.utils.timezone import make_aware
 from faker import Faker
 from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm
+from keycloak import KeycloakDeleteError
 from parameterized import parameterized
 from rest_framework import status
 
@@ -21,7 +22,6 @@ from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.skills.factories import SkillFactory, TagFactory
-from keycloak import KeycloakDeleteError
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 
@@ -74,6 +74,7 @@ class CreateUserTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertTrue(content["onboarding_status"]["show_welcome"])
+            self.assertEqual(content["signed_terms_and_conditions"], {})
             self.assertEqual(content["email"], payload["email"])
             self.assertEqual(content["given_name"], payload["given_name"])
             self.assertEqual(content["family_name"], payload["family_name"])
@@ -132,6 +133,7 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         self.assertTrue(content["onboarding_status"]["show_welcome"])
+        self.assertEqual(content["signed_terms_and_conditions"], {})
         self.assertEqual(content["email"], payload["email"])
         self.assertEqual(content["given_name"], payload["given_name"])
         self.assertEqual(content["family_name"], payload["family_name"])
@@ -198,6 +200,7 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertTrue(user.exists())
         user = user.get()
         self.assertTrue(user.onboarding_status["show_welcome"])
+        self.assertEqual(user.signed_terms_and_conditions, {})
         self.assertSetEqual(
             {g.name for g in user.groups.all()},
             {

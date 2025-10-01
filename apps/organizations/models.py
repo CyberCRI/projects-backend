@@ -83,6 +83,7 @@ class Organization(
         Identity providers authorized to access the organization.
     """
 
+    organization_query_string: str = ""
     auto_translated_fields: List[str] = [
         "name",
         "dashboard_title",
@@ -258,6 +259,7 @@ class Organization(
                     "review",
                     "projectcategory",
                     "tagclassification",
+                    "organization",
                 ]
             ],
         ]
@@ -351,6 +353,8 @@ class Template(OrganizationRelated, models.Model):
     images: ManyToManyField
         Images used by the template.
     """
+
+    organization_query_string: str = "project_category__organization"
 
     title_placeholder = models.CharField(max_length=255, default="", blank=True)
     description_placeholder = models.TextField(default="", blank=True)
@@ -508,3 +512,23 @@ class ProjectCategory(
         ).annotate(children_ids=ArrayAgg("children"))
         categories = {category.id: category for category in categories}
         return self._get_hierarchy(categories, self.id)
+
+
+class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):
+    """
+    Model to store the terms and conditions for an organization.
+    """
+
+    auto_translated_fields: List[str] = ["content"]
+
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="terms_and_conditions",
+    )
+    version = models.IntegerField(default=1)
+    content = models.TextField(blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_related_organizations(self) -> List["Organization"]:
+        return [self.organization]
