@@ -303,6 +303,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
                 self.assertTrue(user.exists())
                 user = user.get()
                 self.assertTrue(user.onboarding_status["show_welcome"])
+                self.assertEqual(user.signed_terms_and_conditions, {})
                 self.assertEqual(user.email, access_request.email)
                 self.assertEqual(user.given_name, access_request.given_name)
                 self.assertEqual(user.family_name, access_request.family_name)

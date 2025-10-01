@@ -593,6 +593,7 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
             "id",
             "language",
             "onboarding_status",
+            "signed_terms_and_conditions",
             "keycloak_id",
             "people_id",
             "email",

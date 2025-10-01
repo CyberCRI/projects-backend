@@ -259,6 +259,7 @@ class Organization(
                     "review",
                     "projectcategory",
                     "tagclassification",
+                    "organization",
                 ]
             ],
         ]
@@ -511,3 +512,23 @@ class ProjectCategory(
         ).annotate(children_ids=ArrayAgg("children"))
         categories = {category.id: category for category in categories}
         return self._get_hierarchy(categories, self.id)
+
+
+class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):
+    """
+    Model to store the terms and conditions for an organization.
+    """
+
+    auto_translated_fields: List[str] = ["content"]
+
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="terms_and_conditions",
+    )
+    version = models.IntegerField(default=1)
+    content = models.TextField(blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_related_organizations(self) -> List["Organization"]:
+        return [self.organization]
