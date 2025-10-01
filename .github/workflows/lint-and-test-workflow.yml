@@ -90,6 +90,16 @@ jobs:
           - 1025:1025
           - 8025:8025
     steps:
+    - name: Wait for Keycloak
+      run: |
+        for i in {1..30}; do
+          if curl -s http://keycloak:8080/realms/lp; then
+            echo "Keycloak is up!"
+            break
+          fi
+          echo "Waiting for Keycloak..."
+          sleep 5
+        done
     - name: Check the code formatting
       run: make format-check
     - name: Run the linter
