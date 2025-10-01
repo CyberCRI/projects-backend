@@ -57,7 +57,8 @@ class Researcher(CrisalidDataModel):
     )
 
     def __str__(self):
-        # TODO(remi): get display_name from user Porjects if exists
+        if hasattr(self, "user") and self.user is not None:
+            return self.user.get_full_name()
         return f"{self.display_name}"
 
 

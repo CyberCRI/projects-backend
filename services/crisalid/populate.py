@@ -93,11 +93,11 @@ class PopulateDocumentCrisalid(AbstractPopulate):
             "%Y",
         )
         if value is None:
-            return
+            return None
 
-        for format in FORMAT_DATE:
+        for format_date in FORMAT_DATE:
             try:
-                return datetime.datetime.strptime(value, format)
+                return datetime.datetime.strptime(value, format_date)
             except (TypeError, ValueError):
                 continue
         raise ValueError(f"invalid date {value}")

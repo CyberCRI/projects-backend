@@ -15,12 +15,6 @@ from drf_spectacular.utils import (
     inline_serializer,
 )
 from googleapiclient.errors import HttpError
-from keycloak import (
-    KeycloakDeleteError,
-    KeycloakGetError,
-    KeycloakPostError,
-    KeycloakPutError,
-)
 from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
@@ -43,6 +37,12 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 from apps.skills.models import Skill
+from keycloak import (
+    KeycloakDeleteError,
+    KeycloakGetError,
+    KeycloakPostError,
+    KeycloakPutError,
+)
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
     create_google_account,
@@ -180,7 +180,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return queryset.prefetch_related(
             skills_prefetch,
             "groups",
-        )
+        ).select_related("researcher")
 
     def get_object(self):
         """

@@ -39,9 +39,9 @@ class Command(BaseCommand):
 
         offset = int(options["offset"])
         limit = int(options["limit"])
-        max = float(options["max"])
+        max_elements = float(options["max"])
 
-        while max >= 1:
+        while max_elements >= 1:
             data = service.query("document", offset=offset, limit=limit)["documents"]
             if not data:
                 break
@@ -49,4 +49,4 @@ class Command(BaseCommand):
             populate.multiple(data)
 
             offset += limit
-            max -= 1
+            max_elements -= 1

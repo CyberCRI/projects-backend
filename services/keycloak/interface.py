@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import models
 from django.http import Http404
-from keycloak import KeycloakAdmin
 from keycloak.exceptions import (
     KeycloakAuthenticationError,
     KeycloakGetError,
@@ -16,6 +15,7 @@ from keycloak.exceptions import (
 
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
+from keycloak import KeycloakAdmin
 
 from .exceptions import (
     InvalidKeycloakEmailTypeError,

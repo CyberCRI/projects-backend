@@ -38,6 +38,7 @@ from apps.organizations.views import AvailableLanguagesView
 from apps.projects.urls import router as projects_router
 from apps.search.urls import router as search_router
 from apps.skills.urls import router as skills_router
+from services.crisalid.urls import crisalid_router, researcher_nested_router
 from services.mistral.urls import mistral_router
 
 
@@ -71,6 +72,9 @@ urlpatterns_v1 = [
 
 if apps.is_installed("services.google"):
     urlpatterns_v1.append(path("google/", include("services.google.urls")))
+
+if apps.is_installed("services.crisalid"):
+    urlpatterns_v1.append(path("crisalid/", include("services.crisalid.urls")))
 
 urlpatterns_api_schema = [
     path("", SpectacularAPIView.as_view(), name="schema"),
