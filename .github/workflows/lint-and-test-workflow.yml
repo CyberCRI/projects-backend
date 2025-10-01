@@ -80,6 +80,12 @@ jobs:
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
+        options: >-
+          --health-cmd "curl -fs http://keycloak:8080/realms/lp"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 30s
       redis:
         image: redis:6.2-bullseye
         ports:
