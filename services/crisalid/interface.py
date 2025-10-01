@@ -4,6 +4,7 @@ from django.conf import settings
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
 
+
 class CrisalidService:
     QUERIES_DIRECTORY = "services/crisalid/queries"
 
