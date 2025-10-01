@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-09-24 11:30+0200\n"
+"POT-Creation-Date: 2025-10-01 18:03+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1224,7 +1224,7 @@ msgstr ""
 msgid "sustainable development goals"
 msgstr ""
 
-#: apps/projects/models.py:198
+#: apps/projects/models.py:202
 msgid "main category"
 msgstr ""
 
