@@ -273,7 +273,7 @@ class InstructionViewSet(viewsets.ModelViewSet):
             )
         return super().get_serializer(*args, **kwargs)
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self) -> QuerySet[Instruction]:
         if "organization_code" in self.kwargs:
             return self.request.user.get_instruction_queryset().filter(
                 organization__code=self.kwargs["organization_code"]
@@ -285,6 +285,9 @@ class InstructionViewSet(viewsets.ModelViewSet):
             **super().get_serializer_context(),
             "organization_code": self.kwargs.get("organization_code", None),
         }
+
+    def perform_create(self, serializer: InstructionSerializer):
+        serializer.save(owner=self.request.user)
 
 
 class InstructionImagesView(ImageStorageView):

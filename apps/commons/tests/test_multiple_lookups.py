@@ -42,7 +42,7 @@ class MultipleLookupsTestCase(JwtAPITestCase):
             organizations=[cls.organization],
             header_image=cls.get_test_image(),
         )
-        cls.outdated_project_slug = faker.word()
+        cls.outdated_project_slug = faker.pystr(min_chars=9, max_chars=50)
         cls.project.outdated_slugs = [cls.outdated_project_slug]
         cls.project.save()
 

@@ -7,6 +7,7 @@ from apps.commons.fields import HiddenSlugRelatedField, UserMultipleIdRelatedFie
 from apps.commons.serializers import OrganizationRelatedSerializer
 from apps.invitations.models import AccessRequest
 from apps.organizations.models import Organization
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     AccessRequestDisabledError,
@@ -20,7 +21,11 @@ from .exceptions import (
 from .models import Invitation
 
 
-class InvitationSerializer(OrganizationRelatedSerializer):
+class InvitationSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     owner = UserLighterSerializer(read_only=True)
     organization = HiddenSlugRelatedField(
         slug_field="code", queryset=Organization.objects.all(), required=False
@@ -56,7 +61,9 @@ class InvitationSerializer(OrganizationRelatedSerializer):
         return Organization.objects.filter(code=self.context.get("organization_code"))
 
 
-class AccessRequestSerializer(serializers.ModelSerializer):
+class AccessRequestSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )

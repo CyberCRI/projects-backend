@@ -9,11 +9,18 @@ from apps.commons.mixins import HasOwner, OrganizationRelated
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from services.keycloak.interface import KeycloakService
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import InvalidEmailTypeError
 
 
-class Invitation(models.Model, HasOwner, OrganizationRelated):
+class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.Model):
+    """
+    A link that allows a user to join an organization.
+    """
+
+    auto_translated_fields: List[str] = ["description"]
+
     organization = models.ForeignKey(
         "organizations.Organization", on_delete=models.CASCADE
     )
@@ -41,11 +48,13 @@ class Invitation(models.Model, HasOwner, OrganizationRelated):
         return [self.organization]
 
 
-class AccessRequest(models.Model, OrganizationRelated):
+class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """
     A request to access an organization.
     It can be created by an existing user or by a new user.
     """
+
+    auto_translated_fields: List[str] = ["message"]
 
     class Status(models.TextChoices):
         PENDING = "pending"

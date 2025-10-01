@@ -21,6 +21,7 @@ from .views import (
     ProjectCategoryViewSet,
     TemplateImagesView,
     TemplateViewSet,
+    TermsAndConditionsViewSet,
 )
 
 router = DefaultRouter()
@@ -58,6 +59,9 @@ organization_router_register(
 )
 organization_router_register(
     router, r"access-request", AccessRequestViewSet, basename="AccessRequest"
+)
+organization_router_register(
+    router, r"terms-and-conditions", TermsAndConditionsViewSet, basename="TermsAndConditions"
 )
 
 one_to_one_router = OneToOneRouter()

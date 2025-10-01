@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from django.contrib import admin
 from django.contrib.auth.models import Group, Permission
 from django.db import transaction
@@ -5,40 +7,17 @@ from django.db.models import Q, QuerySet
 from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
-from import_export import fields, resources  # type: ignore
 from import_export.admin import ExportActionMixin  # type: ignore
 
-from apps.accounts.models import PeopleGroup, ProjectUser
-from apps.accounts.utils import get_group_permissions
 from apps.commons.admin import RoleBasedAccessAdmin
 from apps.emailing.models import Email
 from apps.organizations.models import Organization
+from apps.projects.models import Project
 from services.keycloak.interface import KeycloakService
 
-
-class UserResource(resources.ModelResource):
-    portals = fields.Field()
-
-    class Meta:
-        fields = [
-            "id",
-            "slug",
-            "email",
-            "given_name",
-            "family_name",
-            "job",
-            "portals",
-            "language",
-            "location",
-            "sdgs",
-            "created_at",
-            "last_login",
-        ]
-        model = ProjectUser
-
-    def dehydrate_portals(self, user: ProjectUser):
-        organizations = user.get_related_organizations()
-        return ",".join([f"{o.code}" for o in organizations])
+from .exports import UserResource
+from .models import PeopleGroup, ProjectUser
+from .utils import get_group_permissions
 
 
 class UserAdmin(ExportActionMixin, RoleBasedAccessAdmin):
@@ -63,8 +42,8 @@ class UserAdmin(ExportActionMixin, RoleBasedAccessAdmin):
     )
 
     def get_queryset_for_organizations(
-        self, queryset: QuerySet, organizations: QuerySet[Organization]
-    ) -> QuerySet:
+        self, queryset: QuerySet[ProjectUser], organizations: QuerySet[Organization]
+    ) -> QuerySet[ProjectUser]:
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
@@ -159,15 +138,15 @@ class GroupAdmin(admin.ModelAdmin):
         return format_html(f'<b style="color:{color};">{permissions_up_to_date}</b>')
 
     def permissions_up_to_date(self, instance: Group) -> str:
-        if instance.projects.exists():
+        with suppress(Project.DoesNotExist):
             return self.format_permissions_up_to_date(
                 instance.projects.get().permissions_up_to_date
             )
-        if instance.people_groups.exists():
+        with suppress(PeopleGroup.DoesNotExist):
             return self.format_permissions_up_to_date(
                 instance.people_groups.get().permissions_up_to_date
             )
-        if instance.organizations.exists():
+        with suppress(Organization.DoesNotExist):
             return self.format_permissions_up_to_date(
                 instance.organizations.get().permissions_up_to_date
             )

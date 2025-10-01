@@ -23,11 +23,11 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
-    OrganizationRelated,
     ProjectRelated,
 )
 from apps.commons.models import GroupData
 from apps.commons.utils import get_write_permissions_from_subscopes
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -66,9 +66,9 @@ class SoftDeleteManager(models.Manager):
 
 class Project(
     HasMultipleIDs,
+    HasAutoTranslatedFields,
     HasPermissionsSetup,
     ProjectRelated,
-    OrganizationRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -116,8 +116,12 @@ class Project(
         History of this project.
     """
 
+    project_query_string: str = ""
+    organization_query_string: str = "organizations"
+
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
+    auto_translated_fields: List[str] = ["title", "description", "purpose"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -205,6 +209,11 @@ class Project(
     history = HistoricalRecords(
         related_name="archive",
         m2m_fields=[tags, categories],
+        excluded_fields=[
+            f"{field}_{lang}"
+            for field in auto_translated_fields
+            for lang in settings.REQUIRED_LANGUAGES
+        ],
     )
     duplicated_from = models.CharField(
         max_length=8, null=True, blank=True, default=None
@@ -240,6 +249,7 @@ class Project(
     def __init__(self, *args, **kwargs):
         super(Project, self).__init__(*args, **kwargs)
         self._original_description = self.description
+        self._related_organizations = None
 
     @classmethod
     def get_id_field_name(cls, object_id: Any) -> str:
@@ -271,6 +281,7 @@ class Project(
         ]:
             group.delete()
         self.save()
+        self._delete_auto_translated_fields()
 
     @transaction.atomic
     def hard_delete(self):
@@ -370,7 +381,9 @@ class Project(
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
-        return self.organizations.all()
+        if self._related_organizations is None:
+            self._related_organizations = list(self.organizations.all())
+        return self._related_organizations
 
     def get_default_owners_permissions(self) -> QuerySet[Permission]:
         excluded_permissions = [
@@ -518,14 +531,32 @@ class Project(
             self.owners.all() | self.reviewers.all() | self.members.all()
         ).distinct()
 
+    def get_all_groups(self) -> QuerySet["PeopleGroup"]:
+        """Return all groups."""
+        return (
+            self.member_groups.all()
+            | self.owner_groups.all()
+            | self.reviewer_groups.all()
+        ).distinct()
+
+    def _get_score_instance(self) -> "ProjectScore":
+        try:
+            return self.score
+        except Project.score.RelatedObjectDoesNotExist:
+            self.score = ProjectScore(project=self)
+            return self.score
+
     def get_or_create_score(self) -> "ProjectScore":
-        score, created = ProjectScore.objects.get_or_create(project=self)
-        if created:
-            return score.set_score()
+        score = self._get_score_instance()
+        if not score.pk:
+            score.set_score()
+            score.save()
         return score
 
     def calculate_score(self) -> "ProjectScore":
-        return self.get_or_create_score().set_score()
+        score = self._get_score_instance()
+        score.set_score()
+        return score
 
     @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
@@ -573,7 +604,7 @@ class Project(
         return project
 
 
-class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectScore(models.Model, ProjectRelated):
     project = models.OneToOneField(
         "projects.Project", on_delete=models.CASCADE, related_name="score"
     )
@@ -639,11 +670,10 @@ class ProjectScore(models.Model, ProjectRelated, OrganizationRelated):
         self.popularity = popularity
         self.activity = activity
         self.score = score
-        self.save()
         return self
 
 
-class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
+class LinkedProject(models.Model, ProjectRelated):
     """Store unidirectional link between projects.
 
     Attributes
@@ -653,6 +683,9 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
     target: ForeignKey
         `Project` the first one is being linked to.
     """
+
+    project_query_string: str = "target"
+    organization_query_string: str = "target__organizations"
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="linked_to"
@@ -674,7 +707,12 @@ class LinkedProject(models.Model, ProjectRelated, OrganizationRelated):
         return self.target.get_related_organizations()
 
 
-class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class BlogEntry(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    DuplicableModel,
+    models.Model,
+):
     """A blog entry in a project.
 
     Attributes
@@ -693,6 +731,8 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
         Date of the last change made to the blog entry.
     """
 
+    auto_translated_fields: List[str] = ["title", "content"]
+
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="blog_entries"
     )
@@ -704,6 +744,7 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name_plural = "Blog entries"
 
     @transaction.atomic
     def save(self, *args, **kwargs):
@@ -751,7 +792,12 @@ class BlogEntry(models.Model, ProjectRelated, OrganizationRelated, DuplicableMod
         return blog_entry
 
 
-class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class Goal(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    DuplicableModel,
+    models.Model,
+):
     """Goal of a project.
 
     Attributes
@@ -769,6 +815,8 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
     status: CharField,
         Status of the Goal.
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class GoalStatus(models.TextChoices):
         NONE = "na"
@@ -818,7 +866,12 @@ class Goal(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
         )
 
 
-class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableModel):
+class Location(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    DuplicableModel,
+    models.Model,
+):
     """A project location on Earth.
 
     Attributes
@@ -838,6 +891,8 @@ class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableMode
     type: CharField
         Type of the location (team or impact).
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class LocationType(models.TextChoices):
         """Type of a location."""
@@ -877,7 +932,12 @@ class Location(models.Model, ProjectRelated, OrganizationRelated, DuplicableMode
         )
 
 
-class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner):
+class ProjectMessage(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    HasOwner,
+    models.Model,
+):
     """
     A message in a project.
 
@@ -900,6 +960,8 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
     images: ManyToManyField files.Image
         Images used by the message.
     """
+
+    auto_translated_fields: List[str] = ["content"]
 
     project = models.ForeignKey(
         "projects.Project",
@@ -941,6 +1003,7 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
     def soft_delete(self):
         self.deleted_at = timezone.localtime(timezone.now())
         self.save()
+        self._delete_auto_translated_fields()
 
     def get_owner(self):
         """Get the owner of the object."""
@@ -951,7 +1014,11 @@ class ProjectMessage(models.Model, ProjectRelated, OrganizationRelated, HasOwner
         return self.author == user
 
 
-class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectTab(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    models.Model,
+):
     """A tab in the project page.
 
     Attributes
@@ -965,6 +1032,8 @@ class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
     description: TextField
         Description of the tab.
     """
+
+    auto_translated_fields: List[str] = ["title", "description"]
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -992,7 +1061,11 @@ class ProjectTab(models.Model, ProjectRelated, OrganizationRelated):
         return self.project.get_related_organizations()
 
 
-class ProjectTabItem(models.Model, ProjectRelated, OrganizationRelated):
+class ProjectTabItem(
+    HasAutoTranslatedFields,
+    ProjectRelated,
+    models.Model,
+):
     """An item in a project tab.
 
     Attributes
@@ -1004,6 +1077,11 @@ class ProjectTabItem(models.Model, ProjectRelated, OrganizationRelated):
     content: TextField
         Content of the item.
     """
+
+    project_query_string: str = "tab__project"
+    organization_query_string: str = "tab__project__organizations"
+
+    auto_translated_fields: List[str] = ["title", "content"]
 
     tab = models.ForeignKey(
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"

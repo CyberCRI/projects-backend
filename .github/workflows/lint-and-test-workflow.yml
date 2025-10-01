@@ -80,6 +80,12 @@ jobs:
         env:
           KEYCLOAK_ADMIN: admin
           KEYCLOAK_ADMIN_PASSWORD: admin
+        options: >-
+          --health-cmd "curl -fs http://keycloak:8080/realms/lp"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 30s
       redis:
         image: redis:6.2-bullseye
         ports:
@@ -95,8 +101,8 @@ jobs:
     - name: Run the linter
       run: make lint
     - name: Check that migrations are up-to-date
-      run: make check-migrations
+      run: make migrations-check
     - name: Check that translations are up-to-date
-      run: make makemessages-check
+      run: make locales-check
     - name: Run unit tests
       run: make test

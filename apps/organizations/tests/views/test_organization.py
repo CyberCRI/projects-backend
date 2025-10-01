@@ -13,6 +13,7 @@ from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
+from apps.files.factories import OrganizationAttachmentFileFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.organizations.models import Organization
 from apps.projects.factories import ProjectFactory
@@ -214,7 +215,7 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
             (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -309,7 +310,7 @@ class DeleteOrganizationTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -341,7 +342,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -372,7 +373,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -427,7 +428,7 @@ class OrganizationFeaturedProjectTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -458,7 +459,7 @@ class OrganizationFeaturedProjectTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
             (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
         ]
     )
@@ -1019,3 +1020,13 @@ class MiscOrganizationTestCase(JwtAPITestCase):
             {c["id"] for c in content["enabled_skills_tag_classifications"]},
             {tag_classification.id, tag_classification_2.id},
         )
+
+    def test_attachment_files_count(self):
+        organization = OrganizationFactory()
+        OrganizationAttachmentFileFactory.create_batch(2, organization=organization)
+        response = self.client.get(
+            reverse("Organization-detail", args=(organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(content["attachment_files_count"], 2)

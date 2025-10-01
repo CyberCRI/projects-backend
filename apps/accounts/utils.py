@@ -10,10 +10,10 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from googleapiclient.errors import HttpError
 from guardian.shortcuts import assign_perm, get_group_perms
+from keycloak import KeycloakError
 from rest_framework.request import Request
 
 from apps.commons.mixins import HasPermissionsSetup
-from keycloak import KeycloakError
 
 from .exceptions import (
     ExpiredTokenError,

@@ -54,6 +54,7 @@ django-debug-toolbar = "^4.4.6"
 uvicorn = "^0.32.1"
 django-opensearch-dsl = "^0.6.2"
 django-import-export = "^4.3.3"
+azure-ai-translation-text = "^1.0.1"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.3"
@@ -74,7 +75,7 @@ pytest = "^7.1.2"
 pytest-django = "^4.5.2"
 tblib = "^1.7.0"
 toml = "^0.10.2"
-urllib3 = "^1.26.19"
+urllib3 = "^2.5.0"
 django-slowtests = "^1.1.1"
 
 [build-system]
@@ -83,7 +84,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.isort]
 profile = "black"
-skip_glob = ["**/migrations/*.py", "**/devops-toolbox/**.py"]
+skip_glob = ["**/migrations/*.py", "**/devops-toolbox/**.py", "**/keycloak-lpi-theme/**.py"]
 
 [tool.black]
 exclude = '''
@@ -93,6 +94,7 @@ exclude = '''
     | \.venv
     | .+/migrations
     | devops-toolbox
+    | keycloak-lpi-theme
   )/
 )
 '''

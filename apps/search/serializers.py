@@ -7,11 +7,14 @@ from apps.feedbacks.models import Follow
 from apps.files.serializers import ImageSerializer
 from apps.organizations.serializers import ProjectCategoryLightSerializer
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .models import SearchObject
 
 
-class ProjectSearchSerializer(serializers.ModelSerializer):
+class ProjectSearchSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -38,9 +41,9 @@ class ProjectSearchSerializer(serializers.ModelSerializer):
         if "request" in self.context:
             user = self.context["request"].user
             if not user.is_anonymous:
-                follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                follow = Follow.objects.filter(follower=user, project=project).first()
+                if follow is not None:
+                    return {"is_followed": True, "follow_id": follow.id}
         return {"is_followed": False, "follow_id": None}
 
 

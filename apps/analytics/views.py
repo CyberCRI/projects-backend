@@ -1,4 +1,5 @@
-from collections import Counter, defaultdict
+import datetime
+from collections import defaultdict
 
 from django.db.models import Count, Q
 from django.db.models.functions import TruncMonth
@@ -45,51 +46,64 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
 
     def get_organization(self) -> Organization:
         organization_code = self.kwargs["organization_code"]
-        return get_object_or_404(Organization, code=organization_code)
+        return get_object_or_404(
+            Organization.objects.prefetch_related("projects"), code=organization_code
+        )
 
     def get_queryset(self):
         current_organization = self.get_organization()
         publication_status = self.request.query_params.get("publication_status", "all")
-        projects = Project.objects.all()
-        if publication_status != "all":
-            projects = projects.filter(publication_status=publication_status)
-        return projects.filter(organizations__in=[current_organization]).distinct()
+        if publication_status == "all":
+            return current_organization.projects.all()
+        return current_organization.projects.filter(
+            publication_status=publication_status
+        )
 
     def list(self, request: Request, *args, **kwargs) -> Response:
-        projects = self.get_queryset()
+        projects_qs = self.get_queryset()
 
         # Number of project per SDG
+        # construct the aggregate Count by SDG
+        aggregate = {
+            sdg.name: Count("id", filter=Q(sdgs__contains=[sdg])) for sdg in SDG
+        }
+        aggregate_result = projects_qs.aggregate(**aggregate)
+        # recontruct the final dict, the aggregate key is enum str, we need to reconvert str to SDG_ENUM
         by_sdg = [
-            {"sdg": sdg, "project_count": projects.filter(sdgs__contains=[sdg]).count()}
-            for sdg in SDG
+            {"sdg": SDG[sdg], "project_count": count}
+            for sdg, count in aggregate_result.items()
         ]
 
-        by_month = defaultdict(lambda: {"created_count": 0, "updated_count": 0})
         # Number of project created each month
-        created_by_month = projects.annotate(month=TruncMonth("created_at"))
-        created_by_month = Counter([project.month for project in created_by_month])
-        for month, count in created_by_month.items():
-            by_month[month.date()]["created_count"] += count
+        annotate_by_months: list[(datetime.datetime, datetime.datetime)] = (
+            projects_qs.annotate(
+                create_month=TruncMonth("created_at"),
+                update_month=TruncMonth("updated_at"),
+            ).values_list("create_month", "update_month")
+        )
 
-        # Number of project updated each month
-        updated_by_month = projects.annotate(month=TruncMonth("updated_at"))
-        updated_by_month = Counter([project.month for project in updated_by_month])
-        for month, count in updated_by_month.items():
-            by_month[month.date()]["updated_count"] += count
+        # set the total aggregations (same as projects.count())
+        projects_total_count = len(annotate_by_months)
+
+        by_month = defaultdict(lambda: {"created_count": 0, "updated_count": 0})
+        for create_month, update_month in annotate_by_months:
+            by_month[create_month.date()]["created_count"] += 1
+            by_month[update_month.date()]["updated_count"] += 1
 
         # Top ten wikipedia_tags
         tags = (
             Tag.objects.annotate(
-                project_count=Count("projects", filter=Q(projects__in=projects))
+                project_count=Count("projects", filter=Q(projects__in=projects_qs))
             )
             .filter(project_count__gt=0)
+            .prefetch_related("projects")
             .order_by("-project_count")[:10]
         )
 
         by_month = [{**{"month": k}, **v} for k, v in by_month.items()]
         serializer = StatsSerializer(
             {
-                "total": projects.count(),
+                "total": projects_total_count,
                 "by_sdg": by_sdg,
                 "by_month": by_month,
                 "top_tags": tags,

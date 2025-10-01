@@ -15,12 +15,18 @@ from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
-class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
+class Organization(
+    HasAutoTranslatedFields,
+    HasPermissionsSetup,
+    OrganizationRelated,
+    models.Model,
+):
     """An Organization is a set of ProjectCategories contained in an OrganizationDirectory.
 
     Attributes
@@ -75,6 +81,15 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
         Identity providers authorized to access the organization.
     """
 
+    organization_query_string: str = ""
+    auto_translated_fields: List[str] = [
+        "name",
+        "dashboard_title",
+        "dashboard_subtitle",
+        "description",
+        "chat_button_text",
+    ]
+
     code = models.CharField(max_length=50, unique=True)
     website_url = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
@@ -93,6 +108,8 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
     background_color = models.CharField(max_length=9, blank=True)
     chat_url = models.URLField(blank=True, max_length=255)
     chat_button_text = models.CharField(blank=True, max_length=255)
+
+    auto_translate_content = models.BooleanField(default=False)
     languages = ArrayField(
         models.CharField(max_length=2, choices=Language.choices),
         default=Language.default_list,
@@ -242,6 +259,7 @@ class Organization(models.Model, HasPermissionsSetup, OrganizationRelated):
                     "projectcategory",
                     "template",
                     "tagclassification",
+                    "organization",
                 ]
             ],
         ]
@@ -429,6 +447,7 @@ class Template(models.Model, OrganizationRelated):
     goal_description = models.TextField(blank=True)
     review_title = models.CharField(max_length=255, default="", blank=True)
     review_description = models.TextField(blank=True)
+    comment_content = models.TextField(blank=True)
 
     audience = models.CharField(max_length=20, choices=Audiences.choices, blank=True)
     time_estimation = models.CharField(
@@ -441,7 +460,9 @@ class Template(models.Model, OrganizationRelated):
         return [self.organization]
 
 
-class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
+class ProjectCategory(
+    HasAutoTranslatedFields, HasMultipleIDs, OrganizationRelated, models.Model
+):
     """A ProjectCategory is a container for projects of the same type.
 
     Type might be student projects, research project, etc...
@@ -474,6 +495,7 @@ class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
         History of the object.
     """
 
+    auto_translated_fields: List[str] = ["name", "description"]
     slugified_fields: List[str] = ["name"]
     slug_prefix: str = "category"
 
@@ -575,3 +597,23 @@ class ProjectCategory(HasMultipleIDs, OrganizationRelated, models.Model):
         ).annotate(children_ids=ArrayAgg("children"))
         categories = {category.id: category for category in categories}
         return self._get_hierarchy(categories, self.id)
+
+
+class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):
+    """
+    Model to store the terms and conditions for an organization.
+    """
+
+    auto_translated_fields: List[str] = ["content"]
+
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="terms_and_conditions",
+    )
+    version = models.IntegerField(default=1)
+    content = models.TextField(blank=True, default="")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def get_related_organizations(self) -> List["Organization"]:
+        return [self.organization]

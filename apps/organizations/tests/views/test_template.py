@@ -51,6 +51,7 @@ class CreateTemplateTestCase(JwtAPITestCase):
             "goal_description": faker.text(),
             "review_title": faker.sentence(),
             "review_description": faker.text(),
+            "comment_content": faker.text(),
             "audience": random.choice(Template.Audiences.values),  # nosec
             "time_estimation": random.choice(Template.TimeEstimation.values),  # nosec
             "share_globally": faker.boolean(),
@@ -78,6 +79,7 @@ class CreateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["review_description"], payload["review_description"]
             )
+            self.assertEqual(content["comment_content"], payload["comment_content"])
             self.assertEqual(content["audience"], payload["audience"])
             self.assertEqual(content["time_estimation"], payload["time_estimation"])
             self.assertEqual(content["share_globally"], payload["share_globally"])
@@ -166,6 +168,7 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             "goal_description": faker.text(),
             "review_title": faker.sentence(),
             "review_description": faker.text(),
+            "comment_content": faker.text(),
             "audience": random.choice(Template.Audiences.values),  # nosec
             "time_estimation": random.choice(Template.TimeEstimation.values),  # nosec
             "share_globally": faker.boolean(),
@@ -194,6 +197,7 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["review_description"], payload["review_description"]
             )
+            self.assertEqual(content["comment_content"], payload["comment_content"])
             self.assertEqual(content["audience"], payload["audience"])
             self.assertEqual(content["time_estimation"], payload["time_estimation"])
             self.assertEqual(content["share_globally"], payload["share_globally"])

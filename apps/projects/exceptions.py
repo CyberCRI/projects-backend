@@ -14,7 +14,9 @@ class LinkedProjectPermissionDeniedError(PermissionDenied):
 
     def __init__(self, project_title: Optional[str] = None):
         detail = (
-            _(f"You don't have the permission to link this project : {project_title}")
+            _(
+                "You don't have the permission to link this project : {project_title}"
+            ).format(project_title=project_title)
             if project_title
             else self.default_detail
         )
@@ -104,7 +106,9 @@ class LinkProjectToSelfError(ValidationError):
 
     def __init__(self, project_title: Optional[str] = None):
         detail = (
-            _(f"The project '{project_title}' can't be linked to itself")
+            _("The project '{project_title}' can't be linked to itself").format(
+                project_title=project_title
+            )
             if project_title
             else self.default_detail
         )

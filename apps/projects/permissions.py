@@ -1,3 +1,4 @@
+from contextlib import suppress
 from typing import Optional
 
 from django.db.models import Model
@@ -25,14 +26,16 @@ class ProjectRelatedPermission(IgnoreCall):
             )
             if pk is not None:
                 queryset = Project.objects.filter(slug=pk)
-                if queryset.exists():
+                with suppress(Project.DoesNotExist):
                     return queryset.get()
                 return Project.objects.get(pk=pk)
+
         if obj is None and "project_id" in view.kwargs:
             queryset = Project.objects.filter(slug=view.kwargs["project_id"])
-            if queryset.exists():
+            with suppress(Project.DoesNotExist):
                 return queryset.get()
             return Project.objects.get(pk=view.kwargs["project_id"])
+
         if obj is None and (view.lookup_url_kwarg or view.lookup_field) in view.kwargs:
             lookup_url_kwarg = view.lookup_url_kwarg or view.lookup_field
             filter_kwargs = {view.lookup_field: view.kwargs[lookup_url_kwarg]}

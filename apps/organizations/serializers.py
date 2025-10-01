@@ -23,6 +23,7 @@ from apps.skills.serializers import (
     TagRelatedField,
 )
 from services.keycloak.serializers import IdentityProviderSerializer
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     CategoryHierarchyLoopError,
@@ -33,9 +34,19 @@ from .exceptions import (
     ParentCategoryOrganizationError,
     RootCategoryParentError,
 )
-from .models import Organization, ProjectCategory, Template
+from .models import Organization, ProjectCategory, Template, TermsAndConditions
 
 logger = logging.getLogger(__name__)
+
+
+class TermsAndConditionsSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+
+    class Meta:
+        model = TermsAndConditions
+        read_only_fields = ["id", "version"]
+        fields = read_only_fields + ["content"]
 
 
 class OrganizationAddTeamMembersSerializer(serializers.Serializer):
@@ -121,7 +132,11 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
-class OrganizationSerializer(OrganizationRelatedSerializer):
+class OrganizationSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     parent_code = SlugRelatedField(
         many=False,
         required=False,
@@ -144,6 +159,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     default_projects_tags = TagRelatedField(many=True, required=False)
     default_skills_tags = TagRelatedField(many=True, required=False)
     # read_only
+    terms_and_conditions = TermsAndConditionsSerializer(read_only=True)
     banner_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     identity_providers = IdentityProviderSerializer(many=True, read_only=True)
@@ -153,6 +169,7 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
         read_only=True,
         slug_field="code",
     )
+    attachment_files_count = serializers.SerializerMethodField()
     # write_only
     banner_image_id = serializers.PrimaryKeyRelatedField(
         write_only=True,
@@ -195,11 +212,13 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
             "default_projects_tags",
             "default_skills_tags",
             # read_only
+            "terms_and_conditions",
             "banner_image",
             "logo_image",
             "children",
             "google_sync_enabled",
             "identity_providers",
+            "attachment_files_count",
             # write_only
             "banner_image_id",
             "logo_image_id",
@@ -257,6 +276,9 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
     def get_google_sync_enabled(self, organization: Organization) -> bool:
         return organization.code == settings.GOOGLE_SYNCED_ORGANIZATION
 
+    def get_attachment_files_count(self, organization: Organization) -> int:
+        return organization.attachment_files.count()
+
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         organization = super(OrganizationSerializer, self).create(validated_data)
@@ -270,7 +292,11 @@ class OrganizationSerializer(OrganizationRelatedSerializer):
         return super(OrganizationSerializer, self).update(instance, validated_data)
 
 
-class OrganizationLightSerializer(OrganizationRelatedSerializer):
+class OrganizationLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     logo_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -359,6 +385,7 @@ class ProjectTemplateSerializer(OrganizationRelatedSerializer):
             "goal_description",
             "review_title",
             "review_description",
+            "comment_content",
             "audience",
             "time_estimation",
             "share_globally",
@@ -395,6 +422,7 @@ class TemplateSerializer(OrganizationRelatedSerializer):
             "goal_description",
             "review_title",
             "review_description",
+            "comment_content",
             "audience",
             "time_estimation",
             "share_globally",
@@ -410,6 +438,7 @@ class TemplateSerializer(OrganizationRelatedSerializer):
             "blogentry_content",
             "goal_description",
             "review_description",
+            "comment_content",
         ]:
             text, images = process_text(
                 request=self.context["request"],
@@ -430,7 +459,9 @@ class TemplateSerializer(OrganizationRelatedSerializer):
 
 
 class ProjectCategorySerializer(
-    OrganizationRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     parent = serializers.PrimaryKeyRelatedField(
         queryset=ProjectCategory.objects.all(),

@@ -102,8 +102,12 @@ class ReportViewSet(viewsets.GenericViewSet):
         send_email_task.delay(
             f"[Abuse] {serializer.validated_data['title']}",
             text_content,
-            settings.EMAIL_REPORT_RECIPIENTS,
             html_content=html_content,
+            from_email=settings.EMAIL_REPORT_SENDER,
+            to=[
+                *settings.EMAIL_REPORT_RECIPIENTS,
+                serializer.validated_data["reported_by"],
+            ],
         )
 
         return Response(status=status.HTTP_200_OK)
@@ -127,8 +131,12 @@ class ReportViewSet(viewsets.GenericViewSet):
         send_email_task.delay(
             f"[Bug] {serializer.validated_data['title']}",
             text_content,
-            settings.EMAIL_REPORT_RECIPIENTS,
             html_content=html_content,
+            from_email=settings.EMAIL_REPORT_SENDER,
+            to=[
+                *settings.EMAIL_REPORT_RECIPIENTS,
+                serializer.validated_data["reported_by"],
+            ],
         )
 
         return Response(status=status.HTTP_200_OK)
@@ -157,8 +165,9 @@ class ContactViewSet(viewsets.GenericViewSet):
         send_email_task.delay(
             f"[Contact] {serializer.validated_data['subject']}",
             text_content,
-            settings.EMAIL_REPORT_RECIPIENTS,
             html_content=html_content,
+            from_email=settings.EMAIL_CONTACT_SENDER,
+            to=[*settings.EMAIL_CONTACT_RECIPIENTS, serializer.validated_data["email"]],
         )
 
         return Response(status=status.HTTP_200_OK)

@@ -86,7 +86,7 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
 
     def get_field_names(self, declared_fields, info):
         fields = super().get_field_names(declared_fields, info)
-        trans_fields = get_translatable_fields_for_model(self.Meta.model)
+        translated_fields = get_translatable_fields_for_model(self.Meta.model) or []
         all_fields = []
 
         requested_langs = []
@@ -94,15 +94,12 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
             lang_param = self.context["request"].query_params.get("lang", None)
             requested_langs = lang_param.split(",") if lang_param else []
 
-        for f in fields:
-            if f not in trans_fields:
-                all_fields.append(f)
-            else:
-                all_fields.append(f)
-                for lang_code in settings.REQUIRED_LANGUAGES:
-                    if not requested_langs or lang_code in requested_langs:
-                        all_fields.append("{}_{}".format(f, lang_code))
-
+        for field in fields:
+            all_fields.append(field)
+            if field in translated_fields:
+                for lang in settings.REQUIRED_LANGUAGES:
+                    if not requested_langs or lang in requested_langs:
+                        all_fields.append(f"{field}_{lang}")
         return all_fields
 
     class Meta:

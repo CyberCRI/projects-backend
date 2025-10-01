@@ -3,9 +3,11 @@ from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.projects.factories import ProjectFactory
+from apps.skills.factories import TagFactory
 
 from .models import (
     ProjectEmbedding,
+    TagEmbedding,
     UserEmbedding,
     UserProfileEmbedding,
     UserProjectsEmbedding,
@@ -42,3 +44,10 @@ class UserEmbeddingFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = UserEmbedding
+
+
+class TagEmbeddingFactory(factory.django.DjangoModelFactory):
+    item = factory.LazyFunction(lambda: TagFactory())
+
+    class Meta:
+        model = TagEmbedding

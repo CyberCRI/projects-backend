@@ -147,6 +147,7 @@ INSTALLED_APPS = [
     "services.keycloak",
     "services.mistral",
     "services.mixpanel",
+    "services.translator",
     "services.wikipedia",
     # deploys should be the last one
     "apps.deploys",
@@ -270,6 +271,7 @@ LANGUAGES = [
     ("nl", "Dutch"),
     ("et", "Estonian"),
     ("ca", "Catalan"),
+    ("es", "Español"),
 ]
 
 LOCALE_PATHS = (BASE_DIR / "locale",)
@@ -434,6 +436,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.files.tasks.delete_orphan_images",
         "schedule": crontab(minute=0, hour=2),
     },
+    "delete-orphan-tags": {
+        "task": "apps.skills.tasks.delete_orphan_wikipedia_tags",
+        "schedule": crontab(minute=0, hour=2),
+    },
     "calculate_projects_scores": {
         "task": "apps.projects.tasks.calculate_projects_scores",
         "schedule": crontab(minute=0, hour=3),
@@ -470,9 +476,17 @@ CELERY_BEAT_SCHEDULE = {
         "task": "services.google.tasks.retry_failed_tasks",
         "schedule": crontab(minute="*/10", hour="*"),
     },
+    "update_automatic_translations": {
+        "task": "apps.translations.tasks.automatic_translations",
+        "schedule": crontab(minute="*/15", hour="*"),
+    },
     "send_instruction_notification": {
         "task": "apps.notifications.tasks.notify_new_instructions",
         "schedule": crontab(minute=0, hour="*"),
+    },
+    "clean_duplicate_search_objects": {
+        "task": "apps.search.tasks.clean_duplicate_search_objects",
+        "schedule": crontab(minute=10, hour="*"),
     },
 }
 
@@ -515,11 +529,23 @@ EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "projects@mg.lp-i.dev")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_SSL = os.getenv("EMAIL_USE_SSL", False)
 
-EMAIL_REPORT_RECIPIENTS = ["projects.platform@learningplanetinstitute.org"]
+EMAIL_CONTACT_SENDER = os.getenv(
+    "EMAIL_CONTACT_SENDER", "contact.projects@learningplanetinstitute.org"
+)
+EMAIL_CONTACT_RECIPIENTS = os.getenv(
+    "EMAIL_CONTACT_RECIPIENTS", "projects.platform@learningplanetinstitute.org"
+).split(",")
+EMAIL_REPORT_SENDER = os.getenv(
+    "EMAIL_REPORT_SENDER", "contact.projects@learningplanetinstitute.org"
+)
+EMAIL_REPORT_RECIPIENTS = os.getenv(
+    "EMAIL_REPORT_RECIPIENTS", "projects.platform@learningplanetinstitute.org"
+).split(",")
 
-# Time (in seconds) after which an image is considered an orphan if it was not assigned to
-# any model.
+# Time (in seconds) after which an image or a tag is considered an orphan if it was not
+# assigned to any model.
 IMAGE_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
+TAG_ORPHAN_THRESHOLD_SECONDS = 86400  # 1 day
 
 # MJML
 MJML_BACKEND_MODE = "httpserver"
@@ -600,6 +626,7 @@ OPENSEARCH_DSL_SIGNAL_PROCESSOR = os.getenv(
 )
 OPENSEARCH_INDEX_PREFIX = os.getenv("OPENSEARCH_INDEX_PREFIX", "proj-local")
 
+
 #####################
 #   Static files    #
 #####################
@@ -660,3 +687,14 @@ MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
 ##############
 
 ESCO_API_URL = os.getenv("ESCO_API_URL", "https://ec.europa.eu/esco/api")
+
+
+##############
+# TRANSLATOR #
+##############
+
+AZURE_TRANSLATOR_KEY = os.getenv("AZURE_TRANSLATOR_KEY", "")
+AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
+AZURE_TRANSLATOR_ENDPOINT = os.getenv(
+    "AZURE_TRANSLATOR_ENDPOINT", "https://api.cognitive.microsofttranslator.com"
+)

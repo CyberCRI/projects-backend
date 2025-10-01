@@ -27,3 +27,7 @@ static/
 
 # Dumps
 dumps/
+
+# ignore submodule
+keycloak-lpi-theme
+devops-toolsbox

@@ -1,10 +1,15 @@
+import datetime
 import uuid
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any, List, Optional
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models import ForeignObjectRel, QuerySet
+from django.utils import timezone
 
 from apps.commons.mixins import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -68,6 +73,7 @@ class Tag(models.Model, OrganizationRelated):
         related_name="custom_tags",
     )
     external_id = models.CharField(max_length=2048, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"{self.type.capitalize()} Tag - {self.title}"
@@ -89,13 +95,48 @@ class Tag(models.Model, OrganizationRelated):
             return [self.organization]
         return []
 
+    @classmethod
+    def get_orphan_tags(
+        cls, threshold: Optional[int] = None, **filters
+    ) -> QuerySet["Tag"]:
+        """Return a QuerySet containing all the orphan tags.
 
-class TagClassification(HasMultipleIDs, OrganizationRelated, models.Model):
+        Parameters
+        ----------
+        threshold: int, optional
+            Time (in seconds) after which a tag is considered an orphan if it
+            was not assigned to any model. Default to
+            `settings.TAG_ORPHAN_THRESHOLD_SECONDS`.
+        """
+        if threshold is None:
+            threshold = settings.TAG_ORPHAN_THRESHOLD_SECONDS
+        filters = {
+            **{
+                f"{f.name}__isnull": True
+                for f in cls._meta.get_fields()
+                if isinstance(f, ForeignObjectRel)
+                and f.name not in ["tag_classifications", "embedding"]
+            },
+            **filters,
+        }
+        threshold = timezone.localtime(timezone.now()) - datetime.timedelta(
+            seconds=threshold
+        )
+        return cls.objects.filter(created_at__lt=threshold, **filters)
+
+
+class TagClassification(
+    HasAutoTranslatedFields,
+    HasMultipleIDs,
+    OrganizationRelated,
+    models.Model,
+):
     """
     Subset of tags that can be used as Skills, Hobbies or Project tags.
     Users are allowed to create their own tags and classifications.
     """
 
+    auto_translated_fields: List[str] = ["title", "description"]
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "tag-classification"
     reserved_slugs = ["enabled-for-projects", "enabled-for-skills"]
@@ -152,7 +193,7 @@ class TagClassification(HasMultipleIDs, OrganizationRelated, models.Model):
             or classification_type == cls.TagClassificationType.CUSTOM
         ):
             raise ValueError("Invalid classification type")
-        classification, _ = cls.objects.get_or_create(
+        classification, _ = cls.objects.prefetch_related("tags").get_or_create(
             type=classification_type,
             defaults={
                 "title": classification_type,
@@ -257,7 +298,9 @@ class Mentoring(models.Model, HasOwners, OrganizationRelated):
         return [self.organization]
 
 
-class MentoringMessage(models.Model, HasOwner):
+class MentoringMessage(
+    HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.Model
+):
     """
     Message sent in a mentoring conversation.
 
@@ -273,6 +316,9 @@ class MentoringMessage(models.Model, HasOwner):
         The date and time the message was created.
     """
 
+    organization_query_string: str = "mentoring__organization"
+    auto_translated_fields: List[str] = ["content"]
+
     mentoring = models.ForeignKey(
         "skills.Mentoring", on_delete=models.CASCADE, related_name="messages"
     )
@@ -286,6 +332,9 @@ class MentoringMessage(models.Model, HasOwner):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def get_related_organizations(self):
+        return [self.mentoring.organization]
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""

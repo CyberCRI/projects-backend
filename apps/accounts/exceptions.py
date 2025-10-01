@@ -58,7 +58,9 @@ class UserRolePermissionDeniedError(PermissionDenied):
 
     def __init__(self, role: Optional[str] = None):
         detail = (
-            _(f"You do not have the permission to assign this role : {role}")
+            _("You do not have the permission to assign this role : {role}").format(
+                role=role
+            )
             if role
             else self.default_detail
         )
@@ -89,7 +91,9 @@ class KeycloakSyncError(APIException):
 
     def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
         detail = (
-            _(f"An error occurred while syncing with Keycloak : {message}")
+            _("An error occurred while syncing with Keycloak : {message}").format(
+                message=message
+            )
             if message
             else self.default_detail
         )
@@ -104,7 +108,9 @@ class GoogleSyncError(APIException):
 
     def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
         detail = (
-            _(f"An error occurred while syncing with Google : {message}")
+            _("An error occurred while syncing with Google : {message}").format(
+                message=message
+            )
             if message
             else self.default_detail
         )
@@ -152,7 +158,7 @@ class UserRoleAssignmentError(ValidationError):
 
     def __init__(self, role: Optional[str] = None):
         detail = (
-            _(f"You cannot assign this role to a user : {role}")
+            _("You cannot assign this role to a user : {role}").format(role=role)
             if role
             else self.default_detail
         )

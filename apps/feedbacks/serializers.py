@@ -14,6 +14,7 @@ from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     CommentProjectPermissionDeniedError,
@@ -24,7 +25,10 @@ from .models import Comment, Follow, Review
 
 
 class FollowSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     follower = UserLighterSerializer(many=False, read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -73,7 +77,10 @@ class UserFollowManySerializer(serializers.Serializer):
 
 
 class ReviewSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     reviewer = UserLighterSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -107,7 +114,10 @@ class ReviewSerializer(
 
 
 class CommentSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     content = WritableSerializerMethodField(write_field=serializers.CharField())
 
@@ -183,6 +193,7 @@ class CommentSerializer(
                 text=self.validated_data["content"],
                 upload_to="comment/images/",
                 view="Comment-images-detail",
+                process_template=True,
                 project_id=self.instance.project.id,
             )
             if create and not images and text == self.validated_data["content"]:

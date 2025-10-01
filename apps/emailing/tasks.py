@@ -15,5 +15,6 @@ def send_email_task(
     from_email: str = settings.EMAIL_HOST_USER,
     html_content: Optional[str] = None,
     reply_to: Optional[List[str]] = None,
+    cc: Optional[List[str]] = None,
 ):
-    send_email(subject, text_content, to, from_email, html_content, reply_to)
+    send_email(subject, text_content, to, from_email, html_content, reply_to, cc)

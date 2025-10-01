@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional
 
 from django.apps import apps
+from django.conf import settings
 from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
@@ -38,6 +39,7 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -65,7 +67,10 @@ from .utils import compute_project_changes, get_views_from_serializer
 
 
 class BlogEntrySerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -140,7 +145,10 @@ class BlogEntrySerializer(
 
 
 class GoalSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -170,7 +178,9 @@ class GoalSerializer(
         return None
 
 
-class LocationProjectSerializer(serializers.ModelSerializer):
+class LocationProjectSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -179,7 +189,10 @@ class LocationProjectSerializer(serializers.ModelSerializer):
 
 
 class LocationSerializer(
-    OrganizationRelatedSerializer, ProjectRelatedSerializer, serializers.ModelSerializer
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
 ):
     project = LocationProjectSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -213,13 +226,17 @@ class LocationSerializer(
         return None
 
 
-class ProjectSuperLightSerializer(serializers.ModelSerializer):
+class ProjectSuperLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     class Meta:
         model = Project
         fields = ["id", "slug", "title"]
 
 
-class ProjectLightSerializer(serializers.ModelSerializer):
+class ProjectLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -250,8 +267,9 @@ class ProjectLightSerializer(serializers.ModelSerializer):
             user = self.context["request"].user
             if not user.is_anonymous:
                 follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
 
@@ -481,7 +499,11 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
         }
 
 
-class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializer):
+class ProjectSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     team = ProjectAddTeamMembersSerializer(required=False, source="*")
     tags = TagRelatedField(many=True, required=False)
 
@@ -587,8 +609,10 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
 
     @staticmethod
     def get_last_comment(project: Project) -> Optional[Dict]:
-        recent = project.comments.filter(reply_on=None).order_by("-created_at")
-        return CommentSerializer(recent.first()).data if recent.exists() else None
+        last_comment = (
+            project.comments.filter(reply_on=None).order_by("-created_at").first()
+        )
+        return CommentSerializer(last_comment).data if last_comment else None
 
     def get_linked_projects(self, project: Project) -> Dict[str, Any]:
         queryset = LinkedProject.objects.filter(target=project)
@@ -601,8 +625,9 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             user = self.context["request"].user
             if not user.is_anonymous:
                 follow = Follow.objects.filter(follower=user, project=project)
-                if follow.exists():
-                    return {"is_followed": True, "follow_id": follow.first().id}
+                user_follow = follow.first()
+                if user_follow:
+                    return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
     @transaction.atomic
@@ -677,11 +702,11 @@ class ProjectSerializer(OrganizationRelatedSerializer, serializers.ModelSerializ
             )
             or user.is_superuser
             or any(
-                (user in o.admins.all() or user in o.facilitators.all())
+                (o.admins.all() | o.facilitators.all()).contains(user)
                 for o in self.instance.organizations.all()
             )
-            or user in self.instance.reviewers.all()
-            or user in self.instance.reviewer_groups_users.all()
+            or self.instance.reviewers.contains(user)
+            or self.instance.reviewer_groups_users.contains(user)
         ):
             return value
         raise OnlyReviewerCanChangeStatusError
@@ -738,7 +763,14 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         while previous:
             previous_reason = previous.history_change_reason
             if previous_reason:
-                delta = version.diff_against(previous)
+                delta = version.diff_against(
+                    previous,
+                    excluded_fields=[
+                        f"{field}_{lang}"
+                        for field in Project.auto_translated_fields
+                        for lang in settings.REQUIRED_LANGUAGES
+                    ],
+                )
                 return {
                     change.field: {"old_version": change.old, "new_version": change.new}
                     for change in delta.changes
@@ -833,7 +865,9 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
         ]
 
 
-class ProjectMessageSerializer(serializers.ModelSerializer):
+class ProjectMessageSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     content = WritableSerializerMethodField(write_field=serializers.CharField())
     reply_on = serializers.PrimaryKeyRelatedField(
         queryset=ProjectMessage.objects.all(),
@@ -892,7 +926,7 @@ class ProjectMessageSerializer(serializers.ModelSerializer):
         return super().save(**kwargs)
 
 
-class ProjectTabSerializer(serializers.ModelSerializer):
+class ProjectTabSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
     images = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Image.objects.all(), required=False
     )
@@ -914,7 +948,9 @@ class ProjectTabSerializer(serializers.ModelSerializer):
         return value
 
 
-class ProjectTabItemSerializer(serializers.ModelSerializer):
+class ProjectTabItemSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     images = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Image.objects.all(), required=False
     )

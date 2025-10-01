@@ -23,6 +23,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -52,7 +53,9 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserAdminListSerializer(serializers.ModelSerializer):
+class UserAdminListSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     current_org_role = serializers.CharField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
     people_groups = serializers.SerializerMethodField()
@@ -87,7 +90,7 @@ class UserAdminListSerializer(serializers.ModelSerializer):
         ).data
 
 
-class UserLighterSerializer(serializers.ModelSerializer):
+class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
     email = PrivacySettingProtectedEmailField(
         privacy_field="email", required=False, allow_blank=True
     )
@@ -132,7 +135,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
         }
 
 
-class UserLightSerializer(serializers.ModelSerializer):
+class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
     email = PrivacySettingProtectedEmailField(
         privacy_field="email", required=False, allow_blank=True
     )
@@ -220,14 +223,18 @@ class UserLightSerializer(serializers.ModelSerializer):
         return []
 
 
-class PeopleGroupSuperLightSerializer(serializers.ModelSerializer):
+class PeopleGroupSuperLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     class Meta:
         model = PeopleGroup
         read_only_fields = ["id", "slug", "name"]
         fields = read_only_fields
 
 
-class PeopleGroupLightSerializer(serializers.ModelSerializer):
+class PeopleGroupLightSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
     header_image = ImageSerializer(read_only=True)
     members_count = serializers.SerializerMethodField()
     roles = serializers.SlugRelatedField(
@@ -338,7 +345,7 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
-class PeopleGroupSerializer(serializers.ModelSerializer):
+class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -476,7 +483,7 @@ class PeopleGroupSerializer(serializers.ModelSerializer):
 
 
 @extend_schema_serializer(exclude_fields=("roles",))
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
@@ -586,6 +593,7 @@ class UserSerializer(serializers.ModelSerializer):
             "id",
             "language",
             "onboarding_status",
+            "signed_terms_and_conditions",
             "keycloak_id",
             "people_id",
             "email",
