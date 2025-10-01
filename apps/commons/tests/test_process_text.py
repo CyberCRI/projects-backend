@@ -141,8 +141,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_create_comment_content(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Comment-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text("Comment-images-detail", self.project.id)
         )
         self.client.force_authenticate(self.user)
         project = self.project
@@ -160,8 +162,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_update_comment_content(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Comment-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text("Comment-images-detail", self.project.id)
         )
         self.client.force_authenticate(self.user)
         comment = CommentFactory(project=self.project)

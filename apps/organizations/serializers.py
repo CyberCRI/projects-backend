@@ -351,6 +351,7 @@ class TemplateSerializer(OrganizationRelatedSerializer):
             "blogentry_title_placeholder",
             "goal_title",
             "goal_description",
+            "comment",
             "language",
             # read-only
             "images",

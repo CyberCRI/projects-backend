@@ -193,6 +193,7 @@ class CommentSerializer(
                 text=self.validated_data["content"],
                 upload_to="comment/images/",
                 view="Comment-images-detail",
+                process_template=True,
                 project_id=self.instance.project.id,
             )
             if create and not images and text == self.validated_data["content"]:
