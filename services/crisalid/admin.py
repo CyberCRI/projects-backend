@@ -64,7 +64,7 @@ class ResearcherAdmin(admin.ModelAdmin):
         # list all harvester name from this profile
         result = [iden.harvester for iden in instance.identifiers.all()]
 
-        return f"{", ".join(result)} ({len(result)})"
+        return f"{', '.join(result)} ({len(result)})"
 
 
 admin.site.register(Researcher, ResearcherAdmin)
