@@ -33,7 +33,7 @@ class IdentifierAdmin(admin.ModelAdmin):
 
 
 class DocumentAdmin(admin.ModelAdmin):
-    list_display = ("title", "publication_date", "get_authors")
+    list_display = ("title", "publication_date", "get_authors", "get_identifiers")
     inlines = (DocumentSourceInline,)
 
     def get_queryset(self, request):
@@ -42,6 +42,13 @@ class DocumentAdmin(admin.ModelAdmin):
     @admin.display(description="authors count")
     def get_authors(self, instance):
         return instance.authors.count()
+
+    @admin.display(description="identifiers count")
+    def get_identifiers(self, instance):
+        # list all harvester name from this profile
+        result = [iden.identifier.harvester for iden in instance.sources.all()]
+
+        return f"{', '.join(result)} ({len(result)})"
 
 
 class ResearcherAdmin(admin.ModelAdmin):

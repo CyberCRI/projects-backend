@@ -1,8 +1,11 @@
 import abc
 import datetime
+import logging
 from functools import cache
 
 from services.crisalid.models import Document, DocumentSource, Identifier, Researcher
+
+logger = logging.getLogger(__name__)
 
 
 class AbstractPopulate(abc.ABC):
@@ -18,6 +21,7 @@ class AbstractPopulate(abc.ABC):
             setattr(model, field, value)
             updated = True
         if updated or not model.pk:
+            logger.debug("Save model %s", model)
             model.save()
 
     def cache_model(self, model, **fields):
@@ -100,6 +104,8 @@ class PopulateDocumentCrisalid(AbstractPopulate):
                 return datetime.datetime.strptime(value, format_date)
             except (TypeError, ValueError):
                 continue
+
+        logger.error("Invalid date format %s", value)
         raise ValueError(f"invalid date {value}")
 
     def single(self, data: dict):

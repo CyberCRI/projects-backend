@@ -1,3 +1,5 @@
+import datetime
+
 from django.db.models import Count, F, QuerySet
 from django.db.models.functions import TruncYear
 from django.http import JsonResponse
@@ -14,10 +16,21 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("id", "crisalid_uid", "publication_date")
 
+    def filter_queryset(self, queryset):
+        qs = super().filter_queryset(queryset)
+
+        year = self.request.query_params.get("publication_date__year")
+        if year:
+            qs = qs.filter(publication_date__year=year)
+
+        return qs
+
     def get_queryset(self) -> QuerySet:
-        return Document.objects.filter(
-            authors__id=self.kwargs["researcher_pk"]
-        ).prefetch_related("sources", "authors__user")
+        return (
+            Document.objects.filter(authors__id=self.kwargs["researcher_pk"])
+            .prefetch_related("sources", "authors__user")
+            .order_by("-publication_date")
+        )
 
     @extend_schema(
         parameters=[
@@ -25,7 +38,25 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
                 name="document_id",
                 description="document id",
                 required=False,
+                type=int,
+            ),
+            OpenApiParameter(
+                name="analytics",
+                description="return analytics from documents researchers",
+                enum=("info",),
+                required=False,
+            ),
+            OpenApiParameter(
+                name="crisalid_uid",
+                description="crisalid_uid",
+                required=False,
                 type=str,
+            ),
+            OpenApiParameter(
+                name="publication_date",
+                description="publication_date",
+                required=False,
+                type=datetime.datetime,
             ),
         ]
     )
@@ -38,14 +69,20 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
     def from_analytics(self, analytics: str):
         if analytics != "info":
             raise ValueError(f"invalid analytics {analytics!r}")
-        # publication_date
+
         qs = self.get_queryset()
+
+        # get counted all documents types
+        # use only here the filter_queryset,
+        # the next years values need to have all documents (non filtered)
         document_type = (
-            qs.values(name=F("sources__document_type"))
+            self.filter_queryset(qs)
+            .values(name=F("sources__document_type"))
             .annotate(count=Count("sources__id"))
             .order_by("sources__document_type")
         )
 
+        # order all buplications by years
         limit = self.request.query_params.get("limit")
         years = (
             qs.filter(publication_date__isnull=False)

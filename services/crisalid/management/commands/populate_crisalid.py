@@ -2,10 +2,10 @@ import math
 
 from django.core.management.base import BaseCommand
 
-from services.crisalid import populate
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import Document, DocumentSource, Identifier, Researcher
 from services.crisalid.populate import PopulateDocumentCrisalid
+from services.crisalid.utils import timeit
 
 
 class Command(BaseCommand):
@@ -40,13 +40,22 @@ class Command(BaseCommand):
         offset = int(options["offset"])
         limit = int(options["limit"])
         max_elements = float(options["max"])
+        total = 0
 
-        while max_elements >= 1:
-            data = service.query("document", offset=offset, limit=limit)["documents"]
-            if not data:
-                break
+        with timeit(print, "Populate All Data"):
+            while max_elements >= 1:
+                with timeit(print, "GrapQL request "):
+                    data = service.query("document", offset=offset, limit=limit)[
+                        "documents"
+                    ]
+                    if not data:
+                        break
 
-            populate.multiple(data)
+                with timeit(print, "Populate data"):
+                    populate.multiple(data)
 
-            offset += limit
-            max_elements -= 1
+                total += len(data)
+                print(f"{total} done...")
+
+                offset += limit
+                max_elements -= 1
