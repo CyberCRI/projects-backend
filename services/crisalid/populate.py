@@ -3,43 +3,85 @@ import datetime
 import logging
 from functools import cache
 
+from django.contrib.postgres.aggregates.general import ArrayAgg
+
 from services.crisalid.models import Document, DocumentSource, Identifier, Researcher
 
 logger = logging.getLogger(__name__)
 
 
+class _NOSET:
+    pass
+
+
+CRISALID_FORMAT_DATE = (
+    "%Y-%m-%d",
+    "%Y-%m",
+    "%Y",
+)
+
+
 class AbstractPopulate(abc.ABC):
-    def __init__(self, cache_model=None):
+    def __init__(self, cache_dict_model=None, identiers=None):
         # cache the methods to avoid mem leak and optimize the get/create
-        self.cache_model = cache_model or cache(self.cache_model)
+        self.cache_dict_model = cache_dict_model or cache(self.cache_dict_model)
+        self.cache_identifiers = identiers or {
+            f"{o.harvester}::{o.value}": o.pk for o in Identifier.objects.all()
+        }
 
     def save_if_needed(self, model, **fields):
         updated = False
         for field, value in fields.items():
-            if hasattr(model, field) and getattr(model, field) == value:
+            if getattr(model, field, _NOSET) == value:
                 continue
+
             setattr(model, field, value)
             updated = True
+
         if updated or not model.pk:
             logger.debug("Save model %s", model)
             model.save()
 
-    def cache_model(self, model, **fields):
-        """cache same models to optimzie bd requests/create"""
+    def cache_dict_model(self, model):
+        qs = model.objects.all()
+        if model is Researcher:
+            qs = qs.annotate(identifiers_lst_pk=ArrayAgg("identifiers__m2m"))
+        elif model is Document:
+            qs = qs.annotate(authors_lst_pk=ArrayAgg("authors__m2m"))
+        return {o.crisalid_uid: o for o in qs}
+
+    def cache_model(self, model, crisalid_uid):
+        mapping = self.cache_dict_model(model)
         try:
-            return model.objects.get(**fields)
-        except model.DoesNotExist:
-            return model(**fields)
+            return mapping[crisalid_uid]
+        except KeyError:
+            obj = model(crisalid_uid=crisalid_uid)
+            mapping[crisalid_uid] = obj
+            return obj
+
+    def cache_identifier(self, value, harvester):
+        k = f"{harvester}::{value}"
+        try:
+            return self.cache_identifiers[k]
+        except KeyError:
+            obj = Identifier(value=value, harvester=harvester)
+            self.save_if_needed(obj)
+            self.cache_identifiers[k] = obj.pk
+            return obj.pk
+
+    def save_m2m_if_needed(self, obj, key, objs_toadd: list[int]) -> False:
+        needed_pk = sorted(objs_toadd)
+        actual = sorted(getattr(obj, key))
+        if needed_pk != actual:
+            setattr(obj, key, needed_pk)
+            getattr(obj, key.removesuffix("__m2m")).set(needed_pk)
 
     @abc.abstractmethod
     def single(self, data):
         raise NotImplemented
 
     def multiple(self, datas: list) -> list:
-        objs = []
-        for data in datas:
-            objs.append(self.single(data))
-        return objs
+        return [self.single(data) for data in datas]
 
 
 class PopulateResearcher(AbstractPopulate):
@@ -49,16 +91,14 @@ class PopulateResearcher(AbstractPopulate):
 
         user_identifiers = []
         for iden in user["identifiers"]:
-            id_researcher = self.cache_model(
-                Identifier,
+            identifier_id = self.cache_identifier(
                 value=iden["value"],
                 harvester=iden["type"].lower(),
             )
-            self.save_if_needed(id_researcher)
-            user_identifiers.append(id_researcher)
+            user_identifiers.append(identifier_id)
 
         self.save_if_needed(researcher)
-        researcher.identifiers.set(user_identifiers)
+        self.save_m2m_if_needed(researcher, "identifiers__m2m", user_identifiers)
 
         return researcher
 
@@ -66,20 +106,22 @@ class PopulateResearcher(AbstractPopulate):
 class PopulateDocumentCrisalid(AbstractPopulate):
     def __init__(self):
         super().__init__()
-        self.populate_researcher = PopulateResearcher(self.cache_model)
+        self.sanitize_date = cache(self.sanitize_date)
+        self.populate_researcher = PopulateResearcher(
+            self.cache_dict_model, self.cache_identifiers
+        )
 
     def sanitize_languages(self, values: list[dict[str, str]]) -> str:
         """convert languages choices from crisalid fields
         crisalid return a list of objects with "language" and "value" assosiated from the language
         this method return the best choices from getting value
         """
-        maps_languages = {}
+        if not values:
+            return ""
 
+        maps_languages = {}
         for value in values:
             maps_languages[value["language"]] = value["value"]
-
-        if not maps_languages:
-            return ""
 
         return (
             maps_languages.get("en")
@@ -87,21 +129,16 @@ class PopulateDocumentCrisalid(AbstractPopulate):
             or next(iter(maps_languages.values()))
         )
 
-    def sanitize_date(self, value: str | None) -> datetime.datetime | None:
-        """this method convert datetime string from crisalid to python datetime
+    def sanitize_date(self, value: str | None) -> datetime.date | None:
+        """this method convert date string from crisalid to python date
         some date from crisalid as diferent format
         """
-        FORMAT_DATE = (
-            "%Y-%m-%d",
-            "%Y-%m",
-            "%Y",
-        )
         if value is None:
             return None
 
-        for format_date in FORMAT_DATE:
+        for format_date in CRISALID_FORMAT_DATE:
             try:
-                return datetime.datetime.strptime(value, format_date)
+                return datetime.datetime.strptime(value, format_date).date()
             except (TypeError, ValueError):
                 continue
 
@@ -119,20 +156,20 @@ class PopulateDocumentCrisalid(AbstractPopulate):
         )
 
         for recorded in data["recorded_by"]:
-            identifier = self.cache_model(
-                Identifier,
+            identifier_id = self.cache_identifier(
                 value=recorded["uid"],
                 harvester=recorded["harvester"].lower(),
             )
-            self.save_if_needed(identifier)
 
             doc_sources = self.cache_model(DocumentSource, crisalid_uid=recorded["uid"])
             self.save_if_needed(
                 doc_sources,
-                identifier=identifier,
+                identifier_id=identifier_id,
                 document=document,
                 document_type=None,
             )
 
             harvested_for = self.populate_researcher.multiple(recorded["harvested_for"])
-            document.authors.set(harvested_for)
+            self.save_m2m_if_needed(
+                document, "authors__m2m", (o.pk for o in harvested_for)
+            )

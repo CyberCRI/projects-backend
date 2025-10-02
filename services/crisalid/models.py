@@ -3,7 +3,9 @@ from django.db.models.functions import Lower
 
 
 class CrisalidDataModel(models.Model):
-    crisalid_uid = models.CharField(max_length=255, blank=True, null=True)
+    crisalid_uid = models.CharField(
+        max_length=255, blank=True, null=True, db_index=True
+    )
 
     class Meta:
         abstract = True
