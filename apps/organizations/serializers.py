@@ -443,7 +443,7 @@ class TemplateSerializer(OrganizationRelatedSerializer):
             text, images = process_text(
                 request=self.context["request"],
                 instance=self.instance,
-                text=self.validated_data[field],
+                text=self.validated_data.get(field, ""),
                 upload_to="template/images/",
                 view="Template-images-detail",
                 organization_code=self.instance.organization.code,

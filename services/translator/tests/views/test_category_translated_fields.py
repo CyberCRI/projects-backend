@@ -28,7 +28,9 @@ class CategoryTranslatedFieldsTestCase(JwtAPITestCase):
             "name": faker.word(),
             "description": faker.word(),
         }
-        response = self.client.post(reverse("Category-list"), payload)
+        response = self.client.post(
+            reverse("Category-list", args=(self.organization.code,)), data=payload
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         auto_translated_fields = AutoTranslatedField.objects.filter(
@@ -56,7 +58,9 @@ class CategoryTranslatedFieldsTestCase(JwtAPITestCase):
             ProjectCategory.auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
-            reverse("Category-detail", args=(project_category.pk,)),
+            reverse(
+                "Category-detail", args=(self.organization.code, project_category.pk)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -78,7 +82,9 @@ class CategoryTranslatedFieldsTestCase(JwtAPITestCase):
             for translated_field in ProjectCategory.auto_translated_fields
         }
         response = self.client.patch(
-            reverse("Category-detail", args=(project_category.pk,)),
+            reverse(
+                "Category-detail", args=(self.organization.code, project_category.pk)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -106,7 +112,9 @@ class CategoryTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         response = self.client.delete(
-            reverse("Category-detail", args=(project_category.pk,))
+            reverse(
+                "Category-detail", args=(self.organization.code, project_category.pk)
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(
