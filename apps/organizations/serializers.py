@@ -329,7 +329,11 @@ class OrganizationLightSerializer(
         return organization
 
 
-class TemplateLightSerializer(OrganizationRelatedSerializer):
+class TemplateLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     organization = SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
@@ -338,7 +342,6 @@ class TemplateLightSerializer(OrganizationRelatedSerializer):
             "id",
             "name",
             "description",
-            "language",
             "organization",
         ]
 
@@ -346,7 +349,11 @@ class TemplateLightSerializer(OrganizationRelatedSerializer):
         return [self.instance.organization] if self.instance else []
 
 
-class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
+class ProjectCategoryLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     organization = SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
@@ -366,7 +373,11 @@ class ProjectCategoryLightSerializer(OrganizationRelatedSerializer):
         return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]
 
 
-class ProjectTemplateSerializer(OrganizationRelatedSerializer):
+class ProjectTemplateSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     project_tags = TagRelatedField(many=True, read_only=True)
 
     class Meta:
@@ -393,7 +404,11 @@ class ProjectTemplateSerializer(OrganizationRelatedSerializer):
         fields = read_only_fields
 
 
-class TemplateSerializer(OrganizationRelatedSerializer):
+class TemplateSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
     project_tags = TagRelatedField(many=True, required=False)
     organization = SlugRelatedField(read_only=True, slug_field="code")
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
@@ -440,17 +455,18 @@ class TemplateSerializer(OrganizationRelatedSerializer):
             "review_description",
             "comment_content",
         ]:
-            text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
-                text=self.validated_data.get(field, ""),
-                upload_to="template/images/",
-                view="Template-images-detail",
-                organization_code=self.instance.organization.code,
-                template_id=self.instance.id,
-            )
-            self.validated_data[field] = text
-            self.instance.images.add(*images)
+            if field in self.validated_data:
+                text, images = process_text(
+                    request=self.context["request"],
+                    instance=self.instance,
+                    text=self.validated_data[field],
+                    upload_to="template/images/",
+                    view="Template-images-detail",
+                    organization_code=self.instance.organization.code,
+                    template_id=self.instance.id,
+                )
+                self.validated_data[field] = text
+                self.instance.images.add(*images)
         return super().save(**kwargs)
 
     def get_related_organizations(self) -> List[Organization]:

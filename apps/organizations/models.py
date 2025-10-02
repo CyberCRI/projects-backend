@@ -358,7 +358,7 @@ class TemplateCategories(models.Model):
     always_use = models.BooleanField(default=False)
 
 
-class Template(models.Model, OrganizationRelated):
+class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """
     Templates are used to guide the creation a new project by providing placeholders.
 
@@ -394,6 +394,8 @@ class Template(models.Model, OrganizationRelated):
         Project's review title placeholder.
     review_description: TextField
         Project's review description placeholder.
+    comment_content: TextField
+        Project's comment content placeholder.
     audience: CharField
         Audience this template is intended for.
     time_estimation: CharField
@@ -416,6 +418,20 @@ class Template(models.Model, OrganizationRelated):
         H11_H40 = "11-40hrs"
         H41_H120 = "41-120hrs"
         H121_PLUS = "Over 120hrs"
+
+    auto_translated_fields: List[str] = [
+        "name",
+        "description",
+        "project_title",
+        "project_description",
+        "blogentry_title",
+        "blogentry_content",
+        "goal_title",
+        "goal_description",
+        "review_title",
+        "review_description",
+        "comment_content",
+    ]
 
     name = models.CharField(max_length=255, blank=True)
     description = models.TextField(default="", blank=True)
