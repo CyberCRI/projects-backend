@@ -10,7 +10,7 @@ boto3 = "^1.18.59"
 bs4 = "^0.0.1"
 celery = { extras = ["redis"], version = "^5.2.1" }
 cryptography = "^44.0.1"
-Django = "^4.2.22"
+Django = "^4.2.25"
 django-cleanup = "^6.0.0"
 django-cors-headers = "^3.10.0"
 django-extensions = "^3.1.5"
@@ -23,7 +23,7 @@ django-simple-history = { git = "https://github.com/thijskramer/django-simple-hi
 django-stdimage = "^6.0.2"
 django-storages = { extras = ["azure"], version = "^1.11.1" }
 djangorestframework = "^3.15.2"
-djangorestframework-simplejwt = "^5.2.0"
+djangorestframework-simplejwt = "^5.5.1"
 drf-recaptcha = "^2.0.7"
 drf-spectacular = "^0.25.1"
 google = "^3.0.0"
