@@ -202,7 +202,9 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         cls.url = f"https://{cls.domain}"
         cls.link = AttachmentLinkFactory(site_url=cls.url, project=cls.project)
 
-    def test_create_duplicate_domain(self):
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_create_duplicate_domain(self, mocked):
+        mocked.return_value = MockResponse()
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         payload = {"site_url": self.url, "project_id": self.project.id}
@@ -220,7 +222,9 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
             },
         )
 
-    def test_update_duplicate_domain(self):
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_update_duplicate_domain(self, mocked):
+        mocked.return_value = MockResponse()
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         payload = {"site_url": self.url}
@@ -252,7 +256,9 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    def test_patch_duplicate_link(self):
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_patch_duplicate_link(self, mocked):
+        mocked.return_value = MockResponse()
         user = UserFactory(groups=[get_superadmins_group()])
         self.client.force_authenticate(user)
         link = AttachmentLinkFactory(project=self.project)
