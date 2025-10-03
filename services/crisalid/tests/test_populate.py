@@ -2,6 +2,7 @@ from django import test
 
 from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populate import PopulateDocumentCrisalid, PopulateResearcher
+import datetime
 
 
 class TestPopulateResearcher(test.TestCase):
@@ -63,6 +64,38 @@ class TestPopulateResearcher(test.TestCase):
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
+    def test_update_identifiers(self):
+        data = {
+            "uid": "05-11-1995-uuid",
+            "display_name": "marty mcfly",
+            "identifiers": [
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+            ],
+        }
+        # create same object in db
+        researcher = Researcher.objects.create(
+            crisalid_uid=data["uid"], display_name=data["display_name"]
+        )
+        iden = Identifier.objects.create(
+            value="hals-truc", harvester=Identifier.Harvester.HAL.value
+        )
+        researcher.identifiers.add(iden)
+
+        data["identifiers"].append({"value": "000-666-999", "type": Identifier.Harvester.ORCID.value})
+        popu = PopulateResearcher()
+        popu.single(data)
+
+        # check no new object are created
+        self.assertEqual(Researcher.objects.count(), 1)
+        self.assertEqual(Identifier.objects.count(), 2)
+
+        # check obj from db
+        obj = Researcher.objects.first()
+        iden = obj.identifiers.last()
+        self.assertEqual(iden.value, "000-666-999")
+        self.assertEqual(iden.harvester, Identifier.Harvester.ORCID.value)
+
+
 
 class TestPopulateDocument(test.TestCase):
     def test_create_document(self):
@@ -97,3 +130,31 @@ class TestPopulateDocument(test.TestCase):
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+
+    def test_sanitize_date(self):
+        popu = PopulateDocumentCrisalid()
+
+        self.assertEqual(popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date())
+        self.assertEqual(popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date())
+        self.assertEqual(popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date())
+        self.assertEqual(popu.sanitize_date(""), None)
+        self.assertEqual(popu.sanitize_date(None), None)
+        self.assertEqual(popu.sanitize_date("invalidDate"), None)
+
+    def test_sanitize_titles(self):
+        popu = PopulateDocumentCrisalid()
+
+        self.assertEqual(popu.sanitize_languages([]), "")
+        self.assertEqual(popu.sanitize_languages([{"language": "en", "value": "en-title"}]), "en-title")
+        self.assertEqual(popu.sanitize_languages([{"language": "en", "value": "en-title"}, {"language": "fr", "value": "fr-title"}]), "en-title")
+        self.assertEqual(popu.sanitize_languages([{"language": "es", "value": "es-title"}, {"language": "fr", "value": "fr-title"}]), "fr-title")
+        self.assertEqual(popu.sanitize_languages([{"language": "es", "value": "es-title"}]), "es-title")
+
+    
+    def test_sanitize_document_type(self):
+        popu = PopulateDocumentCrisalid()
+ 
+        self.assertEqual(popu.sanitize_document_type(None), None)
+        self.assertEqual(popu.sanitize_document_type("invalid-document-type"), None)
+        self.assertEqual(popu.sanitize_document_type(Document.DocumentType.AUDIOVISUAL_DOCUMENT.value), Document.DocumentType.AUDIOVISUAL_DOCUMENT.value)

@@ -6,6 +6,7 @@ from functools import cache
 from django.contrib.postgres.aggregates.general import ArrayAgg
 
 from services.crisalid.models import Document, Identifier, Researcher
+from apps.accounts.models import ProjectUser
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class AbstractPopulate(abc.ABC):
     def __init__(self, cache_dict_model=None, identiers=None):
         # cache the methods to avoid mem leak and optimize the get/create
         self.cache_dict_model = cache_dict_model or cache(self.cache_dict_model)
+
         self.cache_identifiers = identiers or {
             f"{o.harvester}::{o.value}": o.pk for o in Identifier.objects.all()
         }
@@ -90,12 +92,18 @@ class AbstractPopulate(abc.ABC):
 
 
 class PopulateResearcher(AbstractPopulate):
-    def single(self, user: dict) -> Researcher:
-        researcher = self.cache_model(Researcher, crisalid_uid=user["uid"])
-        self.save_if_needed(researcher, display_name=user["display_name"])
+
+    def check_mapping_user(self, researcher: Researcher, data: dict) -> ProjectUser | None:
+        # TODO(remi): do mapping beetween researcher and user data from crisalid
+        return None
+
+    def single(self, data: dict) -> Researcher:
+        researcher = self.cache_model(Researcher, crisalid_uid=data["uid"])
+        user = self.check_mapping_user(researcher, data)
+        self.save_if_needed(researcher, display_name=data["display_name"], user=user)
 
         user_identifiers = []
-        for iden in user["identifiers"]:
+        for iden in data["identifiers"]:
             identifier_id = self.cache_identifier(
                 value=iden["value"],
                 harvester=iden["type"].lower(),
@@ -138,7 +146,7 @@ class PopulateDocumentCrisalid(AbstractPopulate):
         """this method convert date string from crisalid to python date
         some date from crisalid as diferent format
         """
-        if value is None:
+        if not value:
             return None
 
         for format_date in CRISALID_FORMAT_DATE:
@@ -148,13 +156,13 @@ class PopulateDocumentCrisalid(AbstractPopulate):
             except (TypeError, ValueError):
                 continue
 
-        logger.error("Invalid date format %s", value)
-        raise ValueError(f"invalid date {value}")
+        logger.warning("Invalid date format %s", value)
+        return None
 
     def sanitize_document_type(self, data: str | None):
         if not data:
             return None
-        if data in Document.DocumentTypeEnum:
+        if data in Document.DocumentType:
             return data
         logger.warning("Document type %r not found", data)
         return None
