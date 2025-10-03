@@ -1,8 +1,9 @@
+import datetime
+
 from django import test
 
-from services.crisalid.models import Publication, Identifier, Researcher
+from services.crisalid.models import Identifier, Publication, Researcher
 from services.crisalid.populate import PopulatePublicationCrisalid, PopulateResearcher
-import datetime
 
 
 class TestPopulateResearcher(test.TestCase):
@@ -81,7 +82,9 @@ class TestPopulateResearcher(test.TestCase):
         )
         researcher.identifiers.add(iden)
 
-        data["identifiers"].append({"value": "000-666-999", "type": Identifier.Harvester.ORCID.value})
+        data["identifiers"].append(
+            {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
+        )
         popu = PopulateResearcher()
         popu.single(data)
 
@@ -94,7 +97,6 @@ class TestPopulateResearcher(test.TestCase):
         iden = obj.identifiers.last()
         self.assertEqual(iden.value, "000-666-999")
         self.assertEqual(iden.harvester, Identifier.Harvester.ORCID.value)
-
 
 
 class TestPopulatePublication(test.TestCase):
@@ -131,13 +133,18 @@ class TestPopulatePublication(test.TestCase):
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
-
     def test_sanitize_date(self):
         popu = PopulatePublicationCrisalid()
 
-        self.assertEqual(popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date())
-        self.assertEqual(popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date())
-        self.assertEqual(popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date())
+        self.assertEqual(
+            popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
+        )
+        self.assertEqual(
+            popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
+        )
+        self.assertEqual(
+            popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
+        )
         self.assertEqual(popu.sanitize_date(""), None)
         self.assertEqual(popu.sanitize_date(None), None)
         self.assertEqual(popu.sanitize_date("invalidDate"), None)
@@ -146,15 +153,43 @@ class TestPopulatePublication(test.TestCase):
         popu = PopulatePublicationCrisalid()
 
         self.assertEqual(popu.sanitize_languages([]), "")
-        self.assertEqual(popu.sanitize_languages([{"language": "en", "value": "en-title"}]), "en-title")
-        self.assertEqual(popu.sanitize_languages([{"language": "en", "value": "en-title"}, {"language": "fr", "value": "fr-title"}]), "en-title")
-        self.assertEqual(popu.sanitize_languages([{"language": "es", "value": "es-title"}, {"language": "fr", "value": "fr-title"}]), "fr-title")
-        self.assertEqual(popu.sanitize_languages([{"language": "es", "value": "es-title"}]), "es-title")
+        self.assertEqual(
+            popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
+            "en-title",
+        )
+        self.assertEqual(
+            popu.sanitize_languages(
+                [
+                    {"language": "en", "value": "en-title"},
+                    {"language": "fr", "value": "fr-title"},
+                ]
+            ),
+            "en-title",
+        )
+        self.assertEqual(
+            popu.sanitize_languages(
+                [
+                    {"language": "es", "value": "es-title"},
+                    {"language": "fr", "value": "fr-title"},
+                ]
+            ),
+            "fr-title",
+        )
+        self.assertEqual(
+            popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
+            "es-title",
+        )
 
-    
     def test_sanitize_publication_type(self):
         popu = PopulatePublicationCrisalid()
- 
+
         self.assertEqual(popu.sanitize_publication_type(None), None)
-        self.assertEqual(popu.sanitize_publication_type("invalid-Publication-type"), None)
-        self.assertEqual(popu.sanitize_publication_type(Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value), Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value)
+        self.assertEqual(
+            popu.sanitize_publication_type("invalid-Publication-type"), None
+        )
+        self.assertEqual(
+            popu.sanitize_publication_type(
+                Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value
+            ),
+            Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value,
+        )

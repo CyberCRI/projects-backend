@@ -2,7 +2,7 @@ import datetime
 from collections import Counter
 
 from django.db.models import Count, QuerySet
-from django.db.models.functions import TruncYear
+from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -77,14 +77,16 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
         # use only here the filter_queryset,
         # the next years values need to have all publications (non filtered)
         publication_type = Counter(
-            self.filter_queryset(qs).values_list("publication_type", flat=True)
+            self.filter_queryset(qs)
+            .order_by("publication_type")
+            .values_list("publication_type", flat=True)
         )
 
         # order all buplications by years
         limit = self.request.query_params.get("limit")
         years = (
             qs.filter(publication_date__isnull=False)
-            .annotate(year=TruncYear("publication_date"))
+            .annotate(year=ExtractYear("publication_date"))
             .values("year")
             .annotate(total=Count("id"))
             .order_by("-year")
@@ -107,18 +109,12 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
 class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = (
-        "user_id",
-        "crisalid_uid",
-        "id",
-    )
+    filterset_fields = ("user_id", "crisalid_uid", "id")
 
     def get_queryset(self) -> QuerySet:
         return (
             Researcher.objects.all()
-            .prefetch_related(
-                "identifiers",
-            )
+            .prefetch_related("identifiers")
             .select_related("user")
         )
 
@@ -129,7 +125,7 @@ class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
                 description="ProjectUser id",
                 required=False,
                 type=str,
-            ),
+            )
         ]
     )
     def list(self, *ar, **kw):

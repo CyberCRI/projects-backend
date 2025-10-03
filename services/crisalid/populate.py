@@ -5,8 +5,8 @@ from functools import cache
 
 from django.contrib.postgres.aggregates.general import ArrayAgg
 
-from services.crisalid.models import Publication, Identifier, Researcher
 from apps.accounts.models import ProjectUser
+from services.crisalid.models import Identifier, Publication, Researcher
 
 logger = logging.getLogger(__name__)
 
@@ -93,7 +93,9 @@ class AbstractPopulate(abc.ABC):
 
 class PopulateResearcher(AbstractPopulate):
 
-    def check_mapping_user(self, researcher: Researcher, data: dict) -> ProjectUser | None:
+    def check_mapping_user(
+        self, researcher: Researcher, data: dict
+    ) -> ProjectUser | None:
         # TODO(remi): do mapping beetween researcher and user data from crisalid
         return None
 

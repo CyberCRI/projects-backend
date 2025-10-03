@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
-from services.crisalid.models import Publication, Identifier, Researcher
+from services.crisalid.models import Identifier, Publication, Researcher
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):

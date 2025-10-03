@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count
 
-from .models import Publication, Identifier, Researcher
+from .models import Identifier, Publication, Researcher
 
 
 class IdentifierInline(admin.StackedInline):

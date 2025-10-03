@@ -3,7 +3,7 @@ import math
 from django.core.management.base import BaseCommand
 
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Publication, Identifier, Researcher
+from services.crisalid.models import Identifier, Publication, Researcher
 from services.crisalid.populate import PopulatePublicationCrisalid
 from services.crisalid.utils import timeit
 
