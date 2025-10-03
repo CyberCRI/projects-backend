@@ -8,12 +8,12 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import viewsets
 
-from services.crisalid.models import Document, Researcher
-from services.crisalid.serializers import DocumentSerializer, ResearcherSerializer
+from services.crisalid.models import Publication, Researcher
+from services.crisalid.serializers import PublicationSerializer, ResearcherSerializer
 
 
-class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = DocumentSerializer
+class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = PublicationSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("id", "crisalid_uid", "publication_date")
 
@@ -28,7 +28,7 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         return (
-            Document.objects.filter(authors__id=self.kwargs["researcher_pk"])
+            Publication.objects.filter(authors__id=self.kwargs["researcher_pk"])
             .prefetch_related("identifiers", "authors__user")
             .order_by("-publication_date")
         )
@@ -36,14 +36,14 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
     @extend_schema(
         parameters=[
             OpenApiParameter(
-                name="document_id",
-                description="document id",
+                name="Publication_id",
+                description="Publication id",
                 required=False,
                 type=int,
             ),
             OpenApiParameter(
                 name="analytics",
-                description="return analytics from documents researchers",
+                description="return analytics from Publications researchers",
                 enum=("info",),
                 required=False,
             ),
@@ -73,11 +73,11 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
 
         qs = self.get_queryset()
 
-        # get counted all documents types
+        # get counted all publications types
         # use only here the filter_queryset,
-        # the next years values need to have all documents (non filtered)
-        document_type = Counter(
-            self.filter_queryset(qs).values_list("document_type", flat=True)
+        # the next years values need to have all publications (non filtered)
+        publication_type = Counter(
+            self.filter_queryset(qs).values_list("publication_type", flat=True)
         )
 
         # order all buplications by years
@@ -95,9 +95,9 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
 
         return JsonResponse(
             {
-                "document_type": [
+                "publication_type": [
                     {"name": name, "count": count}
-                    for name, count in document_type.items()
+                    for name, count in publication_type.items()
                 ],
                 "years": list(years),
             }

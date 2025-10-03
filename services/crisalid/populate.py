@@ -5,7 +5,7 @@ from functools import cache
 
 from django.contrib.postgres.aggregates.general import ArrayAgg
 
-from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.models import Publication, Identifier, Researcher
 from apps.accounts.models import ProjectUser
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class AbstractPopulate(abc.ABC):
         qs = model.objects.all()
         if model is Researcher:
             qs = qs.annotate(identifiers_m2m_pk=ArrayAgg("identifiers__pk"))
-        elif model is Document:
+        elif model is Publication:
             qs = qs.annotate(
                 authors_m2m_pk=ArrayAgg("authors__pk"),
                 identifiers_m2m_pk=ArrayAgg("identifiers__pk"),
@@ -116,7 +116,7 @@ class PopulateResearcher(AbstractPopulate):
         return researcher
 
 
-class PopulateDocumentCrisalid(AbstractPopulate):
+class PopulatePublicationCrisalid(AbstractPopulate):
     def __init__(self):
         super().__init__()
         self.sanitize_date = cache(self.sanitize_date)
@@ -159,23 +159,23 @@ class PopulateDocumentCrisalid(AbstractPopulate):
         logger.warning("Invalid date format %s", value)
         return None
 
-    def sanitize_document_type(self, data: str | None):
+    def sanitize_publication_type(self, data: str | None):
         if not data:
             return None
-        if data in Document.DocumentType:
+        if data in Publication.PublicationsType:
             return data
-        logger.warning("Document type %r not found", data)
+        logger.warning("Publications type %r not found", data)
         return None
 
     def single(self, data: dict):
-        """this method create/update only on documents from crisalid"""
+        """this method create/update only on publications from crisalid"""
 
-        document = self.cache_model(Document, crisalid_uid=data["uid"])
+        publication = self.cache_model(Publication, crisalid_uid=data["uid"])
         self.save_if_needed(
-            document,
+            publication,
             title=self.sanitize_languages(data["titles"]),
             publication_date=self.sanitize_date(data["publication_date"]),
-            document_type=self.sanitize_document_type(data["document_type"]),
+            publication_type=self.sanitize_publication_type(data["document_type"]),
         )
 
         identifier_ids = []
@@ -189,7 +189,7 @@ class PopulateDocumentCrisalid(AbstractPopulate):
 
             authors.extend(self.populate_researcher.multiple(recorded["harvested_for"]))
 
-        self.save_m2m_if_needed(document, "authors_m2m_pk", (o.pk for o in authors))
-        self.save_m2m_if_needed(document, "identifiers_m2m_pk", identifier_ids)
+        self.save_m2m_if_needed(publication, "authors_m2m_pk", (o.pk for o in authors))
+        self.save_m2m_if_needed(publication, "identifiers_m2m_pk", identifier_ids)
 
-        return document
+        return publication

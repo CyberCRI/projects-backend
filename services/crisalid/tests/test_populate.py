@@ -1,7 +1,7 @@
 from django import test
 
-from services.crisalid.models import Document, Identifier, Researcher
-from services.crisalid.populate import PopulateDocumentCrisalid, PopulateResearcher
+from services.crisalid.models import Publication, Identifier, Researcher
+from services.crisalid.populate import PopulatePublicationCrisalid, PopulateResearcher
 import datetime
 
 
@@ -97,9 +97,9 @@ class TestPopulateResearcher(test.TestCase):
 
 
 
-class TestPopulateDocument(test.TestCase):
-    def test_create_document(self):
-        popu = PopulateDocumentCrisalid()
+class TestPopulatePublication(test.TestCase):
+    def test_create_publication(self):
+        popu = PopulatePublicationCrisalid()
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
@@ -120,20 +120,20 @@ class TestPopulateDocument(test.TestCase):
         new_obj = popu.single(data)
 
         # check obj from db
-        obj = Document.objects.first()
+        obj = Publication.objects.first()
         self.assertEqual(obj, new_obj)
 
         self.assertEqual(obj.title, "fiction")
         self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
-        self.assertEqual(obj.document_type, None)
+        self.assertEqual(obj.publication_type, None)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
 
     def test_sanitize_date(self):
-        popu = PopulateDocumentCrisalid()
+        popu = PopulatePublicationCrisalid()
 
         self.assertEqual(popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date())
         self.assertEqual(popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date())
@@ -143,7 +143,7 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(popu.sanitize_date("invalidDate"), None)
 
     def test_sanitize_titles(self):
-        popu = PopulateDocumentCrisalid()
+        popu = PopulatePublicationCrisalid()
 
         self.assertEqual(popu.sanitize_languages([]), "")
         self.assertEqual(popu.sanitize_languages([{"language": "en", "value": "en-title"}]), "en-title")
@@ -152,9 +152,9 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(popu.sanitize_languages([{"language": "es", "value": "es-title"}]), "es-title")
 
     
-    def test_sanitize_document_type(self):
-        popu = PopulateDocumentCrisalid()
+    def test_sanitize_publication_type(self):
+        popu = PopulatePublicationCrisalid()
  
-        self.assertEqual(popu.sanitize_document_type(None), None)
-        self.assertEqual(popu.sanitize_document_type("invalid-document-type"), None)
-        self.assertEqual(popu.sanitize_document_type(Document.DocumentType.AUDIOVISUAL_DOCUMENT.value), Document.DocumentType.AUDIOVISUAL_DOCUMENT.value)
+        self.assertEqual(popu.sanitize_publication_type(None), None)
+        self.assertEqual(popu.sanitize_publication_type("invalid-Publication-type"), None)
+        self.assertEqual(popu.sanitize_publication_type(Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value), Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value)

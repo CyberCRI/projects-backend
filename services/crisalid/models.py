@@ -33,7 +33,7 @@ class Identifier(models.Model):
 
     class Meta:
         constraints = (
-            # we cant have the same harvester, docuement type linked to a document
+            # we cant have the same harvester and value
             models.UniqueConstraint(
                 Lower("harvester"), Lower("value"), name="unique_harvester"
             ),
@@ -64,14 +64,14 @@ class Researcher(CrisalidDataModel):
         return f"{self.display_name}"
 
 
-class Document(CrisalidDataModel):
+class Publication(CrisalidDataModel):
     """
-    Represents a research document in the Crisalid system.
+    Represents a research publicaiton (or 'document') in the Crisalid system.
     """
 
-    class DocumentType(models.TextChoices):
+    class PublicationType(models.TextChoices):
         """
-        Document type from crisalid
+        Publication type from crisalid
         https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/document_type.py#L9
         """
 
@@ -118,10 +118,10 @@ class Document(CrisalidDataModel):
 
     title = models.TextField()
     publication_date = models.DateField(blank=False, null=True)
-    document_type = models.CharField(
-        max_length=50, choices=DocumentType.choices, null=True, blank=True
+    publication_type = models.CharField(
+        max_length=50, choices=PublicationType.choices, null=True, blank=True
     )
-    authors = models.ManyToManyField("crisalid.Researcher", related_name="documents")
+    authors = models.ManyToManyField("crisalid.Researcher", related_name="publications")
     identifiers = models.ManyToManyField(
-        "crisalid.Identifier", related_name="documents"
+        "crisalid.Identifier", related_name="publications"
     )
