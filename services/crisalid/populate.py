@@ -5,11 +5,12 @@ from functools import cache
 
 from django.contrib.postgres.aggregates.general import ArrayAgg
 
-from services.crisalid.models import Document, DocumentSource, Identifier, Researcher
+from services.crisalid.models import Document, Identifier, Researcher
 
 logger = logging.getLogger(__name__)
 
 
+# create unique obj
 class _NOSET:
     pass
 
@@ -45,9 +46,12 @@ class AbstractPopulate(abc.ABC):
     def cache_dict_model(self, model):
         qs = model.objects.all()
         if model is Researcher:
-            qs = qs.annotate(identifiers_lst_pk=ArrayAgg("identifiers__m2m"))
+            qs = qs.annotate(identifiers_m2m_pk=ArrayAgg("identifiers__pk"))
         elif model is Document:
-            qs = qs.annotate(authors_lst_pk=ArrayAgg("authors__m2m"))
+            qs = qs.annotate(
+                authors_m2m_pk=ArrayAgg("authors__pk"),
+                identifiers_m2m_pk=ArrayAgg("identifiers__pk"),
+            )
         return {o.crisalid_uid: o for o in qs}
 
     def cache_model(self, model, crisalid_uid):
@@ -70,11 +74,12 @@ class AbstractPopulate(abc.ABC):
             return obj.pk
 
     def save_m2m_if_needed(self, obj, key, objs_toadd: list[int]) -> False:
+        """this method checks all pk m2m linked to the obj, if is a diff, we "set" all needed_pk"""
         needed_pk = sorted(objs_toadd)
-        actual = sorted(getattr(obj, key))
+        actual = sorted(getattr(obj, key, []))
         if needed_pk != actual:
             setattr(obj, key, needed_pk)
-            getattr(obj, key.removesuffix("__m2m")).set(needed_pk)
+            getattr(obj, key.removesuffix("_m2m_pk")).set(needed_pk)
 
     @abc.abstractmethod
     def single(self, data):
@@ -98,7 +103,7 @@ class PopulateResearcher(AbstractPopulate):
             user_identifiers.append(identifier_id)
 
         self.save_if_needed(researcher)
-        self.save_m2m_if_needed(researcher, "identifiers__m2m", user_identifiers)
+        self.save_m2m_if_needed(researcher, "identifiers_m2m_pk", user_identifiers)
 
         return researcher
 
@@ -138,12 +143,21 @@ class PopulateDocumentCrisalid(AbstractPopulate):
 
         for format_date in CRISALID_FORMAT_DATE:
             try:
+                # parse the value and convert it to date
                 return datetime.datetime.strptime(value, format_date).date()
             except (TypeError, ValueError):
                 continue
 
         logger.error("Invalid date format %s", value)
         raise ValueError(f"invalid date {value}")
+
+    def sanitize_document_type(self, data: str | None):
+        if not data:
+            return None
+        if data in Document.DocumentTypeEnum:
+            return data
+        logger.warning("Document type %r not found", data)
+        return None
 
     def single(self, data: dict):
         """this method create/update only on documents from crisalid"""
@@ -153,23 +167,21 @@ class PopulateDocumentCrisalid(AbstractPopulate):
             document,
             title=self.sanitize_languages(data["titles"]),
             publication_date=self.sanitize_date(data["publication_date"]),
+            document_type=self.sanitize_document_type(data["document_type"]),
         )
 
+        identifier_ids = []
+        authors = []
         for recorded in data["recorded_by"]:
             identifier_id = self.cache_identifier(
                 value=recorded["uid"],
                 harvester=recorded["harvester"].lower(),
             )
+            identifier_ids.append(identifier_id)
 
-            doc_sources = self.cache_model(DocumentSource, crisalid_uid=recorded["uid"])
-            self.save_if_needed(
-                doc_sources,
-                identifier_id=identifier_id,
-                document=document,
-                document_type=None,
-            )
+            authors.extend(self.populate_researcher.multiple(recorded["harvested_for"]))
 
-            harvested_for = self.populate_researcher.multiple(recorded["harvested_for"])
-            self.save_m2m_if_needed(
-                document, "authors__m2m", (o.pk for o in harvested_for)
-            )
+        self.save_m2m_if_needed(document, "authors_m2m_pk", (o.pk for o in authors))
+        self.save_m2m_if_needed(document, "identifiers_m2m_pk", identifier_ids)
+
+        return document

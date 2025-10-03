@@ -3,13 +3,13 @@ import math
 from django.core.management.base import BaseCommand
 
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Document, DocumentSource, Identifier, Researcher
+from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populate import PopulateDocumentCrisalid
 from services.crisalid.utils import timeit
 
 
 class Command(BaseCommand):
-    help = "get data from crisalid neo4j/graphql"
+    help = "create or update data from researcher/document crisalid neo4j/graphql"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -23,14 +23,13 @@ class Command(BaseCommand):
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
 
     def delete_crisalid_models(self):
-        models = [Document, DocumentSource, Identifier, Researcher]
+        models = [Document, Identifier, Researcher]
 
         for model in models:
             deleted = model.objects.all().delete()
             print(f"deleted {model=}: {deleted}")
 
     def handle(self, **options):
-        print(options)
         service = CrisalidService()
         populate = PopulateDocumentCrisalid()
 
@@ -43,7 +42,9 @@ class Command(BaseCommand):
         total = 0
 
         with timeit(print, "Populate All Data"):
+
             while max_elements >= 1:
+
                 with timeit(print, "GrapQL request "):
                     data = service.query("document", offset=offset, limit=limit)[
                         "documents"

@@ -69,14 +69,6 @@ class Document(CrisalidDataModel):
     Represents a research document in the Crisalid system.
     """
 
-    title = models.TextField()
-    publication_date = models.DateField(blank=False, null=True)
-    authors = models.ManyToManyField("crisalid.Researcher", related_name="documents")
-
-
-class DocumentSource(CrisalidDataModel):
-    """Represents the data source/link of a document/publications"""
-
     class DocumentType(models.TextChoices):
         """
         Document type from crisalid
@@ -124,24 +116,12 @@ class DocumentSource(CrisalidDataModel):
         WORKING_PAPER = "Working Paper"
         UNKNOWN = "Unknown"
 
+    title = models.TextField()
+    publication_date = models.DateField(blank=False, null=True)
     document_type = models.CharField(
         max_length=50, choices=DocumentType.choices, null=True, blank=True
     )
-    value = models.TextField()
-    identifier = models.ForeignKey(
-        "crisalid.Identifier", on_delete=models.CASCADE, related_name="documents"
+    authors = models.ManyToManyField("crisalid.Researcher", related_name="documents")
+    identifiers = models.ManyToManyField(
+        "crisalid.Identifier", related_name="documents"
     )
-    document = models.ForeignKey(
-        "crisalid.Document", on_delete=models.CASCADE, related_name="sources"
-    )
-
-    class Meta:
-        constraints = (
-            # we cant have the same identifier, docuement type linked to a document
-            models.UniqueConstraint(
-                "identifier",
-                "document",
-                "document_type",
-                name="unique_document_identifier",
-            ),
-        )

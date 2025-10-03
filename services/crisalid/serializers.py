@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
-from services.crisalid.models import Document, DocumentSource, Identifier, Researcher
+from services.crisalid.models import Document, Identifier, Researcher
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
@@ -45,18 +45,6 @@ class ResearcherSerializer(serializers.ModelSerializer):
         return str(instance)
 
 
-class DocumentSourceSerializer(serializers.ModelSerializer):
-    identifier = IdentifierSerializer()
-
-    class Meta:
-        model = DocumentSource
-        fields = (
-            "document_type",
-            "value",
-            "identifier",
-        )
-
-
 class ResearcherDocumentsSerializer(ResearcherSerializer):
     user = ProjectUserMinimalSerializer()
     identifiers = IdentifierSerializer(many=True)
@@ -74,7 +62,7 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
 class DocumentSerializer(serializers.ModelSerializer):
     # avoid circular import
     authors = ResearcherDocumentsSerializer(many=True)
-    sources = DocumentSourceSerializer(many=True)
+    identifiers = IdentifierSerializer(many=True)
 
     class Meta:
         model = Document

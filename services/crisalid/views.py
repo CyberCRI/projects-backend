@@ -1,6 +1,7 @@
 import datetime
+from collections import Counter
 
-from django.db.models import Count, F, QuerySet
+from django.db.models import Count, QuerySet
 from django.db.models.functions import TruncYear
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
@@ -28,7 +29,7 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self) -> QuerySet:
         return (
             Document.objects.filter(authors__id=self.kwargs["researcher_pk"])
-            .prefetch_related("sources", "authors__user")
+            .prefetch_related("identifiers", "authors__user")
             .order_by("-publication_date")
         )
 
@@ -75,11 +76,8 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
         # get counted all documents types
         # use only here the filter_queryset,
         # the next years values need to have all documents (non filtered)
-        document_type = (
-            self.filter_queryset(qs)
-            .values(name=F("sources__document_type"))
-            .annotate(count=Count("sources__id"))
-            .order_by("sources__document_type")
+        document_type = Counter(
+            self.filter_queryset(qs).values_list("document_type", flat=True)
         )
 
         # order all buplications by years
@@ -97,7 +95,10 @@ class DocumentViewSet(viewsets.ReadOnlyModelViewSet):
 
         return JsonResponse(
             {
-                "document_type": list(document_type),
+                "document_type": [
+                    {"name": name, "count": count}
+                    for name, count in document_type.items()
+                ],
                 "years": list(years),
             }
         )
