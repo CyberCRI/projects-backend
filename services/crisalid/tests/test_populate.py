@@ -1,0 +1,195 @@
+import datetime
+
+from django import test
+
+from services.crisalid.models import Identifier, Publication, Researcher
+from services.crisalid.populate import PopulatePublicationCrisalid, PopulateResearcher
+
+
+class TestPopulateResearcher(test.TestCase):
+    def test_create_researcher(self):
+        popu = PopulateResearcher()
+        data = {
+            "uid": "05-11-1995-uuid",
+            "display_name": "marty mcfly",
+            "identifiers": [
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+            ],
+        }
+
+        new_obj = popu.single(data)
+
+        # check obj from db
+        obj = Researcher.objects.first()
+        self.assertEqual(obj, new_obj)
+
+        self.assertEqual(obj.display_name, "marty mcfly")
+        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
+        self.assertEqual(obj.identifiers.count(), 1)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "hals-truc")
+        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+    def test_no_change_researcher(self):
+        data = {
+            "uid": "05-11-1995-uuid",
+            "display_name": "marty mcfly",
+            "identifiers": [
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+            ],
+        }
+        # create same object in db
+        researcher = Researcher.objects.create(
+            crisalid_uid=data["uid"], display_name=data["display_name"]
+        )
+        iden = Identifier.objects.create(
+            value="hals-truc", harvester=Identifier.Harvester.HAL.value
+        )
+        researcher.identifiers.add(iden)
+        popu = PopulateResearcher()
+
+        new_obj = popu.single(data)
+
+        # check no new object are created
+        self.assertEqual(Researcher.objects.count(), 1)
+        self.assertEqual(Identifier.objects.count(), 1)
+
+        # check obj from db
+        obj = Researcher.objects.first()
+        self.assertEqual(new_obj, obj)
+
+        self.assertEqual(obj.display_name, "marty mcfly")
+        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
+        self.assertEqual(obj.identifiers.count(), 1)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "hals-truc")
+        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+    def test_update_identifiers(self):
+        data = {
+            "uid": "05-11-1995-uuid",
+            "display_name": "marty mcfly",
+            "identifiers": [
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+            ],
+        }
+        # create same object in db
+        researcher = Researcher.objects.create(
+            crisalid_uid=data["uid"], display_name=data["display_name"]
+        )
+        iden = Identifier.objects.create(
+            value="hals-truc", harvester=Identifier.Harvester.HAL.value
+        )
+        researcher.identifiers.add(iden)
+
+        data["identifiers"].append(
+            {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
+        )
+        popu = PopulateResearcher()
+        popu.single(data)
+
+        # check no new object are created
+        self.assertEqual(Researcher.objects.count(), 1)
+        self.assertEqual(Identifier.objects.count(), 2)
+
+        # check obj from db
+        obj = Researcher.objects.first()
+        iden = obj.identifiers.last()
+        self.assertEqual(iden.value, "000-666-999")
+        self.assertEqual(iden.harvester, Identifier.Harvester.ORCID.value)
+
+
+class TestPopulatePublication(test.TestCase):
+    def test_create_publication(self):
+        popu = PopulatePublicationCrisalid()
+        data = {
+            "uid": "05-11-1995-uuid",
+            "document_type": None,
+            "titles": [
+                {"language": "en", "value": "fiction"},
+            ],
+            "publication_date": "1999",
+            "recorded_by": [
+                {
+                    "uid": "hals-truc",
+                    "harvester": Identifier.Harvester.HAL.value,
+                    "value": "",
+                    "harvested_for": [],
+                }
+            ],
+        }
+
+        new_obj = popu.single(data)
+
+        # check obj from db
+        obj = Publication.objects.first()
+        self.assertEqual(obj, new_obj)
+
+        self.assertEqual(obj.title, "fiction")
+        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
+        self.assertEqual(obj.identifiers.count(), 1)
+        self.assertEqual(obj.publication_type, None)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "hals-truc")
+        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+    def test_sanitize_date(self):
+        popu = PopulatePublicationCrisalid()
+
+        self.assertEqual(
+            popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
+        )
+        self.assertEqual(
+            popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
+        )
+        self.assertEqual(
+            popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
+        )
+        self.assertEqual(popu.sanitize_date(""), None)
+        self.assertEqual(popu.sanitize_date(None), None)
+        self.assertEqual(popu.sanitize_date("invalidDate"), None)
+
+    def test_sanitize_titles(self):
+        popu = PopulatePublicationCrisalid()
+
+        self.assertEqual(popu.sanitize_languages([]), "")
+        self.assertEqual(
+            popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
+            "en-title",
+        )
+        self.assertEqual(
+            popu.sanitize_languages(
+                [
+                    {"language": "en", "value": "en-title"},
+                    {"language": "fr", "value": "fr-title"},
+                ]
+            ),
+            "en-title",
+        )
+        self.assertEqual(
+            popu.sanitize_languages(
+                [
+                    {"language": "es", "value": "es-title"},
+                    {"language": "fr", "value": "fr-title"},
+                ]
+            ),
+            "fr-title",
+        )
+        self.assertEqual(
+            popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
+            "es-title",
+        )
+
+    def test_sanitize_publication_type(self):
+        popu = PopulatePublicationCrisalid()
+
+        self.assertEqual(popu.sanitize_publication_type(None), None)
+        self.assertEqual(
+            popu.sanitize_publication_type("invalid-Publication-type"), None
+        )
+        self.assertEqual(
+            popu.sanitize_publication_type(
+                Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value
+            ),
+            Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value,
+        )
