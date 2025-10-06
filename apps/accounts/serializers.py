@@ -23,6 +23,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer
+from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
@@ -575,6 +576,7 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
     profile_picture_natural_ratio = serializers.FloatField(
         write_only=True, required=False, allow_null=True
     )
+    researcher = ResearcherSerializerLight()
 
     class Meta:
         model = ProjectUser
@@ -621,6 +623,7 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
             "profile_picture_left",
             "profile_picture_top",
             "profile_picture_natural_ratio",
+            "researcher",
         ]
 
     def to_representation(self, instance):
