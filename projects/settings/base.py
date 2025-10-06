@@ -149,6 +149,7 @@ INSTALLED_APPS = [
     "services.mixpanel",
     "services.translator",
     "services.wikipedia",
+    "services.crisalid",
     # deploys should be the last one
     "apps.deploys",
 ]
@@ -698,3 +699,16 @@ AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
 AZURE_TRANSLATOR_ENDPOINT = os.getenv(
     "AZURE_TRANSLATOR_ENDPOINT", "https://api.cognitive.microsofttranslator.com"
 )
+
+
+##############
+#  CRISALID  #
+##############
+
+CRISALID_API_URL = os.getenv("CRISALID_API_URL", "http://crisalid-apollo:4000")
+CRISALID_API_TOKEN = os.getenv("CRISALID_API_TOKEN", "crisalid-apollo-key")
+
+CRISALID_BUS = {
+    "host": os.getenv("CRISALID_BUS_HOST"),
+    "port": os.getenv("CRISALID_BUS_PORT"),
+}

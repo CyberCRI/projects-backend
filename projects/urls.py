@@ -72,6 +72,9 @@ urlpatterns_v1 = [
 if apps.is_installed("services.google"):
     urlpatterns_v1.append(path("google/", include("services.google.urls")))
 
+if apps.is_installed("services.crisalid"):
+    urlpatterns_v1.append(path("crisalid/", include("services.crisalid.urls")))
+
 urlpatterns_api_schema = [
     path("", SpectacularAPIView.as_view(), name="schema"),
     path("swagger-ui", SpectacularSwaggerView.as_view(), name="swagger-ui"),
