@@ -18,28 +18,30 @@ faker = Faker()
 
 class UserFactory(factory.django.DjangoModelFactory):
     people_id = factory.Faker("uuid4")
-    email = factory.LazyAttribute(
-        lambda _: f"user-{uuid.uuid4()}@{faker.domain_name()}".lower()
-    )
+    email = factory.Sequence(lambda n: f"{n}.{faker.email()}")
     given_name = factory.Faker("first_name")
     family_name = factory.Faker("last_name")
 
     birthdate = factory.Faker("date_of_birth", minimum_age=1)
-    pronouns = factory.Faker("pystr", min_chars=8, max_chars=8)
+    pronouns = factory.Faker("prefix")
     description = factory.Faker("text")
     short_description = factory.Faker("text")
-    location = factory.Faker("sentence")
-    job = factory.Faker("sentence")
-    sdgs = factory.List([sdg_factory() for _ in range(FuzzyInteger(0, 17).fuzz())])
+    location = factory.Faker("city")
+    job = factory.Faker("job")
+    sdgs = factory.LazyFunction(
+        lambda: sorted(
+            set(sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz()))
+        )
+    )
 
     facebook = factory.Faker("url")
-    mobile_phone = factory.Faker("pystr", min_chars=8, max_chars=8)
+    mobile_phone = factory.Faker("phone_number")
     linkedin = factory.Faker("url")
     medium = factory.Faker("url")
-    website = factory.Faker("pystr", min_chars=8, max_chars=8)
+    website = factory.Faker("url")
     personal_email = factory.Faker("email")
-    skype = factory.Faker("pystr", min_chars=8, max_chars=8)
-    landline_phone = factory.Faker("pystr", min_chars=8, max_chars=8)
+    skype = factory.Faker("user_name")
+    landline_phone = factory.Faker("phone_number")
     twitter = factory.Faker("url")
 
     class Meta:
@@ -74,6 +76,10 @@ class UserFactory(factory.django.DjangoModelFactory):
 
 
 class SeedUserFactory(UserFactory):
+    email = factory.LazyAttribute(
+        lambda _: f"user-{uuid.uuid4()}@{faker.domain_name()}".lower()
+    )
+
     @factory.post_generation
     def keycloak_account(self, create, extracted, **kwargs):
         if create:
@@ -102,7 +108,7 @@ class PeopleGroupFactory(factory.django.DjangoModelFactory):
     )
     description = factory.Faker("text")
     email = factory.Faker("email")
-    name = factory.Faker("name")
+    name = factory.Faker("company")
     publication_status = PeopleGroup.PublicationStatus.PUBLIC
 
     class Meta:
