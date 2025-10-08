@@ -3,7 +3,7 @@ import datetime
 from django import test
 
 from services.crisalid.models import Identifier, Publication, Researcher
-from services.crisalid.populate import PopulatePublicationCrisalid, PopulateResearcher
+from services.crisalid.populate import PopulatePublication, PopulateResearcher
 
 
 class TestPopulateResearcher(test.TestCase):
@@ -101,7 +101,7 @@ class TestPopulateResearcher(test.TestCase):
 
 class TestPopulatePublication(test.TestCase):
     def test_create_publication(self):
-        popu = PopulatePublicationCrisalid()
+        popu = PopulatePublication()
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
@@ -159,7 +159,7 @@ class TestPopulatePublication(test.TestCase):
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
     def test_sanitize_date(self):
-        popu = PopulatePublicationCrisalid()
+        popu = PopulatePublication()
 
         self.assertEqual(
             popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
@@ -175,7 +175,7 @@ class TestPopulatePublication(test.TestCase):
         self.assertEqual(popu.sanitize_date("invalidDate"), None)
 
     def test_sanitize_titles(self):
-        popu = PopulatePublicationCrisalid()
+        popu = PopulatePublication()
 
         self.assertEqual(popu.sanitize_languages([]), "")
         self.assertEqual(
@@ -206,7 +206,7 @@ class TestPopulatePublication(test.TestCase):
         )
 
     def test_sanitize_publication_type(self):
-        popu = PopulatePublicationCrisalid()
+        popu = PopulatePublication()
 
         self.assertEqual(popu.sanitize_publication_type(None), None)
         self.assertEqual(

@@ -9,7 +9,7 @@ from services.crisalid.models import (
     PublicationContributor,
     Researcher,
 )
-from services.crisalid.populate import PopulatePublicationCrisalid
+from services.crisalid.populate import PopulatePublication
 from services.crisalid.utils import timeit
 
 
@@ -39,7 +39,7 @@ class Command(BaseCommand):
             self.delete_crisalid_models()
 
         service = CrisalidService()
-        populate = PopulatePublicationCrisalid()
+        populate = PopulatePublication()
 
         offset = int(options["offset"])
         limit = int(options["limit"])

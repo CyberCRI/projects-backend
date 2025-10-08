@@ -34,7 +34,7 @@ class AbstractPopulate(abc.ABC):
             f"{o.harvester}::{o.value}": o.pk for o in Identifier.objects.all()
         }
         self.cache_contributors = contributors or {
-            f"{o.publication_id}::{o.researcher_id}": o.pk
+            f"{o.publication_id}::{o.researcher_id}": o
             for o in PublicationContributor.objects.all()
         }
 
@@ -129,6 +129,16 @@ class AbstractPopulate(abc.ABC):
 
 
 class PopulateResearcher(AbstractPopulate):
+    def get_names(self, data):
+        given_name = data.get("first_names")
+        family_name = data.get("last_names")
+        # "name" from apollo return list with languages
+        if data["names"]:
+            given_name = self.sanitize_languages(data["names"][0]["first_names"])
+            family_name = self.sanitize_languages(data["names"][0]["last_names"])
+
+        return given_name, family_name
+
     def check_mapping_user(
         self, researcher: Researcher, data: dict
     ) -> ProjectUser | None:
@@ -143,9 +153,8 @@ class PopulateResearcher(AbstractPopulate):
             user = ProjectUser.objects.filter(email=iden["value"]).first()
             if user is not None:
                 return user
-            given_name = self.sanitize_languages(data["names"][0]["first_names"])
-            family_name = self.sanitize_languages(data["names"][0]["last_names"])
 
+            given_name, family_name = self.get_names(data)
             return ProjectUser.objects.create(
                 email=iden["value"], given_name=given_name, family_name=family_name
             )
@@ -168,7 +177,7 @@ class PopulateResearcher(AbstractPopulate):
         return researcher
 
 
-class PopulatePublicationCrisalid(AbstractPopulate):
+class PopulatePublication(AbstractPopulate):
     def __init__(self):
         super().__init__()
         self.sanitize_date = cache(self.sanitize_date)
@@ -218,6 +227,7 @@ class PopulatePublicationCrisalid(AbstractPopulate):
         self.save_if_needed(
             publication,
             title=self.sanitize_languages(data["titles"]),
+            description=self.sanitize_languages(data["abstracts"]),
             publication_date=self.sanitize_date(data["publication_date"]),
             publication_type=self.sanitize_publication_type(data["document_type"]),
         )

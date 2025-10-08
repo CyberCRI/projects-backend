@@ -1,10 +1,15 @@
-query PopulateFromCrisalid($limit: Int, $offset: Int) {
-  documents(limit: $limit, offset: $offset) {
+query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
+  documents(limit: $limit, offset: $offset, where: $where) {
     uid,
     publication_date,
-    document_type
+    document_type,
 
     titles {
+      language
+      value
+    }
+
+    abstracts {
       language
       value
     }

@@ -6,6 +6,7 @@ from typing import Callable
 
 import jsonschema
 import pika
+from celery import Task
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -174,8 +175,27 @@ class CrisalidBusClient:
         logger.debug("Call %s", event_callback)
 
         # call callack in celery queue
-        event_callback(payload)
+        event_callback(payload["fields"])
 
 
 # TODO(remi): nedd to create a singleton type ?
 crisalid_bus_client = CrisalidBusClient()
+
+
+# check methods is celery
+def is_task_celery(func):
+    return isinstance(func, Task) or (
+        hasattr(func, "__wrapped__") and isinstance(func.__wrapped__, Task)
+    )
+
+
+# easy decorator method
+def cdb_add_callback(
+    crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum
+):
+    def _wraps(func):
+        func = func.apply if is_task_celery(func) else func
+        crisalid_bus_client.add_callback(crisalid_type, crisalid_event, func)
+        return func
+
+    return _wraps

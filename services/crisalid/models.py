@@ -140,6 +140,7 @@ class Publication(CrisalidDataModel):
         UNKNOWN = "Unknown"
 
     title = models.TextField()
+    description = models.TextField(default="")
     publication_date = models.DateField(blank=False, null=True)
     publication_type = models.CharField(
         max_length=50, choices=PublicationType.choices, null=True, blank=True
