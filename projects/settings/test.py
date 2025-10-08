@@ -4,6 +4,12 @@ ENVIRONMENT = "test"
 
 FRONTEND_URL = "http://frontend.com"
 
+# always remove debug_toolbar
+INSTALLED_APPS = [
+    app for app in INSTALLED_APPS if "debug_toolbar" not in app  # noqa: F405
+]
+MIDDLEWARE = [mid for mid in MIDDLEWARE if "debug_toolbar" not in mid]  # noqa: F405
+
 DEFAULT_FILE_STORAGE = "inmemorystorage.InMemoryStorage"
 
 PASSWORD_HASHERS = [
