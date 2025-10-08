@@ -1,5 +1,8 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
+
+from services.crisalid import relators
 
 
 class CrisalidDataModel(models.Model):
@@ -27,6 +30,7 @@ class Identifier(models.Model):
         SCOPUS = "scopus"
         ORCID = "orcid"
         LOCAL = "local"
+        EPPN = "eppn"
 
     harvester = models.CharField(max_length=50, choices=Harvester.choices)
     value = models.CharField(max_length=255)
@@ -64,6 +68,22 @@ class Researcher(CrisalidDataModel):
         return f"{self.display_name}"
 
 
+class PublicationContributor(models.Model):
+    roles = ArrayField(
+        models.CharField(max_length=255, choices=relators.choices), default=list
+    )
+    publication = models.ForeignKey("crisalid.Publication", on_delete=models.CASCADE)
+    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["publication", "researcher"],
+                name="unique_researcher_publication",
+            )
+        ]
+
+
 class Publication(CrisalidDataModel):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
@@ -79,7 +99,9 @@ class Publication(CrisalidDataModel):
         BLOG_POST = "Blog Post"
         BOOK = "Book"
         BOOK_REVIEW = "Book Review"
+        BOOKCHAPTER = "BookChapter"
         CHAPTER = "Chapter"
+        ConferenceArticle = "ConferenceArticle"
         CONFERENCE_OUTPUT = "Conference Output"
         CONFERENCE_PAPER = "Conference Paper"
         CONFERENCE_POSTER = "Conference Poster"
@@ -92,6 +114,7 @@ class Publication(CrisalidDataModel):
         ERRATUM = "Erratum"
         GRANT = "Grant"
         IMAGE = "Image"
+        JOURNALARTICLE = "JournalArticle"
         LECTURE = "Lecture"
         LETTER = "Letter"
         MANUAL = "Manual"
@@ -121,7 +144,11 @@ class Publication(CrisalidDataModel):
     publication_type = models.CharField(
         max_length=50, choices=PublicationType.choices, null=True, blank=True
     )
-    authors = models.ManyToManyField("crisalid.Researcher", related_name="publications")
+    contributors = models.ManyToManyField(
+        "crisalid.Researcher",
+        through="crisalid.PublicationContributor",
+        related_name="publications",
+    )
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="publications"
     )

@@ -6,7 +6,13 @@ from functools import cache
 from django.contrib.postgres.aggregates.general import ArrayAgg
 
 from apps.accounts.models import ProjectUser
-from services.crisalid.models import Identifier, Publication, Researcher
+from services.crisalid import relators
+from services.crisalid.models import (
+    Identifier,
+    Publication,
+    PublicationContributor,
+    Researcher,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +26,16 @@ CRISALID_FORMAT_DATE = ("%Y-%m-%d", "%Y-%m", "%Y")
 
 
 class AbstractPopulate(abc.ABC):
-    def __init__(self, cache_dict_model=None, identiers=None):
+    def __init__(self, cache_dict_model=None, identiers=None, contributors=None):
         # cache the methods to avoid mem leak and optimize the get/create
         self.cache_dict_model = cache_dict_model or cache(self.cache_dict_model)
 
         self.cache_identifiers = identiers or {
             f"{o.harvester}::{o.value}": o.pk for o in Identifier.objects.all()
+        }
+        self.cache_contributors = contributors or {
+            f"{o.publication_id}::{o.researcher_id}": o.pk
+            for o in PublicationContributor.objects.all()
         }
 
     def save_if_needed(self, obj, **fields):
@@ -45,10 +55,11 @@ class AbstractPopulate(abc.ABC):
     def cache_dict_model(self, model):
         qs = model.objects.all()
         if model is Researcher:
-            qs = qs.annotate(identifiers_m2m_pk=ArrayAgg("identifiers__pk"))
+            qs = qs.select_related("user").annotate(
+                identifiers_m2m_pk=ArrayAgg("identifiers__pk")
+            )
         elif model is Publication:
             qs = qs.annotate(
-                authors_m2m_pk=ArrayAgg("authors__pk"),
                 identifiers_m2m_pk=ArrayAgg("identifiers__pk"),
             )
         return {o.crisalid_uid: o for o in qs}
@@ -72,54 +83,24 @@ class AbstractPopulate(abc.ABC):
             self.cache_identifiers[k] = obj.pk
             return obj.pk
 
+    def cache_contributor(self, publication, researcher):
+        k = f"{publication.id}::{researcher.id}"
+        try:
+            return self.cache_contributors[k]
+        except KeyError:
+            obj = PublicationContributor(publication=publication, researcher=researcher)
+            self.save_if_needed(obj)
+            self.cache_identifiers[k] = obj.pk
+            return obj
+
     def save_m2m_if_needed(self, obj, key, objs_toadd: list[int]) -> False:
         """this method checks all pk m2m linked to the obj, if is a diff, we "set" all needed_pk"""
         needed_pk = sorted(objs_toadd)
         actual = sorted(getattr(obj, key, []))
         if needed_pk != actual:
-            setattr(obj, key, needed_pk)
+            getattr(obj, key.removesuffix("_m2m_pk")).clear()
             getattr(obj, key.removesuffix("_m2m_pk")).set(needed_pk)
-
-    @abc.abstractmethod
-    def single(self, data):
-        raise NotImplementedError
-
-    def multiple(self, datas: list) -> list:
-        return [self.single(data) for data in datas]
-
-
-class PopulateResearcher(AbstractPopulate):
-    def check_mapping_user(
-        self, researcher: Researcher, data: dict
-    ) -> ProjectUser | None:
-        # TODO(remi): do mapping beetween researcher and user data from crisalid
-        return None
-
-    def single(self, data: dict) -> Researcher:
-        researcher = self.cache_model(Researcher, crisalid_uid=data["uid"])
-        user = self.check_mapping_user(researcher, data)
-        self.save_if_needed(researcher, display_name=data["display_name"], user=user)
-
-        user_identifiers = []
-        for iden in data["identifiers"]:
-            identifier_id = self.cache_identifier(
-                value=iden["value"], harvester=iden["type"].lower()
-            )
-            user_identifiers.append(identifier_id)
-
-        self.save_if_needed(researcher)
-        self.save_m2m_if_needed(researcher, "identifiers_m2m_pk", user_identifiers)
-
-        return researcher
-
-
-class PopulatePublicationCrisalid(AbstractPopulate):
-    def __init__(self):
-        super().__init__()
-        self.sanitize_date = cache(self.sanitize_date)
-        self.populate_researcher = PopulateResearcher(
-            self.cache_dict_model, self.cache_identifiers
-        )
+            setattr(obj, key, needed_pk)
 
     def sanitize_languages(self, values: list[dict[str, str]]) -> str:
         """convert languages choices from crisalid fields
@@ -137,6 +118,62 @@ class PopulatePublicationCrisalid(AbstractPopulate):
             maps_languages.get("en")
             or maps_languages.get("fr")
             or next(iter(maps_languages.values()))
+        )
+
+    @abc.abstractmethod
+    def single(self, data):
+        raise NotImplementedError
+
+    def multiple(self, datas: list) -> list:
+        return [self.single(data) for data in datas]
+
+
+class PopulateResearcher(AbstractPopulate):
+    def check_mapping_user(
+        self, researcher: Researcher, data: dict
+    ) -> ProjectUser | None:
+        """match user from researcher (need eppn)"""
+
+        if researcher.user:
+            return researcher.user
+
+        for iden in data["identifiers"]:
+            if iden["type"].lower() != Identifier.Harvester.EPPN.value:
+                continue
+            user = ProjectUser.objects.filter(email=iden["value"]).first()
+            if user is not None:
+                return user
+            given_name = self.sanitize_languages(data["names"][0]["first_names"])
+            family_name = self.sanitize_languages(data["names"][0]["last_names"])
+
+            return ProjectUser.objects.create(
+                email=iden["value"], given_name=given_name, family_name=family_name
+            )
+        return None
+
+    def single(self, data: dict) -> Researcher:
+        researcher = self.cache_model(Researcher, crisalid_uid=data["uid"])
+
+        user_identifiers = []
+        for iden in data["identifiers"]:
+            identifier_id = self.cache_identifier(
+                value=iden["value"], harvester=iden["type"].lower()
+            )
+            user_identifiers.append(identifier_id)
+
+        user = self.check_mapping_user(researcher, data)
+        self.save_if_needed(researcher, display_name=data["display_name"], user=user)
+        self.save_m2m_if_needed(researcher, "identifiers_m2m_pk", user_identifiers)
+
+        return researcher
+
+
+class PopulatePublicationCrisalid(AbstractPopulate):
+    def __init__(self):
+        super().__init__()
+        self.sanitize_date = cache(self.sanitize_date)
+        self.populate_researcher = PopulateResearcher(
+            self.cache_dict_model, self.cache_identifiers, self.cache_contributors
         )
 
     def sanitize_date(self, value: str | None) -> datetime.date | None:
@@ -159,10 +196,20 @@ class PopulatePublicationCrisalid(AbstractPopulate):
     def sanitize_publication_type(self, data: str | None):
         if not data:
             return None
-        if data in Publication.PublicationsType:
+        if data in Publication.PublicationType:
             return data
         logger.warning("Publications type %r not found", data)
         return None
+
+    def sanitize_roles(self, data: list[str]) -> list[str]:
+        roles = []
+        for role in data:
+            if role in relators.dict_relators:
+                roles.append(relators.dict_relators[role]["value"])
+            else:
+                logger.warning("Invalid role %s", role)
+
+        return roles
 
     def single(self, data: dict):
         """this method create/update only on publications from crisalid"""
@@ -175,17 +222,28 @@ class PopulatePublicationCrisalid(AbstractPopulate):
             publication_type=self.sanitize_publication_type(data["document_type"]),
         )
 
+        # identifiers (hal, openalex, idref ...ect)
         identifier_ids = []
-        authors = []
         for recorded in data["recorded_by"]:
             identifier_id = self.cache_identifier(
                 value=recorded["uid"], harvester=recorded["harvester"].lower()
             )
             identifier_ids.append(identifier_id)
-
-            authors.extend(self.populate_researcher.multiple(recorded["harvested_for"]))
-
-        self.save_m2m_if_needed(publication, "authors_m2m_pk", (o.pk for o in authors))
         self.save_m2m_if_needed(publication, "identifiers_m2m_pk", identifier_ids)
+
+        contributors = []
+        for contribution in data["has_contributions"]:
+            for researcher in self.populate_researcher.multiple(
+                contribution["contributor"]
+            ):
+
+                roles = self.sanitize_roles(contribution["roles"])
+
+                contribution = self.cache_contributor(
+                    publication=publication,
+                    researcher=researcher,
+                )
+                self.save_if_needed(contribution, roles=roles)
+                contributors.append(contribution)
 
         return publication

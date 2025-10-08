@@ -3,7 +3,12 @@ import math
 from django.core.management.base import BaseCommand
 
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Identifier, Publication, Researcher
+from services.crisalid.models import (
+    Identifier,
+    Publication,
+    PublicationContributor,
+    Researcher,
+)
 from services.crisalid.populate import PopulatePublicationCrisalid
 from services.crisalid.utils import timeit
 
@@ -23,18 +28,18 @@ class Command(BaseCommand):
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
 
     def delete_crisalid_models(self):
-        models = [Publication, Identifier, Researcher]
+        models = [Publication, PublicationContributor, Identifier, Researcher]
 
         for model in models:
             deleted = model.objects.all().delete()
             print(f"deleted {model=}: {deleted}")
 
     def handle(self, **options):
-        service = CrisalidService()
-        populate = PopulatePublicationCrisalid()
-
         if options["delete"]:
             self.delete_crisalid_models()
+
+        service = CrisalidService()
+        populate = PopulatePublicationCrisalid()
 
         offset = int(options["offset"])
         limit = int(options["limit"])

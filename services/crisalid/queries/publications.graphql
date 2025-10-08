@@ -9,22 +9,31 @@ query PopulateFromCrisalid($limit: Int, $offset: Int) {
       value
     }
 
-    recorded_by {
-      harvester
-      uid,
-
-      harvested_for {
-        display_name
+    has_contributions {
+      roles,
+      contributor {
         uid
-
+        display_name,
+        names {
+          first_names {
+              value
+              language
+          }
+          last_names {
+            value
+            language
+          }
+        }
         identifiers {
           type
           value
         }
-
       }
-
     }
 
+    recorded_by {
+      harvester
+      uid,
+    }
   }
 }

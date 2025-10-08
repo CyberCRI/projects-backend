@@ -65,7 +65,7 @@ class CrisalidBusClient:
         callback: Callable,
     ):
         assert (
-            crisalid_type.value not in self._consumer[crisalid_type.value]
+            crisalid_event.value not in self._consumer[crisalid_type.value]
         ), f"Event {crisalid_type}::{crisalid_event}, is already set"
 
         # add callback

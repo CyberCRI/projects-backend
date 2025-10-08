@@ -3,7 +3,12 @@ import datetime
 from django import test
 from django.urls import reverse
 
-from services.crisalid.models import Identifier, Publication, Researcher
+from services.crisalid.models import (
+    Identifier,
+    Publication,
+    PublicationContributor,
+    Researcher,
+)
 
 
 class TestPublicationView(test.TestCase):
@@ -37,7 +42,9 @@ class TestPublicationView(test.TestCase):
                     harvester=Identifier.Harvester.HAL.value,
                 )
             )
-            publi.authors.add(cls.researcher)
+            PublicationContributor.objects.create(
+                researcher=cls.researcher, publication=publi, roles=["authors"]
+            )
 
         # only for researcher 2
         for i in range(5):
@@ -51,7 +58,9 @@ class TestPublicationView(test.TestCase):
                     harvester=Identifier.Harvester.HAL.value,
                 )
             )
-            publi.authors.add(cls.researcher_2)
+            PublicationContributor.objects.create(
+                researcher=cls.researcher_2, publication=publi, roles=["authors"]
+            )
 
         # for both
         for i in range(2):
@@ -65,7 +74,12 @@ class TestPublicationView(test.TestCase):
                     harvester=Identifier.Harvester.HAL.value,
                 )
             )
-            publi.authors.set((cls.researcher, cls.researcher_2))
+            PublicationContributor.objects.create(
+                researcher=cls.researcher, publication=publi, roles=["authors"]
+            )
+            PublicationContributor.objects.create(
+                researcher=cls.researcher_2, publication=publi, roles=["authors"]
+            )
 
     def test_get_publications(self):
         # researcher 1

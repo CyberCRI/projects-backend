@@ -60,8 +60,7 @@ class ResearcherPublicationsSerializer(ResearcherSerializer):
 
 
 class PublicationSerializer(serializers.ModelSerializer):
-    # avoid circular import
-    authors = ResearcherPublicationsSerializer(many=True)
+    contributors = ResearcherPublicationsSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
 
     class Meta:

@@ -1,6 +1,7 @@
 import datetime
 from collections import Counter
 from http import HTTPMethod
+from itertools import chain
 
 from django.db.models import Count, QuerySet
 from django.db.models.functions import ExtractYear
@@ -10,7 +11,7 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from services.crisalid.models import Publication, Researcher
+from services.crisalid.models import Publication, PublicationContributor, Researcher
 from services.crisalid.serializers import PublicationSerializer, ResearcherSerializer
 
 
@@ -31,7 +32,13 @@ from services.crisalid.serializers import PublicationSerializer, ResearcherSeria
             ),
             OpenApiParameter(
                 name="publication_date",
-                description="publication_date",
+                description="year of publications",
+                required=False,
+                type=datetime.datetime,
+            ),
+            OpenApiParameter(
+                name="roles",
+                description="roles of researcher",
                 required=False,
                 type=datetime.datetime,
             ),
@@ -54,7 +61,13 @@ from services.crisalid.serializers import PublicationSerializer, ResearcherSeria
             ),
             OpenApiParameter(
                 name="publication_date",
-                description="publication_date",
+                description="year of publications",
+                required=False,
+                type=datetime.datetime,
+            ),
+            OpenApiParameter(
+                name="roles",
+                description="roles of researcher",
                 required=False,
                 type=datetime.datetime,
             ),
@@ -66,17 +79,40 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("id", "crisalid_uid", "publication_date")
 
-    def filter_queryset(self, queryset):
+    def filter_queryset(
+        self,
+        queryset,
+        publication_date=True,
+        publication_enabled=True,
+        roles_enabled=True,
+    ):
         qs = super().filter_queryset(queryset)
         year = self.request.query_params.get("publication_date__year")
-        if year:
+        if year and publication_date:
             qs = qs.filter(publication_date__year=year)
+
+        # filter only by roles (author, co-authors ...ect)
+        roles = [
+            r.strip()
+            for r in self.request.query_params.get("roles", "").split(",")
+            if r.strip()
+        ]
+        if roles and roles_enabled:
+            qs = qs.filter(
+                publicationcontributor__roles__contains=roles,
+                publicationcontributor__researcher__pk=self.kwargs["researcher_pk"],
+            )
+
+        # filter by pblication_type
+        if "publication_type" in self.request.query_params and publication_enabled:
+            publication_type = self.request.query_params.get("publication_type")
+            qs = qs.filter(publication_type=publication_type or None)
         return qs
 
     def get_queryset(self) -> QuerySet:
         return (
-            Publication.objects.filter(authors__id=self.kwargs["researcher_pk"])
-            .prefetch_related("identifiers", "authors__user")
+            Publication.objects.filter(contributors__id=self.kwargs["researcher_pk"])
+            .prefetch_related("identifiers", "contributors__user")
             .order_by("-publication_date")
         )
 
@@ -88,7 +124,7 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
         # use only here the filter_queryset,
         # the next years values need to have all publications (non filtered)
         publication_types = Counter(
-            self.filter_queryset(qs)
+            self.filter_queryset(qs, publication_enabled=False)
             .order_by("publication_type")
             .values_list("publication_type", flat=True)
         )
@@ -99,7 +135,8 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
         # order all buplications by years
         limit = self.request.query_params.get("limit")
         years = (
-            qs.filter(publication_date__isnull=False)
+            self.filter_queryset(qs, publication_enabled=False, publication_date=False)
+            .filter(publication_date__isnull=False)
             .annotate(year=ExtractYear("publication_date"))
             .values("year")
             .annotate(total=Count("id"))
@@ -109,8 +146,21 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
         if limit:
             years = years[: int(limit)]
 
+        roles = Counter(
+            chain(
+                *PublicationContributor.objects.filter(
+                    publication__in=self.filter_queryset(qs, roles_enabled=False),
+                    researcher__id=self.kwargs["researcher_pk"],
+                ).values_list("roles", flat=True)
+            )
+        )
+
         return JsonResponse(
-            {"publication_types": publication_types, "years": list(years)}
+            {
+                "publication_types": publication_types,
+                "years": list(years),
+                "roles": roles,
+            }
         )
 
 

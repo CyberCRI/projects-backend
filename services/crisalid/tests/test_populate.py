@@ -109,12 +109,37 @@ class TestPopulatePublication(test.TestCase):
                 {"language": "en", "value": "fiction"},
             ],
             "publication_date": "1999",
+            "has_contributions": [
+                {
+                    "roles": ["http://id.loc.gov/vocabulary/relators/aut"],
+                    "contributor": [
+                        {
+                            "uid": "local-v9034",
+                            "display_name": "Marty Mcfly",
+                            "names": [
+                                {
+                                    "first_names": [
+                                        {"value": "Marty", "language": "fr"}
+                                    ],
+                                    "last_names": [
+                                        {"value": "Mcfly", "language": "fr"}
+                                    ],
+                                }
+                            ],
+                            "identifiers": [
+                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
+                            ],
+                        }
+                    ],
+                }
+            ],
             "recorded_by": [
                 {
                     "uid": "hals-truc",
                     "harvester": Identifier.Harvester.HAL.value,
                     "value": "",
-                    "harvested_for": [],
                 }
             ],
         }

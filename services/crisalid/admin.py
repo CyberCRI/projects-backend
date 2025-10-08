@@ -30,14 +30,14 @@ class PublicationAdmin(admin.ModelAdmin):
         "title",
         "publication_date",
         "publication_type",
-        "get_authors",
+        "get_contributors",
         "get_identifiers",
     )
     search_fields = (
         "title",
         "publication_date",
         "publication_type",
-        "authors__display_name",
+        "contributors__display_name",
         "identifiers__value",
         "identifier__harvester",
     )
@@ -46,14 +46,14 @@ class PublicationAdmin(admin.ModelAdmin):
         return (
             super()
             .get_queryset(request)
-            .prefetch_related("authors", "identifiers")
+            .prefetch_related("contributors", "identifiers")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(authors_count=Count("authors__id"))
+            .annotate(contributors_count=Count("contributors__id"))
         )
 
-    @admin.display(description="authors count", ordering="authors_count")
-    def get_authors(self, instance):
-        return instance.authors.count()
+    @admin.display(description="contributors count", ordering="contributors_count")
+    def get_contributors(self, instance):
+        return instance.contributors.count()
 
     @admin.display(description="identifiers count", ordering="identifiers_count")
     def get_identifiers(self, instance):
