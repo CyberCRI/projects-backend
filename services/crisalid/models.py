@@ -143,7 +143,9 @@ class Publication(CrisalidDataModel):
     description = models.TextField(default="")
     publication_date = models.DateField(blank=False, null=True)
     publication_type = models.CharField(
-        max_length=50, choices=PublicationType.choices, null=True, blank=True
+        max_length=50,
+        choices=PublicationType.choices,
+        default=PublicationType.UNKNOWN.value,
     )
     contributors = models.ManyToManyField(
         "crisalid.Researcher",
