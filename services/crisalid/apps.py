@@ -14,7 +14,8 @@ class CrisalidConfig(AppConfig):
     def ready(self):
         # initialize crisalid bus
 
-        from .crisalid_bus import crisalid_bus_client
+        import services.crisalid.tasks  # noqa: F401
+        from services.crisalid.crisalid_bus import crisalid_bus_client
 
         # target is connect function in crisalidbus
         self.__thread_crisalid_bus = threading.Thread(
