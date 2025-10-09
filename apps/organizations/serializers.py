@@ -1,5 +1,6 @@
 import logging
 import uuid
+from contextlib import suppress
 from types import SimpleNamespace
 from typing import Dict, List, Union
 
@@ -43,11 +44,44 @@ logger = logging.getLogger(__name__)
 class TermsAndConditionsSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    content = serializers.CharField(write_only=True)
+    displayed_content_organization = serializers.SerializerMethodField()
+    displayed_content = serializers.SerializerMethodField()
+    displayed_version = serializers.SerializerMethodField()
 
     class Meta:
         model = TermsAndConditions
-        read_only_fields = ["id", "version"]
+        read_only_fields = [
+            "id",
+            "displayed_content_organization",
+            "displayed_content",
+            "displayed_version",
+        ]
         fields = read_only_fields + ["content"]
+
+    def get_displayed_content_organization(self, instance: TermsAndConditions) -> str:
+        if not instance.content:
+            with suppress(TermsAndConditions.DoesNotExist):
+                default = TermsAndConditions.objects.get(is_default=True)
+                if default.content:
+                    return default.organization.code
+        return instance.organization.code
+
+    def get_displayed_content(self, instance: TermsAndConditions) -> str:
+        if not instance.content:
+            with suppress(TermsAndConditions.DoesNotExist):
+                default = TermsAndConditions.objects.get(is_default=True)
+                if default.content:
+                    return default.content
+        return instance.content
+
+    def get_displayed_version(self, instance: TermsAndConditions) -> int:
+        if not instance.content:
+            with suppress(TermsAndConditions.DoesNotExist):
+                default = TermsAndConditions.objects.get(is_default=True)
+                if default.content:
+                    return default.version
+        return instance.version
 
 
 class OrganizationAddTeamMembersSerializer(serializers.Serializer):
