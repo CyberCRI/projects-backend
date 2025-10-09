@@ -44,6 +44,19 @@ logger = logging.getLogger(__name__)
 class TermsAndConditionsSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    """
+    Serializer for TermsAndConditions model.
+
+    One default Terms and Conditions can be defined for the whole platform.
+    If an organization does not have its own Terms and Conditions, the default one will be used.
+    If the default one is updated, all organizations using it will see the changes.
+
+    The fields `displayed_content_organization`, `displayed_content` and `displayed_version`
+    are read-only and represent the actual Terms and Conditions that will be displayed to users.
+
+    The field `content` is write-only and allows to set the content of the Terms and Conditions.
+    """
+
     content = serializers.CharField(write_only=True)
     displayed_content_organization = serializers.SerializerMethodField()
     displayed_content = serializers.SerializerMethodField()
