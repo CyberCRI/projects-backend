@@ -1,7 +1,9 @@
 import enum
 import json
 import logging
+import time
 from collections import defaultdict
+from functools import wraps
 from typing import Callable
 
 import jsonschema
@@ -49,7 +51,13 @@ CRISALID_MESSAGE_SCHEMA = {
 class CrisalidBusClient:
     """Class to connect to crisalid rabitmqt, and receive all event messages."""
 
-    QUEUE_NAME = "crisalid"
+    # queue create by ikg for send messages
+    CRISALID_QUEUES = (
+        "crisalid-ikg-harvesting-events",
+        "crisalid-ikg-people",
+        "crisalid-ikg-publications",
+        "crisalid-ikg-structures",
+    )
 
     def __init__(self):
         self.conn: pika.BlockingConnection | None = None
@@ -79,30 +87,42 @@ class CrisalidBusClient:
         parameters = {
             "host": settings.CRISALID_BUS["host"],
             "port": settings.CRISALID_BUS["port"],
+            "user": settings.CRISALID_BUS["user"],
+            "password": settings.CRISALID_BUS["password"],
         }
 
         if not all(parameters.values()):
+            # safe remove password to not showing in log
+            if parameters["password"]:
+                parameters["password"] = "*" * 10
             logger.critical(
                 "Can't instantiate CrisalidBus: invalid parameters, %s", parameters
             )
             return
 
+        retry = 1
         # run in loop to retry when connection is lost
         while self._run:
             try:
+                credentials = pika.PlainCredentials(
+                    parameters["user"], parameters["password"]
+                )
 
-                logger.info("Create connection, parameters:%s", parameters)
                 self.conn = pika.BlockingConnection(
-                    pika.ConnectionParameters(**parameters)
+                    pika.ConnectionParameters(
+                        host=parameters["host"],
+                        port=parameters["port"],
+                        credentials=credentials,
+                    ),
                 )
                 self._channel = self.conn.channel()
 
-                self._channel.queue_declare(queue=CrisalidBusClient.QUEUE_NAME)
-                self._channel.basic_consume(
-                    queue=CrisalidBusClient.QUEUE_NAME,
-                    auto_ack=True,
-                    on_message_callback=self._dispatch,
-                )
+                for queue in CrisalidBusClient.CRISALID_QUEUES:
+                    self._channel.basic_consume(
+                        queue=queue,
+                        auto_ack=True,
+                        on_message_callback=self._dispatch,
+                    )
 
                 logger.info("Start channel Consuming")
                 self._channel.start_consuming()
@@ -114,6 +134,13 @@ class CrisalidBusClient:
                 logger.error("Channel error: %s", str(e))
             except pika.exceptions.AMQPConnectionError as e:
                 logger.error("Connection closed: %s", str(e))
+
+            if not self._run:
+                break
+
+            # incremental retry (max 60s)
+            retry = min(retry * 2, 60)
+            time.sleep(retry)
 
         # ensure disconect after loop
         self._disconnect()
@@ -174,8 +201,8 @@ class CrisalidBusClient:
         event_callback = self._consumer[crisalid_type][crisalid_event]
         logger.debug("Call %s", event_callback)
 
-        # call callack in celery queue
-        event_callback(payload["fields"])
+        fields = payload["fields"]
+        event_callback(fields)
 
 
 # TODO(remi): nedd to create a singleton type ?
@@ -190,12 +217,24 @@ def is_task_celery(func):
 
 
 # easy decorator method
-def cdb_add_callback(
-    crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum
-):
+def on_event(crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum):
+    """shortcut decorator to crisalid_bus.add_callback
+
+    :param crisalid_type: crisalid type name
+    :param crisalid_event: crisalid event name
+    """
+
     def _wraps(func):
-        func = func.apply if is_task_celery(func) else func
+        original_func = func
+        if is_task_celery(func):
+
+            # if is a task, add correct seriliazer for data
+            @wraps(func)
+            def _tasks(data):
+                return original_func.apply((data,), serializer="pickle")
+
+            func = _tasks
         crisalid_bus_client.add_callback(crisalid_type, crisalid_event, func)
-        return func
+        return original_func
 
     return _wraps

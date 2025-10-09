@@ -43,7 +43,7 @@ class TestCrisalidBus(test.TestCase):
         self.client._dispatch(self.chanel, self.properties, self.method, self.payload)
 
         # normaly is called
-        callback.assert_called_once_with(json.loads(self.payload))
+        callback.assert_called_once_with(json.loads(self.payload)["fields"])
 
     def test_add_callback(self):
         callback = Mock()

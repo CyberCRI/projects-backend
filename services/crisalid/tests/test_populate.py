@@ -108,6 +108,9 @@ class TestPopulatePublication(test.TestCase):
             "titles": [
                 {"language": "en", "value": "fiction"},
             ],
+            "abstracts": [
+                {"language": "en", "value": "description"},
+            ],
             "publication_date": "1999",
             "has_contributions": [
                 {
