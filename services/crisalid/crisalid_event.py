@@ -1,7 +1,10 @@
 import logging
 
-from projects.celery import app
-from services.crisalid.crisalid_bus import CrisalidEventEnum, CrisalidTypeEnum, on_event
+from services.crisalid.crisalid_bus import (
+    CrisalidEventEnum,
+    CrisalidTypeEnum,
+    on_event,
+)
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import Publication, Researcher
 from services.crisalid.populate import PopulatePublication, PopulateResearcher
@@ -14,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 @on_event(CrisalidTypeEnum.RESEARCH, CrisalidEventEnum.CREATED)
 @on_event(CrisalidTypeEnum.RESEARCH, CrisalidEventEnum.UPDATED)
-@app.task(name=f"{__name__}.create_researcher")
 def create_researcher(fields: dict):
     logger.info("receive %s", fields)
 
@@ -23,7 +25,6 @@ def create_researcher(fields: dict):
 
 
 @on_event(CrisalidTypeEnum.RESEARCH, CrisalidEventEnum.DELETED)
-@app.task(name=f"{__name__}.delete_researcher")
 def delete_researcher(fields: dict):
     logger.info("receive %s", fields)
 
@@ -33,7 +34,6 @@ def delete_researcher(fields: dict):
 
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED)
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.UPDATED)
-@app.task(name=f"{__name__}.create_document")
 def create_document(fields: dict):
     logger.info("receive %s", fields)
 
@@ -52,7 +52,6 @@ def create_document(fields: dict):
 
 
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.DELETED)
-@app.task(name=f"{__name__}.delete_document")
 def delete_document(fields: dict):
     logger.error("receive %s", fields)
 
