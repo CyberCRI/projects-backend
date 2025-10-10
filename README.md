@@ -72,6 +72,19 @@ A default superadmin is created in keycloak. To import it in Projects, you need 
 You can also use these credentials (use the `admin` username, not the email) to connect to the [Keycloak admin panel](http://localhost/8001)
 
 
+### Populate the database with fake data
+
+```bash
+# inside the container
+python manage.py seed_db -o <organization_code> -u <organization_url> -a <admin_username> -p <admin_password>
+```
+
+This will generate random data and an admin user for the organization you specified.
+
+For local development, you should use:
+- organization_code: `CRI` (or the code you specified in your frontend)
+- organization_url: `http://localhost:8080`
+
 ### Run test
 
 Run all the tests:

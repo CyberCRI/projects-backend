@@ -1,7 +1,9 @@
 include:
   - path: ./keycloak-lpi-theme/theme/docker-compose.yml
     project_directory: ./keycloak-lpi-theme/theme/
-    env_file: ./.env
+    env_file:
+      - ./.env
+      - ../.env
 
 services:
   postgres:
@@ -62,6 +64,7 @@ services:
         EXPORT_FLAG: --with dev
     env_file:
       - .env
+      - ../.env
     user: root
     restart: unless-stopped
     command: uvicorn projects.asgi:application --host 0.0.0.0 --port 8000 --reload

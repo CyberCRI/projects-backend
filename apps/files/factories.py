@@ -35,8 +35,8 @@ class OrganizationAttachmentFileFactory(factory.django.DjangoModelFactory):
     file = factory.django.FileField(
         filename="file.dat", from_func=get_random_binary_file
     )
-    mime = factory.Faker("text", max_nb_chars=100)
-    title = factory.Faker("text", max_nb_chars=255)
+    mime = "application/octet-stream"
+    title = factory.Faker("sentence")
 
     @factory.lazy_attribute
     def hashcode(self):
@@ -57,8 +57,8 @@ class AttachmentFileFactory(factory.django.DjangoModelFactory):
     file = factory.django.FileField(
         filename="file.dat", from_func=get_random_binary_file
     )
-    mime = factory.Faker("text", max_nb_chars=100)
-    title = factory.Faker("text", max_nb_chars=255)
+    mime = "application/octet-stream"
+    title = factory.Faker("sentence")
 
     @factory.lazy_attribute
     def hashcode(self):
@@ -77,7 +77,7 @@ class AttachmentLinkFactory(factory.django.DjangoModelFactory):
     attachment_type = AttachmentType.LINK
     category = AttachmentLinkCategory.OTHER
     preview_image_url = factory.Faker("url")
-    site_name = factory.Faker("text", max_nb_chars=255)
+    site_name = factory.Faker("word")
     site_url = factory.Faker("url")
 
     class Meta:

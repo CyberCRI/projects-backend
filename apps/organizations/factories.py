@@ -15,9 +15,9 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
         model = Organization
         django_get_or_create = ("code",)
 
-    name = factory.Faker("pystr", min_chars=1, max_chars=50)
-    dashboard_title = factory.Faker("text", max_nb_chars=255)
-    dashboard_subtitle = factory.Faker("text", max_nb_chars=255)
+    name = factory.Faker("company")
+    dashboard_title = factory.Faker("sentence")
+    dashboard_subtitle = factory.Faker("sentence")
     description = factory.Faker("text", max_nb_chars=255)
     language = language_factory()
     code = factory.Sequence(lambda n: faker.word() + str(n))
@@ -25,7 +25,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     banner_image = None
     contact_email = factory.Faker("email")
     chat_url = factory.Faker("url")
-    chat_button_text = factory.Faker("text", max_nb_chars=50)
+    chat_button_text = factory.Faker("word")
     logo_image = factory.LazyFunction(get_test_image)
     website_url = factory.Faker("url")
     created_at = timezone.localtime(timezone.now())
@@ -48,12 +48,12 @@ class TemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Template
 
-    title_placeholder = factory.Faker("text", max_nb_chars=255)
+    title_placeholder = factory.Faker("sentence")
     description_placeholder = factory.Faker("text")
-    goal_placeholder = factory.Faker("text", max_nb_chars=255)
-    blogentry_title_placeholder = factory.Faker("text", max_nb_chars=255)
+    goal_placeholder = factory.Faker("sentence")
+    blogentry_title_placeholder = factory.Faker("sentence")
     blogentry_placeholder = factory.Faker("text")
-    goal_title = factory.Faker("text", max_nb_chars=255)
+    goal_title = factory.Faker("sentence")
     goal_description = factory.Faker("text")
     project_category = None
 
@@ -73,7 +73,3 @@ class ProjectCategoryFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("word")
     is_reviewable = factory.Faker("boolean")
     template = factory.SubFactory(TemplateFactory)
-
-
-class SeedProjectCategoryFactory(ProjectCategoryFactory):
-    organization = factory.fuzzy.FuzzyChoice(Organization.objects.all())
