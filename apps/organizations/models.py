@@ -6,7 +6,7 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet, UniqueConstraint
 from django.http import Http404
 from simple_history.models import HistoricalRecords
 
@@ -529,7 +529,17 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     )
     version = models.IntegerField(default=1)
     content = models.TextField(blank=True, default="")
+    is_default = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_related_organizations(self) -> List["Organization"]:
         return [self.organization]
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=("is_default",),
+                condition=Q(is_default=True),
+                name="unique_default_terms_and_conditions",
+            )
+        ]
