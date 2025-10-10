@@ -1,6 +1,7 @@
 import enum
 import json
 import logging
+import threading
 import time
 from collections import defaultdict
 from functools import wraps
@@ -207,6 +208,32 @@ class CrisalidBusClient:
 
 # TODO(remi): nedd to create a singleton type ?
 crisalid_bus_client = CrisalidBusClient()
+
+__thread_crisalid_bus = None
+
+
+def start_thread():
+    global __thread_crisalid_bus
+    assert __thread_crisalid_bus is None, "can't start twice crisalidbus"
+
+    # target is connect function in crisalidbus
+    __thread_crisalid_bus = threading.Thread(
+        target=crisalid_bus_client.connect,
+        name="CrisalidBus",
+        daemon=True,
+    )
+
+    # start thread
+    __thread_crisalid_bus.start()
+
+
+def stop_thread():
+    global __thread_crisalid_bus
+
+    crisalid_bus_client.disconnect()
+    # wait 3 seconds to stop thread (the thread is daemon, so no realy need this)
+    if __thread_crisalid_bus is not None:
+        __thread_crisalid_bus.join(3)
 
 
 # check methods is celery

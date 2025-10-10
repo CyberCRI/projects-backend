@@ -1,6 +1,5 @@
-import threading
-
 from django.apps import AppConfig
+from django.conf import settings
 
 
 class CrisalidConfig(AppConfig):
@@ -9,27 +8,18 @@ class CrisalidConfig(AppConfig):
 
     def __init__(self, *ar, **kw):
         super().__init__(*ar, **kw)
-        self.__thread_crisalid_bus = None
 
     def ready(self):
         # initialize crisalid bus
 
-        import services.crisalid.tasks  # noqa: F401
-        from services.crisalid.crisalid_bus import crisalid_bus_client
+        if settings.ENABLE_CRISALID_BUS:
+            import services.crisalid.tasks  # noqa: F401
+            from services.crisalid.crisalid_bus import start_thread
 
-        # target is connect function in crisalidbus
-        self.__thread_crisalid_bus = threading.Thread(
-            target=crisalid_bus_client.connect,
-            name="CrisalidBus",
-            daemon=True,
-        )
-
-        # start thread
-        self.__thread_crisalid_bus.start()
+            start_thread()
 
     def __delete__(self):
-        from .crisalid_bus import crisalid_bus_client
+        if settings.ENABLE_CRISALID_BUS:
+            from .crisalid_bus import stop_thread
 
-        crisalid_bus_client.disconnect()
-        # wait 3 seconds to stop thread (the thread is daemon, so no realy need this)
-        self.__thread_crisalid_bus.join(3)
+            stop_thread()
