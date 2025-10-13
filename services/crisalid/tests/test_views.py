@@ -107,7 +107,9 @@ class TestPublicationView(test.TestCase):
 
         data = result.json()
         expected = {
-            "publication_types": [{"name": None, "count": 12}],
+            "publication_types": [
+                {"name": Publication.PublicationType.UNKNOWN.value, "count": 12}
+            ],
             "years": [
                 {"total": 1, "year": 1999},
                 {"total": 1, "year": 1998},

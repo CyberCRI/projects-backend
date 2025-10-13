@@ -12,7 +12,7 @@ class ProjectUserMinimalSerializer(serializers.ModelSerializer):
         fields = ("id", "display_name", "slug")
 
     def get_display_name(self, instance: ProjectUser) -> str:
-        return instance.get_full_name()
+        return str(instance)
 
 
 class IdentifierSerializer(serializers.ModelSerializer):

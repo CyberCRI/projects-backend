@@ -133,11 +133,11 @@ class PopulateResearcher(AbstractPopulate):
         given_name = data.get("first_names")
         family_name = data.get("last_names")
         # "name" from apollo return list with languages
-        if data["names"]:
+        if data.get("names"):
             given_name = self.sanitize_languages(data["names"][0]["first_names"])
             family_name = self.sanitize_languages(data["names"][0]["last_names"])
 
-        return given_name, family_name
+        return given_name or "", family_name or ""
 
     def check_mapping_user(
         self, researcher: Researcher, data: dict
@@ -154,6 +154,7 @@ class PopulateResearcher(AbstractPopulate):
             if user is not None:
                 return user
 
+            # create only user if we have eppn
             given_name, family_name = self.get_names(data)
             return ProjectUser.objects.create(
                 email=iden["value"], given_name=given_name, family_name=family_name
@@ -203,14 +204,14 @@ class PopulatePublication(AbstractPopulate):
         return None
 
     def sanitize_publication_type(self, data: str | None):
-        if not data:
-            return None
+        """Check documentType , and return unknow value if is not set in enum"""
         if data in Publication.PublicationType:
             return data
         logger.warning("Publications type %r not found", data)
-        return None
+        return Publication.PublicationType.UNKNOWN.value
 
     def sanitize_roles(self, data: list[str]) -> list[str]:
+        """return all roles from relators json"""
         roles = []
         for role in data:
             if role in relators.dict_relators:
