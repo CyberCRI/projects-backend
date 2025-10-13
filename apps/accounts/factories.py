@@ -6,10 +6,8 @@ from faker import Faker
 
 from apps.accounts.utils import get_default_group
 from apps.commons.factories import sdg_factory
-from services.keycloak.factories import (
-    KeycloakAccountFactory,
-    RemoteKeycloakAccountFactory,
-)
+from services.keycloak.factories import KeycloakAccountFactory
+from services.keycloak.interface import KeycloakService
 
 from .models import PeopleGroup, PrivacySettings, ProjectUser, UserScore
 
@@ -83,11 +81,9 @@ class SeedUserFactory(UserFactory):
     @factory.post_generation
     def keycloak_account(self, create, extracted, **kwargs):
         if create:
-            RemoteKeycloakAccountFactory(
-                user=self,
-                username=self.email,
-                email=self.email,
-            )
+            password = extracted.get("password") if extracted else faker.password()
+            email_verified = extracted.get("email_verified") if extracted else False
+            KeycloakService.create_user(self, password, email_verified=email_verified)
 
 
 class UserScoreFactory(factory.django.DjangoModelFactory):

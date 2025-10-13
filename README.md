@@ -76,7 +76,7 @@ You can also use these credentials (use the `admin` username, not the email) to 
 
 ```bash
 # inside the container
-python manage.py seed_db -o <organization_code> -u <organization_url> -a <admin_username> -p <admin_password>
+python manage.py seed_db -o <organization_code> -u <organization_url> -a <accounts>
 ```
 
 This will generate random data and an admin user for the organization you specified.
@@ -84,6 +84,7 @@ This will generate random data and an admin user for the organization you specif
 For local development, you should use:
 - organization_code: `CRI` (or the code you specified in your frontend)
 - organization_url: `http://localhost:8080`
+- accounts (optional): List of comma-separated accounts to create with format `username:password:role`. Example: `user1@example.com:pass1:admins,user2@example.com:pass2:users`
 
 ### Run test
 

@@ -9,9 +9,15 @@ from django.db import IntegrityError
 from django.utils import timezone
 from faker import Faker
 
-from apps.accounts.factories import PeopleGroupFactory, UserFactory, UserScoreFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    UserFactory,
+    UserScoreFactory,
+)
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.factories import AnnouncementFactory
+from apps.commons.models import GroupData
 from apps.feedbacks.factories import CommentFactory, FollowFactory
 from apps.files.factories import (
     AttachmentFileFactory,
@@ -22,7 +28,7 @@ from apps.files.models import Image
 from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
 from apps.newsfeed.utils import init_newsfeed
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
-from apps.organizations.models import ProjectCategory
+from apps.organizations.models import Organization, ProjectCategory
 from apps.projects.factories import (
     BlogEntryFactory,
     GoalFactory,
@@ -49,18 +55,15 @@ class Command(BaseCommand):
             "--url", "-u", type=str, required=True, help="Organization URL."
         )
         parser.add_argument(
-            "--admin-username",
+            "--accounts",
             "-a",
             type=str,
             required=False,
-            help="Username of the portal admin.",
-        )
-        parser.add_argument(
-            "--admin-password",
-            "-p",
-            type=str,
-            required=False,
-            help="Password of the portal admin.",
+            help=(
+                "List of comma-separated accounts to create with format "
+                "username:password:role. "
+                "E.g. user1@exampel.com:pass1:admins,user2@example.com:pass2:users"
+            ),
         )
 
     def create_image(
@@ -74,6 +77,31 @@ class Command(BaseCommand):
         image.save()
         return image
 
+    def create_account(self, account_str: str, organization: Organization) -> None:
+        account_data = account_str.split(":")
+        if len(account_data) != 3:
+            raise ValueError(
+                f"Invalid account format: {account_str}. Expected format: username:password:role"
+            )
+        username, password, role = account_data
+        user_id = KeycloakService.service().get_user_id(username)
+        if user_id:
+            KeycloakService.service().delete_user(user_id)
+        if role not in GroupData.organization_roles():
+            raise ValueError(
+                f"Invalid role: {role}. Must be one of {GroupData.organization_roles()}"
+            )
+        SeedUserFactory(
+            email=username,
+            personal_email=username,
+            keycloak_account={
+                "password": password,
+                "email_verified": True,
+            },
+            groups=[organization.get_or_create_group(role)],
+        )
+        self.stdout.write(self.style.SUCCESS(f"Account created: {username}"))
+
     def handle(self, *args, **options):
         # Get or create the organization
         organization = OrganizationFactory(
@@ -86,21 +114,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("Organization created."))
 
         # Create the admin user if credentials are provided
-        if options.get("admin_username") and options.get("admin_password"):
-            admin = UserFactory(
-                username=options["admin_username"],
-                email=options["admin_username"],
-            )
-            keycloak_account = KeycloakService.create_user(
-                admin, options["admin_password"]
-            )
-            KeycloakService.send_email(
-                keycloak_account=keycloak_account,
-                email_type=KeycloakService.EmailType.ADMIN_CREATED,
-                redirect_organization_code=organization.code,
-            )
-            organization.admins.add(admin)
-            self.stdout.write(self.style.SUCCESS("Admin user created."))
+        if options.get("accounts"):
+            accounts = options["accounts"].split(",")
+            for account_str in accounts:
+                self.create_account(account_str, organization)
 
         # Create the users
         for _ in range(50):
