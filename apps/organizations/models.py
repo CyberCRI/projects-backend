@@ -5,17 +5,21 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import Q, QuerySet, UniqueConstraint
+from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
-from apps.commons.mixins import HasMultipleIDs, HasPermissionsSetup, OrganizationRelated
+from apps.commons.mixins import (
+    HasMultipleIDs,
+    HasPermissionsSetup,
+    OrganizationRelated,
+)
 from apps.commons.models import GroupData
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
-from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -629,7 +633,17 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     )
     version = models.IntegerField(default=1)
     content = models.TextField(blank=True, default="")
+    is_default = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
     def get_related_organizations(self) -> List["Organization"]:
         return [self.organization]
+
+    class Meta:
+        constraints = [
+            UniqueConstraint(
+                fields=("is_default",),
+                condition=Q(is_default=True),
+                name="unique_default_terms_and_conditions",
+            )
+        ]

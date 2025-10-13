@@ -34,8 +34,11 @@ class CreateTermsAndConditionsTestCase(JwtAPITestCase):
         terms_and_conditions = content.get("terms_and_conditions")
         self.assertIsNotNone(terms_and_conditions)
         self.assertIn("id", terms_and_conditions)
-        self.assertEqual(terms_and_conditions["version"], 1)
-        self.assertEqual(terms_and_conditions["content"], "")
+        self.assertEqual(
+            terms_and_conditions["displayed_content_organization"], content["code"]
+        )
+        self.assertEqual(terms_and_conditions["displayed_content"], "")
+        self.assertEqual(terms_and_conditions["displayed_version"], 1)
 
 
 class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
@@ -72,8 +75,8 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if response.status_code == status.HTTP_200_OK:
             content = response.json()
-            self.assertEqual(content["content"], payload["content"])
-            self.assertEqual(content["version"], initial_version + 1)
+            self.assertEqual(content["displayed_content"], payload["content"])
+            self.assertEqual(content["displayed_version"], initial_version + 1)
 
         # Check that updating with the same content does not increment the version
         if expected_code == status.HTTP_200_OK:
@@ -86,5 +89,71 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
             )
             self.assertEqual(response.status_code, expected_code)
             content = response.json()
-            self.assertEqual(content["content"], payload["content"])
-            self.assertEqual(content["version"], initial_version + 1)
+            self.assertEqual(content["displayed_content"], payload["content"])
+            self.assertEqual(content["displayed_version"], initial_version + 1)
+
+
+class MiscTermsAndConditionsTestCase(JwtAPITestCase):
+    def test_get_default_terms_and_conditions(self):
+        organization_1 = OrganizationFactory()
+        organization_2 = OrganizationFactory()
+
+        default = organization_1.terms_and_conditions
+        default.is_default = True
+        default.content = ""
+        default.version = 5
+        default.save()
+
+        instance = organization_2.terms_and_conditions
+        instance.is_default = False
+        instance.content = ""
+        instance.version = 1
+        instance.save()
+
+        response = self.client.get(
+            reverse("Organization-detail", args=(instance.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        terms_and_conditions = content.get("terms_and_conditions")
+        self.assertEqual(terms_and_conditions["id"], instance.id)
+        self.assertEqual(
+            terms_and_conditions["displayed_content_organization"],
+            instance.organization.code,
+        )
+        self.assertEqual(terms_and_conditions["displayed_content"], instance.content)
+        self.assertEqual(terms_and_conditions["displayed_version"], instance.version)
+
+        default.content = faker.text()
+        default.save()
+
+        response = self.client.get(
+            reverse("Organization-detail", args=(instance.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        terms_and_conditions = content.get("terms_and_conditions")
+        self.assertEqual(terms_and_conditions["id"], instance.id)
+        self.assertEqual(
+            terms_and_conditions["displayed_content_organization"],
+            default.organization.code,
+        )
+        self.assertEqual(terms_and_conditions["displayed_content"], default.content)
+        self.assertEqual(terms_and_conditions["displayed_version"], default.version)
+
+        instance.content = faker.text()
+        instance.save()
+
+        response = self.client.get(
+            reverse("Organization-detail", args=(instance.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        terms_and_conditions = content.get("terms_and_conditions")
+        self.assertEqual(terms_and_conditions["id"], instance.id)
+        self.assertEqual(
+            terms_and_conditions["displayed_content_organization"],
+            instance.organization.code,
+        )
+        self.assertEqual(terms_and_conditions["displayed_content"], instance.content)
+        self.assertEqual(terms_and_conditions["displayed_version"], instance.version)
