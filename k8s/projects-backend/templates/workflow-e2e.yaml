@@ -42,7 +42,7 @@ spec:
       - "-u"
       - "https://e2e.projects.k8s.lp-i.dev"
       - "-a"
-      - "$E2E_PLAYWRIGHT_USER_EMAIL:$E2E_PLAYWRIGHT_USER_PASSWORD:users,$E2E_PLAYWRIGHT_ADMIN_EMAIL:$E2E_PLAYWRIGHT_ADMIN_PASSWORD:admin"
+      - "$(E2E_PLAYWRIGHT_USER_EMAIL):$(E2E_PLAYWRIGHT_USER_PASSWORD):users,$(E2E_PLAYWRIGHT_ADMIN_EMAIL):$(E2E_PLAYWRIGHT_ADMIN_PASSWORD):admins"
       envFrom:
         - configMapRef:
             name: {{ tpl $.Values.fullName $ }}
