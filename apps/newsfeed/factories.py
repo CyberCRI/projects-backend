@@ -26,6 +26,15 @@ class NewsfeedAnnouncementFactory(factory.django.DjangoModelFactory):
         model = Newsfeed
 
 
+class NewsfeedNewsFactory(factory.django.DjangoModelFactory):
+    news = factory.LazyFunction(lambda: NewsFactory())
+    type = Newsfeed.NewsfeedType.NEWS
+    updated_at = factory.Faker("date_time")
+
+    class Meta:
+        model = Newsfeed
+
+
 class NewsFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(
         lambda: OrganizationFactory()

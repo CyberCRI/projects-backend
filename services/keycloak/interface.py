@@ -93,11 +93,16 @@ class KeycloakService:
         return cls.service().create_user(payload=keycloak_data, exist_ok=False)
 
     @classmethod
-    def create_user(cls, user: "ProjectUser", password: Optional[str] = None):
+    def create_user(
+        cls,
+        user: "ProjectUser",
+        password: Optional[str] = None,
+        email_verified: bool = False,
+    ) -> KeycloakAccount:
         email = user.personal_email if hasattr(user, "google_account") else user.email
         payload = {
             "enabled": True,
-            "emailVerified": False,
+            "emailVerified": email_verified,
             "email": email,
             "username": user.email,
             "firstName": user.given_name,
@@ -105,12 +110,15 @@ class KeycloakService:
             "attributes": {
                 "locale": [user.language],
             },
+            "requiredActions": [],
         }
+
+        if not email_verified:
+            payload["requiredActions"] = ["VERIFY_EMAIL"]
         if password:
             payload["credentials"] = [{"type": "password", "value": password}]
-            payload["requiredActions"] = ["VERIFY_EMAIL"]
         else:
-            payload["requiredActions"] = ["UPDATE_PASSWORD", "VERIFY_EMAIL"]
+            payload["requiredActions"] += ["UPDATE_PASSWORD"]
         keycloak_id = cls._create_user(payload)
         return KeycloakAccount.objects.create(
             keycloak_id=keycloak_id,
