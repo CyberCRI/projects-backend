@@ -14,7 +14,7 @@ spec:
       {{- with $.Values.image }}
       image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
       {{- end }}
-      command: ["python", "manage.py", "flush", "--no-input"]
+      args: ["python", "manage.py", "flush", "--no-input"]
       envFrom:
         - configMapRef:
             name: {{ tpl $.Values.fullName $ }}
@@ -33,7 +33,7 @@ spec:
       {{- with $.Values.image }}
       image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
       {{- end }}
-      command:
+      args:
       - "python"
       - "manage.py"
       - "seed_db"
