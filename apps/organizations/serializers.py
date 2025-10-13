@@ -566,7 +566,6 @@ class ProjectCategorySerializer(
             "foreground_color",
             "is_reviewable",
             "order_index",
-            "template",
             "only_reviewer_can_publish",
             "parent",
             "hierarchy",

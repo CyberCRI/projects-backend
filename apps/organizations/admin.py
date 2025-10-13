@@ -56,18 +56,28 @@ class OrganizationAdmin(admin.ModelAdmin):
 class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
     list_display = (
         "id",
-        "get_organization",
-        "project_category",
+        "display_organization",
+        "display_templates",
     )
-    list_filter = ("project_category__organization",)
+    list_filter = ("categories__organization",)
     actions = ["export_data"]
 
-    def get_organization(self, template: Template) -> Optional[str]:
-        if template.project_category and template.project_category.organization:
-            return template.project_category.organization
-        return None
+    def get_queryset(self, request) -> QuerySet:
+        return (
+            super().get_queryset(request).prefetch_related("categories__organization")
+        )
 
-    get_organization.short_description = "Organization"
+    @admin.display(description="categories associates", ordering="categories__name")
+    def display_templates(self, instance: Template):
+        names = [o.name for o in instance.categories.all()]
+        return " / ".join(names)
+
+    @admin.display(
+        description="Organization", ordering="categories__organization__name"
+    )
+    def display_organization(self, instance: Template) -> Optional[str]:
+        names = [o.organization.name for o in instance.categories.all()]
+        return " / ".join(set(names))
 
     def get_queryset_for_organizations(
         self, queryset: QuerySet[Template], organizations: QuerySet[Organization]
@@ -75,6 +85,4 @@ class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
-        return queryset.filter(
-            project_category__organization__in=organizations
-        ).distinct()
+        return queryset.filter(categories__organization__in=organizations).distinct()

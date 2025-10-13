@@ -3,6 +3,13 @@
 from django.db import migrations, models
 
 
+def set_template_m2m(apps, schema_editor):
+    """change onetoone field to m2m"""
+    ProjectCategory = apps.get_model("organizations", "ProjectCategory")
+    for pc in ProjectCategory.objects.exclude(template__isnull=True):
+        pc.template.categories.add(pc)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -450,4 +457,5 @@ class Migration(migrations.Migration):
             name="review_title_nl",
             field=models.CharField(blank=True, default="", max_length=255, null=True),
         ),
+        migrations.RunPython(set_template_m2m),
     ]

@@ -6,20 +6,16 @@ from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q, QuerySet, UniqueConstraint
-from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
-from apps.commons.mixins import (
-    HasMultipleIDs,
-    HasPermissionsSetup,
-    OrganizationRelated,
-)
+from apps.commons.mixins import HasMultipleIDs, HasPermissionsSetup, OrganizationRelated
 from apps.commons.models import GroupData
 from apps.commons.utils import (
     get_permissions_from_subscopes,
     get_write_permissions_from_subscopes,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -541,15 +537,6 @@ class ProjectCategory(
         related_name="project_categories",
         blank=True,
         db_table="organizations_projectcategory_skills_tags",  # avoid conflicts with old Tag model
-    )
-    template = (
-        models.OneToOneField(  # TODO: remove this field when templates v2 is ready
-            Template,
-            on_delete=models.PROTECT,
-            related_name="project_category",
-            null=True,
-            default=None,
-        )
     )
     only_reviewer_can_publish = models.BooleanField(default=False)
     is_root = models.BooleanField(default=False)

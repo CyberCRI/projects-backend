@@ -58,7 +58,9 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if "organization_code" in self.kwargs:
             return (
                 ProjectCategory.objects.filter(
-                    is_root=False, organization__code=self.kwargs["organization_code"]
+                    is_root=False,
+                    organization__code=self.kwargs["organization_code"],
+                    templates__organization__code=self.kwargs["organization_code"],
                 )
                 .select_related("organization")
                 .prefetch_related("tags")
