@@ -17,7 +17,8 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.template = TemplateFactory(organization=cls.organization)
-        cls.image = cls.get_test_image()
+        cls.owner = UserFactory()
+        cls.image = cls.get_test_image(owner=cls.owner)
         cls.template.images.add(cls.image)
 
     @parameterized.expand(
@@ -36,14 +37,6 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
             )
         )
         self.assertEqual(response.status_code, status.HTTP_302_FOUND)
-
-
-class CreateTemplateImageTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.template = TemplateFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -90,17 +83,6 @@ class CreateTemplateImageTestCase(JwtAPITestCase):
             self.assertEqual(content["top"], payload["top"])
             self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
-
-class UpdateTemplateTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.template = TemplateFactory(organization=cls.organization)
-        cls.owner = UserFactory()
-        cls.image = cls.get_test_image(owner=cls.owner)
-        cls.template.images.add(cls.image)
-
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -141,15 +123,6 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(content["top"], payload["top"])
             self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
 
-
-class DeleteTemplateImageTestCase(JwtAPITestCase):
-    @classmethod
-    def setUpTestData(cls):
-        super().setUpTestData()
-        cls.organization = OrganizationFactory()
-        cls.template = TemplateFactory(organization=cls.organization)
-        cls.owner = UserFactory()
-
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
@@ -177,3 +150,23 @@ class DeleteTemplateImageTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.assertFalse(Image.objects.filter(id=image.id).exists())
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_403_FORBIDDEN),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_create_no_template_image(self, role, expected_code):
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        self.client.force_authenticate(user)
+        response = self.client.post(
+            reverse("Template-images-list", args=(self.organization.code, "-1")),
+            data={"file": self.get_test_image_file()},
+            format="multipart",
+        )
+        self.assertEqual(response.status_code, expected_code)

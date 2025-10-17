@@ -64,6 +64,7 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
                 .select_related("organization")
                 .prefetch_related("tags")
+                .distinct()
             )
         return ProjectCategory.objects.none()
 
@@ -572,17 +573,20 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "organization_code" in self.kwargs and "template_id" in self.kwargs:
+        template_id = self.kwargs["template_id"]
+        # TODO(remi): when we create a new template, we don't have the template_id
+        # so we send the new image with "-1" in template_id, we dont creae link
+        # beetwen image and templates (other task), need to change that !
+        if template_id != "-1":
             template = Template.objects.get(
-                id=self.kwargs["template_id"],
+                id=template_id,
                 organization__code=self.kwargs["organization_code"],
             )
             template.images.add(image)
-            return (
-                f"/v1/organization/{self.kwargs['organization_code']}"
-                f"/template/{self.kwargs['template_id']}/image/{image.id}"
-            )
-        return None
+        return (
+            f"/v1/organization/{self.kwargs['organization_code']}"
+            f"/template/{self.kwargs['template_id']}/image/{image.id}"
+        )
 
 
 class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
