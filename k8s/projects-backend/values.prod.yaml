@@ -13,6 +13,8 @@ config:
   nonSensitive:
     DJANGO_SETTINGS_MODULE: projects.settings.production
     AZURE_ACCOUNT_NAME: criparisprodprodprojects
+    AZURE_TRANSLATOR_REGION: francecentral
+    AZURE_TRANSLATOR_ENDPOINT: https://projects-translation-prod.cognitiveservices.azure.com
     POSTGRES_HOST: prod-prod-projects-backend.postgres.database.azure.com
     EMAIL_HOST_USER: projects@learningplanetinstitute.org
     EMAIL_BACKEND: django.core.mail.backends.smtp.EmailBackend
