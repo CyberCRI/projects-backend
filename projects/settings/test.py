@@ -1,5 +1,13 @@
 from projects.settings.base import *  # noqa: F401, F403
 
+# force remove
+INSTALLED_APPS = [app for app in INSTALLED_APPS if app != "debug_toolbar"]  # noqa: F405
+MIDDLEWARE = [
+    mid
+    for mid in MIDDLEWARE  # noqa: F405
+    if mid != "debug_toolbar.middleware.DebugToolbarMiddleware"
+]
+
 ENVIRONMENT = "test"
 
 FRONTEND_URL = "http://frontend.com"
