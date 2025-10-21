@@ -1,5 +1,6 @@
 import datetime
 import json
+from typing import Optional
 
 from django.conf import settings
 from django.db.models import Q
@@ -55,17 +56,19 @@ class MixpanelService:
     def get_events(
         cls,
         from_date: datetime.date = initial_date,
+        to_date: Optional[datetime.date] = None,
         event: str = "page_viewed",
     ) -> list:
         """
         Get the events from Mixpanel and format them to be stored in the database.
         """
+        to_date = to_date or datetime.date.today()
         response = cls.service.request(
             cls.service.raw_api,
             ["export"],
             {
                 "from_date": from_date.isoformat(),
-                "to_date": datetime.date.today().isoformat(),
+                "to_date": to_date.isoformat(),
                 "event": [event],
             },
             headers={},

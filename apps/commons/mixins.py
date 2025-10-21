@@ -163,7 +163,9 @@ class HasPermissionsSetup:
         )
         if created:
             self.groups.add(group)
-        if not group.data.exists():
+        try:
+            group.data
+        except GroupData.DoesNotExist:
             GroupData.objects.update_or_create(
                 group=group,
                 defaults={

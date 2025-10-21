@@ -14,6 +14,7 @@ from keycloak import KeycloakError
 from rest_framework.request import Request
 
 from apps.commons.mixins import HasPermissionsSetup
+from apps.commons.models import GroupData
 
 from .exceptions import (
     ExpiredTokenError,
@@ -89,9 +90,10 @@ def get_instance_from_group(group: Group) -> Optional[HasPermissionsSetup]:
     both the project and the people_group, but the project is the one that should be
     returned.
     """
-    if group.data.exists():
-        return group.data.get().instance
-    return None
+    try:
+        return group.data.instance
+    except GroupData.DoesNotExist:
+        return None
 
 
 def get_group_permissions(group: Group) -> List[str]:

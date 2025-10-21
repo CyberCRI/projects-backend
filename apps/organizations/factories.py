@@ -15,9 +15,9 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
         model = Organization
         django_get_or_create = ("code",)
 
-    name = factory.Faker("pystr", min_chars=1, max_chars=50)
-    dashboard_title = factory.Faker("text", max_nb_chars=255)
-    dashboard_subtitle = factory.Faker("text", max_nb_chars=255)
+    name = factory.Faker("company")
+    dashboard_title = factory.Faker("sentence")
+    dashboard_subtitle = factory.Faker("sentence")
     description = factory.Faker("text", max_nb_chars=255)
     language = language_factory()
     code = factory.Sequence(lambda n: faker.word() + str(n))
@@ -25,7 +25,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     banner_image = None
     contact_email = factory.Faker("email")
     chat_url = factory.Faker("url")
-    chat_button_text = factory.Faker("text", max_nb_chars=50)
+    chat_button_text = factory.Faker("word")
     logo_image = factory.LazyFunction(get_test_image)
     website_url = factory.Faker("url")
     created_at = timezone.localtime(timezone.now())
@@ -48,7 +48,7 @@ class TemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Template
 
-    name = factory.Faker("word")
+    name = factory.Faker("sentence")
     description = factory.Faker("text")
     organization = factory.LazyFunction(lambda: OrganizationFactory())
     project_title = factory.Faker("sentence")
@@ -85,7 +85,3 @@ class ProjectCategoryFactory(factory.django.DjangoModelFactory):
     def templates(self, create, extracted, **kwargs):
         if create and extracted and len(extracted) > 0:
             self.templates.add(*extracted)
-
-
-class SeedProjectCategoryFactory(ProjectCategoryFactory):
-    organization = factory.fuzzy.FuzzyChoice(Organization.objects.all())

@@ -6,7 +6,6 @@ from factory.fuzzy import FuzzyChoice, FuzzyInteger
 from apps.accounts.factories import UserFactory
 from apps.commons.factories import language_factory, sdg_factory
 from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
-from apps.organizations.models import Organization
 
 from .models import (
     BlogEntry,
@@ -21,7 +20,7 @@ from .models import (
 )
 
 
-class SeedProjectFactory(factory.django.DjangoModelFactory):
+class ProjectFactory(factory.django.DjangoModelFactory):
     id = factory.Faker("pystr", min_chars=8, max_chars=8)
     publication_status = Project.PublicationStatus.PUBLIC
     life_status = FuzzyChoice(Project.LifeStatus.choices, getter=lambda c: c[0])
@@ -31,7 +30,11 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
     description = factory.Faker("text")
     purpose = factory.Faker("text")
     is_shareable = factory.Faker("boolean")
-    sdgs = factory.List([sdg_factory() for _ in range(FuzzyInteger(0, 17).fuzz())])
+    sdgs = factory.LazyFunction(
+        lambda: sorted(
+            set(sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz()))
+        )
+    )
 
     class Meta:
         model = Project
@@ -48,8 +51,6 @@ class SeedProjectFactory(factory.django.DjangoModelFactory):
         if create and extracted is True:
             UserFactory(groups=[self.get_owners()])
 
-
-class ProjectFactory(SeedProjectFactory):
     @factory.post_generation
     def organizations(self, create, extracted):
         if not create:
@@ -104,7 +105,7 @@ class BlogEntryFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`
-    title = factory.Faker("text", max_nb_chars=255)
+    title = factory.Faker("sentence")
     content = factory.Faker("text")
 
     class Meta:
@@ -115,7 +116,7 @@ class GoalFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`
-    title = factory.Faker("text", max_nb_chars=255)
+    title = factory.Faker("sentence")
     description = factory.Faker("text")
     deadline_at = factory.Faker("date_time")
     status = FuzzyChoice(Goal.GoalStatus.choices, getter=lambda c: c[0])
@@ -128,10 +129,10 @@ class LocationFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`
-    title = factory.Faker("text", max_nb_chars=255)
+    title = factory.Faker("sentence")
     description = factory.Faker("text")
-    lat = factory.Faker("pyfloat")
-    lng = factory.Faker("pyfloat")
+    lat = factory.Faker("latitude")
+    lng = factory.Faker("longitude")
     type = FuzzyChoice(Location.LocationType.choices, getter=lambda c: c[0])
 
     class Meta:
@@ -145,15 +146,6 @@ class LinkedProjectFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = LinkedProject
         django_get_or_create = ("project", "target")
-
-
-class SeedProjectOrganizationFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Project.organizations.through
-        django_get_or_create = ("project", "organization")
-
-    organization = FuzzyChoice(Organization.objects.filter())
-    project = FuzzyChoice(Project.objects.filter())
 
 
 class ProjectMessageFactory(factory.django.DjangoModelFactory):
@@ -171,7 +163,7 @@ class ProjectMessageFactory(factory.django.DjangoModelFactory):
 class ProjectTabFactory(factory.django.DjangoModelFactory):
     project = factory.LazyFunction(lambda: ProjectFactory())
     icon = factory.Faker("word")
-    title = factory.Faker("text", max_nb_chars=255)
+    title = factory.Faker("sentence")
     description = factory.Faker("text")
     type = FuzzyChoice(ProjectTab.TabType.choices, getter=lambda c: c[0])
 
@@ -181,7 +173,7 @@ class ProjectTabFactory(factory.django.DjangoModelFactory):
 
 class ProjectTabItemFactory(factory.django.DjangoModelFactory):
     tab = factory.LazyFunction(lambda: ProjectTabFactory())
-    title = factory.Faker("text", max_nb_chars=255)
+    title = factory.Faker("sentence")
     content = factory.Faker("text")
 
     class Meta:
