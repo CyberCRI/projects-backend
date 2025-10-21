@@ -45,6 +45,7 @@ class CreateTemplateTestCase(JwtAPITestCase):
             "description": faker.text(),
             "project_title": faker.sentence(),
             "project_description": faker.text(),
+            "project_purpose": faker.text(),
             "blogentry_title": faker.sentence(),
             "blogentry_content": faker.text(),
             "goal_title": faker.sentence(),
@@ -71,6 +72,7 @@ class CreateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["project_description"], payload["project_description"]
             )
+            self.assertEqual(content["project_purpose"], payload["project_purpose"])
             self.assertEqual(content["blogentry_title"], payload["blogentry_title"])
             self.assertEqual(content["blogentry_content"], payload["blogentry_content"])
             self.assertEqual(content["goal_title"], payload["goal_title"])
@@ -162,6 +164,7 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             "description": faker.text(),
             "project_title": faker.sentence(),
             "project_description": faker.text(),
+            "project_purpose": faker.text(),
             "blogentry_title": faker.sentence(),
             "blogentry_content": faker.text(),
             "goal_title": faker.sentence(),
@@ -189,6 +192,7 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["project_description"], payload["project_description"]
             )
+            self.assertEqual(content["project_purpose"], payload["project_purpose"])
             self.assertEqual(content["blogentry_title"], payload["blogentry_title"])
             self.assertEqual(content["blogentry_content"], payload["blogentry_content"])
             self.assertEqual(content["goal_title"], payload["goal_title"])

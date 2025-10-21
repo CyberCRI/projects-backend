@@ -56,6 +56,7 @@ class Command(BaseCommand):
                 for field in [
                     "description",
                     "project_description",
+                    "project_purpose",
                     "blogentry_content",
                     "goal_description",
                     "review_description",

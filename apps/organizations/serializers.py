@@ -436,6 +436,7 @@ class ProjectTemplateSerializer(
             "language",
             "project_title",
             "project_description",
+            "project_purpose",
             "project_tags",
             "blogentry_title",
             "blogentry_content",
@@ -477,6 +478,7 @@ class TemplateSerializer(
             "language",
             "project_title",
             "project_description",
+            "project_purpose",
             "project_tags",
             "blogentry_title",
             "blogentry_content",
@@ -497,6 +499,7 @@ class TemplateSerializer(
         for field in [
             "description",
             "project_description",
+            "project_purpose",
             "blogentry_content",
             "goal_description",
             "review_description",

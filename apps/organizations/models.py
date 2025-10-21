@@ -380,6 +380,8 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         Project created from this template title placeholder.
     project_description: TextField
         Project created from this template description placeholder.
+    project_purpose: TextField
+        Project created from this template purpose placeholder.
     project_tags: ManyToManyField
         Project created from this template tags placeholder.
     blogentry_title: TextField
@@ -424,6 +426,7 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         "description",
         "project_title",
         "project_description",
+        "project_purpose",
         "blogentry_title",
         "blogentry_content",
         "goal_title",
@@ -454,6 +457,7 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
 
     project_title = models.CharField(max_length=255, default="", blank=True)
     project_description = models.TextField(default="", blank=True)
+    project_purpose = models.TextField(default="", blank=True)
     project_tags = models.ManyToManyField(
         "skills.Tag", related_name="templates", blank=True
     )

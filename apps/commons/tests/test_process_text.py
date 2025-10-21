@@ -187,19 +187,20 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_create_template_contents(self):
-        texts = [self.create_base64_image_text() for _ in range(5)]
+        texts = [self.create_base64_image_text() for _ in range(6)]
         self.client.force_authenticate(self.user)
         payload = {
             "name": faker.sentence(),
             "description": texts[0],
             "project_title": faker.sentence(),
             "project_description": texts[1],
+            "project_purpose": texts[2],
             "blogentry_title": faker.sentence(),
-            "blogentry_content": texts[2],
+            "blogentry_content": texts[3],
             "goal_title": faker.sentence(),
-            "goal_description": texts[3],
+            "goal_description": texts[4],
             "review_title": faker.sentence(),
-            "review_description": texts[4],
+            "review_description": texts[5],
         }
         response = self.client.post(
             reverse("Template-list", args=(self.organization.code,)), data=payload
@@ -217,6 +218,7 @@ class TextProcessingTestCase(JwtAPITestCase):
                 ),
                 content["description"]
                 + content["project_description"]
+                + content["project_purpose"]
                 + content["goal_description"]
                 + content["blogentry_content"]
                 + content["review_description"],
@@ -230,19 +232,20 @@ class TextProcessingTestCase(JwtAPITestCase):
             + self.create_unlinked_image_text(
                 "Template-images-detail", self.organization.code, template.id
             )
-            for _ in range(5)
+            for _ in range(6)
         ]
         payload = {
             "name": faker.sentence(),
             "description": texts[0],
             "project_title": faker.sentence(),
             "project_description": texts[1],
+            "project_purpose": texts[2],
             "blogentry_title": faker.sentence(),
-            "blogentry_content": texts[2],
+            "blogentry_content": texts[3],
             "goal_title": faker.sentence(),
-            "goal_description": texts[3],
+            "goal_description": texts[4],
             "review_title": faker.sentence(),
-            "review_description": texts[4],
+            "review_description": texts[5],
         }
         response = self.client.patch(
             reverse("Template-detail", args=(self.organization.code, template.id)),
@@ -260,6 +263,7 @@ class TextProcessingTestCase(JwtAPITestCase):
                 ),
                 content["description"]
                 + content["project_description"]
+                + content["project_purpose"]
                 + content["goal_description"]
                 + content["blogentry_content"]
                 + content["review_description"],

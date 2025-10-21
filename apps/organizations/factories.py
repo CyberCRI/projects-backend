@@ -53,6 +53,7 @@ class TemplateFactory(factory.django.DjangoModelFactory):
     organization = factory.LazyFunction(lambda: OrganizationFactory())
     project_title = factory.Faker("sentence")
     project_description = factory.Faker("text")
+    project_purpose = factory.Faker("text")
     blogentry_title = factory.Faker("sentence")
     blogentry_content = factory.Faker("text")
     goal_title = factory.Faker("sentence")

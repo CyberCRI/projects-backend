@@ -28,6 +28,7 @@ class TemplateTranslatedFieldsTestCase(JwtAPITestCase):
             "description": faker.word(),
             "project_title": faker.word(),
             "project_description": faker.word(),
+            "project_purpose": faker.word(),
             "blogentry_title": faker.word(),
             "blogentry_content": faker.word(),
             "goal_title": faker.word(),
