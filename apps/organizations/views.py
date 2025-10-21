@@ -60,7 +60,6 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 ProjectCategory.objects.filter(
                     is_root=False,
                     organization__code=self.kwargs["organization_code"],
-                    templates__organization__code=self.kwargs["organization_code"],
                 )
                 .select_related("organization")
                 .prefetch_related("tags")
