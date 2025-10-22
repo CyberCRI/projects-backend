@@ -490,4 +490,12 @@ class Migration(migrations.Migration):
             name="review_title_nl",
             field=models.CharField(blank=True, default="", max_length=1020, null=True),
         ),
+        migrations.RemoveField(
+            model_name="historicalprojectcategory",
+            name="template",
+        ),
+        migrations.RemoveField(
+            model_name="projectcategory",
+            name="template",
+        ),
     ]

@@ -7,7 +7,6 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("organizations", "0032_alter_organization_options_and_more"),
         ("projects", "0021_alter_blogentry_title_ca_alter_blogentry_title_de_and_more"),
     ]
 

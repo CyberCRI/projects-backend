@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 18:03+0200\n"
+"POT-Creation-Date: 2025-10-22 17:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1543,10 +1543,6 @@ msgstr "kategooriad"
 msgid "sustainable development goals"
 msgstr "säästva arengu eesmärgid"
 
-#: apps/projects/models.py:202
-msgid "main category"
-msgstr "peamine kategooria"
-
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
 msgstr "Sa ei saa muuta loodud mentorlustaotluse staatust"
@@ -2918,3 +2914,6 @@ msgstr "Keel ei ole toetatud"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "Keel {language} ei ole toetatud"
+
+#~ msgid "main category"
+#~ msgstr "peamine kategooria"

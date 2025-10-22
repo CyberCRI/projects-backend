@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-01 18:03+0200\n"
+"POT-Creation-Date: 2025-10-22 17:59+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1563,10 +1563,6 @@ msgstr "categorías"
 msgid "sustainable development goals"
 msgstr "objetivos de desarrollo sostenible"
 
-#: apps/projects/models.py:202
-msgid "main category"
-msgstr "categoría principal"
-
 #: apps/skills/exceptions.py:11
 msgid "You cannot change the status of a mentoring request you created"
 msgstr "No puedes cambiar el estado de una solicitud de mentoría que creaste"
@@ -2940,3 +2936,6 @@ msgstr "El idioma no es compatible"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "El idioma {language} no es compatible"
+
+#~ msgid "main category"
+#~ msgstr "categoría principal"

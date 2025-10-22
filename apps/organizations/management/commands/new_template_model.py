@@ -60,6 +60,7 @@ class Command(BaseCommand):
                     "blogentry_content",
                     "goal_description",
                     "review_description",
+                    "comment_content",
                 ]:
                     text = getattr(template, field)
                     soup = BeautifulSoup(text, features="html.parser")
