@@ -1,14 +1,15 @@
-from typing import Optional
+from typing import Any, Optional
 
 from django.conf import settings
 from django.contrib import admin
-from django.db.models import QuerySet
+from django.db.models import Count, QuerySet
+from django.http.request import HttpRequest
 
 from apps.commons.admin import RoleBasedAccessAdmin
 from services.keycloak.interface import KeycloakService
 
 from .exports import ProjectTemplateExportMixin
-from .models import Organization, Template
+from .models import Organization, ProjectCategory, Template, TemplateCategories
 
 
 @admin.register(Organization)
@@ -56,18 +57,33 @@ class OrganizationAdmin(admin.ModelAdmin):
 class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
     list_display = (
         "id",
-        "get_organization",
-        "project_category",
+        "display_organization",
+        "display_templates",
     )
-    list_filter = ("project_category__organization",)
+    list_filter = ("categories__organization",)
     actions = ["export_data"]
 
-    def get_organization(self, template: Template) -> Optional[str]:
-        if template.project_category and template.project_category.organization:
-            return template.project_category.organization
-        return None
+    class TemplateCategoriesInline(admin.StackedInline):
+        model = TemplateCategories
 
-    get_organization.short_description = "Organization"
+    inlines = (TemplateCategoriesInline,)
+
+    def get_queryset(self, request) -> QuerySet:
+        return (
+            super().get_queryset(request).prefetch_related("categories__organization")
+        )
+
+    @admin.display(description="categories associates", ordering="categories__name")
+    def display_templates(self, instance: Template):
+        names = [o.name for o in instance.categories.all()]
+        return " / ".join(names)
+
+    @admin.display(
+        description="Organization", ordering="categories__organization__name"
+    )
+    def display_organization(self, instance: Template) -> Optional[str]:
+        names = [o.organization.name for o in instance.categories.all()]
+        return " / ".join(set(names))
 
     def get_queryset_for_organizations(
         self, queryset: QuerySet[Template], organizations: QuerySet[Organization]
@@ -75,6 +91,19 @@ class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
-        return queryset.filter(
-            project_category__organization__in=organizations
-        ).distinct()
+        return queryset.filter(categories__organization__in=organizations).distinct()
+
+
+@admin.register(ProjectCategory)
+class ProjectCategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "display_templates")
+    list_filter = ("name",)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return (
+            super().get_queryset(request).annotate(count_templates=Count("templates"))
+        )
+
+    @admin.display(description="numbers templates", ordering="count_templates")
+    def display_templates(self, instance: ProjectCategory):
+        return instance.count_templates

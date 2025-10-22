@@ -48,14 +48,23 @@ class TemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Template
 
-    title_placeholder = factory.Faker("sentence")
-    description_placeholder = factory.Faker("text")
-    goal_placeholder = factory.Faker("sentence")
-    blogentry_title_placeholder = factory.Faker("sentence")
-    blogentry_placeholder = factory.Faker("text")
+    name = factory.Faker("sentence")
+    description = factory.Faker("text")
+    organization = factory.LazyFunction(lambda: OrganizationFactory())
+    project_title = factory.Faker("sentence")
+    project_description = factory.Faker("text")
+    project_purpose = factory.Faker("text")
+    blogentry_title = factory.Faker("sentence")
+    blogentry_content = factory.Faker("text")
     goal_title = factory.Faker("sentence")
     goal_description = factory.Faker("text")
-    project_category = None
+    review_title = factory.Faker("sentence")
+    review_description = factory.Faker("text")
+
+    @factory.post_generation
+    def categories(self, create, extracted, **kwargs):
+        if create and extracted and len(extracted) > 0:
+            self.categories.add(*extracted)
 
 
 class ProjectCategoryFactory(factory.django.DjangoModelFactory):
@@ -72,4 +81,8 @@ class ProjectCategoryFactory(factory.django.DjangoModelFactory):
     foreground_color = factory.Faker("color")
     name = factory.Faker("word")
     is_reviewable = factory.Faker("boolean")
-    template = factory.SubFactory(TemplateFactory)
+
+    @factory.post_generation
+    def templates(self, create, extracted, **kwargs):
+        if create and extracted and len(extracted) > 0:
+            self.templates.add(*extracted)

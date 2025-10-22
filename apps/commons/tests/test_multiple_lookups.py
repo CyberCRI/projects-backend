@@ -925,7 +925,10 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "Category-detail",
-                args=(self.category.id,),
+                args=(
+                    self.organization.code,
+                    self.category.id,
+                ),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -933,7 +936,10 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "Category-detail",
-                args=(self.category.slug,),
+                args=(
+                    self.organization.code,
+                    self.category.slug,
+                ),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -941,7 +947,10 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "Category-detail",
-                args=(self.outdated_category_slug,),
+                args=(
+                    self.organization.code,
+                    self.outdated_category_slug,
+                ),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -955,7 +964,11 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Category-background-detail",
-                args=(self.category.id, self.category.background_image.id),
+                args=(
+                    self.organization.code,
+                    self.category.id,
+                    self.category.background_image.id,
+                ),
             ),
             data=payload,
             format="multipart",
@@ -966,7 +979,11 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Category-background-detail",
-                args=(self.category.slug, self.category.background_image.id),
+                args=(
+                    self.organization.code,
+                    self.category.slug,
+                    self.category.background_image.id,
+                ),
             ),
             data=payload,
             format="multipart",
@@ -977,7 +994,11 @@ class MultipleLookupsTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Category-background-detail",
-                args=(self.outdated_category_slug, self.category.background_image.id),
+                args=(
+                    self.organization.code,
+                    self.outdated_category_slug,
+                    self.category.background_image.id,
+                ),
             ),
             data=payload,
             format="multipart",

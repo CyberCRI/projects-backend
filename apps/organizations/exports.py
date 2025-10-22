@@ -49,7 +49,7 @@ class ProjectTemplateExportMixin:
         zip_filename = "templates_projects.zip"
         with zipfile.ZipFile(zip_filename, "w") as zipf:
             for template in queryset:
-                projects = Project.objects.filter(main_category__template=template)
+                projects = Project.objects.filter(template=template)
                 headers = self._get_template_headers(template)
                 lines = [["project_id", *headers]]
 

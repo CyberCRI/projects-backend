@@ -1,4 +1,4 @@
-from rest_framework.routers import SimpleRouter
+from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register
 
@@ -9,7 +9,7 @@ from .views import (
     ReportViewSet,
 )
 
-router = SimpleRouter()
+router = DefaultRouter()
 
 router.register(r"notification", NotificationsViewSet, basename="Notification")
 router.register(

@@ -122,7 +122,14 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {"name": faker.word()}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.category.id,)), payload
+            reverse(
+                "Category-detail",
+                args=(
+                    self.organization.code,
+                    self.category.id,
+                ),
+            ),
+            payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(
