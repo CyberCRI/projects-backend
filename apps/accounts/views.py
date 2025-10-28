@@ -87,7 +87,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = UserSerializer
     lookup_field = "id"
     lookup_value_regex = (
-        "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9-]{1,}"
+        "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_-]{1,}"
     )
     search_fields = [
         "given_name",
