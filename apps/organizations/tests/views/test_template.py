@@ -1,5 +1,3 @@
-import random
-
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -53,9 +51,6 @@ class CreateTemplateTestCase(JwtAPITestCase):
             "review_title": faker.sentence(),
             "review_description": faker.text(),
             "comment_content": faker.text(),
-            "audience": random.choice(Template.Audiences.values),  # nosec
-            "time_estimation": random.choice(Template.TimeEstimation.values),  # nosec
-            "share_globally": faker.boolean(),
             "categories_ids": [c.id for c in self.categories],
             "project_tags": [t.id for t in self.tags],
         }
@@ -82,9 +77,6 @@ class CreateTemplateTestCase(JwtAPITestCase):
                 content["review_description"], payload["review_description"]
             )
             self.assertEqual(content["comment_content"], payload["comment_content"])
-            self.assertEqual(content["audience"], payload["audience"])
-            self.assertEqual(content["time_estimation"], payload["time_estimation"])
-            self.assertEqual(content["share_globally"], payload["share_globally"])
             self.assertSetEqual(
                 {t["id"] for t in content["project_tags"]}, set(payload["project_tags"])
             )
@@ -172,9 +164,6 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             "review_title": faker.sentence(),
             "review_description": faker.text(),
             "comment_content": faker.text(),
-            "audience": random.choice(Template.Audiences.values),  # nosec
-            "time_estimation": random.choice(Template.TimeEstimation.values),  # nosec
-            "share_globally": faker.boolean(),
             "categories_ids": [c.id for c in self.categories],
             "project_tags": [t.id for t in self.tags],
         }
@@ -202,9 +191,6 @@ class UpdateTemplateTestCase(JwtAPITestCase):
                 content["review_description"], payload["review_description"]
             )
             self.assertEqual(content["comment_content"], payload["comment_content"])
-            self.assertEqual(content["audience"], payload["audience"])
-            self.assertEqual(content["time_estimation"], payload["time_estimation"])
-            self.assertEqual(content["share_globally"], payload["share_globally"])
             self.assertSetEqual(
                 {t["id"] for t in content["project_tags"]}, set(payload["project_tags"])
             )

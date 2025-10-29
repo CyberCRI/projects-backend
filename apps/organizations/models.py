@@ -398,28 +398,7 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         Project's review description placeholder.
     comment_content: TextField
         Project's comment content placeholder.
-    audience: CharField
-        Audience this template is intended for.
-    time_estimation: CharField
-        Time estimation for the project created from this template.
-    share_globally: BooleanField
-        Whether to share the template globally or keep it in the organization.
     """
-
-    class Audiences(models.TextChoices):
-        PRIMARY = "primary"
-        MIDDLE = "middle"
-        HIGH = "high"
-        BACHELOR = "bachelor"
-        MASTER = "master"
-        PHD = "phd"
-        WORK = "work"
-
-    class TimeEstimation(models.TextChoices):
-        H1_H10 = "1-10hrs"
-        H11_H40 = "11-40hrs"
-        H41_H120 = "41-120hrs"
-        H121_PLUS = "Over 120hrs"
 
     auto_translated_fields: List[str] = [
         "name",
@@ -468,12 +447,6 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     review_title = models.CharField(max_length=255, default="", blank=True)
     review_description = models.TextField(blank=True)
     comment_content = models.TextField(blank=True)
-
-    audience = models.CharField(max_length=20, choices=Audiences.choices, blank=True)
-    time_estimation = models.CharField(
-        max_length=20, choices=TimeEstimation.choices, blank=True
-    )
-    share_globally = models.BooleanField(default=False)
 
     def get_related_organizations(self) -> Organization:
         """Return the organizations related to this model."""

@@ -194,23 +194,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddField(
             model_name="template",
-            name="audience",
-            field=models.CharField(
-                blank=True,
-                choices=[
-                    ("primary", "Primary"),
-                    ("middle", "Middle"),
-                    ("high", "High"),
-                    ("bachelor", "Bachelor"),
-                    ("master", "Master"),
-                    ("phd", "Phd"),
-                    ("work", "Work"),
-                ],
-                max_length=20,
-            ),
-        ),
-        migrations.AddField(
-            model_name="template",
             name="review_description",
             field=models.TextField(blank=True),
         ),
@@ -218,25 +201,6 @@ class Migration(migrations.Migration):
             model_name="template",
             name="review_title",
             field=models.CharField(blank=True, default="", max_length=255),
-        ),
-        migrations.AddField(
-            model_name="template",
-            name="share_globally",
-            field=models.BooleanField(default=False),
-        ),
-        migrations.AddField(
-            model_name="template",
-            name="time_estimation",
-            field=models.CharField(
-                blank=True,
-                choices=[
-                    ("1-10hrs", "H1 H10"),
-                    ("11-40hrs", "H11 H40"),
-                    ("41-120hrs", "H41 H120"),
-                    ("Over 120hrs", "H121 Plus"),
-                ],
-                max_length=20,
-            ),
         ),
         migrations.RenameField(
             model_name="template",

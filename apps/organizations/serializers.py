@@ -447,9 +447,6 @@ class ProjectTemplateSerializer(
             "review_title",
             "review_description",
             "comment_content",
-            "audience",
-            "time_estimation",
-            "share_globally",
         ]
         fields = read_only_fields
 
@@ -489,9 +486,6 @@ class TemplateSerializer(
             "review_title",
             "review_description",
             "comment_content",
-            "audience",
-            "time_estimation",
-            "share_globally",
             "categories_ids",
         ]
 
