@@ -18,6 +18,8 @@ def new_template_model(apps, schema_editor):
             category = category.get()
             organization = category.organization
             template.organization = organization
+            template.categories.add(category)
+            template.name = category.name
             template.save()
 
     for template in Template.objects.all():
