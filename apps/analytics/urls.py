@@ -1,10 +1,10 @@
-from rest_framework_nested import routers
+from rest_framework.routers import DefaultRouter
 
 from apps.commons.urls import organization_router_register
 
 from .views import StatsViewSet
 
-router = routers.SimpleRouter()
+router = DefaultRouter()
 
 organization_router_register(
     router,

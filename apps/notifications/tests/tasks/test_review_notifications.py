@@ -29,8 +29,9 @@ class NewReviewTestCase(JwtAPITestCase):
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
         )
-        project.main_category.is_reviewable = True
-        project.main_category.save()
+        category = project.categories.first()
+        category.is_reviewable = True
+        category.save()
         project.life_status = Project.LifeStatus.TO_REVIEW
         project.save()
         reviewer = UserFactory()

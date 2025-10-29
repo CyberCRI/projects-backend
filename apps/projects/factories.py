@@ -35,7 +35,6 @@ class ProjectFactory(factory.django.DjangoModelFactory):
             set(sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz()))
         )
     )
-    main_category = None
 
     class Meta:
         model = Project
@@ -70,12 +69,10 @@ class ProjectFactory(factory.django.DjangoModelFactory):
         if not create:
             return
         if extracted and len(extracted) > 0:
-            self.main_category = extracted[0]
             for category in extracted:
                 self.categories.add(category)
         else:
             category = ProjectCategoryFactory(organization=self.organizations.first())
-            self.main_category = category
             self.categories.add(category)
 
 

@@ -5,7 +5,6 @@ from types import SimpleNamespace
 from typing import Dict, List, Union
 
 from django.conf import settings
-from django.db import transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
@@ -379,44 +378,146 @@ class OrganizationLightSerializer(
         return organization
 
 
-class TemplateSerializer(OrganizationRelatedSerializer):
-    images = ImageSerializer(many=True, read_only=True)
-    images_ids = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        queryset=Image.objects.all(),
-        source="images",
-        required=False,
-    )
+class TemplateLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    organization = SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
         model = Template
         fields = [
             "id",
-            "title_placeholder",
-            "goal_placeholder",
-            "description_placeholder",
-            "blogentry_placeholder",
-            "blogentry_title_placeholder",
+            "name",
+            "description",
+            "organization",
+        ]
+
+    def get_related_organizations(self) -> List[Organization]:
+        return [self.instance.organization] if self.instance else []
+
+
+class ProjectCategoryLightSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    organization = SlugRelatedField(read_only=True, slug_field="code")
+
+    class Meta:
+        model = ProjectCategory
+        fields = [
+            "id",
+            "slug",
+            "name",
+            "background_color",
+            "foreground_color",
+            "organization",
+            "is_reviewable",
+        ]
+
+    def get_related_organizations(self) -> List[Organization]:
+        self.is_valid(raise_exception=True)
+        return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]
+
+
+class ProjectTemplateSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    project_tags = TagRelatedField(many=True, read_only=True)
+
+    class Meta:
+        model = Template
+        read_only_fields = [
+            "id",
+            "name",
+            "description",
+            "language",
+            "project_title",
+            "project_description",
+            "project_purpose",
+            "project_tags",
+            "blogentry_title",
+            "blogentry_content",
             "goal_title",
             "goal_description",
-            "comment",
+            "review_title",
+            "review_description",
+            "comment_content",
+        ]
+        fields = read_only_fields
+
+
+class TemplateSerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    project_tags = TagRelatedField(many=True, required=False)
+    organization = SlugRelatedField(read_only=True, slug_field="code")
+    categories = ProjectCategoryLightSerializer(many=True, read_only=True)
+    # write-only
+    categories_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        required=False,
+        write_only=True,
+        queryset=ProjectCategory.objects.all(),
+        source="categories",
+    )
+
+    class Meta:
+        model = Template
+        read_only_fields = ["id", "organization", "categories"]
+        fields = read_only_fields + [
+            "name",
+            "description",
             "language",
-            # read-only
-            "images",
-            # write-only
-            "images_ids",
+            "project_title",
+            "project_description",
+            "project_purpose",
+            "project_tags",
+            "blogentry_title",
+            "blogentry_content",
+            "goal_title",
+            "goal_description",
+            "review_title",
+            "review_description",
+            "comment_content",
+            "categories_ids",
         ]
 
     def save(self, **kwargs):
-        language = self.get_related_organizations().first().language
-        return super().save(language=language, **kwargs)
+        if not self.instance:
+            super().save(**kwargs)
+        for field in [
+            "description",
+            "project_description",
+            "project_purpose",
+            "blogentry_content",
+            "goal_description",
+            "review_description",
+            "comment_content",
+        ]:
+            if field in self.validated_data:
+                text, images = process_text(
+                    request=self.context["request"],
+                    instance=self.instance,
+                    text=self.validated_data[field],
+                    upload_to="template/images/",
+                    view="Template-images-detail",
+                    organization_code=self.instance.organization.code,
+                    template_id=self.instance.id,
+                )
+                self.validated_data[field] = text
+                self.instance.images.add(*images)
+        return super().save(**kwargs)
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
-        return Organization.objects.filter(
-            project_categories=self.validated_data["project_category"]
-        )
+        return [self.validated_data.get("organization", [])]
 
 
 class ProjectCategorySerializer(
@@ -424,7 +525,6 @@ class ProjectCategorySerializer(
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
-    template = TemplateSerializer(required=False, allow_null=True, default=None)
     parent = serializers.PrimaryKeyRelatedField(
         queryset=ProjectCategory.objects.all(),
         required=False,
@@ -433,6 +533,7 @@ class ProjectCategorySerializer(
     )
     tags = TagRelatedField(many=True, required=False)
     # read-only
+    templates = TemplateLightSerializer(many=True, read_only=True)
     background_image = ImageSerializer(read_only=True)
     organization = SlugRelatedField(read_only=True, slug_field="code")
     hierarchy = serializers.SerializerMethodField()
@@ -445,16 +546,17 @@ class ProjectCategorySerializer(
         source="background_image",
         required=False,
     )
-    organization_code = serializers.SlugRelatedField(
+    templates_ids = serializers.PrimaryKeyRelatedField(
+        many=True,
+        required=False,
         write_only=True,
-        slug_field="code",
-        source="organization",
-        queryset=Organization.objects.all(),
+        queryset=Template.objects.all(),
+        source="templates",
     )
 
     class Meta:
         model = ProjectCategory
-        read_only_fields = ["slug", "organization", "background_image"]
+        read_only_fields = ["slug", "organization", "background_image", "templates"]
         fields = read_only_fields + [
             "id",
             "name",
@@ -463,7 +565,6 @@ class ProjectCategorySerializer(
             "foreground_color",
             "is_reviewable",
             "order_index",
-            "template",
             "only_reviewer_can_publish",
             "parent",
             "hierarchy",
@@ -472,7 +573,7 @@ class ProjectCategorySerializer(
             "tags",
             # write-only
             "background_image_id",
-            "organization_code",
+            "templates_ids",
         ]
 
     def get_hierarchy(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:
@@ -524,88 +625,3 @@ class ProjectCategorySerializer(
                 raise CategoryHierarchyLoopError
             parent = parent.parent
         return value
-
-    @transaction.atomic
-    def save(self, **kwargs):
-        images = []
-        if self.validated_data.get("template") and self.validated_data["template"].get(
-            "description_placeholder"
-        ):
-            if not self.instance or not self.instance.template:
-                super(ProjectCategorySerializer, self).save(**kwargs)
-            text, description_images = process_text(
-                request=self.context["request"],
-                instance=self.instance.template,
-                text=self.validated_data["template"]["description_placeholder"],
-                upload_to="template/images/",
-                view="Template-images-detail",
-                category_id=self.instance.id,
-            )
-            self.validated_data["template"]["description_placeholder"] = text
-            images += description_images
-        if self.validated_data.get("template") and self.validated_data["template"].get(
-            "blogentry_placeholder"
-        ):
-            if not self.instance or not self.instance.template:
-                super(ProjectCategorySerializer, self).save(**kwargs)
-            text, blog_images = process_text(
-                request=self.context["request"],
-                instance=self.instance.template,
-                text=self.validated_data["template"]["blogentry_placeholder"],
-                upload_to="template/images/",
-                view="Template-images-detail",
-                category_id=self.instance.id,
-            )
-            self.validated_data["template"]["blogentry_placeholder"] = text
-            images += blog_images
-        for image in images:
-            self.instance.template.images.add(image)
-        return super(ProjectCategorySerializer, self).save(**kwargs)
-
-    @transaction.atomic
-    def create(self, validated_data: Dict) -> ProjectCategory:
-        if validated_data.get("template", None):
-            validated_data["template"] = Template.objects.create(
-                **validated_data["template"]
-            )
-        else:
-            validated_data["template"] = Template.objects.create()
-        return super().create(validated_data)
-
-    @transaction.atomic
-    def update(
-        self, instance: ProjectCategory, validated_data: Dict
-    ) -> ProjectCategory:
-        if "template" in validated_data:
-            if validated_data["template"] is None:
-                instance.template = Template(id=instance.template_id)
-            else:
-                for attr, value in validated_data["template"].items():
-                    setattr(instance.template, attr, value)
-            instance.template.save()
-            validated_data.pop("template")
-        return super().update(instance, validated_data)
-
-
-class ProjectCategoryLightSerializer(
-    AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
-    serializers.ModelSerializer,
-):
-    organization = SlugRelatedField(read_only=True, slug_field="code")
-
-    class Meta:
-        model = ProjectCategory
-        fields = [
-            "id",
-            "slug",
-            "name",
-            "background_color",
-            "foreground_color",
-            "organization",
-            "is_reviewable",
-        ]
-
-    def get_related_organizations(self) -> List[Organization]:
-        self.is_valid(raise_exception=True)
-        return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]

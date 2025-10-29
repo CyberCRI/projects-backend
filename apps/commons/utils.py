@@ -173,7 +173,11 @@ def process_template_images(
     images = list()
     for image_tag in images_tags:
         image_url = image_tag["src"]
-        if image_url.startswith("/v1/category/") and "/template-image/" in image_url:
+        if (
+            image_url.startswith("/v1/organization/")
+            and "/template/" in image_url
+            and "/image/" in image_url
+        ):
             image_id = (
                 image_url.split("/")[-1]
                 if image_url[-1] != "/"

@@ -4,10 +4,8 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
-from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import Q, QuerySet, UniqueConstraint
-from django.http import Http404
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
@@ -202,6 +200,7 @@ class Organization(
             ("tag", "tags"),
             ("tagclassification", "tag classifications"),
             ("projectcategory", "project categories"),
+            ("template", "templates"),
             ("review", "reviews"),
             ("comment", "comments"),
             ("follow", "follows"),
@@ -258,6 +257,7 @@ class Organization(
                     "tag",
                     "review",
                     "projectcategory",
+                    "template",
                     "tagclassification",
                     "organization",
                 ]
@@ -337,45 +337,120 @@ class Organization(
         ).distinct()
 
 
-class Template(OrganizationRelated, models.Model):
-    """Templates are used to guide the creation a new project by providing placeholders.
+class TemplateCategories(models.Model):
+    """
+    Through model for the ManyToMany relationship between templates and categories.
 
     Attributes
     ----------
-    title_placeholder: CharField
-        Placeholder used for the title of the project.
-    description_placeholder: TextField
-        Placeholder used for the description for the project.
-    goal_placeholder: CharField
-        Placeholder used for the goal of the project.
-    blogentry_placeholder: TextField
-        Placeholder used for the blog entry of the project.
-    images: ManyToManyField
-        Images used by the template.
+    template: ForeignKey
+        Template used by the category.
+    category: ForeignKey
+        Category used by the template.
+    always_use: BooleanField
+        Whether the template should always be used in the category or not.
     """
 
-    organization_query_string: str = "project_category__organization"
-
-    title_placeholder = models.CharField(max_length=255, default="", blank=True)
-    description_placeholder = models.TextField(default="", blank=True)
-    goal_placeholder = models.CharField(max_length=255, default="", blank=True)
-    blogentry_title_placeholder = models.TextField(
-        max_length=255, default="", blank=True
+    template = models.ForeignKey("organizations.Template", on_delete=models.CASCADE)
+    category = models.ForeignKey(
+        "organizations.ProjectCategory", on_delete=models.CASCADE
     )
-    blogentry_placeholder = models.TextField(default="", blank=True)
-    images = models.ManyToManyField("files.Image", related_name="templates")
-    goal_title = models.CharField(max_length=255, blank=True)
-    goal_description = models.TextField(blank=True)
-    comment = models.TextField(blank=True)
+    always_use = models.BooleanField(default=False)
+
+
+class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
+    """
+    Templates are used to guide the creation a new project by providing placeholders.
+
+    Attributes
+    ----------
+    name: CharField
+        Name of the template.
+    description: TextField
+        Description of the template.
+    language: CharField
+        Language of the template.
+    images: ManyToManyField
+        Images used by the template.
+    organization: ForeignKey
+        Organization the template is a part of.
+    categories: ManyToManyField
+        Categories the template can be used in.
+    project_title: CharField
+        Project created from this template title placeholder.
+    project_description: TextField
+        Project created from this template description placeholder.
+    project_purpose: TextField
+        Project created from this template purpose placeholder.
+    project_tags: ManyToManyField
+        Project created from this template tags placeholder.
+    blogentry_title: TextField
+        Project's blog entry title placeholder.
+    blogentry_content: TextField
+        Project's blog entry content placeholder.
+    goal_title: CharField
+        Project's goal title placeholder.
+    goal_description: TextField
+        Project's goal description placeholder.
+    review_title: CharField
+        Project's review title placeholder.
+    review_description: TextField
+        Project's review description placeholder.
+    comment_content: TextField
+        Project's comment content placeholder.
+    """
+
+    auto_translated_fields: List[str] = [
+        "name",
+        "description",
+        "project_title",
+        "project_description",
+        "project_purpose",
+        "blogentry_title",
+        "blogentry_content",
+        "goal_title",
+        "goal_description",
+        "review_title",
+        "review_description",
+        "comment_content",
+    ]
+
+    name = models.CharField(max_length=255, blank=True)
+    description = models.TextField(default="", blank=True)
     language = models.CharField(
         max_length=2, choices=Language.choices, default=Language.default()
     )
+    images = models.ManyToManyField("files.Image", related_name="templates")
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="templates",
+        null=True,
+    )
+    categories = models.ManyToManyField(
+        "organizations.ProjectCategory",
+        through="organizations.TemplateCategories",
+        related_name="templates",
+        blank=True,
+    )
+
+    project_title = models.CharField(max_length=255, default="", blank=True)
+    project_description = models.TextField(default="", blank=True)
+    project_purpose = models.TextField(default="", blank=True)
+    project_tags = models.ManyToManyField(
+        "skills.Tag", related_name="templates", blank=True
+    )
+    blogentry_title = models.TextField(max_length=255, default="", blank=True)
+    blogentry_content = models.TextField(default="", blank=True)
+    goal_title = models.CharField(max_length=255, default="", blank=True)
+    goal_description = models.TextField(blank=True)
+    review_title = models.CharField(max_length=255, default="", blank=True)
+    review_description = models.TextField(blank=True)
+    comment_content = models.TextField(blank=True)
 
     def get_related_organizations(self) -> Organization:
-        try:
-            return self.project_category.get_related_organization()
-        except ObjectDoesNotExist:
-            raise Http404()
+        """Return the organizations related to this model."""
+        return [self.organization]
 
 
 class ProjectCategory(
@@ -439,13 +514,6 @@ class ProjectCategory(
         related_name="project_categories",
         blank=True,
         db_table="organizations_projectcategory_skills_tags",  # avoid conflicts with old Tag model
-    )
-    template = models.OneToOneField(
-        Template,
-        on_delete=models.PROTECT,
-        related_name="project_category",
-        null=True,
-        default=None,
     )
     only_reviewer_can_publish = models.BooleanField(default=False)
     is_root = models.BooleanField(default=False)
