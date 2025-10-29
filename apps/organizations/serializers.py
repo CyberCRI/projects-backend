@@ -231,8 +231,20 @@ class OrganizationSerializer(
 
     class Meta:
         model = Organization
-        fields = [
+        read_only_fields = [
             "id",
+            "created_at",
+            "updated_at",
+            "auto_translate_content",
+            "terms_and_conditions",
+            "banner_image",
+            "logo_image",
+            "children",
+            "google_sync_enabled",
+            "identity_providers",
+            "attachment_files_count",
+        ]
+        fields = read_only_fields + [
             "code",
             "name",
             "parent_code",
@@ -250,22 +262,12 @@ class OrganizationSerializer(
             "onboarding_enabled",
             "force_login_form_display",
             "website_url",
-            "created_at",
-            "updated_at",
             "enabled_projects_tag_classifications",
             "enabled_skills_tag_classifications",
             "default_projects_tag_classification",
             "default_skills_tag_classification",
             "default_projects_tags",
             "default_skills_tags",
-            # read_only
-            "terms_and_conditions",
-            "banner_image",
-            "logo_image",
-            "children",
-            "google_sync_enabled",
-            "identity_providers",
-            "attachment_files_count",
             # write_only
             "banner_image_id",
             "logo_image_id",
