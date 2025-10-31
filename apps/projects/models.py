@@ -573,12 +573,13 @@ class Project(
         project.tags.set(self.tags.all())
         for image in self.images.all():
             new_image = image.duplicate(owner)
-            project.images.add(new_image)
-            for identifier in [self.pk, self.slug]:
-                project.description = project.description.replace(
-                    f"/v1/project/{identifier}/image/{image.pk}/",
-                    f"/v1/project/{project.pk}/image/{new_image.pk}/",
-                )
+            if new_image is not None:
+                project.images.add(new_image)
+                for identifier in [self.pk, self.slug]:
+                    project.description = project.description.replace(
+                        f"/v1/project/{identifier}/image/{image.pk}/",
+                        f"/v1/project/{project.pk}/image/{new_image.pk}/",
+                    )
         project.save()
         for blog_entry in self.blog_entries.all():
             blog_entry.duplicate(project, self, owner)
@@ -773,12 +774,13 @@ class BlogEntry(
         )
         for image in self.images.all():
             new_image = image.duplicate(owner)
-            blog_entry.images.add(new_image)
-            for identifier in [initial_project.pk, initial_project.slug]:
-                blog_entry.content = blog_entry.content.replace(
-                    f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
-                    f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
-                )
+            if new_image is not None:
+                blog_entry.images.add(new_image)
+                for identifier in [initial_project.pk, initial_project.slug]:
+                    blog_entry.content = blog_entry.content.replace(
+                        f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
+                        f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
+                    )
         blog_entry.created_at = self.created_at
         blog_entry.save()
         return blog_entry

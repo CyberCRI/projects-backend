@@ -187,10 +187,11 @@ def process_template_images(
             with suppress(Image.DoesNotExist):
                 image = Image.objects.get(id=image_id)
                 new_image = image.duplicate(owner=request.user, upload_to=upload_to)
-                images.append(new_image)
-                text = text.replace(
-                    image_url, reverse(view, kwargs={"pk": new_image.pk, **kwargs})
-                )
+                if new_image is not None:
+                    images.append(new_image)
+                    text = text.replace(
+                        image_url, reverse(view, kwargs={"pk": new_image.pk, **kwargs})
+                    )
     return text, images
 
 
