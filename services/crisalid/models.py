@@ -1,9 +1,8 @@
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
-
 from services.crisalid import relators
-
+from .manager import DocumentQuerySet
 
 class CrisalidDataModel(models.Model):
     crisalid_uid = models.CharField(
@@ -68,30 +67,32 @@ class Researcher(CrisalidDataModel):
         return f"{self.display_name}"
 
 
-class PublicationContributor(models.Model):
+class DocumentContributor(models.Model):
     roles = ArrayField(
         models.CharField(max_length=255, choices=relators.choices), default=list
     )
-    publication = models.ForeignKey("crisalid.Publication", on_delete=models.CASCADE)
+    document = models.ForeignKey("crisalid.Document", on_delete=models.CASCADE)
     researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["publication", "researcher"],
-                name="unique_researcher_publication",
+                fields=["document", "researcher"],
+                name="unique_researcher_document",
             )
         ]
 
 
-class Publication(CrisalidDataModel):
+class Document(CrisalidDataModel):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
 
-    class PublicationType(models.TextChoices):
+    objects = DocumentQuerySet.as_manager()
+
+    class DocumentType(models.TextChoices):
         """
-        Publication type from crisalid
+        Document type from crisalid
         https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/models/document_type.py#L9
         """
 
@@ -142,16 +143,43 @@ class Publication(CrisalidDataModel):
     title = models.TextField()
     description = models.TextField(default="")
     publication_date = models.DateField(blank=False, null=True)
-    publication_type = models.CharField(
+    document_type = models.CharField(
         max_length=50,
-        choices=PublicationType.choices,
-        default=PublicationType.UNKNOWN.value,
+        choices=DocumentType.choices,
+        default=DocumentType.UNKNOWN.value,
     )
     contributors = models.ManyToManyField(
         "crisalid.Researcher",
-        through="crisalid.PublicationContributor",
-        related_name="publications",
+        through="crisalid.DocumentContributor",
+        related_name="documents",
     )
     identifiers = models.ManyToManyField(
-        "crisalid.Identifier", related_name="publications"
+        "crisalid.Identifier", related_name="documents"
+    )
+
+
+class DocumentTypeCentralized:
+    """this class centralized all document type to one type
+    """
+    publications = (
+        Document.DocumentType.JOURNALARTICLE.value,
+        Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
+        Document.DocumentType.BLOG_POST.value,
+        Document.DocumentType.BOOK.value,
+        Document.DocumentType.BOOK_REVIEW.value,
+        Document.DocumentType.BOOKCHAPTER.value,
+        Document.DocumentType.CHAPTER.value,
+        Document.DocumentType.DICTIONARY.value,
+        Document.DocumentType.DOCUMENT.value,
+        Document.DocumentType.EDITORIAL.value,
+        Document.DocumentType.LETTER.value,
+        Document.DocumentType.MANUAL.value,
+        Document.DocumentType.REVIEW_ARTICLE.value,
+        Document.DocumentType.THESIS.value
+    )
+    conferences = (
+        Document.DocumentType.ConferenceArticle.value,
+        Document.DocumentType.CONFERENCE_OUTPUT.value,
+        Document.DocumentType.CONFERENCE_PAPER.value,
+        Document.DocumentType.CONFERENCE_POSTER.value
     )

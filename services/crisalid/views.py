@@ -11,16 +11,16 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema, extend_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from services.crisalid.models import Publication, PublicationContributor, Researcher
-from services.crisalid.serializers import PublicationSerializer, ResearcherSerializer
+from services.crisalid.models import Document, DocumentContributor, Researcher, DocumentTypeCentralized
+from services.crisalid.serializers import DocumentSerializer, ResearcherSerializer
 
 
 @extend_schema_view(
     list=extend_schema(
         parameters=[
             OpenApiParameter(
-                name="Publication_id",
-                description="Publication id",
+                name="document_id",
+                description="document id",
                 required=False,
                 type=int,
             ),
@@ -45,11 +45,11 @@ from services.crisalid.serializers import PublicationSerializer, ResearcherSeria
         ]
     ),
     analytics=extend_schema(
-        description="return analytics from publications (numbers of each publicaitons by year and number by publications types)",
+        description="return analytics from documents (numbers of each document by year and number by document types)",
         parameters=[
             OpenApiParameter(
-                name="Publication_id",
-                description="Publication id",
+                name="document_id",
+                description="document id",
                 required=False,
                 type=int,
             ),
@@ -74,8 +74,13 @@ from services.crisalid.serializers import PublicationSerializer, ResearcherSeria
         ],
     ),
 )
-class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = PublicationSerializer
+class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
+    """Abstract class to get documents info from docuements types
+
+    :param viewsets: _description_
+    :return: _description_
+    """
+    serializer_class = DocumentSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("id", "crisalid_uid", "publication_date")
 
@@ -99,19 +104,23 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
         ]
         if roles and roles_enabled:
             qs = qs.filter(
-                publicationcontributor__roles__contains=roles,
-                publicationcontributor__researcher__pk=self.kwargs["researcher_pk"],
+                documentcontributor__roles__contains=roles,
+                documentcontributor__researcher__pk=self.kwargs["researcher_id"],
             )
 
         # filter by pblication_type
-        if "publication_type" in self.request.query_params and publication_enabled:
-            publication_type = self.request.query_params.get("publication_type")
-            qs = qs.filter(publication_type=publication_type or None)
+        if "document_type" in self.request.query_params and publication_enabled:
+            document_type = self.request.query_params.get("document_type")
+            qs = qs.filter(document_type=document_type)
         return qs
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self) -> QuerySet[Document]:
         return (
-            Publication.objects.filter(contributors__id=self.kwargs["researcher_pk"])
+            Document.objects
+            .filter(
+                contributors__id=self.kwargs["researcher_id"],
+                document_type__in=self.document_types,
+            )
             .prefetch_related("identifiers", "contributors__user")
             .order_by("-publication_date")
         )
@@ -120,16 +129,16 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
     def analytics(self, request, *args, **kwargs):
         qs = self.get_queryset()
 
-        # get counted all publications types
+        # get counted all document_types types
         # use only here the filter_queryset,
-        # the next years values need to have all publications (non filtered)
-        publication_types = Counter(
+        # the next years values need to have all document_types (non filtered)
+        document_types = Counter(
             self.filter_queryset(qs, publication_enabled=False)
-            .order_by("publication_type")
-            .values_list("publication_type", flat=True)
+            .order_by("document_type")
+            .values_list("document_type", flat=True)
         )
-        publication_types = [
-            {"name": name, "count": count} for name, count in publication_types.items()
+        document_types = [
+            {"name": name, "count": count} for name, count in document_types.items()
         ]
 
         # order all buplications by years
@@ -148,20 +157,24 @@ class PublicationViewSet(viewsets.ReadOnlyModelViewSet):
 
         roles = Counter(
             chain(
-                *PublicationContributor.objects.filter(
-                    publication__in=self.filter_queryset(qs, roles_enabled=False),
-                    researcher__id=self.kwargs["researcher_pk"],
+                *DocumentContributor.objects.filter(
+                    document__in=self.filter_queryset(qs, roles_enabled=False),
+                    researcher__id=self.kwargs["researcher_id"],
                 ).values_list("roles", flat=True)
             )
         )
 
         return JsonResponse(
             {
-                "publication_types": publication_types,
+                "document_types": document_types,
                 "years": list(years),
                 "roles": roles,
             }
         )
+
+
+class PublicationViewSet(AbstractDocuementViewSet):
+    document_types = DocumentTypeCentralized.publications
 
 
 @extend_schema_view(

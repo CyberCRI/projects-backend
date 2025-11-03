@@ -1,7 +1,8 @@
+from apps.search import documents
 from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
-from services.crisalid.models import Identifier, Publication, Researcher
+from services.crisalid.models import Identifier, Document, Researcher
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
@@ -22,14 +23,14 @@ class IdentifierSerializer(serializers.ModelSerializer):
 
 
 class ResearcherSerializerLight(serializers.ModelSerializer):
-    publications_count = serializers.SerializerMethodField()
+    documents = serializers.SerializerMethodField()
 
     class Meta:
         model = Researcher
-        fields = ("id", "display_name", "publications_count")
+        fields = ("id", "display_name", "documents")
 
-    def get_publications_count(self, instance):
-        return instance.publications.count()
+    def get_documents(self, instance):
+        return instance.documents.group_count()
 
 
 class ResearcherSerializer(serializers.ModelSerializer):
@@ -45,7 +46,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
         return str(instance)
 
 
-class ResearcherPublicationsSerializer(ResearcherSerializer):
+class ResearcherDocumentsSerializer(ResearcherSerializer):
     user = ProjectUserMinimalSerializer()
     identifiers = IdentifierSerializer(many=True)
 
@@ -59,10 +60,10 @@ class ResearcherPublicationsSerializer(ResearcherSerializer):
         )
 
 
-class PublicationSerializer(serializers.ModelSerializer):
-    contributors = ResearcherPublicationsSerializer(many=True)
+class DocumentSerializer(serializers.ModelSerializer):
+    contributors = ResearcherDocumentsSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
 
     class Meta:
-        model = Publication
+        model = Document
         exclude = ("crisalid_uid",)

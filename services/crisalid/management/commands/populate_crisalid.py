@@ -5,16 +5,16 @@ from django.core.management.base import BaseCommand
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import (
     Identifier,
-    Publication,
-    PublicationContributor,
+    Document,
+    DocumentContributor,
     Researcher,
 )
-from services.crisalid.populate import PopulatePublication
+from services.crisalid.populate import PopulateDocument
 from services.crisalid.utils import timeit
 
 
 class Command(BaseCommand):
-    help = "create or update data from researcher/Publication crisalid neo4j/graphql"  # noqa: A003
+    help = "create or update data from researcher/Document crisalid neo4j/graphql"  # noqa: A003
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -28,7 +28,7 @@ class Command(BaseCommand):
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
 
     def delete_crisalid_models(self):
-        models = [Publication, PublicationContributor, Identifier, Researcher]
+        models = [Document, DocumentContributor, Identifier, Researcher]
 
         for model in models:
             deleted = model.objects.all().delete()
@@ -39,7 +39,7 @@ class Command(BaseCommand):
             self.delete_crisalid_models()
 
         service = CrisalidService()
-        populate = PopulatePublication()
+        populate = PopulateDocument()
 
         offset = int(options["offset"])
         limit = int(options["limit"])
@@ -51,7 +51,7 @@ class Command(BaseCommand):
             while max_elements >= 1:
 
                 with timeit(print, "GrapQL request "):
-                    data = service.query("publications", offset=offset, limit=limit)[
+                    data = service.query("documents", offset=offset, limit=limit)[
                         "documents"
                     ]
                     if not data:

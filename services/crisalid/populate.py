@@ -9,8 +9,8 @@ from apps.accounts.models import ProjectUser
 from services.crisalid import relators
 from services.crisalid.models import (
     Identifier,
-    Publication,
-    PublicationContributor,
+    Document,
+    DocumentContributor,
     Researcher,
 )
 
@@ -34,8 +34,8 @@ class AbstractPopulate(abc.ABC):
             f"{o.harvester}::{o.value}": o.pk for o in Identifier.objects.all()
         }
         self.cache_contributors = contributors or {
-            f"{o.publication_id}::{o.researcher_id}": o
-            for o in PublicationContributor.objects.all()
+            f"{o.document_id}::{o.researcher_id}": o
+            for o in DocumentContributor.objects.all()
         }
 
     def save_if_needed(self, obj, **fields):
@@ -58,7 +58,7 @@ class AbstractPopulate(abc.ABC):
             qs = qs.select_related("user").annotate(
                 identifiers_m2m_pk=ArrayAgg("identifiers__pk")
             )
-        elif model is Publication:
+        elif model is Document:
             qs = qs.annotate(
                 identifiers_m2m_pk=ArrayAgg("identifiers__pk"),
             )
@@ -83,12 +83,12 @@ class AbstractPopulate(abc.ABC):
             self.cache_identifiers[k] = obj.pk
             return obj.pk
 
-    def cache_contributor(self, publication, researcher):
-        k = f"{publication.id}::{researcher.id}"
+    def cache_contributor(self, document, researcher):
+        k = f"{document.id}::{researcher.id}"
         try:
             return self.cache_contributors[k]
         except KeyError:
-            obj = PublicationContributor(publication=publication, researcher=researcher)
+            obj = DocumentContributor(document=document, researcher=researcher)
             self.save_if_needed(obj)
             self.cache_identifiers[k] = obj.pk
             return obj
@@ -178,7 +178,7 @@ class PopulateResearcher(AbstractPopulate):
         return researcher
 
 
-class PopulatePublication(AbstractPopulate):
+class PopulateDocument(AbstractPopulate):
     def __init__(self):
         super().__init__()
         self.sanitize_date = cache(self.sanitize_date)
@@ -203,12 +203,12 @@ class PopulatePublication(AbstractPopulate):
         logger.warning("Invalid date format %s", value)
         return None
 
-    def sanitize_publication_type(self, data: str | None):
+    def sanitize_document_type(self, data: str | None):
         """Check documentType , and return unknow value if is not set in enum"""
-        if data in Publication.PublicationType:
+        if data in Document.DocumentType:
             return data
-        logger.warning("Publications type %r not found", data)
-        return Publication.PublicationType.UNKNOWN.value
+        logger.warning("Document type %r not found", data)
+        return Document.DocumentType.UNKNOWN.value
 
     def sanitize_roles(self, data: list[str]) -> list[str]:
         """return all roles from relators json"""
@@ -222,15 +222,15 @@ class PopulatePublication(AbstractPopulate):
         return roles
 
     def single(self, data: dict):
-        """this method create/update only on publications from crisalid"""
+        """this method create/update only on document from crisalid"""
 
-        publication = self.cache_model(Publication, crisalid_uid=data["uid"])
+        document = self.cache_model(Document, crisalid_uid=data["uid"])
         self.save_if_needed(
-            publication,
+            document,
             title=self.sanitize_languages(data["titles"]),
             description=self.sanitize_languages(data["abstracts"]),
             publication_date=self.sanitize_date(data["publication_date"]),
-            publication_type=self.sanitize_publication_type(data["document_type"]),
+            document_type=self.sanitize_document_type(data["document_type"]),
         )
 
         # identifiers (hal, openalex, idref ...ect)
@@ -240,7 +240,7 @@ class PopulatePublication(AbstractPopulate):
                 value=recorded["uid"], harvester=recorded["harvester"].lower()
             )
             identifier_ids.append(identifier_id)
-        self.save_m2m_if_needed(publication, "identifiers_m2m_pk", identifier_ids)
+        self.save_m2m_if_needed(document, "identifiers_m2m_pk", identifier_ids)
 
         contributors = []
         for contribution in data["has_contributions"]:
@@ -251,10 +251,10 @@ class PopulatePublication(AbstractPopulate):
                 roles = self.sanitize_roles(contribution["roles"])
 
                 contribution = self.cache_contributor(
-                    publication=publication,
+                    document=document,
                     researcher=researcher,
                 )
                 self.save_if_needed(contribution, roles=roles)
                 contributors.append(contribution)
 
-        return publication
+        return document

@@ -1,18 +1,18 @@
 from django.contrib import admin
 from django.db.models import Count
 
-from .models import Identifier, Publication, Researcher
+from .models import Identifier, Document, Researcher
 
 
 class IdentifierAdmin(admin.ModelAdmin):
-    list_display = ("harvester", "value", "get_researcher", "get_publications")
+    list_display = ("harvester", "value", "get_researcher", "get_documents")
 
     def get_queryset(self, request):
         return (
             super()
             .get_queryset(request)
-            .prefetch_related("researchers", "publications")
-            .annotate(publications_count=Count("publications__id"))
+            .prefetch_related("researchers", "documents")
+            .annotate(documents_count=Count("documents__id"))
             .annotate(researchers_count=Count("researchers__id"))
         )
 
@@ -20,23 +20,23 @@ class IdentifierAdmin(admin.ModelAdmin):
     def get_researcher(self, instance):
         return instance.researchers_count
 
-    @admin.display(description="publications assosiate", ordering="publications_count")
-    def get_publications(self, instance):
-        return instance.publications_count
+    @admin.display(description="documents assosiate", ordering="documents_count")
+    def get_documents(self, instance):
+        return instance.documents_count
 
 
-class PublicationAdmin(admin.ModelAdmin):
+class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",
-        "publication_type",
+        "document_type",
         "get_contributors",
         "get_identifiers",
     )
     search_fields = (
         "title",
         "publication_date",
-        "publication_type",
+        "document_type",
         "contributors__display_name",
         "identifiers__value",
         "identifier__harvester",
@@ -68,7 +68,7 @@ class ResearcherAdmin(admin.ModelAdmin):
     list_display = (
         "display_name",
         "user",
-        "get_publications",
+        "get_documents",
         "get_identifiers",
     )
     search_fields = (
@@ -84,14 +84,14 @@ class ResearcherAdmin(admin.ModelAdmin):
             super()
             .get_queryset(request)
             .select_related("user")
-            .prefetch_related("identifiers", "publications")
+            .prefetch_related("identifiers", "documents")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(publications_count=Count("publications__id"))
+            .annotate(documents_count=Count("documents__id"))
         )
 
-    @admin.display(description="publication count", ordering="publications_count")
-    def get_publications(self, instance):
-        return instance.publications_count
+    @admin.display(description="documents count", ordering="documents_count")
+    def get_documents(self, instance):
+        return instance.documents_count
 
     @admin.display(description="identifiers count", ordering="identifiers_count")
     def get_identifiers(self, instance):
@@ -105,4 +105,4 @@ class ResearcherAdmin(admin.ModelAdmin):
 
 admin.site.register(Researcher, ResearcherAdmin)
 admin.site.register(Identifier, IdentifierAdmin)
-admin.site.register(Publication, PublicationAdmin)
+admin.site.register(Document, DocumentAdmin)

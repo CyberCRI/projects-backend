@@ -3,8 +3,8 @@ import logging
 from projects.celery import app
 from services.crisalid.crisalid_bus import CrisalidEventEnum, CrisalidTypeEnum, on_event
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Publication, Researcher
-from services.crisalid.populate import PopulatePublication, PopulateResearcher
+from services.crisalid.models import Document, Researcher
+from services.crisalid.populate import PopulateDocument, PopulateResearcher
 
 logger = logging.getLogger(__name__)
 
@@ -41,13 +41,13 @@ def create_document(fields: dict):
 
     # fetch data from apollo
     data = service.query(
-        "publications", offset=0, limit=1, where={"uid_EQ": fields["uid"]}
+        "documents", offset=0, limit=1, where={"uid_EQ": fields["uid"]}
     )["documents"]
     if not data:
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
-    populate = PopulatePublication()
+    populate = PopulateDocument()
     populate.single(data[0])
 
 
@@ -56,5 +56,5 @@ def create_document(fields: dict):
 def delete_document(fields: dict):
     logger.error("receive %s", fields)
 
-    deleted = Publication.objects.filter(crisalid_uid=fields["uid"]).delete()
+    deleted = Document.objects.filter(crisalid_uid=fields["uid"]).delete()
     logger.info("deleted = %s", deleted)

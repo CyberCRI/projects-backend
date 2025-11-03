@@ -1,20 +1,14 @@
 from django.urls import include, path
-from rest_framework_nested.routers import DefaultRouter, NestedSimpleRouter
+from rest_framework.routers import DefaultRouter
+from apps.commons.urls import researcher_router_register
 
 from services.crisalid.views import PublicationViewSet, ResearcherViewSet
 
-crisalid_router = DefaultRouter()
-crisalid_router.register(r"researcher", ResearcherViewSet, basename="Researcher")
+researcher_router = DefaultRouter()
+researcher_router.register(r"researcher", ResearcherViewSet, basename="Researcher")
 
-researcher_nested_router = NestedSimpleRouter(
-    crisalid_router, r"researcher", lookup="researcher"
-)
-
-researcher_nested_router.register(
-    r"publications", PublicationViewSet, basename="ResearcherPublications"
-)
+researcher_router_register(researcher_router, r"publications", PublicationViewSet, basename="ResearcherPublications")
 
 urlpatterns = [
-    path("", include(researcher_nested_router.urls)),
-    path("", include(crisalid_router.urls)),
+    path("", include(researcher_router.urls)),
 ]

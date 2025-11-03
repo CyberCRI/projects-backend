@@ -107,7 +107,7 @@ class TestPublicationView(test.TestCase):
 
         data = result.json()
         expected = {
-            "publication_types": [
+            "document_types": [
                 {"name": Publication.PublicationType.UNKNOWN.value, "count": 12}
             ],
             "years": [
@@ -123,7 +123,7 @@ class TestPublicationView(test.TestCase):
                 {"total": 2, "year": 1990},
             ],
         }
-        self.assertEqual(data["publication_types"], expected["publication_types"])
+        self.assertEqual(data["document_types"], expected["document_types"])
         self.assertEqual(data["years"], expected["years"])
 
     def test_get_analytics_limit(self):
@@ -134,7 +134,7 @@ class TestPublicationView(test.TestCase):
 
         data = result.json()
         expected = {
-            "publication_types": [{"name": None, "count": 12}],
+            "document_types": [{"name": None, "count": 12}],
             "years": [
                 {"total": 1, "year": 1999},
                 {"total": 1, "year": 1998},
