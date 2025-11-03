@@ -123,6 +123,7 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["force_login_form_display"], payload["force_login_form_display"]
             )
+            self.assertFalse(content["auto_translate_content"])
             self.assertSetEqual(
                 {c["id"] for c in content["enabled_projects_tag_classifications"]},
                 {self.projects_tag_classification.id},

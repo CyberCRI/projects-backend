@@ -18,7 +18,11 @@ from apps.files.factories import (
 )
 from apps.invitations.factories import AccessRequestFactory, InvitationFactory
 from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+    TemplateFactory,
+)
 from apps.organizations.models import Organization
 from apps.projects.factories import (
     BlogEntryFactory,
@@ -150,6 +154,7 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             EventFactory,
             ProjectCategoryFactory,
             TagClassificationFactory,
+            TemplateFactory,
         ]:
             model = factory._meta.model
             data = {field: faker.word() for field in model.auto_translated_fields}

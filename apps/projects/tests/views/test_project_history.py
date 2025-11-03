@@ -536,40 +536,6 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         self.assertEqual(version["history_change_reason"], "Updated: categories")
         self.assertSetEqual(set(version["categories"]), {pc1.name, pc2.name})
-        self.assertEqual(version["main_category"], pc1.name)
-        project.refresh_from_db()
-        self.assertNotEqual(updated_at, project.updated_at)
-
-    def test_update_main_category(self):
-        organization = OrganizationFactory()
-        pc1 = ProjectCategoryFactory(organization=organization)
-        pc2 = ProjectCategoryFactory(organization=organization)
-        project = ProjectFactory(categories=[pc1], organizations=[organization])
-        updated_at = project.updated_at
-        self.client.force_authenticate(self.user)
-        initial_count = (
-            HistoricalProject.objects.filter(id=project.id)
-            .exclude(history_change_reason=None)
-            .count()
-        )
-        payload = {"project_categories_ids": [pc2.id]}
-        self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
-        history = HistoricalProject.objects.filter(history_relation__id=project.id)
-        latest_version = history.order_by("-history_date").first()
-        response = self.client.get(
-            reverse("Project-versions-detail", args=(project.id, latest_version.pk))
-        )
-        version = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            HistoricalProject.objects.filter(id=project.id)
-            .exclude(history_change_reason=None)
-            .count(),
-            initial_count + 1,
-        )
-        self.assertEqual(version["history_change_reason"], "Updated: categories")
-        self.assertEqual(version["categories"], [pc2.name])
-        self.assertEqual(version["main_category"], pc2.name)
         project.refresh_from_db()
         self.assertNotEqual(updated_at, project.updated_at)
 

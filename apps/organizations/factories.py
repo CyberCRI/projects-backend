@@ -15,9 +15,9 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
         model = Organization
         django_get_or_create = ("code",)
 
-    name = factory.Faker("pystr", min_chars=1, max_chars=50)
-    dashboard_title = factory.Faker("text", max_nb_chars=255)
-    dashboard_subtitle = factory.Faker("text", max_nb_chars=255)
+    name = factory.Faker("company")
+    dashboard_title = factory.Faker("sentence")
+    dashboard_subtitle = factory.Faker("sentence")
     description = factory.Faker("text", max_nb_chars=255)
     language = language_factory()
     code = factory.Sequence(lambda n: faker.word() + str(n))
@@ -25,7 +25,7 @@ class OrganizationFactory(factory.django.DjangoModelFactory):
     banner_image = None
     contact_email = factory.Faker("email")
     chat_url = factory.Faker("url")
-    chat_button_text = factory.Faker("text", max_nb_chars=50)
+    chat_button_text = factory.Faker("word")
     logo_image = factory.LazyFunction(get_test_image)
     website_url = factory.Faker("url")
     created_at = timezone.localtime(timezone.now())
@@ -48,14 +48,23 @@ class TemplateFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Template
 
-    title_placeholder = factory.Faker("text", max_nb_chars=255)
-    description_placeholder = factory.Faker("text")
-    goal_placeholder = factory.Faker("text", max_nb_chars=255)
-    blogentry_title_placeholder = factory.Faker("text", max_nb_chars=255)
-    blogentry_placeholder = factory.Faker("text")
-    goal_title = factory.Faker("text", max_nb_chars=255)
+    name = factory.Faker("sentence")
+    description = factory.Faker("text")
+    organization = factory.LazyFunction(lambda: OrganizationFactory())
+    project_title = factory.Faker("sentence")
+    project_description = factory.Faker("text")
+    project_purpose = factory.Faker("text")
+    blogentry_title = factory.Faker("sentence")
+    blogentry_content = factory.Faker("text")
+    goal_title = factory.Faker("sentence")
     goal_description = factory.Faker("text")
-    project_category = None
+    review_title = factory.Faker("sentence")
+    review_description = factory.Faker("text")
+
+    @factory.post_generation
+    def categories(self, create, extracted, **kwargs):
+        if create and extracted and len(extracted) > 0:
+            self.categories.add(*extracted)
 
 
 class ProjectCategoryFactory(factory.django.DjangoModelFactory):
@@ -72,8 +81,8 @@ class ProjectCategoryFactory(factory.django.DjangoModelFactory):
     foreground_color = factory.Faker("color")
     name = factory.Faker("word")
     is_reviewable = factory.Faker("boolean")
-    template = factory.SubFactory(TemplateFactory)
 
-
-class SeedProjectCategoryFactory(ProjectCategoryFactory):
-    organization = factory.fuzzy.FuzzyChoice(Organization.objects.all())
+    @factory.post_generation
+    def templates(self, create, extracted, **kwargs):
+        if create and extracted and len(extracted) > 0:
+            self.templates.add(*extracted)

@@ -3,6 +3,7 @@ import uuid
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any, List, Optional
 
+from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -202,25 +203,27 @@ class AttachmentFile(
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project") -> "AttachmentFile":
-        file_path = self.file.name.split("/")
-        file_name = file_path.pop()
-        file_extension = file_name.split(".")[-1]
-        new_name = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
-        new_file = SimpleUploadedFile(
-            name=new_name,
-            content=self.file.read(),
-            content_type=f"application/{file_extension}",
-        )
-        return AttachmentFile.objects.create(
-            project=project,
-            attachment_type=self.attachment_type,
-            file=new_file,
-            mime=self.mime,
-            title=self.title,
-            description=self.description,
-            hashcode=self.hashcode,
-        )
+    def duplicate(self, project: "Project") -> Optional["AttachmentFile"]:
+        with suppress(ResourceNotFoundError):
+            file_path = self.file.name.split("/")
+            file_name = file_path.pop()
+            file_extension = file_name.split(".")[-1]
+            new_name = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
+            new_file = SimpleUploadedFile(
+                name=new_name,
+                content=self.file.read(),
+                content_type=f"application/{file_extension}",
+            )
+            return AttachmentFile.objects.create(
+                project=project,
+                attachment_type=self.attachment_type,
+                file=new_file,
+                mime=self.mime,
+                title=self.title,
+                description=self.description,
+                hashcode=self.hashcode,
+            )
+        return None
 
 
 class Image(
@@ -349,7 +352,7 @@ class Image(
                 | Q(logo_image=self)
                 | Q(banner_image=self)
                 | Q(project_categories__background_image=self)
-                | Q(project_categories__template__images=self)
+                | Q(templates__images=self)
                 | Q(people_groups__header_image=self)
                 | Q(people_groups__logo_image=self)
                 | Q(news__header_image=self)
@@ -387,31 +390,33 @@ class Image(
 
     def duplicate(
         self, owner: Optional["ProjectUser"] = None, upload_to: str = ""
-    ) -> "Image":
-        file_path = self.file.name.split("/")
-        file_name = file_path.pop()
-        file_extension = file_name.split(".")[-1]
-        if upload_to:
-            upload_to = f"{upload_to}{uuid.uuid4()}.{file_extension}"
-        else:
-            upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
-        new_file = SimpleUploadedFile(
-            name=upload_to,
-            content=self.file.read(),
-            content_type=f"image/{file_extension}",
-        )
-        image = Image(
-            name=self.name,
-            file=new_file,
-            height=self.height,
-            width=self.width,
-            natural_ratio=self.natural_ratio,
-            scale_x=self.scale_x,
-            scale_y=self.scale_y,
-            left=self.left,
-            top=self.top,
-            owner=owner or self.owner,
-        )
-        image._upload_to = lambda instance, filename: upload_to
-        image.save()
-        return image
+    ) -> Optional["Image"]:
+        with suppress(ResourceNotFoundError):
+            file_path = self.file.name.split("/")
+            file_name = file_path.pop()
+            file_extension = file_name.split(".")[-1]
+            if upload_to:
+                upload_to = f"{upload_to}{uuid.uuid4()}.{file_extension}"
+            else:
+                upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
+            new_file = SimpleUploadedFile(
+                name=upload_to,
+                content=self.file.read(),
+                content_type=f"image/{file_extension}",
+            )
+            image = Image(
+                name=self.name,
+                file=new_file,
+                height=self.height,
+                width=self.width,
+                natural_ratio=self.natural_ratio,
+                scale_x=self.scale_x,
+                scale_y=self.scale_y,
+                left=self.left,
+                top=self.top,
+                owner=owner or self.owner,
+            )
+            image._upload_to = lambda instance, filename: upload_to
+            image.save()
+            return image
+        return None

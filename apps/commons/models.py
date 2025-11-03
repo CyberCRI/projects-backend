@@ -40,7 +40,7 @@ class GroupData(models.Model):
         FACILITATORS = "facilitators"
         USERS = "users"
 
-    group = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="data")
+    group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="data")
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
     object_id = models.CharField(max_length=255, null=True)
     role = models.CharField(max_length=255, choices=Role.choices)

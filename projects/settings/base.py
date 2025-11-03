@@ -479,7 +479,7 @@ CELERY_BEAT_SCHEDULE = {
     },
     "update_automatic_translations": {
         "task": "apps.translations.tasks.automatic_translations",
-        "schedule": crontab(minute="*/15", hour="*"),
+        "schedule": crontab(minute="*/5", hour="*"),
     },
     "send_instruction_notification": {
         "task": "apps.notifications.tasks.notify_new_instructions",

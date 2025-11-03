@@ -11,6 +11,7 @@ from apps.organizations.factories import (
     ProjectCategoryFactory,
     TemplateFactory,
 )
+from apps.organizations.models import Template
 from apps.projects.factories import (
     BlogEntryFactory,
     ProjectFactory,
@@ -26,7 +27,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
-        cls.template = TemplateFactory(project_category=cls.category)
+        cls.template = TemplateFactory(
+            categories=[cls.category], organization=cls.organization
+        )
         cls.template_image = cls.get_test_image()
         cls.template.images.add(cls.template_image)
         cls.project = ProjectFactory(organizations=[cls.organization])
@@ -44,7 +47,7 @@ class TextProcessingTestCase(JwtAPITestCase):
 
     @classmethod
     def create_template_image_text(cls):
-        return f'<div><img src="{reverse("Template-images-detail", args=(cls.category.id, cls.template_image.id))}" alt="alt"/></div>'
+        return f'<div><img src="{reverse("Template-images-detail", args=(cls.organization.code, cls.template.id, cls.template_image.id))}" alt="alt"/></div>'
 
     def test_create_project_description(self):
         text = self.create_base64_image_text() + self.create_template_image_text()
@@ -184,67 +187,86 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_create_template_contents(self):
-        text1 = self.create_base64_image_text()
-        text2 = self.create_base64_image_text()
+        texts = [self.create_base64_image_text() for _ in range(6)]
         self.client.force_authenticate(self.user)
-        organization = self.organization
         payload = {
-            "description": faker.text(),
-            "is_reviewable": faker.boolean(),
             "name": faker.sentence(),
-            "order_index": 1,
-            "organization_code": organization.code,
-            "template": {
-                "title_placeholder": faker.sentence(),
-                "goal_placeholder": faker.sentence(),
-                "description_placeholder": text1,
-                "blogentry_title_placeholder": faker.sentence(),
-                "blogentry_placeholder": text2,
-            },
+            "description": texts[0],
+            "project_title": faker.sentence(),
+            "project_description": texts[1],
+            "project_purpose": texts[2],
+            "blogentry_title": faker.sentence(),
+            "blogentry_content": texts[3],
+            "goal_title": faker.sentence(),
+            "goal_description": texts[4],
+            "review_title": faker.sentence(),
+            "review_description": texts[5],
         }
-        response = self.client.post(reverse("Category-list"), data=payload)
+        response = self.client.post(
+            reverse("Template-list", args=(self.organization.code,)), data=payload
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(len(response.json()["template"]["images"]), 2)
-        category_id = response.json()["id"]
-        for image in response.json()["template"]["images"]:
-            image_id = image["id"]
+        content = response.json()
+        template = Template.objects.get(id=content["id"])
+        self.assertEqual(template.images.count(), 6)
+        template_id = content["id"]
+        for image in template.images.all():
             self.assertIn(
-                reverse("Template-images-detail", args=(category_id, image_id)),
-                response.json()["template"]["description_placeholder"]
-                + response.json()["template"]["blogentry_placeholder"],
+                reverse(
+                    "Template-images-detail",
+                    args=(self.organization.code, template_id, image.id),
+                ),
+                content["description"]
+                + content["project_description"]
+                + content["project_purpose"]
+                + content["goal_description"]
+                + content["blogentry_content"]
+                + content["review_description"],
             )
 
     def test_update_template_contents(self):
-        category = ProjectCategoryFactory(organization=self.organization)
-        text1 = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Template-images-detail", category.id
-        )
-        text2 = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Template-images-detail", category.id
-        )
         self.client.force_authenticate(self.user)
+        template = TemplateFactory(organization=self.organization)
+        texts = [
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "Template-images-detail", self.organization.code, template.id
+            )
+            for _ in range(6)
+        ]
         payload = {
-            "template": {
-                "title_placeholder": faker.sentence(),
-                "goal_placeholder": faker.sentence(),
-                "description_placeholder": text1,
-                "blogentry_title_placeholder": faker.sentence(),
-                "blogentry_placeholder": text2,
-            }
+            "name": faker.sentence(),
+            "description": texts[0],
+            "project_title": faker.sentence(),
+            "project_description": texts[1],
+            "project_purpose": texts[2],
+            "blogentry_title": faker.sentence(),
+            "blogentry_content": texts[3],
+            "goal_title": faker.sentence(),
+            "goal_description": texts[4],
+            "review_title": faker.sentence(),
+            "review_description": texts[5],
         }
         response = self.client.patch(
-            reverse("Category-detail", args=(category.id,)), data=payload
+            reverse("Template-detail", args=(self.organization.code, template.id)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["template"]["images"]), 4)
-        category_id = content["id"]
-        for image in content["template"]["images"]:
-            image_id = image["id"]
+        template = Template.objects.get(id=content["id"])
+        self.assertEqual(template.images.count(), 12)
+        for image in template.images.all():
             self.assertIn(
-                reverse("Template-images-detail", args=(category_id, image_id)),
-                content["template"]["description_placeholder"]
-                + content["template"]["blogentry_placeholder"],
+                reverse(
+                    "Template-images-detail",
+                    args=(self.organization.code, template.id, image.id),
+                ),
+                content["description"]
+                + content["project_description"]
+                + content["project_purpose"]
+                + content["goal_description"]
+                + content["blogentry_content"]
+                + content["review_description"],
             )
 
     def test_create_project_message_content(self):

@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 from faker import Faker
@@ -8,6 +10,7 @@ from apps.accounts.utils import get_superadmins_group
 from apps.analytics.factories import StatFactory
 from apps.commons.test import JwtAPITestCase
 from apps.files.models import AttachmentType
+from apps.files.tests.views.mock_response import MockResponse
 from apps.projects.models import Goal
 
 faker = Faker()
@@ -91,7 +94,10 @@ class StatsTestCase(JwtAPITestCase):
         self.stat.refresh_from_db()
         self.assertEqual(self.stat.follows, 0)
 
-    def test_link_stats(self):
+    @patch("apps.files.serializers.AttachmentLinkSerializer.get_url_response")
+    def test_link_stats(self, mocked):
+        mocked_response = MockResponse()
+        mocked.return_value = mocked_response
         self.client.force_authenticate(self.superadmin)
 
         # Create a link

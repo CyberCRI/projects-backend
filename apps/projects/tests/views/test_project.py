@@ -17,7 +17,11 @@ from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.feedbacks.factories import FollowFactory
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+    TemplateFactory,
+)
 from apps.projects.factories import BlogEntryFactory, GoalFactory, ProjectFactory
 from apps.projects.models import Project
 from apps.skills.factories import TagFactory
@@ -31,6 +35,9 @@ class CreateProjectTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.template = TemplateFactory(
+            organization=cls.organization, categories=[cls.category]
+        )
         cls.members = UserFactory.create_batch(2)
         cls.reviewers = UserFactory.create_batch(2)
         cls.owners = UserFactory.create_batch(2)
@@ -71,6 +78,7 @@ class CreateProjectTestCase(JwtAPITestCase):
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
             "project_categories_ids": [self.category.id],
+            "template_id": self.template.id,
             "tags": [t.id for t in self.tags],
             "images_ids": [],
             "team": {
@@ -96,39 +104,40 @@ class CreateProjectTestCase(JwtAPITestCase):
             )
             self.assertEqual(content["life_status"], payload["life_status"])
             self.assertEqual(content["sdgs"], payload["sdgs"])
+            self.assertEqual(content["template"]["id"], self.template.id)
             self.assertEqual(
                 {o["code"] for o in content["organizations"]},
                 set(payload["organizations_codes"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {c["id"] for c in content["categories"]},
                 set(payload["project_categories_ids"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {t["id"] for t in content["tags"]},
                 set(payload["tags"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {u["id"] for u in content["team"]["members"]},
                 set(payload["team"]["members"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {u["id"] for u in content["team"]["reviewers"]},
                 set(payload["team"]["reviewers"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {u["id"] for u in content["team"]["owners"]},
                 {user.id, *payload["team"]["owners"]},
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {u["id"] for u in content["team"]["member_groups"]},
                 set(payload["team"]["member_groups"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {u["id"] for u in content["team"]["reviewer_groups"]},
                 set(payload["team"]["reviewer_groups"]),
             )
-            self.assertEqual(
+            self.assertSetEqual(
                 {u["id"] for u in content["team"]["owner_groups"]},
                 set(payload["team"]["owner_groups"]),
             )
@@ -143,6 +152,9 @@ class UpdateProjectTestCase(JwtAPITestCase):
             organization=cls.organization,
             is_reviewable=True,
             only_reviewer_can_publish=True,
+        )
+        cls.template = TemplateFactory(
+            organization=cls.organization, categories=[cls.category]
         )
         cls.tags = TagFactory.create_batch(3)
         cls.project = ProjectFactory(organizations=[cls.organization])
@@ -178,6 +190,8 @@ class UpdateProjectTestCase(JwtAPITestCase):
             "life_status": random.choice(Project.LifeStatus.values),  # nosec
             "sdgs": random.choices(SDG.values, k=3),  # nosec
             "tags": [random.choice(self.tags).id],  # nosec
+            "project_categories_ids": [self.category.id],
+            "template_id": self.template.id,
         }
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.id,)), data=payload
@@ -195,9 +209,14 @@ class UpdateProjectTestCase(JwtAPITestCase):
             )
             self.assertEqual(content["life_status"], payload["life_status"])
             self.assertEqual(content["sdgs"], payload["sdgs"])
-            self.assertEqual(
+            self.assertEqual(content["template"]["id"], self.template.id)
+            self.assertSetEqual(
                 {t["id"] for t in content["tags"]},
                 set(payload["tags"]),
+            )
+            self.assertSetEqual(
+                {c["id"] for c in content["categories"]},
+                set(payload["project_categories_ids"]),
             )
 
     @parameterized.expand(
@@ -220,7 +239,6 @@ class UpdateProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(
             organizations=[self.organization],
             categories=[self.category],
-            main_category=self.category,
             publication_status=Project.PublicationStatus.PRIVATE,
             life_status=Project.LifeStatus.TO_REVIEW,
         )
@@ -664,7 +682,6 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         cls.project_1 = ProjectFactory(
             organizations=[cls.organization_1],
             categories=[cls.category_1],
-            main_category=cls.category_1,
             language="fr",
             sdgs=[1, 2],
             life_status=Project.LifeStatus.TO_REVIEW,
@@ -672,7 +689,6 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         cls.project_2 = ProjectFactory(
             organizations=[cls.organization_2],
             categories=[cls.category_2],
-            main_category=cls.category_2,
             language="en",
             sdgs=[2, 3],
             life_status=Project.LifeStatus.RUNNING,
@@ -680,7 +696,6 @@ class FilterSearchOrderProjectTestCase(JwtAPITestCase):
         cls.project_3 = ProjectFactory(
             organizations=[cls.organization_3],
             categories=[cls.category_3],
-            main_category=cls.category_3,
             language="en",
             sdgs=[3, 4],
             life_status=Project.LifeStatus.COMPLETED,
@@ -1204,61 +1219,3 @@ class MiscProjectTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         project.refresh_from_db()
         self.assertEqual(project.publication_status, Project.PublicationStatus.PUBLIC)
-
-    def test_update_category_change_template_superadmin(self):
-        self.client.force_authenticate(self.superadmin)
-        category = ProjectCategoryFactory(organization=self.organization)
-        categories = ProjectCategoryFactory.create_batch(
-            3, organization=self.organization
-        )
-        project = ProjectFactory(
-            organizations=[self.organization],
-            categories=[category],
-            main_category=category,
-        )
-        payload = {
-            "project_categories_ids": [pc.id for pc in categories],
-        }
-        response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(content["template"]["id"], categories[0].template.id)
-
-    def test_update_category_keep_template_superadmin(self):
-        self.client.force_authenticate(self.superadmin)
-        category = ProjectCategoryFactory(organization=self.organization)
-        categories = ProjectCategoryFactory.create_batch(
-            3, organization=self.organization
-        )
-        project = ProjectFactory(
-            organizations=[self.organization],
-            categories=[category],
-            main_category=category,
-        )
-        payload = {
-            "project_categories_ids": [*[pc.id for pc in categories], category.id],
-        }
-        response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        content = response.json()
-        self.assertEqual(content["template"]["id"], category.template.id)
-
-    def test_update_no_template_superadmin(self):
-        self.client.force_authenticate(self.superadmin)
-        categories = ProjectCategoryFactory.create_batch(
-            3, organization=self.organization
-        )
-        project = ProjectFactory(organizations=[self.organization])
-        payload = {
-            "project_categories_ids": [pc.id for pc in categories],
-        }
-        response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK, response.json())
-        content = response.json()
-        self.assertEqual(content["template"]["id"], categories[0].template.id)

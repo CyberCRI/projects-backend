@@ -1,0 +1,126 @@
+from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
+from faker import Faker
+from rest_framework import status
+
+from apps.accounts.factories import UserFactory
+from apps.accounts.utils import get_superadmins_group
+from apps.commons.test import JwtAPITestCase
+from apps.organizations.factories import OrganizationFactory, TemplateFactory
+from apps.organizations.models import Template
+from services.translator.models import AutoTranslatedField
+
+faker = Faker()
+
+
+class TemplateTranslatedFieldsTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls) -> None:
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+        cls.content_type = ContentType.objects.get_for_model(Template)
+
+    def test_create_template(self):
+        self.client.force_authenticate(self.superadmin)
+        payload = {
+            "name": faker.word(),
+            "description": faker.word(),
+            "project_title": faker.word(),
+            "project_description": faker.word(),
+            "project_purpose": faker.word(),
+            "blogentry_title": faker.word(),
+            "blogentry_content": faker.word(),
+            "goal_title": faker.word(),
+            "goal_description": faker.word(),
+            "review_title": faker.word(),
+            "review_description": faker.word(),
+            "comment_content": faker.word(),
+        }
+        response = self.client.post(
+            reverse("Template-list", args=(self.organization.code,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        auto_translated_fields = AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=content["id"]
+        )
+        self.assertEqual(
+            auto_translated_fields.count(), len(Template.auto_translated_fields)
+        )
+        self.assertSetEqual(
+            {field.field_name for field in auto_translated_fields},
+            set(Template.auto_translated_fields),
+        )
+        for field in auto_translated_fields:
+            self.assertFalse(field.up_to_date)
+
+    def test_update_template(self):
+        self.client.force_authenticate(self.superadmin)
+        template = TemplateFactory(organization=self.organization)
+        AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=template.pk
+        ).update(up_to_date=True)
+
+        # Update one translated field
+        payload = {
+            Template.auto_translated_fields[0]: faker.word(),
+        }
+        response = self.client.patch(
+            reverse("Template-detail", args=(self.organization.code, template.pk)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        auto_translated_fields = AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=template.pk
+        )
+        self.assertEqual(
+            auto_translated_fields.count(), len(Template.auto_translated_fields)
+        )
+        for field in auto_translated_fields:
+            if field.field_name in payload:
+                self.assertFalse(field.up_to_date)
+            else:
+                self.assertTrue(field.up_to_date)
+
+        # Update all translated fields
+        payload = {
+            translated_field: faker.word()
+            for translated_field in Template.auto_translated_fields
+        }
+        response = self.client.patch(
+            reverse("Template-detail", args=(self.organization.code, template.pk)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        auto_translated_fields = AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=template.pk
+        )
+        self.assertEqual(
+            auto_translated_fields.count(), len(Template.auto_translated_fields)
+        )
+        self.assertSetEqual(
+            {field.field_name for field in auto_translated_fields},
+            set(Template.auto_translated_fields),
+        )
+        for field in auto_translated_fields:
+            if field.field_name in payload:
+                self.assertFalse(field.up_to_date)
+            else:
+                self.assertTrue(field.up_to_date)
+
+    def test_delete_template(self):
+        self.client.force_authenticate(self.superadmin)
+        template = TemplateFactory(organization=self.organization)
+        AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=template.pk
+        ).update(up_to_date=True)
+
+        response = self.client.delete(
+            reverse("Template-detail", args=(self.organization.code, template.pk))
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        auto_translated_fields = AutoTranslatedField.objects.filter(
+            content_type=self.content_type, object_id=template.pk
+        )
+        self.assertEqual(auto_translated_fields.count(), 0)

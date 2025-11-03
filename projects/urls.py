@@ -14,7 +14,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from django.apps import apps
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -27,13 +26,15 @@ from drf_spectacular.views import (
 )
 
 from apps.accounts.urls import router as accounts_router
-from apps.accounts.views import AccessTokenView
 from apps.analytics.urls import router as analytics_router
 from apps.announcements.urls import router as announcements_router
-from apps.commons.urls import ExtendedRouter
+from apps.commons.urls import ExtendedRouter, OneToOneExtendedRouter
+from apps.emailing.urls import router as emailing_router
 from apps.files.urls import router as files_router
 from apps.newsfeed.urls import router as newsfeed_router
 from apps.notifications.urls import router as notifications_router
+from apps.organizations.urls import one_to_one_router as organizations_one_to_one_router
+from apps.organizations.urls import router as organizations_router
 from apps.organizations.views import AvailableLanguagesView
 from apps.projects.urls import router as projects_router
 from apps.search.urls import router as search_router
@@ -46,48 +47,51 @@ def redirect_to_swagger(request):
 
 
 router = ExtendedRouter()
-router.extend(accounts_router)
-router.extend(analytics_router)
-router.extend(announcements_router)
-router.extend(files_router)
-router.extend(newsfeed_router)
-router.extend(notifications_router)
-router.extend(projects_router)
-router.extend(search_router)
-router.extend(skills_router)
-router.extend(mistral_router)
 
+router.extend(
+    accounts_router,
+    analytics_router,
+    announcements_router,
+    emailing_router,
+    files_router,
+    newsfeed_router,
+    notifications_router,
+    organizations_router,
+    projects_router,
+    search_router,
+    skills_router,
+    mistral_router,
+)
 
-urlpatterns_v1 = [
+one_to_one_router = OneToOneExtendedRouter()
+one_to_one_router.extend(
+    organizations_one_to_one_router,
+)
+
+api_urlpatterns = [
+    # Router based urls for ViewSets
     path("", include(router.urls)),
+    path("", include(one_to_one_router.urls)),
+    # urlpatterns based urls for function based views and APIViews
     path("", include("apps.accounts.urls")),
-    path("", include("apps.organizations.urls")),
-    path("", include("apps.emailing.urls")),
+    path("google/", include("services.google.urls")),
+    path("crisalid/", include("services.crisalid.urls")),
     path("healthz/", include(("apps.healthcheck.urls", "healthcheck"))),
-    path("access-token/", AccessTokenView.as_view(), name="AccessToken"),
     path("languages/", AvailableLanguagesView.as_view(), name="Languages"),
     path("", include("django_prometheus.urls")),
 ]
 
-if apps.is_installed("services.google"):
-    urlpatterns_v1.append(path("google/", include("services.google.urls")))
-
-if apps.is_installed("services.crisalid"):
-    urlpatterns_v1.append(path("crisalid/", include("services.crisalid.urls")))
-
-urlpatterns_api_schema = [
+spectacular_urlpatterns = [
     path("", SpectacularAPIView.as_view(), name="schema"),
     path("swagger-ui", SpectacularSwaggerView.as_view(), name="swagger-ui"),
     path("redoc", SpectacularRedocView.as_view(), name="redoc"),
 ]
 
 urlpatterns = [
-    # YOUR PATTERNS
     path("", redirect_to_swagger, name="redirect-swagger"),
+    path("v1/", include(api_urlpatterns)),
     path("admin/", admin.site.urls),
-    path("v1/", include(urlpatterns_v1)),
-    # Optional UI:
-    path("api/schema/", include(urlpatterns_api_schema)),
+    path("api/schema/", include(spectacular_urlpatterns)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
 if settings.DEBUG and settings.DEBUG_TOOLBAR_INSTALLED:

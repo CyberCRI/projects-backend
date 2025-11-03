@@ -3,7 +3,7 @@ import uuid
 from django.conf import settings
 from django.db import transaction
 from django.db.models import QuerySet
-from django.shortcuts import redirect
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.decorators import method_decorator
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
@@ -30,7 +30,7 @@ from .exceptions import (
     MissingLockedStatusParameterError,
 )
 from .filters import OrganizationFilter, ProjectCategoryFilter
-from .models import Organization, ProjectCategory, TermsAndConditions
+from .models import Organization, ProjectCategory, Template, TermsAndConditions
 from .permissions import HasOrganizationPermission
 from .serializers import (
     OrganizationAddFeaturedProjectsSerializer,
@@ -40,6 +40,7 @@ from .serializers import (
     OrganizationRemoveTeamMembersSerializer,
     OrganizationSerializer,
     ProjectCategorySerializer,
+    TemplateSerializer,
     TermsAndConditionsSerializer,
 )
 
@@ -47,7 +48,6 @@ from .serializers import (
 class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ProjectCategorySerializer
     filterset_class = ProjectCategoryFilter
-    organization_code_lookup = "organization__code"
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [
@@ -55,11 +55,17 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ]
 
     def get_queryset(self):
-        return (
-            ProjectCategory.objects.filter(is_root=False)
-            .select_related("organization")
-            .prefetch_related("tags")
-        )
+        if "organization_code" in self.kwargs:
+            return (
+                ProjectCategory.objects.filter(
+                    is_root=False,
+                    organization__code=self.kwargs["organization_code"],
+                )
+                .select_related("organization")
+                .prefetch_related("tags")
+                .distinct()
+            )
+        return ProjectCategory.objects.none()
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectcategory")
@@ -71,6 +77,12 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 | HasOrganizationPermission(codename),
             ]
         return super().get_permissions()
+
+    def perform_create(self, serializer):
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
+        serializer.save(organization=organization)
 
     @action(
         detail=True,
@@ -144,6 +156,40 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_200_OK)
 
 
+class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+    serializer_class = TemplateSerializer
+    lookup_field = "id"
+    lookup_value_regex = "[^/]+"
+
+    def get_queryset(self):
+        if "organization_code" in self.kwargs:
+            return (
+                Template.objects.filter(
+                    organization__code=self.kwargs["organization_code"]
+                )
+                .select_related("organization")
+                .prefetch_related("project_tags")
+            )
+        return Template.objects.none()
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "template")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "organizations")
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def perform_create(self, serializer):
+        organization = get_object_or_404(
+            Organization, code=self.kwargs["organization_code"]
+        )
+        serializer.save(organization=organization)
+
+
 class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
@@ -157,8 +203,11 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
     ]
 
     def get_queryset(self):
-        if "category_id" in self.kwargs:
-            return Image.objects.filter(project_category__id=self.kwargs["category_id"])
+        if "category_id" in self.kwargs and "organization_code" in self.kwargs:
+            return Image.objects.filter(
+                project_category__id=self.kwargs["category_id"],
+                project_category__organization__code=self.kwargs["organization_code"],
+            )
         return Image.objects.none()
 
     @staticmethod
@@ -166,11 +215,17 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
         return f"category/background/{uuid.uuid4()}#{instance.name}"
 
     def add_image_to_model(self, image):
-        if "category_id" in self.kwargs:
-            category = ProjectCategory.objects.get(id=self.kwargs["category_id"])
+        if "category_id" in self.kwargs and "organization_code" in self.kwargs:
+            category = ProjectCategory.objects.get(
+                id=self.kwargs["category_id"],
+                organization__code=self.kwargs["organization_code"],
+            )
             category.background_image = image
             category.save()
-            return f"/v1/category/{self.kwargs['category_id']}/background/{image.id}"
+            return (
+                f"/v1/organization/{self.kwargs['organization_code']}"
+                f"/category/{self.kwargs['category_id']}/background/{image.id}"
+            )
         return None
 
 
@@ -492,17 +547,15 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         IsAuthenticatedOrReadOnly,
         ReadOnly
         | IsOwner
-        | HasBasePermission("change_projectcategory", "organizations")
-        | HasOrganizationPermission("change_projectcategory"),
-    ]
-    multiple_lookup_fields = [
-        (ProjectCategory, "category_id"),
+        | HasBasePermission("change_template", "organizations")
+        | HasOrganizationPermission("change_template"),
     ]
 
     def get_queryset(self):
-        if "category_id" in self.kwargs:
+        if "template_id" in self.kwargs and "organization_code" in self.kwargs:
             qs = Image.objects.filter(
-                templates__project_category__id=self.kwargs["category_id"]
+                templates__id=self.kwargs["template_id"],
+                templates__organization__code=self.kwargs["organization_code"],
             )
             # Retrieve images before the template is posted
             if self.request.user.is_authenticated:
@@ -519,11 +572,20 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image, *args, **kwargs):
-        if "category_id" in self.kwargs:
-            return (
-                f"/v1/category/{self.kwargs['category_id']}/template-image/{image.id}"
+        template_id = self.kwargs["template_id"]
+        # TODO(remi): when we create a new template, we don't have the template_id
+        # so we send the new image with "-1" in template_id, we dont creae link
+        # beetwen image and templates (other task), need to change that !
+        if template_id != "-1":
+            template = Template.objects.get(
+                id=template_id,
+                organization__code=self.kwargs["organization_code"],
             )
-        return None
+            template.images.add(image)
+        return (
+            f"/v1/organization/{self.kwargs['organization_code']}"
+            f"/template/{self.kwargs['template_id']}/image/{image.id}"
+        )
 
 
 class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
