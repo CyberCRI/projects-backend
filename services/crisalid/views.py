@@ -39,7 +39,7 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         name="document_type",
         description="type of the documents",
         required=False,
-        enum=list(DocumentTypeCentralized.keys()),
+        enum=Document.DocumentType,
     ),
     OpenApiParameter(
         name="roles",
