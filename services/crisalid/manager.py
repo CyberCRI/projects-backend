@@ -1,4 +1,5 @@
-from django.db.models import Q, QuerySet, Count
+from django.db.models import Count, Q, QuerySet
+
 
 class DocumentQuerySet(QuerySet):
     def group_count(self) -> dict[str, int]:
@@ -15,13 +16,7 @@ class DocumentQuerySet(QuerySet):
         from .models import DocumentTypeCentralized
 
         aggregate = {}
-        for atter_name in dir(DocumentTypeCentralized):
-            if atter_name.startswith("_"):
-                continue
+        for name, document_types in DocumentTypeCentralized.items():
+            aggregate[name] = Count("id", filter=Q(document_type__in=document_types))
 
-            document_types = getattr(DocumentTypeCentralized, atter_name)
-            aggregate[atter_name] = Count("id", filter=Q(
-                document_type__in=document_types
-            ))
-        
         return self.aggregate(**aggregate)

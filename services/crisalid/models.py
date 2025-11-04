@@ -1,8 +1,13 @@
+from collections.abc import Generator
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
+
 from services.crisalid import relators
+
 from .manager import DocumentQuerySet
+
 
 class CrisalidDataModel(models.Model):
     crisalid_uid = models.CharField(
@@ -159,8 +164,8 @@ class Document(CrisalidDataModel):
 
 
 class DocumentTypeCentralized:
-    """this class centralized all document type to one type
-    """
+    """this class centralized all document type to one type"""
+
     publications = (
         Document.DocumentType.JOURNALARTICLE.value,
         Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
@@ -175,11 +180,26 @@ class DocumentTypeCentralized:
         Document.DocumentType.LETTER.value,
         Document.DocumentType.MANUAL.value,
         Document.DocumentType.REVIEW_ARTICLE.value,
-        Document.DocumentType.THESIS.value
+        Document.DocumentType.THESIS.value,
     )
     conferences = (
         Document.DocumentType.ConferenceArticle.value,
         Document.DocumentType.CONFERENCE_OUTPUT.value,
         Document.DocumentType.CONFERENCE_PAPER.value,
-        Document.DocumentType.CONFERENCE_POSTER.value
+        Document.DocumentType.CONFERENCE_POSTER.value,
     )
+
+    @classmethod
+    def keys(cls) -> Generator[str]:
+        for v in dir(cls):
+            if not v.startswith("_") and isinstance(getattr(cls, v), (list, tuple)):
+                yield v
+
+    @classmethod
+    def values(cls) -> Generator[list[str]]:
+        for v in cls.keys():
+            yield getattr(cls, v)
+
+    @classmethod
+    def items(cls) -> Generator[tuple[str, list[str]]]:
+        yield from zip(cls.keys(), cls.values(), strict=True)

@@ -1,11 +1,12 @@
+import atexit
 import enum
 import json
 import logging
 import threading
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from functools import wraps
-from typing import Callable
 
 import jsonschema
 import pika
@@ -227,13 +228,14 @@ def start_thread():
     __thread_crisalid_bus.start()
 
 
+@atexit.register
 def stop_thread():
     global __thread_crisalid_bus
-
     crisalid_bus_client.disconnect()
     # wait 3 seconds to stop thread (the thread is daemon, so no realy need this)
     if __thread_crisalid_bus is not None:
         __thread_crisalid_bus.join(3)
+        __thread_crisalid_bus = None
 
 
 # check methods is celery

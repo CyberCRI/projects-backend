@@ -1,8 +1,7 @@
-from apps.search import documents
+from apps.accounts.models import ProjectUser
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
-from services.crisalid.models import Identifier, Document, Researcher
+from services.crisalid.models import Document, Identifier, Researcher
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
@@ -67,3 +66,11 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         exclude = ("crisalid_uid",)
+
+
+class DocumentAnalyticsSerializer(serializers.Serializer):
+    roles = serializers.DictField(child=serializers.IntegerField())
+    years = serializers.ListField(
+        child=serializers.DictField(child=serializers.IntegerField())
+    )
+    document_types = serializers.DictField(child=serializers.IntegerField())
