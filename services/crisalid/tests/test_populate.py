@@ -202,9 +202,7 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(obj.title, "fiction")
         self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
-        self.assertEqual(
-            obj.document_type, Publication.PublicationType.UNKNOWN.value
-        )
+        self.assertEqual(obj.document_type, Publication.PublicationType.UNKNOWN.value)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)

@@ -8,9 +8,9 @@ from django.contrib.postgres.aggregates.general import ArrayAgg
 from apps.accounts.models import ProjectUser
 from services.crisalid import relators
 from services.crisalid.models import (
-    Identifier,
     Document,
     DocumentContributor,
+    Identifier,
     Researcher,
 )
 

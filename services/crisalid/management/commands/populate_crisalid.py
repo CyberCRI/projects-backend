@@ -4,9 +4,9 @@ from django.core.management.base import BaseCommand
 
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import (
-    Identifier,
     Document,
     DocumentContributor,
+    Identifier,
     Researcher,
 )
 from services.crisalid.populate import PopulateDocument

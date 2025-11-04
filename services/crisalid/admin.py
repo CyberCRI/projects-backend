@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count
 
-from .models import Identifier, Document, Researcher
+from .models import Document, Identifier, Researcher
 
 
 class IdentifierAdmin(admin.ModelAdmin):
