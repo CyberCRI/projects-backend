@@ -19,7 +19,7 @@ class MixpanelService:
     service = MixpanelUtils(
         api_secret=settings.MIXPANEL_API_SECRET,
         project_id=settings.MIXPANEL_PROJECT_ID,
-        eu=True,
+        residency="eu",
     )
 
     @classmethod
