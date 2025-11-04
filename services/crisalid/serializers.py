@@ -1,7 +1,12 @@
+from apps.accounts.models import ProjectUser
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
-from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.models import (
+    Document,
+    DocumentEmbedding,
+    Identifier,
+    Researcher,
+)
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
@@ -59,13 +64,24 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
         )
 
 
+class DocumentSerializerLight(serializers.ModelSerializer):
+    class Meta:
+        model = Document
+        fields = ("title", "publication_date", "document_type")
+
+
 class DocumentSerializer(serializers.ModelSerializer):
     contributors = ResearcherDocumentsSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
+    similars = serializers.SerializerMethodField()
 
     class Meta:
         model = Document
         exclude = ("crisalid_uid",)
+
+    def get_similars(self, instance: Document):
+        instance.
+        return DocumentSerializerLight(DocumentEmbedding.vector_search())
 
 
 class DocumentAnalyticsSerializer(serializers.Serializer):
