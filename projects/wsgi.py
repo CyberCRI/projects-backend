@@ -18,7 +18,9 @@ application = get_wsgi_application()
 
 from django.conf import settings  # noqa: E402
 
-if settings.ENABLE_CRISALID_BUS:
-    from services.crisalid.crisalid_bus import start_thread
+from services.crisalid.crisalid_bus import logger, start_thread  # noqa: E402
 
+if settings.ENABLE_CRISALID_BUS:
     start_thread()
+else:
+    logger.info("CrisalidBus is not enabled")

@@ -106,6 +106,8 @@ class CrisalidBusClient:
         # run in loop to retry when connection is lost
         while self._run:
             try:
+                logger.info("Create pika connection")
+
                 credentials = pika.PlainCredentials(
                     parameters["user"], parameters["password"]
                 )
@@ -228,6 +230,7 @@ def start_thread():
     __thread_crisalid_bus.start()
 
 
+# register atexit to force disconnect pika
 @atexit.register
 def stop_thread():
     global __thread_crisalid_bus
