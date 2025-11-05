@@ -5,6 +5,8 @@ from django.db import models
 from django.db.models.functions import Lower
 
 from services.crisalid import relators
+from services.mistral.interface import MistralService
+from services.mistral.models import MistralEmbedding
 
 from .manager import DocumentQuerySet
 
@@ -162,6 +164,18 @@ class Document(CrisalidDataModel):
         "crisalid.Identifier", related_name="documents"
     )
 
+    def vectorize(self):
+        if not getattr(self, "embedding", None):
+            self.embedding = DocumentEmbedding(item=self)
+            self.embedding.save()
+        self.embedding.vectorize()
+
+    def save(self, *ar, **kw):
+        md = super().save(*ar, **kw)
+        # when we update models , re-calculate vectorize
+        self.vectorize(md)
+        return md
+
 
 class DocumentTypeCentralized:
     """this class centralized all document type to one type"""
@@ -203,3 +217,22 @@ class DocumentTypeCentralized:
     @classmethod
     def items(cls) -> Generator[tuple[str, list[str]]]:
         yield from zip(cls.keys(), cls.values(), strict=True)
+
+
+class DocumentEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        Document, on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    def get_is_visible(self) -> bool:
+        return any((self.item.title, self.item.description, self.item.document_type))
+
+    def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
+        prompt = [self.item.title, self.item.description, self.item.document_type]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self

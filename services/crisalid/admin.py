@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.db.models import Count
 
-from .models import Document, Identifier, Researcher
+from .models import Document, DocumentEmbedding, Identifier, Researcher
 
 
 class IdentifierAdmin(admin.ModelAdmin):
@@ -41,6 +41,12 @@ class DocumentAdmin(admin.ModelAdmin):
         "identifiers__value",
         "identifier__harvester",
     )
+
+    actions = ["vectorize"]
+
+    def vectorize(self, request, queryset):
+        for document in queryset:
+            document.vectorize()
 
     def get_queryset(self, request):
         return (
