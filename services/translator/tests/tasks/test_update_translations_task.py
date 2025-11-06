@@ -41,6 +41,7 @@ from apps.skills.factories import (
 )
 from services.translator.models import AutoTranslatedField
 from services.translator.tasks import automatic_translations
+from services.translator.utils import update_auto_translated_field
 
 faker = Faker()
 
@@ -338,3 +339,24 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
                 for lang in settings.REQUIRED_LANGUAGES:
                     for field in data["model"].auto_translated_fields:
                         self.assertEqual(getattr(instance, f"{field}_{lang}") or "", "")
+
+
+class SafeTranslationTestCase(JwtAPITestCase):
+    def test_safe_translation_with_base64_image(self):
+        organization = OrganizationFactory(auto_translate_content=True)
+        text = f"<div>{self.get_base64_image()}</div>"
+
+        project = ProjectFactory(organizations=[organization], description=text)
+        field = AutoTranslatedField.objects.get(
+            content_type=ContentType.objects.get_for_model(Project),
+            object_id=project.pk,
+            field_name="description",
+        )
+
+        with self.assertRaises(ValueError) as context:
+            update_auto_translated_field(field)
+
+        self.assertIn(
+            "Content contains base64 encoded images which cannot be translated.",
+            str(context.exception),
+        )

@@ -1,3 +1,5 @@
+import re
+
 from apps.commons.mixins import OrganizationRelated
 
 from .interface import AzureTranslatorService
@@ -43,6 +45,15 @@ def update_auto_translated_field(field: AutoTranslatedField):
     instance = field.instance
     field_name = field.field_name
     content = getattr(instance, field_name, "")
+    if re.findall(r'data:image\/[a-zA-Z]+;base64,[^"\']+', content):
+        raise ValueError(
+            "Content contains base64 encoded images which cannot be translated."
+        )
+    if len(content) > 100000:
+        raise ValueError(
+            f"Content length for field {field_name} exceeds 100 000 characters. "
+            "Automatic translation cannot be performed."
+        )
     if not isinstance(instance, OrganizationRelated):
         raise ValueError(
             f"{instance._meta.model.__name__} does not support translations. "
