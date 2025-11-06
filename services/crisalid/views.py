@@ -124,12 +124,30 @@ class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
     @action(
+        detail=True,
+        methods=[HTTPMethod.GET],
+        url_path="similars",
+    )
+    def similars(self, request, *args, **kwargs):
+        """methods to return similars projects"""
+        obj: Document = self.get_object()
+        queryset = obj.similars()
+
+        queryset_page = self.paginate_queryset(queryset)
+        data = self.serializer_class(
+            queryset_page, many=True, context={"request": request}
+        )
+        return self.get_paginated_response(data.data)
+
+    @action(
         detail=False,
         methods=[HTTPMethod.GET],
         url_path="analytics",
         serializer_class=DocumentAnalyticsSerializer,
     )
     def analytics(self, request, *args, **kwargs):
+        """methods to return analytics (how many documents/by year / by document_type) from researcher"""
+
         qs = self.get_queryset()
 
         # get counted all document_types types

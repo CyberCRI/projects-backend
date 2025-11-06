@@ -164,11 +164,31 @@ class Document(CrisalidDataModel):
         "crisalid.Identifier", related_name="documents"
     )
 
+    @property
+    def document_type_centralized(self) -> list[str]:
+        """get group list document centralized"""
+        for vals in DocumentTypeCentralized.values():
+            if self.document_type in vals:
+                return vals
+        return [self.document_type]
+
     def vectorize(self):
         if not getattr(self, "embedding", None):
             self.embedding = DocumentEmbedding(item=self)
             self.embedding.save()
         self.embedding.vectorize()
+
+    def similars(self) -> DocumentQuerySet:
+        """return similars documents"""
+        if getattr(self, "embedding", None):
+            vector = self.embedding.embedding
+            queryset = (
+                Document.objects.annotate_doctype_centralized()
+                .filter(ann_document_type=self.document_type_centralized)
+                .exclude(pk=self.pk)
+            )
+            return DocumentEmbedding.vector_search(vector, queryset)
+        return Document.objects.all()
 
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)

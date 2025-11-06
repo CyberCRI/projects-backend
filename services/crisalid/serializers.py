@@ -64,7 +64,7 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
         )
 
 
-class DocumentSerializerLight(serializers.ModelSerializer):
+class DocumentLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = ("title", "publication_date", "document_type")
@@ -80,8 +80,8 @@ class DocumentSerializer(serializers.ModelSerializer):
         exclude = ("crisalid_uid",)
 
     def get_similars(self, instance: Document):
-        instance.
-        return DocumentSerializerLight(DocumentEmbedding.vector_search())
+        """return similar count"""
+        return instance.similars().count()
 
 
 class DocumentAnalyticsSerializer(serializers.Serializer):
