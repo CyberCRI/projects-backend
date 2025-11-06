@@ -187,12 +187,14 @@ class CommentSerializer(
             create = not self.instance
             if create:
                 super(CommentSerializer, self).save(**kwargs)
+            request = self.context.get("request")
+            owner = request.user if request else None
             text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance.project,
                 text=self.validated_data["content"],
+                instance=self.instance.project,
                 upload_to="comment/images/",
                 view="Comment-images-detail",
+                owner=owner,
                 process_template=True,
                 project_id=self.instance.project.id,
             )

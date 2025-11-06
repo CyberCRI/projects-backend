@@ -1,4 +1,4 @@
-from typing import Collection, List, Optional
+from typing import Any, Collection, Dict, List, Optional
 
 from django.conf import settings
 from django.db.models import Q
@@ -6,6 +6,8 @@ from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
 
+from apps.accounts.models import ProjectUser
+from apps.commons.utils import process_text
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 
@@ -144,3 +146,66 @@ class CreateListModelViewSet(
     To use it, override the class and set the `.queryset` and
     `.serializer_class` attributes.
     """
+
+
+class SafeBase64Serializer(serializers.ModelSerializer):
+    """
+    A base serializer that safely processes base64 images in text fields.
+    It replaces base64 images with uploaded image references during serialization.
+    """
+
+    _images_fields: List[str] = []
+    _forbid_images_fields: List[str] = []
+    _images_upload_to: str = ""
+    _images_view: str = ""
+    _process_template: bool = False
+
+    def _get_image_kwargs(self, instance: Any, field_name: str) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        raise NotImplementedError()
+
+    def _get_image_owner(self, instance: Any) -> Optional[ProjectUser]:
+        """Get the owner for image processing based on the instance."""
+        request = self.context.get("request")
+        return request.user if request else None
+
+    def save(self, **kwargs):
+        create = not self.instance
+        updated = False
+        images = []
+        if create:
+            super().save(**kwargs)
+        for field in self._images_fields:
+            if field in self.validated_data:
+                content = self.validated_data[field]
+                owner = self._get_image_owner(self.instance)
+                kwargs = self._get_image_kwargs(self.instance)
+                text, _images = process_text(
+                    text=content,
+                    instance=self.instance,
+                    upload_to=self._images_upload_to,
+                    view=self._images_view,
+                    owner=owner,
+                    process_template=self._process_template,
+                    **kwargs,
+                )
+                if text != content:
+                    updated = True
+                self.validated_data[field] = text
+                images.extend(_images)
+        for field in self._forbid_images_fields:
+            if field in self.validated_data:
+                content = self.validated_data[field]
+                new_content, _ = process_text(content, forbid_images=True)
+                if new_content != content:
+                    updated = True
+                self.validated_data[field] = new_content
+
+        if create and not images and not updated:
+            return self.instance
+
+        self.validated_data["description"] = text
+        self.validated_data["images"] = images + [
+            image for image in self.instance.images.all()
+        ]
+        return super().save(**kwargs)

@@ -502,12 +502,14 @@ class TemplateSerializer(
             "comment_content",
         ]:
             if field in self.validated_data:
+                request = self.context.get("request")
+                owner = request.user if request else None
                 text, images = process_text(
-                    request=self.context["request"],
-                    instance=self.instance,
                     text=self.validated_data[field],
+                    instance=self.instance,
                     upload_to="template/images/",
                     view="Template-images-detail",
+                    owner=owner,
                     organization_code=self.instance.organization.code,
                     template_id=self.instance.id,
                 )

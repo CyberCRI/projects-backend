@@ -105,12 +105,14 @@ class BlogEntrySerializer(
             create = not self.instance
             if create:
                 super(BlogEntrySerializer, self).save(**kwargs)
+            request = self.context.get("request")
+            owner = request.user if request else None
             text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
                 text=self.validated_data["content"],
+                instance=self.instance,
                 upload_to="blog_entry/images/",
                 view="BlogEntry-images-detail",
+                owner=owner,
                 process_template=True,
                 project_id=self.instance.project.id,
             )
@@ -636,12 +638,14 @@ class ProjectSerializer(
             create = not self.instance
             if create:
                 super(ProjectSerializer, self).save(**kwargs)
+            request = self.context.get("request")
+            owner = request.user if request else None
             text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
                 text=self.validated_data["description"],
+                instance=self.instance,
                 upload_to="project/images/",
                 view="Project-images-detail",
+                owner=owner,
                 process_template=True,
                 project_id=self.instance.id,
             )
@@ -911,12 +915,14 @@ class ProjectMessageSerializer(
             create = not self.instance
             if create:
                 super().save(**kwargs)
+            request = self.context.get("request")
+            owner = request.user if request else None
             text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
                 text=self.validated_data["content"],
+                instance=self.instance,
                 upload_to="project_messages/images/",
                 view="ProjectMessage-images-detail",
+                owner=owner,
                 project_id=self.instance.project.id,
             )
             if create and not images and text == self.validated_data["content"]:
