@@ -74,17 +74,20 @@ class Embedding(models.Model):
         raise NotImplementedError()
 
     def set_visibility(self) -> bool:
-        self.is_visible = self.get_is_visible()
-        self.save(update_fields=["is_visible"])
-        return self.is_visible
+        is_visible = self.get_is_visible()
+        if self.is_visible != is_visible:
+            self.is_visible = is_visible
+            self.save(update_fields=["is_visible"])
+        return is_visible
 
     def vectorize(self, *args, **kwargs) -> "Embedding":
         try:
             with transaction.atomic():
                 if self.set_visibility():
                     return self.set_embedding(*args, **kwargs)
-                self.embedding = None
-                self.save()
+                if self.embedding is not None:
+                    self.embedding = None
+                    self.save()
         except Exception as e:  # noqa: PIE786
             EmbeddingError.objects.create(
                 item_type=self.item.__class__.__name__,
