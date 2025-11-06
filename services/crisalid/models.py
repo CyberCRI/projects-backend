@@ -188,7 +188,7 @@ class Document(CrisalidDataModel):
                 .exclude(pk=self.pk)
             )
             return DocumentEmbedding.vector_search(vector, queryset)
-        return Document.objects.all()
+        return Document.objects.none()
 
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)
