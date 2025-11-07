@@ -370,7 +370,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
 
         # Update link
         payload = {
-            "site_url": faker.url(),
+            "title": faker.word(),
         }
         response = self.client.patch(
             reverse(

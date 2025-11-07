@@ -23,13 +23,19 @@ class TranslatedModelMeta(models.base.ModelBase):
     def __new__(cls, name, bases, attrs):
         for field in attrs.get("auto_translated_fields", []):
             base_field = attrs[field]
+            attrs[f"{field}_detected_language"] = models.CharField(
+                max_length=10, blank=True, null=True
+            )
             for lang in settings.REQUIRED_LANGUAGES:
-                attrs[f"{field}_detected_language"] = models.CharField(
-                    max_length=10, blank=True, null=True
-                )
+                base_field_data = base_field.deconstruct()
+                args = base_field_data[2]
+                kwargs = base_field_data[3]
+                if "max_length" in kwargs:
+                    # Adjust max_length for translated fields if necessary
+                    kwargs["max_length"] = int(kwargs["max_length"] * 4)
                 attrs[f"{field}_{lang}"] = base_field.__class__(
-                    *base_field.deconstruct()[2],
-                    **{**base_field.deconstruct()[3], "blank": True, "null": True},
+                    *args,
+                    **{**kwargs, "blank": True, "null": True},
                 )
         return super().__new__(cls, name, bases, attrs)
 

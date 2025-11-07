@@ -4,6 +4,7 @@ import io
 import itertools
 import re
 import uuid
+from contextlib import suppress
 from typing import List, Optional, Tuple
 
 from bs4 import BeautifulSoup
@@ -173,18 +174,24 @@ def process_template_images(
     images = list()
     for image_tag in images_tags:
         image_url = image_tag["src"]
-        if image_url.startswith("/v1/category/") and "/template-image/" in image_url:
+        if (
+            image_url.startswith("/v1/organization/")
+            and "/template/" in image_url
+            and "/image/" in image_url
+        ):
             image_id = (
                 image_url.split("/")[-1]
                 if image_url[-1] != "/"
                 else image_url.split("/")[-2]
             )
-            image = Image.objects.get(id=image_id)
-            new_image = image.duplicate(owner=request.user, upload_to=upload_to)
-            images.append(new_image)
-            text = text.replace(
-                image_url, reverse(view, kwargs={"pk": new_image.pk, **kwargs})
-            )
+            with suppress(Image.DoesNotExist):
+                image = Image.objects.get(id=image_id)
+                new_image = image.duplicate(owner=request.user, upload_to=upload_to)
+                if new_image is not None:
+                    images.append(new_image)
+                    text = text.replace(
+                        image_url, reverse(view, kwargs={"pk": new_image.pk, **kwargs})
+                    )
     return text, images
 
 
@@ -215,9 +222,10 @@ def process_unlinked_images(instance: Model, text: str) -> List[Image]:
                 if image_url[-1] != "/"
                 else image_url.split("/")[-2]
             )
-            image = Image.objects.get(id=image_id)
-            if image not in instance.images.all():
-                images.append(image)
+            with suppress(Image.DoesNotExist):
+                image = Image.objects.get(id=image_id)
+                if image not in instance.images.all():
+                    images.append(image)
     return images
 
 

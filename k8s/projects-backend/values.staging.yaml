@@ -8,6 +8,8 @@ config:
     DJANGO_SETTINGS_MODULE: projects.settings.staging
     AZURE_ACCOUNT_NAME: criparisdevlabprojects
     AZURE_CONTAINER: staging-projects
+    AZURE_TRANSLATOR_REGION: francecentral
+    AZURE_TRANSLATOR_ENDPOINT: https://projects-translation.cognitiveservices.azure.com
     POSTGRES_DB: staging_projects
     POSTGRES_HOST: dev-lab-projects-backend.postgres.database.azure.com
     EMAIL_HOST_USER: projects@mg.lp-i.xyz
