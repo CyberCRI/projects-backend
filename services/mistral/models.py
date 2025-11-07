@@ -1,7 +1,7 @@
 import hashlib
 import itertools
 import traceback
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING
 
 from django.db import models, transaction
 from django.db.models import QuerySet
@@ -99,7 +99,7 @@ class Embedding(models.Model):
 
     @classmethod
     def vector_search(
-        cls, embedding: List[float], queryset: Optional[QuerySet] = None
+        cls, embedding: list[float], queryset: QuerySet | None = None
     ) -> QuerySet:
         queryset = queryset or cls.item.field.related_model.objects
         if not queryset.model == cls.item.field.related_model:
@@ -130,8 +130,8 @@ class MistralEmbedding(Embedding):
             chat prompt
     """
 
-    temperature: Optional[float] = None
-    max_tokens: Optional[int] = None
+    temperature: float | None = None
+    max_tokens: int | None = None
     summary = models.TextField(blank=True)
     prompt_hashcode = models.CharField(max_length=64, default="")
 
@@ -139,14 +139,14 @@ class MistralEmbedding(Embedding):
         abstract = True
 
     @classmethod
-    def get_summary_chat_system(cls) -> List[str]:
+    def get_summary_chat_system(cls) -> list[str]:
         raise NotImplementedError()
 
-    def get_summary_chat_prompt(self) -> List[str]:
+    def get_summary_chat_prompt(self) -> list[str]:
         raise NotImplementedError()
 
     def set_embedding(
-        self, summary: Optional[str] = None, *args, **kwargs
+        self, summary: str | None = None, *args, **kwargs
     ) -> "MistralEmbedding":
         if self.prompt_hashcode != self.hash_prompt():
             prompt = self.get_summary_chat_prompt()
@@ -157,13 +157,13 @@ class MistralEmbedding(Embedding):
             self.save()
         return self
 
-    def hash_prompt(self, prompt: Optional[List[str]] = None) -> str:
+    def hash_prompt(self, prompt: list[str] | None = None) -> str:
         prompt = prompt or self.get_summary_chat_prompt()
         prompt = "\n".join(prompt)
         return hashlib.sha256(prompt.encode()).hexdigest()
 
     def get_summary(
-        self, system: Optional[List[str]] = None, prompt: Optional[List[str]] = None
+        self, system: list[str] | None = None, prompt: list[str] | None = None
     ) -> str:
         system = system or self.get_summary_chat_system()
         prompt = prompt or self.get_summary_chat_prompt()
@@ -194,7 +194,7 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
         return len(self.project.description) > 10 or self.project.blog_entries.exists()
 
     @classmethod
-    def get_summary_chat_system(cls) -> List[str]:
+    def get_summary_chat_system(cls) -> list[str]:
         return [
             "CONTEXT : You are responsible for the portfolio of projects in your organization.",
             "OBJECTIVE : Generate a project profile from the following information.\
@@ -208,7 +208,7 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
             "IMPORTANT : DO NOT MAKE UP ANY FACTS, EVEN IF IT MEANS RETURNING JUST A SENTENCE",
         ]
 
-    def get_summary_chat_prompt(self) -> List[str]:
+    def get_summary_chat_prompt(self) -> list[str]:
         """
         Return the prompt for the embedding model.
         """
@@ -257,7 +257,7 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
         )
 
     @classmethod
-    def get_summary_chat_system(cls) -> List[str]:
+    def get_summary_chat_system(cls) -> list[str]:
         return [
             "CONTEXT : You are responsible for the portfolio of people in your organization.",
             "OBJECTIVE : Generate a person's professional profile from the following information.",
@@ -268,7 +268,7 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
             "IMPORTANT : DO NOT MAKE UP ANY FACTS, EVEN IF IT MEANS RETURNING JUST A SENTENCE",
         ]
 
-    def get_summary_chat_prompt(self) -> List[str]:
+    def get_summary_chat_prompt(self) -> list[str]:
         expert_skills = self.user.skills.filter(level=4).values_list(
             "tag__title", flat=True
         )

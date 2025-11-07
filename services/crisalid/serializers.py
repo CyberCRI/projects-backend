@@ -1,12 +1,7 @@
-from apps.accounts.models import ProjectUser
 from rest_framework import serializers
 
-from services.crisalid.models import (
-    Document,
-    DocumentEmbedding,
-    Identifier,
-    Researcher,
-)
+from apps.accounts.models import ProjectUser
+from services.crisalid.models import Document, Identifier, Researcher
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):

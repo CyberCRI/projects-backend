@@ -1,12 +1,12 @@
 import datetime
 import json
-from typing import Optional
 
-from apps.organizations.models import Organization
-from apps.projects.models import Project
 from django.conf import settings
 from django.db.models import Q
 from mixpanel_utils import MixpanelUtils
+
+from apps.organizations.models import Organization
+from apps.projects.models import Project
 
 
 class MixpanelService:
