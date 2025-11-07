@@ -1,0 +1,65 @@
+{{- if .Values.workflow.e2e.enabled }}
+apiVersion: argoproj.io/v1alpha1
+kind: WorkflowTemplate
+metadata:
+  name: {{ tpl .Values.workflow.e2e.resourceName $ }}
+spec:
+  entrypoint: all
+  serviceAccountName: {{ .Values.workflow.rbac.serviceAccountName }}
+  securityContext:
+    {{- include "common.security.podSecurityContext.restricted" dict | nindent 4 }}
+  templates:
+  - name: flush-db
+    container:
+      {{- with $.Values.image }}
+      image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+      args: ["python", "manage.py", "flush", "--no-input"]
+      envFrom:
+        - configMapRef:
+            name: {{ tpl $.Values.fullName $ }}
+    {{- if .Values.config.sensitive }}
+      volumeMounts:
+      - name: secrets
+        mountPath: /secrets
+        readOnly: true
+    volumes:
+    - name: secrets
+      secret:
+        secretName: {{ tpl $.Values.fullName $ }}
+    {{- end }}
+  - name: create-e2e-users
+    container:
+      {{- with $.Values.image }}
+      image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+      args:
+      - "python"
+      - "manage.py"
+      - "seed_db"
+      - "-o"
+      - "CRI"
+      - "-u"
+      - "https://e2e.projects.k8s.lp-i.dev"
+      - "-a"
+      - "$(E2E_PLAYWRIGHT_USER_EMAIL):$(E2E_PLAYWRIGHT_USER_PASSWORD):users,$(E2E_PLAYWRIGHT_ADMIN_EMAIL):$(E2E_PLAYWRIGHT_ADMIN_PASSWORD):admins"
+      envFrom:
+        - configMapRef:
+            name: {{ tpl $.Values.fullName $ }}
+    {{- if .Values.config.sensitive }}
+      volumeMounts:
+      - name: secrets
+        mountPath: /secrets
+        readOnly: true
+    volumes:
+    - name: secrets
+      secret:
+        secretName: {{ tpl $.Values.fullName $ }}
+    {{- end }}
+  - name: all
+    steps:
+    - - name: flush-db
+        template: flush-db
+    - - name: create-e2e-users
+        template: create-e2e-users
+{{- end }}

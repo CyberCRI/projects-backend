@@ -176,7 +176,10 @@ workflow:
     resourceName: opensearch
     createRoleAndUser:
       templateName: create-role-and-user
-
+  e2e:
+    enabled: false
+    name: e2e
+    resourceName: e2e
 runMigrations: true
 
 sablier:

@@ -12,6 +12,8 @@ config:
     EMAIL_HOST: projects-mailhog.projects
     OPENSEARCH_INDEX_PREFIX: "proj-e2e"
     OPENSEARCH_USERNAME: "projects-e2e"
+    E2E_PLAYWRIGHT_USER_EMAIL: "playwright-test@outlook.com"
+    E2E_PLAYWRIGHT_ADMIN_EMAIL: "testautomatatiquedministrateur1@outlook.fr"
 
 workflow:
   lifecycle:
@@ -19,6 +21,8 @@ workflow:
     config:
       nonSensitive:
         ORIGIN_POSTGRES_DB: dev_projects
+  e2e:
+    enabled: true
 
 hostname: api-e2e.projects.k8s.lp-i.dev
 
@@ -26,13 +30,3 @@ backend:
   replicaCount: 1
 
 instance: e2e
-
-redis:
-  autoSync: false
-  valueFiles:
-  - values.yaml
-  - projects-api/values.yaml
-  - projects-api/dev-lab/values.yaml
-  - projects-api/dev-lab/values.e2e.yaml
-  argocdAppName: projects-backend-e2e-redis
-  helmReleaseName: projects-backend-e2e-redis
