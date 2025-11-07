@@ -1,6 +1,5 @@
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
-from django.db import transaction
 from rest_framework import serializers
 
 from apps.accounts.serializers import UserLighterSerializer
@@ -9,8 +8,8 @@ from apps.commons.serializers import (
     LazySerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
+    StringsImagesSerializer,
 )
-from apps.commons.utils import process_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -77,11 +76,14 @@ class UserFollowManySerializer(serializers.Serializer):
 
 
 class ReviewSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["title", "description"]
+
     reviewer = UserLighterSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         source="project", queryset=Project.objects.all()
@@ -114,11 +116,18 @@ class ReviewSerializer(
 
 
 class CommentSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+
+    string_images_fields: List[str] = ["content"]
+    string_images_upload_to: str = "comment/images/"
+    string_images_view: str = "Comment-images-detail"
+    string_images_process_template: bool = True
+
     content = WritableSerializerMethodField(write_field=serializers.CharField())
 
     # read_only
@@ -181,30 +190,11 @@ class CommentSerializer(
             raise CommentProjectPermissionDeniedError(project.title)
         return project
 
-    @transaction.atomic
-    def save(self, **kwargs):
-        if "content" in self.validated_data:
-            create = not self.instance
-            if create:
-                super(CommentSerializer, self).save(**kwargs)
-            request = self.context.get("request")
-            owner = request.user if request else None
-            text, images = process_text(
-                text=self.validated_data["content"],
-                instance=self.instance.project,
-                upload_to="comment/images/",
-                view="Comment-images-detail",
-                owner=owner,
-                process_template=True,
-                project_id=self.instance.project.id,
-            )
-            if create and not images and text == self.validated_data["content"]:
-                return self.instance
-            self.validated_data["content"] = text
-            self.validated_data["images"] = images + [
-                image for image in self.instance.images.all()
-            ]
-        return super(CommentSerializer, self).save(**kwargs)
+    def get_string_images_kwargs(
+        self, instance: Comment, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {"project_id": instance.project.id}
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""

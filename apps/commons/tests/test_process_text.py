@@ -187,7 +187,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
 
     def test_create_template_contents(self):
-        texts = [self.create_base64_image_text() for _ in range(6)]
+        texts = [self.create_base64_image_text() for _ in range(7)]
         self.client.force_authenticate(self.user)
         payload = {
             "name": faker.sentence(),
@@ -201,6 +201,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "goal_description": texts[4],
             "review_title": faker.sentence(),
             "review_description": texts[5],
+            "comment_content": texts[6],
         }
         response = self.client.post(
             reverse("Template-list", args=(self.organization.code,)), data=payload
@@ -208,7 +209,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         template = Template.objects.get(id=content["id"])
-        self.assertEqual(template.images.count(), 6)
+        self.assertEqual(template.images.count(), 3)
         template_id = content["id"]
         for image in template.images.all():
             self.assertIn(
@@ -216,12 +217,9 @@ class TextProcessingTestCase(JwtAPITestCase):
                     "Template-images-detail",
                     args=(self.organization.code, template_id, image.id),
                 ),
-                content["description"]
-                + content["project_description"]
-                + content["project_purpose"]
-                + content["goal_description"]
+                content["project_description"]
                 + content["blogentry_content"]
-                + content["review_description"],
+                + content["comment_content"],
             )
 
     def test_update_template_contents(self):
@@ -232,7 +230,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             + self.create_unlinked_image_text(
                 "Template-images-detail", self.organization.code, template.id
             )
-            for _ in range(6)
+            for _ in range(7)
         ]
         payload = {
             "name": faker.sentence(),
@@ -246,6 +244,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "goal_description": texts[4],
             "review_title": faker.sentence(),
             "review_description": texts[5],
+            "comment_content": texts[6],
         }
         response = self.client.patch(
             reverse("Template-detail", args=(self.organization.code, template.id)),
@@ -254,19 +253,16 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         template = Template.objects.get(id=content["id"])
-        self.assertEqual(template.images.count(), 12)
+        self.assertEqual(template.images.count(), 6)
         for image in template.images.all():
             self.assertIn(
                 reverse(
                     "Template-images-detail",
                     args=(self.organization.code, template.id, image.id),
                 ),
-                content["description"]
-                + content["project_description"]
-                + content["project_purpose"]
-                + content["goal_description"]
+                content["project_description"]
                 + content["blogentry_content"]
-                + content["review_description"],
+                + content["comment_content"],
             )
 
     def test_create_project_message_content(self):

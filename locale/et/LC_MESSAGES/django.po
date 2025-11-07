@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 17:59+0200\n"
+"POT-Creation-Date: 2025-11-07 15:19+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -175,7 +175,7 @@ msgstr "Tundmatu avaldamise olek"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Tundmatu avaldamise olek '{publication_status}'"
 
-#: apps/commons/fields.py:30 apps/skills/serializers.py:107
+#: apps/commons/fields.py:30 apps/skills/serializers.py:114
 msgid "This field is required."
 msgstr "See väli on kohustuslik."
 
@@ -184,7 +184,7 @@ msgstr "See väli on kohustuslik."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Vigane ID \"{user_id}\" - objekti ei eksisteeri."
 
-#: apps/commons/fields.py:33 apps/skills/serializers.py:112
+#: apps/commons/fields.py:33 apps/skills/serializers.py:119
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
@@ -1591,7 +1591,7 @@ msgstr "Sildi pealkiri peab olema 50 tähemärki või vähem"
 msgid "Tag description must be 500 characters or less"
 msgstr "Sildi kirjeldus peab olema 500 tähemärki või vähem"
 
-#: apps/skills/serializers.py:109
+#: apps/skills/serializers.py:116
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Vigane ID \"{tag_classification_id}\" - objekti ei eksisteeri."

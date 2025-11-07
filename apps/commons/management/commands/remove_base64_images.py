@@ -1,6 +1,7 @@
 from typing import Callable, List, Optional
 
 from django.core.management.base import BaseCommand
+from django.db.models import Model
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
@@ -31,7 +32,7 @@ class Command(BaseCommand):
 
     def _handle_model(
         self,
-        model_class,
+        model_class: Model,
         images_fields: Optional[List[str]] = None,
         forbid_images_fields: Optional[List[str]] = None,
         upload_to: str = "",
@@ -89,6 +90,7 @@ class Command(BaseCommand):
             images_fields=["content"],
             upload_to="comment/images/",
             view="Comment-images-detail",
+            process_template=True,
             get_kwargs=lambda instance: {"project_id": instance.project.id},
             get_owner=lambda instance: instance.author,
         )
@@ -106,7 +108,8 @@ class Command(BaseCommand):
         self._handle_model(AccessRequest, forbid_images_fields=["message"])
         self._handle_model(
             News,
-            images_fields=["title", "content"],
+            images_fields=["content"],
+            forbid_images_fields=["title"],
             upload_to="news/images/",
             view="News-images-detail",
             get_kwargs=lambda instance: {
@@ -116,7 +119,8 @@ class Command(BaseCommand):
         )
         self._handle_model(
             Instruction,
-            images_fields=["title", "content"],
+            images_fields=["content"],
+            forbid_images_fields=["title"],
             upload_to="instructions/images/",
             view="Instruction-images-detail",
             get_kwargs=lambda instance: {
@@ -127,7 +131,8 @@ class Command(BaseCommand):
         )
         self._handle_model(
             Event,
-            images_fields=["title", "content"],
+            images_fields=["content"],
+            forbid_images_fields=["title"],
             upload_to="events/images/",
             view="Event-images-detail",
             get_kwargs=lambda instance: {

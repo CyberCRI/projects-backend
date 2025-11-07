@@ -71,7 +71,9 @@ def update_auto_translated_field(field: AutoTranslatedField):
             translations = {}
             for chunk in chunks:
                 chunk_translations, detected_language = (
-                    AzureTranslatorService.translate_text_content(chunk, languages)
+                    AzureTranslatorService.translate_text_content(
+                        chunk, languages, field.field_type
+                    )
                 )
                 translations = {
                     f"{field_name}_{translation['to']}": (

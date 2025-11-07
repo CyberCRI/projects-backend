@@ -22,12 +22,15 @@ class AzureTranslatorService:
 
     @classmethod
     def translate_text_content(
-        cls, content: str, languages: List[str]
+        cls, content: str, languages: List[str], field_type: str
     ) -> Tuple[List[dict], str]:
         """
         Translate text content to the specified languages.
         """
-        response = cls.service.translate(body=[content], to_language=languages)
+        response = cls.service.translate(
+            body=[content],
+            to_language=languages,
+        )
         response = response[0]
         detected_language = response.detected_language.language
         translations = response.translations
