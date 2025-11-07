@@ -25,8 +25,10 @@ from apps.projects.factories import (
     BlogEntryFactory,
     ProjectFactory,
     ProjectMessageFactory,
+    ProjectTabFactory,
+    ProjectTabItemFactory,
 )
-from apps.projects.models import Project
+from apps.projects.models import Goal, Location, Project
 
 faker = Faker()
 
@@ -502,101 +504,45 @@ class TextProcessingTestCase(JwtAPITestCase):
                 content["content"],
             )
 
-    def test_create_project_description(self):
-        text = self.create_base64_image_text() + self.create_template_image_text()
+    def test_terms_and_conditions(self):
         self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "description": text,
-            "is_locked": faker.boolean(),
-            "is_shareable": faker.boolean(),
-            "purpose": faker.sentence(),
-            "organizations_codes": [self.organization.code],
-            "images_ids": [],
-        }
-        response = self.client.post(reverse("Project-list"), data=payload)
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 2)
-        project_id = content["id"]
-        for image in content["images"]:
-            image_id = image["id"]
-            self.assertIn(
-                reverse("Project-images-detail", args=(project_id, image_id)),
-                content["description"],
-            )
-
-    def test_update_project_description(self):
-        text = (
-            self.create_base64_image_text()
-            + self.create_template_image_text()
-            + self.create_unlinked_image_text("Project-images-detail", self.project.id)
+        terms_and_conditions = self.organization.terms_and_conditions
+        text = self.create_base64_image_text()
+        payload = {"content": text}
+        response = self.client.patch(
+            reverse(
+                "TermsAndConditions-detail",
+                args=(self.organization.code, terms_and_conditions.id),
+            ),
+            payload,
         )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertNotIn("<img", content["displayed_content"])
+
+    def test_update_organization(self):
+        text = self.create_base64_image_text()
         self.client.force_authenticate(self.user)
         payload = {"description": text}
         response = self.client.patch(
-            reverse("Project-detail", args=(self.project.id,)), data=payload
+            reverse("Organization-detail", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertEqual(len(content["images"]), 3)
-        for image in content["images"]:
-            image_id = image["id"]
+        self.organization.refresh_from_db()
+        self.assertEqual(self.organization.images.count(), 1)
+        for image in self.organization.images.all():
+            image_id = image.id
             self.assertIn(
-                reverse("Project-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "Organization-images-detail",
+                    args=(self.organization.code, image_id),
+                ),
                 content["description"],
             )
 
-    def test_create_blog_entry_content(self):
-        text = (
-            self.create_base64_image_text()
-            + self.create_template_image_text()
-            + self.create_unlinked_image_text(
-                "BlogEntry-images-detail", self.project.id
-            )
-        )
-        self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "content": text,
-            "project_id": self.project.id,
-        }
-        response = self.client.post(
-            reverse("BlogEntry-list", args=(self.project.id,)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 3)
-        for image_id in content["images"]:
-            self.assertIn(
-                reverse("BlogEntry-images-detail", args=(self.project.id, image_id)),
-                content["content"],
-            )
-
-    def test_update_blog_entry_content(self):
-        text = (
-            self.create_base64_image_text()
-            + self.create_template_image_text()
-            + self.create_unlinked_image_text(
-                "BlogEntry-images-detail", self.project.id
-            )
-        )
-        self.client.force_authenticate(self.user)
-        blog = BlogEntryFactory(project=self.project)
-        payload = {"content": text}
-        response = self.client.patch(
-            reverse("BlogEntry-detail", args=(self.project.id, blog.id)), data=payload
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
-        self.assertEqual(len(content["images"]), 3)
-        for image_id in content["images"]:
-            self.assertIn(
-                reverse("BlogEntry-images-detail", args=(self.project.id, image_id)),
-                content["content"],
-            )
-
-    def test_create_template_contents(self):
+    def test_create_template(self):
         texts = [self.create_base64_image_text() for _ in range(7)]
         self.client.force_authenticate(self.user)
         payload = {
@@ -632,7 +578,7 @@ class TextProcessingTestCase(JwtAPITestCase):
                 + content["comment_content"],
             )
 
-    def test_update_template_contents(self):
+    def test_update_template(self):
         self.client.force_authenticate(self.user)
         template = TemplateFactory(organization=self.organization)
         texts = [
@@ -675,7 +621,128 @@ class TextProcessingTestCase(JwtAPITestCase):
                 + content["comment_content"],
             )
 
-    def test_create_project_message_content(self):
+    def test_create_category(self):
+        text = self.create_base64_image_text()
+        self.client.force_authenticate(self.user)
+        payload = {
+            "name": faker.sentence(),
+            "description": text,
+        }
+        response = self.client.post(
+            reverse("Category-list", args=(self.organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertNotIn("<img", content["description"])
+
+        payload = {"description": text}
+        response = self.client.patch(
+            reverse(
+                "Category-detail",
+                args=(self.organization.code, content["id"]),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertNotIn("<img", content["description"])
+
+    def test_create_project(self):
+        text = self.create_base64_image_text() + self.create_template_image_text()
+        self.client.force_authenticate(self.user)
+        payload = {
+            "title": faker.sentence(),
+            "description": text,
+            "is_locked": faker.boolean(),
+            "is_shareable": faker.boolean(),
+            "purpose": faker.sentence(),
+            "organizations_codes": [self.organization.code],
+            "images_ids": [],
+        }
+        response = self.client.post(reverse("Project-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 2)
+        project_id = content["id"]
+        for image in content["images"]:
+            image_id = image["id"]
+            self.assertIn(
+                reverse("Project-images-detail", args=(project_id, image_id)),
+                content["description"],
+            )
+
+    def test_update_project(self):
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text("Project-images-detail", self.project.id)
+        )
+        self.client.force_authenticate(self.user)
+        payload = {"description": text}
+        response = self.client.patch(
+            reverse("Project-detail", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 3)
+        for image in content["images"]:
+            image_id = image["id"]
+            self.assertIn(
+                reverse("Project-images-detail", args=(self.project.id, image_id)),
+                content["description"],
+            )
+
+    def test_create_blog_entry(self):
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text(
+                "BlogEntry-images-detail", self.project.id
+            )
+        )
+        self.client.force_authenticate(self.user)
+        payload = {
+            "title": faker.sentence(),
+            "content": text,
+            "project_id": self.project.id,
+        }
+        response = self.client.post(
+            reverse("BlogEntry-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 3)
+        for image_id in content["images"]:
+            self.assertIn(
+                reverse("BlogEntry-images-detail", args=(self.project.id, image_id)),
+                content["content"],
+            )
+
+    def test_update_blog_entry(self):
+        text = (
+            self.create_base64_image_text()
+            + self.create_template_image_text()
+            + self.create_unlinked_image_text(
+                "BlogEntry-images-detail", self.project.id
+            )
+        )
+        self.client.force_authenticate(self.user)
+        blog = BlogEntryFactory(project=self.project)
+        payload = {"content": text}
+        response = self.client.patch(
+            reverse("BlogEntry-detail", args=(self.project.id, blog.id)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 3)
+        for image_id in content["images"]:
+            self.assertIn(
+                reverse("BlogEntry-images-detail", args=(self.project.id, image_id)),
+                content["content"],
+            )
+
+    def test_create_project_message(self):
         text = self.create_base64_image_text() + self.create_unlinked_image_text(
             "ProjectMessage-images-detail", self.project.id
         )
@@ -697,7 +764,7 @@ class TextProcessingTestCase(JwtAPITestCase):
                 content["content"],
             )
 
-    def test_update_project_message_content(self):
+    def test_update_project_message(self):
         text = self.create_base64_image_text() + self.create_unlinked_image_text(
             "ProjectMessage-images-detail", self.project.id
         )
@@ -717,6 +784,153 @@ class TextProcessingTestCase(JwtAPITestCase):
             self.assertIn(
                 reverse(
                     "ProjectMessage-images-detail", args=(self.project.id, image_id)
+                ),
+                content["content"],
+            )
+
+    def test_goal(self):
+        text = self.create_base64_image_text()
+        self.client.force_authenticate(self.user)
+        payload = {
+            "title": faker.sentence(),
+            "description": text,
+            "status": Goal.GoalStatus.ONGOING,
+            "project_id": self.project.id,
+        }
+        response = self.client.post(
+            reverse("Goal-list", args=(self.project.id,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertNotIn("<img", content["description"])
+
+        payload = {"description": text}
+        response = self.client.patch(
+            reverse("Goal-detail", args=(self.project.id, content["id"])),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertNotIn("<img", content["description"])
+
+    def test_location(self):
+        text = self.create_base64_image_text()
+        self.client.force_authenticate(self.user)
+        payload = {
+            "title": faker.word(),
+            "description": faker.text(),
+            "lat": float(faker.latitude()),
+            "lng": float(faker.longitude()),
+            "type": Location.LocationType.TEAM,
+            "project_id": self.project.id,
+        }
+        response = self.client.post(
+            reverse("Location-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertNotIn("<img", content["description"])
+
+        payload = {"description": text}
+        response = self.client.patch(
+            reverse("Location-detail", args=(self.project.id, content["id"])),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertNotIn("<img", content["description"])
+
+    def test_create_project_tab(self):
+        text = self.create_base64_image_text() + self.create_unlinked_image_text(
+            "ProjectTab-images-detail", self.project.id
+        )
+        self.client.force_authenticate(self.user)
+        payload = {
+            "title": faker.sentence(),
+            "description": text,
+        }
+        response = self.client.post(
+            reverse("ProjectTab-list", args=(self.project.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 2)
+        for image_id in content["images"]:
+            self.assertIn(
+                reverse("ProjectTab-images-detail", args=(self.project.id, image_id)),
+                content["description"],
+            )
+
+    def test_update_project_tab(self):
+        project_tab = ProjectTabFactory(project=self.project)
+        text = self.create_base64_image_text() + self.create_unlinked_image_text(
+            "ProjectTab-images-detail", self.project.id
+        )
+        self.client.force_authenticate(self.user)
+        payload = {"description": text}
+        response = self.client.patch(
+            reverse("ProjectTab-detail", args=(self.project.id, project_tab.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 2)
+        for image_id in content["images"]:
+            self.assertIn(
+                reverse("ProjectTab-images-detail", args=(self.project.id, image_id)),
+                content["description"],
+            )
+
+    def test_create_project_tab_item(self):
+        tab = ProjectTabFactory(project=self.project)
+        text = self.create_base64_image_text() + self.create_unlinked_image_text(
+            "ProjectTabItem-images-detail", self.project.id, tab.id
+        )
+        self.client.force_authenticate(self.user)
+        payload = {
+            "title": faker.sentence(),
+            "content": text,
+        }
+        response = self.client.post(
+            reverse("ProjectTabItem-list", args=(self.project.id, tab.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 2)
+        for image_id in content["images"]:
+            self.assertIn(
+                reverse(
+                    "ProjectTabItem-images-detail",
+                    args=(self.project.id, tab.id, image_id),
+                ),
+                content["content"],
+            )
+
+    def test_update_project_tab_item(self):
+        tab = ProjectTabFactory(project=self.project)
+        tab_item = ProjectTabItemFactory(tab=tab)
+        text = self.create_base64_image_text() + self.create_unlinked_image_text(
+            "ProjectTabItem-images-detail", self.project.id, tab.id
+        )
+        self.client.force_authenticate(self.user)
+        payload = {"content": text}
+        response = self.client.patch(
+            reverse(
+                "ProjectTabItem-detail",
+                args=(self.project.id, tab.id, tab_item.id),
+            ),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        self.assertEqual(len(content["images"]), 2)
+        for image_id in content["images"]:
+            self.assertIn(
+                reverse(
+                    "ProjectTabItem-images-detail",
+                    args=(self.project.id, tab.id, image_id),
                 ),
                 content["content"],
             )
