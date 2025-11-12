@@ -98,6 +98,7 @@ ALLOWED_HOSTS = [
 
 # Application definition
 INSTALLED_APPS = [
+    "jazzmin",
     # built-in
     "django.contrib.admin",
     "django.contrib.contenttypes",
@@ -698,3 +699,16 @@ AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
 AZURE_TRANSLATOR_ENDPOINT = os.getenv(
     "AZURE_TRANSLATOR_ENDPOINT", "https://api.cognitive.microsofttranslator.com"
 )
+
+##############
+# ADMIN #
+##############
+
+JAZZMIN_SETTINGS = {
+    "site_logo": "LPI-sm.png",
+    "site_title": "Projects",
+    "welcome_sign": "",
+    "show_ui_builder": DEBUG,
+    "theme": "flatly",
+    "custom_css": "styles/admin.css",
+}

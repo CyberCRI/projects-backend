@@ -55,6 +55,7 @@ uvicorn = "^0.32.1"
 django-opensearch-dsl = "^0.6.2"
 django-import-export = "^4.3.3"
 azure-ai-translation-text = "^1.0.1"
+django-jazzmin = "^3.0.1"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "^1.7.3"
