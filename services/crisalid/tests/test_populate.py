@@ -3,7 +3,7 @@ import datetime
 from django import test
 
 from apps.accounts.models import ProjectUser
-from services.crisalid.models import Identifier, Publication, Researcher
+from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populate import PopulateDocument, PopulateResearcher
 
 
@@ -196,13 +196,13 @@ class TestPopulateDocument(test.TestCase):
         new_obj = popu.single(data)
 
         # check obj from db
-        obj = Publication.objects.first()
+        obj = Document.objects.first()
         self.assertEqual(obj, new_obj)
 
         self.assertEqual(obj.title, "fiction")
         self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
-        self.assertEqual(obj.document_type, Publication.PublicationType.UNKNOWN.value)
+        self.assertEqual(obj.document_type, Document.DocumentType.UNKNOWN.value)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
@@ -259,15 +259,15 @@ class TestPopulateDocument(test.TestCase):
 
         self.assertEqual(
             popu.sanitize_document_type(None),
-            Publication.PublicationType.UNKNOWN.value,
+            Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            popu.sanitize_document_type("invalid-Publication-type"),
-            Publication.PublicationType.UNKNOWN.value,
+            popu.sanitize_document_type("invalid-Document-type"),
+            Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
             popu.sanitize_document_type(
-                Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value
+                Document.DocumentType.AUDIOVISUAL_DOCUMENT.value
             ),
-            Publication.PublicationType.AUDIOVISUAL_DOCUMENT.value,
+            Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
         )

@@ -78,7 +78,7 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         ],
     ),
 )
-class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
+class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
@@ -87,7 +87,7 @@ class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
         self,
         queryset,
         year_enabled=True,
-        docuement_type_enabled=True,
+        document_type_enabled=True,
         roles_enabled=True,
     ):
         qs = super().filter_queryset(queryset)
@@ -108,7 +108,7 @@ class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
             )
 
         # filter by pblication_type
-        if "document_type" in self.request.query_params and docuement_type_enabled:
+        if "document_type" in self.request.query_params and document_type_enabled:
             document_type = self.request.query_params.get("document_type")
             qs = qs.filter(document_type=document_type)
         return qs
@@ -154,7 +154,7 @@ class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
         # use only here the filter_queryset,
         # the next years values need to have all document_types (non filtered)
         document_types = Counter(
-            self.filter_queryset(qs, docuement_type_enabled=False)
+            self.filter_queryset(qs, document_type_enabled=False)
             .order_by("document_type")
             .values_list("document_type", flat=True)
         )
@@ -162,7 +162,7 @@ class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
         # order all buplications by years
         limit = self.request.query_params.get("limit")
         years = (
-            self.filter_queryset(qs, docuement_type_enabled=False, year_enabled=False)
+            self.filter_queryset(qs, document_type_enabled=False, year_enabled=False)
             .filter(publication_date__isnull=False)
             .annotate(year=ExtractYear("publication_date"))
             .values("year")
@@ -193,7 +193,7 @@ class AbstractDocuementViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class PublicationViewSet(AbstractDocuementViewSet):
+class PublicationViewSet(AbstractDocumentViewSet):
     document_types = DocumentTypeCentralized.publications
 
 

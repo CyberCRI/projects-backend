@@ -4,14 +4,17 @@ from django import test
 from django.urls import reverse
 
 from services.crisalid.models import (
+    Document,
+    DocumentContributor,
+    DocumentTypeCentralized,
     Identifier,
-    Publication,
-    PublicationContributor,
     Researcher,
 )
 
+PUBLICATION_TYPE = DocumentTypeCentralized.publications[0]
 
-class TestPublicationView(test.TestCase):
+
+class TestDocumentView(test.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -32,9 +35,10 @@ class TestPublicationView(test.TestCase):
 
         # only for researcher 1
         for i in range(10):
-            publi = Publication.objects.create(
+            publi = Document.objects.create(
                 title=f"title {i}",
                 publication_date=datetime.datetime(1990 + i, 1, 1).date(),
+                document_type=PUBLICATION_TYPE,
             )
             publi.identifiers.add(
                 Identifier.objects.create(
@@ -42,15 +46,16 @@ class TestPublicationView(test.TestCase):
                     harvester=Identifier.Harvester.HAL.value,
                 )
             )
-            PublicationContributor.objects.create(
-                researcher=cls.researcher, publication=publi, roles=["authors"]
+            DocumentContributor.objects.create(
+                researcher=cls.researcher, document=publi, roles=["authors"]
             )
 
         # only for researcher 2
         for i in range(5):
-            publi = Publication.objects.create(
+            publi = Document.objects.create(
                 title=f"title {i}",
                 publication_date=datetime.datetime(1990 + i, 1, 1).date(),
+                document_type=PUBLICATION_TYPE,
             )
             publi.identifiers.add(
                 Identifier.objects.create(
@@ -58,15 +63,16 @@ class TestPublicationView(test.TestCase):
                     harvester=Identifier.Harvester.HAL.value,
                 )
             )
-            PublicationContributor.objects.create(
-                researcher=cls.researcher_2, publication=publi, roles=["authors"]
+            DocumentContributor.objects.create(
+                researcher=cls.researcher_2, document=publi, roles=["authors"]
             )
 
         # for both
         for i in range(2):
-            publi = Publication.objects.create(
+            publi = Document.objects.create(
                 title=f"title {i}",
                 publication_date=datetime.datetime(1990 + i, 1, 1).date(),
+                document_type=PUBLICATION_TYPE,
             )
             publi.identifiers.add(
                 Identifier.objects.create(
@@ -74,11 +80,11 @@ class TestPublicationView(test.TestCase):
                     harvester=Identifier.Harvester.HAL.value,
                 )
             )
-            PublicationContributor.objects.create(
-                researcher=cls.researcher, publication=publi, roles=["authors"]
+            DocumentContributor.objects.create(
+                researcher=cls.researcher, document=publi, roles=["authors"]
             )
-            PublicationContributor.objects.create(
-                researcher=cls.researcher_2, publication=publi, roles=["authors"]
+            DocumentContributor.objects.create(
+                researcher=cls.researcher_2, document=publi, roles=["authors"]
             )
 
     def test_get_publications(self):
@@ -107,9 +113,7 @@ class TestPublicationView(test.TestCase):
 
         data = result.json()
         expected = {
-            "document_types": [
-                {"name": Publication.PublicationType.UNKNOWN.value, "count": 12}
-            ],
+            "document_types": {PUBLICATION_TYPE: 12},
             "years": [
                 {"total": 1, "year": 1999},
                 {"total": 1, "year": 1998},
@@ -134,7 +138,7 @@ class TestPublicationView(test.TestCase):
 
         data = result.json()
         expected = {
-            "document_types": [{"name": None, "count": 12}],
+            "document_types": {PUBLICATION_TYPE: 12},
             "years": [
                 {"total": 1, "year": 1999},
                 {"total": 1, "year": 1998},

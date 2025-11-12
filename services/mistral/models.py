@@ -429,3 +429,22 @@ class TagEmbedding(MistralEmbedding):
             self.prompt_hashcode = prompt_hashcode
             self.save()
         return self
+
+
+class DocumentEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "crisalid.Document", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    def get_is_visible(self) -> bool:
+        return any((self.item.title, self.item.description, self.item.document_type))
+
+    def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
+        prompt = [self.item.title, self.item.description, self.item.document_type]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self

@@ -5,8 +5,7 @@ from django.db import models
 from django.db.models.functions import Lower
 
 from services.crisalid import relators
-from services.mistral.interface import MistralService
-from services.mistral.models import MistralEmbedding
+from services.mistral.models import DocumentEmbedding
 
 from .manager import DocumentQuerySet
 
@@ -193,7 +192,7 @@ class Document(CrisalidDataModel):
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)
         # when we update models , re-calculate vectorize
-        self.vectorize(md)
+        self.vectorize()
         return md
 
 
@@ -224,35 +223,17 @@ class DocumentTypeCentralized:
     )
 
     @classmethod
-    def keys(cls) -> Generator[str]:
+    def items(cls) -> Generator[tuple[str, tuple[str]]]:
         for v in dir(cls):
             if not v.startswith("_") and isinstance(getattr(cls, v), (list, tuple)):
-                yield v
+                yield v, getattr(cls, v)
 
     @classmethod
-    def values(cls) -> Generator[list[str]]:
-        for v in cls.keys():
-            yield getattr(cls, v)
+    def keys(cls) -> Generator[list[str]]:
+        for k, _ in cls.items():
+            yield k
 
     @classmethod
-    def items(cls) -> Generator[tuple[str, list[str]]]:
-        yield from zip(cls.keys(), cls.values(), strict=True)
-
-
-class DocumentEmbedding(MistralEmbedding):
-    item = models.OneToOneField(
-        Document, on_delete=models.CASCADE, related_name="embedding"
-    )
-
-    def get_is_visible(self) -> bool:
-        return any((self.item.title, self.item.description, self.item.document_type))
-
-    def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
-        prompt = [self.item.title, self.item.description, self.item.document_type]
-        prompt_hashcode = self.hash_prompt(prompt)
-        if self.prompt_hashcode != prompt_hashcode:
-            prompt = "\n\n".join(prompt)
-            self.embedding = MistralService.get_embedding(prompt)
-            self.prompt_hashcode = prompt_hashcode
-            self.save()
-        return self
+    def values(cls) -> Generator[tuple[str]]:
+        for _, v in cls.items():
+            yield v
