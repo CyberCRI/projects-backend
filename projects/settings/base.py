@@ -222,6 +222,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "admin.context.projects",
             ],
         },
     },
@@ -711,4 +712,10 @@ JAZZMIN_SETTINGS = {
     "show_ui_builder": DEBUG,
     "theme": "flatly",
     "custom_css": "styles/admin.css",
+}
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": True,
+    "footer_small_text": True,
+    "body_small_text": True,
+    "brand_small_text": True,
 }
