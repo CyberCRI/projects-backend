@@ -113,7 +113,7 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         History of the object.
     """
 
-    auto_translated_fields: List[str] = ["content"]
+    _auto_translated_fields: List[str] = ["content"]
 
     project = HistoricForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="comments"
@@ -200,7 +200,7 @@ class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         Date of the last change made to the review.
     """
 
-    auto_translated_fields: List[str] = ["description", "title"]
+    _auto_translated_fields: List[str] = ["description", "title"]
 
     description = models.TextField(blank=True)
     title = models.CharField(max_length=100)

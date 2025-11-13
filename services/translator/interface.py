@@ -30,6 +30,7 @@ class AzureTranslatorService:
         response = cls.service.translate(
             body=[content],
             to_language=languages,
+            text_type=field_type.lower(),
         )
         response = response[0]
         detected_language = response.detected_language.language

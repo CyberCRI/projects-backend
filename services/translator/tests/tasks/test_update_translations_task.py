@@ -49,7 +49,7 @@ faker = Faker()
 class UpdateTranslationsTestCase(JwtAPITestCase):
     @classmethod
     def translator_side_effect(
-        cls, body: List[str], to_language: List[str]
+        cls, body: List[str], to_language: List[str], text_type: str = "plain"
     ) -> List[Dict]:
         """
         This side effect is meant to be used with unittest mock. It will mock every call
@@ -288,14 +288,19 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
         mock_translate.assert_has_calls(
             [
                 call(
-                    body=[getattr(instance, field)],
+                    body=[
+                        getattr(
+                            instance, field.split(":", 1)[1] if ":" in field else field
+                        )
+                    ],
                     to_language=[str(lang) for lang in self.organization_1.languages],
+                    text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for instance, field in [
                     *[
                         (data["instance_1"], field)
                         for data in self.instances
-                        for field in data["model"].auto_translated_fields
+                        for field in data["model"]._auto_translated_fields
                     ],
                 ]
             ],

@@ -82,7 +82,7 @@ class Organization(
     """
 
     organization_query_string: str = ""
-    auto_translated_fields: List[str] = [
+    _auto_translated_fields: List[str] = [
         "name",
         "dashboard_title",
         "dashboard_subtitle",
@@ -400,7 +400,7 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         Project's comment content placeholder.
     """
 
-    auto_translated_fields: List[str] = [
+    _auto_translated_fields: List[str] = [
         "name",
         "description",
         "project_title",
@@ -488,7 +488,7 @@ class ProjectCategory(
         History of the object.
     """
 
-    auto_translated_fields: List[str] = ["name", "description"]
+    _auto_translated_fields: List[str] = ["name", "description"]
     slugified_fields: List[str] = ["name"]
     slug_prefix: str = "category"
 
@@ -588,7 +588,7 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     Model to store the terms and conditions for an organization.
     """
 
-    auto_translated_fields: List[str] = ["content"]
+    _auto_translated_fields: List[str] = ["content"]
 
     organization = models.OneToOneField(
         "organizations.Organization",

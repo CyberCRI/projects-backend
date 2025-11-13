@@ -82,7 +82,7 @@ class PeopleGroup(
             The visibility setting of the group.
     """
 
-    auto_translated_fields: List[str] = ["name", "description", "short_description"]
+    _auto_translated_fields: List[str] = ["name", "description", "short_description"]
     slugified_fields: List[str] = ["name"]
     slug_prefix: str = "group"
 
@@ -298,7 +298,7 @@ class ProjectUser(
     """
 
     organization_query_string: str = "groups__organizations"
-    auto_translated_fields: List[str] = ["description", "short_description", "job"]
+    _auto_translated_fields: List[str] = ["description", "short_description", "job"]
     slugified_fields: List[str] = ["given_name", "family_name"]
     slug_prefix: str = "user"
 
