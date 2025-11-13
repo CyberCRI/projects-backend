@@ -576,11 +576,13 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
     profile_picture_natural_ratio = serializers.FloatField(
         write_only=True, required=False, allow_null=True
     )
-    researcher = ResearcherSerializerLight()
+    researcher = ResearcherSerializerLight(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta:
         model = ProjectUser
-        read_only_fields = ["id", "slug", "created_at"]
+        read_only_fields = ["id", "slug", "created_at", "researcher"]
         fields = read_only_fields + [
             "roles",
             "roles_to_add",
@@ -623,7 +625,6 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
             "profile_picture_left",
             "profile_picture_top",
             "profile_picture_natural_ratio",
-            "researcher",
         ]
 
     def to_representation(self, instance):
