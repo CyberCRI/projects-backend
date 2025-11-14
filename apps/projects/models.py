@@ -121,7 +121,7 @@ class Project(
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
-    _auto_translated_fields: List[str] = ["title", "description", "purpose"]
+    _auto_translated_fields: List[str] = ["title", "html:description", "purpose"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -724,7 +724,7 @@ class BlogEntry(
         Date of the last change made to the blog entry.
     """
 
-    _auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="blog_entries"
@@ -810,7 +810,7 @@ class Goal(
         Status of the Goal.
     """
 
-    _auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "html:description"]
 
     class GoalStatus(models.TextChoices):
         NONE = "na"
@@ -955,7 +955,7 @@ class ProjectMessage(
         Images used by the message.
     """
 
-    _auto_translated_fields: List[str] = ["content"]
+    _auto_translated_fields: List[str] = ["html:content"]
 
     project = models.ForeignKey(
         "projects.Project",
@@ -1027,7 +1027,7 @@ class ProjectTab(
         Description of the tab.
     """
 
-    _auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "html:description"]
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -1075,7 +1075,7 @@ class ProjectTabItem(
     project_query_string: str = "tab__project"
     organization_query_string: str = "tab__project__organizations"
 
-    _auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     tab = models.ForeignKey(
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"

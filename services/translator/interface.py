@@ -29,7 +29,7 @@ class AzureTranslatorService:
         """
         response = cls.service.translate(
             body=[content],
-            to_language=languages,
+            to_language=set(languages),
             text_type=field_type.lower(),
         )
         response = response[0]

@@ -22,10 +22,16 @@ class TranslatedModelMeta(models.base.ModelBase):
 
     def __new__(cls, name, bases, attrs):
         for field in attrs.get("_auto_translated_fields", []):
-            field = field.split(":", 1)[1] if ":" in field else field
+            field_type, field = (
+                field.split(":", 1) if ":" in field else ("plain", field)
+            )
             attrs["auto_translated_fields"] = attrs.get(
                 "auto_translated_fields", []
             ) + [field]
+            if field_type == "html":
+                attrs["html_auto_translated_fields"] = attrs.get(
+                    "html_auto_translated_fields", []
+                ) + [field]
             base_field = attrs[field]
             attrs[f"{field}_detected_language"] = models.CharField(
                 max_length=10, blank=True, null=True
@@ -60,6 +66,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
 
     _auto_translated_fields: List[str] = []
     auto_translated_fields: List[str] = []
+    html_auto_translated_fields: List[str] = []
     _original_auto_translated_fields_values: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
