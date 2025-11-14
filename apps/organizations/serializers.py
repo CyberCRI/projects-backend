@@ -481,13 +481,13 @@ class TemplateSerializer(
     serializers.ModelSerializer,
 ):
     string_images_fields: List[str] = [
+        "description",
         "project_description",
         "blogentry_content",
         "comment_content",
     ]
     string_images_forbid_fields: List[str] = [
         "name",
-        "description",
         "project_title",
         "project_purpose",
         "goal_title",

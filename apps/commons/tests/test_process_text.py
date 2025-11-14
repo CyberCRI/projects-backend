@@ -565,7 +565,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
         template = Template.objects.get(id=content["id"])
-        self.assertEqual(template.images.count(), 3)
+        self.assertEqual(template.images.count(), 4)
         template_id = content["id"]
         for image in template.images.all():
             self.assertIn(
@@ -573,7 +573,8 @@ class TextProcessingTestCase(JwtAPITestCase):
                     "Template-images-detail",
                     args=(self.organization.code, template_id, image.id),
                 ),
-                content["project_description"]
+                content["description"]
+                + content["project_description"]
                 + content["blogentry_content"]
                 + content["comment_content"],
             )
@@ -609,14 +610,15 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         template = Template.objects.get(id=content["id"])
-        self.assertEqual(template.images.count(), 6)
+        self.assertEqual(template.images.count(), 8)
         for image in template.images.all():
             self.assertIn(
                 reverse(
                     "Template-images-detail",
                     args=(self.organization.code, template.id, image.id),
                 ),
-                content["project_description"]
+                content["description"]
+                + content["project_description"]
                 + content["blogentry_content"]
                 + content["comment_content"],
             )
