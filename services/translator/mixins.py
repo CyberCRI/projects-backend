@@ -21,7 +21,17 @@ class TranslatedModelMeta(models.base.ModelBase):
     """
 
     def __new__(cls, name, bases, attrs):
-        for field in attrs.get("auto_translated_fields", []):
+        for field in attrs.get("_auto_translated_fields", []):
+            field_type, field = (
+                field.split(":", 1) if ":" in field else ("plain", field)
+            )
+            attrs["auto_translated_fields"] = attrs.get(
+                "auto_translated_fields", []
+            ) + [field]
+            if field_type == "html":
+                attrs["html_auto_translated_fields"] = attrs.get(
+                    "html_auto_translated_fields", []
+                ) + [field]
             base_field = attrs[field]
             attrs[f"{field}_detected_language"] = models.CharField(
                 max_length=10, blank=True, null=True
@@ -54,7 +64,9 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     to know that the translations need to be updated.
     """
 
+    _auto_translated_fields: List[str] = []
     auto_translated_fields: List[str] = []
+    html_auto_translated_fields: List[str] = []
     _original_auto_translated_fields_values: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
@@ -76,7 +88,12 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
                 have not changed. Defaults to True.
         """
         content_type = ContentType.objects.get_for_model(self.__class__)
-        for field in self.auto_translated_fields:
+        for field in self._auto_translated_fields:
+            field_type, field = (
+                field.split(":", 1)
+                if ":" in field
+                else (AutoTranslatedField.FieldType.PLAIN, field)
+            )
             if (
                 force_update
                 or getattr(self, field)
@@ -86,7 +103,10 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
                     content_type=content_type,
                     object_id=str(self.pk),
                     field_name=field,
-                    defaults={"up_to_date": False},
+                    defaults={
+                        "up_to_date": False,
+                        "field_type": field_type,
+                    },
                 )
 
     def _delete_auto_translated_fields(self):

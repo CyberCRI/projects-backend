@@ -1,10 +1,15 @@
+from typing import List
+
 from django.db.models import Q
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import PeopleGroupLightSerializer, UserLighterSerializer
 from apps.commons.fields import HiddenSlugRelatedField, UserMultipleIdRelatedField
-from apps.commons.serializers import OrganizationRelatedSerializer
+from apps.commons.serializers import (
+    OrganizationRelatedSerializer,
+    StringsImagesSerializer,
+)
 from apps.invitations.models import AccessRequest
 from apps.organizations.models import Organization
 from services.translator.serializers import AutoTranslatedModelSerializer
@@ -22,10 +27,13 @@ from .models import Invitation
 
 
 class InvitationSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["description"]
+
     owner = UserLighterSerializer(read_only=True)
     organization = HiddenSlugRelatedField(
         slug_field="code", queryset=Organization.objects.all(), required=False
@@ -62,8 +70,10 @@ class InvitationSerializer(
 
 
 class AccessRequestSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    string_images_forbid_fields: List[str] = ["message"]
+
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )

@@ -6,6 +6,7 @@ from rest_framework import serializers
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
+    StringsImagesSerializer,
 )
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
@@ -34,11 +35,15 @@ class ProjectAnnouncementSerializer(
 
 
 class AnnouncementSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+
+    string_images_forbid_fields: List[str] = ["title", "description"]
+
     project = ProjectAnnouncementSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, queryset=Project.objects.all(), source="project", write_only=True

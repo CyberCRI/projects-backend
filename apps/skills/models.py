@@ -136,7 +136,7 @@ class TagClassification(
     Users are allowed to create their own tags and classifications.
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "description"]
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "tag-classification"
     reserved_slugs = ["enabled-for-projects", "enabled-for-skills"]
@@ -317,7 +317,7 @@ class MentoringMessage(
     """
 
     organization_query_string: str = "mentoring__organization"
-    auto_translated_fields: List[str] = ["content"]
+    _auto_translated_fields: List[str] = ["content"]
 
     mentoring = models.ForeignKey(
         "skills.Mentoring", on_delete=models.CASCADE, related_name="messages"

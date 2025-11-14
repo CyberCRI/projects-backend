@@ -14,6 +14,7 @@ from rest_framework.validators import UniqueTogetherValidator
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
+    StringsImagesSerializer,
 )
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -85,11 +86,14 @@ class StdImageField(serializers.ImageField):
 
 
 class AttachmentLinkSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["description", "title"]
+
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
     )
@@ -228,8 +232,10 @@ class AttachmentLinkSerializer(
 
 
 class OrganizationAttachmentFileSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    string_images_forbid_fields: List[str] = ["description", "title"]
+
     file = serializers.FileField()
     hashcode = serializers.CharField(write_only=True, required=False)
 
@@ -274,11 +280,14 @@ class OrganizationAttachmentFileSerializer(
 
 
 class AttachmentFileSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["description", "title"]
+
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
     )

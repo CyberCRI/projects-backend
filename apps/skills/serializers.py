@@ -9,7 +9,12 @@ from rest_framework import serializers
 from rest_framework.fields import empty
 
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
-from apps.commons.serializers import LazySerializer, TranslatedModelSerializer
+from apps.commons.serializers import (
+    LazySerializer,
+    StringsImagesSerializer,
+    TranslatedModelSerializer,
+)
+from apps.commons.utils import process_text
 from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
@@ -41,8 +46,10 @@ class TagClassificationLightSerializer(
 
 
 class TagClassificationSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    string_images_forbid_fields: List[str] = ["title", "description"]
+
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
     is_owned = serializers.SerializerMethodField()
     is_enabled_for_projects = serializers.SerializerMethodField()
@@ -280,6 +287,10 @@ class MentoringContactSerializer(serializers.Serializer):
                 user = context["request"].user
                 self.initial_data["reply_to"] = user.email
 
+    def validate_content(self, content: str) -> str:
+        content, _ = process_text(content, forbid_images=True)
+        return content
+
 
 class MentoringResponseSerializer(serializers.Serializer):
     status = serializers.ChoiceField(
@@ -296,6 +307,10 @@ class MentoringResponseSerializer(serializers.Serializer):
                 context = self.context
                 user = context["request"].user
                 self.initial_data["reply_to"] = user.email
+
+    def validate_content(self, content: str) -> str:
+        content, _ = process_text(content, forbid_images=True)
+        return content
 
 
 class MentoringSerializer(serializers.ModelSerializer):

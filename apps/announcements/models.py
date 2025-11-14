@@ -40,7 +40,7 @@ class Announcement(
         Date of the last change made to the announcement.
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "html:description"]
 
     class AnnouncementType(models.TextChoices):
         NONE = ("na", "Not applicable")

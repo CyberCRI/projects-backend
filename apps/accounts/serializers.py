@@ -16,6 +16,7 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
+from apps.commons.serializers import StringsImagesSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -345,7 +346,16 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
-class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+class PeopleGroupSerializer(
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+
+    string_images_forbid_fields: List[str] = [
+        "name",
+        "description",
+        "short_description",
+    ]
+
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -483,7 +493,15 @@ class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
 
 
 @extend_schema_serializer(exclude_fields=("roles",))
-class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+class UserSerializer(
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+    string_images_forbid_fields: List[str] = [
+        "description",
+        "short_description",
+        "job",
+    ]
+
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,

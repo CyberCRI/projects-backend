@@ -18,10 +18,17 @@ class AutoTranslatedField(models.Model):
             Indicates if the translation is up to date.
     """
 
+    class FieldType(models.TextChoices):
+        PLAIN = "plain"
+        HTML = "html"
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.CharField(max_length=255)
     field_name = models.CharField(max_length=255)
     up_to_date = models.BooleanField(default=False)
+    field_type = models.CharField(
+        max_length=10, choices=FieldType.choices, default=FieldType.PLAIN
+    )
 
     class Meta:
         unique_together = ("content_type", "object_id", "field_name")
