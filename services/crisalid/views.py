@@ -197,6 +197,10 @@ class PublicationViewSet(AbstractDocumentViewSet):
     document_types = DocumentTypeCentralized.publications
 
 
+class ConferenceViewSet(AbstractDocumentViewSet):
+    document_types = DocumentTypeCentralized.conferences
+
+
 @extend_schema_view(
     list=extend_schema(
         parameters=[
