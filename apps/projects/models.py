@@ -121,7 +121,7 @@ class Project(
 
     slugified_fields: List[str] = ["title"]
     slug_prefix: str = "project"
-    auto_translated_fields: List[str] = ["title", "description", "purpose"]
+    _auto_translated_fields: List[str] = ["title", "html:description", "purpose"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -202,8 +202,8 @@ class Project(
         related_name="archive",
         m2m_fields=[tags, categories],
         excluded_fields=[
-            f"{field}_{lang}"
-            for field in auto_translated_fields
+            f"{field.split(':', 1)[1] if ':' in field else field}_{lang}"
+            for field in _auto_translated_fields
             for lang in settings.REQUIRED_LANGUAGES
         ],
     )
@@ -724,7 +724,7 @@ class BlogEntry(
         Date of the last change made to the blog entry.
     """
 
-    auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="blog_entries"
@@ -810,7 +810,7 @@ class Goal(
         Status of the Goal.
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "html:description"]
 
     class GoalStatus(models.TextChoices):
         NONE = "na"
@@ -886,7 +886,7 @@ class Location(
         Type of the location (team or impact).
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "description"]
 
     class LocationType(models.TextChoices):
         """Type of a location."""
@@ -955,7 +955,7 @@ class ProjectMessage(
         Images used by the message.
     """
 
-    auto_translated_fields: List[str] = ["content"]
+    _auto_translated_fields: List[str] = ["html:content"]
 
     project = models.ForeignKey(
         "projects.Project",
@@ -1027,7 +1027,7 @@ class ProjectTab(
         Description of the tab.
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: List[str] = ["title", "html:description"]
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -1075,7 +1075,7 @@ class ProjectTabItem(
     project_query_string: str = "tab__project"
     organization_query_string: str = "tab__project__organizations"
 
-    auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     tab = models.ForeignKey(
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"

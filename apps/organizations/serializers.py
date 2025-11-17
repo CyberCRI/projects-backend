@@ -2,7 +2,7 @@ import logging
 import uuid
 from contextlib import suppress
 from types import SimpleNamespace
-from typing import Dict, List, Union
+from typing import Any, Dict, List, Union
 
 from django.conf import settings
 from django.db.models import Q
@@ -13,8 +13,10 @@ from rest_framework.relations import SlugRelatedField
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
 from apps.commons.models import GroupData
-from apps.commons.serializers import OrganizationRelatedSerializer
-from apps.commons.utils import process_text
+from apps.commons.serializers import (
+    OrganizationRelatedSerializer,
+    StringsImagesSerializer,
+)
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.projects.models import Project
@@ -41,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 
 class TermsAndConditionsSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
     """
     Serializer for TermsAndConditions model.
@@ -55,6 +57,8 @@ class TermsAndConditionsSerializer(
 
     The field `content` is write-only and allows to set the content of the Terms and Conditions.
     """
+
+    string_images_forbid_fields: List[str] = ["content"]
 
     content = serializers.CharField(write_only=True)
     displayed_content_organization = serializers.SerializerMethodField()
@@ -180,10 +184,21 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class OrganizationSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields: List[str] = ["description"]
+    string_images_forbid_fields: List[str] = [
+        "name",
+        "dashboard_title",
+        "dashboard_subtitle",
+        "chat_button_text",
+    ]
+    string_images_upload_to: str = "organizations/images/"
+    string_images_view: str = "Organization-images-detail"
+
     parent_code = SlugRelatedField(
         many=False,
         required=False,
@@ -322,6 +337,14 @@ class OrganizationSerializer(
         # and return a `False`.
         return [SimpleNamespace(code=uuid.uuid4(), pk=uuid.uuid4())]
 
+    def get_string_images_kwargs(
+        self, instance: Organization, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {
+            "organization_code": instance.code,
+        }
+
     def get_google_sync_enabled(self, organization: Organization) -> bool:
         return organization.code == settings.GOOGLE_SYNCED_ORGANIZATION
 
@@ -452,10 +475,29 @@ class ProjectTemplateSerializer(
 
 
 class TemplateSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields: List[str] = [
+        "description",
+        "project_description",
+        "blogentry_content",
+        "comment_content",
+    ]
+    string_images_forbid_fields: List[str] = [
+        "name",
+        "project_title",
+        "project_purpose",
+        "goal_title",
+        "goal_description",
+        "review_title",
+        "review_description",
+    ]
+    string_images_upload_to: str = "template/images/"
+    string_images_view: str = "Template-images-detail"
+
     project_tags = TagRelatedField(many=True, required=False)
     organization = SlugRelatedField(read_only=True, slug_field="code")
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
@@ -489,42 +531,28 @@ class TemplateSerializer(
             "categories_ids",
         ]
 
-    def save(self, **kwargs):
-        if not self.instance:
-            super().save(**kwargs)
-        for field in [
-            "description",
-            "project_description",
-            "project_purpose",
-            "blogentry_content",
-            "goal_description",
-            "review_description",
-            "comment_content",
-        ]:
-            if field in self.validated_data:
-                text, images = process_text(
-                    request=self.context["request"],
-                    instance=self.instance,
-                    text=self.validated_data[field],
-                    upload_to="template/images/",
-                    view="Template-images-detail",
-                    organization_code=self.instance.organization.code,
-                    template_id=self.instance.id,
-                )
-                self.validated_data[field] = text
-                self.instance.images.add(*images)
-        return super().save(**kwargs)
-
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
         return [self.validated_data.get("organization", [])]
 
+    def get_string_images_kwargs(
+        self, instance: Template, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {
+            "organization_code": instance.organization.code,
+            "template_id": instance.id,
+        }
+
 
 class ProjectCategorySerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["name", "description"]
+
     parent = serializers.PrimaryKeyRelatedField(
         queryset=ProjectCategory.objects.all(),
         required=False,
