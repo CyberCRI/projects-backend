@@ -2,6 +2,7 @@ from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
 from services.crisalid.models import Document, Identifier, Researcher
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
@@ -59,13 +60,13 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
         )
 
 
-class DocumentLightSerializer(serializers.ModelSerializer):
+class DocumentLightSerializer(AutoTranslatedModelSerializer):
     class Meta:
         model = Document
         fields = ("title", "publication_date", "document_type")
 
 
-class DocumentSerializer(serializers.ModelSerializer):
+class DocumentSerializer(DocumentLightSerializer):
     contributors = ResearcherDocumentsSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)
     similars = serializers.SerializerMethodField()

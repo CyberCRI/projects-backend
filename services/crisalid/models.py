@@ -6,6 +6,7 @@ from django.db.models.functions import Lower
 
 from services.crisalid import relators
 from services.mistral.models import DocumentEmbedding
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .manager import DocumentQuerySet
 
@@ -89,7 +90,7 @@ class DocumentContributor(models.Model):
         ]
 
 
-class Document(CrisalidDataModel):
+class Document(HasAutoTranslatedFields, CrisalidDataModel):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
@@ -145,6 +146,8 @@ class Document(CrisalidDataModel):
         THESIS = "Thesis"
         WORKING_PAPER = "Working Paper"
         UNKNOWN = "Unknown"
+
+    auto_translated_fields = ["title", "description"]
 
     title = models.TextField()
     description = models.TextField(default="")
