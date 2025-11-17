@@ -67,8 +67,9 @@ class Command(BaseCommand):
                             f"[DRY RUN] Would update {model_class.__name__} (ID: {instance.id}) field '{field}'"
                         )
                 else:
-                    setattr(instance, field, new_content)
-                    instance.save(update_fields=[field])
+                    model_class.objects.filter(id=instance.id).update(
+                        **{field: new_content}
+                    )
         for field in images_fields:
             for instance in model_class.objects.filter(
                 **{f"{field}__icontains": "data:image"}
@@ -91,9 +92,10 @@ class Command(BaseCommand):
                             f"[DRY RUN] Would update {model_class.__name__} (ID: {instance.id}) field '{field}' and add {len(images)} images"
                         )
                 else:
-                    setattr(instance, field, new_content)
                     instance.images.add(*images)
-                    instance.save(update_fields=[field])
+                    model_class.objects.filter(id=instance.id).update(
+                        **{field: new_content}
+                    )
 
     def handle(self, *args, **options):
         dry_run = options.get("dry_run", False)

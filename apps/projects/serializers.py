@@ -748,13 +748,14 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
         while previous:
             previous_reason = previous.history_change_reason
             if previous_reason:
-                excluded_fields = []
-                for field in Project.auto_translated_fields:
-                    _, field_name = field.split(":", 1) if ":" in field else ("", field)
-                    excluded_fields.extend(
-                        f"{field_name}_{lang}" for lang in settings.REQUIRED_LANGUAGES
-                    )
-                delta = version.diff_against(previous, excluded_fields=excluded_fields)
+                delta = version.diff_against(
+                    previous,
+                    excluded_fields=[
+                        f"{field}_{lang}"
+                        for field in Project.auto_translated_fields
+                        for lang in settings.REQUIRED_LANGUAGES
+                    ],
+                )
                 return {
                     change.field: {"old_version": change.old, "new_version": change.new}
                     for change in delta.changes
