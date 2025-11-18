@@ -26,12 +26,14 @@ class MiscMentoringTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (faker.email(),),
+            ("email_given",),
             (None,),
             ("",),
         ]
     )
     def test_mentoring_contact_serializer(self, reply_to):
+        if reply_to == "email_given":
+            reply_to = faker.email()
         data = {
             "content": faker.text(),
             "reply_to": reply_to,
@@ -57,12 +59,14 @@ class MiscMentoringTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (faker.email(),),
+            ("email_given",),
             (None,),
             ("",),
         ]
     )
     def test_mentoring_response_serializer(self, reply_to):
+        if reply_to == "email_given":
+            reply_to = faker.email()
         data = {
             "status": Mentoring.MentoringStatus.ACCEPTED,
             "content": faker.text(),
