@@ -106,3 +106,5 @@ jobs:
       run: make locales-check
     - name: Run unit tests
       run: make test
+      env:
+        PYTHONUNBUFFERED: 1
