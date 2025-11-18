@@ -94,7 +94,8 @@ lint: flake8 bandit
 
 .PHONY: test
 test:
-	pytest
+	coverage run
+	coverage report
 
 .PHONY: dropdb
 dropdb:

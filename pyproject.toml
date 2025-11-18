@@ -102,7 +102,7 @@ exclude = '''
 
 [tool.coverage.run]
 branch = true
-command_line = "manage.py test --no-input --parallel=6 --settings=projects.settings.test"
+command_line = "-m pytest"
 source = ["apps"]
 
 [tool.coverage.report]
