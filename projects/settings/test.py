@@ -9,14 +9,25 @@ MIDDLEWARE = [
 ]
 
 ENVIRONMENT = "test"
-
 FRONTEND_URL = "http://frontend.com"
 
-DEFAULT_FILE_STORAGE = "inmemorystorage.InMemoryStorage"
 
-PASSWORD_HASHERS = [
-    "django.contrib.auth.hashers.MD5PasswordHasher",
-]
+##############
+#  STORAGES  #
+##############
+
+STORAGES = {
+    "default": {"BACKEND": "inmemorystorage.InMemoryStorage"},
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
+
+
+##############
+#   CACHE    #
+##############
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.dummy.DummyCache",
@@ -24,7 +35,21 @@ CACHES = {
 }
 ENABLE_CACHE = False
 
+
+##############
+#    AUTH    #
+##############
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.MD5PasswordHasher",
+]
+
 SIMPLE_JWT["ALGORITHM"] = "HS256"  # noqa: F405
+
+
+##############
+#   EMAILS   #
+##############
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 

@@ -52,7 +52,6 @@ jobs:
         password: ${{ secrets.registry-password }}
       env:
         DJANGO_SETTINGS_MODULE: projects.settings.local
-        PYTHONUNBUFFERED: 1
       options: --user root
     services:
       postgres:
@@ -107,5 +106,3 @@ jobs:
       run: make locales-check
     - name: Run unit tests
       run: make test
-      env:
-        PYTHONUNBUFFERED: 1
