@@ -37,6 +37,8 @@ class Identifier(models.Model):
         ORCID = "orcid"
         LOCAL = "local"
         EPPN = "eppn"
+        DOI = "doi"
+        PMID = "pmid"
 
     harvester = models.CharField(max_length=50, choices=Harvester.choices)
     value = models.CharField(max_length=255)

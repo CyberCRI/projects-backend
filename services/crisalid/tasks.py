@@ -12,19 +12,19 @@ logger = logging.getLogger(__name__)
 # https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/amqp/amqp_document_event_message_factory.py#L37
 
 
-@on_event(CrisalidTypeEnum.RESEARCH, CrisalidEventEnum.CREATED)
-@on_event(CrisalidTypeEnum.RESEARCH, CrisalidEventEnum.UPDATED)
-@app.task(name=f"{__name__}.create_researcher")
-def create_researcher(fields: dict):
+@on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.CREATED)
+@on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.UPDATED)
+@app.task(name=f"{__name__}.create_person")
+def create_person(fields: dict):
     logger.info("receive %s", fields)
 
     populate = PopulateResearcher()
     populate.single(fields)
 
 
-@on_event(CrisalidTypeEnum.RESEARCH, CrisalidEventEnum.DELETED)
-@app.task(name=f"{__name__}.delete_researcher")
-def delete_researcher(fields: dict):
+@on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.DELETED)
+@app.task(name=f"{__name__}.delete_person")
+def delete_person(fields: dict):
     logger.info("receive %s", fields)
 
     deleted = Researcher.objects.filter(crisalid_uid=fields["uid"]).delete()

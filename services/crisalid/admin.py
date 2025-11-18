@@ -39,7 +39,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "document_type",
         "contributors__display_name",
         "identifiers__value",
-        "identifier__harvester",
+        "identifiers__harvester",
     )
 
     actions = ["vectorize"]

@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 
 # Event/Type from crisalid https://github.com/CRISalid-esr/crisalid-ikg/tree/dev-main/app/amqp
 class CrisalidTypeEnum(enum.StrEnum):
-    PERSONE = "persone"
-    RESEARCH = "research_structure"
+    PERSON = "person"
+    STRUCTURE = "research_structure"
     HARVESTING = "harvesting_result_event"
     DOCUMENT = "document"
 
@@ -54,12 +54,7 @@ class CrisalidBusClient:
     """Class to connect to crisalid rabitmqt, and receive all event messages."""
 
     # queue create by ikg for send messages
-    CRISALID_QUEUES = (
-        "crisalid-ikg-harvesting-events",
-        "crisalid-ikg-people",
-        "crisalid-ikg-publications",
-        "crisalid-ikg-structures",
-    )
+    CRISALID_EXCHANGE = "graph"
 
     def __init__(self):
         self.conn: pika.BlockingConnection | None = None
@@ -117,16 +112,23 @@ class CrisalidBusClient:
                         host=parameters["host"],
                         port=parameters["port"],
                         credentials=credentials,
+                        virtual_host="/",
                     ),
                 )
                 self._channel = self.conn.channel()
+                exchange = self.CRISALID_EXCHANGE
+                self._channel.exchange_declare(
+                    exchange=exchange, exchange_type="topic", durable=True
+                )
+                queue_name = f"projects.{exchange}"
+                self._channel.queue_declare(queue=queue_name, exclusive=True)
+                self._channel.queue_bind(
+                    exchange=exchange, queue=queue_name, routing_key="#"
+                )
 
-                for queue in CrisalidBusClient.CRISALID_QUEUES:
-                    self._channel.basic_consume(
-                        queue=queue,
-                        auto_ack=True,
-                        on_message_callback=self._dispatch,
-                    )
+                self._channel.basic_consume(
+                    queue=queue_name, on_message_callback=self._dispatch, auto_ack=True
+                )
 
                 logger.info("Start channel Consuming")
                 self._channel.start_consuming()

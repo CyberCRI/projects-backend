@@ -11,6 +11,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.populate import PopulateDocument
 from services.crisalid.utils import timeit
+from services.mistral.models import DocumentEmbedding
 
 
 class Command(BaseCommand):
@@ -28,11 +29,17 @@ class Command(BaseCommand):
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
 
     def delete_crisalid_models(self):
-        models = [Document, DocumentContributor, Identifier, Researcher]
+        models = [
+            DocumentEmbedding,
+            DocumentContributor,
+            Identifier,
+            Researcher,
+            Document,
+        ]
 
         for model in models:
             deleted = model.objects.all().delete()
-            print(f"deleted {model=}: {deleted}")
+            print(f"deleted {model=}: {deleted=}")
 
     def handle(self, **options):
         if options["delete"]:
