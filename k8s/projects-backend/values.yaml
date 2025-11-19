@@ -180,7 +180,7 @@ workflow:
     enabled: false
     name: e2e
     resourceName: e2e
-runMigrations: true
+runMigrations: false
 
 sablier:
   enabled: false
