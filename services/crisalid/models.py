@@ -149,6 +149,8 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
         WORKING_PAPER = "Working Paper"
         UNKNOWN = "Unknown"
 
+    _auto_translated_fields = ["title", "description"]
+
     title = models.TextField()
     description = models.TextField(default="")
     publication_date = models.DateField(blank=False, null=True)
