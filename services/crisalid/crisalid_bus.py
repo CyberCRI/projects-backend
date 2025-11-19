@@ -26,11 +26,13 @@ class CrisalidTypeEnum(enum.StrEnum):
 
 
 class CrisalidEventEnum(enum.StrEnum):
+    """Event from crisalid
+    "unchanged" event is ignored
+    """
+
     UPDATED = "updated"
     CREATED = "created"
     DELETED = "deleted"
-    # we don't use unchaged (no needed)
-    # UNCHANGED = "unchanged"
 
 
 # schema received from crisalid

@@ -1,12 +1,9 @@
 import abc
+from contextlib import suppress
 
 from django.db.models import Model
 
 from .logger import logger
-
-
-class _NOSET: ...
-
 
 # TODO create a new Cache class to optimize save/get with
 # prefetch all model/data needed
@@ -14,13 +11,16 @@ class _NOSET: ...
 
 class BaseCache(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def save(self, instance, *fields): ...
+    def save(self, instance, *fields):
+        """save instance if fields are changed"""
 
     @abc.abstractmethod
-    def save_m2m(self, instance, *fields): ...
+    def save_m2m(self, instance, *fields):
+        """save instance if m2m fields are changed"""
 
     @abc.abstractmethod
-    def model(self, model, *fields): ...
+    def model(self, model, *fields):
+        """get object element from model/fields"""
 
 
 class LiveCache(BaseCache):
@@ -28,8 +28,9 @@ class LiveCache(BaseCache):
         """save obj if field are changed"""
         updated = False
         for field, value in fields.items():
-            if getattr(obj, field, _NOSET) == value:
-                continue
+            with suppress(AttributeError):
+                if getattr(obj, field) == value:
+                    continue
 
             setattr(obj, field, value)
             updated = True
