@@ -16,6 +16,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 
+# https://github.com/CRISalid-esr/crisalid-deployment/blob/6b37862bb27b0e2164666f9e8b049ac3dbf60923/docker/crisalid-bus/definitions.sample.json#L7
 # Event/Type from crisalid https://github.com/CRISalid-esr/crisalid-ikg/tree/dev-main/app/amqp
 class CrisalidTypeEnum(enum.StrEnum):
     PERSON = "person"
@@ -28,7 +29,8 @@ class CrisalidEventEnum(enum.StrEnum):
     UPDATED = "updated"
     CREATED = "created"
     DELETED = "deleted"
-    UNCHANGED = "unchanged"
+    # we don't use unchaged (no needed)
+    # UNCHANGED = "unchanged"
 
 
 # schema received from crisalid
@@ -55,6 +57,16 @@ class CrisalidBusClient:
 
     # queue create by ikg for send messages
     CRISALID_EXCHANGE = "graph"
+    # routing key ikg send event (the * is for listen on all event (updated,created,deleted))
+    CRISALID_ROUTING_KEYS = []
+    for event in CrisalidEventEnum:
+        CRISALID_ROUTING_KEYS.extend(
+            (
+                f"event.people.person.{event.value}",
+                f"event.structures.structure.{event.value}",
+                f"event.documents.document.{event.value}",
+            )
+        )
 
     def __init__(self):
         self.conn: pika.BlockingConnection | None = None
@@ -120,11 +132,12 @@ class CrisalidBusClient:
                 self._channel.exchange_declare(
                     exchange=exchange, exchange_type="topic", durable=True
                 )
-                queue_name = f"projects.{exchange}"
+                queue_name = f"projects-backend.{exchange}"
                 self._channel.queue_declare(queue=queue_name, exclusive=True)
-                self._channel.queue_bind(
-                    exchange=exchange, queue=queue_name, routing_key="#"
-                )
+                for routing_key in self.CRISALID_ROUTING_KEYS:
+                    self._channel.queue_bind(
+                        exchange=exchange, queue=queue_name, routing_key=routing_key
+                    )
 
                 self._channel.basic_consume(
                     queue=queue_name, on_message_callback=self._dispatch, auto_ack=True
@@ -177,10 +190,10 @@ class CrisalidBusClient:
     ):
         """Global callback to get message, and dispatch on every listener"""
 
-        logger.debug("Receive message tag=%r", method.delivery_tag)
+        logger.info("Receive routingkey=%r", method.routing_key)
         logger.debug("body: %s", body)
 
-        # all message sended is json "stringify"
+        # all message sended is json binary "stringify"
         try:
             body_str = body.decode()
             payload = json.loads(body_str)
@@ -265,7 +278,8 @@ def on_event(crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum)
             # if is a task, add correct seriliazer for data
             @wraps(func)
             def _tasks(data):
-                return original_func.apply((data,), serializer="pickle")
+                logger.info("post task celery %s", original_func)
+                return original_func.apply_async((data,))
 
             func = _tasks
         crisalid_bus_client.add_callback(crisalid_type, crisalid_event, func)

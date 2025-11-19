@@ -150,15 +150,18 @@ class PopulateResearcher(AbstractPopulate):
         for iden in data["identifiers"]:
             if iden["type"].lower() != Identifier.Harvester.EPPN.value:
                 continue
+            # filter by eppn
             user = ProjectUser.objects.filter(email=iden["value"]).first()
             if user is not None:
                 return user
 
             # create only user if we have eppn
             given_name, family_name = self.get_names(data)
-            return ProjectUser.objects.create(
+            user = ProjectUser(
                 email=iden["value"], given_name=given_name, family_name=family_name
             )
+            user.save()
+            return user
         return None
 
     def single(self, data: dict) -> Researcher:
