@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 17:59+0200\n"
+"POT-Creation-Date: 2025-11-14 15:29+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,7 +108,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:137 apps/projects/models.py:161
+#: apps/accounts/models.py:141 apps/projects/models.py:161
 msgid "visibility"
 msgstr ""
 
@@ -154,7 +154,7 @@ msgstr ""
 msgid "Unknown publication status '{publication_status}'"
 msgstr ""
 
-#: apps/commons/fields.py:30 apps/skills/serializers.py:107
+#: apps/commons/fields.py:30 apps/skills/serializers.py:114
 msgid "This field is required."
 msgstr ""
 
@@ -163,7 +163,7 @@ msgstr ""
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr ""
 
-#: apps/commons/fields.py:33 apps/skills/serializers.py:112
+#: apps/commons/fields.py:33 apps/skills/serializers.py:119
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
@@ -1272,7 +1272,7 @@ msgstr ""
 msgid "Tag description must be 500 characters or less"
 msgstr ""
 
-#: apps/skills/serializers.py:109
+#: apps/skills/serializers.py:116
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr ""

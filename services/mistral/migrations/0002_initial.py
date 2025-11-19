@@ -9,18 +9,18 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("analytics", "0001_initial"),
-        ("projects", "0001_initial"),
+        ("skills", "0001_initial"),
+        ("mistral", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="stat",
-            name="project",
+            model_name="tagembedding",
+            name="item",
             field=models.OneToOneField(
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name="stat",
-                to="projects.project",
+                related_name="embedding",
+                to="skills.tag",
             ),
         ),
     ]

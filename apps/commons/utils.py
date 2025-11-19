@@ -5,7 +5,7 @@ import itertools
 import re
 import uuid
 from contextlib import suppress
-from typing import List, Optional, Tuple
+from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -17,9 +17,11 @@ from django.db.models import Func, Model, Value
 from django.forms import IntegerField
 from django.urls import reverse
 from PIL import Image as PILImage
-from rest_framework.request import Request
 
 from apps.files.models import Image
+
+if TYPE_CHECKING:
+    from apps.accounts.models import ProjectUser
 
 
 class ArrayPosition(Func):
@@ -50,12 +52,13 @@ class ArrayPosition(Func):
 
 
 def process_text(
-    request: Request,
-    instance: Model,
     text: str,
-    upload_to: str,
-    view: str,
+    instance: Optional[Model] = None,
+    upload_to: Optional[str] = None,
+    view: Optional[str] = None,
+    owner: Optional["ProjectUser"] = None,
     process_template: bool = False,
+    forbid_images: bool = False,
     **kwargs,
 ) -> Tuple[str, List[Image]]:
     """
@@ -67,8 +70,6 @@ def process_text(
 
     Parameters
     ----------
-    request : Request
-        The request object.
     instance : Model
         The instance where the text is located.
     text : str
@@ -79,6 +80,10 @@ def process_text(
         The name of the view to retrieve the image after processing.
     process_template : bool, optional
         Whether to look for images coming from templates, by default False
+    owner : ProjectUser, optional
+        The owner of the instance.
+    forbid_images : bool, optional
+        Whether to forbid images in the text, by default False
     kwargs
         Additional arguments to pass to the view to build the image url
 
@@ -87,36 +92,47 @@ def process_text(
     Tuple[str, List[Image]]
         The processed text and the images to link to the instance.
     """
+    if forbid_images:
+        soup = BeautifulSoup(text, "html.parser")
+        for img in soup.find_all("img"):
+            src = img.get("src", "")
+            if src.startswith("data:image") and ";base64," in src:
+                img.decompose()
+        return str(soup), []
+    if not instance or not upload_to or not view:
+        raise ValueError("instance, upload_to and view parameters are required.")
     if process_template:
         text, template_images = process_template_images(
-            request, text, upload_to, view, **kwargs
+            text, upload_to, view, owner, **kwargs
         )
     else:
         template_images = list()
     unlinked_images = process_unlinked_images(instance, text)
-    text, base_64_images = process_base64_images(
-        request, text, upload_to, view, **kwargs
-    )
+    text, base_64_images = process_base64_images(text, upload_to, view, owner, **kwargs)
     images = list(set(template_images + unlinked_images + base_64_images))
     return text, images
 
 
 def process_base64_images(
-    request: Request, text: str, upload_to: str, view: str, **kwargs
+    text: str,
+    upload_to: str,
+    view: str,
+    owner: Optional["ProjectUser"] = None,
+    **kwargs,
 ) -> Tuple[str, List[Image]]:
     """
     Process base64 images in the text.
 
     Parameters
     ----------
-    request : Request
-        The request object.
     text : str
         The text to process.
     upload_to : str
         The path where the images will be uploaded in the storage.
     view : str
         The name of the view to retrieve the image after processing.
+    owner : ProjectUser, optional
+        The owner of the instance.
     kwargs
         Additional arguments to pass to the view to build the image url
 
@@ -134,7 +150,7 @@ def process_base64_images(
         file = ContentFile(
             base64.b64decode(data[1]), name=str(f"{uuid.uuid4()}.{extension}")
         )
-        image = Image(name=file.name, file=file, owner=request.user)
+        image = Image(name=file.name, file=file, owner=owner)
         image._upload_to = lambda *args: f"{upload_to}{file.name}"  # noqa: B023
         image.save()
         images.append(image)
@@ -146,21 +162,25 @@ def process_base64_images(
 
 
 def process_template_images(
-    request: Request, text: str, upload_to: str, view: str, **kwargs
+    text: str,
+    upload_to: str,
+    view: str,
+    owner: Optional["ProjectUser"] = None,
+    **kwargs,
 ) -> Tuple[str, List[Image]]:
     """
     Process template images in the text.
 
     Parameters
     ----------
-    request : Request
-        The request object.
     text : str
         The text to process.
     upload_to : str
         The path where the images will be uploaded in the storage.
     view : str
         The name of the view to retrieve the image after processing.
+    owner : ProjectUser, optional
+        The owner of the instance.
     kwargs
         Additional arguments to pass to the view to build the image url
 
@@ -186,7 +206,7 @@ def process_template_images(
             )
             with suppress(Image.DoesNotExist):
                 image = Image.objects.get(id=image_id)
-                new_image = image.duplicate(owner=request.user, upload_to=upload_to)
+                new_image = image.duplicate(owner=owner, upload_to=upload_to)
                 if new_image is not None:
                     images.append(new_image)
                     text = text.replace(
