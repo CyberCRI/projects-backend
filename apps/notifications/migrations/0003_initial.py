@@ -10,38 +10,37 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("organizations", "0001_initial"),
-        ("files", "0001_initial"),
+        ("projects", "0001_initial"),
+        ("notifications", "0002_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="organizationattachmentfile",
-            name="organization",
-            field=models.ForeignKey(
-                on_delete=django.db.models.deletion.CASCADE,
-                related_name="attachment_files",
-                to="organizations.organization",
-            ),
-        ),
-        migrations.AddField(
-            model_name="image",
-            name="owner",
+            model_name="notification",
+            name="project",
             field=models.ForeignKey(
                 null=True,
                 on_delete=django.db.models.deletion.CASCADE,
-                related_name="images",
+                to="projects.project",
+            ),
+        ),
+        migrations.AddField(
+            model_name="notification",
+            name="receiver",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="notifications_received",
                 to=settings.AUTH_USER_MODEL,
             ),
         ),
         migrations.AddField(
-            model_name="historicalattachmentlink",
-            name="history_user",
+            model_name="notification",
+            name="sender",
             field=models.ForeignKey(
                 null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="+",
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="notifications_sent",
                 to=settings.AUTH_USER_MODEL,
             ),
         ),

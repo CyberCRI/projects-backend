@@ -131,10 +131,8 @@ INSTALLED_APPS = [
     "apps.emailing",
     "apps.feedbacks",
     "apps.files",
-    "apps.goals",
     "apps.healthcheck",
     "apps.invitations",
-    "apps.misc",
     "apps.newsfeed",
     "apps.notifications",
     "apps.organizations",
@@ -284,8 +282,6 @@ TIME_ZONE = "Europe/Paris"
 
 USE_I18N = True
 
-USE_L10N = True
-
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
@@ -382,30 +378,27 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-# Storage
-DEFAULT_FILE_STORAGE = os.getenv(
-    "DEFAULT_FILE_STORAGE", "django.core.files.storage.FileSystemStorage"
-)
+##############
+#  STORAGES  #
+##############
 
-AWS_S3_ENDPOINT_URL = os.getenv("AWS_S3_ENDPOINT_URL", None)
-AZURE_ACCOUNT_KEY = os.getenv("AZURE_ACCOUNT_KEY", None)
-if AWS_S3_ENDPOINT_URL is not None:
-    DEFAULT_FILE_STORAGE = os.getenv(
-        "DEFAULT_FILE_STORAGE", "storages.backends.s3boto3.S3Boto3Storage"
-    )
-elif AZURE_ACCOUNT_KEY is not None:
-    DEFAULT_FILE_STORAGE = os.getenv(
-        "DEFAULT_FILE_STORAGE", "storages.backends.azure_storage.AzureStorage"
-    )
-AWS_S3_ACCESS_KEY_ID = os.getenv("AWS_S3_ACCESS_KEY_ID", "minioadmin")
-AWS_S3_SECRET_ACCESS_KEY = os.getenv("AWS_S3_SECRET_ACCESS_KEY", "minioadmin")
-AWS_STORAGE_BUCKET_NAME = os.getenv("AWS_STORAGE_BUCKET_NAME", "projects")
-AWS_DEFAULT_ACL = None
-
-AZURE_ACCOUNT_NAME = os.getenv("AZURE_ACCOUNT_NAME", "criparisdevlabprojects")
-AZURE_CONTAINER = os.getenv("AZURE_CONTAINER", "projects")
-AZURE_URL_EXPIRATION_SECS = int(os.getenv("AZURE_URL_EXPIRATION_SECS", "3600"))
-AZURE_CACHE_CONTROL = f"private,max-age={AZURE_URL_EXPIRATION_SECS},must-revalidate"
+STORAGES = {
+    "default": {
+        "BACKEND": os.getenv(
+            "DEFAULT_FILE_STORAGE", "storages.backends.azure_storage.AzureStorage"
+        ),
+        "OPTIONS": {
+            "account_name": os.getenv("AZURE_ACCOUNT_NAME", "criparisdevlabprojects"),
+            "account_key": os.getenv("AZURE_ACCOUNT_KEY", ""),
+            "azure_container": os.getenv("AZURE_CONTAINER", "projects"),
+            "expiration_secs": int(os.getenv("AZURE_URL_EXPIRATION_SECS", "3600")),
+            "cache_control": f"private,max-age={os.getenv('AZURE_URL_EXPIRATION_SECS', '3600')},must-revalidate",
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 ##############
 #   CELERY   #
@@ -636,8 +629,6 @@ STATIC_ROOT = BASE_DIR / "static"
 STATICFILES_DIRS = [
     BASE_DIR / "assets",
 ]
-# Add compression and caching support
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 
 ##############
