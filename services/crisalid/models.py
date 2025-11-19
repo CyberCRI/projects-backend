@@ -182,7 +182,7 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
             self.embedding.save()
         self.embedding.vectorize()
 
-    def similars(self) -> DocumentQuerySet:
+    def similars(self, threshold: float = 0.25) -> DocumentQuerySet:
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
@@ -191,7 +191,7 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
                 .filter(ann_document_type=self.document_type_centralized)
                 .exclude(pk=self.pk)
             )
-            return DocumentEmbedding.vector_search(vector, queryset)
+            return DocumentEmbedding.vector_search(vector, queryset, threshold)
         return Document.objects.none()
 
     def save(self, *ar, **kw):

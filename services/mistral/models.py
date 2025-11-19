@@ -99,15 +99,25 @@ class Embedding(models.Model):
 
     @classmethod
     def vector_search(
-        cls, embedding: list[float], queryset: QuerySet | None = None
+        cls,
+        embedding: list[float],
+        queryset: QuerySet | None = None,
+        thresold: float | None = None,
     ) -> QuerySet:
         queryset = queryset or cls.item.field.related_model.objects
         if not queryset.model == cls.item.field.related_model:
             raise VectorSearchWrongQuerysetError
         related_name = cls.item.field.related_query_name()
-        return queryset.filter(**{f"{related_name}__is_visible": True}).order_by(
-            CosineDistance(f"{related_name}__embedding", embedding)
+
+        qs = (
+            queryset.filter(**{f"{related_name}__is_visible": True})
+            .annotate(cosine=CosineDistance(f"{related_name}__embedding", embedding))
+            .order_by("cosine")
         )
+
+        if thresold is not None:
+            return qs.filter(cosine__lte=thresold)
+        return qs
 
 
 class MistralEmbedding(Embedding):
