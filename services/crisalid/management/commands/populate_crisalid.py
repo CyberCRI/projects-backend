@@ -9,7 +9,7 @@ from services.crisalid.models import (
     Identifier,
     Researcher,
 )
-from services.crisalid.populate import PopulateDocument
+from services.crisalid.populates import PopulateDocument
 from services.crisalid.utils import timeit
 from services.mistral.models import DocumentEmbedding
 

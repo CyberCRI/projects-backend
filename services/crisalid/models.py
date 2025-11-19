@@ -186,13 +186,11 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
-            queryset = (
-                Document.objects.annotate_doctype_centralized()
-                .filter(ann_document_type=self.document_type_centralized)
+            queryset = Document.objects.all()
+            return (
+                DocumentEmbedding.vector_search(vector, queryset, threshold)
+                .filter(document_type__in=self.document_type_centralized)
                 .exclude(pk=self.pk)
-            )
-            return DocumentEmbedding.vector_search(vector, queryset, threshold).exclude(
-                pk=self.pk
             )
         return Document.objects.none()
 

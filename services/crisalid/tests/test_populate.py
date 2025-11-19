@@ -4,7 +4,7 @@ from django import test
 
 from apps.accounts.models import ProjectUser
 from services.crisalid.models import Document, Identifier, Researcher
-from services.crisalid.populate import PopulateDocument, PopulateResearcher
+from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 
 class TestPopulateResearcher(test.TestCase):
