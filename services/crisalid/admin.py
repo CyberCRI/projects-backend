@@ -6,6 +6,7 @@ from .models import Document, Identifier, Researcher
 
 class IdentifierAdmin(admin.ModelAdmin):
     list_display = ("harvester", "value", "get_researcher", "get_documents")
+    search_fields = ("harvester", "value")
 
     def get_queryset(self, request):
         return (
@@ -39,7 +40,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "document_type",
         "contributors__display_name",
         "identifiers__value",
-        "identifier__harvester",
+        "identifiers__harvester",
     )
 
     actions = ["vectorize"]

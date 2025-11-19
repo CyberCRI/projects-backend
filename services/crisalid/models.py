@@ -37,6 +37,8 @@ class Identifier(models.Model):
         ORCID = "orcid"
         LOCAL = "local"
         EPPN = "eppn"
+        DOI = "doi"
+        PMID = "pmid"
 
     harvester = models.CharField(max_length=50, choices=Harvester.choices)
     value = models.CharField(max_length=255)
@@ -180,16 +182,16 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
             self.embedding.save()
         self.embedding.vectorize()
 
-    def similars(self) -> DocumentQuerySet:
+    def similars(self, threshold: float = 0.15) -> DocumentQuerySet:
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
-            queryset = (
-                Document.objects.annotate_doctype_centralized()
-                .filter(ann_document_type=self.document_type_centralized)
+            queryset = Document.objects.all()
+            return (
+                DocumentEmbedding.vector_search(vector, queryset, threshold)
+                .filter(document_type__in=self.document_type_centralized)
                 .exclude(pk=self.pk)
             )
-            return DocumentEmbedding.vector_search(vector, queryset)
         return Document.objects.none()
 
     def save(self, *ar, **kw):
