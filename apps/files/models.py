@@ -10,7 +10,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models, transaction
 from django.db.models import ForeignObjectRel, Model, Q, QuerySet
 from django.utils import timezone
-from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
@@ -20,6 +19,7 @@ from apps.commons.mixins import (
     OrganizationRelated,
     ProjectRelated,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .enums import AttachmentLinkCategory, AttachmentType
 from .utils import resize_and_autorotate
@@ -51,7 +51,7 @@ def attachment_link_preview_path(instance, filename: str):
 
 def user_attachment_link_preview_path(instance, filename: str):
     date_part = f"{datetime.datetime.today():%Y-%m-%d}"
-    return f"user/attachments/{instance.user.pk}/link/preview/{date_part}-{filename}"
+    return f"user/attachments/{instance.owner.pk}/link/preview/{date_part}-{filename}"
 
 
 def organization_attachment_directory_path(
@@ -66,9 +66,11 @@ def attachment_directory_path(instance: "AttachmentFile", filename: str):
     return f"project/attachments/{instance.project.pk}/{instance.attachment_type}/{date_part}-{filename}"
 
 
-def user_attachment_directory_path(instance: "UserAttachmentFile", filename: str):
+def user_attachment_directory_path(
+    instance: "ProjectUserAttachmentFile", filename: str
+):
     date_part = f"{datetime.datetime.today():%Y-%m-%d}"
-    return f"users/attachments/{instance.user.pk}/{instance.attachment_type}/{date_part}-{filename}"
+    return f"users/attachments/{instance.owner.pk}/{instance.attachment_type}/{date_part}-{filename}"
 
 
 class AttachmentLink(
@@ -439,7 +441,7 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
 
     _auto_translated_fields: list[str] = ["title", "description"]
 
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="files"
     )
     attachment_type = models.CharField(
@@ -453,7 +455,7 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
     history = HistoricalRecords()
 
     def get_owner(self):
-        return self.user
+        return self.owner
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
@@ -466,7 +468,7 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
 
     _auto_translated_fields: list[str] = ["title", "description"]
 
-    user = models.ForeignKey(
+    owner = models.ForeignKey(
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="links"
     )
     attachment_type = models.CharField(
@@ -487,7 +489,7 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
     history = HistoricalRecords()
 
     def get_owner(self):
-        return self.user
+        return self.owner
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()

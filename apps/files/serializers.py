@@ -8,6 +8,7 @@ from azure.core.exceptions import AzureError
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.http import QueryDict
+from pytest import ExitCode
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -34,6 +35,8 @@ from .models import (
     AttachmentType,
     Image,
     OrganizationAttachmentFile,
+    ProjectUserAttachmentFile,
+    ProjectUserAttachmentLink,
 )
 
 
@@ -85,41 +88,9 @@ class StdImageField(serializers.ImageField):
         return return_object
 
 
-class AttachmentLinkSerializer(
-    StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
-    ProjectRelatedSerializer,
-    serializers.ModelSerializer,
-):
-    string_images_forbid_fields: List[str] = ["description", "title"]
-
-    project_id = serializers.PrimaryKeyRelatedField(
-        many=False, write_only=True, queryset=Project.objects.all(), source="project"
-    )
+class AbstractAttachmentLink:
     preview_image_url = serializers.URLField(max_length=2048, read_only=True)
     site_name = serializers.CharField(max_length=255, read_only=True)
-
-    class Meta:
-        model = AttachmentLink
-        fields = [
-            "id",
-            "project_id",
-            "attachment_type",
-            "category",
-            "description",
-            "site_url",
-            "preview_image_url",
-            "site_name",
-            "title",
-        ]
-        validators = [
-            UniqueTogetherValidator(
-                queryset=AttachmentLink.objects.all(),
-                fields=["project_id", "site_url"],
-                message="This url is already attached to this project.",
-            )
-        ]
 
     def to_internal_value(self, data):
         query_dict = QueryDict(mutable=True)
@@ -151,6 +122,87 @@ class AttachmentLinkSerializer(
         )
         instance["attachment_type"] = self.find_attachment_type(soup)
 
+    @staticmethod
+    def find_attribute(soup, attr):
+        attribute = soup.find(
+            lambda tag: tag.name == "meta"
+            and (
+                ("name" in tag.attrs and tag.attrs["name"] == f"twitter:{attr}")
+                or ("property" in tag.attrs and tag.attrs["property"] == f"og:{attr}")
+            )
+        )
+        return attribute["content"] if attribute else ""
+
+    def find_site_name(self, soup, url):
+        site_name = self.find_attribute(soup, "site_name")
+        return site_name if site_name != "" else f"{urlparse(url).netloc}"
+
+    def find_preview_image_url(self, soup, url):
+        preview_image_url = self.find_attribute(soup, "image")
+
+        if preview_image_url != "":
+            return preview_image_url
+        try:
+            requests.get(
+                f"{urlparse(url).scheme}://{urlparse(url).netloc}/favicon.ico",
+                timeout=1,
+            )
+            return f"https://api.faviconkit.com/{urlparse(url).netloc}/128"
+        except Exception:  # noqa: PIE786
+            return ""
+
+    @staticmethod
+    def find_attachment_type(soup):
+        if soup.find(
+            lambda tag: (
+                "property" in tag.attrs and tag.attrs["property"] == "og:video:type"
+            )
+        ):
+            return AttachmentType.VIDEO
+        if soup.find(
+            lambda tag: (
+                "property" in tag.attrs and tag.attrs["property"] == "og:image:type"
+            )
+        ):
+            return AttachmentType.IMAGE
+        return AttachmentType.LINK
+
+
+class AttachmentLinkSerializer(
+    StringsImagesSerializer,
+    AbstractAttachmentLink,
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    ProjectRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    string_images_forbid_fields: list[str] = ["description", "title"]
+
+    project_id = serializers.PrimaryKeyRelatedField(
+        many=False, write_only=True, queryset=Project.objects.all(), source="project"
+    )
+
+    class Meta:
+        model = AttachmentLink
+        fields = [
+            "id",
+            "project_id",
+            "attachment_type",
+            "category",
+            "description",
+            "site_url",
+            "preview_image_url",
+            "site_name",
+            "title",
+        ]
+        validators = [
+            UniqueTogetherValidator(
+                queryset=AttachmentLink.objects.all(),
+                fields=["project_id", "site_url"],
+                message="This url is already attached to this project.",
+            )
+        ]
+
     def validate_site_url(self, site_url):
         project_id = None
         if "project_id" in self.initial_data:
@@ -180,51 +232,7 @@ class AttachmentLinkSerializer(
             raise ChangeLinkProjectError
         return project
 
-    @staticmethod
-    def find_attribute(soup, attr):
-        attribute = soup.find(
-            lambda tag: tag.name == "meta"
-            and (
-                ("name" in tag.attrs and tag.attrs["name"] == f"twitter:{attr}")
-                or ("property" in tag.attrs and tag.attrs["property"] == f"og:{attr}")
-            )
-        )
-        return attribute["content"] if attribute else ""
-
-    def find_site_name(self, soup, url):
-        site_name = self.find_attribute(soup, "site_name")
-        return site_name if site_name != "" else f"{urlparse(url).netloc}"
-
-    def find_preview_image_url(self, soup, url):
-        preview_image_url = self.find_attribute(soup, "image")
-        if preview_image_url != "":
-            return preview_image_url
-        try:
-            requests.get(
-                f"{urlparse(url).scheme}://{urlparse(url).netloc}/favicon.ico",
-                timeout=1,
-            )
-            return f"https://api.faviconkit.com/{urlparse(url).netloc}/128"
-        except Exception:  # noqa: PIE786
-            return ""
-
-    @staticmethod
-    def find_attachment_type(soup):
-        if soup.find(
-            lambda tag: (
-                "property" in tag.attrs and tag.attrs["property"] == "og:video:type"
-            )
-        ):
-            return AttachmentType.VIDEO
-        if soup.find(
-            lambda tag: (
-                "property" in tag.attrs and tag.attrs["property"] == "og:image:type"
-            )
-        ):
-            return AttachmentType.IMAGE
-        return AttachmentType.LINK
-
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
             return self.validated_data["project"].get_related_organizations()
@@ -234,7 +242,7 @@ class AttachmentLinkSerializer(
 class OrganizationAttachmentFileSerializer(
     StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
-    string_images_forbid_fields: List[str] = ["description", "title"]
+    string_images_forbid_fields: list[str] = ["description", "title"]
 
     file = serializers.FileField()
     hashcode = serializers.CharField(write_only=True, required=False)
@@ -286,7 +294,7 @@ class AttachmentFileSerializer(
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["description", "title"]
+    string_images_forbid_fields: list[str] = ["description", "title"]
 
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -351,7 +359,7 @@ class AttachmentFileSerializer(
             raise FileTooLargeError
         return file
 
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
             return self.validated_data["project"].get_related_organizations()
@@ -393,7 +401,7 @@ class ImageSerializer(serializers.ModelSerializer):
             raise FileTooLargeError
         return file
 
-    def get_url(self, image: Image) -> Optional[str]:
+    def get_url(self, image: Image) -> str | None:
         try:
             url = image.file.url
         except AttributeError:
@@ -420,3 +428,32 @@ class ImageSerializer(serializers.ModelSerializer):
                 "left": None,
                 "top": None,
             }
+
+
+class ProjectUserAttachmentLinkSerializer(
+    AbstractAttachmentLink, AutoTranslatedModelSerializer
+):
+    class Meta:
+        model = ProjectUserAttachmentLink
+        fields = "__all__"
+        validators = [
+            UniqueTogetherValidator(
+                queryset=ProjectUserAttachmentLink.objects.all(),
+                fields=["owner", "site_url"],
+                message="This url is already attached to this user.",
+            )
+        ]
+
+
+class ProjectUserAttachmentFileSerializer(AutoTranslatedModelSerializer):
+    file = serializers.FileField()
+
+    class Meta:
+        model = ProjectUserAttachmentFile
+        fields = "__all__"
+
+    def validate_file(self, file):
+        limit = settings.MAX_FILE_SIZE * 1024 * 1024
+        if file.size > limit:
+            raise FileTooLargeError
+        return file

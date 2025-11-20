@@ -1,5 +1,6 @@
 from abc import abstractmethod
-from typing import Any, Callable, Dict
+from collections.abc import Callable
+from typing import Any
 
 from django.db import transaction
 from django.db.models import QuerySet
@@ -13,8 +14,14 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
+from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.permissions import ReadOnly
+from apps.commons.permissions import (
+    IsAuthenticatedOrCreateOnly,
+    IsOwner,
+    ReadOnly,
+    WillBeOwner,
+)
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.models import Organization
@@ -23,12 +30,21 @@ from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
 
 from .exceptions import ProtectedImageError
-from .models import AttachmentFile, AttachmentLink, Image, OrganizationAttachmentFile
+from .models import (
+    AttachmentFile,
+    AttachmentLink,
+    Image,
+    OrganizationAttachmentFile,
+    ProjectUserAttachmentFile,
+    ProjectUserAttachmentLink,
+)
 from .serializers import (
     AttachmentFileSerializer,
     AttachmentLinkSerializer,
     ImageSerializer,
     OrganizationAttachmentFileSerializer,
+    ProjectUserAttachmentFileSerializer,
+    ProjectUserAttachmentLinkSerializer,
 )
 
 
@@ -153,7 +169,7 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
 
         return self.upload_to
 
-    def validate_image(self, data: Dict[str, Any]):
+    def validate_image(self, data: dict[str, Any]):
         """Allows to modify the image before saving it.
 
         For more information about the `ImageFile` object, see:
@@ -192,11 +208,7 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
     )
     def create(self, request, *args, **kwargs):
         """Allows the upload of images."""
-        data = {
-            "file": request.data["file"],
-            "name": request.data["file"]._name,
-            **{k: v for k, v in request.data.items() if k != "file"},
-        }
+        data = {**request.data, "user": request.user}
         self.validate_image(data)
         image = Image(**data)
         image._upload_to = self.get_upload_to()
@@ -215,3 +227,42 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
             relation = self.get_relation(image)
             raise ProtectedImageError(relation)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProjectUserAttachmentLinkViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectUserAttachmentLinkSerializer
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    permission_classes = [IsOwner | WillBeOwner | ReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return ProjectUserAttachmentLink.objects.filter(
+            owner__pk=self.kwargs["user_id"]
+        )
+
+    def create(self, request, *ar, **kw):
+        request.data["owner"] = int(self.kwargs["user_id"])
+        return super().create(request, *ar, **kw)
+
+
+class ProjectUserAttachmentFileViewSet(viewsets.ModelViewSet):
+    serializer_class = ProjectUserAttachmentFileSerializer
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    permission_classes = [IsOwner | WillBeOwner | ReadOnly]
+
+    def get_queryset(self) -> QuerySet:
+        return ProjectUserAttachmentFile.objects.filter(
+            owner__pk=self.kwargs["user_id"]
+        )
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter("Content-Disposition", location=OpenApiParameter.HEADER)
+        ],
+        request=OpenApiTypes.BINARY,
+        responses={201: ProjectUserAttachmentFileSerializer},
+    )
+    def create(self, request, *ar, **kw):
+        request.data["owner"] = int(self.kwargs["user_id"])
+        return super().create(request, *ar, **kw)
