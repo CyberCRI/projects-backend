@@ -311,7 +311,6 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
         }
         ```
         """
-
         mock_translate.side_effect = self.translator_side_effect
 
         # Mark all fields as up to date to remove noise
@@ -397,10 +396,11 @@ class MiscTranslationTestCase(MockTranslateTestCase):
             auto_translate_content=True, languages=["fr", "en"]
         )
 
-    def test_safe_translation_with_base64_image(self):
+    @patch("azure.ai.translation.text.TextTranslationClient.translate")
+    def test_safe_translation_with_base64_image(self, mock_translate):
+        mock_translate.side_effect = self.translator_side_effect
 
         text = f"<div>{self.get_base64_image()}</div>"
-
         project = ProjectFactory(organizations=[self.organization], description=text)
         field = AutoTranslatedField.objects.get(
             content_type=ContentType.objects.get_for_model(Project),
@@ -408,13 +408,8 @@ class MiscTranslationTestCase(MockTranslateTestCase):
             field_name="description",
         )
 
-        with self.assertRaises(ValueError) as context:
-            update_auto_translated_field(field)
-
-        self.assertIn(
-            "Content contains base64 encoded images which cannot be translated.",
-            str(context.exception),
-        )
+        update_auto_translated_field(field)
+        mock_translate.assert_has_calls([])
 
     @patch("azure.ai.translation.text.TextTranslationClient.translate")
     def test_split_content_html(self, mock_translate):
@@ -425,11 +420,11 @@ class MiscTranslationTestCase(MockTranslateTestCase):
         project.images.add(image)
         image_path = reverse("Project-images-detail", args=(project.id, image.id))
         description = [
-            f"<p>{faker.sentence()}</p>",
+            f"<p>{faker.sentence()}</p>",  # One call for this chunk
             f'<img alt="alt" src="{image_path}"/>',
-            f"<p>{faker.sentence()}</p>",
+            f"<p>{'a' * 30000}</p>",  # Two calls for this chunk
             f'<p><img alt="alt" src="{image_path}"/></p>',
-            f"<p>{faker.sentence()}</p>",
+            f"<p>{'b' * 50000}</p>",  # Chunk too large, not translated
         ]
         project.description = "".join(description)
         project.save()
@@ -446,22 +441,24 @@ class MiscTranslationTestCase(MockTranslateTestCase):
                     to_language={str(lang) for lang in self.organization.languages},
                     text_type="html",
                 ),
-                call(
-                    body=[str(description[2])],
-                    to_language={str(lang) for lang in self.organization.languages},
-                    text_type="html",
-                ),
-                call(
-                    body=[str(description[4])],
-                    to_language={str(lang) for lang in self.organization.languages},
-                    text_type="html",
-                ),
+                *[
+                    call(
+                        body=[str(description[2])],
+                        to_language={str(lang)},
+                        text_type="html",
+                    )
+                    for lang in self.organization.languages
+                ],
             ],
-            any_order=False,
+            any_order=True,
         )
         project.refresh_from_db()
         for lang in self.organization.languages:
             self.assertEqual(
                 getattr(project, f"description_{lang}"),
-                f"{lang} : {description[0]}{description[1]}{lang} : {description[2]}{description[3]}{lang} : {description[4]}",
+                f"{lang} : {description[0]}"
+                f"{description[1]}"
+                f"{lang} : {description[2]}"
+                f"{description[3]}"
+                f"{description[4]}",
             )
