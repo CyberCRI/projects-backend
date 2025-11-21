@@ -75,3 +75,5 @@ OPENSEARCH_DSL_SIGNAL_PROCESSOR = (
     "django_opensearch_dsl.signals.RealTimeSignalProcessor"
 )
 OPENSEARCH_INDEX_PREFIX = "proj-test"
+
+ENABLE_CRISALID_BUS = False

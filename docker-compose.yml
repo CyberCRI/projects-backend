@@ -94,6 +94,9 @@ services:
       - redis
     environment:
       DJANGO_SETTINGS_MODULE: projects.settings.local
+      ENABLE_CRISALID_BUS: false
+    volumes:
+      - .:/app
 
   opensearch-node:
     image: opensearchproject/opensearch:latest
