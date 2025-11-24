@@ -21,7 +21,7 @@ django-redis = "^5.2.0"
 # See https://github.com/jazzband/django-simple-history/issues/399
 django-simple-history = { git = "https://github.com/thijskramer/django-simple-history.git", branch = "m2m-support" }
 django-stdimage = "^6.0.2"
-django-storages = { extras = ["azure"], version = "^1.11.1" }
+django-storages = { extras = ["azure"], version = "^1.14.6" }
 djangorestframework = "^3.15.2"
 djangorestframework-simplejwt = "^5.5.1"
 drf-recaptcha = "^2.0.7"
