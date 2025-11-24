@@ -20,6 +20,7 @@ from services.crisalid.models import (
     Document,
     DocumentContributor,
     DocumentTypeCentralized,
+    Identifier,
     Researcher,
 )
 from services.crisalid.serializers import (
@@ -207,7 +208,23 @@ class PublicationViewSet(AbstractDocumentViewSet):
                 type=str,
             )
         ]
-    )
+    ),
+    search=extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="harvester",
+                description="harvester name",
+                required=True,
+                enum=Identifier.Harvester,
+            ),
+            OpenApiParameter(
+                name="values",
+                description="harvester name",
+                required=True,
+                type=str,
+            ),
+        ]
+    ),
 )
 class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
@@ -216,3 +233,34 @@ class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = (
         Researcher.objects.all().prefetch_related("identifiers").select_related("user")
     )
+
+    @action(
+        detail=False,
+        methods=[HTTPMethod.GET],
+        url_path="search",
+    )
+    def search(self, request, *args, **kwargs):
+        qs = self.get_queryset()
+
+        request.query_params.get("")
+
+        harvester_values = request.query_params["values"].split(",")
+        harvester = request.query_params["harvester"]
+        qs = qs.filter(
+            identifiers__harvester=harvester, identifiers__value__in=harvester_values
+        )
+
+        queryset_page = self.paginate_queryset(qs)
+        data = self.serializer_class(
+            queryset_page, many=True, context={"request": request}
+        ).data
+        final = {}
+        for user in data:
+            for identifier in user["identifiers"]:
+                if (
+                    identifier["harvester"] == harvester
+                    and identifier["value"] in harvester_values
+                ):
+                    final[identifier["value"]] = user
+
+        return self.get_paginated_response(final)
