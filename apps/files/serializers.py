@@ -1,6 +1,6 @@
 import hashlib
 import re
-from typing import List, Optional
+from typing import Optional
 from urllib.parse import urlparse
 
 import requests
@@ -8,7 +8,6 @@ from azure.core.exceptions import AzureError
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.http import QueryDict
-from pytest import ExitCode
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
 
@@ -88,7 +87,7 @@ class StdImageField(serializers.ImageField):
         return return_object
 
 
-class AbstractAttachmentLink:
+class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
     preview_image_url = serializers.URLField(max_length=2048, read_only=True)
     site_name = serializers.CharField(max_length=255, read_only=True)
 
@@ -431,7 +430,8 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ProjectUserAttachmentLinkSerializer(
-    AbstractAttachmentLink, AutoTranslatedModelSerializer
+    AbstractAttachmentLink,
+    AutoTranslatedModelSerializer,
 ):
     class Meta:
         model = ProjectUserAttachmentLink

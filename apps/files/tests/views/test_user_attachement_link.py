@@ -14,6 +14,7 @@ faker = Faker()
 
 
 class CreateProjectUserAttachmentLinkTestCase(JwtAPITestCase):
+
     @patch.object(ProjectUserAttachmentLinkSerializer, "get_url_response")
     def test_create_attachment_link(self, mocked):
         mocked_response = MockResponse()
@@ -30,7 +31,6 @@ class CreateProjectUserAttachmentLinkTestCase(JwtAPITestCase):
             data=payload,
         )
         content = response.json()
-        raise ValueError(content)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content["attachment_type"], "link")
         self.assertEqual(content["site_url"], payload["site_url"])
