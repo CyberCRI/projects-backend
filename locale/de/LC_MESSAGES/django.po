@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-10-22 17:59+0200\n"
+"POT-Creation-Date: 2025-11-25 13:27+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2966,6 +2966,14 @@ msgstr "Diese Sprache wird nicht unterstützt"
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "Die Sprache {language} wird nicht unterstützt"
+
+#: templates/admin/base.html:16
+msgid "Copyright"
+msgstr "Urheberrecht"
+
+#: templates/admin/base.html:16
+msgid "All rights reserved."
+msgstr "Alle Rechte vorbehalten."
 
 #~ msgid "main category"
 #~ msgstr "Hauptkategorie"
