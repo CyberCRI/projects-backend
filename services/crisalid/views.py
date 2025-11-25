@@ -20,6 +20,7 @@ from services.crisalid.models import (
     Document,
     DocumentContributor,
     DocumentTypeCentralized,
+    Identifier,
     Researcher,
 )
 from services.crisalid.serializers import (
@@ -203,6 +204,7 @@ class ConferenceViewSet(AbstractDocumentViewSet):
 
 @extend_schema_view(
     list=extend_schema(
+        description="return paginated list of researcher.",
         parameters=[
             OpenApiParameter(
                 name="user_id",
@@ -210,8 +212,27 @@ class ConferenceViewSet(AbstractDocumentViewSet):
                 required=False,
                 type=str,
             )
-        ]
-    )
+        ],
+    ),
+    search=extend_schema(
+        description="return paginated object of researcher filtered by harvester type/values",
+        parameters=[
+            OpenApiParameter(
+                name="harvester",
+                description="harvester name",
+                required=True,
+                enum=Identifier.Harvester,
+                examples="idref",
+            ),
+            OpenApiParameter(
+                name="values",
+                description="harvester value separate by comas.",
+                required=True,
+                type=str,
+                examples="58894,54545,4454",
+            ),
+        ],
+    ),
 )
 class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
@@ -220,3 +241,33 @@ class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = (
         Researcher.objects.all().prefetch_related("identifiers").select_related("user")
     )
+
+    @action(
+        detail=False,
+        methods=[HTTPMethod.GET],
+        url_path="search",
+    )
+    def search(self, request, *args, **kwargs):
+        """Method to search researchers by harvester type and multiple harvesters value"""
+        qs = self.get_queryset()
+
+        harvester_values = request.query_params.get("values").split(",")
+        harvester = request.query_params.get("harvester")
+        qs = qs.filter(
+            identifiers__harvester=harvester, identifiers__value__in=harvester_values
+        )
+
+        queryset_page = self.paginate_queryset(qs)
+        data = self.serializer_class(
+            queryset_page, many=True, context={"request": request}
+        ).data
+        final = {}
+        for user in data:
+            for identifier in user["identifiers"]:
+                if (
+                    identifier["harvester"] == harvester
+                    and identifier["value"] in harvester_values
+                ):
+                    final[identifier["value"]] = user
+
+        return self.get_paginated_response(final)

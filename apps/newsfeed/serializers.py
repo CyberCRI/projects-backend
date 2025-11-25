@@ -1,9 +1,14 @@
+from typing import Any, Dict
+
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup
 from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
-from apps.commons.serializers import OrganizationRelatedSerializer
+from apps.commons.serializers import (
+    OrganizationRelatedSerializer,
+    StringsImagesSerializer,
+)
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
@@ -19,10 +24,16 @@ from .models import Event, Instruction, News, Newsfeed
 
 
 class NewsSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields = ["content"]
+    string_images_forbid_fields = ["title"]
+    string_images_upload_to: str = "news/images/"
+    string_images_view: str = "News-images-detail"
+
     header_image = ImageSerializer(read_only=True)
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
@@ -63,12 +74,27 @@ class NewsSerializer(
                 raise NewsPeopleGroupOrganizationError
         return value
 
+    def get_string_images_kwargs(
+        self, instance: News, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {
+            "organization_code": instance.organization.code,
+            "news_id": instance.id,
+        }
+
 
 class InstructionSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields = ["content"]
+    string_images_forbid_fields = ["title"]
+    string_images_upload_to: str = "instructions/images/"
+    string_images_view: str = "Instruction-images-detail"
+
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -109,6 +135,15 @@ class InstructionSerializer(
                 raise InstructionPeopleGroupOrganizationError
         return value
 
+    def get_string_images_kwargs(
+        self, instance: Instruction, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {
+            "organization_code": instance.organization.code,
+            "instruction_id": instance.id,
+        }
+
 
 class NewsfeedSerializer(serializers.ModelSerializer):
     project = ProjectLightSerializer(many=False, read_only=True)
@@ -130,10 +165,16 @@ class NewsfeedSerializer(serializers.ModelSerializer):
 
 
 class EventSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields = ["content"]
+    string_images_forbid_fields = ["title"]
+    string_images_upload_to: str = "events/images/"
+    string_images_view: str = "Event-images-detail"
+
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -160,3 +201,12 @@ class EventSerializer(
             if group.organization.code != self.context.get("organization_code"):
                 raise EventPeopleGroupOrganizationError
         return value
+
+    def get_string_images_kwargs(
+        self, instance: Instruction, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {
+            "organization_code": instance.organization.code,
+            "event_id": instance.id,
+        }

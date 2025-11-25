@@ -85,7 +85,7 @@ class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
@@ -139,7 +139,7 @@ class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     owner = models.ForeignKey(
         "accounts.ProjectUser",
@@ -204,7 +204,7 @@ class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    auto_translated_fields: List[str] = ["title", "content"]
+    _auto_translated_fields: List[str] = ["title", "html:content"]
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")

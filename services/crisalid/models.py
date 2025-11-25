@@ -149,7 +149,7 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
         WORKING_PAPER = "Working Paper"
         UNKNOWN = "Unknown"
 
-    auto_translated_fields = ["title", "description"]
+    _auto_translated_fields = ["title", "description"]
 
     title = models.TextField()
     description = models.TextField(default="")

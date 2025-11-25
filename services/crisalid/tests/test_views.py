@@ -2,14 +2,14 @@ import datetime
 
 from django import test
 from django.urls import reverse
+from rest_framework import status
 
-from services.crisalid.models import (
-    Document,
-    DocumentContributor,
-    DocumentTypeCentralized,
-    Identifier,
-    Researcher,
+from services.crisalid.factories import (
+    DocumentContributorFactory,
+    DocumentFactory,
+    ResearcherFactory,
 )
+from services.crisalid.models import DocumentTypeCentralized
 
 PUBLICATION_TYPE = DocumentTypeCentralized.publications[0]
 
@@ -19,72 +19,40 @@ class TestDocumentView(test.TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
 
-        cls.researcher = Researcher.objects.create(display_name="james bond")
-        cls.researcher_2 = Researcher.objects.create(display_name="ethan hunt")
-
-        cls.researcher.identifiers.add(
-            Identifier.objects.create(
-                value="hal", harvester=Identifier.Harvester.HAL.value
-            )
-        )
-        cls.researcher_2.identifiers.add(
-            Identifier.objects.create(
-                value="hal2", harvester=Identifier.Harvester.HAL.value
-            )
-        )
+        cls.researcher = ResearcherFactory()
+        cls.researcher_2 = ResearcherFactory()
 
         # only for researcher 1
         for i in range(10):
-            publi = Document.objects.create(
-                title=f"title {i}",
-                publication_date=datetime.datetime(1990 + i, 1, 1).date(),
+            document = DocumentFactory(
                 document_type=PUBLICATION_TYPE,
+                publication_date=datetime.datetime(1990 + i, 1, 1).date(),
             )
-            publi.identifiers.add(
-                Identifier.objects.create(
-                    value=f"hal-doc 1 {i}",
-                    harvester=Identifier.Harvester.HAL.value,
-                )
-            )
-            DocumentContributor.objects.create(
-                researcher=cls.researcher, document=publi, roles=["authors"]
+            DocumentContributorFactory(
+                document=document, researcher=cls.researcher, roles=["authors"]
             )
 
         # only for researcher 2
         for i in range(5):
-            publi = Document.objects.create(
-                title=f"title {i}",
-                publication_date=datetime.datetime(1990 + i, 1, 1).date(),
+            document = DocumentFactory(
                 document_type=PUBLICATION_TYPE,
+                publication_date=datetime.datetime(1990 + i, 1, 1).date(),
             )
-            publi.identifiers.add(
-                Identifier.objects.create(
-                    value=f"hal-doc 2 {i}",
-                    harvester=Identifier.Harvester.HAL.value,
-                )
-            )
-            DocumentContributor.objects.create(
-                researcher=cls.researcher_2, document=publi, roles=["authors"]
+            DocumentContributorFactory(
+                document=document, researcher=cls.researcher_2, roles=["authors"]
             )
 
         # for both
         for i in range(2):
-            publi = Document.objects.create(
-                title=f"title {i}",
-                publication_date=datetime.datetime(1990 + i, 1, 1).date(),
+            document = DocumentFactory(
                 document_type=PUBLICATION_TYPE,
+                publication_date=datetime.datetime(1990 + i, 1, 1).date(),
             )
-            publi.identifiers.add(
-                Identifier.objects.create(
-                    value=f"hal-doc common {i}",
-                    harvester=Identifier.Harvester.HAL.value,
-                )
+            DocumentContributorFactory(
+                document=document, researcher=cls.researcher, roles=["authors"]
             )
-            DocumentContributor.objects.create(
-                researcher=cls.researcher, document=publi, roles=["authors"]
-            )
-            DocumentContributor.objects.create(
-                researcher=cls.researcher_2, document=publi, roles=["authors"]
+            DocumentContributorFactory(
+                document=document, researcher=cls.researcher_2, roles=["authors"]
             )
 
     def test_get_publications(self):
@@ -147,3 +115,60 @@ class TestDocumentView(test.TestCase):
             ],
         }
         self.assertEqual(data["years"], expected["years"])
+
+
+class TestResearcherView(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+
+        cls.researcher = ResearcherFactory()
+        cls.researcher_2 = ResearcherFactory()
+
+    def test_get_list(self):
+        response = self.client.get(reverse("Researcher-list"))
+
+        data = response.json()
+        researcher_ids = sorted(researcher["id"] for researcher in data["results"])
+        expected = sorted((self.researcher.id, self.researcher_2.id))
+        self.assertSequenceEqual(researcher_ids, expected)
+
+    def test_get_detail(self):
+        response = self.client.get(
+            reverse("Researcher-detail", args=(self.researcher.id,))
+        )
+
+        researcher = response.json()
+        self.assertEqual(researcher["id"], self.researcher.id)
+
+    def test_get_detail_not_know(self):
+        response = self.client.get(reverse("Researcher-detail", args=(666,)))
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_search_not_found(self):
+        response = self.client.get(
+            reverse("Researcher-search"),
+            # data is queryparams
+            data={"harvester": "idref", "values": "6666666"},
+        )
+
+        data = response.json()
+        expected = {}
+        self.assertEqual(data["results"], expected)
+
+    def test_search_found(self):
+        identifier = self.researcher.identifiers.first()
+        response = self.client.get(
+            reverse("Researcher-search"),
+            # data is queryparams
+            data={
+                "harvester": identifier.harvester,
+                "values": identifier.value,
+            },
+        )
+
+        data = response.json()
+        results = data["results"]
+
+        self.assertEqual(results[identifier.value]["id"], self.researcher.id)
