@@ -8,12 +8,11 @@ from apps.commons.mixins import OrganizationRelated
 from .interface import AzureTranslatorService
 from .models import AutoTranslatedField
 
+AZURE_MAX_LENGTH = 50000
+
 
 def split_content(
-    content: str,
-    languages: list[str],
-    max_length: int = 50000,
-    text_type: str = "plain",
+    content: str, max_length: int, text_type: str = "plain"
 ) -> Union[List[str], List[BeautifulSoup]]:
     """
     Split content into chunks of max_length, trying to split at html tags.
@@ -31,7 +30,6 @@ def split_content(
         soup = BeautifulSoup(content, "html.parser")
         return soup.find_all(recursive=False)
 
-    max_length = int(max_length // (len(languages) * 1.2))  # Safety margin
     if len(content) <= max_length:
         return [content]
     chunks = []
@@ -53,15 +51,6 @@ def update_auto_translated_field(field: AutoTranslatedField):
     instance = field.instance
     field_name = field.field_name
     content = getattr(instance, field_name, "")
-    if re.findall(r'data:image\/[a-zA-Z]+;base64,[^"\']+', content):
-        raise ValueError(
-            "Content contains base64 encoded images which cannot be translated."
-        )
-    if len(content) > 100000:
-        raise ValueError(
-            f"Content length for field {field_name} exceeds 100 000 characters. "
-            "Automatic translation cannot be performed."
-        )
     if not isinstance(instance, OrganizationRelated):
         raise ValueError(
             f"{instance._meta.model.__name__} does not support translations. "
@@ -74,25 +63,44 @@ def update_auto_translated_field(field: AutoTranslatedField):
         dict.fromkeys([lang for org in organizations for lang in org.languages])
     )
     if languages:
+        base_max_length = AZURE_MAX_LENGTH * 0.8  # Safety margin
+        max_length = int(base_max_length // len(languages))
         if content:
-            chunks = split_content(content, languages, text_type=field.field_type)
+            chunks = split_content(content, max_length, text_type=field.field_type)
             translations = {}
-            detected_language = None
+            detected_languages = []
             for chunk in chunks:
-                # If HTML, skip translation for tags with no text content (empty or whitespace only)
-                if field.field_type == "html" and (
-                    not str(chunk).strip() or not chunk.get_text(strip=True)
-                ):
-                    chunk_translations, detected_language = (
-                        [{"to": lang, "text": str(chunk)} for lang in languages],
-                        detected_language,
-                    )
+                if (
+                    field.field_type == "html"
+                    and (not str(chunk).strip() or not chunk.get_text(strip=True))
+                ) or (re.findall(r'data:image\/[a-zA-Z]+;base64,[^"\']+', content)):
+                    chunk_translations = [
+                        {"to": lang, "text": str(chunk)} for lang in languages
+                    ]
                 else:
-                    chunk_translations, detected_language = (
-                        AzureTranslatorService.translate_text_content(
-                            str(chunk), languages, field.field_type
+                    chunk = str(chunk)
+                    if len(chunk) <= max_length:
+                        chunk_translations, detected_language = (
+                            AzureTranslatorService.translate_text_content(
+                                str(chunk), languages, field.field_type
+                            )
                         )
-                    )
+                        detected_languages.append(detected_language)
+                    elif len(chunk) < base_max_length:
+                        for lang in languages:
+                            lang_chunk_translation, detected_language = (
+                                AzureTranslatorService.translate_text_content(
+                                    str(chunk), [lang], field.field_type
+                                )
+                            )
+                            chunk_translations.append(
+                                {"to": lang, "text": lang_chunk_translation[0]["text"]}
+                            )
+                            detected_languages.append(detected_language)
+                    else:
+                        chunk_translations = [
+                            {"to": lang, "text": str(chunk)} for lang in languages
+                        ]
                 translations = {
                     f"{field_name}_{translation['to']}": (
                         translations.get(f"{field_name}_{translation['to']}", "")
@@ -100,8 +108,12 @@ def update_auto_translated_field(field: AutoTranslatedField):
                     )
                     for translation in chunk_translations
                 }
+            # Use the most common detected language among chunks
+            if detected_languages:
+                detected_language = max(
+                    set(detected_languages), key=detected_languages.count
+                )
                 translations[f"{field_name}_detected_language"] = detected_language
-            translations[f"{field_name}_detected_language"] = detected_language
         else:
             translations = {f"{field_name}_{lang}": content for lang in languages}
         instance._meta.model.objects.filter(pk=instance.pk).update(**translations)

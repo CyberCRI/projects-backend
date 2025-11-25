@@ -19,6 +19,7 @@ config:
     DEBUG: "False"
     FORCE_CLEAN_DB_CACHE: "True"
     FORCE_GARBAGE_COLLECT: "True"
+    CRISALID_API_URL: http://apollo.crisalid
 
 workflow:
   lifecycle:
