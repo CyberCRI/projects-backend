@@ -99,8 +99,9 @@ ALLOWED_HOSTS = [
 # Application definition
 INSTALLED_APPS = [
     "jazzmin",
+    # extra admins
+    "projects.admin.ExtraAdminConfig",
     # built-in
-    "django.contrib.admin",
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "django.contrib.messages",

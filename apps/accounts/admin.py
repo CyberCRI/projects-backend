@@ -8,12 +8,12 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportActionMixin  # type: ignore
+from services.keycloak.interface import KeycloakService
 
 from apps.commons.admin import RoleBasedAccessAdmin
 from apps.emailing.models import Email
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.keycloak.interface import KeycloakService
 
 from .exports import UserResource
 from .models import PeopleGroup, ProjectUser
