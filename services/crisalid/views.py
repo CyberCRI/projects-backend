@@ -212,20 +212,72 @@ class PublicationViewSet(AbstractDocumentViewSet):
     ),
     search=extend_schema(
         description="return paginated object of researcher filtered by harvester type/values",
+        examples=[
+            OpenApiExample(
+                name="idref",
+                description="results with harvester=idref",
+                value={
+                    "443959954": {
+                        "id": 33,
+                        "display_name": "marty macfly",
+                        "user": "...",
+                    },
+                    "945584949": {
+                        "id": 42,
+                        "display_name": "Hubert Bonisseur de La Bath",
+                        "user": "...",
+                    },
+                },
+            ),
+            OpenApiExample(
+                name="eppn",
+                description="results with harvester=eppn",
+                value={
+                    "marty.macfly@sorbonne.fr": {
+                        "id": 33,
+                        "display_name": "marty macfly",
+                        "user": "...",
+                    },
+                    "Hubert.BonisseurdeLaBath@dgse.fr": {
+                        "id": 42,
+                        "display_name": "Hubert Bonisseur de La Bath",
+                        "user": "...",
+                    },
+                },
+            ),
+        ],
         parameters=[
             OpenApiParameter(
                 name="harvester",
                 description="harvester name",
                 required=True,
                 enum=Identifier.Harvester,
-                examples="idref",
+                examples=[
+                    OpenApiExample(
+                        "eppn",
+                        value="eppn",
+                    ),
+                    OpenApiExample(
+                        "idref",
+                        value="idref",
+                    ),
+                ],
             ),
             OpenApiParameter(
                 name="values",
                 description="harvester value separate by comas.",
                 required=True,
                 type=str,
-                examples="58894,54545,4454",
+                examples=[
+                    OpenApiExample(
+                        "eppn",
+                        value="marty.macfly@sorbonne.fr,Hubert.BonisseurdeLaBath@dgse.fr",
+                    ),
+                    OpenApiExample(
+                        "idref",
+                        value="0984045,049585804,4559932",
+                    ),
+                ],
             ),
         ],
     ),
