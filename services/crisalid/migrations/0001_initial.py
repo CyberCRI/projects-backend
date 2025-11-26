@@ -6,6 +6,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.db.models.functions.text
 import services.translator.mixins
+import services.crisalid.models
 
 
 class Migration(migrations.Migration):
@@ -132,7 +133,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "roles",
-                    django.contrib.postgres.fields.ArrayField(
+                    services.crisalid.models.ChoiceArrayField(
                         base_field=models.CharField(
                             choices=[
                                 ("FMO", "former owner"),
