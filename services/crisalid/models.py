@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+from django import forms
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
@@ -9,6 +10,29 @@ from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
 
 from .manager import DocumentQuerySet
+
+
+class ChoiceArrayField(ArrayField):
+    """
+    A field that allows us to store an array of choices.
+    Uses Django's Postgres ArrayField
+    and a MultipleChoiceField for its formfield.
+    https://gist.github.com/danni/f55c4ce19598b2b345ef
+    """
+
+    class TypedMultipleChoiceField(forms.TypedMultipleChoiceField):
+        def __init__(self, *args, **kwargs):
+            kwargs.pop("base_field", None)
+            kwargs.pop("max_length", None)
+            super().__init__(*args, **kwargs)
+
+    def formfield(self, **kwargs):
+        defaults = {
+            "form_class": ChoiceArrayField.TypedMultipleChoiceField,
+            "choices": self.base_field.choices,
+            "coerce": self.base_field.to_python,
+        } | kwargs
+        return super(ArrayField, self).formfield(**defaults)
 
 
 class CrisalidDataModel(models.Model):
@@ -77,7 +101,7 @@ class Researcher(CrisalidDataModel):
 
 
 class DocumentContributor(models.Model):
-    roles = ArrayField(
+    roles = ChoiceArrayField(
         models.CharField(max_length=255, choices=relators.choices), default=list
     )
     document = models.ForeignKey("crisalid.Document", on_delete=models.CASCADE)
