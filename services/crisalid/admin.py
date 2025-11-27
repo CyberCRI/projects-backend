@@ -1,7 +1,10 @@
+from contextlib import suppress
+
 from django.contrib import admin
 from django.db.models import Count
 
 from apps.accounts.models import ProjectUser
+from apps.organizations.models import Organization
 
 from .models import Document, DocumentContributor, Identifier, Researcher
 
@@ -120,7 +123,9 @@ class ResearcherAdmin(admin.ModelAdmin):
                 if identifier.harvester != Identifier.Harvester.EPPN.value:
                     continue
 
-                user = ProjectUser.objects.filter(email=identifier.value)
+                user = None
+                with suppress(ProjectUser.DoesNotExist):
+                    user = ProjectUser.objects.get(email=identifier.value)
                 if not user:
                     # TODO(remi): create 2 field in models researcher ?
                     given_name, family_name = "", ""
@@ -128,7 +133,7 @@ class ResearcherAdmin(admin.ModelAdmin):
                     if len(splitter) >= 1:
                         given_name = splitter[0]
                     if len(splitter) >= 2:
-                        given_name = " ".join(splitter[1:])
+                        family_name = " ".join(splitter[1:])
 
                     user = ProjectUser(
                         email=identifier.value,
@@ -136,6 +141,15 @@ class ResearcherAdmin(admin.ModelAdmin):
                         family_name=family_name,
                     )
                     user.save()
+
+                # TODO(remi): to remove, is only need for demo
+                # need to refactor all crisalid env/models
+                organization = None
+                for code in ("SORBONNE", "CRI"):
+                    with suppress(Organization.DoesNotExist):
+                        organization = Organization.objects.get(code=code)
+                        user.groups.add(organization.get_users())
+                        break
 
                 research.user = user
                 researcher_updated.append(research)
