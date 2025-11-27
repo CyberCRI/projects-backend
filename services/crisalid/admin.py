@@ -1,7 +1,9 @@
 from django.contrib import admin
 from django.db.models import Count
 
-from .models import Document, Identifier, Researcher
+from apps.accounts.models import ProjectUser
+
+from .models import Document, DocumentContributor, Identifier, Researcher
 
 
 class IdentifierAdmin(admin.ModelAdmin):
@@ -26,6 +28,11 @@ class IdentifierAdmin(admin.ModelAdmin):
         return instance.documents_count
 
 
+class DocumentContributorAdminInline(admin.StackedInline):
+    model = DocumentContributor
+    extra = 0
+
+
 class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "title",
@@ -42,6 +49,7 @@ class DocumentAdmin(admin.ModelAdmin):
         "identifiers__value",
         "identifiers__harvester",
     )
+    inlines = (DocumentContributorAdminInline,)
 
     actions = ["vectorize"]
 
@@ -83,8 +91,10 @@ class ResearcherAdmin(admin.ModelAdmin):
         "user__given_name",
         "user__family_name",
         "identifiers__value",
-        "identifier__harvester",
+        "identifiers__harvester",
     )
+    autocomplete_fields = ("user",)
+    actions = ("assign_user",)
 
     def get_queryset(self, request):
         return (
@@ -95,6 +105,42 @@ class ResearcherAdmin(admin.ModelAdmin):
             .annotate(identifiers_count=Count("identifiers__id"))
             .annotate(documents_count=Count("documents__id"))
         )
+
+    @admin.action(description="assign researcher on projects")
+    def assign_user(self, request, queryset):
+        """Assign research to user if matching user/eppn"""
+        researcher_updated = []
+
+        for research in queryset.prefetch_related("identifiers").select_related("user"):
+            # already set
+            if research.user:
+                continue
+
+            for identifier in research.identifiers.all():
+                if identifier.harvester != Identifier.Harvester.EPPN.value:
+                    continue
+
+                user = ProjectUser.objects.filter(email=identifier.value)
+                if not user:
+                    # TODO(remi): create 2 field in models researcher ?
+                    given_name, family_name = "", ""
+                    splitter = research.display_name.split(" ", 1)
+                    if len(splitter) >= 1:
+                        given_name = splitter[0]
+                    if len(splitter) >= 2:
+                        given_name = " ".join(splitter[1:])
+
+                    user = ProjectUser(
+                        email=identifier.value,
+                        given_name=given_name,
+                        family_name=family_name,
+                    )
+                    user.save()
+
+                research.user = user
+                researcher_updated.append(research)
+
+        Researcher.objects.bulk_update(researcher_updated, fields=["user"])
 
     @admin.display(description="documents count", ordering="documents_count")
     def get_documents(self, instance):
