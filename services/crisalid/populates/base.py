@@ -2,6 +2,8 @@ import abc
 import datetime
 from typing import TypeVar
 
+from services.crisalid.models import CrisalidConfig
+
 from .caches import BaseCache, LiveCache
 from .logger import logger
 
@@ -13,7 +15,8 @@ TCACHE = TypeVar("TCACHE", bound=BaseCache)
 
 class AbstractPopulate(metaclass=abc.ABCMeta):
 
-    def __init__(self, cache: TCACHE = None):
+    def __init__(self, config: CrisalidConfig, cache: TCACHE = None):
+        self.config = config
         self.cache = cache or LiveCache()
 
     def sanitize_languages(self, values: list[dict[str, str]]) -> str:

@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+from apps.commons.mixins import OrganizationRelated
 from django import forms
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -266,3 +267,29 @@ class DocumentTypeCentralized:
     def values(cls) -> Generator[tuple[str]]:
         for _, v in cls.items():
             yield v
+
+
+class CrisalidConfig(OrganizationRelated, models.Model):
+    """model for crisalid config with host/pass for connected to crisalid,
+    is linked to a one organization
+    """
+
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="crisalid",
+    )
+
+    crisalidbus_host = models.URLField(help_text="crisalidbus/rabimqt host:port")
+    # crisalidbu_port = models.URLField(help_text="crisalidbus/rabimqt host:port")
+    crisalidbus_username = models.CharField(
+        max_length=255, help_text="crisalidbus/rabimqt username"
+    )
+    crisalidbus_password = models.CharField(
+        max_length=255, help_text="crisalidbus/rabimqt password"
+    )
+
+    apollo_host = models.URLField(help_text="apollo/graphql host:port")
+    apollo_token = models.CharField(max_length=255, help_text="apollo token")
+
+    active = models.BooleanField(help_text="config is enabled/disabled", default=False)

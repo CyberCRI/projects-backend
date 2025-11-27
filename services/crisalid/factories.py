@@ -1,11 +1,18 @@
 import factory
+from apps.accounts.factories import UserFactory
+from apps.organizations.factories import OrganizationFactory
 from factory.fuzzy import FuzzyChoice
 from faker import Faker
 
-from apps.accounts.factories import UserFactory
 from services.crisalid import relators
 
-from .models import Document, DocumentContributor, Identifier, Researcher
+from .models import (
+    CrisalidConfig,
+    Document,
+    DocumentContributor,
+    Identifier,
+    Researcher,
+)
 
 faker = Faker()
 
@@ -92,3 +99,16 @@ class DocumentContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = DocumentContributor
+
+
+class CrisalidConfigFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(lambda: OrganizationFactory())
+    crisalidbus_host = factory.Factory("url")
+    crisalidbus_username = factory.Factory("username")
+    crisalidbus_password = factory.Factory("password")
+    apollo_host = factory.Factory("url")
+    apollo_token = factory.Factory("password")
+    active = True
+
+    class Meta:
+        model = CrisalidConfig

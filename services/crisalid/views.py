@@ -290,9 +290,14 @@ class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "crisalid_uid", "id")
-    queryset = (
-        Researcher.objects.all().prefetch_related("identifiers").select_related("user")
-    )
+
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .prefetch_related("identifiers")
+            .select_related("user")
+        )
 
     @action(
         detail=False,

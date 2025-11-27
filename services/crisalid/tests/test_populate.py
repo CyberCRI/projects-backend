@@ -1,15 +1,21 @@
 import datetime
 
+from apps.accounts.models import ProjectUser
 from django import test
 
-from apps.accounts.models import ProjectUser
+from services.crisalid.factories import CrisalidConfigFactory
 from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 
 class TestPopulateResearcher(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+
     def test_create_researcher(self):
-        popu = PopulateResearcher()
+        popu = PopulateResearcher(self.config)
         data = {
             "uid": "05-11-1995-uuid",
             "display_name": "marty mcfly",
@@ -47,7 +53,7 @@ class TestPopulateResearcher(test.TestCase):
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
         researcher.identifiers.add(iden)
-        popu = PopulateResearcher()
+        popu = PopulateResearcher(self.config)
 
         new_obj = popu.single(data)
 
@@ -86,7 +92,7 @@ class TestPopulateResearcher(test.TestCase):
         data["identifiers"].append(
             {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
         )
-        popu = PopulateResearcher()
+        popu = PopulateResearcher(self.config)
         popu.single(data)
 
         # check no new object are created
@@ -110,7 +116,7 @@ class TestPopulateResearcher(test.TestCase):
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
             ],
         }
-        popu = PopulateResearcher()
+        popu = PopulateResearcher(self.config)
         popu.single(data)
 
         user = ProjectUser.objects.first()
@@ -133,7 +139,7 @@ class TestPopulateResearcher(test.TestCase):
         # a project user already exists with same eepn
         user = ProjectUser.objects.create(email="eppn@lpi.com")
 
-        popu = PopulateResearcher()
+        popu = PopulateResearcher(self.config)
         popu.single(data)
 
         researcher = Researcher.objects.first()
@@ -146,8 +152,13 @@ class TestPopulateResearcher(test.TestCase):
 
 
 class TestPopulateDocument(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+
     def test_create_publication(self):
-        popu = PopulateDocument()
+        popu = PopulateDocument(self.config)
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
@@ -208,7 +219,7 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
     def test_sanitize_date(self):
-        popu = PopulateDocument()
+        popu = PopulateDocument(self.config)
 
         self.assertEqual(
             popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
@@ -224,7 +235,7 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(popu.sanitize_date("invalidDate"), None)
 
     def test_sanitize_titles(self):
-        popu = PopulateDocument()
+        popu = PopulateDocument(self.config)
 
         self.assertEqual(popu.sanitize_languages([]), "")
         self.assertEqual(
@@ -255,7 +266,7 @@ class TestPopulateDocument(test.TestCase):
         )
 
     def test_sanitize_document_type(self):
-        popu = PopulateDocument()
+        popu = PopulateDocument(self.config)
 
         self.assertEqual(
             popu.sanitize_document_type(None),

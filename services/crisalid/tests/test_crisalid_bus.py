@@ -3,11 +3,9 @@ from unittest.mock import Mock
 
 from django import test
 
-from services.crisalid.crisalid_bus import (
-    CrisalidBusClient,
-    CrisalidEventEnum,
-    CrisalidTypeEnum,
-)
+from services.crisalid.bus.client import CrisalidBusClient
+from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
+from services.crisalid.bus.consumer import crisalid_consumer
 
 
 class TestCrisalidBus(test.TestCase):
@@ -28,6 +26,7 @@ class TestCrisalidBus(test.TestCase):
 
     def setUp(self):
         self.client = CrisalidBusClient()
+        crisalid_consumer.clean()
 
     def test_dispatch_no_callback(self):
         # this run withtout called any callback
@@ -35,7 +34,7 @@ class TestCrisalidBus(test.TestCase):
 
     def test_dispatch_with_callback(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
@@ -47,19 +46,19 @@ class TestCrisalidBus(test.TestCase):
 
     def test_add_callback(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
         # try to readd this callback, raise a exception
         with self.assertRaises(AssertionError):
-            self.client.add_callback(
+            crisalid_consumer.add_callback(
                 CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
             )
 
     def test_validated_payload(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 

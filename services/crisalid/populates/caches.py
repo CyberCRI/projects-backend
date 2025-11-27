@@ -3,6 +3,8 @@ from contextlib import suppress
 
 from django.db.models import Model
 
+from services.crisalid.models import Identifier
+
 from .logger import logger
 
 # TODO create a new Cache class to optimize save/get with
@@ -21,6 +23,10 @@ class BaseCache(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def model(self, model, *fields):
         """get object element from model/fields"""
+
+    @abc.abstractclassmethod
+    def indentifiers(self, model, identifiers: list[Identifier]):
+        """get object element from identifiers lists"""
 
 
 class LiveCache(BaseCache):
@@ -49,3 +55,9 @@ class LiveCache(BaseCache):
             return model.objects.get(**fields)
         except model.DoesNotExist:
             return model(**fields)
+
+    def identifiers(self, model, identifiers):
+        try:
+            return model.objects.filter(identifiers__in=identifiers).distinct().get()
+        except model.DoesNotExist:
+            return model()

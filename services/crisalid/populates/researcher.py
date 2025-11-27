@@ -1,4 +1,5 @@
 from apps.accounts.models import ProjectUser
+
 from services.crisalid.models import Identifier, Researcher
 
 from .base import AbstractPopulate
@@ -21,6 +22,7 @@ class PopulateResearcher(AbstractPopulate):
         """match user from researcher (need eppn)"""
 
         if researcher.user:
+            researcher.user.groups.add(self.config.organization.get_users())
             return researcher.user
 
         for iden in data["identifiers"]:
@@ -28,7 +30,11 @@ class PopulateResearcher(AbstractPopulate):
                 continue
 
             # filter by eppn
-            user = self.cache.model(ProjectUser, email=iden["value"])
+            user = self.cache.model(
+                ProjectUser,
+                email=iden["value"],
+                groups__in=(self.config.organization.get_users(),),
+            )
 
             # create only user if we have eppn
             given_name, family_name = self.get_names(data)
@@ -38,12 +44,11 @@ class PopulateResearcher(AbstractPopulate):
                 given_name=given_name,
                 family_name=family_name,
             )
+            user.groups.add(self.config.organization.get_users())
             return user
         return None
 
     def single(self, data: dict) -> Researcher:
-        researcher = self.cache.model(Researcher, crisalid_uid=data["uid"])
-
         researcher_identifiers = []
         for iden in data["identifiers"]:
             identifier = self.cache.model(
@@ -51,6 +56,16 @@ class PopulateResearcher(AbstractPopulate):
             )
             self.cache.save(identifier)
             researcher_identifiers.append(identifier)
+
+        # remove local identifiers to match only hal/eppn/orcid ..ect
+        researcher_identifiers_without_local = [
+            identifier
+            for identifier in researcher_identifiers
+            if identifier.harvester != Identifier.Harvester.LOCAL
+        ]
+        researcher = self.cache.indentifiers(
+            Researcher, researcher_identifiers_without_local
+        )
 
         user = self.check_mapping_user(researcher, data)
         self.cache.save(researcher, display_name=data["display_name"], user=user)

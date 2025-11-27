@@ -117,6 +117,15 @@ def user_router_register(
     router.register(prefix, viewset, basename)
 
 
+def organization_researcher_router_register(
+    router: DefaultRouter, path: str, viewset: View, basename: str = None
+):
+    prefix = r"organization/(?P<organization_code>[^/]+)/researcher/(?P<user_id>[^/]+)"
+    if path:
+        prefix += r"/" + path
+    router.register(prefix, viewset, basename)
+
+
 def researcher_router_register(
     router: DefaultRouter, path: str, viewset: View, basename: str = None
 ):
