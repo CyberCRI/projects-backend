@@ -30,6 +30,7 @@ from services.crisalid.serializers import (
     DocumentSerializer,
     ResearcherSerializer,
 )
+from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
     OpenApiParameter(
@@ -82,11 +83,14 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
     ),
 )
 class AbstractDocumentViewSet(
-    NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet
+    NestedOrganizationViewMixins,
+    NestedResearcherViewMixins,
+    viewsets.ReadOnlyModelViewSet,
 ):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
+    permission_classes = (OrganizationPermission,)
 
     def filter_queryset(
         self,
@@ -109,7 +113,7 @@ class AbstractDocumentViewSet(
         if roles and roles_enabled:
             qs = qs.filter(
                 documentcontributor__roles__contains=roles,
-                documentcontributor__researcher__pk=self.kwargs["researcher_id"],
+                documentcontributor__researcher=self.researcher,
             )
 
         # filter by pblication_type
@@ -121,7 +125,7 @@ class AbstractDocumentViewSet(
     def get_queryset(self) -> QuerySet[Document]:
         return (
             Document.objects.filter(
-                contributors__id=self.kwargs["researcher_id"],
+                contributors=self.researcher,
                 document_type__in=self.document_types,
             )
             .prefetch_related("identifiers", "contributors__user")
@@ -182,7 +186,7 @@ class AbstractDocumentViewSet(
             chain(
                 *DocumentContributor.objects.filter(
                     document__in=self.filter_queryset(qs, roles_enabled=False),
-                    researcher__id=self.kwargs["researcher_id"],
+                    researcher=self.researcher,
                 ).values_list("roles", flat=True)
             )
         )
