@@ -4,6 +4,7 @@ from django import test
 from django.urls import reverse
 from rest_framework import status
 
+from apps.commons.test import JwtAPITestCase
 from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
@@ -117,13 +118,17 @@ class TestDocumentView(test.TestCase):
         self.assertEqual(data["years"], expected["years"])
 
 
-class TestResearcherView(test.TestCase):
+class TestResearcherView(JwtAPITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
 
         cls.researcher = ResearcherFactory()
         cls.researcher_2 = ResearcherFactory()
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
 
     def test_get_list(self):
         response = self.client.get(reverse("Researcher-list"))
@@ -172,3 +177,10 @@ class TestResearcherView(test.TestCase):
         results = data["results"]
 
         self.assertEqual(results[identifier.value]["id"], self.researcher.id)
+
+    def test_get_list_not_connected(self):
+        self.client.logout()
+
+        response = self.client.get(reverse("Researcher-list"))
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

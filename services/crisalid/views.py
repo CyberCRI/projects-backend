@@ -14,6 +14,7 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 from services.crisalid import relators
 from services.crisalid.models import (
@@ -290,6 +291,7 @@ class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "crisalid_uid", "id")
+    permission_classes = (IsAuthenticated,)
     queryset = (
         Researcher.objects.all().prefetch_related("identifiers").select_related("user")
     )
