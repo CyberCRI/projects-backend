@@ -68,7 +68,7 @@ class IsOwner(permissions.BasePermission):
         return False
 
     def has_object_permission(
-        self, request: Request, view: GenericViewSet, obj: Union[HasOwner, HasOwners]
+        self, request: Request, view: GenericViewSet, obj: HasOwner | HasOwners
     ) -> bool:
         return request.user.is_authenticated and obj.is_owned_by(request.user)
 
@@ -91,3 +91,13 @@ class WillBeOwner(permissions.BasePermission):
         self, request: Request, view: GenericViewSet, obj
     ) -> bool:
         return self.has_permission(request, view)
+
+
+class OrganizationPermission(permissions.BasePermission):
+    def has_permission(self, request: Request, view: GenericViewSet, obj=None) -> bool:
+        if request.user.is_superuser:
+            return True
+        grp = view.organization.get_users()
+        return request.user.groups.contains(grp)
+
+    has_object_permission = has_permission

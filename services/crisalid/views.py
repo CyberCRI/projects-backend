@@ -2,9 +2,13 @@ from collections import Counter
 from http import HTTPMethod
 from itertools import chain
 
+from apps.commons.permissions import OrganizationPermission, ReadOnly
+from apps.organizations.models import Organization
+from apps.organizations.permissions import OrganizationRelatedPermission
 from django.db.models import Count, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -12,6 +16,7 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
+from lib.views import NestedOrganizationViewMixins
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
@@ -79,7 +84,9 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         ],
     ),
 )
-class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+class AbstractDocumentViewSet(
+    NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet
+):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
@@ -286,15 +293,17 @@ class ConferenceViewSet(AbstractDocumentViewSet):
         ],
     ),
 )
-class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
+class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ("user_id", "crisalid_uid", "id")
+    filterset_fields = ("user_id", "id")
+    permission_classes = (OrganizationPermission,)
 
     def get_queryset(self):
         return (
-            super()
-            .get_queryset()
+            Researcher.objects.filter(
+                user__isnull=False, user__groups__in=(self.organization.get_users(),)
+            )
             .prefetch_related("identifiers")
             .select_related("user")
         )

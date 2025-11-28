@@ -18,7 +18,12 @@ class TestPopulateResearcher(test.TestCase):
         popu = PopulateResearcher(self.config)
         data = {
             "uid": "05-11-1995-uuid",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
@@ -30,8 +35,8 @@ class TestPopulateResearcher(test.TestCase):
         obj = Researcher.objects.first()
         self.assertEqual(obj, new_obj)
 
-        self.assertEqual(obj.display_name, "marty mcfly")
-        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
+        self.assertEqual(obj.given_name, "marty")
+        self.assertEqual(obj.family_name, "mcfly")
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
@@ -40,15 +45,18 @@ class TestPopulateResearcher(test.TestCase):
     def test_no_change_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(
-            crisalid_uid=data["uid"], display_name=data["display_name"]
-        )
+        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -65,8 +73,6 @@ class TestPopulateResearcher(test.TestCase):
         obj = Researcher.objects.first()
         self.assertEqual(new_obj, obj)
 
-        self.assertEqual(obj.display_name, "marty mcfly")
-        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
@@ -74,16 +80,18 @@ class TestPopulateResearcher(test.TestCase):
 
     def test_update_identifiers(self):
         data = {
-            "uid": "05-11-1995-uuid",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(
-            crisalid_uid=data["uid"], display_name=data["display_name"]
-        )
+        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -110,7 +118,6 @@ class TestPopulateResearcher(test.TestCase):
             "uid": "05-11-1995-uuid",
             "first_names": "marty",
             "last_names": "mcfly",
-            "display_name": "marty mcfly",
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
@@ -130,7 +137,6 @@ class TestPopulateResearcher(test.TestCase):
             "uid": "05-11-1995-uuid",
             "first_names": "marty",
             "last_names": "mcfly",
-            "display_name": "marty mcfly",
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
@@ -175,7 +181,6 @@ class TestPopulateDocument(test.TestCase):
                     "contributor": [
                         {
                             "uid": "local-v9034",
-                            "display_name": "Marty Mcfly",
                             "names": [
                                 {
                                     "first_names": [
@@ -211,7 +216,6 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(obj, new_obj)
 
         self.assertEqual(obj.title, "fiction")
-        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
         self.assertEqual(obj.document_type, Document.DocumentType.UNKNOWN.value)
         iden = obj.identifiers.first()

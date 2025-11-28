@@ -1,16 +1,12 @@
 import json
 import logging
 import time
-from collections.abc import Callable
 
 import jsonschema
 import pika
 from urllib3.util import parse_url
 
-from services.crisalid.bus.constant import (
-    CRISALID_MESSAGE_SCHEMA,
-    CrisalidEventEnum,
-)
+from services.crisalid.bus.constant import CRISALID_MESSAGE_SCHEMA, CrisalidEventEnum
 from services.crisalid.models import CrisalidConfig
 
 from .consumer import crisalid_consumer
@@ -39,13 +35,14 @@ class CrisalidBusClient:
         self._run: bool = True
         self.logger = logging.getLogger(config.organization.code)
 
-    def connect(self):
-        assert self.conn is None, "rabimqt is already started"
+    def parameters(self) -> dict | None:
+        """generate parametrs for crislaid and check values"""
 
+        # url is complte (ex: "http://crisalid:4325")
+        # get url without port, and set port for pika
         url = parse_url(self.config.crisalidbus_url)
-
         parameters = {
-            "host": url.host,
+            "host": url.url,
             "port": url.port,
             "user": self.config.crisalidbus_username,
             "password": self.config.crisalidbus_password,
@@ -59,6 +56,13 @@ class CrisalidBusClient:
                 "Can't instantiate CrisalidBus: invalid parameters, %s", parameters
             )
             return
+
+        return parameters
+
+    def connect(self):
+        assert self.conn is None, "rabimqt is already started"
+
+        parameters = self.parameters()
 
         retry = 1
         # run in loop to retry when connection is lost

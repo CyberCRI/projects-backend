@@ -1,11 +1,11 @@
 from collections.abc import Generator
 
-from apps.commons.mixins import OrganizationRelated
 from django import forms
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
 
+from apps.commons.mixins import OrganizationRelated
 from services.crisalid import relators
 from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
@@ -37,17 +37,10 @@ class ChoiceArrayField(ArrayField):
 
 
 class CrisalidDataModel(models.Model):
-    crisalid_uid = models.CharField(
-        max_length=255, blank=True, null=True, db_index=True
-    )
+    updated = models.DateTimeField(auto_created=True, auto_now=True)
 
     class Meta:
         abstract = True
-        constraints = (
-            models.UniqueConstraint(
-                "crisalid_uid", name="%(app_label)s_%(class)s_unique_crisalid_uid"
-            ),
-        )
 
 
 class Identifier(models.Model):
@@ -90,7 +83,8 @@ class Researcher(CrisalidDataModel):
         # if no user linked to projects
         null=True,
     )
-    display_name = models.CharField(max_length=200, blank=True, null=True)
+    given_name = models.CharField(max_length=255, blank=True)
+    family_name = models.CharField(max_length=255, blank=True)
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="researchers"
     )
@@ -98,7 +92,10 @@ class Researcher(CrisalidDataModel):
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:
             return self.user.get_full_name()
-        return f"{self.display_name}"
+        return self.get_full_name()
+
+    def get_full_name(self):
+        return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
 
 class DocumentContributor(models.Model):
@@ -280,8 +277,9 @@ class CrisalidConfig(OrganizationRelated, models.Model):
         related_name="crisalid",
     )
 
-    crisalidbus_host = models.URLField(help_text="crisalidbus/rabimqt host:port")
-    # crisalidbu_port = models.URLField(help_text="crisalidbus/rabimqt host:port")
+    crisalidbus_url = models.CharField(
+        max_length=255, help_text="crisalidbus/rabimqt host:port"
+    )
     crisalidbus_username = models.CharField(
         max_length=255, help_text="crisalidbus/rabimqt username"
     )
@@ -289,7 +287,7 @@ class CrisalidConfig(OrganizationRelated, models.Model):
         max_length=255, help_text="crisalidbus/rabimqt password"
     )
 
-    apollo_host = models.URLField(help_text="apollo/graphql host:port")
+    apollo_url = models.CharField(max_length=255, help_text="apollo/graphql host:port")
     apollo_token = models.CharField(max_length=255, help_text="apollo token")
 
     active = models.BooleanField(help_text="config is enabled/disabled", default=False)

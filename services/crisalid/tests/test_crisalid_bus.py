@@ -6,6 +6,7 @@ from django import test
 from services.crisalid.bus.client import CrisalidBusClient
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import crisalid_consumer
+from services.crisalid.factories import CrisalidConfigFactory
 
 
 class TestCrisalidBus(test.TestCase):
@@ -24,8 +25,10 @@ class TestCrisalidBus(test.TestCase):
         cls.properties = Mock()
         cls.method = Mock()
 
+        cls.config = CrisalidConfigFactory()
+
     def setUp(self):
-        self.client = CrisalidBusClient()
+        self.client = CrisalidBusClient(self.config)
         crisalid_consumer.clean()
 
     def test_dispatch_no_callback(self):
@@ -42,7 +45,9 @@ class TestCrisalidBus(test.TestCase):
         self.client._dispatch(self.chanel, self.properties, self.method, self.payload)
 
         # normaly is called
-        callback.assert_called_once_with(json.loads(self.payload)["fields"])
+        callback.assert_called_once_with(
+            self.config.organization.pk, json.loads(self.payload)["fields"]
+        )
 
     def test_add_callback(self):
         callback = Mock()

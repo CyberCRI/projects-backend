@@ -1,6 +1,6 @@
+from apps.accounts.models import ProjectUser
 from rest_framework import serializers
 
-from apps.accounts.models import ProjectUser
 from services.crisalid.models import Document, Identifier, Researcher
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -40,7 +40,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Researcher
-        exclude = ("crisalid_uid",)
+        exclude = ("updated",)
 
     def get_display_name(self, instance):
         return str(instance)
@@ -49,15 +49,19 @@ class ResearcherSerializer(serializers.ModelSerializer):
 class ResearcherDocumentsSerializer(ResearcherSerializer):
     user = ProjectUserMinimalSerializer()
     identifiers = IdentifierSerializer(many=True)
+    display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Researcher
+        read_only_fields = ("display_name",)
         fields = (
             "identifiers",
-            "display_name",
             "user",
             "id",
         )
+
+    def get_display_name(self, instance):
+        return str(instance)
 
 
 class DocumentLightSerializer(AutoTranslatedModelSerializer):
@@ -73,7 +77,7 @@ class DocumentSerializer(DocumentLightSerializer):
 
     class Meta:
         model = Document
-        exclude = ("crisalid_uid",)
+        exclude = ("updated",)
 
     def get_similars(self, instance: Document):
         """return similar count"""

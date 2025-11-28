@@ -39,6 +39,7 @@ def delete_person(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.error("receive %s for organization %s", fields, config.organization)
 
+    # TODO(remi): remove crisalid_uid
     deleted = Researcher.objects.filter(
         crisalid_uid=fields["uid"], user__groups__in=(config.organization.get_users(),)
     ).delete()

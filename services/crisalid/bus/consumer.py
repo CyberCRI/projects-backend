@@ -11,10 +11,13 @@ logger = logging.getLogger(__name__)
 
 
 class CrisalidConsumer:
+    """class to register callback on rabitmqt event"""
+
     def __init__(self):
         self.clean()
 
     def clean(self):
+        """remove all registered callback"""
         self._consumer: dict[CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]] = (
             defaultdict(lambda: defaultdict(lambda: None))
         )
@@ -32,6 +35,9 @@ class CrisalidConsumer:
         # add callback
         self._consumer[crisalid_type.value][crisalid_event.value] = callback
         return callback
+
+    def __getitem__(self, key):
+        return self._consumer[key]
 
 
 crisalid_consumer = CrisalidConsumer()

@@ -46,13 +46,11 @@ organization_maps: dict[str, OrganizationClient] = {}
 def start_crisalidbus(config: CrisalidConfig):
     with rlock:
         client = organization_maps.get(config.organization.code)
-        if client is None:
-            client = OrganizationClient(config)
-            organization_maps[config.organization.code] = client
-        else:
-            client.stop()
-            client.config = config
+        if client is not None:
+            stop_crisalidbus(client.config)
 
+        client = OrganizationClient(config)
+        organization_maps[config.organization.code] = client
         client.start()
 
 
@@ -67,11 +65,15 @@ def stop_crisalidbus(config: CrisalidConfig):
 
 def delete_crisalidbus(config: CrisalidConfig):
     with rlock:
-        client = organization_maps.get(config.organization.code)
-        if client is None:
-            return
-        client.stop()
+        stop_crisalidbus(config)
         del organization_maps[config.organization.code]
+
+
+def initial_start_crisalidbus():
+    """ "first start all thread (when server web is started)"""
+    with rlock:
+        for config in CrisalidConfig.objects.filter(active=True):
+            start_crisalidbus(config)
 
 
 # safe stop all crisalid bus

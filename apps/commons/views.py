@@ -5,6 +5,8 @@ from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from apps.organizations.models import Organization
+
 from .mixins import HasMultipleIDs
 
 
@@ -60,7 +62,7 @@ class ReadDestroyModelViewSet(
 
 
 class MultipleIDViewsetMixin:
-    multiple_lookup_fields: List[Tuple[HasMultipleIDs, str]] = []
+    multiple_lookup_fields: list[tuple[HasMultipleIDs, str]] = []
 
     def dispatch(self, request, *args, **kwargs):
         """
@@ -141,3 +143,12 @@ class PaginatedViewSet(viewsets.ViewSet):
             queryset, many=True, context=self.get_serializer_context()
         )
         return Response(serializer.data)
+
+
+class NestedOrganizationViewMixins:
+    def initial(self, request, *args, **kwargs):
+        self.organization = get_object_or_404(
+            Organization, code=kwargs["organization_code"]
+        )
+
+        super().initial(request, *args, **kwargs)

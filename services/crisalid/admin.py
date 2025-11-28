@@ -1,5 +1,3 @@
-from typing import Any, Optional
-
 from apps.accounts.models import ProjectUser
 from django import forms
 from django.contrib import admin
@@ -53,7 +51,8 @@ class DocumentAdmin(admin.ModelAdmin):
         "title",
         "publication_date",
         "document_type",
-        "contributors__display_name",
+        "contributors__given_name",
+        "contributors__family_name",
         "identifiers__value",
         "identifiers__harvester",
     )
@@ -89,13 +88,13 @@ class DocumentAdmin(admin.ModelAdmin):
 
 class ResearcherAdmin(admin.ModelAdmin):
     list_display = (
-        "display_name",
+        "given_name",
+        "family_name",
         "user",
         "get_documents",
         "get_identifiers",
     )
     search_fields = (
-        "display_name",
         "user__given_name",
         "user__family_name",
         "identifiers__value",
@@ -130,18 +129,10 @@ class ResearcherAdmin(admin.ModelAdmin):
 
                 user = ProjectUser.objects.filter(email=identifier.value)
                 if not user:
-                    # TODO(remi): create 2 field in models researcher ?
-                    given_name, family_name = "", ""
-                    splitter = research.display_name.split(" ", 1)
-                    if len(splitter) >= 1:
-                        given_name = splitter[0]
-                    if len(splitter) >= 2:
-                        given_name = " ".join(splitter[1:])
-
                     user = ProjectUser(
                         email=identifier.value,
-                        given_name=given_name,
-                        family_name=family_name,
+                        given_name=research.given_name,
+                        family_name=research.family_name,
                     )
                     user.save()
 
@@ -176,7 +167,7 @@ class CrisalidConfigForm(forms.ModelForm):
 
 class CrisalidConfigAdmin(admin.ModelAdmin):
     list_display = ("organization", "active")
-    search_fields = ("organization", "active")
+    search_fields = ("organization__code", "active")
     autocomplete_fields = ("organization",)
     form = CrisalidConfigForm
 

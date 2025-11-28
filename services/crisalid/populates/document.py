@@ -47,7 +47,7 @@ class PopulateDocument(AbstractPopulate):
             self.cache.save(identifier)
             documents_identifiers.append(identifier)
 
-        document = self.cache.indentifiers(Document, documents_identifiers)
+        document = self.cache.from_identifiers(Document, documents_identifiers)
         self.cache.save(
             document,
             title=self.sanitize_languages(data["titles"]),

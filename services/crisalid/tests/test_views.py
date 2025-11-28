@@ -1,5 +1,6 @@
 import datetime
 
+from apps.organizations.factories import OrganizationFactory
 from django import test
 from django.urls import reverse
 from rest_framework import status
@@ -19,8 +20,14 @@ class TestDocumentView(test.TestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
 
+        cls.organization = OrganizationFactory()
+
         cls.researcher = ResearcherFactory()
         cls.researcher_2 = ResearcherFactory()
+
+        grp = cls.organization.get_users()
+        cls.researcher.user.groups.add(grp)
+        cls.researcher_2.user.groups.add(grp)
 
         # only for researcher 1
         for i in range(10):
@@ -58,7 +65,13 @@ class TestDocumentView(test.TestCase):
     def test_get_publications(self):
         # researcher 1
         result = self.client.get(
-            reverse("ResearcherPublications-list", args=(self.researcher.pk,))
+            reverse(
+                "ResearcherPublications-list",
+                args=(
+                    self.organization.code,
+                    self.researcher.pk,
+                ),
+            )
         )
 
         result = result.json()
@@ -67,7 +80,13 @@ class TestDocumentView(test.TestCase):
 
         # researcher 2
         result = self.client.get(
-            reverse("ResearcherPublications-list", args=(self.researcher_2.pk,))
+            reverse(
+                "ResearcherPublications-list",
+                args=(
+                    self.organization.code,
+                    self.researcher_2.pk,
+                ),
+            )
         )
 
         result = result.json()
@@ -76,7 +95,13 @@ class TestDocumentView(test.TestCase):
 
     def test_get_analytics(self):
         result = self.client.get(
-            reverse("ResearcherPublications-analytics", args=(self.researcher.pk,))
+            reverse(
+                "ResearcherPublications-analytics",
+                args=(
+                    self.organization.code,
+                    self.researcher.pk,
+                ),
+            )
         )
 
         data = result.json()
@@ -100,7 +125,13 @@ class TestDocumentView(test.TestCase):
 
     def test_get_analytics_limit(self):
         result = self.client.get(
-            reverse("ResearcherPublications-analytics", args=(self.researcher.pk,))
+            reverse(
+                "ResearcherPublications-analytics",
+                args=(
+                    self.organization.code,
+                    self.researcher.pk,
+                ),
+            )
             + "?limit=4"
         )
 
@@ -121,12 +152,29 @@ class TestResearcherView(test.TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        cls.organization = OrganizationFactory()
+        cls.organization_2 = OrganizationFactory()
 
         cls.researcher = ResearcherFactory()
         cls.researcher_2 = ResearcherFactory()
+        cls.researcher_3 = ResearcherFactory()
+
+        grp = cls.organization.get_users()
+        cls.researcher.user.groups.add(grp)
+        cls.researcher_2.user.groups.add(grp)
+
+        # other researcher from other organization is not availables
+        grp = cls.organization_2.get_users()
+        cls.researcher_3.user.groups.add(grp)
+
+    def setUp(self) -> None:
+        self.client.force_login(self.researcher.user)
+        return super().setUp()
 
     def test_get_list(self):
-        response = self.client.get(reverse("Researcher-list"))
+        response = self.client.get(
+            reverse("Researcher-list", args=(self.organization.code,))
+        )
 
         data = response.json()
         researcher_ids = sorted(researcher["id"] for researcher in data["results"])
@@ -135,20 +183,34 @@ class TestResearcherView(test.TestCase):
 
     def test_get_detail(self):
         response = self.client.get(
-            reverse("Researcher-detail", args=(self.researcher.id,))
+            reverse(
+                "Researcher-detail",
+                args=(
+                    self.organization.code,
+                    self.researcher.id,
+                ),
+            )
         )
 
         researcher = response.json()
         self.assertEqual(researcher["id"], self.researcher.id)
 
     def test_get_detail_not_know(self):
-        response = self.client.get(reverse("Researcher-detail", args=(666,)))
+        response = self.client.get(
+            reverse(
+                "Researcher-detail",
+                args=(
+                    self.organization.code,
+                    666,
+                ),
+            )
+        )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_search_not_found(self):
         response = self.client.get(
-            reverse("Researcher-search"),
+            reverse("Researcher-search", args=(self.organization.code,)),
             # data is queryparams
             data={"harvester": "idref", "values": "6666666"},
         )
@@ -157,10 +219,19 @@ class TestResearcherView(test.TestCase):
         expected = {}
         self.assertEqual(data["results"], expected)
 
+    def test_not_same_organization(self):
+        response = self.client.get(
+            reverse("Researcher-search", args=(self.organization_2.code,)),
+            # data is queryparams
+            data={"harvester": "idref", "values": "6666666"},
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     def test_search_found(self):
         identifier = self.researcher.identifiers.first()
         response = self.client.get(
-            reverse("Researcher-search"),
+            reverse("Researcher-search", args=(self.organization.code,)),
             # data is queryparams
             data={
                 "harvester": identifier.harvester,

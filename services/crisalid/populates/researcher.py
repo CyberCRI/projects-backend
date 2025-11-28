@@ -21,8 +21,10 @@ class PopulateResearcher(AbstractPopulate):
     ) -> ProjectUser | None:
         """match user from researcher (need eppn)"""
 
+        group_organization = self.config.organization.get_users()
+
         if researcher.user:
-            researcher.user.groups.add(self.config.organization.get_users())
+            researcher.user.groups.add(group_organization)
             return researcher.user
 
         for iden in data["identifiers"]:
@@ -33,7 +35,6 @@ class PopulateResearcher(AbstractPopulate):
             user = self.cache.model(
                 ProjectUser,
                 email=iden["value"],
-                groups__in=(self.config.organization.get_users(),),
             )
 
             # create only user if we have eppn
@@ -44,7 +45,7 @@ class PopulateResearcher(AbstractPopulate):
                 given_name=given_name,
                 family_name=family_name,
             )
-            user.groups.add(self.config.organization.get_users())
+            user.groups.add(group_organization)
             return user
         return None
 
@@ -57,18 +58,23 @@ class PopulateResearcher(AbstractPopulate):
             self.cache.save(identifier)
             researcher_identifiers.append(identifier)
 
-        # remove local identifiers to match only hal/eppn/orcid ..ect
+        # remove local/eppn identifiers to match only hal/eppn/orcid ..ect
         researcher_identifiers_without_local = [
             identifier
             for identifier in researcher_identifiers
-            if identifier.harvester != Identifier.Harvester.LOCAL
+            if identifier.harvester
+            not in [Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN]
         ]
-        researcher = self.cache.indentifiers(
+        researcher = self.cache.from_identifiers(
             Researcher, researcher_identifiers_without_local
         )
 
         user = self.check_mapping_user(researcher, data)
-        self.cache.save(researcher, display_name=data["display_name"], user=user)
+        given_name, family_name = self.get_names(data)
+
+        self.cache.save(
+            researcher, given_name=given_name, family_name=family_name, user=user
+        )
         self.cache.save_m2m(researcher, identifiers=researcher_identifiers)
 
         return researcher

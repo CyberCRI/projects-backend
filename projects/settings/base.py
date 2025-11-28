@@ -690,3 +690,5 @@ AZURE_TRANSLATOR_REGION = os.getenv("AZURE_TRANSLATOR_REGION", "francecentral")
 AZURE_TRANSLATOR_ENDPOINT = os.getenv(
     "AZURE_TRANSLATOR_ENDPOINT", "https://api.cognitive.microsofttranslator.com"
 )
+
+ENABLE_CRISALID_BUS = os.getenv("ENABLE_CRISALID_BUS", "false").lower() == "true"
