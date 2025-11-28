@@ -1,10 +1,10 @@
 import datetime
 
-from apps.commons.test import JwtAPITestCase
 from django import test
 from django.urls import reverse
 from rest_framework import status
 
+from apps.commons.test import JwtAPITestCase
 from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
