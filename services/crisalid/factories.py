@@ -1,9 +1,9 @@
 import factory
-from apps.accounts.factories import UserFactory
-from apps.organizations.factories import OrganizationFactory
 from factory.fuzzy import FuzzyChoice
 from faker import Faker
 
+from apps.accounts.factories import UserFactory
+from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
 
 from .models import (

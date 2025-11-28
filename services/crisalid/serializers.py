@@ -1,6 +1,6 @@
-from apps.accounts.models import ProjectUser
 from rest_framework import serializers
 
+from apps.accounts.models import ProjectUser
 from services.crisalid.models import Document, Identifier, Researcher
 from services.translator.serializers import AutoTranslatedModelSerializer
 

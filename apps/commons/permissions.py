@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.db.models import Model
 from rest_framework import permissions
 from rest_framework.request import Request

@@ -1,7 +1,6 @@
 import logging
 
 from projects.celery import app
-
 from services.crisalid.apps import CrisalidConfig
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event

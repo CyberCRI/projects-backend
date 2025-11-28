@@ -55,7 +55,7 @@ class CrisalidBusClient:
             self.logger.critical(
                 "Can't instantiate CrisalidBus: invalid parameters, %s", parameters
             )
-            return
+            return None
 
         return parameters
 

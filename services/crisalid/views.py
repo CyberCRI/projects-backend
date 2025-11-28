@@ -2,13 +2,9 @@ from collections import Counter
 from http import HTTPMethod
 from itertools import chain
 
-from apps.commons.permissions import OrganizationPermission, ReadOnly
-from apps.organizations.models import Organization
-from apps.organizations.permissions import OrganizationRelatedPermission
 from django.db.models import Count, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import (
     OpenApiExample,
@@ -16,10 +12,11 @@ from drf_spectacular.utils import (
     extend_schema,
     extend_schema_view,
 )
-from lib.views import NestedOrganizationViewMixins
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
+from apps.commons.permissions import OrganizationPermission
+from lib.views import NestedOrganizationViewMixins
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,

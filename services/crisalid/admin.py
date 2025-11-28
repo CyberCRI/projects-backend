@@ -1,7 +1,8 @@
-from apps.accounts.models import ProjectUser
 from django import forms
 from django.contrib import admin
 from django.db.models import Count
+
+from apps.accounts.models import ProjectUser
 
 from .models import (
     CrisalidConfig,

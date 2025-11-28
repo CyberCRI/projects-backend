@@ -1,10 +1,11 @@
 import datetime
 
-from apps.organizations.factories import OrganizationFactory
 from django import test
 from django.urls import reverse
 from rest_framework import status
 
+from apps.commons.test import JwtAPITestCase
+from apps.organizations.factories import OrganizationFactory
 from services.crisalid.factories import (
     DocumentContributorFactory,
     DocumentFactory,
@@ -148,7 +149,7 @@ class TestDocumentView(test.TestCase):
         self.assertEqual(data["years"], expected["years"])
 
 
-class TestResearcherView(test.TestCase):
+class TestResearcherView(JwtAPITestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
@@ -168,8 +169,8 @@ class TestResearcherView(test.TestCase):
         cls.researcher_3.user.groups.add(grp)
 
     def setUp(self) -> None:
-        self.client.force_login(self.researcher.user)
-        return super().setUp()
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
 
     def test_get_list(self):
         response = self.client.get(
@@ -226,7 +227,7 @@ class TestResearcherView(test.TestCase):
             data={"harvester": "idref", "values": "6666666"},
         )
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_search_found(self):
         identifier = self.researcher.identifiers.first()

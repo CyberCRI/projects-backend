@@ -1,8 +1,8 @@
 import datetime
 
-from apps.accounts.models import ProjectUser
 from django import test
 
+from apps.accounts.models import ProjectUser
 from services.crisalid.factories import CrisalidConfigFactory
 from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher

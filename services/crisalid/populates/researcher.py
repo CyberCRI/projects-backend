@@ -1,5 +1,4 @@
 from apps.accounts.models import ProjectUser
-
 from services.crisalid.models import Identifier, Researcher
 
 from .base import AbstractPopulate
