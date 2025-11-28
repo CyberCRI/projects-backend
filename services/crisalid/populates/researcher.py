@@ -19,18 +19,19 @@ class PopulateResearcher(AbstractPopulate):
         # filter by eppn
         user = self.cache.model(ProjectUser, email=eppn)
 
-        # create only user if we have eppn
-        self.cache.save(
-            user,
-            email=eppn,
-            given_name=given_name,
-            family_name=family_name,
-        )
-
-        # researcher is hidden by default
-        user.privacy_settings.publication_status = (
-            PrivacySettings.PrivacyChoices.ORGANIZATION
-        )
+        if not user.pk:
+            # create only user if we have eppn
+            self.cache.save(
+                user,
+                email=eppn,
+                given_name=given_name,
+                family_name=family_name,
+            )
+            # researcher is hidden by default
+            self.cache.save(
+                user.privacy_settings,
+                publication_status=PrivacySettings.PrivacyChoices.ORGANIZATION.value,
+            )
 
         return self.update_user(user)
 
@@ -52,7 +53,8 @@ class PopulateResearcher(AbstractPopulate):
             if iden["type"].lower() != Identifier.Harvester.EPPN.value:
                 continue
 
-            return self.create_user(iden["value"])
+            given_name, family_name = self.get_names(data)
+            return self.create_user(iden["value"], given_name, family_name)
         return None
 
     def single(self, data: dict) -> Researcher:

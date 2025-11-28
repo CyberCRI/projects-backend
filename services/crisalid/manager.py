@@ -6,20 +6,24 @@ class CrisalidQuerySet(QuerySet):
         """filter by identifiers"""
         from services.crisalid.models import Identifier
 
-        pk = set()
+        pks = set()
         filters = Q()
         for identifier in identifiers:
             if isinstance(identifier, int):
-                pk.add(identifier)
+                pks.add(identifier)
             elif isinstance(identifier, Identifier):
-                pk.add(identifier.pk)
+                pks.add(identifier.pk)
             elif isinstance(identifier, dict):
                 filters |= Q(
                     identifiers__value=identifier["value"],
-                    identifier__harvester=identifier["harvester"],
+                    identifiers__harvester=identifier["harvester"],
                 )
 
-        return self.filter(Q(pk__in=pk) | filters).order_by("pk").distinct("pk")
+        return (
+            self.filter(Q(identifiers__pk__in=pks) | filters)
+            .order_by("pk")
+            .distinct("pk")
+        )
 
 
 class DocumentQuerySet(CrisalidQuerySet):

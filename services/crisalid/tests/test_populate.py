@@ -62,6 +62,7 @@ class TestPopulateResearcher(test.TestCase):
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
         researcher.identifiers.add(iden)
+
         popu = PopulateResearcher(self.config)
 
         new_obj = popu.single(data)
@@ -117,8 +118,12 @@ class TestPopulateResearcher(test.TestCase):
     def test_create_user_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
-            "first_names": "marty",
-            "last_names": "mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "Marty", "language": "fr"}],
+                    "last_names": [{"value": "Mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
@@ -129,19 +134,23 @@ class TestPopulateResearcher(test.TestCase):
 
         user = ProjectUser.objects.first()
         # check no new object are created
-        self.assertEqual(user.given_name, data["first_names"])
-        self.assertEqual(user.family_name, data["last_names"])
+        self.assertEqual(user.given_name, "Marty")
+        self.assertEqual(user.family_name, "Mcfly")
         self.assertEqual(user.email, "eppn@lpi.com")
         self.assertEqual(
             user.privacy_settings.publication_status,
-            PrivacySettings.PrivacyChoices.ORGANIZATION,
+            PrivacySettings.PrivacyChoices.ORGANIZATION.value,
         )
 
     def test_match_user_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
-            "first_names": "marty",
-            "last_names": "mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "Marty", "language": "fr"}],
+                    "last_names": [{"value": "Mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
@@ -151,23 +160,22 @@ class TestPopulateResearcher(test.TestCase):
         user = UserFactory(email="eppn@lpi.com")
         self.assertEqual(
             user.privacy_settings.publication_status,
-            PrivacySettings.PrivacyChoices.PUBLIC,
+            PrivacySettings.PrivacyChoices.PUBLIC.value,
         )
 
         popu = PopulateResearcher(self.config)
         popu.single(data)
 
         researcher = Researcher.objects.select_related("user").first()
-        # given_name and family_name is not set in projects user
-        # we don't change user value (only matching)
-        self.assertEqual(user.given_name, "")
-        self.assertEqual(user.family_name, "")
         self.assertEqual(researcher.user, user)
+        # user already created, so given_name and family_name is not changed from crislaid event
+        self.assertNotEqual(user.given_name, "Marty")
+        self.assertNotEqual(user.family_name, "Mcfly")
 
         # privacy settings are not changed
         self.assertEqual(
             researcher.user.privacy_settings.publication_status,
-            PrivacySettings.PrivacyChoices.PUBLIC,
+            PrivacySettings.PrivacyChoices.PUBLIC.value,
         )
 
 

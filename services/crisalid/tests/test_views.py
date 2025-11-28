@@ -1,6 +1,5 @@
 import datetime
 
-from django import test
 from django.urls import reverse
 from rest_framework import status
 
@@ -16,7 +15,7 @@ from services.crisalid.models import DocumentTypeCentralized
 PUBLICATION_TYPE = DocumentTypeCentralized.publications[0]
 
 
-class TestDocumentView(test.TestCase):
+class TestDocumentView(JwtAPITestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -62,6 +61,10 @@ class TestDocumentView(test.TestCase):
             DocumentContributorFactory(
                 document=document, researcher=cls.researcher_2, roles=["authors"]
             )
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.client.force_authenticate(self.researcher.user)
 
     def test_get_publications(self):
         # researcher 1
@@ -244,3 +247,12 @@ class TestResearcherView(JwtAPITestCase):
         results = data["results"]
 
         self.assertEqual(results[identifier.value]["id"], self.researcher.id)
+
+    def test_get_list_not_connected(self):
+        self.client.logout()
+
+        response = self.client.get(
+            reverse("Researcher-list", args=(self.organization.code,))
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
