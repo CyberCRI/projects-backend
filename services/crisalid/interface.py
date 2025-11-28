@@ -1,23 +1,24 @@
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from django.conf import settings
 from gql import Client, gql
 from gql.transport.requests import RequestsHTTPTransport
+
+from services.crisalid.models import CrisalidConfig
 
 
 class CrisalidService:
     QUERIES_DIRECTORY = "services/crisalid/queries"
 
-    def __init__(self):
+    def __init__(self, config: CrisalidConfig):
         self.transport = RequestsHTTPTransport(
-            url=f"{settings.CRISALID_API_URL}/graphql",
-            headers={"X-API-Key": settings.CRISALID_API_TOKEN},
+            url=config.apollo_host,
+            headers={"X-API-Key": config.apollo_token},
         )
         self.client = Client(
             transport=self.transport, fetch_schema_from_transport=False
         )
 
-    def query(self, query_file: str, **kwargs) -> Dict[str, Any]:
+    def query(self, query_file: str, **kwargs) -> dict[str, Any]:
         """
         Execute a query from the queries directory.
 
@@ -34,7 +35,7 @@ class CrisalidService:
 
     def profiles(
         self, limit: int = 100, offset: int = 0, **kwargs
-    ) -> Tuple[List[Dict[str, Any]], Optional[int]]:
+    ) -> tuple[list[dict[str, Any]], int | None]:
         """
         Get a list of profiles from the Crisalid API.
 
@@ -52,7 +53,7 @@ class CrisalidService:
         next_page = offset + limit if offset + limit < count else None
         return response["people"], next_page
 
-    def profile(self, uid: str) -> Dict[str, Any]:
+    def profile(self, uid: str) -> dict[str, Any]:
         """
         Get a profile from the Crisalid API.
 
@@ -72,7 +73,7 @@ class CrisalidService:
 
     def textual_documents(
         self, limit: int = 100, offset: int = 0, **kwargs
-    ) -> Tuple[List[Dict[str, Any]], Optional[int]]:
+    ) -> tuple[list[dict[str, Any]], int | None]:
         """
         Get a list of textual documents from the Crisalid API.
 
@@ -90,7 +91,7 @@ class CrisalidService:
         next_page = offset + limit if offset + limit < count else None
         return response["textualDocuments"], next_page
 
-    def textual_document(self, uid: str) -> Dict[str, Any]:
+    def textual_document(self, uid: str) -> dict[str, Any]:
         """
         Get a textual document from the Crisalid API.
 

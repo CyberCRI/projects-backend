@@ -1,12 +1,18 @@
 from contextlib import suppress
 
+from django import forms
 from django.contrib import admin
 from django.db.models import Count
 
 from apps.accounts.models import ProjectUser
-from apps.organizations.models import Organization
 
-from .models import Document, DocumentContributor, Identifier, Researcher
+from .models import (
+    CrisalidConfig,
+    Document,
+    DocumentContributor,
+    Identifier,
+    Researcher,
+)
 
 
 class IdentifierAdmin(admin.ModelAdmin):
@@ -48,7 +54,8 @@ class DocumentAdmin(admin.ModelAdmin):
         "title",
         "publication_date",
         "document_type",
-        "contributors__display_name",
+        "contributors__given_name",
+        "contributors__family_name",
         "identifiers__value",
         "identifiers__harvester",
     )
@@ -84,13 +91,13 @@ class DocumentAdmin(admin.ModelAdmin):
 
 class ResearcherAdmin(admin.ModelAdmin):
     list_display = (
-        "display_name",
+        "given_name",
+        "family_name",
         "user",
         "get_documents",
         "get_identifiers",
     )
     search_fields = (
-        "display_name",
         "user__given_name",
         "user__family_name",
         "identifiers__value",
@@ -126,30 +133,14 @@ class ResearcherAdmin(admin.ModelAdmin):
                 user = None
                 with suppress(ProjectUser.DoesNotExist):
                     user = ProjectUser.objects.get(email=identifier.value)
-                if not user:
-                    # TODO(remi): create 2 field in models researcher ?
-                    given_name, family_name = "", ""
-                    splitter = research.display_name.split(" ", 1)
-                    if len(splitter) >= 1:
-                        given_name = splitter[0]
-                    if len(splitter) >= 2:
-                        family_name = " ".join(splitter[1:])
 
+                if not user:
                     user = ProjectUser(
                         email=identifier.value,
-                        given_name=given_name,
-                        family_name=family_name,
+                        given_name=research.given_name,
+                        family_name=research.family_name,
                     )
                     user.save()
-
-                # TODO(remi): to remove, is only need for demo
-                # need to refactor all crisalid env/models
-                organization = None
-                for code in ("SORBONNE", "CRI"):
-                    with suppress(Organization.DoesNotExist):
-                        organization = Organization.objects.get(code=code)
-                        user.groups.add(organization.get_users())
-                        break
 
                 research.user = user
                 researcher_updated.append(research)
@@ -170,6 +161,24 @@ class ResearcherAdmin(admin.ModelAdmin):
         return f"{', '.join(result)} ({len(result)})"
 
 
+class CrisalidConfigForm(forms.ModelForm):
+    class Meta:
+        model = CrisalidConfig
+        fields = "__all__"
+        widgets = {
+            "crisalidbus_password": forms.PasswordInput(),
+            "apollo_token": forms.PasswordInput(),
+        }
+
+
+class CrisalidConfigAdmin(admin.ModelAdmin):
+    list_display = ("organization", "active")
+    search_fields = ("organization__code", "active")
+    autocomplete_fields = ("organization",)
+    form = CrisalidConfigForm
+
+
+admin.site.register(CrisalidConfig, CrisalidConfigAdmin)
 admin.site.register(Researcher, ResearcherAdmin)
 admin.site.register(Identifier, IdentifierAdmin)
 admin.site.register(Document, DocumentAdmin)

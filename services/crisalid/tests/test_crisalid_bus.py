@@ -3,11 +3,10 @@ from unittest.mock import Mock
 
 from django import test
 
-from services.crisalid.crisalid_bus import (
-    CrisalidBusClient,
-    CrisalidEventEnum,
-    CrisalidTypeEnum,
-)
+from services.crisalid.bus.client import CrisalidBusClient
+from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
+from services.crisalid.bus.consumer import crisalid_consumer
+from services.crisalid.factories import CrisalidConfigFactory
 
 
 class TestCrisalidBus(test.TestCase):
@@ -26,8 +25,11 @@ class TestCrisalidBus(test.TestCase):
         cls.properties = Mock()
         cls.method = Mock()
 
+        cls.config = CrisalidConfigFactory()
+
     def setUp(self):
-        self.client = CrisalidBusClient()
+        self.client = CrisalidBusClient(self.config)
+        crisalid_consumer.clean()
 
     def test_dispatch_no_callback(self):
         # this run withtout called any callback
@@ -35,7 +37,7 @@ class TestCrisalidBus(test.TestCase):
 
     def test_dispatch_with_callback(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
@@ -43,23 +45,25 @@ class TestCrisalidBus(test.TestCase):
         self.client._dispatch(self.chanel, self.properties, self.method, self.payload)
 
         # normaly is called
-        callback.assert_called_once_with(json.loads(self.payload)["fields"])
+        callback.assert_called_once_with(
+            self.config.organization.pk, json.loads(self.payload)["fields"]
+        )
 
     def test_add_callback(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
         # try to readd this callback, raise a exception
         with self.assertRaises(AssertionError):
-            self.client.add_callback(
+            crisalid_consumer.add_callback(
                 CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
             )
 
     def test_validated_payload(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 

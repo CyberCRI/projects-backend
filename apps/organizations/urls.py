@@ -7,8 +7,8 @@ from apps.accounts.views import (
 )
 from apps.commons.urls import (
     OneToOneRouter,
+    organization_people_group_router_register,
     organization_router_register,
-    people_group_router_register,
 )
 from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 
@@ -68,9 +68,9 @@ organization_router_register(
 )
 
 one_to_one_router = OneToOneRouter()
-people_group_router_register(
+organization_people_group_router_register(
     one_to_one_router, r"logo", PeopleGroupLogoView, basename="PeopleGroup-logo"
 )
-people_group_router_register(
+organization_people_group_router_register(
     one_to_one_router, r"header", PeopleGroupHeaderView, basename="PeopleGroup-header"
 )

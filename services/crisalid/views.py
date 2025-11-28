@@ -14,8 +14,9 @@ from drf_spectacular.utils import (
 )
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 
+from apps.commons.permissions import OrganizationPermission
+from lib.views import NestedOrganizationViewMixins
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,
@@ -29,6 +30,7 @@ from services.crisalid.serializers import (
     DocumentSerializer,
     ResearcherSerializer,
 )
+from services.crisalid.utils.views import NestedResearcherViewMixins
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
     OpenApiParameter(
@@ -80,10 +82,15 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         ],
     ),
 )
-class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+class AbstractDocumentViewSet(
+    NestedOrganizationViewMixins,
+    NestedResearcherViewMixins,
+    viewsets.ReadOnlyModelViewSet,
+):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
+    permission_classes = (OrganizationPermission,)
 
     def filter_queryset(
         self,
@@ -106,7 +113,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         if roles and roles_enabled:
             qs = qs.filter(
                 documentcontributor__roles__contains=roles,
-                documentcontributor__researcher__pk=self.kwargs["researcher_id"],
+                documentcontributor__researcher=self.researcher,
             )
 
         # filter by pblication_type
@@ -118,7 +125,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self) -> QuerySet[Document]:
         return (
             Document.objects.filter(
-                contributors__id=self.kwargs["researcher_id"],
+                contributors=self.researcher,
                 document_type__in=self.document_types,
             )
             .prefetch_related("identifiers", "contributors__user")
@@ -179,7 +186,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
             chain(
                 *DocumentContributor.objects.filter(
                     document__in=self.filter_queryset(qs, roles_enabled=False),
-                    researcher__id=self.kwargs["researcher_id"],
+                    researcher=self.researcher,
                 ).values_list("roles", flat=True)
             )
         )
@@ -287,14 +294,20 @@ class ConferenceViewSet(AbstractDocumentViewSet):
         ],
     ),
 )
-class ResearcherViewSet(viewsets.ReadOnlyModelViewSet):
+class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
-    filterset_fields = ("user_id", "crisalid_uid", "id")
-    permission_classes = (IsAuthenticated,)
-    queryset = (
-        Researcher.objects.all().prefetch_related("identifiers").select_related("user")
-    )
+    filterset_fields = ("user_id", "id")
+    permission_classes = (OrganizationPermission,)
+
+    def get_queryset(self):
+        return (
+            Researcher.objects.filter(
+                user__isnull=False, user__groups__in=(self.organization.get_users(),)
+            )
+            .prefetch_related("identifiers")
+            .select_related("user")
+        )
 
     @action(
         detail=False,
