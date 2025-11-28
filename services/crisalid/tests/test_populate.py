@@ -2,7 +2,8 @@ import datetime
 
 from django import test
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.factories import UserFactory
+from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.factories import CrisalidConfigFactory
 from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
@@ -131,6 +132,10 @@ class TestPopulateResearcher(test.TestCase):
         self.assertEqual(user.given_name, data["first_names"])
         self.assertEqual(user.family_name, data["last_names"])
         self.assertEqual(user.email, "eppn@lpi.com")
+        self.assertEqual(
+            user.privacy_settings.publication_status,
+            PrivacySettings.PrivacyChoices.ORGANIZATION,
+        )
 
     def test_match_user_researcher(self):
         data = {
@@ -143,18 +148,27 @@ class TestPopulateResearcher(test.TestCase):
             ],
         }
         # a project user already exists with same eepn
-        user = ProjectUser.objects.create(email="eppn@lpi.com")
+        user = UserFactory(email="eppn@lpi.com")
+        self.assertEqual(
+            user.privacy_settings.publication_status,
+            PrivacySettings.PrivacyChoices.PUBLIC,
+        )
 
         popu = PopulateResearcher(self.config)
         popu.single(data)
 
-        researcher = Researcher.objects.first()
+        researcher = Researcher.objects.select_related("user").first()
         # given_name and family_name is not set in projects user
         # we don't change user value (only matching)
         self.assertEqual(user.given_name, "")
         self.assertEqual(user.family_name, "")
-
         self.assertEqual(researcher.user, user)
+
+        # privacy settings are not changed
+        self.assertEqual(
+            researcher.user.privacy_settings.publication_status,
+            PrivacySettings.PrivacyChoices.PUBLIC,
+        )
 
 
 class TestPopulateDocument(test.TestCase):

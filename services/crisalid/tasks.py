@@ -5,7 +5,7 @@ from services.crisalid.apps import CrisalidConfig
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Document, Researcher
+from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 logger = logging.getLogger(__name__)
@@ -38,10 +38,14 @@ def delete_person(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.error("receive %s for organization %s", fields, config.organization)
 
-    # TODO(remi): remove crisalid_uid
-    deleted = Researcher.objects.filter(
-        crisalid_uid=fields["uid"], user__groups__in=(config.organization.get_users(),)
-    ).delete()
+    identifiers = [
+        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        for iden in fields["identifiers"]
+        if iden["type"].lower()
+        not in (Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN)
+    ]
+
+    deleted = Researcher.objects.from_identifiers(identifiers).delete()
     logger.info("deleted = %s", deleted)
 
 
@@ -72,5 +76,10 @@ def delete_document(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.error("receive %s for organization %s", fields, config.organization)
 
-    deleted = Document.objects.filter(crisalid_uid=fields["uid"]).delete()
+    identifiers = [
+        {"harvester": iden["harvester"].lower(), "value": iden["uid"]}
+        for iden in fields["recorded_by"]
+    ]
+
+    deleted = Document.objects.from_identifiers(identifiers).delete()
     logger.info("deleted = %s", deleted)

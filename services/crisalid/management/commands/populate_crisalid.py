@@ -9,7 +9,8 @@ from services.crisalid.models import (
     Identifier,
     Researcher,
 )
-from services.crisalid.populates import PopulateDocument
+from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates.base import AbstractPopulate
 from services.crisalid.utils import timeit
 from services.mistral.models import DocumentEmbedding
 
@@ -18,6 +19,11 @@ class Command(BaseCommand):
     help = "create or update data from researcher/Document crisalid neo4j/graphql"  # noqa: A003
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            "command",
+            choices=("document", "researcher", "all"),
+            help="elements to populate",
+        )
         parser.add_argument(
             "--delete",
             help="delete all crisalid models",
@@ -41,26 +47,28 @@ class Command(BaseCommand):
             deleted = model.objects.all().delete()
             print(f"deleted {model=}: {deleted=}")
 
-    def handle(self, **options):
-        if options["delete"]:
-            self.delete_crisalid_models()
-
-        service = CrisalidService()
-        populate = PopulateDocument()
+    def populate_crisalid(
+        self,
+        service: CrisalidService,
+        populate: AbstractPopulate,
+        query: str,
+        where: None,
+        **options,
+    ):
 
         offset = int(options["offset"])
         limit = int(options["limit"])
         max_elements = float(options["max"])
         total = 0
 
-        with timeit(print, "Populate All Data"):
+        with timeit(print, f"Populate All Data from '{query}'"):
 
             while max_elements >= 1:
 
                 with timeit(print, "GrapQL request "):
-                    data = service.query("documents", offset=offset, limit=limit)[
-                        "documents"
-                    ]
+                    data = service.query(
+                        query, offset=offset, limit=limit, where=where
+                    )[query]
                     if not data:
                         break
 
@@ -72,3 +80,25 @@ class Command(BaseCommand):
 
                 offset += limit
                 max_elements -= 1
+
+    def handle(self, **options):
+        if options["delete"]:
+            self.delete_crisalid_models()
+
+        command = options["command"]
+        service = CrisalidService()
+
+        if command in ("all", "document"):
+            populate = PopulateDocument()
+            self.populate_crisalid(service, populate, query="documents", **options)
+
+        if command in ("all", "researcher"):
+            populate = PopulateResearcher()
+            self.populate_crisalid(
+                service,
+                populate,
+                query="people",
+                # populate only local researcher
+                where={"external_EQ": False},
+                **options,
+            )

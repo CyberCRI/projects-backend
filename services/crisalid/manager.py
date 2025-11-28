@@ -1,7 +1,28 @@
 from django.db.models import Case, Count, Q, QuerySet, Value, When
 
 
-class DocumentQuerySet(QuerySet):
+class CrisalidQuerySet(QuerySet):
+    def from_identifiers(self, identifiers: list):
+        """filter by identifiers"""
+        from services.crisalid.models import Identifier
+
+        pk = set()
+        filters = Q()
+        for identifier in identifiers:
+            if isinstance(identifier, int):
+                pk.add(identifier)
+            elif isinstance(identifier, Identifier):
+                pk.add(identifier.pk)
+            elif isinstance(identifier, dict):
+                filters |= Q(
+                    identifiers__value=identifier["value"],
+                    identifier__harvester=identifier["harvester"],
+                )
+
+        return self.filter(Q(pk__in=pk) | filters).order_by("pk").distinct("pk")
+
+
+class DocumentQuerySet(CrisalidQuerySet):
     def group_count(self) -> dict[str, int]:
         """Calcultate all count by document centralized type
         return results like

@@ -1,4 +1,4 @@
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.models import Identifier, Researcher
 
 from .base import AbstractPopulate
@@ -6,46 +6,53 @@ from .base import AbstractPopulate
 
 class PopulateResearcher(AbstractPopulate):
     def get_names(self, data):
-        given_name = data.get("first_names")
-        family_name = data.get("last_names")
-        # "name" from apollo return list with languages
-        if data.get("names"):
-            given_name = self.sanitize_languages(data["names"][0]["first_names"])
-            family_name = self.sanitize_languages(data["names"][0]["last_names"])
+        given_name = family_name = ""
+
+        for name in data["names"]:
+            given_name = self.sanitize_languages(name["first_names"])
+            family_name = self.sanitize_languages(name["last_names"])
 
         return given_name or "", family_name or ""
+
+    def create_user(self, eppn: str, given_name: str, family_name: str) -> ProjectUser:
+
+        # filter by eppn
+        user = self.cache.model(ProjectUser, email=eppn)
+
+        # create only user if we have eppn
+        self.cache.save(
+            user,
+            email=eppn,
+            given_name=given_name,
+            family_name=family_name,
+        )
+
+        # researcher is hidden by default
+        user.privacy_settings.publication_status = (
+            PrivacySettings.PrivacyChoices.ORGANIZATION
+        )
+
+        return self.update_user(user)
+
+    def update_user(self, user: ProjectUser) -> ProjectUser:
+        group_organization = self.config.organization.get_users()
+        user.groups.add(group_organization)
+
+        return user
 
     def check_mapping_user(
         self, researcher: Researcher, data: dict
     ) -> ProjectUser | None:
         """match user from researcher (need eppn)"""
 
-        group_organization = self.config.organization.get_users()
-
         if researcher.user:
-            researcher.user.groups.add(group_organization)
-            return researcher.user
+            return self.update_user(researcher.user)
 
         for iden in data["identifiers"]:
             if iden["type"].lower() != Identifier.Harvester.EPPN.value:
                 continue
 
-            # filter by eppn
-            user = self.cache.model(
-                ProjectUser,
-                email=iden["value"],
-            )
-
-            # create only user if we have eppn
-            given_name, family_name = self.get_names(data)
-            self.cache.save(
-                user,
-                email=iden["value"],
-                given_name=given_name,
-                family_name=family_name,
-            )
-            user.groups.add(group_organization)
-            return user
+            return self.create_user(iden["value"])
         return None
 
     def single(self, data: dict) -> Researcher:
@@ -68,8 +75,8 @@ class PopulateResearcher(AbstractPopulate):
             Researcher, researcher_identifiers_without_local
         )
 
-        user = self.check_mapping_user(researcher, data)
         given_name, family_name = self.get_names(data)
+        user = self.check_mapping_user(researcher, data)
 
         self.cache.save(
             researcher, given_name=given_name, family_name=family_name, user=user

@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from django import forms
 from django.contrib import admin
 from django.db.models import Count
@@ -128,7 +130,10 @@ class ResearcherAdmin(admin.ModelAdmin):
                 if identifier.harvester != Identifier.Harvester.EPPN.value:
                     continue
 
-                user = ProjectUser.objects.filter(email=identifier.value)
+                user = None
+                with suppress(ProjectUser.DoesNotExist):
+                    user = ProjectUser.objects.get(email=identifier.value)
+
                 if not user:
                     user = ProjectUser(
                         email=identifier.value,

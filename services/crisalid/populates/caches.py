@@ -58,6 +58,6 @@ class LiveCache(BaseCache):
 
     def from_identifiers(self, model, identifiers):
         try:
-            return model.objects.filter(identifiers__in=identifiers).distinct().get()
+            return model.objects.from_identifiers(identifiers).get()
         except model.DoesNotExist:
             return model()

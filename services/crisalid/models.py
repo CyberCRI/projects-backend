@@ -10,7 +10,7 @@ from services.crisalid import relators
 from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
 
-from .manager import DocumentQuerySet
+from .manager import CrisalidQuerySet, DocumentQuerySet
 
 
 class ChoiceArrayField(ArrayField):
@@ -65,7 +65,10 @@ class Identifier(models.Model):
         constraints = (
             # we cant have the same harvester and value
             models.UniqueConstraint(
-                Lower("harvester"), Lower("value"), name="unique_harvester"
+                Lower("harvester"),
+                Lower("value"),
+                name="unique_harvester",
+                condition=~models.Q(harvester="local"),
             ),
         )
 
@@ -88,6 +91,8 @@ class Researcher(CrisalidDataModel):
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="researchers"
     )
+
+    objects = CrisalidQuerySet.as_manager()
 
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:
