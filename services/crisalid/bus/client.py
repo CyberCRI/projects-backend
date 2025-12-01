@@ -64,6 +64,8 @@ class CrisalidBusClient:
         assert self.conn is None, "rabimqt is already started"
 
         parameters = self.parameters()
+        if not parameters:
+            return
 
         # we need to threading event to stop consumers
         # pika is not thread safe so...

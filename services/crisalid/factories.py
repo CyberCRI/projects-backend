@@ -94,7 +94,7 @@ class CrisalidConfigFactory(factory.django.DjangoModelFactory):
     crisalidbus_password = faker.password()
     apollo_url = faker.url()
     apollo_token = faker.password()
-    active = True
+    active = False
 
     class Meta:
         model = CrisalidConfig

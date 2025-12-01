@@ -49,6 +49,10 @@ def start_crisalidbus(config: CrisalidConfig):
         if client is not None:
             stop_crisalidbus(client.config)
 
+        assert (
+            config.active is True
+        ), f"can't instanciate crisalidBus for {config.organization.code=}, active=False"
+
         client = OrganizationClient(config)
         organization_maps[config.organization.code] = client
         client.start()

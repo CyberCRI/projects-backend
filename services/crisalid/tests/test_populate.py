@@ -53,6 +53,7 @@ class TestPopulateResearcher(test.TestCase):
                     "last_names": [{"value": "mcfly", "language": "fr"}],
                 }
             ],
+            "identifiers": [],
         }
 
         new_obj = popu.single(data)
