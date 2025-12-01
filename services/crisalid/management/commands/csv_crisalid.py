@@ -1,14 +1,35 @@
 import csv
+import pathlib
 
 from django.core.management.base import BaseCommand
 
-from services.crisalid.models import Identifier, Researcher
+from apps.organizations.models import Organization
+from services.crisalid.models import CrisalidConfig, Identifier, Researcher
 
 
 class Command(BaseCommand):
     help = "create csv files for crisalid dag from our researcher"  # noqa: A003
 
-    def handle(self, **options):
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "organization",
+            choices=CrisalidConfig.objects.filter(
+                organization__code__isnull=False
+            ).values_list("organization__code", flat=True),
+            help="organization code",
+        )
+        parser.add_argument(
+            "command",
+            choices=("researcher", "all"),
+            help="elements to dumps",
+        )
+        parser.add_argument(
+            "output",
+            default="./",
+            help="output path",
+        )
+
+    def csv_researcher(self, organization: Organization, output: pathlib.Path):
 
         rows = [
             # headers csv
@@ -34,7 +55,7 @@ class Command(BaseCommand):
 
         # fetch all users with eppn
         for researcher in Researcher.objects.prefetch_related("identifiers").filter(
-            identifiers__harvester=Identifier.Harvester.EPPN.value
+            user__groups__in=(organization.get_users(),)
         ):
 
             # convert identifiers to a dict key/value
@@ -80,6 +101,16 @@ class Command(BaseCommand):
                 ]
             )
 
-        with open("people.csv", "w") as f:
+        path = output / "people.csv"
+        with path.open("w") as f:
             writer = csv.writer(f)
             writer.writerows(rows)
+
+    def handle(self, **options):
+        command = options["command"]
+        config = CrisalidConfig.objects.get(organization__code=options["organization"])
+
+        output = pathlib.Path(options["output"])
+
+        if command in ("researcher", "all"):
+            self.csv_researcher(config, output)
