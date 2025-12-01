@@ -1,6 +1,5 @@
 from contextlib import suppress
 
-from django import forms
 from django.contrib import admin
 from django.db.models import Count
 
@@ -161,21 +160,10 @@ class ResearcherAdmin(admin.ModelAdmin):
         return f"{', '.join(result)} ({len(result)})"
 
 
-class CrisalidConfigForm(forms.ModelForm):
-    class Meta:
-        model = CrisalidConfig
-        fields = "__all__"
-        widgets = {
-            "crisalidbus_password": forms.PasswordInput(),
-            "apollo_token": forms.PasswordInput(),
-        }
-
-
 class CrisalidConfigAdmin(admin.ModelAdmin):
     list_display = ("organization", "active")
     search_fields = ("organization__code", "active")
     autocomplete_fields = ("organization",)
-    form = CrisalidConfigForm
 
 
 admin.site.register(CrisalidConfig, CrisalidConfigAdmin)

@@ -1,8 +1,8 @@
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
-from services.crisalid.apps import CrisalidConfig
 from services.crisalid.bus.runner import delete_crisalidbus, start_crisalidbus
+from services.crisalid.models import CrisalidConfig
 
 
 @receiver(post_save, sender=CrisalidConfig)

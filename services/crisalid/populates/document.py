@@ -34,7 +34,7 @@ class PopulateDocument(AbstractPopulate):
 
         return roles
 
-    def single(self, data: dict):
+    def single(self, data: dict) -> Document | None:
         """this method create/update only on document from crisalid"""
         # identifiers (hal, openalex, idref ...ect)
         documents_identifiers = []
@@ -46,6 +46,10 @@ class PopulateDocument(AbstractPopulate):
             )
             self.cache.save(identifier)
             documents_identifiers.append(identifier)
+
+        # no identifiers for this documents, we ignore it
+        if not documents_identifiers:
+            return None
 
         document = self.cache.from_identifiers(Document, documents_identifiers)
         self.cache.save(

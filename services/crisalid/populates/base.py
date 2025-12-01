@@ -59,4 +59,10 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def multiple(self, datas: list) -> list:
-        return [self.single(data) for data in datas]
+        """return all objects create"""
+        final = []
+        for data in datas:
+            el = self.single(data)
+            if el is not None:
+                final.append(el)
+        return final

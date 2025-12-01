@@ -43,6 +43,23 @@ class TestPopulateResearcher(test.TestCase):
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
+    def test_create_researcher_whithout_identifiers(self):
+        popu = PopulateResearcher(self.config)
+        data = {
+            "uid": "05-11-1995-uuid",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
+        }
+
+        new_obj = popu.single(data)
+
+        self.assertIsNone(new_obj)
+        self.assertEqual(Researcher.objects.count(), 0)
+
     def test_no_change_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
@@ -243,6 +260,52 @@ class TestPopulateDocument(test.TestCase):
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+    def test_create_document_whitout_identifiers(self):
+        popu = PopulateDocument(self.config)
+        data = {
+            "uid": "05-11-1995-uuid",
+            "document_type": None,
+            "titles": [
+                {"language": "en", "value": "fiction"},
+            ],
+            "abstracts": [
+                {"language": "en", "value": "description"},
+            ],
+            "publication_date": "1999",
+            "has_contributions": [
+                {
+                    "roles": ["http://id.loc.gov/vocabulary/relators/aut"],
+                    "contributor": [
+                        {
+                            "uid": "local-v9034",
+                            "names": [
+                                {
+                                    "first_names": [
+                                        {"value": "Marty", "language": "fr"}
+                                    ],
+                                    "last_names": [
+                                        {"value": "Mcfly", "language": "fr"}
+                                    ],
+                                }
+                            ],
+                            "identifiers": [
+                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "recorded_by": [],
+        }
+
+        new_obj = popu.single(data)
+
+        # check obj from db
+        self.assertIsNone(new_obj)
+        self.assertEqual(Document.objects.count(), 0)
 
     def test_sanitize_date(self):
         popu = PopulateDocument(self.config)

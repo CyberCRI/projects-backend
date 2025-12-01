@@ -11,7 +11,7 @@ class CrisalidService:
 
     def __init__(self, config: CrisalidConfig):
         self.transport = RequestsHTTPTransport(
-            url=config.apollo_host,
+            url=config.apollo_url,
             headers={"X-API-Key": config.apollo_token},
         )
         self.client = Client(

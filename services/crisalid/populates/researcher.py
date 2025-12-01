@@ -57,7 +57,7 @@ class PopulateResearcher(AbstractPopulate):
             return self.create_user(iden["value"], given_name, family_name)
         return None
 
-    def single(self, data: dict) -> Researcher:
+    def single(self, data: dict) -> Researcher | None:
         researcher_identifiers = []
         for iden in data["identifiers"]:
             identifier = self.cache.model(
@@ -65,6 +65,10 @@ class PopulateResearcher(AbstractPopulate):
             )
             self.cache.save(identifier)
             researcher_identifiers.append(identifier)
+
+        # researcher withtout any identifiers no neeeeeeed to be created
+        if not researcher_identifiers:
+            return None
 
         # remove local/eppn identifiers to match only hal/eppn/orcid ..ect
         researcher_identifiers_without_local = [

@@ -42,7 +42,7 @@ class CrisalidBusClient:
         # get url without port, and set port for pika
         url = parse_url(self.config.crisalidbus_url)
         parameters = {
-            "host": url.url,
+            "host": url.host,
             "port": url.port,
             "user": self.config.crisalidbus_username,
             "password": self.config.crisalidbus_password,

@@ -4,6 +4,7 @@ from django.core.management.base import BaseCommand
 
 from services.crisalid.interface import CrisalidService
 from services.crisalid.models import (
+    CrisalidConfig,
     Document,
     DocumentContributor,
     Identifier,
@@ -11,7 +12,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 from services.crisalid.populates.base import AbstractPopulate
-from services.crisalid.utils import timeit
+from services.crisalid.utils.time import timeit
 from services.mistral.models import DocumentEmbedding
 
 
@@ -19,6 +20,13 @@ class Command(BaseCommand):
     help = "create or update data from researcher/Document crisalid neo4j/graphql"  # noqa: A003
 
     def add_arguments(self, parser):
+        parser.add_argument(
+            "organization",
+            choices=CrisalidConfig.objects.filter(
+                organization__code__isnull=False
+            ).values_list("organization__code", flat=True),
+            help="organization code",
+        )
         parser.add_argument(
             "command",
             choices=("document", "researcher", "all"),
@@ -52,7 +60,7 @@ class Command(BaseCommand):
         service: CrisalidService,
         populate: AbstractPopulate,
         query: str,
-        where: None,
+        where: None = None,
         **options,
     ):
 
@@ -65,7 +73,7 @@ class Command(BaseCommand):
 
             while max_elements >= 1:
 
-                with timeit(print, "GrapQL request "):
+                with timeit(print, f"GrapQL request {query}"):
                     data = service.query(
                         query, offset=offset, limit=limit, where=where
                     )[query]
@@ -82,18 +90,19 @@ class Command(BaseCommand):
                 max_elements -= 1
 
     def handle(self, **options):
+        config = CrisalidConfig.objects.get(organization__code=options["organization"])
         if options["delete"]:
             self.delete_crisalid_models()
 
         command = options["command"]
-        service = CrisalidService()
+        service = CrisalidService(config)
 
         if command in ("all", "document"):
-            populate = PopulateDocument()
+            populate = PopulateDocument(config)
             self.populate_crisalid(service, populate, query="documents", **options)
 
         if command in ("all", "researcher"):
-            populate = PopulateResearcher()
+            populate = PopulateResearcher(config)
             self.populate_crisalid(
                 service,
                 populate,

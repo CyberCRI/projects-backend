@@ -1,19 +1,18 @@
 import logging
 
 from projects.celery import app
-from services.crisalid.apps import CrisalidConfig
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.models import CrisalidConfig, Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 logger = logging.getLogger(__name__)
 
 
 def get_crisalid_config(crisalid_config_id: int) -> CrisalidConfig:
-    return CrisalidConfig.objects.get(id=crisalid_config_id).selected_related(
-        "organization"
+    return CrisalidConfig.objects.select_related("organization").get(
+        id=crisalid_config_id
     )
 
 
