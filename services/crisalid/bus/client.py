@@ -1,6 +1,7 @@
 import json
 import logging
 import time
+from threading import Event
 
 import jsonschema
 import pika
@@ -32,8 +33,8 @@ class CrisalidBusClient:
         self.config = config
         self.conn: pika.BlockingConnection | None = None
         self._channel = pika.channel.Channel
-        self._run: bool = True
         self.logger = logging.getLogger(config.organization.code)
+        self._stop_event: Event | None = None
 
     def parameters(self) -> dict | None:
         """generate parametrs for crislaid and check values"""
@@ -64,9 +65,14 @@ class CrisalidBusClient:
 
         parameters = self.parameters()
 
+        # we need to threading event to stop consumers
+        # pika is not thread safe so...
+        # https://pika.readthedocs.io/en/stable/faq.html#frequently-asked-questions
+        self._stop_event = Event()
+
         retry = 1
         # run in loop to retry when connection is lost
-        while self._run:
+        while not self._stop_event.is_set():
             try:
                 self.logger.info("Create pika connection")
 
@@ -99,8 +105,9 @@ class CrisalidBusClient:
                 )
 
                 self.logger.info("Start channel Consuming")
-                self._channel.start_consuming()
-                break
+
+                while not self._stop_event.is_set():
+                    self.conn.process_data_events(time_limit=1)
 
             except pika.exceptions.ConnectionClosedByBroker:
                 self.logger.error("Connection closed by crisalid broker")
@@ -108,8 +115,10 @@ class CrisalidBusClient:
                 self.logger.error("Channel error: %s", str(e))
             except pika.exceptions.AMQPConnectionError as e:
                 self.logger.error("Connection closed: %s", str(e))
+            except pika.exceptions.AMQPError as e:
+                self.logger.critical("Exceptions: %s", str(e))
 
-            if not self._run:
+            if self._stop_event.is_set():
                 break
 
             # incremental retry (max 60s)
@@ -119,22 +128,25 @@ class CrisalidBusClient:
         # ensure disconect after loop
         self._disconnect()
 
-    def disconnect(self):
+    def _disconnect(self):
         """disconnect rabitmqt connection"""
-        self._run = False
-        if not self.conn:
-            return
+        if self._channel is not None:
+            self._channel.close()
+            self._channel = None
 
-        self.self.logger.info("CrisalidBus connection closed")
+        if self.conn is not None:
+            self.conn.close()
+            self.conn = None
 
-        self.conn.close()
-        self.conn = None
-        self._channel.cancel()
-        self._channel = None
+        self.logger.info("CrisalidBus connection closed")
+
+    def stop(self):
+        if self._stop_event is not None:
+            self._stop_event.set()
 
     def __delete__(self):
         # for disconnect when class is deleted
-        self.disconnect()
+        self._disconnect()
 
     def _dispatch(
         self,

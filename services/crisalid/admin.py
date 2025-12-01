@@ -164,6 +164,23 @@ class CrisalidConfigAdmin(admin.ModelAdmin):
     list_display = ("organization", "active")
     search_fields = ("organization__code", "active")
     autocomplete_fields = ("organization",)
+    actions = ["active_connections", "deactive_connections"]
+
+    @admin.action(description="run/reload crisalidbus connections")
+    def active_connections(self, request, queryset):
+        """method to change/run crisalidbus listener"""
+        # we don't update directly queryset for signals dispatch
+        for obj in queryset:
+            obj.active = True
+            obj.save()
+
+    @admin.action(description="stop crisalidbus connections")
+    def deactive_connections(self, request, queryset):
+        """method to change/stop crisalidbus listener"""
+        # we don't update directly queryset for signals dispatch
+        for obj in queryset:
+            obj.active = False
+            obj.save()
 
 
 admin.site.register(CrisalidConfig, CrisalidConfigAdmin)

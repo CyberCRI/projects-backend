@@ -35,7 +35,7 @@ class OrganizationClient:
         self.logger.info("Stop thread %s", self.name)
         if self.thread is None:
             return
-        self.client.disconnect()
+        self.client.stop()
         self.thread.join(3)
         self.thread = None
 
@@ -56,16 +56,12 @@ def start_crisalidbus(config: CrisalidConfig):
 
 def stop_crisalidbus(config: CrisalidConfig):
     with rlock:
-        client = organization_maps.get(config.organization.code)
-        if client is None:
+        if config.organization.code not in organization_maps:
             return
+
+        client = organization_maps[config.organization.code]
         client.config = config
         client.stop()
-
-
-def delete_crisalidbus(config: CrisalidConfig):
-    with rlock:
-        stop_crisalidbus(config)
         del organization_maps[config.organization.code]
 
 
@@ -81,4 +77,4 @@ def initial_start_crisalidbus():
 def _stop_all_crisalid():
     with rlock:
         for client in list(organization_maps.values()):
-            delete_crisalidbus(client.config)
+            stop_crisalidbus(client.config)
