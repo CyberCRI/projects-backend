@@ -23,8 +23,8 @@ class IdentifierAdmin(admin.ModelAdmin):
             super()
             .get_queryset(request)
             .prefetch_related("researchers", "documents")
-            .annotate(documents_count=Count("documents__id"))
-            .annotate(researchers_count=Count("researchers__id"))
+            .annotate(documents_count=Count("documents__id", distinct=True))
+            .annotate(researchers_count=Count("researchers__id", distinct=True))
         )
 
     @admin.display(description="researchers assosiate", ordering="researchers_count")
@@ -72,7 +72,7 @@ class DocumentAdmin(admin.ModelAdmin):
             .get_queryset(request)
             .prefetch_related("contributors", "identifiers")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(contributors_count=Count("contributors__id"))
+            .annotate(contributors_count=Count("contributors__id", distinct=True))
         )
 
     @admin.display(description="contributors count", ordering="contributors_count")
@@ -112,7 +112,7 @@ class ResearcherAdmin(admin.ModelAdmin):
             .select_related("user")
             .prefetch_related("identifiers", "documents")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(documents_count=Count("documents__id"))
+            .annotate(documents_count=Count("documents__id", distinct=True))
         )
 
     @admin.action(description="assign researcher on projects")
