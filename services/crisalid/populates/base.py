@@ -29,7 +29,7 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         maps_languages = {}
         for value in values:
-            maps_languages[value["language"]] = value["value"]
+            maps_languages[value["language"]] = (value["value"] or "").strip()
 
         return (
             maps_languages.get("en")
@@ -44,6 +44,7 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
         if not value:
             return None
 
+        value = value.strip()
         for format_date in CRISALID_FORMAT_DATE:
             try:
                 # parse the value and convert it to date

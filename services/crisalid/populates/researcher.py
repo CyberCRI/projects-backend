@@ -12,7 +12,10 @@ class PopulateResearcher(AbstractPopulate):
             given_name = self.sanitize_languages(name["first_names"])
             family_name = self.sanitize_languages(name["last_names"])
 
-        return given_name or "", family_name or ""
+        given_name = (given_name or "").strip()
+        family_name = (family_name or "").strip()
+
+        return given_name, family_name
 
     def create_user(self, eppn: str, given_name: str, family_name: str) -> ProjectUser:
 

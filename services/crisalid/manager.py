@@ -2,7 +2,7 @@ from django.db.models import Case, Count, Q, QuerySet, Value, When
 
 
 class CrisalidQuerySet(QuerySet):
-    def from_identifiers(self, identifiers: list):
+    def from_identifiers(self, identifiers: list, distinct=True):
         """filter by identifiers"""
         from services.crisalid.models import Identifier
 
@@ -19,11 +19,10 @@ class CrisalidQuerySet(QuerySet):
                     identifiers__harvester=identifier["harvester"],
                 )
 
-        return (
-            self.filter(Q(identifiers__pk__in=pks) | filters)
-            .order_by("pk")
-            .distinct("pk")
-        )
+        qs = self.filter(Q(identifiers__pk__in=pks) | filters)
+        if distinct:
+            qs = qs.order_by("pk").distinct("pk")
+        return qs
 
 
 class DocumentQuerySet(CrisalidQuerySet):

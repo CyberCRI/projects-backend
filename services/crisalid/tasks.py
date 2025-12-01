@@ -22,8 +22,8 @@ def get_crisalid_config(crisalid_config_id: int) -> CrisalidConfig:
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.CREATED)
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.UPDATED)
-@app.task(name=f"{__name__}.create_person")
-def create_person(crisalid_config_id: int, fields: dict):
+@app.task(name=f"{__name__}.create_researcher")
+def create_researcher(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.error("receive %s for organization %s", fields, config.organization)
 
@@ -32,8 +32,8 @@ def create_person(crisalid_config_id: int, fields: dict):
 
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.DELETED)
-@app.task(name=f"{__name__}.delete_person")
-def delete_person(crisalid_config_id: int, fields: dict):
+@app.task(name=f"{__name__}.delete_researcher")
+def delete_researcher(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.error("receive %s for organization %s", fields, config.organization)
 
@@ -44,7 +44,10 @@ def delete_person(crisalid_config_id: int, fields: dict):
         not in (Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN)
     ]
 
-    deleted = Researcher.objects.from_identifiers(identifiers).delete()
+    # TODO(remi): check only one elements are deleted
+    pks = Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    deleted, _ = Researcher.objects.filter(pk__in=pks).delete()
+
     logger.info("deleted = %s", deleted)
 
 
@@ -80,5 +83,6 @@ def delete_document(crisalid_config_id: int, fields: dict):
         for iden in fields["recorded_by"]
     ]
 
-    deleted = Document.objects.from_identifiers(identifiers).delete()
+    pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    deleted, _ = Document.objects.filter(pk__in=pks).delete()
     logger.info("deleted = %s", deleted)
