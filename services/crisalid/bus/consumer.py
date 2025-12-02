@@ -15,9 +15,9 @@ class CrisalidConsumer:
 
     def __init__(self):
         # initial cosumer dict
-        self.clean()
+        self.clear()
 
-    def clean(self):
+    def clear(self):
         """remove all registered callback"""
         self._consumers: dict[CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]] = (
             defaultdict(lambda: defaultdict(lambda: None))

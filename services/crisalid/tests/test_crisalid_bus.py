@@ -30,7 +30,7 @@ class TestCrisalidBus(test.TestCase):
 
     def setUp(self):
         self.client = CrisalidBusClient(self.config)
-        crisalid_consumer.clean()
+        crisalid_consumer.clear()
 
     def test_dispatch_no_callback(self):
         # this run withtout called any callback
@@ -47,7 +47,7 @@ class TestCrisalidBus(test.TestCase):
 
         # normaly is called
         callback.assert_called_once_with(
-            self.config.organization.pk, json.loads(self.payload)["fields"]
+            self.config.pk, json.loads(self.payload)["fields"]
         )
 
     def test_add_callback(self):
