@@ -14,14 +14,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
-from apps.accounts.models import ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.commons.permissions import (
-    IsAuthenticatedOrCreateOnly,
-    IsOwner,
-    ReadOnly,
-    WillBeOwner,
-)
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import MultipleIDViewsetMixin
 from apps.organizations.models import Organization
