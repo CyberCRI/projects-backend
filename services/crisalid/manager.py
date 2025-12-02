@@ -3,7 +3,20 @@ from django.db.models import Case, Count, Q, QuerySet, Value, When
 
 class CrisalidQuerySet(QuerySet):
     def from_identifiers(self, identifiers: list, distinct=True):
-        """filter by identifiers"""
+        """filter by identifiers
+        identifiers is a list of:
+            - int: pk of the identifier
+            - Identifier: Identifier object
+            - dict: dict object with value/harvester key
+
+            example:
+             Document.objects.form_identifiers([
+              Identifier(value="jhon.carter@mars.space", harvester="eppn"),
+              45,
+              {"harvester": "idref", "value": "4855993"}
+             ])
+
+        """
         from services.crisalid.models import Identifier
 
         pks = set()

@@ -31,7 +31,7 @@ class CrisalidBusClient:
 
     def __init__(self, config: CrisalidConfig):
         self.config = config
-        self.conn: pika.BlockingConnection | None = None
+        self._conn: pika.BlockingConnection | None = None
         self._channel = pika.channel.Channel
         self.logger = logging.getLogger(config.organization.code)
         self._stop_event: Event | None = None
@@ -61,7 +61,7 @@ class CrisalidBusClient:
         return parameters
 
     def connect(self):
-        assert self.conn is None, "rabimqt is already started"
+        assert self._conn is None, "rabimqt is already started"
 
         parameters = self.parameters()
         if not parameters:
@@ -82,7 +82,7 @@ class CrisalidBusClient:
                     parameters["user"], parameters["password"]
                 )
 
-                self.conn = pika.BlockingConnection(
+                self._conn = pika.BlockingConnection(
                     pika.ConnectionParameters(
                         host=parameters["host"],
                         port=parameters["port"],
@@ -90,12 +90,14 @@ class CrisalidBusClient:
                         virtual_host="/",
                     ),
                 )
-                self._channel = self.conn.channel()
+                self._channel = self._conn.channel()
                 exchange = self.CRISALID_EXCHANGE
                 self._channel.exchange_declare(
                     exchange=exchange, exchange_type="topic", durable=True
                 )
-                queue_name = f"projects-backend.{exchange}"
+
+                # queue name in rabitmq
+                queue_name = f"projects-backend.{self.config.organization.code.lower()}.{exchange}"
                 self._channel.queue_declare(queue=queue_name, exclusive=True)
                 for routing_key in self.CRISALID_ROUTING_KEYS:
                     self._channel.queue_bind(
@@ -109,7 +111,7 @@ class CrisalidBusClient:
                 self.logger.info("Start channel Consuming")
 
                 while not self._stop_event.is_set():
-                    self.conn.process_data_events(time_limit=1)
+                    self._conn.process_data_events(time_limit=1)
 
             except pika.exceptions.ConnectionClosedByBroker:
                 self.logger.error("Connection closed by crisalid broker")
@@ -136,9 +138,9 @@ class CrisalidBusClient:
             self._channel.close()
             self._channel = None
 
-        if self.conn is not None:
-            self.conn.close()
-            self.conn = None
+        if self._conn is not None:
+            self._conn.close()
+            self._conn = None
 
         self.logger.info("CrisalidBus connection closed")
 

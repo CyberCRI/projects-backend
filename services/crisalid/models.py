@@ -100,7 +100,7 @@ class Researcher(CrisalidDataModel):
         return self.get_full_name()
 
     def get_full_name(self):
-        return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
+        return f"{self.given_name.capitalize()} {self.family_name.capitalize()}"
 
 
 class DocumentContributor(models.Model):
@@ -292,7 +292,9 @@ class CrisalidConfig(OrganizationRelated, models.Model):
         max_length=255, help_text="crisalidbus/rabimqt password"
     )
 
-    apollo_url = models.CharField(max_length=255, help_text="apollo/graphql host:port")
+    apollo_url = models.CharField(
+        max_length=255, help_text="apollo/graphql host:port/graphql"
+    )
     apollo_token = models.CharField(max_length=255, help_text="apollo token")
 
     active = models.BooleanField(help_text="config is enabled/disabled", default=False)

@@ -40,12 +40,13 @@ class OrganizationClient:
         self.thread = None
 
 
-organization_maps: dict[str, OrganizationClient] = {}
+# dict registered client/thread by organization code
+CLIENTS_ORGA_MAPS: dict[str, OrganizationClient] = {}
 
 
 def start_crisalidbus(config: CrisalidConfig):
     with rlock:
-        client = organization_maps.get(config.organization.code)
+        client = CLIENTS_ORGA_MAPS.get(config.organization.code)
         if client is not None:
             stop_crisalidbus(client.config)
 
@@ -54,19 +55,19 @@ def start_crisalidbus(config: CrisalidConfig):
         ), f"can't instanciate crisalidBus for {config.organization.code=}, active=False"
 
         client = OrganizationClient(config)
-        organization_maps[config.organization.code] = client
+        CLIENTS_ORGA_MAPS[config.organization.code] = client
         client.start()
 
 
 def stop_crisalidbus(config: CrisalidConfig):
     with rlock:
-        if config.organization.code not in organization_maps:
+        if config.organization.code not in CLIENTS_ORGA_MAPS:
             return
 
-        client = organization_maps[config.organization.code]
+        client = CLIENTS_ORGA_MAPS[config.organization.code]
         client.config = config
         client.stop()
-        del organization_maps[config.organization.code]
+        del CLIENTS_ORGA_MAPS[config.organization.code]
 
 
 def initial_start_crisalidbus():
@@ -80,5 +81,5 @@ def initial_start_crisalidbus():
 @atexit.register
 def _stop_all_crisalid():
     with rlock:
-        for client in list(organization_maps.values()):
+        for client in list(CLIENTS_ORGA_MAPS.values()):
             stop_crisalidbus(client.config)

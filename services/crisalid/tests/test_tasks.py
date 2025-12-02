@@ -1,12 +1,20 @@
+from unittest.mock import patch
+
 from django import test
 
 from services.crisalid.factories import (
     CrisalidConfigFactory,
     DocumentFactory,
     ResearcherFactory,
+    faker,
 )
-from services.crisalid.models import Document, Researcher
-from services.crisalid.tasks import delete_document, delete_researcher
+from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.tasks import (
+    create_document,
+    create_researcher,
+    delete_document,
+    delete_researcher,
+)
 
 
 class TestCrisalidTasks(test.TestCase):
@@ -87,8 +95,98 @@ class TestCrisalidTasks(test.TestCase):
 
         self.assertTrue(Researcher.objects.filter(pk=researcher.pk).exists())
 
-    def test_create_document(self):
-        pass
-
     def test_create_researcher(self):
-        pass
+        # other check/tests in test_views.py
+        fields = {
+            "uid": "05-11-1995-uuid",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
+            "identifiers": [
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+            ],
+        }
+
+        create_researcher(self.config.pk, fields)
+
+        # check obj from db
+        obj = Researcher.objects.first()
+
+        self.assertEqual(obj.given_name, "marty")
+        self.assertEqual(obj.family_name, "mcfly")
+        self.assertEqual(obj.identifiers.count(), 1)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "hals-truc")
+        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
+
+    @patch("services.crisalid.interface.Client")
+    def test_create_document_empty(self, client_gql):
+        fields = {"uid": faker.uuid4()}
+        client_gql().execute.return_value = {"documents": []}
+
+        self.assertEqual(Document.objects.count(), 0)
+        create_document(self.config.pk, fields)
+        self.assertEqual(Document.objects.count(), 0)
+
+    @patch("services.crisalid.interface.Client")
+    def test_create_document(self, client_gql):
+        fields = {"uid": faker.uuid4()}
+        data = {
+            "uid": "05-11-1995-uuid",
+            "document_type": None,
+            "titles": [
+                {"language": "en", "value": "fiction"},
+            ],
+            "abstracts": [
+                {"language": "en", "value": "description"},
+            ],
+            "publication_date": "1999",
+            "has_contributions": [
+                {
+                    "roles": ["http://id.loc.gov/vocabulary/relators/aut"],
+                    "contributor": [
+                        {
+                            "uid": "local-v9034",
+                            "names": [
+                                {
+                                    "first_names": [
+                                        {"value": "Marty", "language": "fr"}
+                                    ],
+                                    "last_names": [
+                                        {"value": "Mcfly", "language": "fr"}
+                                    ],
+                                }
+                            ],
+                            "identifiers": [
+                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "recorded_by": [
+                {
+                    "uid": "hals-truc",
+                    "harvester": Identifier.Harvester.HAL.value,
+                    "value": "",
+                }
+            ],
+        }
+
+        client_gql().execute.return_value = {"documents": [data]}
+
+        create_document(self.config.pk, fields)
+        # check obj from db
+        obj = Document.objects.first()
+
+        self.assertEqual(obj.title, "fiction")
+        self.assertEqual(obj.identifiers.count(), 1)
+        self.assertEqual(obj.document_type, Document.DocumentType.UNKNOWN.value)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "hals-truc")
+        self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)

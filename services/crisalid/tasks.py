@@ -86,3 +86,10 @@ def delete_document(crisalid_config_id: int, fields: dict):
     pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
     deleted, _ = Document.objects.filter(pk__in=pks).delete()
     logger.info("deleted = %s", deleted)
+
+
+@app.task(name="Vectorize documents")
+def vectorize_documents(documents_pks: list[int]):
+    for obj in Document.objects.filter(pk__in=documents_pks):
+        logger.debug("vectorize document=%s", obj)
+        obj.vectorize()

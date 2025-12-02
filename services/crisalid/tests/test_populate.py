@@ -14,9 +14,9 @@ class TestPopulateResearcher(test.TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateResearcher(cls.config)
 
     def test_create_researcher(self):
-        popu = PopulateResearcher(self.config)
         data = {
             "uid": "05-11-1995-uuid",
             "names": [
@@ -30,7 +30,7 @@ class TestPopulateResearcher(test.TestCase):
             ],
         }
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check obj from db
         obj = Researcher.objects.first()
@@ -44,7 +44,6 @@ class TestPopulateResearcher(test.TestCase):
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
     def test_create_researcher_whithout_identifiers(self):
-        popu = PopulateResearcher(self.config)
         data = {
             "uid": "05-11-1995-uuid",
             "names": [
@@ -56,7 +55,7 @@ class TestPopulateResearcher(test.TestCase):
             "identifiers": [],
         }
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         self.assertIsNone(new_obj)
         self.assertEqual(Researcher.objects.count(), 0)
@@ -81,9 +80,7 @@ class TestPopulateResearcher(test.TestCase):
         )
         researcher.identifiers.add(iden)
 
-        popu = PopulateResearcher(self.config)
-
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check no new object are created
         self.assertEqual(Researcher.objects.count(), 1)
@@ -120,8 +117,7 @@ class TestPopulateResearcher(test.TestCase):
         data["identifiers"].append(
             {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
         )
-        popu = PopulateResearcher(self.config)
-        popu.single(data)
+        self.popu.single(data)
 
         # check no new object are created
         self.assertEqual(Researcher.objects.count(), 1)
@@ -147,8 +143,7 @@ class TestPopulateResearcher(test.TestCase):
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
             ],
         }
-        popu = PopulateResearcher(self.config)
-        popu.single(data)
+        self.popu.single(data)
 
         user = ProjectUser.objects.first()
         # check no new object are created
@@ -181,8 +176,7 @@ class TestPopulateResearcher(test.TestCase):
             PrivacySettings.PrivacyChoices.PUBLIC.value,
         )
 
-        popu = PopulateResearcher(self.config)
-        popu.single(data)
+        self.popu.single(data)
 
         researcher = Researcher.objects.select_related("user").first()
         self.assertEqual(researcher.user, user)
@@ -202,9 +196,9 @@ class TestPopulateDocument(test.TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateDocument(cls.config)
 
     def test_create_publication(self):
-        popu = PopulateDocument(self.config)
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
@@ -249,7 +243,7 @@ class TestPopulateDocument(test.TestCase):
             ],
         }
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check obj from db
         obj = Document.objects.first()
@@ -263,7 +257,6 @@ class TestPopulateDocument(test.TestCase):
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
     def test_create_document_whitout_identifiers(self):
-        popu = PopulateDocument(self.config)
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
@@ -302,38 +295,34 @@ class TestPopulateDocument(test.TestCase):
             "recorded_by": [],
         }
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check obj from db
         self.assertIsNone(new_obj)
         self.assertEqual(Document.objects.count(), 0)
 
     def test_sanitize_date(self):
-        popu = PopulateDocument(self.config)
-
         self.assertEqual(
-            popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
+            self.popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
         )
         self.assertEqual(
-            popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
+            self.popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
         )
         self.assertEqual(
-            popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
+            self.popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
         )
-        self.assertEqual(popu.sanitize_date(""), None)
-        self.assertEqual(popu.sanitize_date(None), None)
-        self.assertEqual(popu.sanitize_date("invalidDate"), None)
+        self.assertEqual(self.popu.sanitize_date(""), None)
+        self.assertEqual(self.popu.sanitize_date(None), None)
+        self.assertEqual(self.popu.sanitize_date("invalidDate"), None)
 
     def test_sanitize_titles(self):
-        popu = PopulateDocument(self.config)
-
-        self.assertEqual(popu.sanitize_languages([]), "")
+        self.assertEqual(self.popu.sanitize_languages([]), "")
         self.assertEqual(
-            popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
+            self.popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
             "en-title",
         )
         self.assertEqual(
-            popu.sanitize_languages(
+            self.popu.sanitize_languages(
                 [
                     {"language": "en", "value": "en-title"},
                     {"language": "fr", "value": "fr-title"},
@@ -342,7 +331,7 @@ class TestPopulateDocument(test.TestCase):
             "en-title",
         )
         self.assertEqual(
-            popu.sanitize_languages(
+            self.popu.sanitize_languages(
                 [
                     {"language": "es", "value": "es-title"},
                     {"language": "fr", "value": "fr-title"},
@@ -351,23 +340,21 @@ class TestPopulateDocument(test.TestCase):
             "fr-title",
         )
         self.assertEqual(
-            popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
+            self.popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
             "es-title",
         )
 
     def test_sanitize_document_type(self):
-        popu = PopulateDocument(self.config)
-
         self.assertEqual(
-            popu.sanitize_document_type(None),
+            self.popu.sanitize_document_type(None),
             Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            popu.sanitize_document_type("invalid-Document-type"),
+            self.popu.sanitize_document_type("invalid-Document-type"),
             Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            popu.sanitize_document_type(
+            self.popu.sanitize_document_type(
                 Document.DocumentType.AUDIOVISUAL_DOCUMENT.value
             ),
             Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,

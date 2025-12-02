@@ -1,9 +1,10 @@
 from contextlib import suppress
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import Count
 
 from apps.accounts.models import ProjectUser
+from services.crisalid.tasks import vectorize_documents
 
 from .models import (
     CrisalidConfig,
@@ -14,6 +15,7 @@ from .models import (
 )
 
 
+@admin.register(Identifier)
 class IdentifierAdmin(admin.ModelAdmin):
     list_display = ("harvester", "value", "get_researcher", "get_documents")
     search_fields = ("harvester", "value")
@@ -41,6 +43,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
     extra = 0
 
 
+@admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "title",
@@ -60,11 +63,17 @@ class DocumentAdmin(admin.ModelAdmin):
     )
     inlines = (DocumentContributorAdminInline,)
 
-    actions = ["vectorize"]
+    actions = ("vectorize",)
 
     def vectorize(self, request, queryset):
-        for document in queryset:
-            document.vectorize()
+        # run vecotrize async in celery
+        documents_pks = list(queryset.values_list("pk", flat=True))
+        vectorize_documents.apply_async((documents_pks,))
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Vecotrize Task created for {len(documents_pks)} documents",
+        )
 
     def get_queryset(self, request):
         return (
@@ -88,6 +97,7 @@ class DocumentAdmin(admin.ModelAdmin):
         return f"{', '.join(result)} ({len(result)})"
 
 
+@admin.register(Researcher)
 class ResearcherAdmin(admin.ModelAdmin):
     list_display = (
         "given_name",
@@ -119,6 +129,7 @@ class ResearcherAdmin(admin.ModelAdmin):
     def assign_user(self, request, queryset):
         """Assign research to user if matching user/eppn"""
         researcher_updated = []
+        created = assigned = notfound = 0
 
         for research in queryset.prefetch_related("identifiers").select_related("user"):
             # already set
@@ -134,17 +145,32 @@ class ResearcherAdmin(admin.ModelAdmin):
                     user = ProjectUser.objects.get(email=identifier.value)
 
                 if not user:
+                    created += 1
                     user = ProjectUser(
                         email=identifier.value,
                         given_name=research.given_name,
                         family_name=research.family_name,
                     )
                     user.save()
+                else:
+                    assigned += 1
 
                 research.user = user
                 researcher_updated.append(research)
+                break
+            else:
+                notfound += 1
 
         Researcher.objects.bulk_update(researcher_updated, fields=["user"])
+
+        if created:
+            messages.add_message(request, messages.INFO, f"Create {created} user.")
+        if assigned:
+            messages.add_message(request, messages.INFO, f"Assign {assigned} user.")
+        if notfound:
+            messages.add_message(
+                request, messages.ERROR, f"Can't found {notfound} user with eppn."
+            )
 
     @admin.display(description="documents count", ordering="documents_count")
     def get_documents(self, instance):
@@ -160,30 +186,39 @@ class ResearcherAdmin(admin.ModelAdmin):
         return f"{', '.join(result)} ({len(result)})"
 
 
+@admin.register(CrisalidConfig)
 class CrisalidConfigAdmin(admin.ModelAdmin):
     list_display = ("organization", "active")
     search_fields = ("organization__code", "active")
     autocomplete_fields = ("organization",)
-    actions = ["active_connections", "deactive_connections"]
+    actions = ("active_connections", "deactive_connections")
 
     @admin.action(description="run/reload crisalidbus connections")
     def active_connections(self, request, queryset):
         """method to change/run crisalidbus listener"""
         # we don't update directly queryset for signals dispatch
+        total = queryset.count()
         for obj in queryset:
             obj.active = True
             obj.save()
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"CrisalidBus listener started or reloaded ({total}).",
+        )
 
     @admin.action(description="stop crisalidbus connections")
     def deactive_connections(self, request, queryset):
         """method to change/stop crisalidbus listener"""
         # we don't update directly queryset for signals dispatch
+        total = queryset.count()
         for obj in queryset:
             obj.active = False
             obj.save()
 
-
-admin.site.register(CrisalidConfig, CrisalidConfigAdmin)
-admin.site.register(Researcher, ResearcherAdmin)
-admin.site.register(Identifier, IdentifierAdmin)
-admin.site.register(Document, DocumentAdmin)
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"CrisalidBus listener stoped ({total}).",
+        )

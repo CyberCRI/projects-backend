@@ -6,7 +6,7 @@ from django import test
 from services.crisalid.bus.client import CrisalidBusClient
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import crisalid_consumer
-from services.crisalid.bus.runner import _stop_all_crisalid, organization_maps
+from services.crisalid.bus.runner import CLIENTS_ORGA_MAPS, _stop_all_crisalid
 from services.crisalid.factories import CrisalidConfigFactory
 
 
@@ -139,13 +139,13 @@ class TestCrisalidThread(test.TestCase):
 
     def test_start_signals(self, clientbus_mock, thread_mock):
         # not crisalidbus loaded
-        self.assertEqual(organization_maps, {})
+        self.assertEqual(CLIENTS_ORGA_MAPS, {})
 
         self.config.active = True
         self.config.save()
 
-        self.assertIn(self.config.organization.code, organization_maps)
-        client: Mock = organization_maps[self.config.organization.code]
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+        client: Mock = CLIENTS_ORGA_MAPS[self.config.organization.code]
         self.assertIsNotNone(client)
 
         clientbus_mock.assert_called_once_with(self.config)
@@ -156,10 +156,10 @@ class TestCrisalidThread(test.TestCase):
         self.config.active = True
         self.config.save()
 
-        self.assertIn(self.config.organization.code, organization_maps)
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
         self.config.active = False
         self.config.save()
-        self.assertNotIn(self.config.organization.code, organization_maps)
+        self.assertNotIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
 
         clientbus_mock().stop.assert_called_once()
         thread_mock.Thread().join.assert_called_once()
@@ -168,20 +168,20 @@ class TestCrisalidThread(test.TestCase):
         self.config.active = False
         self.config.save()
 
-        self.assertNotIn(self.config.organization.code, organization_maps)
+        self.assertNotIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
 
     def test_start_signals_active(self, clientbus_mock, thread_mock):
         self.config.active = True
         self.config.save()
-        self.assertIn(self.config.organization.code, organization_maps)
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
 
         self.config.active = True
         self.config.save()
-        self.assertIn(self.config.organization.code, organization_maps)
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
 
     def test_delte_signals_active(self, clientbus_mock, thread_mock):
         config = CrisalidConfigFactory(active=True)
-        self.assertIn(config.organization.code, organization_maps)
+        self.assertIn(config.organization.code, CLIENTS_ORGA_MAPS)
 
         config.delete()
-        self.assertNotIn(config.organization.code, organization_maps)
+        self.assertNotIn(config.organization.code, CLIENTS_ORGA_MAPS)

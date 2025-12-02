@@ -318,11 +318,12 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         """Method to search researchers by harvester type and multiple harvesters value"""
         qs = self.get_queryset()
 
-        harvester_values = request.query_params.get("values").split(",")
         harvester = request.query_params.get("harvester")
-        qs = qs.filter(
-            identifiers__harvester=harvester, identifiers__value__in=harvester_values
-        )
+        harvester_values = request.query_params.get("values").split(",")
+        identifiers = [
+            {"harvester": harvester, "value": value} for value in harvester_values
+        ]
+        qs = qs.from_identifiers(identifiers)
 
         queryset_page = self.paginate_queryset(qs)
         data = self.serializer_class(
