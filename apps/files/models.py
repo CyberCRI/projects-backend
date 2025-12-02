@@ -452,7 +452,6 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     hashcode = models.CharField(max_length=64, default="")
-    history = HistoricalRecords()
 
     def get_owner(self):
         return self.owner
@@ -486,7 +485,6 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
     site_name = models.CharField(max_length=255)
     site_url = models.URLField(max_length=2048)
     title = models.CharField(max_length=255, blank=True)
-    history = HistoricalRecords()
 
     def get_owner(self):
         return self.owner
