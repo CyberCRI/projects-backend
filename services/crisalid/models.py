@@ -97,9 +97,10 @@ class Researcher(CrisalidDataModel):
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:
             return self.user.get_full_name()
-        return self.get_full_name()
+        return self.display_name
 
-    def get_full_name(self):
+    @property
+    def display_name(self):
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}"
 
 
