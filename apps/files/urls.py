@@ -1,10 +1,16 @@
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import organization_router_register, project_router_register
+from apps.commons.urls import (
+    organization_router_register,
+    project_router_register,
+    user_router_register,
+)
 from apps.files.views import (
     AttachmentFileViewSet,
     AttachmentLinkViewSet,
     OrganizationAttachmentFileViewSet,
+    ProjectUserAttachmentFileViewSet,
+    ProjectUserAttachmentLinkViewSet,
 )
 
 router = DefaultRouter()
@@ -23,4 +29,18 @@ project_router_register(
 )
 project_router_register(
     router, r"link", AttachmentLinkViewSet, basename="AttachmentLink"
+)
+
+
+user_router_register(
+    router,
+    r"file",
+    ProjectUserAttachmentFileViewSet,
+    basename="ProjectUserAttachmentFile",
+)
+user_router_register(
+    router,
+    r"link",
+    ProjectUserAttachmentLinkViewSet,
+    basename="ProjectUserAttachmentLink",
 )
