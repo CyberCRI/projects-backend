@@ -1,18 +1,27 @@
-from typing import Optional
+from typing import Any
 
 from django.contrib import admin
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
 from apps.accounts.models import ProjectUser
 from apps.projects.models import Project
+from services.crisalid.models import Document
 
-from .models import Embedding, EmbeddingError, ProjectEmbedding, UserEmbedding
+from .models import (
+    DocumentEmbedding,
+    Embedding,
+    EmbeddingError,
+    ProjectEmbedding,
+    UserEmbedding,
+)
 
 
 class EmbeddingAdmin(admin.ModelAdmin):
     item_admin_page: str = ""
-    search_fields: Optional[tuple] = None
+    search_fields: tuple | None = None
 
     list_display = (
         "id",
@@ -59,6 +68,17 @@ class ProjectEmbeddingAdmin(EmbeddingAdmin):
         return item.title
 
 
+class DocumentEmbeddingAdmin(EmbeddingAdmin):
+    item_admin_page = "admin:crisalid_document_change"
+    search_fields = ("item__document_type", "item__title")
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return super().get_queryset(request)
+
+    def display_item_link(self, item: Document) -> str:
+        return str(item)
+
+
 class EmbeddingErrorAdmin(admin.ModelAdmin):
     list_display = (
         "id",
@@ -75,6 +95,8 @@ class EmbeddingErrorAdmin(admin.ModelAdmin):
             admin_page = reverse(
                 "admin:accounts_projectuser_change", args=(item.item_id,)
             )
+        elif item.item_type == Document.__name__:
+            admin_page = reverse("admin:crisalid_document_change", args=(item.item_id,))
         else:
             return None
         return mark_safe(f'<a href="{admin_page}">{item.item_type}: {item.item_id}</a>')
@@ -84,4 +106,5 @@ class EmbeddingErrorAdmin(admin.ModelAdmin):
 
 admin.site.register(UserEmbedding, UserEmbeddingAdmin)
 admin.site.register(ProjectEmbedding, ProjectEmbeddingAdmin)
+admin.site.register(DocumentEmbedding, DocumentEmbeddingAdmin)
 admin.site.register(EmbeddingError, EmbeddingErrorAdmin)

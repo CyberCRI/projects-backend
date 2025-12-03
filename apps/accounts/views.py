@@ -180,7 +180,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return queryset.prefetch_related(
             skills_prefetch,
             "groups",
-        )
+        ).select_related("researcher")
 
     def get_object(self):
         """
