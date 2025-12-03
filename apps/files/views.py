@@ -202,7 +202,11 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
     )
     def create(self, request, *args, **kwargs):
         """Allows the upload of images."""
-        data = {**request.data, "user": request.user}
+        data = {
+            "file": request.data["file"],
+            "name": request.data["file"]._name,
+            **{k: v for k, v in request.data.items() if k != "file"},
+        }
         self.validate_image(data)
         image = Image(**data)
         image._upload_to = self.get_upload_to()
@@ -227,7 +231,13 @@ class ProjectUserAttachmentLinkViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectUserAttachmentLinkSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    permission_classes = [IsOwner | WillBeOwner | ReadOnly]
+    permission_classes = [
+        ReadOnly
+        | IsOwner
+        | WillBeOwner
+        | HasBasePermission("change_projectuser", "accounts")
+        | HasOrganizationPermission("change_projectuser"),
+    ]
 
     def get_queryset(self) -> QuerySet:
         return ProjectUserAttachmentLink.objects.filter(
@@ -243,7 +253,13 @@ class ProjectUserAttachmentFileViewSet(viewsets.ModelViewSet):
     serializer_class = ProjectUserAttachmentFileSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    permission_classes = [IsOwner | WillBeOwner | ReadOnly]
+    permission_classes = [
+        ReadOnly
+        | IsOwner
+        | WillBeOwner
+        | HasBasePermission("change_projectuser", "accounts")
+        | HasOrganizationPermission("change_projectuser"),
+    ]
 
     def get_queryset(self) -> QuerySet:
         return ProjectUserAttachmentFile.objects.filter(
