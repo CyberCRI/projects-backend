@@ -89,13 +89,3 @@ class WillBeOwner(permissions.BasePermission):
         self, request: Request, view: GenericViewSet, obj
     ) -> bool:
         return self.has_permission(request, view)
-
-
-class OrganizationPermission(permissions.BasePermission):
-    def has_permission(self, request: Request, view: GenericViewSet, obj=None) -> bool:
-        if request.user.is_superuser:
-            return True
-        grp = view.organization.get_users()
-        return request.user.groups.contains(grp)
-
-    has_object_permission = has_permission

@@ -112,5 +112,5 @@ class Command(BaseCommand):
 
         output = pathlib.Path(options["output"])
 
-        if command in ("researcher", "all"):
+        if command in ("all", "researcher"):
             self.csv_researcher(config, output)

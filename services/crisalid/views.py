@@ -15,7 +15,6 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.permissions import OrganizationPermission
 from apps.commons.views import NestedOrganizationViewMixins
 from services.crisalid import relators
 from services.crisalid.models import (
@@ -90,7 +89,6 @@ class AbstractDocumentViewSet(
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
-    permission_classes = (OrganizationPermission,)
 
     def filter_queryset(
         self,
@@ -298,15 +296,14 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "id")
-    permission_classes = (OrganizationPermission,)
 
     def get_queryset(self):
-        return (
+        return self.request.user.get_user_related_queryset(
             Researcher.objects.filter(
-                user__isnull=False, user__groups__in=(self.organization.get_users(),)
+                user__isnull=False, user__groups__organizations__in=(self.organization,)
             )
             .prefetch_related("identifiers")
-            .select_related("user")
+            .select_related("user"),
         )
 
     @action(

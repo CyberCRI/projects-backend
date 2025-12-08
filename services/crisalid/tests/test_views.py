@@ -230,7 +230,11 @@ class TestResearcherView(JwtAPITestCase):
             data={"harvester": "idref", "values": "6666666"},
         )
 
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        results = response.json()["results"]
+        expected = {}
+        # not same orga, return empty user
+        self.assertEqual(results, expected)
 
     def test_search_found(self):
         identifier = self.researcher.identifiers.first()
@@ -255,4 +259,8 @@ class TestResearcherView(JwtAPITestCase):
             reverse("Researcher-list", args=(self.organization.code,))
         )
 
-        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+        results = response.json()["results"]
+        # 2 user in same organizations
+        self.assertEqual(len(results), 2)
