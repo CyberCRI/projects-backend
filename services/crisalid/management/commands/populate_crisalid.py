@@ -10,7 +10,11 @@ from services.crisalid.models import (
     Identifier,
     Researcher,
 )
-from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates import (
+    PopulateDocument,
+    PopulateResearcher,
+    PopulateStructure,
+)
 from services.crisalid.populates.base import AbstractPopulate
 from services.crisalid.utils.time import timeit
 from services.mistral.models import DocumentEmbedding
@@ -23,13 +27,13 @@ class Command(BaseCommand):
         parser.add_argument(
             "organization",
             choices=CrisalidConfig.objects.filter(
-                organization__code__isnull=False
+                organization__code__isnull=False, active=True
             ).values_list("organization__code", flat=True),
             help="organization code",
         )
         parser.add_argument(
             "command",
-            choices=("document", "researcher", "all"),
+            choices=("document", "researcher", "structure", "all"),
             help="elements to populate",
         )
         parser.add_argument(
@@ -109,5 +113,14 @@ class Command(BaseCommand):
                 query="people",
                 # populate only local researcher
                 where={"external_EQ": False},
+                **options,
+            )
+
+        if command in ("all", "structure"):
+            populate = PopulateStructure(config)
+            self.populate_crisalid(
+                service,
+                populate,
+                query="organisations",
                 **options,
             )

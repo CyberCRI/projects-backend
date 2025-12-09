@@ -57,6 +57,8 @@ class Identifier(models.Model):
         EPPN = "eppn"
         DOI = "doi"
         PMID = "pmid"
+        NNS = "nns"
+        RNSR = "rnsr"
 
     harvester = models.CharField(max_length=50, choices=Harvester.choices)
     value = models.CharField(max_length=255)
@@ -93,6 +95,12 @@ class Researcher(CrisalidDataModel):
     )
 
     objects = CrisalidQuerySet.as_manager()
+    memberships = models.ManyToManyField(
+        "crisalid.Structure", related_name="memberships"
+    )
+    employments = models.ManyToManyField(
+        "crisalid.Structure", related_name="employments"
+    )
 
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:
@@ -270,6 +278,23 @@ class DocumentTypeCentralized:
     def values(cls) -> Generator[tuple[str]]:
         for _, v in cls.items():
             yield v
+
+
+class Structure(OrganizationRelated, CrisalidDataModel):
+    acronym = models.TextField(null=True, blank=True)
+    name = models.TextField()
+    identifiers = models.ManyToManyField(
+        "crisalid.Identifier", related_name="structures"
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="structures",
+    )
+    objects = CrisalidQuerySet.as_manager()
+
+    def __str__(self):
+        return self.name
 
 
 class CrisalidConfig(OrganizationRelated, models.Model):

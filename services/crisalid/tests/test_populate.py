@@ -5,8 +5,9 @@ from django import test
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.factories import CrisalidConfigFactory
-from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.models import Document, Identifier, Researcher, Structure
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates.structure import PopulateStructure
 
 
 class TestPopulateResearcher(test.TestCase):
@@ -26,7 +27,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
 
@@ -70,7 +71,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
@@ -104,7 +105,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
@@ -115,7 +116,7 @@ class TestPopulateResearcher(test.TestCase):
         researcher.identifiers.add(iden)
 
         data["identifiers"].append(
-            {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
+            {"value": "000-666-999", "harvester": Identifier.Harvester.ORCID.value}
         )
         self.popu.single(data)
 
@@ -139,8 +140,8 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
-                {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
+                {"value": "eppn@lpi.com", "harvester": Identifier.Harvester.EPPN.value},
             ],
         }
         self.popu.single(data)
@@ -165,8 +166,8 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
-                {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
+                {"value": "eppn@lpi.com", "harvester": Identifier.Harvester.EPPN.value},
             ],
         }
         # a project user already exists with same eepn
@@ -226,9 +227,12 @@ class TestPopulateDocument(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
-                                {"type": "idref", "value": "4545454545454"},
-                                {"type": "local", "value": "v55555"},
+                                {
+                                    "harvester": "eppn",
+                                    "value": "marty.mcfly@non-de-zeus.fr",
+                                },
+                                {"harvester": "idref", "value": "4545454545454"},
+                                {"harvester": "local", "value": "v55555"},
                             ],
                         }
                     ],
@@ -236,9 +240,8 @@ class TestPopulateDocument(test.TestCase):
             ],
             "recorded_by": [
                 {
-                    "uid": "hals-truc",
                     "harvester": Identifier.Harvester.HAL.value,
-                    "value": "",
+                    "value": "hals-truc",
                 }
             ],
         }
@@ -284,9 +287,12 @@ class TestPopulateDocument(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
-                                {"type": "idref", "value": "4545454545454"},
-                                {"type": "local", "value": "v55555"},
+                                {
+                                    "harvester": "eppn",
+                                    "value": "marty.mcfly@non-de-zeus.fr",
+                                },
+                                {"harvester": "idref", "value": "4545454545454"},
+                                {"harvester": "local", "value": "v55555"},
                             ],
                         }
                     ],
@@ -359,3 +365,46 @@ class TestPopulateDocument(test.TestCase):
             ),
             Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
         )
+
+
+class TestPopulateStructure(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateStructure(cls.config)
+
+    def test_create_structure(self):
+        data = {
+            "acronym": "LabEx CAP",
+            "names": [{"language": "fr", "value": "CAP"}],
+            "identifiers": [{"harvester": "local", "value": "DGI01"}],
+        }
+
+        new_obj = self.popu.single(data)
+
+        # check obj from db
+        obj = Structure.objects.first()
+        self.assertEqual(obj, new_obj)
+
+        self.assertEqual(obj.acronym, "LabEx CAP")
+        self.assertEqual(obj.name, "CAP")
+        self.assertEqual(obj.organization, self.config.organization)
+        self.assertEqual(obj.identifiers.count(), 1)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "DGI01")
+        self.assertEqual(iden.harvester, "local")
+
+    def test_create_structure_whitout_identifiers(self):
+        data = {
+            "acronym": "LabEx CAP",
+            "names": [{"language": "fr", "value": "CAP"}],
+            "identifiers": [],
+        }
+
+        new_obj = self.popu.single(data)
+
+        # check obj from db
+        obj = Structure.objects.first()
+        self.assertIsNone(obj)
+        self.assertIsNone(new_obj)

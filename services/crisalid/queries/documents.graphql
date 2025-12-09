@@ -1,6 +1,5 @@
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
   documents(limit: $limit, offset: $offset, where: $where) {
-    uid,
     publication_date,
     document_type,
 
@@ -17,7 +16,6 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
     has_contributions {
       roles,
       contributor {
-        uid
         display_name,
         names {
           first_names {
@@ -30,15 +28,37 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: DocumentWhere) {
           }
         }
         identifiers {
-          type
+          harvester: type
           value
+        }
+        employments {
+          acronym
+          names {
+            language
+            value
+          }
+          identifiers {
+            harvester: type
+            value
+         }
+        }
+        memberships {
+          acronym
+          names {
+            language
+            value
+          }
+          identifiers {
+            harvester: type
+            value
+          }
         }
       }
     }
 
     recorded_by {
       harvester
-      uid,
+      value: uid,
     }
   }
 }
