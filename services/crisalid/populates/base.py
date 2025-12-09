@@ -2,6 +2,8 @@ import abc
 import datetime
 from typing import TypeVar
 
+from services.crisalid.models import CrisalidConfig
+
 from .caches import BaseCache, LiveCache
 from .logger import logger
 
@@ -13,8 +15,15 @@ TCACHE = TypeVar("TCACHE", bound=BaseCache)
 
 class AbstractPopulate(metaclass=abc.ABCMeta):
 
-    def __init__(self, cache: TCACHE = None):
+    def __init__(self, config: CrisalidConfig, cache: TCACHE = None):
+        self.config = config
         self.cache = cache or LiveCache()
+
+    def sanitize_string(self, value) -> str:
+        """strip value and convert it to string"""
+        if not value:
+            return ""
+        return str(value).strip()
 
     def sanitize_languages(self, values: list[dict[str, str]]) -> str:
         """convert languages choices from crisalid fields
@@ -26,7 +35,7 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         maps_languages = {}
         for value in values:
-            maps_languages[value["language"]] = value["value"]
+            maps_languages[value["language"]] = self.sanitize_string(value["value"])
 
         return (
             maps_languages.get("en")
@@ -41,6 +50,7 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
         if not value:
             return None
 
+        value = value.strip()
         for format_date in CRISALID_FORMAT_DATE:
             try:
                 # parse the value and convert it to date
@@ -56,4 +66,10 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     def multiple(self, datas: list) -> list:
-        return [self.single(data) for data in datas]
+        """return all objects create"""
+        final = []
+        for data in datas:
+            el = self.single(data)
+            if el is not None:
+                final.append(el)
+        return final

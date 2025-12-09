@@ -9,4 +9,5 @@ class CrisalidConfig(AppConfig):
         super().__init__(*ar, **kw)
 
     def ready(self):
+        import services.crisalid.signals  # noqa: F401
         import services.crisalid.tasks  # noqa: F401

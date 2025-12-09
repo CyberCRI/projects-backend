@@ -1,0 +1,43 @@
+query PopulateFromCrisalid($limit: Int, $offset: Int, $where: PersonWhere) {
+  people(limit: $limit, offset: $offset, where: $where) {
+    display_name
+    names {
+      first_names {
+        language
+        value
+      }
+      last_names {
+        language
+        value
+      }
+    }
+    identifiers {
+      harvester: type
+      value
+    }
+
+    employments {
+       acronym
+      names {
+        language
+        value
+      }
+      identifiers {
+        harvester: type
+        value
+     }
+    }
+
+    memberships {
+      acronym
+      names {
+        language
+        value
+      }
+      identifiers {
+        harvester: type
+        value
+     }
+    }
+  }
+}

@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.db.models import Model
 from rest_framework import permissions
 from rest_framework.request import Request
@@ -68,7 +66,7 @@ class IsOwner(permissions.BasePermission):
         return False
 
     def has_object_permission(
-        self, request: Request, view: GenericViewSet, obj: Union[HasOwner, HasOwners]
+        self, request: Request, view: GenericViewSet, obj: HasOwner | HasOwners
     ) -> bool:
         return request.user.is_authenticated and obj.is_owned_by(request.user)
 

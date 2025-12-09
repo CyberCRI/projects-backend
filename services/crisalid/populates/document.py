@@ -1,5 +1,6 @@
 from services.crisalid import relators
-from services.crisalid.models import Document, DocumentContributor, Identifier
+from services.crisalid.models import CrisalidConfig, Document, DocumentContributor
+from services.crisalid.populates.identifier import PopulateIdentifier
 
 from .base import AbstractPopulate
 from .logger import logger
@@ -7,9 +8,12 @@ from .researcher import PopulateResearcher
 
 
 class PopulateDocument(AbstractPopulate):
-    def __init__(self, cache=None):
-        super().__init__(cache)
-        self.populate_researcher = PopulateResearcher(self.cache)
+    def __init__(self, config: CrisalidConfig, cache=None):
+        super().__init__(config, cache)
+        self.populate_identifiers = PopulateIdentifier(self.config, self.cache)
+        self.populate_researcher = PopulateResearcher(
+            self.config, self.cache, populate_identifiers=self.populate_identifiers
+        )
 
     def sanitize_document_type(self, data: str | None):
         """Check documentType , and return unknow value if is not set in enum"""
@@ -29,10 +33,16 @@ class PopulateDocument(AbstractPopulate):
 
         return roles
 
-    def single(self, data: dict):
+    def single(self, data: dict) -> Document | None:
         """this method create/update only on document from crisalid"""
+        # identifiers (hal, openalex, idref ...ect)
+        documents_identifiers = self.populate_identifiers.multiple(data["recorded_by"])
 
-        document = self.cache.model(Document, crisalid_uid=data["uid"])
+        # no identifiers for this documents, we ignore it
+        if not documents_identifiers:
+            return None
+
+        document = self.cache.from_identifiers(Document, documents_identifiers)
         self.cache.save(
             document,
             title=self.sanitize_languages(data["titles"]),
@@ -40,18 +50,7 @@ class PopulateDocument(AbstractPopulate):
             publication_date=self.sanitize_date(data["publication_date"]),
             document_type=self.sanitize_document_type(data["document_type"]),
         )
-
-        # identifiers (hal, openalex, idref ...ect)
-        identifiers = []
-        for recorded in data["recorded_by"]:
-            identifier = self.cache.model(
-                Identifier,
-                value=recorded["uid"],
-                harvester=recorded["harvester"].lower(),
-            )
-            self.cache.save(identifier)
-            identifiers.append(identifier)
-        self.cache.save_m2m(document, identifiers=identifiers)
+        self.cache.save_m2m(document, identifiers=documents_identifiers)
 
         contributors = []
         for contribution in data["has_contributions"]:
