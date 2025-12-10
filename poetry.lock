@@ -1021,7 +1021,6 @@ files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
-markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "coverage"
@@ -1222,14 +1221,14 @@ six = ">=1.10"
 
 [[package]]
 name = "django"
-version = "4.2.26"
+version = "4.2.27"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.8"
 groups = ["main", "dev"]
 files = [
-    {file = "django-4.2.26-py3-none-any.whl", hash = "sha256:c96e64fc3c359d051a6306871bd26243db1bd02317472a62ffdbe6c3cae14280"},
-    {file = "django-4.2.26.tar.gz", hash = "sha256:9398e487bcb55e3f142cb56d19fbd9a83e15bb03a97edc31f408361ee76d9d7a"},
+    {file = "django-4.2.27-py3-none-any.whl", hash = "sha256:f393a394053713e7d213984555c5b7d3caeee78b2ccb729888a0774dff6c11a8"},
+    {file = "django-4.2.27.tar.gz", hash = "sha256:b865fbe0f4a3d1ee36594c5efa42b20db3c8bbb10dff0736face1c6e4bda5b92"},
 ]
 
 [package.dependencies]
@@ -1832,21 +1831,6 @@ files = [
     {file = "flake8-plugin-utils-1.3.3.tar.gz", hash = "sha256:39f6f338d038b301c6fd344b06f2e81e382b68fa03c0560dff0d9b1791a11a2c"},
     {file = "flake8_plugin_utils-1.3.3-py3-none-any.whl", hash = "sha256:e4848c57d9d50f19100c2d75fa794b72df068666a9041b4b0409be923356a3ed"},
 ]
-
-[[package]]
-name = "flake8-polyfill"
-version = "1.0.2"
-description = "Polyfill package for Flake8 plugins"
-optional = false
-python-versions = "*"
-groups = ["dev"]
-files = [
-    {file = "flake8-polyfill-1.0.2.tar.gz", hash = "sha256:e44b087597f6da52ec6393a709e7108b2905317d0c0b744cdca6208e670d8eda"},
-    {file = "flake8_polyfill-1.0.2-py2.py3-none-any.whl", hash = "sha256:12be6a34ee3ab795b19ca73505e7b55826d5f6ad7230d31b18e106400169b9e9"},
-]
-
-[package.dependencies]
-flake8 = "*"
 
 [[package]]
 name = "flake8-return"
@@ -2470,14 +2454,8 @@ traitlets = ">=5.13.0"
 [package.extras]
 all = ["ipython[doc,matplotlib,test,test-extra]"]
 black = ["black"]
-doc = ["docrepr", "exceptiongroup", "intersphinx_registry", "ipykernel", "ipython[test]", "matplotlib", "setuptools (>=18.5)", "sphinx (>=1.3)", "sphinx-rtd-theme", "sphinxcontrib-jquery", "tomli ; python_version < \"3.11\"", "typing_extensions"]
-kernel = ["ipykernel"]
+doc = ["docrepr", "exceptiongroup", "intersphinx_registry", "ipykernel", "ipython[matplotlib,test]", "setuptools (>=70.0)", "sphinx (>=8.0)", "sphinx-rtd-theme (>=0.1.8)", "sphinx_toml (==0.0.4)", "typing_extensions"]
 matplotlib = ["matplotlib (>3.9)"]
-nbconvert = ["nbconvert"]
-nbformat = ["nbformat"]
-notebook = ["ipywidgets", "notebook"]
-parallel = ["ipyparallel"]
-qtconsole = ["qtconsole"]
 test = ["packaging (>=20.1.0)", "pytest (>=7.0.0)", "pytest-asyncio (>=1.0.0)", "setuptools (>=61.2)", "testpath (>=0.2)"]
 test-extra = ["curio", "ipykernel (>6.30)", "ipython[matplotlib]", "ipython[test]", "jupyter_ai", "nbclient", "nbformat", "numpy (>=1.27)", "pandas (>2.1)", "trio (>=0.1.0)"]
 
@@ -4902,4 +4880,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "9340e8d7635ba905da334b53e141f568e2e85aa9a4838ce685ab2dff6f41d1d5"
+content-hash = "791c261a47f531d413fa492744832580beed97ebfe709a978aa4aa5e736ad22a"

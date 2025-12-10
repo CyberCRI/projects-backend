@@ -344,7 +344,7 @@ def map_action_to_permission(action: str, codename: str) -> Optional[str]:
         "update": f"change_{codename}",
         "partial_update": f"change_{codename}",
         "destroy": f"delete_{codename}",
-    }.get(action, None)
+    }.get(action)
 
 
 def clear_memory(func):

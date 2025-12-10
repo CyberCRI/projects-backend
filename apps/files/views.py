@@ -85,7 +85,7 @@ class OrganizationAttachmentFileViewSet(viewsets.ModelViewSet):
     def get_serializer_context(self):
         return {
             **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code", None),
+            "organization_code": self.kwargs.get("organization_code"),
         }
 
     def perform_create(self, serializer):

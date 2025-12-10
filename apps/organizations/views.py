@@ -121,7 +121,7 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def projects_life_status(self, request, *args, **kwargs):
         category = self.get_object()
-        value = request.data.get("life_status", None)
+        value = request.data.get("life_status")
         if not value or value not in Project.LifeStatus.values:
             raise MissingLifeStatusParameterError
         category.projects.update(life_status=value)
@@ -149,7 +149,7 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def projects_locked_status(self, request, *args, **kwargs):
         category = self.get_object()
-        value = request.data.get("is_locked", None)
+        value = request.data.get("is_locked")
         if not value or not isinstance(value, bool):
             raise MissingLockedStatusParameterError
         category.projects.update(is_locked=value)
