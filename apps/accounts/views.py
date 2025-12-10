@@ -168,7 +168,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = self.request.user.get_user_queryset()
-        organization_pk = self.request.query_params.get("current_org_pk", None)
+        organization_pk = self.request.query_params.get("current_org_pk")
         if organization_pk is not None:
             organization = Organization.objects.get(pk=organization_pk)
             queryset = self.annotate_organization_role(queryset, organization)
@@ -210,7 +210,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_serializer_context(self):
         context = super().get_serializer_context()
         context.update({"request": self.request})
-        current_org_pk = self.request.query_params.get("current_org_pk", None)
+        current_org_pk = self.request.query_params.get("current_org_pk")
         if current_org_pk:
             organization = get_object_or_404(Organization, pk=current_org_pk)
             context.update({"organization": organization})
@@ -235,7 +235,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def get_by_email(self, request, *args, **kwargs):
         queryset = ProjectUser.objects.all()
-        current_org_pk = request.query_params.get("current_org_pk", None)
+        current_org_pk = request.query_params.get("current_org_pk")
         if current_org_pk is not None:
             organization = Organization.objects.get(pk=current_org_pk)
             queryset = self.annotate_organization_role(queryset, organization)
@@ -381,7 +381,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
             instance = self.google_sync(instance, self.request.data, True)
             keycloak_account = KeycloakService.create_user(
-                instance, self.request.data.get("password", None)
+                instance, self.request.data.get("password")
             )
         update_new_user_pending_access_requests.delay(
             instance.id, redirect_organization_code
@@ -479,7 +479,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             redirect_organization_code = request.query_params.get(
                 "organization", "DEFAULT"
             )
-            email_type = request.query_params.get("email_type", None)
+            email_type = request.query_params.get("email_type")
             if not email_type:
                 raise EmailTypeMissingError
             if not hasattr(user, "keycloak_account"):
@@ -927,7 +927,7 @@ class PeopleGroupLogoView(
 class DeleteCookieView(views.APIView):
     @extend_schema(request=None, responses=EmptyPayloadResponseSerializer)
     def get(self, request, *args, **kwargs):
-        access_token = request.COOKIES.get(settings.JWT_ACCESS_TOKEN_COOKIE_NAME, None)
+        access_token = request.COOKIES.get(settings.JWT_ACCESS_TOKEN_COOKIE_NAME)
         if not access_token:
             return HttpResponse("Cookie already deleted")
         response = HttpResponse("Cookie deleted")

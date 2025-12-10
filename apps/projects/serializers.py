@@ -619,7 +619,7 @@ class ProjectSerializer(
 
     def get_linked_projects(self, project: Project) -> Dict[str, Any]:
         queryset = LinkedProject.objects.filter(target=project)
-        user = getattr(self.context.get("request", None), "user", AnonymousUser())
+        user = getattr(self.context.get("request"), "user", AnonymousUser())
         queryset = user.get_project_related_queryset(queryset)
         return LinkedProjectSerializer(queryset, many=True).data
 
@@ -661,7 +661,7 @@ class ProjectSerializer(
     def validate_organizations_codes(self, value: List[Organization]):
         if len(value) < 1:
             raise ProjectWithNoOrganizationError
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         if request:
             organizations_to_add = (
                 [o for o in value if o not in self.instance.organizations.all()]

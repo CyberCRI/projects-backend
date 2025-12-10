@@ -94,7 +94,7 @@ class TranslatedModelSerializer(serializers.ModelSerializer):
 
         requested_langs = []
         if "request" in self.context:
-            lang_param = self.context["request"].query_params.get("lang", None)
+            lang_param = self.context["request"].query_params.get("lang")
             requested_langs = lang_param.split(",") if lang_param else []
 
         for field in fields:

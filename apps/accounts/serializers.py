@@ -81,7 +81,7 @@ class UserAdminListSerializer(
         fields = read_only_fields
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        organization = self.context.get("organization", None)
+        organization = self.context.get("organization")
         queryset = PeopleGroup.objects.filter(
             groups__users=user, is_root=False
         ).distinct()
@@ -124,7 +124,7 @@ class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         return ImageSerializer(image).data if image else None
 
     def to_representation(self, instance: ProjectUser) -> Dict[str, Any]:
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
             request and request.user.get_user_queryset().filter(id=instance.id).exists()
@@ -177,7 +177,7 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         fields = read_only_fields
 
     def to_representation(self, instance):
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
             request and request.user.get_user_queryset().filter(id=instance.id).exists()
@@ -194,10 +194,8 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         return ImageSerializer(user.profile_picture).data
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(
-            self.context.get("request", None), "user", AnonymousUser()
-        )
-        organization = self.context.get("organization", None)
+        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
+        organization = self.context.get("organization")
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
@@ -421,7 +419,7 @@ class PeopleGroupSerializer(
         data["parent"] = (
             data.get("parent", self.instance.parent)
             if self.instance
-            else data.get("parent", None)
+            else data.get("parent")
         )
         if isinstance(data["parent"], PeopleGroup):
             data["parent"] = data["parent"].id
@@ -646,7 +644,7 @@ class UserSerializer(
         ]
 
     def to_representation(self, instance):
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
             request and request.user.get_user_queryset().filter(id=instance.id).exists()
@@ -748,10 +746,8 @@ class UserSerializer(
         return ImageSerializer(user.profile_picture).data
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(
-            self.context.get("request", None), "user", AnonymousUser()
-        )
-        organization = self.context.get("organization", None)
+        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
+        organization = self.context.get("organization")
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)

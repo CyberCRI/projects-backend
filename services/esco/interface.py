@@ -39,5 +39,5 @@ class EscoService:
                 if result.get("className", "") != "Taxonomy"
             ]
             data.extend(results)
-            next_page = content.get("_links", {}).get("next", {}).get("href", None)
+            next_page = content.get("_links", {}).get("next", {}).get("href")
         return data

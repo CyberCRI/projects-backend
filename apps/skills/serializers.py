@@ -56,13 +56,13 @@ class TagClassificationSerializer(
     is_enabled_for_skills = serializers.SerializerMethodField()
 
     def get_is_owned(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("current_organization", None)
+        organization = self.context.get("current_organization")
         return organization and tag_classification.organization == organization
 
     def get_is_enabled_for_projects(
         self, tag_classification: TagClassification
     ) -> bool:
-        organization = self.context.get("current_organization", None)
+        organization = self.context.get("current_organization")
         return (
             organization
             and tag_classification
@@ -70,7 +70,7 @@ class TagClassificationSerializer(
         )
 
     def get_is_enabled_for_skills(self, tag_classification: TagClassification) -> bool:
-        organization = self.context.get("current_organization", None)
+        organization = self.context.get("current_organization")
         return (
             organization
             and tag_classification
@@ -150,7 +150,7 @@ class TagClassificationAddTagsSerializer(serializers.Serializer):
     )
 
     def validate_tags(self, tags: List[Tag]) -> List[Tag]:
-        organization = self.context.get("current_organization", None)
+        organization = self.context.get("current_organization")
         if organization and any(
             (tag.organization and tag.organization != organization) for tag in tags
         ):
@@ -281,7 +281,7 @@ class MentoringContactSerializer(serializers.Serializer):
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
         if hasattr(self, "initial_data"):
-            reply_to = self.initial_data.get("reply_to", None)
+            reply_to = self.initial_data.get("reply_to")
             if not reply_to and "request" in self.context:
                 context = self.context
                 user = context["request"].user
@@ -302,7 +302,7 @@ class MentoringResponseSerializer(serializers.Serializer):
     def __init__(self, instance=None, data=empty, **kwargs):
         super().__init__(instance=instance, data=data, **kwargs)
         if hasattr(self, "initial_data"):
-            reply_to = self.initial_data.get("reply_to", None)
+            reply_to = self.initial_data.get("reply_to")
             if not reply_to and "request" in self.context:
                 context = self.context
                 user = context["request"].user
