@@ -37,7 +37,13 @@ from .exceptions import (
     ParentCategoryOrganizationError,
     RootCategoryParentError,
 )
-from .models import Organization, ProjectCategory, Template, TermsAndConditions
+from .models import (
+    CategoryFollow,
+    Organization,
+    ProjectCategory,
+    Template,
+    TermsAndConditions,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -653,3 +659,15 @@ class ProjectCategorySerializer(
                 raise CategoryHierarchyLoopError
             parent = parent.parent
         return value
+
+
+class CategoryFollowSerializer(serializers.ModelSerializer):
+    category = ProjectCategoryLightSerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=ProjectCategory.objects.all(), source="category"
+    )
+
+    class Meta:
+        model = CategoryFollow
+        read_only_fields = ["id", "category"]
+        fields = read_only_fields + ["category_id"]

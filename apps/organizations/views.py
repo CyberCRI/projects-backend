@@ -13,13 +13,13 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.models import PeopleGroup
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import UserSerializer
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
-from apps.commons.permissions import IsOwner, ReadOnly
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.projects.models import Project
@@ -30,9 +30,16 @@ from .exceptions import (
     MissingLockedStatusParameterError,
 )
 from .filters import OrganizationFilter, ProjectCategoryFilter
-from .models import Organization, ProjectCategory, Template, TermsAndConditions
+from .models import (
+    CategoryFollow,
+    Organization,
+    ProjectCategory,
+    Template,
+    TermsAndConditions,
+)
 from .permissions import HasOrganizationPermission
 from .serializers import (
+    CategoryFollowSerializer,
     OrganizationAddFeaturedProjectsSerializer,
     OrganizationAddTeamMembersSerializer,
     OrganizationLightSerializer,
@@ -154,6 +161,29 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             raise MissingLockedStatusParameterError
         category.projects.update(is_locked=value)
         return Response(status=status.HTTP_200_OK)
+
+
+class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
+    serializer_class = CategoryFollowSerializer
+    filter_backends = [DjangoFilterBackend]
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id"),
+    ]
+    permission_classes = [IsAuthenticatedOrReadOnly, ReadOnly | IsOwner | WillBeOwner]
+
+    def get_permissions(self):
+        return super().get_permissions()
+
+    def get_queryset(self) -> QuerySet:
+        return self.request.user.get_user_related_queryset(
+            CategoryFollow.objects.filter(follower__id=self.kwargs.get("user_id")),
+            user_related_name="follower",
+        )
+
+    def perform_create(self, serializer: CategoryFollowSerializer):
+        serializer.save(follower=self.request.user)
 
 
 class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
