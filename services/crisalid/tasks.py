@@ -1,12 +1,20 @@
 import logging
 
 from projects.celery import app
-from services.crisalid.crisalid_bus import CrisalidEventEnum, CrisalidTypeEnum, on_event
+from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
+from services.crisalid.bus.consumer import on_event
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import Document, Researcher
+from services.crisalid.models import CrisalidConfig, Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 logger = logging.getLogger(__name__)
+
+
+def get_crisalid_config(crisalid_config_id: int) -> CrisalidConfig:
+    return CrisalidConfig.objects.select_related("organization").get(
+        id=crisalid_config_id
+    )
+
 
 # https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/amqp/amqp_person_event_message_factory.py#L28
 # https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/amqp/amqp_document_event_message_factory.py#L37
@@ -14,30 +22,43 @@ logger = logging.getLogger(__name__)
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.CREATED)
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.UPDATED)
-@app.task(name=f"{__name__}.create_person")
-def create_person(fields: dict):
-    logger.info("receive %s", fields)
+@app.task(name=f"{__name__}.create_researcher")
+def create_researcher(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.error("receive %s for organization %s", fields, config.organization)
 
-    populate = PopulateResearcher()
+    populate = PopulateResearcher(config)
     populate.single(fields)
 
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.DELETED)
-@app.task(name=f"{__name__}.delete_person")
-def delete_person(fields: dict):
-    logger.info("receive %s", fields)
+@app.task(name=f"{__name__}.delete_researcher")
+def delete_researcher(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.error("receive %s for organization %s", fields, config.organization)
 
-    deleted = Researcher.objects.filter(crisalid_uid=fields["uid"]).delete()
+    identifiers = [
+        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        for iden in fields["identifiers"]
+        if iden["type"].lower()
+        not in (Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN)
+    ]
+
+    # TODO(remi): check only one elements are deleted
+    pks = Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    deleted, _ = Researcher.objects.filter(pk__in=pks).delete()
+
     logger.info("deleted = %s", deleted)
 
 
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED)
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.UPDATED)
 @app.task(name=f"{__name__}.create_document")
-def create_document(fields: dict):
-    logger.info("receive %s", fields)
+def create_document(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.error("receive %s for organization %s", fields, config.organization)
 
-    service = CrisalidService()
+    service = CrisalidService(config)
 
     # fetch data from apollo
     data = service.query(
@@ -47,14 +68,28 @@ def create_document(fields: dict):
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
 
-    populate = PopulateDocument()
+    populate = PopulateDocument(config)
     populate.single(data[0])
 
 
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.DELETED)
 @app.task(name=f"{__name__}.delete_document")
-def delete_document(fields: dict):
-    logger.error("receive %s", fields)
+def delete_document(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.error("receive %s for organization %s", fields, config.organization)
 
-    deleted = Document.objects.filter(crisalid_uid=fields["uid"]).delete()
+    identifiers = [
+        {"harvester": iden["harvester"].lower(), "value": iden["uid"]}
+        for iden in fields["recorded_by"]
+    ]
+
+    pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
+    deleted, _ = Document.objects.filter(pk__in=pks).delete()
     logger.info("deleted = %s", deleted)
+
+
+@app.task(name="Vectorize documents")
+def vectorize_documents(documents_pks: list[int]):
+    for obj in Document.objects.filter(pk__in=documents_pks):
+        logger.debug("vectorize document=%s", obj)
+        obj.vectorize()
