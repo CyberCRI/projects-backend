@@ -171,9 +171,16 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     multiple_lookup_fields = [
         (ProjectUser, "user_id"),
     ]
-    permission_classes = [IsAuthenticatedOrReadOnly, ReadOnly | IsOwner | WillBeOwner]
 
     def get_permissions(self):
+        codename = map_action_to_permission(self.action, "categoryfollow")
+        self.permission_classes = [
+            IsAuthenticatedOrReadOnly,
+            ReadOnly
+            | IsOwner
+            | WillBeOwner
+            | HasBasePermission(codename, "organizations"),
+        ]
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
@@ -183,7 +190,8 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         )
 
     def perform_create(self, serializer: CategoryFollowSerializer):
-        serializer.save(follower=self.request.user)
+        follower = get_object_or_404(ProjectUser, id=self.kwargs["user_id"])
+        serializer.save(follower=follower)
 
 
 class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):

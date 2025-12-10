@@ -9,10 +9,12 @@ from apps.commons.urls import (
     OneToOneRouter,
     organization_router_register,
     people_group_router_register,
+    user_router_register,
 )
 from apps.invitations.views import AccessRequestViewSet, InvitationViewSet
 
 from .views import (
+    CategoryFollowViewset,
     OrganizationBannerView,
     OrganizationImagesView,
     OrganizationLogoView,
@@ -65,6 +67,12 @@ organization_router_register(
     r"terms-and-conditions",
     TermsAndConditionsViewSet,
     basename="TermsAndConditions",
+)
+user_router_register(
+    router,
+    r"category-follow",
+    CategoryFollowViewset,
+    basename="CategoryFollow",
 )
 
 one_to_one_router = OneToOneRouter()
