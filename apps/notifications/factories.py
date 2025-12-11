@@ -2,6 +2,7 @@ import factory
 from factory.fuzzy import FuzzyChoice
 
 from apps.accounts.factories import UserFactory
+from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 
 from .models import Notification, NotificationSettings
@@ -11,6 +12,9 @@ class NotificationFactory(factory.django.DjangoModelFactory):
     sender = factory.SubFactory(UserFactory)
     receiver = factory.SubFactory(UserFactory)
     project = factory.SubFactory(ProjectFactory)
+    organization = factory.LazyFunction(
+        lambda: OrganizationFactory()
+    )  # Subfactory seems to not trigger `create()`
     type = FuzzyChoice(Notification.Types.choices, getter=lambda c: c[0])
     reminder_message = factory.Faker("sentence")
     is_viewed = factory.Faker("boolean")
