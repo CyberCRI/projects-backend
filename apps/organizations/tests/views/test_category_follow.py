@@ -40,7 +40,7 @@ class CreateCategoryFollowTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
             self.assertEqual(content["category"]["id"], self.category.id)
-            follow = CategoryFollow.objects.get(id=content["category"]["id"])
+            follow = CategoryFollow.objects.get(id=content["id"])
             self.assertEqual(follow.follower.id, self.user.id)
 
 
