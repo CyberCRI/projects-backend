@@ -9,7 +9,12 @@ from django.db.models import Q, QuerySet, UniqueConstraint
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
-from apps.commons.mixins import HasMultipleIDs, HasPermissionsSetup, OrganizationRelated
+from apps.commons.mixins import (
+    HasMultipleIDs,
+    HasOwner,
+    HasPermissionsSetup,
+    OrganizationRelated,
+)
 from apps.commons.models import GroupData
 from apps.commons.utils import (
     get_permissions_from_subscopes,
@@ -581,6 +586,60 @@ class ProjectCategory(
         ).annotate(children_ids=ArrayAgg("children"))
         categories = {category.id: category for category in categories}
         return self._get_hierarchy(categories, self.id)
+
+
+class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
+    """Represent a user following a project category.
+
+    Attributes
+    ----------
+    category: ForeignKey
+        ProjectCategory followed.
+    follower: ForeignKey
+        ProjectUser following the project.
+    created_at: DateTimeField
+        Date of creation of the object.
+    updated_at: DateTimeField
+        Date of the last change made to the object.
+    """
+
+    organization_query_string: str = "category__organization"
+
+    category = models.ForeignKey(
+        "organizations.ProjectCategory",
+        on_delete=models.CASCADE,
+        related_name="follows",
+    )
+    follower = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="category_follows",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Follow: {self.category} - {self.follower}"
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        return self.follower == user
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.follower
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return self.category.get_related_organizations()
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "follower"], name="unique_category_follow"
+            )
+        ]
 
 
 class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):

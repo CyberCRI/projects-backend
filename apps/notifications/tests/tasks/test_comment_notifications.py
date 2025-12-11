@@ -10,7 +10,11 @@ from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory, FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_comment
-from apps.organizations.factories import OrganizationFactory
+from apps.organizations.factories import (
+    CategoryFollowFactory,
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
@@ -22,12 +26,14 @@ class NewCommentTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
 
     @patch("apps.feedbacks.views.notify_new_comment.delay")
     def test_notification_task_called(self, notification_task):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         owner = UserFactory()
         project.owners.add(owner)
@@ -46,12 +52,15 @@ class NewCommentTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -62,13 +71,15 @@ class NewCommentTestCase(JwtAPITestCase):
         _notify_new_comment(comment.pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 3)
+        self.assertEqual(notifications.count(), 4)
 
-        for user in [not_notified, notified, follower]:
+        for user in [not_notified, notified, follower, category_follower]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.COMMENT)
             self.assertEqual(notification.project, project)
-            self.assertEqual(notification.to_send, (user == follower))
+            self.assertEqual(
+                notification.to_send, user in [follower, category_follower]
+            )
             self.assertFalse(notification.is_viewed)
             self.assertEqual(notification.count, 1)
             self.assertEqual(
@@ -87,12 +98,15 @@ class NewCommentTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -104,13 +118,15 @@ class NewCommentTestCase(JwtAPITestCase):
         _notify_new_comment(comments[1].pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 3)
+        self.assertEqual(notifications.count(), 4)
 
-        for user in [not_notified, notified, follower]:
+        for user in [not_notified, notified, follower, category_follower]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.COMMENT)
             self.assertEqual(notification.project, project)
-            self.assertEqual(notification.to_send, (user == follower))
+            self.assertEqual(
+                notification.to_send, user in [follower, category_follower]
+            )
             self.assertFalse(notification.is_viewed)
             self.assertEqual(notification.count, 2)
             self.assertEqual(
@@ -131,12 +147,14 @@ class NewReplyTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.category = ProjectCategoryFactory(organization=cls.organization)
 
     @patch("apps.feedbacks.views.notify_new_comment.delay")
     def test_notification_task_called(self, notification_task):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         comment = CommentFactory(project=project)
         owner = UserFactory()
@@ -160,12 +178,15 @@ class NewReplyTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -177,14 +198,16 @@ class NewReplyTestCase(JwtAPITestCase):
         _notify_new_comment(reply.pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 3)
+        self.assertEqual(notifications.count(), 4)
 
-        for user in [not_notified, follower]:
+        for user in [not_notified, follower, category_follower]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.COMMENT)
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.receiver, user)
-            self.assertEqual(notification.to_send, (user == follower))
+            self.assertEqual(
+                notification.to_send, user in [follower, category_follower]
+            )
             self.assertFalse(notification.is_viewed)
             self.assertEqual(notification.count, 1)
             self.assertEqual(
@@ -213,12 +236,15 @@ class NewReplyTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -232,14 +258,16 @@ class NewReplyTestCase(JwtAPITestCase):
         _notify_new_comment(reply_2.pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 3)
+        self.assertEqual(notifications.count(), 4)
 
-        for user in [not_notified, follower]:
+        for user in [not_notified, follower, category_follower]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.COMMENT)
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.receiver, user)
-            self.assertEqual(notification.to_send, (user == follower))
+            self.assertEqual(
+                notification.to_send, user in [follower, category_follower]
+            )
             self.assertFalse(notification.is_viewed)
             self.assertEqual(notification.count, 2)
             self.assertEqual(

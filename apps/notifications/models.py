@@ -17,6 +17,7 @@ class Notification(models.Model, HasOwner):
         REVIEW = "review"
         PROJECT_MESSAGE = "project_message"
         READY_FOR_REVIEW = "ready_for_review"
+        PROJECT_CREATED = "project_created"
         PROJECT_UPDATED = "project_updated"
         MEMBER_ADDED_SELF = "member_added_self"
         GROUP_MEMBER_ADDED_SELF = "group_member_added_self"
@@ -93,6 +94,8 @@ class NotificationSettings(models.Model, HasOwner):
     project_ready_for_review = models.BooleanField(default=True)
     project_has_been_reviewed = models.BooleanField(default=True)
     project_has_new_private_message = models.BooleanField(default=True)
+    category_project_created = models.BooleanField(default=True)
+    category_project_updated = models.BooleanField(default=True)
     comment_received_a_response = models.BooleanField(default=True)
     organization_has_new_access_request = models.BooleanField(default=True)
     invitation_link_will_expire = models.BooleanField(default=True)
