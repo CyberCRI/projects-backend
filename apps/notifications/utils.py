@@ -224,25 +224,30 @@ class NotificationTaskManager:
 
 
 class ProjectCreatedNotificationManager(NotificationTaskManager):
-    member_setting_name = "category_project_created"
+    member_setting_name = "_"  # This notification is not sent to team
+    category_follower_setting_name = "category_project_created"
     notification_type = Notification.Types.PROJECT_CREATED
-    template_dir = "new_project"
+    template_dir = "project_created"
     merge = False
     notify_followers = True
 
     def get_recipients(self) -> List[ProjectUser]:
-        return ProjectUser.objects.filter(
-            category_follows__category__projects=self.project
-        ).distinct()
+        return (
+            ProjectUser.objects.filter(
+                category_follows__category__projects=self.project
+            )
+            .exclude(id=self.sender.id)
+            .distinct()
+        )
 
     def format_context_for_template(
         self, context: Dict[str, Any], language: str
     ) -> Dict[str, Any]:
-        category = context.get("category")
-        if category:
-            with translation.override(language):
-                category_name = getattr(category, f"name_{language}")
-                category_name = category_name or category.name
+        category_pk = context.get("category_pk")
+        if category_pk:
+            category = self.project.categories.get(pk=category_pk)
+            category_name = getattr(category, f"name_{language}")
+            category_name = category_name or category.name
         return {**context, "category_name": category_name}
 
 

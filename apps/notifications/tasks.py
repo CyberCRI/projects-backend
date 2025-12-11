@@ -298,8 +298,10 @@ def _notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: i
 def _notify_new_project(project_pk: str, by_pk: int):
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
+    category = project.categories.first()
+    category_pk = category.pk if category else None
     manager = ProjectCreatedNotificationManager(
-        sender, project, category=project.categories.first()
+        sender, project, category_pk=category_pk
     )
     manager.create_and_send_notifications()
 
