@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-14 15:29+0100\n"
+"POT-Creation-Date: 2025-12-11 11:17+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -548,15 +548,15 @@ msgid ""
 "The people groups of an instruction must belong to the same organization"
 msgstr "Juhiste inimrühmad peavad kuuluma samasse organisatsiooni"
 
-#: apps/notifications/tasks.py:193 apps/notifications/tasks.py:237
+#: apps/notifications/tasks.py:200 apps/notifications/tasks.py:244
 msgid "editor"
 msgstr "toimetaja"
 
-#: apps/notifications/tasks.py:194 apps/notifications/tasks.py:238
+#: apps/notifications/tasks.py:201 apps/notifications/tasks.py:245
 msgid "participant"
 msgstr "osaleja"
 
-#: apps/notifications/tasks.py:195 apps/notifications/tasks.py:239
+#: apps/notifications/tasks.py:202 apps/notifications/tasks.py:246
 msgid "reviewer"
 msgstr "hindaja"
 
@@ -1349,6 +1349,16 @@ msgstr ""
 msgid "Change your notification settings here."
 msgstr "Muuda oma teavituste seadeid siin."
 
+#: apps/notifications/templates/project_created/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s created project %(project_title)s in category "
+"%(category_name)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s lõi projekti %(project_title)s kategoorias %(category_name)s.\n"
+
 #: apps/notifications/templates/project_edited/reminder.txt:2
 #, python-format
 msgid ""
@@ -1421,7 +1431,7 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr "Uued esiletõstud projektides"
 
-#: apps/notifications/utils.py:233
+#: apps/notifications/utils.py:270
 msgid " and "
 msgstr " ja "
 

@@ -30,7 +30,7 @@ from apps.files.serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
-from apps.notifications.tasks import notify_project_changes
+from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
     OrganizationSerializer,
@@ -648,6 +648,7 @@ class ProjectSerializer(
         team = validated_data.pop("team", {})
         project = super(ProjectSerializer, self).create(validated_data)
         ProjectAddTeamMembersSerializer().create({"project": project, **team})
+        notify_new_project.delay(project.pk, self.context["request"].user.pk)
         return project
 
     def update(self, instance, validated_data):
