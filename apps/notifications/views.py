@@ -38,10 +38,14 @@ class NotificationsViewSet(ListViewSet):
     serializer_class = NotificationsSerializer
 
     def get_queryset(self):
-        return (
-            Notification.objects.filter(receiver=self.request.user)
-            .order_by("-created")
-            .select_related("sender", "project", "organization")
+        queryset = Notification.objects.filter(receiver=self.request.user)
+        if "organization_code" in self.kwargs:
+            organization = get_object_or_404(
+                Organization, code=self.kwargs["organization_code"]
+            )
+            queryset = queryset.filter(organization=organization)
+        return queryset.order_by("-created").select_related(
+            "sender", "project", "organization"
         )
 
     @transaction.atomic

@@ -11,11 +11,13 @@ from .views import (
 
 router = DefaultRouter()
 
-router.register(r"notification", NotificationsViewSet, basename="Notification")
 router.register(
     r"notifications-setting",
     NotificationSettingsViewSet,
     basename="NotificationSettings",
+)
+organization_router_register(
+    router, r"notification", NotificationsViewSet, basename="Notification"
 )
 organization_router_register(
     router,
