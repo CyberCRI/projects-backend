@@ -16,7 +16,9 @@ class NotificationsTestCase(JwtAPITestCase):
         cls.project = ProjectFactory(organizations=[cls.organization])
 
     def test_list(self):
-        notification = NotificationFactory(project=self.project)
+        notification = NotificationFactory(
+            project=self.project, organization=self.organization
+        )
         self.client.force_authenticate(notification.receiver)
         response = self.client.get(
             reverse("Notification-list", args=(self.organization.code,))
@@ -28,7 +30,9 @@ class NotificationsTestCase(JwtAPITestCase):
         notifications = NotificationFactory.create_batch(
             5, receiver=user, project=self.project, is_viewed=False
         )
-        unchanged = NotificationFactory(project=self.project, is_viewed=False)
+        unchanged = NotificationFactory(
+            project=self.project, is_viewed=False, organization=self.organization
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Notification-list", args=(self.organization.code,))
