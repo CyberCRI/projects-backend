@@ -15,7 +15,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import UserSerializer
+from apps.accounts.serializers import PeopleGroupHierarchySerializer, UserSerializer
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
@@ -46,6 +46,7 @@ from .serializers import (
     OrganizationRemoveFeaturedProjectsSerializer,
     OrganizationRemoveTeamMembersSerializer,
     OrganizationSerializer,
+    ProjectCategoryHierarchySerializer,
     ProjectCategorySerializer,
     TemplateSerializer,
     TermsAndConditionsSerializer,
@@ -98,8 +99,13 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         permission_classes=[ReadOnly],
     )
     def hierarchy(self, request, *args, **kwargs):
-        project_category = self.get_object()
-        return Response(project_category.get_hierarchy(), status=status.HTTP_200_OK)
+        category = self.get_object()
+        return Response(
+            ProjectCategoryHierarchySerializer(
+                category, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         request={
@@ -362,7 +368,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         organization = self.get_object()
         root_group = PeopleGroup.update_or_create_root(organization)
         return Response(
-            root_group.get_hierarchy(self.request.user), status=status.HTTP_200_OK
+            PeopleGroupHierarchySerializer(
+                root_group, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
         )
 
     @action(
@@ -375,8 +384,13 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def get_project_categories_hierarchy(self, request, *args, **kwargs):
         """Get the people groups hierarchy of the organization."""
         organization = self.get_object()
-        root_group = ProjectCategory.update_or_create_root(organization)
-        return Response(root_group.get_hierarchy(), status=status.HTTP_200_OK)
+        root_category = ProjectCategory.update_or_create_root(organization)
+        return Response(
+            ProjectCategoryHierarchySerializer(
+                root_category, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         request=OrganizationAddFeaturedProjectsSerializer,

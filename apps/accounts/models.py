@@ -6,7 +6,6 @@ from typing import Any, List, Optional, Union
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator
 from django.db import models, transaction
@@ -176,43 +175,6 @@ class PeopleGroup(
             },
         )
         return root_group
-
-    @classmethod
-    def _get_hierarchy(cls, groups: dict[int, dict], group_id: int):
-        from apps.files.serializers import ImageSerializer
-
-        return {
-            "id": groups[group_id].id,
-            "slug": groups[group_id].slug,
-            "name": groups[group_id].name,
-            "publication_status": groups[group_id].publication_status,
-            "children": [
-                cls._get_hierarchy(groups, child)
-                for child in groups[group_id].children_ids
-                if child is not None and child in groups
-            ],
-            "roles": [group.name for group in groups[group_id].groups.all()],
-            "header_image": (
-                ImageSerializer(groups[group_id].header_image).data
-                if groups[group_id].header_image
-                else None
-            ),
-        }
-
-    def get_hierarchy(self, user: Optional["ProjectUser"] = None) -> dict:
-        # This would be better with a recursive serializer, but it doubles the query time
-        if user:
-            groups = (
-                user.get_people_group_queryset()
-                | PeopleGroup.objects.filter(is_root=True).distinct()
-            )
-        else:
-            groups = PeopleGroup.objects.all()
-        groups = groups.filter(organization=self.organization.pk).annotate(
-            children_ids=ArrayAgg("children")
-        )
-        groups = {group.id: group for group in groups}
-        return self._get_hierarchy(groups, self.id)
 
     def get_default_managers_permissions(self) -> QuerySet[Permission]:
         return Permission.objects.filter(content_type=self.content_type)
