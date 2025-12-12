@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
@@ -49,6 +49,11 @@ def attachment_link_preview_path(instance, filename: str):
     )
 
 
+def user_attachment_link_preview_path(instance, filename: str):
+    date_part = f"{datetime.datetime.today():%Y-%m-%d}"
+    return f"user/attachments/{instance.owner.pk}/link/preview/{date_part}-{filename}"
+
+
 def organization_attachment_directory_path(
     instance: "OrganizationAttachmentFile", filename: str
 ):
@@ -61,6 +66,13 @@ def attachment_directory_path(instance: "AttachmentFile", filename: str):
     return f"project/attachments/{instance.project.pk}/{instance.attachment_type}/{date_part}-{filename}"
 
 
+def user_attachment_directory_path(
+    instance: "ProjectUserAttachmentFile", filename: str
+):
+    date_part = f"{datetime.datetime.today():%Y-%m-%d}"
+    return f"users/attachments/{instance.owner.pk}/{instance.attachment_type}/{date_part}-{filename}"
+
+
 class AttachmentLink(
     HasAutoTranslatedFields,
     DuplicableModel,
@@ -71,7 +83,7 @@ class AttachmentLink(
     A link that is attached to a project.
     """
 
-    _auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: list[str] = ["title", "description"]
 
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="links"
@@ -107,7 +119,7 @@ class AttachmentLink(
         if hasattr(project, "stat"):
             project.stat.update_links()
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -135,7 +147,7 @@ class OrganizationAttachmentFile(
     An attachment file that is related to an organization.
     """
 
-    _auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: list[str] = ["title", "description"]
 
     organization = models.ForeignKey(
         "organizations.Organization",
@@ -151,7 +163,7 @@ class OrganizationAttachmentFile(
     description = models.TextField(blank=True)
     hashcode = models.CharField(max_length=64, default="")
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
 
@@ -166,7 +178,7 @@ class AttachmentFile(
     An attachment file that is related to a project.
     """
 
-    _auto_translated_fields: List[str] = ["title", "description"]
+    _auto_translated_fields: list[str] = ["title", "description"]
 
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="files"
@@ -195,7 +207,7 @@ class AttachmentFile(
         if hasattr(project, "stat"):
             project.stat.update_files()
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -259,7 +271,7 @@ class Image(
     )
 
     @classmethod
-    def get_orphan_images(cls, threshold: Optional[int] = None) -> QuerySet:
+    def get_orphan_images(cls, threshold: int | None = None) -> QuerySet:
         """Return a QuerySet containing all the orphan images.
 
         Parameters
@@ -334,7 +346,7 @@ class Image(
             | Q(**{f"events__organization{query}": value})
         )
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         related_project = self.get_related_project()
         if related_project:
@@ -420,3 +432,62 @@ class Image(
             image.save()
             return image
         return None
+
+
+class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model):
+    """
+    An attachment file that is related to a project.
+    """
+
+    _auto_translated_fields: list[str] = ["title", "description"]
+
+    owner = models.ForeignKey(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="files"
+    )
+    attachment_type = models.CharField(
+        max_length=10, choices=AttachmentType.choices, default=AttachmentType.FILE
+    )
+    file = models.FileField(upload_to=user_attachment_directory_path)
+    mime = models.CharField(max_length=100)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    hashcode = models.CharField(max_length=64, default="")
+
+    def get_owner(self):
+        return self.owner
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        return user == self.get_owner()
+
+
+class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model):
+    """
+    A link that is attached to a project.
+    """
+
+    _auto_translated_fields: list[str] = ["title", "description"]
+
+    owner = models.ForeignKey(
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="links"
+    )
+    attachment_type = models.CharField(
+        max_length=10, choices=AttachmentType.choices, default=AttachmentType.LINK
+    )
+    category = models.CharField(
+        max_length=50,
+        choices=AttachmentLinkCategory.choices,
+        default=AttachmentLinkCategory.OTHER,
+    )
+    description = models.TextField(blank=True)
+    preview_image_url = models.URLField(
+        max_length=2048, help_text="attachment link preview image, mostly thumbnails"
+    )
+    site_name = models.CharField(max_length=255)
+    site_url = models.URLField(max_length=2048)
+    title = models.CharField(max_length=255, blank=True)
+
+    def get_owner(self):
+        return self.owner
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        return user == self.get_owner()

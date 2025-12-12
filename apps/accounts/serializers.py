@@ -595,10 +595,11 @@ class UserSerializer(
     researcher = ResearcherSerializerLight(
         read_only=True, required=False, allow_null=True
     )
+    resources = serializers.SerializerMethodField()
 
     class Meta:
         model = ProjectUser
-        read_only_fields = ["id", "slug", "created_at", "researcher"]
+        read_only_fields = ["id", "slug", "created_at", "researcher", "resources"]
         fields = read_only_fields + [
             "roles",
             "roles_to_add",
@@ -761,6 +762,9 @@ class UserSerializer(
 
     def get_notifications(self, user: ProjectUser) -> int:
         return Notification.objects.filter(is_viewed=False, receiver=user).count()
+
+    def get_resources(self, user: ProjectUser) -> dict:
+        return {"files": user.files.count(), "links": user.links.count()}
 
     def create(self, validated_data):
         profile_picture = {
