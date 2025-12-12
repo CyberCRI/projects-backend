@@ -65,6 +65,7 @@ from .serializers import (
     EmptyPayloadResponseSerializer,
     PeopleGroupAddFeaturedProjectsSerializer,
     PeopleGroupAddTeamMembersSerializer,
+    PeopleGroupHierarchySerializer,
     PeopleGroupLightSerializer,
     PeopleGroupRemoveFeaturedProjectsSerializer,
     PeopleGroupRemoveTeamMembersSerializer,
@@ -830,7 +831,10 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def hierarchy(self, request, *args, **kwargs):
         people_group = self.get_object()
         return Response(
-            people_group.get_hierarchy(self.request.user), status=status.HTTP_200_OK
+            PeopleGroupHierarchySerializer(
+                people_group, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
         )
 
 

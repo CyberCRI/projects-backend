@@ -2,7 +2,6 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q, QuerySet, UniqueConstraint
@@ -556,36 +555,6 @@ class ProjectCategory(
             },
         )
         return root_group
-
-    @classmethod
-    def _get_hierarchy(cls, categories: dict[int, dict], category_id: int):
-        from apps.files.serializers import ImageSerializer
-
-        return {
-            "id": categories[category_id].id,
-            "slug": categories[category_id].slug,
-            "name": categories[category_id].name,
-            "background_color": categories[category_id].background_color,
-            "foreground_color": categories[category_id].foreground_color,
-            "background_image": (
-                ImageSerializer(categories[category_id].background_image).data
-                if categories[category_id].background_image
-                else None
-            ),
-            "children": [
-                cls._get_hierarchy(categories, child)
-                for child in categories[category_id].children_ids
-                if child is not None
-            ],
-        }
-
-    def get_hierarchy(self):
-        # This would be better with a recursive serializer, but it doubles the query time
-        categories = ProjectCategory.objects.filter(
-            organization=self.organization.pk
-        ).annotate(children_ids=ArrayAgg("children"))
-        categories = {category.id: category for category in categories}
-        return self._get_hierarchy(categories, self.id)
 
 
 class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
