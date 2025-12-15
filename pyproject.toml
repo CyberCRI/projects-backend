@@ -78,7 +78,7 @@ pytest = "^7.1.2"
 pytest-django = "^4.5.2"
 tblib = "^1.7.0"
 toml = "^0.10.2"
-urllib3 = "^2.6.0"
+urllib3 = "^2.6.2"
 django-slowtests = "^1.1.1"
 pytest-xdist = {extras = ["psutil"], version = "^3.8.0"}
 
