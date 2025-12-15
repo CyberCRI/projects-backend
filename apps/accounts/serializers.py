@@ -84,7 +84,7 @@ class UserAdminListSerializer(
         organization = self.context.get("organization")
         queryset = (
             PeopleGroup.objects.filter(groups__users=user, is_root=False)
-            .prefetch_related("organization")
+            .select_related("organization")
             .distinct()
         )
         if organization:
@@ -201,7 +201,7 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
-            .prefetch_related("organization")
+            .select_related("organization")
             .distinct()
         )
         if organization:
@@ -307,11 +307,16 @@ class PeopleGroupHierarchySerializer(
             )
             mapping = {group.id: group for group in base_queryset}
             context["mapping"] = mapping
-        children = [
-            mapping.get(child)
-            for child in people_group.children.all().values_list("id", flat=True)
-            if child in mapping
-        ]
+        children_ids = list(people_group.children.all().values_list("id", flat=True))
+        if people_group.is_root:
+            children_ids += list(
+                PeopleGroup.objects.filter(
+                    organization=people_group.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
         return PeopleGroupHierarchySerializer(children, many=True, context=context).data
 
 
@@ -446,6 +451,7 @@ class PeopleGroupSerializer(
         request = self.context.get("request")
         queryset = (
             request.user.get_people_group_queryset()
+            .select_related("organization")
             .filter(parent=obj)
             .order_by("name")
             .distinct()

@@ -597,11 +597,16 @@ class ProjectCategoryHierarchySerializer(
             )
             mapping = {cat.id: cat for cat in queryset}
             context["mapping"] = mapping
-        children = [
-            mapping.get(child)
-            for child in category.children.all().values_list("id", flat=True)
-            if child in mapping
-        ]
+        children_ids = list(category.children.all().values_list("id", flat=True))
+        if category.is_root:
+            children_ids += list(
+                ProjectCategory.objects.filter(
+                    organization=category.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
         return ProjectCategoryHierarchySerializer(
             children, many=True, context=context
         ).data
