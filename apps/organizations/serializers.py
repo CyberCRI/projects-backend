@@ -82,7 +82,7 @@ class TermsAndConditionsSerializer(
         fields = read_only_fields + ["content"]
 
     def get_displayed_content_organization(self, instance: TermsAndConditions) -> str:
-        if not instance.content:
+        if not instance.content or instance.content == "<p></p>":
             with suppress(TermsAndConditions.DoesNotExist):
                 default = TermsAndConditions.objects.get(is_default=True)
                 if default.content:
@@ -90,7 +90,7 @@ class TermsAndConditionsSerializer(
         return instance.organization.code
 
     def get_displayed_content(self, instance: TermsAndConditions) -> str:
-        if not instance.content:
+        if not instance.content or instance.content == "<p></p>":
             with suppress(TermsAndConditions.DoesNotExist):
                 default = TermsAndConditions.objects.get(is_default=True)
                 if default.content:
@@ -98,7 +98,7 @@ class TermsAndConditionsSerializer(
         return instance.content
 
     def get_displayed_version(self, instance: TermsAndConditions) -> int:
-        if not instance.content:
+        if not instance.content or instance.content == "<p></p>":
             with suppress(TermsAndConditions.DoesNotExist):
                 default = TermsAndConditions.objects.get(is_default=True)
                 if default.content:
