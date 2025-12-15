@@ -141,6 +141,23 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
         self.assertEqual(terms_and_conditions["displayed_content"], default.content)
         self.assertEqual(terms_and_conditions["displayed_version"], default.version)
 
+        instance.content = "<p></p>"
+        instance.save()
+
+        response = self.client.get(
+            reverse("Organization-detail", args=(instance.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        content = response.json()
+        terms_and_conditions = content.get("terms_and_conditions")
+        self.assertEqual(terms_and_conditions["id"], instance.id)
+        self.assertEqual(
+            terms_and_conditions["displayed_content_organization"],
+            default.organization.code,
+        )
+        self.assertEqual(terms_and_conditions["displayed_content"], default.content)
+        self.assertEqual(terms_and_conditions["displayed_version"], default.version)
+
         instance.content = faker.text()
         instance.save()
 
