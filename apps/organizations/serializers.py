@@ -427,6 +427,20 @@ class TemplateLightSerializer(
         return [self.instance.organization] if self.instance else []
 
 
+class ProjectCategorySuperLightSerializer(
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
+):
+
+    class Meta:
+        model = ProjectCategory
+        fields = [
+            "id",
+            "slug",
+            "name",
+        ]
+
+
 class ProjectCategoryLightSerializer(
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
@@ -551,6 +565,53 @@ class TemplateSerializer(
         }
 
 
+class ProjectCategoryHierarchySerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    children = serializers.SerializerMethodField()
+    background_image = ImageSerializer(read_only=True)
+
+    class Meta:
+        model = ProjectCategory
+        read_only_fields = [
+            "id",
+            "slug",
+            "name",
+            "background_color",
+            "foreground_color",
+            "background_image",
+            "children",
+        ]
+        fields = read_only_fields
+
+    def get_children(
+        self, category: ProjectCategory
+    ) -> List[Dict[str, Union[str, int]]]:
+        context = self.context
+        mapping = context.get("mapping")
+        if not mapping:
+            queryset = ProjectCategory.objects.filter(
+                organization=category.organization
+            )
+            mapping = {cat.id: cat for cat in queryset}
+            context["mapping"] = mapping
+        children_ids = list(category.children.all().values_list("id", flat=True))
+        if category.is_root:
+            children_ids += list(
+                ProjectCategory.objects.filter(
+                    organization=category.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
+        return ProjectCategoryHierarchySerializer(
+            children, many=True, context=context
+        ).data
+
+
 class ProjectCategorySerializer(
     StringsImagesSerializer,
     AutoTranslatedModelSerializer,
@@ -614,18 +675,16 @@ class ProjectCategorySerializer(
         hierarchy = []
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
-            hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
+            hierarchy.append(
+                ProjectCategorySuperLightSerializer(obj, context=self.context).data
+            )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:
-        return [
-            {
-                "id": child.id,
-                "slug": child.slug,
-                "name": child.name,
-            }
-            for child in obj.children.all().order_by("name")
-        ]
+        queryset = obj.children.all().order_by("name")
+        return ProjectCategorySuperLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
 
     def get_projects_count(self, obj: ProjectCategory) -> int:
         return obj.projects.count()

@@ -82,9 +82,11 @@ class UserAdminListSerializer(
 
     def get_people_groups(self, user: ProjectUser) -> list:
         organization = self.context.get("organization")
-        queryset = PeopleGroup.objects.filter(
-            groups__users=user, is_root=False
-        ).distinct()
+        queryset = (
+            PeopleGroup.objects.filter(groups__users=user, is_root=False)
+            .select_related("organization")
+            .distinct()
+        )
         if organization:
             queryset = queryset.filter(organization=organization).distinct()
         return PeopleGroupSuperLightSerializer(
@@ -199,6 +201,7 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
+            .select_related("organization")
             .distinct()
         )
         if organization:
@@ -226,9 +229,11 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
 class PeopleGroupSuperLightSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
+
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["id", "slug", "name"]
+        read_only_fields = ["id", "slug", "name", "organization"]
         fields = read_only_fields
 
 
@@ -262,6 +267,57 @@ class PeopleGroupLightSerializer(
             "members_count",
             "roles",
         ]
+
+
+class PeopleGroupHierarchySerializer(
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
+):
+    children = serializers.SerializerMethodField()
+    header_image = ImageSerializer(read_only=True)
+    roles = serializers.SlugRelatedField(
+        many=True,
+        slug_field="name",
+        read_only=True,
+        source="groups",
+    )
+
+    class Meta:
+        model = PeopleGroup
+        read_only_fields = [
+            "id",
+            "slug",
+            "name",
+            "publication_status",
+            "header_image",
+            "children",
+            "roles",
+        ]
+        fields = read_only_fields
+
+    def get_children(
+        self, people_group: PeopleGroup
+    ) -> List[Dict[str, Union[str, int]]]:
+        context = self.context
+        request = context.get("request")
+        mapping = context.get("mapping")
+        if not mapping:
+            base_queryset = request.user.get_people_group_queryset().filter(
+                organization=people_group.organization
+            )
+            mapping = {group.id: group for group in base_queryset}
+            context["mapping"] = mapping
+        children_ids = list(people_group.children.all().values_list("id", flat=True))
+        if people_group.is_root:
+            children_ids += list(
+                PeopleGroup.objects.filter(
+                    organization=people_group.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
+        return PeopleGroupHierarchySerializer(children, many=True, context=context).data
 
 
 class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
@@ -386,23 +442,23 @@ class PeopleGroupSerializer(
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
             if obj in queryset:
-                hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
+                hierarchy.append(
+                    PeopleGroupSuperLightSerializer(obj, context=self.context).data
+                )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
         request = self.context.get("request")
         queryset = (
-            request.user.get_people_group_queryset() & obj.children.all().distinct()
+            request.user.get_people_group_queryset()
+            .select_related("organization")
+            .filter(parent=obj)
+            .order_by("name")
+            .distinct()
         )
-        return [
-            {
-                "id": child.id,
-                "slug": child.slug,
-                "name": child.name,
-                "organization": child.organization.code,
-            }
-            for child in queryset.order_by("name")
-        ]
+        return PeopleGroupSuperLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
 
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
         request = self.context.get("request")
