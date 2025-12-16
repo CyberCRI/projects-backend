@@ -662,8 +662,6 @@ class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet
         instance = self.get_object()
         if serializer.validated_data.get("content") != instance.content:
             serializer.save(version=instance.version + 1)
-        else:
-            serializer.save()
 
 
 class AvailableLanguagesView(APIView):
