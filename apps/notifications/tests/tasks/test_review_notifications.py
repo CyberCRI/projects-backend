@@ -26,7 +26,13 @@ class NewReviewTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.parent_category
+        )
+        cls.child_category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.category
+        )
 
     @patch("apps.feedbacks.views.notify_new_review.delay")
     def test_notification_task_called(self, notification_task):
@@ -67,8 +73,16 @@ class NewReviewTestCase(JwtAPITestCase):
         not_notified = UserFactory()
         follower = UserFactory()
         category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
         CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.reviewers.add(sender)
         project.owners.set([notified, not_notified])
 
@@ -80,9 +94,15 @@ class NewReviewTestCase(JwtAPITestCase):
         _notify_new_review(review.pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 4)
+        self.assertEqual(notifications.count(), 5)
 
-        for user in [not_notified, notified, follower, category_follower]:
+        for user in [
+            not_notified,
+            notified,
+            follower,
+            category_follower,
+            parent_category_follower,
+        ]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.REVIEW)
             self.assertEqual(notification.project, project)
@@ -91,10 +111,20 @@ class NewReviewTestCase(JwtAPITestCase):
             self.assertEqual(notification.count, 1)
             self.assertEqual(notification.reminder_message_fr, "")
             self.assertEqual(notification.reminder_message_en, "")
-        self.assertEqual(len(mail.outbox), 3)
+        self.assertEqual(len(mail.outbox), 4)
         self.assertSetEqual(
-            {notified.email, follower.email, category_follower.email},
-            {mail.outbox[0].to[0], mail.outbox[1].to[0], mail.outbox[2].to[0]},
+            {
+                notified.email,
+                follower.email,
+                category_follower.email,
+                parent_category_follower.email,
+            },
+            {
+                mail.outbox[0].to[0],
+                mail.outbox[1].to[0],
+                mail.outbox[2].to[0],
+                mail.outbox[3].to[0],
+            },
         )
 
     def test_merged_notifications_task(self):
@@ -108,8 +138,16 @@ class NewReviewTestCase(JwtAPITestCase):
         not_notified = UserFactory()
         follower = UserFactory()
         category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
         CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.reviewers.add(sender)
         project.owners.set([notified, not_notified])
 
@@ -122,9 +160,15 @@ class NewReviewTestCase(JwtAPITestCase):
         _notify_new_review(reviews[1].pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 4)
+        self.assertEqual(notifications.count(), 5)
 
-        for user in [not_notified, notified, follower, category_follower]:
+        for user in [
+            not_notified,
+            notified,
+            follower,
+            category_follower,
+            parent_category_follower,
+        ]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.REVIEW)
             self.assertEqual(notification.project, project)
@@ -134,16 +178,11 @@ class NewReviewTestCase(JwtAPITestCase):
             self.assertEqual(notification.reminder_message_fr, "")
             self.assertEqual(notification.reminder_message_en, "")
 
-        self.assertEqual(len(mail.outbox), 6)
-        self.assertEqual(
-            [mail.outbox[i].to[0] for i in range(6)].count(notified.email), 2
-        )
-        self.assertEqual(
-            [mail.outbox[i].to[0] for i in range(6)].count(follower.email), 2
-        )
-        self.assertEqual(
-            [mail.outbox[i].to[0] for i in range(6)].count(category_follower.email), 2
-        )
+        self.assertEqual(len(mail.outbox), 8)
+        for user in [notified, follower, category_follower, parent_category_follower]:
+            self.assertEqual(
+                [mail.outbox[i].to[0] for i in range(8)].count(user.email), 2
+            )
 
 
 class ReadyForReviewTestCase(JwtAPITestCase):
@@ -151,7 +190,13 @@ class ReadyForReviewTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.parent_category
+        )
+        cls.child_category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.category
+        )
 
     @patch("apps.projects.views.notify_ready_for_review.delay")
     def test_notification_task_called(self, notification_task):

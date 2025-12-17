@@ -47,6 +47,7 @@ from .serializers import (
     OrganizationRemoveTeamMembersSerializer,
     OrganizationSerializer,
     ProjectCategoryHierarchySerializer,
+    ProjectCategoryLightSerializer,
     ProjectCategorySerializer,
     TemplateSerializer,
     TermsAndConditionsSerializer,
@@ -387,6 +388,24 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         root_category = ProjectCategory.update_or_create_root(organization)
         return Response(
             ProjectCategoryHierarchySerializer(
+                root_category, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="root-category",
+        url_name="root-category",
+        permission_classes=[ReadOnly],
+    )
+    def get_root_project_category(self, request, *args, **kwargs):
+        """Get the root project category of the organization."""
+        organization = self.get_object()
+        root_category = ProjectCategory.update_or_create_root(organization)
+        return Response(
+            ProjectCategoryLightSerializer(
                 root_category, context={"request": request}
             ).data,
             status=status.HTTP_200_OK,
