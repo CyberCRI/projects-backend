@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.urls import reverse
 from faker import Faker
 from parameterized import parameterized
@@ -35,10 +37,9 @@ class CreateTermsAndConditionsTestCase(JwtAPITestCase):
         self.assertIsNotNone(terms_and_conditions)
         self.assertIn("id", terms_and_conditions)
         self.assertEqual(
-            terms_and_conditions["displayed_content_organization"], content["code"]
+            terms_and_conditions["displayed_organization"], content["code"]
         )
         self.assertEqual(terms_and_conditions["displayed_content"], "")
-        self.assertEqual(terms_and_conditions["displayed_version"], 1)
 
 
 class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
@@ -61,7 +62,7 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         terms_and_conditions = self.organization.terms_and_conditions
-        initial_version = terms_and_conditions.version
+        initial_updated_at = terms_and_conditions.updated_at
         payload = {
             "content": faker.text(),
         }
@@ -76,10 +77,15 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
         if response.status_code == status.HTTP_200_OK:
             content = response.json()
             self.assertEqual(content["displayed_content"], payload["content"])
-            self.assertEqual(content["displayed_version"], initial_version + 1)
+            self.assertGreater(
+                datetime.fromisoformat(content["displayed_updated_at"]),
+                initial_updated_at,
+            )
 
-        # Check that updating with the same content does not increment the version
+        # Check that updating with the same content does not change the date
         if expected_code == status.HTTP_200_OK:
+            terms_and_conditions.refresh_from_db()
+            initial_updated_at = terms_and_conditions.updated_at
             response = self.client.patch(
                 reverse(
                     "TermsAndConditions-detail",
@@ -90,7 +96,10 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
             self.assertEqual(response.status_code, expected_code)
             content = response.json()
             self.assertEqual(content["displayed_content"], payload["content"])
-            self.assertEqual(content["displayed_version"], initial_version + 1)
+            self.assertEqual(
+                datetime.fromisoformat(content["displayed_updated_at"]),
+                initial_updated_at,
+            )
 
 
 class MiscTermsAndConditionsTestCase(JwtAPITestCase):
@@ -101,13 +110,11 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
         default = organization_1.terms_and_conditions
         default.is_default = True
         default.content = ""
-        default.version = 5
         default.save()
 
         instance = organization_2.terms_and_conditions
         instance.is_default = False
         instance.content = ""
-        instance.version = 1
         instance.save()
 
         response = self.client.get(
@@ -118,11 +125,14 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
         terms_and_conditions = content.get("terms_and_conditions")
         self.assertEqual(terms_and_conditions["id"], instance.id)
         self.assertEqual(
-            terms_and_conditions["displayed_content_organization"],
+            terms_and_conditions["displayed_organization"],
             instance.organization.code,
         )
         self.assertEqual(terms_and_conditions["displayed_content"], instance.content)
-        self.assertEqual(terms_and_conditions["displayed_version"], instance.version)
+        self.assertEqual(
+            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            instance.updated_at,
+        )
 
         default.content = faker.text()
         default.save()
@@ -135,11 +145,14 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
         terms_and_conditions = content.get("terms_and_conditions")
         self.assertEqual(terms_and_conditions["id"], instance.id)
         self.assertEqual(
-            terms_and_conditions["displayed_content_organization"],
+            terms_and_conditions["displayed_organization"],
             default.organization.code,
         )
         self.assertEqual(terms_and_conditions["displayed_content"], default.content)
-        self.assertEqual(terms_and_conditions["displayed_version"], default.version)
+        self.assertEqual(
+            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            default.updated_at,
+        )
 
         instance.content = "<p></p>"
         instance.save()
@@ -152,11 +165,14 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
         terms_and_conditions = content.get("terms_and_conditions")
         self.assertEqual(terms_and_conditions["id"], instance.id)
         self.assertEqual(
-            terms_and_conditions["displayed_content_organization"],
+            terms_and_conditions["displayed_organization"],
             default.organization.code,
         )
         self.assertEqual(terms_and_conditions["displayed_content"], default.content)
-        self.assertEqual(terms_and_conditions["displayed_version"], default.version)
+        self.assertEqual(
+            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            default.updated_at,
+        )
 
         instance.content = faker.text()
         instance.save()
@@ -169,8 +185,11 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
         terms_and_conditions = content.get("terms_and_conditions")
         self.assertEqual(terms_and_conditions["id"], instance.id)
         self.assertEqual(
-            terms_and_conditions["displayed_content_organization"],
+            terms_and_conditions["displayed_organization"],
             instance.organization.code,
         )
         self.assertEqual(terms_and_conditions["displayed_content"], instance.content)
-        self.assertEqual(terms_and_conditions["displayed_version"], instance.version)
+        self.assertEqual(
+            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            instance.updated_at,
+        )

@@ -1,6 +1,5 @@
 import logging
 import uuid
-from contextlib import suppress
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
 
@@ -66,44 +65,37 @@ class TermsAndConditionsSerializer(
 
     string_images_forbid_fields: List[str] = ["content"]
 
-    content = serializers.CharField(write_only=True)
-    displayed_content_organization = serializers.SerializerMethodField()
-    displayed_content = serializers.SerializerMethodField()
-    displayed_version = serializers.SerializerMethodField()
+    organization = serializers.SlugRelatedField(slug_field="code", read_only=True)
 
     class Meta:
         model = TermsAndConditions
         read_only_fields = [
             "id",
-            "displayed_content_organization",
-            "displayed_content",
-            "displayed_version",
+            "organization",
+            "updated_at",
         ]
         fields = read_only_fields + ["content"]
 
-    def get_displayed_content_organization(self, instance: TermsAndConditions) -> str:
+    def to_representation(self, instance: TermsAndConditions) -> Dict[str, Any]:
+        data = super().to_representation(instance)
+        dynamic_fields = [
+            *[f"content_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+            "content_detected_language",
+            "content",
+            "organization",
+            "updated_at",
+        ]
+        for field in dynamic_fields:
+            data[f"displayed_{field}"] = data.pop(field)
         if not instance.content or instance.content == "<p></p>":
-            with suppress(TermsAndConditions.DoesNotExist):
-                default = TermsAndConditions.objects.get(is_default=True)
-                if default.content:
-                    return default.organization.code
-        return instance.organization.code
-
-    def get_displayed_content(self, instance: TermsAndConditions) -> str:
-        if not instance.content or instance.content == "<p></p>":
-            with suppress(TermsAndConditions.DoesNotExist):
-                default = TermsAndConditions.objects.get(is_default=True)
-                if default.content:
-                    return default.content
-        return instance.content
-
-    def get_displayed_version(self, instance: TermsAndConditions) -> int:
-        if not instance.content or instance.content == "<p></p>":
-            with suppress(TermsAndConditions.DoesNotExist):
-                default = TermsAndConditions.objects.get(is_default=True)
-                if default.content:
-                    return default.version
-        return instance.version
+            default = TermsAndConditions.objects.filter(is_default=True)
+            if default.exists():
+                default = default.get()
+                if default.content and default.content != "<p></p>":
+                    default_data = super().to_representation(default)
+                    for field in dynamic_fields:
+                        data[f"displayed_{field}"] = default_data[field]
+        return data
 
 
 class OrganizationAddTeamMembersSerializer(serializers.Serializer):
