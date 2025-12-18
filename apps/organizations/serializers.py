@@ -73,6 +73,7 @@ class TermsAndConditionsSerializer(
             "id",
             "organization",
             "updated_at",
+            "version",
         ]
         fields = read_only_fields + ["content"]
 
@@ -84,6 +85,7 @@ class TermsAndConditionsSerializer(
             "content",
             "organization",
             "updated_at",
+            "version",
         ]
         for field in dynamic_fields:
             data[f"displayed_{field}"] = data.pop(field)
