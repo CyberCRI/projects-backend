@@ -10,6 +10,7 @@ from apps.commons.mixins import OrganizationRelated, ProjectRelated
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Follow
 from apps.organizations.models import CategoryFollow, Organization
+from apps.organizations.utils import get_above_categories_hierarchy_ids
 from apps.projects.models import Project
 
 from .models import Notification
@@ -140,7 +141,10 @@ class NotificationTaskManager:
                     False,
                 )
                 and CategoryFollow.objects.filter(
-                    category__projects=self.project, follower=recipient
+                    category__id__in=get_above_categories_hierarchy_ids(
+                        self.project.categories.all().values_list("id", flat=True)
+                    ),
+                    follower=recipient,
                 ).exists()
             )
         return to_send
@@ -234,7 +238,9 @@ class ProjectCreatedNotificationManager(NotificationTaskManager):
     def get_recipients(self) -> List[ProjectUser]:
         return (
             ProjectUser.objects.filter(
-                category_follows__category__projects=self.project
+                category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                    self.project.categories.all().values_list("id", flat=True)
+                )
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -263,7 +269,11 @@ class ProjectEditedNotificationManager(NotificationTaskManager):
                 self.project.get_all_members()
                 | ProjectUser.objects.filter(
                     Q(follows__project=self.project)
-                    | Q(category_follows__category__projects=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
                 ).distinct()
             )
             .exclude(id=self.sender.id)
@@ -297,7 +307,11 @@ class BlogEntryNotificationManager(NotificationTaskManager):
                 self.project.get_all_members()
                 | ProjectUser.objects.filter(
                     Q(follows__project=self.project)
-                    | Q(category_follows__category__projects=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
                 ).distinct()
             )
             .exclude(id=self.sender.id)
@@ -317,7 +331,11 @@ class AnnouncementNotificationManager(NotificationTaskManager):
                 self.project.get_all_members()
                 | ProjectUser.objects.filter(
                     Q(follows__project=self.project)
-                    | Q(category_follows__category__projects=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
                 ).distinct()
             )
             .exclude(id=self.sender.id)
@@ -364,7 +382,11 @@ class FollowerCommentNotificationManager(NotificationTaskManager):
     def get_recipients(self) -> List[ProjectUser]:
         recipients = ProjectUser.objects.filter(
             Q(follows__project=self.project)
-            | Q(category_follows__category__projects=self.project)
+            | Q(
+                category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                    self.project.categories.all().values_list("id", flat=True)
+                )
+            )
         ).exclude(id=self.sender.id)
         if self.item.reply_on is not None:
             return recipients.exclude(id=self.item.reply_on.author.id).distinct()
@@ -406,7 +428,11 @@ class ReviewNotificationManager(NotificationTaskManager):
                 self.project.get_all_members()
                 | ProjectUser.objects.filter(
                     Q(follows__project=self.project)
-                    | Q(category_follows__category__projects=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
                 ).distinct()
             )
             .exclude(id=self.sender.id)
