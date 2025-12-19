@@ -51,7 +51,11 @@ class NotificationsViewSet(ListViewSet):
     @transaction.atomic
     def list(self, request, *args, **kwargs):
         response = super(NotificationsViewSet, self).list(request, *args, **kwargs)
-        Notification.objects.filter(receiver=self.request.user).update(is_viewed=True)
+        organization_code = self.kwargs.get("organization_code")
+        mark_viewed = Notification.objects.filter(receiver=self.request.user)
+        if organization_code:
+            mark_viewed = mark_viewed.filter(organization__code=organization_code)
+        mark_viewed.update(is_viewed=True)
         return response
 
 
