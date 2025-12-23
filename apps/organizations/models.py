@@ -303,7 +303,7 @@ class Organization(
 
         if user:
             admins.users.add(user)
-        self.groups.set([admins, facilitators, users])
+        self.groups.add(admins, facilitators, users)
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
