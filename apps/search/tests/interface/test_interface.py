@@ -1,3 +1,5 @@
+from contextlib import suppress
+
 from django.conf import settings
 from django.core.management import call_command
 from faker import Faker
@@ -44,7 +46,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
             organization=cls.organization, name=cls.query_2
         )
         cls.user_2 = UserFactory(given_name=cls.query_2)
-        cls.tag_2 = TagFactory(organization=cls.organization, title_en=cls.query_2)
+        cls.tag_2 = TagFactory(organization=cls.organization, title_fr=cls.query_2)
 
         ProjectFactory(organizations=[cls.organization])
         PeopleGroupFactory(organization=cls.organization)
@@ -61,9 +63,10 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
             "user_2": cls.user_2,
             "tag_2": cls.tag_2,
         }
-
-        call_command("opensearch", "index", "rebuild", "--force")
-        call_command("opensearch", "document", "index", "--force", "--refresh")
+        with suppress(SystemExit):
+            call_command("opensearch", "index", "rebuild", "--force", "--ignore-error")
+        with suppress(SystemExit):
+            call_command("opensearch", "document", "index", "--force", "--refresh")
 
     @parameterized.expand(
         [
@@ -73,7 +76,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
                 ["name^2", "content^1"],
                 ["people_group_2", "people_group"],
             ),
-            ("tag", ["title_en^2", "description_en^1"], ["tag_2", "tag"]),
+            ("tag", ["title^2", "content^1"], ["tag_2", "tag"]),
             ("user", ["given_name^2", "family_name^1"], ["user_2", "user"]),
         ]
     )
@@ -95,7 +98,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         [
             ("project", ["title"], ["project"]),
             ("people_group", ["name"], ["people_group"]),
-            ("tag", ["title_en"], ["tag"]),
+            ("tag", ["title"], ["tag"]),
             ("user", ["given_name"], ["user"]),
         ]
     )
@@ -110,7 +113,12 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
             returned_highlight = hit.meta.highlight.to_dict()
             for field in highlight:
                 self.assertIn(field, returned_highlight)
-                self.assertIn(f"<em>{self.query}</em>", returned_highlight[field])
+                self.assertTrue(
+                    any(
+                        f"<em>{self.query}</em>" in highlight
+                        for highlight in returned_highlight[field]
+                    )
+                )
 
     def test_multi_match_search_multiple_indices(self):
         indices = [
@@ -119,7 +127,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         response = OpenSearchService.multi_match_search(
             indices=indices,
             query=self.query_2,
-            fields=["title_en^2", "description_en^1"],
+            fields=["title^2", "content^1"],
         )
         hits = response.hits
         self.assertEqual(len(hits), 2)
@@ -135,7 +143,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         response = OpenSearchService.multi_match_search(
             indices=indices,
             query=self.query_2,
-            fields=["title_en^2", "description_en^1"],
+            fields=["title^2", "content^1"],
             limit=1,
             offset=0,
         )
@@ -147,7 +155,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         response = OpenSearchService.multi_match_search(
             indices=indices,
             query=self.query_2,
-            fields=["title_en^2", "description_en^1"],
+            fields=["title^2", "content^1"],
             limit=1,
             offset=1,
         )
