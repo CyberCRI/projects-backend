@@ -430,8 +430,8 @@ class Project(
 
         if user:
             owners.users.add(user)
-        self.groups.set(
-            [owners, reviewers, members, owner_groups, reviewer_groups, member_groups]
+        self.groups.add(
+            owners, reviewers, members, owner_groups, reviewer_groups, member_groups
         )
         if trigger_indexation:
             self.permissions_up_to_date = True

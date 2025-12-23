@@ -202,7 +202,7 @@ class PeopleGroup(
         )
         if user:
             managers.users.add(user)
-        self.groups.set([managers, members, leaders])
+        self.groups.add(managers, members, leaders)
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
