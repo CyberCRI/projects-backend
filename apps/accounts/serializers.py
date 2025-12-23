@@ -816,16 +816,16 @@ class UserSerializer(
         ).data
 
     def get_notifications(self, user: ProjectUser) -> int:
-        return Notification.objects.filter(is_viewed=False, receiver=user).count()
+        organization = self.context.get("organization")
+        queryset = Notification.objects.filter(is_viewed=False, receiver=user)
+        if organization:
+            queryset = queryset.filter(organization=organization)
+        return queryset.count()
 
     def create(self, validated_data):
         profile_picture = {
-            "file": validated_data.pop("profile_picture_file", None),
-            "scale_x": validated_data.pop("profile_picture_scale_x", None),
-            "scale_y": validated_data.pop("profile_picture_scale_y", None),
-            "left": validated_data.pop("profile_picture_left", None),
-            "top": validated_data.pop("profile_picture_top", None),
-            "natural_ratio": validated_data.pop("profile_picture_natural_ratio", None),
+            field: validated_data.pop(f"profile_picture_{field}", None)
+            for field in ["file", "scale_x", "scale_y", "left", "top", "natural_ratio"]
         }
         instance = super(UserSerializer, self).create(validated_data)
         if profile_picture["file"]:
