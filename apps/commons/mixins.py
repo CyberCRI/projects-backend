@@ -1,10 +1,12 @@
-from typing import TYPE_CHECKING, Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
 
 from django.contrib.auth.models import Group, Permission
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q, QuerySet
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
+from guardian.models import GroupObjectPermission
 from guardian.shortcuts import assign_perm, remove_perm
 
 from .models import GroupData
@@ -176,11 +178,89 @@ class HasPermissionsSetup:
             )
         return group
 
-    def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
-    ):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Initialize permissions for the instance."""
         raise NotImplementedError()
+
+    @classmethod
+    def batch_reassign_permissions(
+        cls, roles_permissions: Tuple[str, Iterable[Permission]]
+    ):
+        """
+        Reassign permissions for all instances of the model.
+
+        This is useful for bulk updating permissions after changing the permissions
+        assigned to default roles.
+
+        Arguments:
+        ----------
+            roles_permissions: A tuple containing the role names its permissions
+            eg : roles_permissions=(
+                ("admins", QuerySet([<Permission: change_obj>, <Permission: delete_obj>])),
+                ("viewers", QuerySet([<Permission: view_obj>])),
+            )
+        """
+
+        cls.objects.update(permissions_up_to_date=False)
+        content_type = ContentType.objects.get_for_model(cls)
+        roles = [role for role, _ in roles_permissions]
+
+        # Make sure all groups exist
+        groups_to_create = [
+            Group(name=f"{content_type.model}:#{instance.pk}:{role}")
+            for instance in cls.objects.all()
+            for role in roles
+        ]
+        Group.objects.bulk_create(
+            groups_to_create,
+            batch_size=1000,
+            ignore_conflicts=True,
+        )
+
+        # Make sure all GroupData exist
+        group_data_to_create = [
+            GroupData(
+                group=group,
+                role=group.name.split(":")[-1],
+                content_type=content_type,
+                object_id=group.name.split(":")[-2][1:],
+            )
+            for group in Group.objects.filter(
+                name__startswith=f"{content_type.model}:#"
+            )
+        ]
+        GroupData.objects.bulk_create(
+            group_data_to_create,
+            batch_size=1000,
+            update_conflicts=True,
+            update_fields=["role", "content_type", "object_id"],
+            unique_fields=["group"],
+        )
+
+        # Reassign permissions
+        permissions_to_create = []
+        for role, permissions in roles_permissions:
+            groups_datas = GroupData.objects.filter(
+                role=role, content_type=content_type
+            )
+            permissions_to_create = [
+                GroupObjectPermission(
+                    group_id=data.group_id,
+                    permission=perm,
+                    object_pk=data.object_id,
+                    content_type=content_type,
+                )
+                for data in groups_datas
+                for perm in permissions
+            ]
+            GroupObjectPermission.objects.filter(
+                content_type=content_type,
+                group__data__role=role,
+            ).exclude(permission__in=permissions).delete()
+            GroupObjectPermission.objects.bulk_create(
+                permissions_to_create, ignore_conflicts=True, batch_size=1000
+            )
+        cls.objects.update(permissions_up_to_date=True)
 
 
 class DuplicableModel:

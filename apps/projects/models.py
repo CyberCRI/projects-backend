@@ -377,22 +377,28 @@ class Project(
             self._related_organizations = list(self.organizations.all())
         return self._related_organizations
 
-    def get_default_owners_permissions(self) -> QuerySet[Permission]:
+    @classmethod
+    def get_default_owners_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
         excluded_permissions = [
             f"{action}_{subscope}"
             for action in ["change", "delete", "add"]
             for subscope in ["review", "locked_project"]
         ]
-        return Permission.objects.filter(content_type=self.content_type).exclude(
+        return Permission.objects.filter(content_type=content_type).exclude(
             codename__in=excluded_permissions
         )
 
-    def get_default_reviewers_permissions(self) -> QuerySet[Permission]:
-        return Permission.objects.filter(content_type=self.content_type)
+    @classmethod
+    def get_default_reviewers_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
+        return Permission.objects.filter(content_type=content_type)
 
-    def get_default_members_permissions(self) -> QuerySet[Permission]:
+    @classmethod
+    def get_default_members_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
         return Permission.objects.filter(
-            content_type=self.content_type,
+            content_type=content_type,
             codename__in=[
                 "view_project",
                 "view_projectmessage",
@@ -401,9 +407,7 @@ class Project(
             ],
         )
 
-    def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
-    ):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         reviewers_permissions = self.get_default_reviewers_permissions()
         owners_permissions = self.get_default_owners_permissions()
@@ -433,11 +437,8 @@ class Project(
         self.groups.add(
             owners, reviewers, members, owner_groups, reviewer_groups, member_groups
         )
-        if trigger_indexation:
-            self.permissions_up_to_date = True
-            self.save(update_fields=["permissions_up_to_date"])
-        else:
-            Project.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
+        self.permissions_up_to_date = True
+        self.save(update_fields=["permissions_up_to_date"])
 
     def get_owners(self) -> Group:
         """Return the owners group."""
