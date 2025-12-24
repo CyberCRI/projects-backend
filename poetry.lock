@@ -1221,18 +1221,18 @@ six = ">=1.10"
 
 [[package]]
 name = "django"
-version = "4.2.27"
+version = "5.2.9"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.10"
 groups = ["main", "dev"]
 files = [
-    {file = "django-4.2.27-py3-none-any.whl", hash = "sha256:f393a394053713e7d213984555c5b7d3caeee78b2ccb729888a0774dff6c11a8"},
-    {file = "django-4.2.27.tar.gz", hash = "sha256:b865fbe0f4a3d1ee36594c5efa42b20db3c8bbb10dff0736face1c6e4bda5b92"},
+    {file = "django-5.2.9-py3-none-any.whl", hash = "sha256:3a4ea88a70370557ab1930b332fd2887a9f48654261cdffda663fef5976bb00a"},
+    {file = "django-5.2.9.tar.gz", hash = "sha256:16b5ccfc5e8c27e6c0561af551d2ea32852d7352c67d452ae3e76b4f6b2ca495"},
 ]
 
 [package.dependencies]
-asgiref = ">=3.6.0,<4"
+asgiref = ">=3.8.1"
 sqlparse = ">=0.3.1"
 tzdata = {version = "*", markers = "sys_platform == \"win32\""}
 
@@ -1269,14 +1269,14 @@ Django = ">=3.2"
 
 [[package]]
 name = "django-debug-toolbar"
-version = "4.4.6"
+version = "6.1.0"
 description = "A configurable set of panels that display various debug information about the current request/response."
 optional = false
-python-versions = ">=3.8"
+python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "django_debug_toolbar-4.4.6-py3-none-any.whl", hash = "sha256:3beb671c9ec44ffb817fad2780667f172bd1c067dbcabad6268ce39a81335f45"},
-    {file = "django_debug_toolbar-4.4.6.tar.gz", hash = "sha256:36e421cb908c2f0675e07f9f41e3d1d8618dc386392ec82d23bcfcd5d29c7044"},
+    {file = "django_debug_toolbar-6.1.0-py3-none-any.whl", hash = "sha256:e214dea4494087e7cebdcea84223819c5eb97f9de3110a3665ad673f0ba98413"},
+    {file = "django_debug_toolbar-6.1.0.tar.gz", hash = "sha256:e962ec350c9be8bdba918138e975a9cdb193f60ec396af2bb71b769e8e165519"},
 ]
 
 [package.dependencies]
@@ -1593,20 +1593,20 @@ test = ["cryptography", "freezegun", "pytest", "pytest-cov", "pytest-django", "p
 
 [[package]]
 name = "drf-recaptcha"
-version = "2.2.3"
-description = "Django rest framework recaptcha field serializer."
+version = "4.0.3"
+description = "Django rest framework recaptcha field serializer"
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "drf-recaptcha-2.2.3.tar.gz", hash = "sha256:2a80e31bd3342f1dd5a2d1460ddedac02e1c1ad58c172ffcb50f3a7f44bb8d77"},
-    {file = "drf_recaptcha-2.2.3-py3-none-any.whl", hash = "sha256:d2c6a9cda684f1814e0d3558a2c539b37897219ec9de66ccd003a6ddc0e9516a"},
+    {file = "drf_recaptcha-4.0.3-py3-none-any.whl", hash = "sha256:eb0762c22bc1d4b877d4ff277de3baa1d7581a5126160d3c2717cba6d692b0ac"},
+    {file = "drf_recaptcha-4.0.3.tar.gz", hash = "sha256:c39a406d7a22134c23438a7feef93c2d18ea2c9e3072da6de91aa6ce7d81cc14"},
 ]
 
 [package.dependencies]
-django = ">=3.2"
-django-ipware = ">=2.1"
-djangorestframework = ">=3.11"
+django = ">=4.2"
+django-ipware = ">=5.0"
+djangorestframework = ">=3.14"
 
 [[package]]
 name = "drf-spectacular"
@@ -4576,14 +4576,14 @@ files = [
 
 [[package]]
 name = "urllib3"
-version = "2.6.0"
+version = "2.6.2"
 description = "HTTP library with thread-safe connection pooling, file post, and more."
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "urllib3-2.6.0-py3-none-any.whl", hash = "sha256:c90f7a39f716c572c4e3e58509581ebd83f9b59cced005b7db7ad2d22b0db99f"},
-    {file = "urllib3-2.6.0.tar.gz", hash = "sha256:cb9bcef5a4b345d5da5d145dc3e30834f58e8018828cbc724d30b4cb7d4d49f1"},
+    {file = "urllib3-2.6.2-py3-none-any.whl", hash = "sha256:ec21cddfe7724fc7cb4ba4bea7aa8e2ef36f607a4bab81aa6ce42a13dc3f03dd"},
+    {file = "urllib3-2.6.2.tar.gz", hash = "sha256:016f9c98bb7e98085cb2b4b17b87d2c702975664e4f060c6532e64d1c1a5e797"},
 ]
 
 [package.extras]
@@ -4880,4 +4880,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "791c261a47f531d413fa492744832580beed97ebfe709a978aa4aa5e736ad22a"
+content-hash = "b3aac4f631327af1e461756d33f76ebdd6f2c4ef07cd5ae100369262511fea98"
