@@ -101,9 +101,10 @@ class SearchViewSet(ListViewSet):
             indices=indices,
             fields=[
                 # common
-                "content^2",  # project + user + people_group
+                "content^2",  # project + user + people_group + tag
                 "email^2",  # user + people_group
                 "members^2",  # project + people_group
+                "title^4",  # project + tag
                 # user
                 "given_name^4",
                 "family_name^4",
@@ -113,12 +114,13 @@ class SearchViewSet(ListViewSet):
                 "people_groups^1",
                 "projects^1",
                 # project
-                "title^4",
                 "purpose^4",
                 "tags^3",
                 "categories^1",
                 # people_group
                 "name^4",
+                # tag
+                "alternative_titles^2",
             ],
             query=query,
             search_type=search_type,
@@ -129,7 +131,7 @@ class SearchViewSet(ListViewSet):
         )
         search_objects_ids = [hit.search_object_id for hit in response.hits]
 
-        # remove searhc id not hits in opensearch
+        # remove search id not hits in opensearch
         filtered_search_object = [
             obj for obj in search_objects if obj.id in search_objects_ids
         ]

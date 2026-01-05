@@ -42,7 +42,7 @@ class ImageForm(forms.ModelForm):
         return _inner
 
     def save(self, commit=True):
-        upload_to = self.cleaned_data.get("upload_to", None)
+        upload_to = self.cleaned_data.get("upload_to")
         self.instance._upload_to = self.get_upload_to(upload_to)
         return super(ImageForm, self).save(commit=commit)
 

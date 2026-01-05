@@ -1,0 +1,4 @@
+{% load i18n %}
+{% blocktranslate with project_title=project.title full_name=by.get_full_name %}
+{{ full_name }} created project {{ project_title }} in category {{ category_name }}.
+{% endblocktranslate %}

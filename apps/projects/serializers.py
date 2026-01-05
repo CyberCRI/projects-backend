@@ -30,7 +30,7 @@ from apps.files.serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
-from apps.notifications.tasks import notify_project_changes
+from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
     OrganizationSerializer,
@@ -619,7 +619,7 @@ class ProjectSerializer(
 
     def get_linked_projects(self, project: Project) -> Dict[str, Any]:
         queryset = LinkedProject.objects.filter(target=project)
-        user = getattr(self.context.get("request", None), "user", AnonymousUser())
+        user = getattr(self.context.get("request"), "user", AnonymousUser())
         queryset = user.get_project_related_queryset(queryset)
         return LinkedProjectSerializer(queryset, many=True).data
 
@@ -648,6 +648,7 @@ class ProjectSerializer(
         team = validated_data.pop("team", {})
         project = super(ProjectSerializer, self).create(validated_data)
         ProjectAddTeamMembersSerializer().create({"project": project, **team})
+        notify_new_project.delay(project.pk, self.context["request"].user.pk)
         return project
 
     def update(self, instance, validated_data):
@@ -661,7 +662,7 @@ class ProjectSerializer(
     def validate_organizations_codes(self, value: List[Organization]):
         if len(value) < 1:
             raise ProjectWithNoOrganizationError
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         if request:
             organizations_to_add = (
                 [o for o in value if o not in self.instance.organizations.all()]

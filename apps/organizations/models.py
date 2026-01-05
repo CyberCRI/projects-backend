@@ -2,14 +2,18 @@ from typing import TYPE_CHECKING, Any, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q, QuerySet, UniqueConstraint
 from simple_history.models import HistoricalRecords
 
 from apps.commons.enums import Language
-from apps.commons.mixins import HasMultipleIDs, HasPermissionsSetup, OrganizationRelated
+from apps.commons.mixins import (
+    HasMultipleIDs,
+    HasOwner,
+    HasPermissionsSetup,
+    OrganizationRelated,
+)
 from apps.commons.models import GroupData
 from apps.commons.utils import (
     get_permissions_from_subscopes,
@@ -299,7 +303,7 @@ class Organization(
 
         if user:
             admins.users.add(user)
-        self.groups.set([admins, facilitators, users])
+        self.groups.add(admins, facilitators, users)
         if trigger_indexation:
             self.permissions_up_to_date = True
             self.save(update_fields=["permissions_up_to_date"])
@@ -552,35 +556,59 @@ class ProjectCategory(
         )
         return root_group
 
-    @classmethod
-    def _get_hierarchy(cls, categories: dict[int, dict], category_id: int):
-        from apps.files.serializers import ImageSerializer
 
-        return {
-            "id": categories[category_id].id,
-            "slug": categories[category_id].slug,
-            "name": categories[category_id].name,
-            "background_color": categories[category_id].background_color,
-            "foreground_color": categories[category_id].foreground_color,
-            "background_image": (
-                ImageSerializer(categories[category_id].background_image).data
-                if categories[category_id].background_image
-                else None
-            ),
-            "children": [
-                cls._get_hierarchy(categories, child)
-                for child in categories[category_id].children_ids
-                if child is not None
-            ],
-        }
+class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
+    """Represent a user following a project category.
 
-    def get_hierarchy(self):
-        # This would be better with a recursive serializer, but it doubles the query time
-        categories = ProjectCategory.objects.filter(
-            organization=self.organization.pk
-        ).annotate(children_ids=ArrayAgg("children"))
-        categories = {category.id: category for category in categories}
-        return self._get_hierarchy(categories, self.id)
+    Attributes
+    ----------
+    category: ForeignKey
+        ProjectCategory followed.
+    follower: ForeignKey
+        ProjectUser following the project.
+    created_at: DateTimeField
+        Date of creation of the object.
+    updated_at: DateTimeField
+        Date of the last change made to the object.
+    """
+
+    organization_query_string: str = "category__organization"
+
+    category = models.ForeignKey(
+        "organizations.ProjectCategory",
+        on_delete=models.CASCADE,
+        related_name="follows",
+    )
+    follower = models.ForeignKey(
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="category_follows",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Follow: {self.category} - {self.follower}"
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owner of the object."""
+        return self.follower == user
+
+    def get_owner(self):
+        """Get the owner of the object."""
+        return self.follower
+
+    def get_related_organizations(self) -> List["Organization"]:
+        """Return the organizations related to this model."""
+        return self.category.get_related_organizations()
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["category", "follower"], name="unique_category_follow"
+            )
+        ]
 
 
 class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Model):

@@ -12,7 +12,11 @@ from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
 from apps.notifications.tasks import _notify_new_announcement, _notify_new_application
-from apps.organizations.factories import OrganizationFactory
+from apps.organizations.factories import (
+    CategoryFollowFactory,
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
@@ -24,12 +28,20 @@ class NewAnnouncementTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.parent_category
+        )
+        cls.child_category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.category
+        )
 
     @patch("apps.announcements.views.notify_new_announcement.delay")
     def test_notification_task_called(self, notification_task):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         owner = UserFactory()
 
@@ -55,12 +67,23 @@ class NewAnnouncementTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -71,9 +94,15 @@ class NewAnnouncementTestCase(JwtAPITestCase):
         _notify_new_announcement(announcement.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 3)
+        self.assertEqual(notifications.count(), 5)
 
-        for user in [not_notified, notified, follower]:
+        for user in [
+            not_notified,
+            notified,
+            follower,
+            category_follower,
+            parent_category_follower,
+        ]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.ANNOUNCEMENT)
             self.assertEqual(notification.project, project)
@@ -93,12 +122,23 @@ class NewAnnouncementTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -110,9 +150,15 @@ class NewAnnouncementTestCase(JwtAPITestCase):
         _notify_new_announcement(announcement[1].pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
-        self.assertEqual(notifications.count(), 3)
+        self.assertEqual(notifications.count(), 5)
 
-        for user in [not_notified, notified, follower]:
+        for user in [
+            not_notified,
+            notified,
+            follower,
+            category_follower,
+            parent_category_follower,
+        ]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.ANNOUNCEMENT)
             self.assertEqual(notification.project, project)
@@ -134,12 +180,20 @@ class NewApplicationTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.parent_category
+        )
+        cls.child_category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.category
+        )
 
     @patch("apps.announcements.views.notify_new_application.delay")
     def test_notification_task_called(self, notification_task):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         announcement = AnnouncementFactory(project=project)
         application = {
@@ -164,11 +218,22 @@ class NewApplicationTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -210,11 +275,22 @@ class NewApplicationTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([notified, not_notified])
 
         # Disabling notification for 'not_notified'

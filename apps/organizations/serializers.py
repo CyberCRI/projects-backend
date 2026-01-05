@@ -1,6 +1,5 @@
 import logging
 import uuid
-from contextlib import suppress
 from types import SimpleNamespace
 from typing import Any, Dict, List, Union
 
@@ -37,7 +36,13 @@ from .exceptions import (
     ParentCategoryOrganizationError,
     RootCategoryParentError,
 )
-from .models import Organization, ProjectCategory, Template, TermsAndConditions
+from .models import (
+    CategoryFollow,
+    Organization,
+    ProjectCategory,
+    Template,
+    TermsAndConditions,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -60,44 +65,39 @@ class TermsAndConditionsSerializer(
 
     string_images_forbid_fields: List[str] = ["content"]
 
-    content = serializers.CharField(write_only=True)
-    displayed_content_organization = serializers.SerializerMethodField()
-    displayed_content = serializers.SerializerMethodField()
-    displayed_version = serializers.SerializerMethodField()
+    organization = serializers.SlugRelatedField(slug_field="code", read_only=True)
 
     class Meta:
         model = TermsAndConditions
         read_only_fields = [
             "id",
-            "displayed_content_organization",
-            "displayed_content",
-            "displayed_version",
+            "organization",
+            "updated_at",
+            "version",
         ]
         fields = read_only_fields + ["content"]
 
-    def get_displayed_content_organization(self, instance: TermsAndConditions) -> str:
-        if not instance.content:
-            with suppress(TermsAndConditions.DoesNotExist):
-                default = TermsAndConditions.objects.get(is_default=True)
-                if default.content:
-                    return default.organization.code
-        return instance.organization.code
-
-    def get_displayed_content(self, instance: TermsAndConditions) -> str:
-        if not instance.content:
-            with suppress(TermsAndConditions.DoesNotExist):
-                default = TermsAndConditions.objects.get(is_default=True)
-                if default.content:
-                    return default.content
-        return instance.content
-
-    def get_displayed_version(self, instance: TermsAndConditions) -> int:
-        if not instance.content:
-            with suppress(TermsAndConditions.DoesNotExist):
-                default = TermsAndConditions.objects.get(is_default=True)
-                if default.content:
-                    return default.version
-        return instance.version
+    def to_representation(self, instance: TermsAndConditions) -> Dict[str, Any]:
+        data = super().to_representation(instance)
+        dynamic_fields = [
+            *[f"content_{lang}" for lang in settings.REQUIRED_LANGUAGES],
+            "content_detected_language",
+            "content",
+            "organization",
+            "updated_at",
+            "version",
+        ]
+        for field in dynamic_fields:
+            data[f"displayed_{field}"] = data.pop(field)
+        if not instance.content or instance.content == "<p></p>":
+            default = TermsAndConditions.objects.filter(is_default=True)
+            if default.exists():
+                default = default.get()
+                if default.content and default.content != "<p></p>":
+                    default_data = super().to_representation(default)
+                    for field in dynamic_fields:
+                        data[f"displayed_{field}"] = default_data[field]
+        return data
 
 
 class OrganizationAddTeamMembersSerializer(serializers.Serializer):
@@ -421,6 +421,20 @@ class TemplateLightSerializer(
         return [self.instance.organization] if self.instance else []
 
 
+class ProjectCategorySuperLightSerializer(
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
+):
+
+    class Meta:
+        model = ProjectCategory
+        fields = [
+            "id",
+            "slug",
+            "name",
+        ]
+
+
 class ProjectCategoryLightSerializer(
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
@@ -545,6 +559,53 @@ class TemplateSerializer(
         }
 
 
+class ProjectCategoryHierarchySerializer(
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    children = serializers.SerializerMethodField()
+    background_image = ImageSerializer(read_only=True)
+
+    class Meta:
+        model = ProjectCategory
+        read_only_fields = [
+            "id",
+            "slug",
+            "name",
+            "background_color",
+            "foreground_color",
+            "background_image",
+            "children",
+        ]
+        fields = read_only_fields
+
+    def get_children(
+        self, category: ProjectCategory
+    ) -> List[Dict[str, Union[str, int]]]:
+        context = self.context
+        mapping = context.get("mapping")
+        if not mapping:
+            queryset = ProjectCategory.objects.filter(
+                organization=category.organization
+            )
+            mapping = {cat.id: cat for cat in queryset}
+            context["mapping"] = mapping
+        children_ids = list(category.children.all().values_list("id", flat=True))
+        if category.is_root:
+            children_ids += list(
+                ProjectCategory.objects.filter(
+                    organization=category.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
+        return ProjectCategoryHierarchySerializer(
+            children, many=True, context=context
+        ).data
+
+
 class ProjectCategorySerializer(
     StringsImagesSerializer,
     AutoTranslatedModelSerializer,
@@ -608,18 +669,16 @@ class ProjectCategorySerializer(
         hierarchy = []
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
-            hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
+            hierarchy.append(
+                ProjectCategorySuperLightSerializer(obj, context=self.context).data
+            )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: ProjectCategory) -> List[Dict[str, Union[str, int]]]:
-        return [
-            {
-                "id": child.id,
-                "slug": child.slug,
-                "name": child.name,
-            }
-            for child in obj.children.all().order_by("name")
-        ]
+        queryset = obj.children.all().order_by("name")
+        return ProjectCategorySuperLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
 
     def get_projects_count(self, obj: ProjectCategory) -> int:
         return obj.projects.count()
@@ -653,3 +712,15 @@ class ProjectCategorySerializer(
                 raise CategoryHierarchyLoopError
             parent = parent.parent
         return value
+
+
+class CategoryFollowSerializer(serializers.ModelSerializer):
+    category = ProjectCategoryLightSerializer(read_only=True)
+    category_id = serializers.PrimaryKeyRelatedField(
+        write_only=True, queryset=ProjectCategory.objects.all(), source="category"
+    )
+
+    class Meta:
+        model = CategoryFollow
+        read_only_fields = ["id", "category"]
+        fields = read_only_fields + ["category_id"]

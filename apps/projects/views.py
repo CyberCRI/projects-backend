@@ -123,7 +123,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_serializer_class(self):
         is_summary = (
-            self.request.query_params.get("info_details", None)
+            self.request.query_params.get("info_details")
             == ProjectViewSet.InfoDetails.SUMMARY
         )
         if self.action == "list" or is_summary:
@@ -134,7 +134,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         """Adds request to the serializer's context."""
         return {"request": self.request}
 
-    @transaction.atomic
     def perform_create(self, serializer: ProjectSerializer):
         project = serializer.save()
         project.setup_permissions(self.request.user)
@@ -149,7 +148,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         update_change_reason(project, f"Updated: {' + '.join(changes.keys())}"[:100])
         if (
             settings.ENABLE_CACHE
-            and changes.get("publication_status", None)
+            and changes.get("publication_status")
             and project.announcements.exists()
         ):
             cache.delete_many(cache.keys("announcements_list_cache*"))
@@ -679,7 +678,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @transaction.atomic
     def perform_update(self, serializer):
-        project = serializer.validated_data.get("project", None)
+        project = serializer.validated_data.get("project")
         if project:
             self.check_linked_project_permission(project)
         super(LinkedProjectViewSet, self).perform_update(serializer)
@@ -865,7 +864,7 @@ class ProjectTabViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return ProjectTab.objects.none()
 
     def perform_create(self, serializer: ProjectTabSerializer):
-        project_id = self.kwargs.get("project_id", None)
+        project_id = self.kwargs.get("project_id")
         if project_id:
             project = get_object_or_404(Project, id=project_id)
             serializer.save(project=project)
@@ -949,8 +948,8 @@ class ProjectTabItemViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return ProjectTabItem.objects.none()
 
     def perform_create(self, serializer: ProjectTabItemSerializer):
-        project_id = self.kwargs.get("project_id", None)
-        tab_id = self.kwargs.get("tab_id", None)
+        project_id = self.kwargs.get("project_id")
+        tab_id = self.kwargs.get("tab_id")
         if project_id and tab_id:
             tab = get_object_or_404(ProjectTab, id=tab_id, project_id=project_id)
             serializer.save(tab=tab)
