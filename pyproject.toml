@@ -14,7 +14,7 @@ Django = "^5.2.9"
 django-cleanup = "^6.0.0"
 django-cors-headers = "^3.10.0"
 django-extensions = "^3.1.5"
-django-filter = "21.1"
+django-filter = "^25.2"
 django-mjml = { extras = ["requests"], version = "^1.1" }
 django-modeltranslation = "^0.17.3"
 django-redis = "^6.0.0"
