@@ -10,6 +10,7 @@ from django.conf import settings
 from django.http import QueryDict
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
@@ -18,7 +19,6 @@ from apps.commons.serializers import (
 )
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     ChangeFileProjectError,
@@ -431,8 +431,11 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class ProjectUserAttachmentLinkSerializer(
     AbstractAttachmentLink,
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
 ):
+    string_images_forbid_fields: list[str] = ["title", "description"]
+
     class Meta:
         model = ProjectUserAttachmentLink
         fields = "__all__"
@@ -445,8 +448,11 @@ class ProjectUserAttachmentLinkSerializer(
         ]
 
 
-class ProjectUserAttachmentFileSerializer(AutoTranslatedModelSerializer):
+class ProjectUserAttachmentFileSerializer(
+    StringsImagesSerializer, AutoTranslatedModelSerializer
+):
     file = serializers.FileField()
+    string_images_forbid_fields: list[str] = ["title", "description"]
 
     class Meta:
         model = ProjectUserAttachmentFile
