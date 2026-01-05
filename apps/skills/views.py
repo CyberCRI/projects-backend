@@ -191,15 +191,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filter_backends = (
         MultiMatchSearchFieldsFilter(
             f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
-            fields=[
-                *[f"title_{ln}^5" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"alternative_titles_{ln}^3" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"description_{ln}^1" for ln in settings.REQUIRED_LANGUAGES],
-            ],
-            highlight=[
-                *[f"title_{ln}" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"description_{ln}" for ln in settings.REQUIRED_LANGUAGES],
-            ],
+            fields=["title^5", "alternative_titles^3", "content^1"],
+            highlight=["title", "content"],
         ),
         DjangoFilterBackend,
         OrderingFilter,
