@@ -1,5 +1,6 @@
 from django.contrib.postgres.operations import TrigramExtension, UnaccentExtension
 from django.db import migrations
+from pgvector.django import VectorExtension
 
 
 class Migration(migrations.Migration):
@@ -21,4 +22,5 @@ class Migration(migrations.Migration):
             'WITH unaccent, english_stem;'
         ),
         TrigramExtension(),
+        VectorExtension(),
     ]

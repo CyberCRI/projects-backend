@@ -1,5 +1,3 @@
-from typing import List, Optional, Tuple
-
 from azure.ai.translation.text import TextTranslationClient
 from azure.core.credentials import AzureKeyCredential
 from django.conf import settings
@@ -15,19 +13,23 @@ class AzureTranslatorService:
     )
 
     @classmethod
-    def clean_translation(cls, text: Optional[str]) -> Optional[str]:
+    def clean_translation(cls, text: str | None) -> str | None:
         if text:
             return text.replace("\xa0»", '"').replace("\xa0", "")
         return text
 
     @classmethod
     def translate_text_content(
-        cls, content: str, languages: List[str]
-    ) -> Tuple[List[dict], str]:
+        cls, content: str, languages: list[str], field_type: str
+    ) -> tuple[list[dict], str]:
         """
         Translate text content to the specified languages.
         """
-        response = cls.service.translate(body=[content], to_language=languages)
+        response = cls.service.translate(
+            body=[content],
+            to_language=set(languages),
+            text_type=field_type.lower(),
+        )
         response = response[0]
         detected_language = response.detected_language.language
         translations = response.translations

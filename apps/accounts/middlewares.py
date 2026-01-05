@@ -18,7 +18,7 @@ class CookieTokenMiddleware:
         if "HTTP_AUTHORIZATION" in request.META:
             token = request.META["HTTP_AUTHORIZATION"].split(" ", 1)
             return token[1], token[0]
-        return request.COOKIES.get(settings.JWT_ACCESS_TOKEN_COOKIE_NAME, None), "JWT"
+        return request.COOKIES.get(settings.JWT_ACCESS_TOKEN_COOKIE_NAME), "JWT"
 
     def __call__(self, request: Request) -> Response:
         """Retrieve the token from either the headers or cookies."""

@@ -1,6 +1,5 @@
 import datetime
 import json
-from typing import Optional
 
 from django.conf import settings
 from django.db.models import Q
@@ -19,7 +18,7 @@ class MixpanelService:
     service = MixpanelUtils(
         api_secret=settings.MIXPANEL_API_SECRET,
         project_id=settings.MIXPANEL_PROJECT_ID,
-        eu=True,
+        residency="eu",
     )
 
     @classmethod
@@ -56,7 +55,7 @@ class MixpanelService:
     def get_events(
         cls,
         from_date: datetime.date = initial_date,
-        to_date: Optional[datetime.date] = None,
+        to_date: datetime.date | None = None,
         event: str = "page_viewed",
     ) -> list:
         """
@@ -79,7 +78,7 @@ class MixpanelService:
             formated_events = [
                 cls.format_event(event)
                 for event in events
-                if event.get("properties", {}).get("project", {}).get("id", None)
+                if event.get("properties", {}).get("project", {}).get("id")
             ]
             return list(filter(lambda e: e["project"], formated_events))
         return []

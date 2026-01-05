@@ -11,7 +11,11 @@ from apps.notifications.tasks import (
     _notify_group_member_deleted,
     _notify_member_deleted,
 )
-from apps.organizations.factories import OrganizationFactory
+from apps.organizations.factories import (
+    CategoryFollowFactory,
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 
@@ -21,12 +25,20 @@ class DeletedMemberTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.parent_category
+        )
+        cls.child_category = ProjectCategoryFactory(
+            organization=cls.organization, parent=cls.category
+        )
 
     @patch("apps.projects.views.notify_member_deleted.delay")
     def test_notification_task_called(self, notification_task):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         owner = UserFactory()
         project.owners.add(owner)
@@ -48,6 +60,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         owner = UserFactory()
         project.owners.add(owner)
@@ -68,12 +81,23 @@ class DeletedMemberTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -108,12 +132,23 @@ class DeletedMemberTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
@@ -157,12 +192,23 @@ class DeletedMemberTestCase(JwtAPITestCase):
         project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organizations=[self.organization],
+            categories=[self.category],
         )
         sender = UserFactory()
         notified = UserFactory()
         not_notified = UserFactory()
         follower = UserFactory()
+        category_follower = UserFactory()
+        parent_category_follower = UserFactory()
+        child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
+        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=parent_category_follower, category=self.parent_category
+        )
+        CategoryFollowFactory(
+            follower=child_category_follower, category=self.child_category
+        )
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'

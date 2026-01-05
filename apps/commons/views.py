@@ -67,7 +67,7 @@ class MultipleIDViewsetMixin:
         Transform the id used for the request into the main id used by the viewset.
         """
         for model, field in self.multiple_lookup_fields:
-            lookup_value = kwargs.get(field, None)
+            lookup_value = kwargs.get(field)
             if lookup_value is not None:
                 method = getattr(self, f"get_{field}_from_lookup_value", None)
                 if method is not None:

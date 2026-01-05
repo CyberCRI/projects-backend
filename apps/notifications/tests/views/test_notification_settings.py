@@ -98,6 +98,8 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
             "project_ready_for_review": faker.boolean(),
             "project_has_been_reviewed": faker.boolean(),
             "project_has_new_private_message": faker.boolean(),
+            "category_project_created": faker.boolean(),
+            "category_project_updated": faker.boolean(),
             "comment_received_a_response": faker.boolean(),
             "organization_has_new_access_request": faker.boolean(),
             "invitation_link_will_expire": faker.boolean(),
@@ -111,31 +113,5 @@ class UpdateNotificationSettingsTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_200_OK:
             notification_settings = self.user.notification_settings
             notification_settings.refresh_from_db()
-            self.assertEqual(
-                notification_settings.notify_added_to_project,
-                payload["notify_added_to_project"],
-            )
-            self.assertEqual(
-                notification_settings.announcement_published,
-                payload["announcement_published"],
-            )
-            self.assertEqual(
-                notification_settings.followed_project_has_been_edited,
-                payload["followed_project_has_been_edited"],
-            )
-            self.assertEqual(
-                notification_settings.project_has_been_commented,
-                payload["project_has_been_commented"],
-            )
-            self.assertEqual(
-                notification_settings.project_has_been_edited,
-                payload["project_has_been_edited"],
-            )
-            self.assertEqual(
-                notification_settings.project_ready_for_review,
-                payload["project_ready_for_review"],
-            )
-            self.assertEqual(
-                notification_settings.project_has_been_reviewed,
-                payload["project_has_been_reviewed"],
-            )
+            for field, value in payload.items():
+                self.assertEqual(getattr(notification_settings, field), value)

@@ -16,6 +16,7 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
+from apps.commons.serializers import StringsImagesSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -23,6 +24,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer
+from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
@@ -79,10 +81,12 @@ class UserAdminListSerializer(
         fields = read_only_fields
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        organization = self.context.get("organization", None)
-        queryset = PeopleGroup.objects.filter(
-            groups__users=user, is_root=False
-        ).distinct()
+        organization = self.context.get("organization")
+        queryset = (
+            PeopleGroup.objects.filter(groups__users=user, is_root=False)
+            .select_related("organization")
+            .distinct()
+        )
         if organization:
             queryset = queryset.filter(organization=organization).distinct()
         return PeopleGroupSuperLightSerializer(
@@ -122,7 +126,7 @@ class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         return ImageSerializer(image).data if image else None
 
     def to_representation(self, instance: ProjectUser) -> Dict[str, Any]:
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
             request and request.user.get_user_queryset().filter(id=instance.id).exists()
@@ -175,7 +179,7 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         fields = read_only_fields
 
     def to_representation(self, instance):
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
             request and request.user.get_user_queryset().filter(id=instance.id).exists()
@@ -192,13 +196,12 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         return ImageSerializer(user.profile_picture).data
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(
-            self.context.get("request", None), "user", AnonymousUser()
-        )
-        organization = self.context.get("organization", None)
+        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
+        organization = self.context.get("organization")
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
+            .select_related("organization")
             .distinct()
         )
         if organization:
@@ -226,9 +229,11 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
 class PeopleGroupSuperLightSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
+
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["id", "slug", "name"]
+        read_only_fields = ["id", "slug", "name", "organization"]
         fields = read_only_fields
 
 
@@ -262,6 +267,57 @@ class PeopleGroupLightSerializer(
             "members_count",
             "roles",
         ]
+
+
+class PeopleGroupHierarchySerializer(
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
+):
+    children = serializers.SerializerMethodField()
+    header_image = ImageSerializer(read_only=True)
+    roles = serializers.SlugRelatedField(
+        many=True,
+        slug_field="name",
+        read_only=True,
+        source="groups",
+    )
+
+    class Meta:
+        model = PeopleGroup
+        read_only_fields = [
+            "id",
+            "slug",
+            "name",
+            "publication_status",
+            "header_image",
+            "children",
+            "roles",
+        ]
+        fields = read_only_fields
+
+    def get_children(
+        self, people_group: PeopleGroup
+    ) -> List[Dict[str, Union[str, int]]]:
+        context = self.context
+        request = context.get("request")
+        mapping = context.get("mapping")
+        if not mapping:
+            base_queryset = request.user.get_people_group_queryset().filter(
+                organization=people_group.organization
+            )
+            mapping = {group.id: group for group in base_queryset}
+            context["mapping"] = mapping
+        children_ids = list(people_group.children.all().values_list("id", flat=True))
+        if people_group.is_root:
+            children_ids += list(
+                PeopleGroup.objects.filter(
+                    organization=people_group.organization,
+                    parent__isnull=True,
+                    is_root=False,
+                ).values_list("id", flat=True)
+            )
+        children = [mapping.get(child) for child in children_ids if child in mapping]
+        return PeopleGroupHierarchySerializer(children, many=True, context=context).data
 
 
 class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
@@ -345,7 +401,16 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
-class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+class PeopleGroupSerializer(
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+
+    string_images_forbid_fields: List[str] = [
+        "name",
+        "description",
+        "short_description",
+    ]
+
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()
     )
@@ -377,23 +442,23 @@ class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
             if obj in queryset:
-                hierarchy.append({"id": obj.id, "slug": obj.slug, "name": obj.name})
+                hierarchy.append(
+                    PeopleGroupSuperLightSerializer(obj, context=self.context).data
+                )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
         request = self.context.get("request")
         queryset = (
-            request.user.get_people_group_queryset() & obj.children.all().distinct()
+            request.user.get_people_group_queryset()
+            .select_related("organization")
+            .filter(parent=obj)
+            .order_by("name")
+            .distinct()
         )
-        return [
-            {
-                "id": child.id,
-                "slug": child.slug,
-                "name": child.name,
-                "organization": child.organization.code,
-            }
-            for child in queryset.order_by("name")
-        ]
+        return PeopleGroupSuperLightSerializer(
+            queryset, many=True, context=self.context
+        ).data
 
     def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
         request = self.context.get("request")
@@ -410,7 +475,7 @@ class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         data["parent"] = (
             data.get("parent", self.instance.parent)
             if self.instance
-            else data.get("parent", None)
+            else data.get("parent")
         )
         if isinstance(data["parent"], PeopleGroup):
             data["parent"] = data["parent"].id
@@ -483,7 +548,15 @@ class PeopleGroupSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
 
 
 @extend_schema_serializer(exclude_fields=("roles",))
-class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+class UserSerializer(
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+    string_images_forbid_fields: List[str] = [
+        "description",
+        "short_description",
+        "job",
+    ]
+
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
@@ -575,10 +648,13 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
     profile_picture_natural_ratio = serializers.FloatField(
         write_only=True, required=False, allow_null=True
     )
+    researcher = ResearcherSerializerLight(
+        read_only=True, required=False, allow_null=True
+    )
 
     class Meta:
         model = ProjectUser
-        read_only_fields = ["id", "slug", "created_at"]
+        read_only_fields = ["id", "slug", "created_at", "researcher"]
         fields = read_only_fields + [
             "roles",
             "roles_to_add",
@@ -624,7 +700,7 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
         ]
 
     def to_representation(self, instance):
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
             request and request.user.get_user_queryset().filter(id=instance.id).exists()
@@ -726,10 +802,8 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
         return ImageSerializer(user.profile_picture).data
 
     def get_people_groups(self, user: ProjectUser) -> list:
-        request_user = getattr(
-            self.context.get("request", None), "user", AnonymousUser()
-        )
-        organization = self.context.get("organization", None)
+        request_user = getattr(self.context.get("request"), "user", AnonymousUser())
+        organization = self.context.get("organization")
         queryset = (
             request_user.get_people_group_queryset()
             .filter(groups__users=user, is_root=False)
@@ -742,16 +816,16 @@ class UserSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer)
         ).data
 
     def get_notifications(self, user: ProjectUser) -> int:
-        return Notification.objects.filter(is_viewed=False, receiver=user).count()
+        organization = self.context.get("organization")
+        queryset = Notification.objects.filter(is_viewed=False, receiver=user)
+        if organization:
+            queryset = queryset.filter(organization=organization)
+        return queryset.count()
 
     def create(self, validated_data):
         profile_picture = {
-            "file": validated_data.pop("profile_picture_file", None),
-            "scale_x": validated_data.pop("profile_picture_scale_x", None),
-            "scale_y": validated_data.pop("profile_picture_scale_y", None),
-            "left": validated_data.pop("profile_picture_left", None),
-            "top": validated_data.pop("profile_picture_top", None),
-            "natural_ratio": validated_data.pop("profile_picture_natural_ratio", None),
+            field: validated_data.pop(f"profile_picture_{field}", None)
+            for field in ["file", "scale_x", "scale_y", "left", "top", "natural_ratio"]
         }
         instance = super(UserSerializer, self).create(validated_data)
         if profile_picture["file"]:

@@ -113,7 +113,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
     def get_serializer_context(self):
         return {
             **super().get_serializer_context(),
-            "organization_code": self.kwargs.get("organization_code", None),
+            "organization_code": self.kwargs.get("organization_code"),
         }
 
     def create(self, request, *args, **kwargs):

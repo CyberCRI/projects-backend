@@ -115,3 +115,12 @@ def user_router_register(
     if path:
         prefix += r"/" + path
     router.register(prefix, viewset, basename)
+
+
+def researcher_router_register(
+    router: DefaultRouter, path: str, viewset: View, basename: str = None
+):
+    prefix = r"researcher/(?P<researcher_id>[^/]+)"
+    if path:
+        prefix += r"/" + path
+    router.register(prefix, viewset, basename)

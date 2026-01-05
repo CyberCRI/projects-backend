@@ -20,8 +20,8 @@ from apps.commons.models import GroupData
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
+    StringsImagesSerializer,
 )
-from apps.commons.utils import process_text
 from apps.feedbacks.models import Comment, Follow
 from apps.feedbacks.serializers import CommentSerializer, ReviewSerializer
 from apps.files.models import Image
@@ -30,7 +30,7 @@ from apps.files.serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
-from apps.notifications.tasks import notify_project_changes
+from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
     OrganizationSerializer,
@@ -67,11 +67,18 @@ from .utils import compute_project_changes, get_views_from_serializer
 
 
 class BlogEntrySerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields: List[str] = ["content"]
+    string_images_forbid_fields: List[str] = ["title"]
+    string_images_upload_to: str = "blog_entry/images/"
+    string_images_view: str = "BlogEntry-images-detail"
+    string_images_process_template: bool = True
+
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
     )
@@ -100,29 +107,6 @@ class BlogEntrySerializer(
         ]
 
     @transaction.atomic
-    def save(self, **kwargs):
-        if "content" in self.validated_data:
-            create = not self.instance
-            if create:
-                super(BlogEntrySerializer, self).save(**kwargs)
-            text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
-                text=self.validated_data["content"],
-                upload_to="blog_entry/images/",
-                view="BlogEntry-images-detail",
-                process_template=True,
-                project_id=self.instance.project.id,
-            )
-            if create and not images and text == self.validated_data["content"]:
-                return self.instance
-            self.validated_data["content"] = text
-            self.validated_data["images"] = images + [
-                image for image in self.instance.images.all()
-            ]
-        return super(BlogEntrySerializer, self).save(**kwargs)
-
-    @transaction.atomic
     def update(self, instance, validated_data):
         if "created_at" in self.initial_data:
             BlogEntry.objects.filter(id=instance.id).update(
@@ -143,13 +127,22 @@ class BlogEntrySerializer(
             return self.validated_data["project"]
         return None
 
+    def get_string_images_kwargs(
+        self, instance: BlogEntry, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {"project_id": instance.project.id}
+
 
 class GoalSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["title", "description"]
+
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
     )
@@ -189,11 +182,14 @@ class LocationProjectSerializer(
 
 
 class LocationSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_forbid_fields: List[str] = ["title", "description"]
+
     project = LocationProjectSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
         many=False, write_only=True, queryset=Project.objects.all(), source="project"
@@ -500,10 +496,17 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
 
 
 class ProjectSerializer(
+    StringsImagesSerializer,
     AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
+    string_images_fields: List[str] = ["description"]
+    string_images_forbid_fields: List[str] = ["title", "purpose"]
+    string_images_upload_to: str = "project/images/"
+    string_images_view: str = "Project-images-detail"
+    string_images_process_template: bool = True
+
     team = ProjectAddTeamMembersSerializer(required=False, source="*")
     tags = TagRelatedField(many=True, required=False)
 
@@ -616,7 +619,7 @@ class ProjectSerializer(
 
     def get_linked_projects(self, project: Project) -> Dict[str, Any]:
         queryset = LinkedProject.objects.filter(target=project)
-        user = getattr(self.context.get("request", None), "user", AnonymousUser())
+        user = getattr(self.context.get("request"), "user", AnonymousUser())
         queryset = user.get_project_related_queryset(queryset)
         return LinkedProjectSerializer(queryset, many=True).data
 
@@ -630,28 +633,10 @@ class ProjectSerializer(
                     return {"is_followed": True, "follow_id": user_follow.id}
         return {"is_followed": False, "follow_id": None}
 
-    @transaction.atomic
-    def save(self, **kwargs):
-        if "description" in self.validated_data:
-            create = not self.instance
-            if create:
-                super(ProjectSerializer, self).save(**kwargs)
-            text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
-                text=self.validated_data["description"],
-                upload_to="project/images/",
-                view="Project-images-detail",
-                process_template=True,
-                project_id=self.instance.id,
-            )
-            if create and not images and text == self.validated_data["description"]:
-                return self.instance
-            self.validated_data["description"] = text
-            self.validated_data["images"] = images + [
-                image for image in self.instance.images.all()
-            ]
-        return super(ProjectSerializer, self).save(**kwargs)
+    def get_string_images_kwargs(
+        self, instance: Project, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        return {"project_id": instance.id}
 
     def get_related_organizations(self) -> List[Organization]:
         """Retrieve the related organizations"""
@@ -663,6 +648,7 @@ class ProjectSerializer(
         team = validated_data.pop("team", {})
         project = super(ProjectSerializer, self).create(validated_data)
         ProjectAddTeamMembersSerializer().create({"project": project, **team})
+        notify_new_project.delay(project.pk, self.context["request"].user.pk)
         return project
 
     def update(self, instance, validated_data):
@@ -676,7 +662,7 @@ class ProjectSerializer(
     def validate_organizations_codes(self, value: List[Organization]):
         if len(value) < 1:
             raise ProjectWithNoOrganizationError
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         if request:
             organizations_to_add = (
                 [o for o in value if o not in self.instance.organizations.all()]
@@ -866,8 +852,12 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
 
 
 class ProjectMessageSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    string_images_fields: List[str] = ["content"]
+    string_images_upload_to: str = "project_messages/images/"
+    string_images_view: str = "ProjectMessage-images-detail"
+
     content = WritableSerializerMethodField(write_field=serializers.CharField())
     reply_on = serializers.PrimaryKeyRelatedField(
         queryset=ProjectMessage.objects.all(),
@@ -905,28 +895,21 @@ class ProjectMessageSerializer(
             raise ProjectMessageReplyToSelfError
         return reply_on
 
-    @transaction.atomic
-    def save(self, **kwargs):
-        if "content" in self.validated_data:
-            create = not self.instance
-            if create:
-                super().save(**kwargs)
-            text, images = process_text(
-                request=self.context["request"],
-                instance=self.instance,
-                text=self.validated_data["content"],
-                upload_to="project_messages/images/",
-                view="ProjectMessage-images-detail",
-                project_id=self.instance.project.id,
-            )
-            if create and not images and text == self.validated_data["content"]:
-                return self.instance
-            self.validated_data["content"] = text
-            self.instance.images.add(*images)
-        return super().save(**kwargs)
+    def get_string_images_kwargs(
+        self, instance: ProjectMessage, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {"project_id": instance.project.id}
 
 
-class ProjectTabSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+class ProjectTabSerializer(
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+    string_images_fields: List[str] = ["description"]
+    string_images_forbid_fields: List[str] = ["title"]
+    string_images_upload_to: str = "project_tabs/images/"
+    string_images_view: str = "ProjectTab-images-detail"
+
     images = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Image.objects.all(), required=False
     )
@@ -947,10 +930,21 @@ class ProjectTabSerializer(AutoTranslatedModelSerializer, serializers.ModelSeria
             raise ProjectTabChangeTypeError
         return value
 
+    def get_string_images_kwargs(
+        self, instance: ProjectTab, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {"project_id": instance.project.id}
+
 
 class ProjectTabItemSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
+    string_images_fields: List[str] = ["content"]
+    string_images_forbid_fields: List[str] = ["title"]
+    string_images_upload_to: str = "project_tab_items/images/"
+    string_images_view: str = "ProjectTabItem-images-detail"
+
     images = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Image.objects.all(), required=False
     )
@@ -967,3 +961,12 @@ class ProjectTabItemSerializer(
             "content",
             "images",
         ]
+
+    def get_string_images_kwargs(
+        self, instance: ProjectTabItem, field_name: str, *args: Any, **kwargs: Any
+    ) -> Dict[str, Any]:
+        """Get additional kwargs for image processing based on the instance."""
+        return {
+            "project_id": instance.tab.project.id,
+            "tab_id": instance.tab.id,
+        }

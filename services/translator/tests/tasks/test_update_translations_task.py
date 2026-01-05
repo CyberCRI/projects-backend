@@ -4,6 +4,7 @@ from unittest.mock import call, patch
 
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.urls import reverse
 from faker import Faker
 
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
@@ -41,14 +42,15 @@ from apps.skills.factories import (
 )
 from services.translator.models import AutoTranslatedField
 from services.translator.tasks import automatic_translations
+from services.translator.utils import update_auto_translated_field
 
 faker = Faker()
 
 
-class UpdateTranslationsTestCase(JwtAPITestCase):
+class MockTranslateTestCase(JwtAPITestCase):
     @classmethod
     def translator_side_effect(
-        cls, body: List[str], to_language: List[str]
+        cls, body: List[str], to_language: List[str], text_type: str = "plain"
     ) -> List[Dict]:
         """
         This side effect is meant to be used with unittest mock. It will mock every call
@@ -74,11 +76,19 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             )
         ]
 
+
+class UpdateTranslationsTestCase(MockTranslateTestCase):
+
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization_data = {
-            field: faker.word() for field in Organization.auto_translated_fields
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field in Organization.html_auto_translated_fields
+                else faker.word()
+            )
+            for field in Organization.auto_translated_fields
         }
         cls.organization_1 = OrganizationFactory(
             auto_translate_content=True, **cls.organization_data
@@ -100,7 +110,12 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
         ]
 
         cls.user_data = {
-            field: faker.word() for field in ProjectUser.auto_translated_fields
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field in ProjectUser.html_auto_translated_fields
+                else faker.word()
+            )
+            for field in ProjectUser.auto_translated_fields
         }
         cls.user_1 = UserFactory(
             groups=[cls.organization_1.get_users()], **cls.user_data
@@ -122,7 +137,12 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
         )
 
         cls.project_data = {
-            field: faker.word() for field in Project.auto_translated_fields
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field in Project.html_auto_translated_fields
+                else faker.word()
+            )
+            for field in Project.auto_translated_fields
         }
         cls.project_1 = ProjectFactory(
             organizations=[cls.organization_1], **cls.project_data
@@ -157,7 +177,14 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             TemplateFactory,
         ]:
             model = factory._meta.model
-            data = {field: faker.word() for field in model.auto_translated_fields}
+            data = {
+                field: (
+                    f"<p>{faker.word()}</p>"
+                    if field in model.html_auto_translated_fields
+                    else faker.word()
+                )
+                for field in model.auto_translated_fields
+            }
             instance_1 = factory(organization=cls.organization_1, **data)
             instance_2 = factory(organization=cls.organization_2, **data)
             instance_3 = factory(organization=cls.organization_3, **data)
@@ -185,7 +212,14 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             ProjectTabFactory,
         ]:
             model = factory._meta.model
-            data = {field: faker.word() for field in model.auto_translated_fields}
+            data = {
+                field: (
+                    f"<p>{faker.word()}</p>"
+                    if field in model.html_auto_translated_fields
+                    else faker.word()
+                )
+                for field in model.auto_translated_fields
+            }
             instance_1 = factory(project=cls.project_1, **data)
             instance_2 = factory(project=cls.project_2, **data)
             instance_3 = factory(project=cls.project_3, **data)
@@ -210,7 +244,12 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             organization=cls.organization_3, mentor=cls.user_3, mentoree=cls.user_3
         )
         data = {
-            field: faker.word()
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field
+                in MentoringMessageFactory._meta.model.html_auto_translated_fields
+                else faker.word()
+            )
             for field in MentoringMessageFactory._meta.model.auto_translated_fields
         }
         cls.instances.append(
@@ -234,7 +273,12 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
             i for i in cls.instances if i["model"] == ProjectTabFactory._meta.model
         ][0]
         data = {
-            field: faker.word()
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field
+                in ProjectTabItemFactory._meta.model.html_auto_translated_fields
+                else faker.word()
+            )
             for field in ProjectTabItemFactory._meta.model.auto_translated_fields
         }
         cls.instances.append(
@@ -267,7 +311,6 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
         }
         ```
         """
-
         mock_translate.side_effect = self.translator_side_effect
 
         # Mark all fields as up to date to remove noise
@@ -287,14 +330,19 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
         mock_translate.assert_has_calls(
             [
                 call(
-                    body=[getattr(instance, field)],
-                    to_language=[str(lang) for lang in self.organization_1.languages],
+                    body=[
+                        getattr(
+                            instance, field.split(":", 1)[1] if ":" in field else field
+                        )
+                    ],
+                    to_language={str(lang) for lang in self.organization_1.languages},
+                    text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for instance, field in [
                     *[
                         (data["instance_1"], field)
                         for data in self.instances
-                        for field in data["model"].auto_translated_fields
+                        for field in data["model"]._auto_translated_fields
                     ],
                 ]
             ],
@@ -338,3 +386,79 @@ class UpdateTranslationsTestCase(JwtAPITestCase):
                 for lang in settings.REQUIRED_LANGUAGES:
                     for field in data["model"].auto_translated_fields:
                         self.assertEqual(getattr(instance, f"{field}_{lang}") or "", "")
+
+
+class MiscTranslationTestCase(MockTranslateTestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory(
+            auto_translate_content=True, languages=["fr", "en"]
+        )
+
+    @patch("azure.ai.translation.text.TextTranslationClient.translate")
+    def test_safe_translation_with_base64_image(self, mock_translate):
+        mock_translate.side_effect = self.translator_side_effect
+
+        text = f"<div>{self.get_base64_image()}</div>"
+        project = ProjectFactory(organizations=[self.organization], description=text)
+        field = AutoTranslatedField.objects.get(
+            content_type=ContentType.objects.get_for_model(Project),
+            object_id=project.pk,
+            field_name="description",
+        )
+
+        update_auto_translated_field(field)
+        mock_translate.assert_has_calls([])
+
+    @patch("azure.ai.translation.text.TextTranslationClient.translate")
+    def test_split_content_html(self, mock_translate):
+        mock_translate.side_effect = self.translator_side_effect
+
+        project = ProjectFactory(organizations=[self.organization])
+        image = self.get_test_image()
+        project.images.add(image)
+        image_path = reverse("Project-images-detail", args=(project.id, image.id))
+        description = [
+            f"<p>{faker.sentence()}</p>",  # One call for this chunk
+            f'<img alt="alt" src="{image_path}"/>',
+            f"<p>{'a' * 30000}</p>",  # Two calls for this chunk
+            f'<p><img alt="alt" src="{image_path}"/></p>',
+            f"<p>{'b' * 50000}</p>",  # Chunk too large, not translated
+        ]
+        project.description = "".join(description)
+        project.save()
+        field = AutoTranslatedField.objects.get(
+            content_type=ContentType.objects.get_for_model(Project),
+            object_id=project.pk,
+            field_name="description",
+        )
+        update_auto_translated_field(field)
+        mock_translate.assert_has_calls(
+            [
+                call(
+                    body=[str(description[0])],
+                    to_language={str(lang) for lang in self.organization.languages},
+                    text_type="html",
+                ),
+                *[
+                    call(
+                        body=[str(description[2])],
+                        to_language={str(lang)},
+                        text_type="html",
+                    )
+                    for lang in self.organization.languages
+                ],
+            ],
+            any_order=True,
+        )
+        project.refresh_from_db()
+        for lang in self.organization.languages:
+            self.assertEqual(
+                getattr(project, f"description_{lang}"),
+                f"{lang} : {description[0]}"
+                f"{description[1]}"
+                f"{lang} : {description[2]}"
+                f"{description[3]}"
+                f"{description[4]}",
+            )

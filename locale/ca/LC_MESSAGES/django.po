@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-25 13:27+0100\n"
+"POT-Creation-Date: 2025-12-17 16:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No pots assignar aquest rol a un usuari"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:137 apps/projects/models.py:161
+#: apps/accounts/models.py:140 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilitat"
 
@@ -176,7 +176,7 @@ msgstr "Estat de publicació desconegut"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Estat de publicació desconegut '{publication_status}'"
 
-#: apps/commons/fields.py:30 apps/skills/serializers.py:107
+#: apps/commons/fields.py:30 apps/skills/serializers.py:114
 msgid "This field is required."
 msgstr "Aquest camp és obligatori."
 
@@ -185,7 +185,7 @@ msgstr "Aquest camp és obligatori."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Id no vàlid \"{user_id}\" - l'objecte no existeix."
 
-#: apps/commons/fields.py:33 apps/skills/serializers.py:112
+#: apps/commons/fields.py:33 apps/skills/serializers.py:119
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Tipus incorrecte. S'esperava un valor str, s'ha rebut {data_type}."
@@ -560,15 +560,15 @@ msgstr ""
 "Els grups de persones d'una instrucció han de pertànyer a la mateixa "
 "organització"
 
-#: apps/notifications/tasks.py:193 apps/notifications/tasks.py:237
+#: apps/notifications/tasks.py:200 apps/notifications/tasks.py:244
 msgid "editor"
 msgstr "editor"
 
-#: apps/notifications/tasks.py:194 apps/notifications/tasks.py:238
+#: apps/notifications/tasks.py:201 apps/notifications/tasks.py:245
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:195 apps/notifications/tasks.py:239
+#: apps/notifications/tasks.py:202 apps/notifications/tasks.py:246
 msgid "reviewer"
 msgstr "revisor"
 
@@ -1367,6 +1367,17 @@ msgstr ""
 msgid "Change your notification settings here."
 msgstr "Canvia la teva configuració de notificacions aquí."
 
+#: apps/notifications/templates/project_created/reminder.txt:2
+#, python-format
+msgid ""
+"\n"
+"%(full_name)s created project %(project_title)s in category "
+"%(category_name)s.\n"
+msgstr ""
+"\n"
+"%(full_name)s ha creat el projecte %(project_title)s a la categoria "
+"%(category_name)s.\n"
+
 #: apps/notifications/templates/project_edited/reminder.txt:2
 #, python-format
 msgid ""
@@ -1440,7 +1451,7 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr "Nous destacats a Projectes"
 
-#: apps/notifications/utils.py:233
+#: apps/notifications/utils.py:286
 msgid " and "
 msgstr " i "
 
@@ -1613,7 +1624,7 @@ msgstr "El títol de l'etiqueta ha de tenir 50 caràcters o menys"
 msgid "Tag description must be 500 characters or less"
 msgstr "La descripció de l'etiqueta ha de tenir 500 caràcters o menys"
 
-#: apps/skills/serializers.py:109
+#: apps/skills/serializers.py:116
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Id no vàlid \"{tag_classification_id}\" - l'objecte no existeix."

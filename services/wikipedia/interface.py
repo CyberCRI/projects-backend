@@ -131,6 +131,6 @@ class WikipediaService:
         if response.status_code != status.HTTP_200_OK:
             raise WikibaseAPIException(response.status_code)
         content = response.json()
-        next_items = content.get("search-continue", None) or 0
+        next_items = content.get("search-continue") or 0
         wikipedia_qids = [item.get("id", "") for item in content.get("search", [])]
         return wikipedia_qids, next_items
