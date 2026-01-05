@@ -1,12 +1,11 @@
 from functools import wraps
 from typing import Any
 
+from apps.commons.admin import RouterExtraAdmin
 from django.contrib import admin
 from django.contrib.admin.apps import AdminConfig
 from django.http.request import HttpRequest
 from django.urls import path
-
-from apps.utils.admin import RouterExtraAdmin
 
 
 class ExtraAdminSite(admin.AdminSite):
