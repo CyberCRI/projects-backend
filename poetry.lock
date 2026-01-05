@@ -1460,19 +1460,18 @@ hiredis = ["redis[hiredis] (>=4.0.2)"]
 
 [[package]]
 name = "django-simple-history"
-version = "3.1.1.post35+g603c7e348"
+version = "3.11.0"
 description = "Store model history and view/revert changes from admin site."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.10"
 groups = ["main"]
-files = []
-develop = false
+files = [
+    {file = "django_simple_history-3.11.0-py3-none-any.whl", hash = "sha256:f3c298db49e418ffce7fb709a5e83108452ea2179ec5c4b9232484c25427192a"},
+    {file = "django_simple_history-3.11.0.tar.gz", hash = "sha256:2c587479cf2c3071e9aa555d0d11b73676994db4910770958f57659ade2deffe"},
+]
 
-[package.source]
-type = "git"
-url = "https://github.com/thijskramer/django-simple-history.git"
-reference = "m2m-support"
-resolved_reference = "603c7e3484b9a7e2f0e601964779ef40eb23484c"
+[package.dependencies]
+django = ">=4.2"
 
 [[package]]
 name = "django-slowtests"
@@ -4880,4 +4879,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "b3aac4f631327af1e461756d33f76ebdd6f2c4ef07cd5ae100369262511fea98"
+content-hash = "8e317218bc28b671ad551cb3dc0c6e57461c3007332bc950feabd3432d9b3e5e"
