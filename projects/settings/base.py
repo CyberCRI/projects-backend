@@ -98,8 +98,10 @@ ALLOWED_HOSTS = [
 
 # Application definition
 INSTALLED_APPS = [
+    "jazzmin",
+    # extra admins
+    "projects.admin.ExtraAdminConfig",
     # built-in
-    "django.contrib.admin",
     "django.contrib.contenttypes",
     "django.contrib.auth",
     "django.contrib.messages",
@@ -220,6 +222,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "apps.commons.context.projects",
             ],
         },
     },
@@ -691,4 +694,26 @@ AZURE_TRANSLATOR_ENDPOINT = os.getenv(
     "AZURE_TRANSLATOR_ENDPOINT", "https://api.cognitive.microsofttranslator.com"
 )
 
+##############
+# ADMIN #
+##############
+
+JAZZMIN_SETTINGS = {
+    "site_logo": "LPI-sm.png",
+    "site_title": "Projects",
+    "welcome_sign": "",
+    "show_ui_builder": DEBUG,
+    "theme": "flatly",
+    "custom_css": "styles/admin.css",
+}
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": True,
+    "footer_small_text": True,
+    "body_small_text": True,
+    "brand_small_text": True,
+}
+
+##############
+#  CRISALID  #
+##############
 ENABLE_CRISALID_BUS = os.getenv("ENABLE_CRISALID_BUS", "false").lower() == "true"

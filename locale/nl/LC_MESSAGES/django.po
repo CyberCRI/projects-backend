@@ -2964,5 +2964,13 @@ msgstr "Taal wordt niet ondersteund"
 msgid "Language {language} is not supported"
 msgstr "Taal {language} wordt niet ondersteund"
 
+#: templates/admin/base.html:16
+msgid "Copyright"
+msgstr "Auteursrecht"
+
+#: templates/admin/base.html:16
+msgid "All rights reserved."
+msgstr "Alle rechten voorbehouden."
+
 #~ msgid "main category"
 #~ msgstr "hoofdcategorie"
