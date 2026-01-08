@@ -2925,5 +2925,13 @@ msgstr "Keel ei ole toetatud"
 msgid "Language {language} is not supported"
 msgstr "Keel {language} ei ole toetatud"
 
+#: templates/admin/base.html:16
+msgid "Copyright"
+msgstr "Autoriõigus"
+
+#: templates/admin/base.html:16
+msgid "All rights reserved."
+msgstr "Kõik õigused kaitstud."
+
 #~ msgid "main category"
 #~ msgstr "peamine kategooria"

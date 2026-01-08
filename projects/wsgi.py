@@ -7,6 +7,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/3.2/howto/deployment/wsgi/
 """
 
+import logging
 import os
 
 from django.core.wsgi import get_wsgi_application
@@ -18,9 +19,9 @@ application = get_wsgi_application()
 
 from django.conf import settings  # noqa: E402
 
-from services.crisalid.crisalid_bus import logger, start_thread  # noqa: E402
+from services.crisalid.bus.runner import initial_start_crisalidbus  # noqa: E402
 
 if settings.ENABLE_CRISALID_BUS:
-    start_thread()
+    initial_start_crisalidbus()
 else:
-    logger.info("CrisalidBus is not enabled")
+    logging.info("CrisalidBus is not enabled")

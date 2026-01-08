@@ -2,54 +2,85 @@ import datetime
 
 from django import test
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.factories import UserFactory
+from apps.accounts.models import PrivacySettings, ProjectUser
+from services.crisalid.factories import CrisalidConfigFactory
 from services.crisalid.models import Document, Identifier, Researcher
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 
 class TestPopulateResearcher(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateResearcher(cls.config)
+
     def test_create_researcher(self):
-        popu = PopulateResearcher()
         data = {
             "uid": "05-11-1995-uuid",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check obj from db
         obj = Researcher.objects.first()
         self.assertEqual(obj, new_obj)
 
-        self.assertEqual(obj.display_name, "marty mcfly")
-        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
+        self.assertEqual(obj.given_name, "marty")
+        self.assertEqual(obj.family_name, "mcfly")
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
+    def test_create_researcher_whithout_identifiers(self):
+        data = {
+            "uid": "05-11-1995-uuid",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
+            "identifiers": [],
+        }
+
+        new_obj = self.popu.single(data)
+
+        self.assertIsNone(new_obj)
+        self.assertEqual(Researcher.objects.count(), 0)
+
     def test_no_change_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(
-            crisalid_uid=data["uid"], display_name=data["display_name"]
-        )
+        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
         researcher.identifiers.add(iden)
-        popu = PopulateResearcher()
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check no new object are created
         self.assertEqual(Researcher.objects.count(), 1)
@@ -59,8 +90,6 @@ class TestPopulateResearcher(test.TestCase):
         obj = Researcher.objects.first()
         self.assertEqual(new_obj, obj)
 
-        self.assertEqual(obj.display_name, "marty mcfly")
-        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
@@ -68,16 +97,18 @@ class TestPopulateResearcher(test.TestCase):
 
     def test_update_identifiers(self):
         data = {
-            "uid": "05-11-1995-uuid",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "marty", "language": "fr"}],
+                    "last_names": [{"value": "mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(
-            crisalid_uid=data["uid"], display_name=data["display_name"]
-        )
+        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -86,8 +117,7 @@ class TestPopulateResearcher(test.TestCase):
         data["identifiers"].append(
             {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
         )
-        popu = PopulateResearcher()
-        popu.single(data)
+        self.popu.single(data)
 
         # check no new object are created
         self.assertEqual(Researcher.objects.count(), 1)
@@ -102,52 +132,73 @@ class TestPopulateResearcher(test.TestCase):
     def test_create_user_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
-            "first_names": "marty",
-            "last_names": "mcfly",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "Marty", "language": "fr"}],
+                    "last_names": [{"value": "Mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
             ],
         }
-        popu = PopulateResearcher()
-        popu.single(data)
+        self.popu.single(data)
 
         user = ProjectUser.objects.first()
         # check no new object are created
-        self.assertEqual(user.given_name, data["first_names"])
-        self.assertEqual(user.family_name, data["last_names"])
+        self.assertEqual(user.given_name, "Marty")
+        self.assertEqual(user.family_name, "Mcfly")
         self.assertEqual(user.email, "eppn@lpi.com")
+        self.assertEqual(
+            user.privacy_settings.publication_status,
+            PrivacySettings.PrivacyChoices.ORGANIZATION.value,
+        )
 
     def test_match_user_researcher(self):
         data = {
             "uid": "05-11-1995-uuid",
-            "first_names": "marty",
-            "last_names": "mcfly",
-            "display_name": "marty mcfly",
+            "names": [
+                {
+                    "first_names": [{"value": "Marty", "language": "fr"}],
+                    "last_names": [{"value": "Mcfly", "language": "fr"}],
+                }
+            ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
                 {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
             ],
         }
         # a project user already exists with same eepn
-        user = ProjectUser.objects.create(email="eppn@lpi.com")
+        user = UserFactory(email="eppn@lpi.com")
+        self.assertEqual(
+            user.privacy_settings.publication_status,
+            PrivacySettings.PrivacyChoices.PUBLIC.value,
+        )
 
-        popu = PopulateResearcher()
-        popu.single(data)
+        self.popu.single(data)
 
-        researcher = Researcher.objects.first()
-        # given_name and family_name is not set in projects user
-        # we don't change user value (only matching)
-        self.assertEqual(user.given_name, "")
-        self.assertEqual(user.family_name, "")
-
+        researcher = Researcher.objects.select_related("user").first()
         self.assertEqual(researcher.user, user)
+        # user already created, so given_name and family_name is not changed from crislaid event
+        self.assertNotEqual(user.given_name, "Marty")
+        self.assertNotEqual(user.family_name, "Mcfly")
+
+        # privacy settings are not changed
+        self.assertEqual(
+            researcher.user.privacy_settings.publication_status,
+            PrivacySettings.PrivacyChoices.PUBLIC.value,
+        )
 
 
 class TestPopulateDocument(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateDocument(cls.config)
+
     def test_create_publication(self):
-        popu = PopulateDocument()
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
@@ -164,7 +215,6 @@ class TestPopulateDocument(test.TestCase):
                     "contributor": [
                         {
                             "uid": "local-v9034",
-                            "display_name": "Marty Mcfly",
                             "names": [
                                 {
                                     "first_names": [
@@ -193,46 +243,86 @@ class TestPopulateDocument(test.TestCase):
             ],
         }
 
-        new_obj = popu.single(data)
+        new_obj = self.popu.single(data)
 
         # check obj from db
         obj = Document.objects.first()
         self.assertEqual(obj, new_obj)
 
         self.assertEqual(obj.title, "fiction")
-        self.assertEqual(obj.crisalid_uid, "05-11-1995-uuid")
         self.assertEqual(obj.identifiers.count(), 1)
         self.assertEqual(obj.document_type, Document.DocumentType.UNKNOWN.value)
         iden = obj.identifiers.first()
         self.assertEqual(iden.value, "hals-truc")
         self.assertEqual(iden.harvester, Identifier.Harvester.HAL.value)
 
-    def test_sanitize_date(self):
-        popu = PopulateDocument()
+    def test_create_document_whitout_identifiers(self):
+        data = {
+            "uid": "05-11-1995-uuid",
+            "document_type": None,
+            "titles": [
+                {"language": "en", "value": "fiction"},
+            ],
+            "abstracts": [
+                {"language": "en", "value": "description"},
+            ],
+            "publication_date": "1999",
+            "has_contributions": [
+                {
+                    "roles": ["http://id.loc.gov/vocabulary/relators/aut"],
+                    "contributor": [
+                        {
+                            "uid": "local-v9034",
+                            "names": [
+                                {
+                                    "first_names": [
+                                        {"value": "Marty", "language": "fr"}
+                                    ],
+                                    "last_names": [
+                                        {"value": "Mcfly", "language": "fr"}
+                                    ],
+                                }
+                            ],
+                            "identifiers": [
+                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "recorded_by": [],
+        }
 
+        new_obj = self.popu.single(data)
+
+        # check obj from db
+        self.assertIsNone(new_obj)
+        self.assertEqual(Document.objects.count(), 0)
+
+    def test_sanitize_date(self):
         self.assertEqual(
-            popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
+            self.popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
         )
         self.assertEqual(
-            popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
+            self.popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
         )
         self.assertEqual(
-            popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
+            self.popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
         )
-        self.assertEqual(popu.sanitize_date(""), None)
-        self.assertEqual(popu.sanitize_date(None), None)
-        self.assertEqual(popu.sanitize_date("invalidDate"), None)
+        self.assertEqual(self.popu.sanitize_date(""), None)
+        self.assertEqual(self.popu.sanitize_date(None), None)
+        self.assertEqual(self.popu.sanitize_date("invalidDate"), None)
 
     def test_sanitize_titles(self):
-        popu = PopulateDocument()
-
-        self.assertEqual(popu.sanitize_languages([]), "")
+        self.assertEqual(self.popu.sanitize_languages([]), "")
         self.assertEqual(
-            popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
+            self.popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
             "en-title",
         )
         self.assertEqual(
-            popu.sanitize_languages(
+            self.popu.sanitize_languages(
                 [
                     {"language": "en", "value": "en-title"},
                     {"language": "fr", "value": "fr-title"},
@@ -241,7 +331,7 @@ class TestPopulateDocument(test.TestCase):
             "en-title",
         )
         self.assertEqual(
-            popu.sanitize_languages(
+            self.popu.sanitize_languages(
                 [
                     {"language": "es", "value": "es-title"},
                     {"language": "fr", "value": "fr-title"},
@@ -250,23 +340,21 @@ class TestPopulateDocument(test.TestCase):
             "fr-title",
         )
         self.assertEqual(
-            popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
+            self.popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
             "es-title",
         )
 
     def test_sanitize_document_type(self):
-        popu = PopulateDocument()
-
         self.assertEqual(
-            popu.sanitize_document_type(None),
+            self.popu.sanitize_document_type(None),
             Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            popu.sanitize_document_type("invalid-Document-type"),
+            self.popu.sanitize_document_type("invalid-Document-type"),
             Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            popu.sanitize_document_type(
+            self.popu.sanitize_document_type(
                 Document.DocumentType.AUDIOVISUAL_DOCUMENT.value
             ),
             Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,

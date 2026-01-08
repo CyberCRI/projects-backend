@@ -1,14 +1,21 @@
 from contextlib import suppress
 
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.db.models import Count
 
 from apps.accounts.models import ProjectUser
-from apps.organizations.models import Organization
+from services.crisalid.tasks import vectorize_documents
 
-from .models import Document, DocumentContributor, Identifier, Researcher
+from .models import (
+    CrisalidConfig,
+    Document,
+    DocumentContributor,
+    Identifier,
+    Researcher,
+)
 
 
+@admin.register(Identifier)
 class IdentifierAdmin(admin.ModelAdmin):
     list_display = ("harvester", "value", "get_researcher", "get_documents")
     search_fields = ("harvester", "value")
@@ -18,8 +25,8 @@ class IdentifierAdmin(admin.ModelAdmin):
             super()
             .get_queryset(request)
             .prefetch_related("researchers", "documents")
-            .annotate(documents_count=Count("documents__id"))
-            .annotate(researchers_count=Count("researchers__id"))
+            .annotate(documents_count=Count("documents__id", distinct=True))
+            .annotate(researchers_count=Count("researchers__id", distinct=True))
         )
 
     @admin.display(description="researchers assosiate", ordering="researchers_count")
@@ -36,6 +43,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
     extra = 0
 
 
+@admin.register(Document)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = (
         "title",
@@ -48,17 +56,24 @@ class DocumentAdmin(admin.ModelAdmin):
         "title",
         "publication_date",
         "document_type",
-        "contributors__display_name",
+        "contributors__given_name",
+        "contributors__family_name",
         "identifiers__value",
         "identifiers__harvester",
     )
     inlines = (DocumentContributorAdminInline,)
 
-    actions = ["vectorize"]
+    actions = ("vectorize",)
 
     def vectorize(self, request, queryset):
-        for document in queryset:
-            document.vectorize()
+        # run vecotrize async in celery
+        documents_pks = list(queryset.values_list("pk", flat=True))
+        vectorize_documents.apply_async((documents_pks,))
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Vecotrize Task created for {len(documents_pks)} documents",
+        )
 
     def get_queryset(self, request):
         return (
@@ -66,7 +81,7 @@ class DocumentAdmin(admin.ModelAdmin):
             .get_queryset(request)
             .prefetch_related("contributors", "identifiers")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(contributors_count=Count("contributors__id"))
+            .annotate(contributors_count=Count("contributors__id", distinct=True))
         )
 
     @admin.display(description="contributors count", ordering="contributors_count")
@@ -82,15 +97,16 @@ class DocumentAdmin(admin.ModelAdmin):
         return f"{', '.join(result)} ({len(result)})"
 
 
+@admin.register(Researcher)
 class ResearcherAdmin(admin.ModelAdmin):
     list_display = (
-        "display_name",
+        "given_name",
+        "family_name",
         "user",
         "get_documents",
         "get_identifiers",
     )
     search_fields = (
-        "display_name",
         "user__given_name",
         "user__family_name",
         "identifiers__value",
@@ -106,13 +122,14 @@ class ResearcherAdmin(admin.ModelAdmin):
             .select_related("user")
             .prefetch_related("identifiers", "documents")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(documents_count=Count("documents__id"))
+            .annotate(documents_count=Count("documents__id", distinct=True))
         )
 
     @admin.action(description="assign researcher on projects")
     def assign_user(self, request, queryset):
         """Assign research to user if matching user/eppn"""
         researcher_updated = []
+        created = assigned = notfound = 0
 
         for research in queryset.prefetch_related("identifiers").select_related("user"):
             # already set
@@ -126,35 +143,34 @@ class ResearcherAdmin(admin.ModelAdmin):
                 user = None
                 with suppress(ProjectUser.DoesNotExist):
                     user = ProjectUser.objects.get(email=identifier.value)
-                if not user:
-                    # TODO(remi): create 2 field in models researcher ?
-                    given_name, family_name = "", ""
-                    splitter = research.display_name.split(" ", 1)
-                    if len(splitter) >= 1:
-                        given_name = splitter[0]
-                    if len(splitter) >= 2:
-                        family_name = " ".join(splitter[1:])
 
+                if not user:
+                    created += 1
                     user = ProjectUser(
                         email=identifier.value,
-                        given_name=given_name,
-                        family_name=family_name,
+                        given_name=research.given_name,
+                        family_name=research.family_name,
                     )
                     user.save()
-
-                # TODO(remi): to remove, is only need for demo
-                # need to refactor all crisalid env/models
-                organization = None
-                for code in ("SORBONNE", "CRI"):
-                    with suppress(Organization.DoesNotExist):
-                        organization = Organization.objects.get(code=code)
-                        user.groups.add(organization.get_users())
-                        break
+                else:
+                    assigned += 1
 
                 research.user = user
                 researcher_updated.append(research)
+                break
+            else:
+                notfound += 1
 
         Researcher.objects.bulk_update(researcher_updated, fields=["user"])
+
+        if created:
+            messages.add_message(request, messages.INFO, f"Create {created} user.")
+        if assigned:
+            messages.add_message(request, messages.INFO, f"Assign {assigned} user.")
+        if notfound:
+            messages.add_message(
+                request, messages.ERROR, f"Can't found {notfound} user with eppn."
+            )
 
     @admin.display(description="documents count", ordering="documents_count")
     def get_documents(self, instance):
@@ -170,6 +186,39 @@ class ResearcherAdmin(admin.ModelAdmin):
         return f"{', '.join(result)} ({len(result)})"
 
 
-admin.site.register(Researcher, ResearcherAdmin)
-admin.site.register(Identifier, IdentifierAdmin)
-admin.site.register(Document, DocumentAdmin)
+@admin.register(CrisalidConfig)
+class CrisalidConfigAdmin(admin.ModelAdmin):
+    list_display = ("organization", "active")
+    search_fields = ("organization__code", "active")
+    autocomplete_fields = ("organization",)
+    actions = ("active_connections", "deactive_connections")
+
+    @admin.action(description="run/reload crisalidbus connections")
+    def active_connections(self, request, queryset):
+        """method to change/run crisalidbus listener"""
+        # we don't update directly queryset for signals dispatch
+        total = queryset.count()
+        for obj in queryset:
+            obj.active = True
+            obj.save()
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"CrisalidBus listener started or reloaded ({total}).",
+        )
+
+    @admin.action(description="stop crisalidbus connections")
+    def deactive_connections(self, request, queryset):
+        """method to change/stop crisalidbus listener"""
+        # we don't update directly queryset for signals dispatch
+        total = queryset.count()
+        for obj in queryset:
+            obj.active = False
+            obj.save()
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"CrisalidBus listener stoped ({total}).",
+        )
