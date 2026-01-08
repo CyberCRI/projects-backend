@@ -319,11 +319,16 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         notifications = {
             user_type: NotificationFactory(
-                receiver=user, sender=self.users[user_type], project=self.project
+                receiver=user,
+                sender=self.users[user_type],
+                project=self.project,
+                organization=organization,
             )
             for user_type in self.users.keys()
         }
-        response = self.client.get(reverse("Notification-list"))
+        response = self.client.get(
+            reverse("Notification-list", args=(organization.code,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))

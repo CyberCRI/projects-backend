@@ -5,7 +5,8 @@ from faker import Faker
 from apps.accounts.factories import UserFactory
 from apps.commons.factories import language_factory
 from apps.commons.utils import get_test_image
-from apps.organizations.models import Organization, ProjectCategory, Template
+
+from .models import CategoryFollow, Organization, ProjectCategory, Template
 
 faker = Faker()
 
@@ -86,3 +87,13 @@ class ProjectCategoryFactory(factory.django.DjangoModelFactory):
     def templates(self, create, extracted, **kwargs):
         if create and extracted and len(extracted) > 0:
             self.templates.add(*extracted)
+
+
+class CategoryFollowFactory(factory.django.DjangoModelFactory):
+    category = factory.LazyFunction(
+        lambda: ProjectCategoryFactory()
+    )  # Subfactory seems to not trigger `create()`
+    follower = factory.SubFactory(UserFactory)
+
+    class Meta:
+        model = CategoryFollow

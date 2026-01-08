@@ -261,7 +261,7 @@ class OrganizationAttachmentFileSerializer(
         return super().to_internal_value(data)
 
     def validate_hashcode(self, hashcode: str):
-        organization_code = self.context.get("organization_code", None)
+        organization_code = self.context.get("organization_code")
         if organization_code:
             queryset = self.Meta.model.objects.filter(
                 organization__code=organization_code, hashcode=hashcode
@@ -398,7 +398,7 @@ class ImageSerializer(serializers.ModelSerializer):
             url = image.file.url
         except AttributeError:
             return None
-        request = self.context.get("request", None)
+        request = self.context.get("request")
         if request is not None:
             return request.build_absolute_uri(url)
         return url

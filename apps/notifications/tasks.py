@@ -36,6 +36,7 @@ from .utils import (
     NewInstructionNotificationManager,
     PendingAccessRequestsNotificationManager,
     PrivateMessageNotificationManager,
+    ProjectCreatedNotificationManager,
     ProjectEditedNotificationManager,
     ReadyForReviewNotificationManager,
     ReviewNotificationManager,
@@ -92,6 +93,12 @@ def notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: in
     notified of all the deleted members.
     """
     return _notify_group_member_deleted(project_pk, people_group_pk, by_pk)
+
+
+@app.task(name="apps.notifications.tasks.notify_new_project")
+def notify_new_project(project_pk: str, by_pk: int):
+    """Notify members and followers that a new project has been created."""
+    return _notify_new_project(project_pk, by_pk)
 
 
 @app.task(name="apps.notifications.tasks.notify_project_changes")
@@ -284,6 +291,17 @@ def _notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: i
     ]
     manager = DeleteGroupMembersNotificationManager(
         sender, project, deleted_people_groups=deleted_people_groups
+    )
+    manager.create_and_send_notifications()
+
+
+def _notify_new_project(project_pk: str, by_pk: int):
+    project = Project.objects.get(pk=project_pk)
+    sender = ProjectUser.objects.get(pk=by_pk)
+    category = project.categories.first()
+    category_pk = category.pk if category else None
+    manager = ProjectCreatedNotificationManager(
+        sender, project, category_pk=category_pk
     )
     manager.create_and_send_notifications()
 

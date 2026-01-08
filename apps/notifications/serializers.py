@@ -60,6 +60,8 @@ class NotificationSettingsSerializer(serializers.ModelSerializer):
             "project_ready_for_review",
             "project_has_been_reviewed",
             "project_has_new_private_message",
+            "category_project_created",
+            "category_project_updated",
             "comment_received_a_response",
             "organization_has_new_access_request",
             "invitation_link_will_expire",

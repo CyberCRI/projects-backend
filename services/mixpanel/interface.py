@@ -78,7 +78,7 @@ class MixpanelService:
             formated_events = [
                 cls.format_event(event)
                 for event in events
-                if event.get("properties", {}).get("project", {}).get("id", None)
+                if event.get("properties", {}).get("project", {}).get("id")
             ]
             return list(filter(lambda e: e["project"], formated_events))
         return []

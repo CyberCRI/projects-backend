@@ -13,13 +13,13 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.accounts.models import PeopleGroup
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import UserSerializer
+from apps.accounts.serializers import PeopleGroupHierarchySerializer, UserSerializer
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
-from apps.commons.permissions import IsOwner, ReadOnly
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.projects.models import Project
@@ -30,15 +30,24 @@ from .exceptions import (
     MissingLockedStatusParameterError,
 )
 from .filters import OrganizationFilter, ProjectCategoryFilter
-from .models import Organization, ProjectCategory, Template, TermsAndConditions
+from .models import (
+    CategoryFollow,
+    Organization,
+    ProjectCategory,
+    Template,
+    TermsAndConditions,
+)
 from .permissions import HasOrganizationPermission
 from .serializers import (
+    CategoryFollowSerializer,
     OrganizationAddFeaturedProjectsSerializer,
     OrganizationAddTeamMembersSerializer,
     OrganizationLightSerializer,
     OrganizationRemoveFeaturedProjectsSerializer,
     OrganizationRemoveTeamMembersSerializer,
     OrganizationSerializer,
+    ProjectCategoryHierarchySerializer,
+    ProjectCategoryLightSerializer,
     ProjectCategorySerializer,
     TemplateSerializer,
     TermsAndConditionsSerializer,
@@ -91,8 +100,13 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         permission_classes=[ReadOnly],
     )
     def hierarchy(self, request, *args, **kwargs):
-        project_category = self.get_object()
-        return Response(project_category.get_hierarchy(), status=status.HTTP_200_OK)
+        category = self.get_object()
+        return Response(
+            ProjectCategoryHierarchySerializer(
+                category, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         request={
@@ -121,7 +135,7 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def projects_life_status(self, request, *args, **kwargs):
         category = self.get_object()
-        value = request.data.get("life_status", None)
+        value = request.data.get("life_status")
         if not value or value not in Project.LifeStatus.values:
             raise MissingLifeStatusParameterError
         category.projects.update(life_status=value)
@@ -149,11 +163,42 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def projects_locked_status(self, request, *args, **kwargs):
         category = self.get_object()
-        value = request.data.get("is_locked", None)
+        value = request.data.get("is_locked")
         if not value or not isinstance(value, bool):
             raise MissingLockedStatusParameterError
         category.projects.update(is_locked=value)
         return Response(status=status.HTTP_200_OK)
+
+
+class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
+    serializer_class = CategoryFollowSerializer
+    filter_backends = [DjangoFilterBackend]
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    multiple_lookup_fields = [
+        (ProjectUser, "user_id"),
+    ]
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "categoryfollow")
+        self.permission_classes = [
+            IsAuthenticatedOrReadOnly,
+            ReadOnly
+            | IsOwner
+            | WillBeOwner
+            | HasBasePermission(codename, "organizations"),
+        ]
+        return super().get_permissions()
+
+    def get_queryset(self) -> QuerySet:
+        return self.request.user.get_user_related_queryset(
+            CategoryFollow.objects.filter(follower__id=self.kwargs.get("user_id")),
+            user_related_name="follower",
+        )
+
+    def perform_create(self, serializer: CategoryFollowSerializer):
+        follower = get_object_or_404(ProjectUser, id=self.kwargs["user_id"])
+        serializer.save(follower=follower)
 
 
 class TemplateViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
@@ -324,7 +369,10 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         organization = self.get_object()
         root_group = PeopleGroup.update_or_create_root(organization)
         return Response(
-            root_group.get_hierarchy(self.request.user), status=status.HTTP_200_OK
+            PeopleGroupHierarchySerializer(
+                root_group, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
         )
 
     @action(
@@ -337,8 +385,31 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def get_project_categories_hierarchy(self, request, *args, **kwargs):
         """Get the people groups hierarchy of the organization."""
         organization = self.get_object()
-        root_group = ProjectCategory.update_or_create_root(organization)
-        return Response(root_group.get_hierarchy(), status=status.HTTP_200_OK)
+        root_category = ProjectCategory.update_or_create_root(organization)
+        return Response(
+            ProjectCategoryHierarchySerializer(
+                root_category, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="root-category",
+        url_name="root-category",
+        permission_classes=[ReadOnly],
+    )
+    def get_root_project_category(self, request, *args, **kwargs):
+        """Get the root project category of the organization."""
+        organization = self.get_object()
+        root_category = ProjectCategory.update_or_create_root(organization)
+        return Response(
+            ProjectCategoryLightSerializer(
+                root_category, context={"request": request}
+            ).data,
+            status=status.HTTP_200_OK,
+        )
 
     @extend_schema(
         request=OrganizationAddFeaturedProjectsSerializer,
@@ -610,8 +681,6 @@ class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet
         instance = self.get_object()
         if serializer.validated_data.get("content") != instance.content:
             serializer.save(version=instance.version + 1)
-        else:
-            serializer.save()
 
 
 class AvailableLanguagesView(APIView):

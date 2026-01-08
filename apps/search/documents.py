@@ -4,6 +4,7 @@ from typing import Iterable, Optional, Union
 from django.conf import settings
 from django.contrib.auth.models import Group
 from django.core.exceptions import MultipleObjectsReturned
+from django.db import models
 from django.utils.html import strip_tags
 from django_opensearch_dsl import Document, fields
 from django_opensearch_dsl.registries import registry
@@ -16,8 +17,45 @@ from apps.skills.models import Skill, Tag
 from .models import SearchObject
 
 
+class TranslatedDocument(Document):
+    """
+    Base document with helper methods for translated fields.
+    """
+
+    def _get_field_translation(
+        self, instance: models.Model, field_name: str, lang: str, html: bool = False
+    ) -> str:
+        field_value = getattr(instance, f"{field_name}_{lang}", "") or ""
+        if html and field_value:
+            field_value = strip_tags(field_value)
+        return field_value
+
+    def prepare_translated_field(
+        self, instance: models.Model, field_name: str, html: bool = False
+    ) -> str:
+        return " ".join(
+            [
+                self._get_field_translation(instance, field_name, lang, html)
+                for lang in settings.REQUIRED_LANGUAGES
+            ]
+        )
+
+    def prepare_auto_translated_field(
+        self, instance: models.Model, field_name: str, html: bool = False
+    ) -> str:
+        original_field = getattr(instance, field_name, "") or ""
+        if html and original_field:
+            original_field = strip_tags(original_field)
+        return " ".join(
+            [
+                original_field,
+                self.prepare_translated_field(instance, field_name, html),
+            ]
+        )
+
+
 @registry.register_document
-class UserDocument(Document):
+class UserDocument(TranslatedDocument):
     class Index:
         name = f"{settings.OPENSEARCH_INDEX_PREFIX}-user"
 
@@ -29,7 +67,6 @@ class UserDocument(Document):
             "family_name",
             "email",
             "personal_email",
-            "job",
         ]
         related_models = [
             Tag,
@@ -38,6 +75,7 @@ class UserDocument(Document):
 
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
+    job = fields.TextField()
     content = fields.TextField()
     skills = fields.TextField()
     people_groups = fields.TextField()
@@ -60,25 +98,31 @@ class UserDocument(Document):
     def prepare_last_update(self, instance: ProjectUser) -> Optional[date]:
         return instance.last_login.date() if instance.last_login else None
 
+    def prepare_job(self, instance: ProjectUser) -> str:
+        return self.prepare_auto_translated_field(instance, "job")
+
     def prepare_content(self, instance: ProjectUser) -> str:
         return " ".join(
             [
-                strip_tags(instance.short_description),
-                strip_tags(instance.description),
+                self.prepare_auto_translated_field(
+                    instance, "short_description", html=True
+                ),
+                self.prepare_auto_translated_field(instance, "description", html=True),
             ]
         )
 
     def prepare_skills(self, instance: ProjectUser) -> str:
         return " ".join(
-            getattr(skill.tag, f"title_{ln}", "") or ""
-            for skill in instance.skills.all()
-            for ln in settings.REQUIRED_LANGUAGES
+            [
+                self.prepare_translated_field(skill.tag, "title")
+                for skill in instance.skills.all()
+            ]
         )
 
     def prepare_people_groups(self, instance: ProjectUser) -> str:
         return " ".join(
             [
-                people_group.name
+                self.prepare_auto_translated_field(people_group, "name")
                 for people_group in PeopleGroup.objects.filter(groups__users=instance)
             ]
         )
@@ -86,7 +130,7 @@ class UserDocument(Document):
     def prepare_projects(self, instance: ProjectUser) -> str:
         return " ".join(
             [
-                project.title
+                self.prepare_auto_translated_field(project, "title")
                 for project in Project.objects.filter(groups__users=instance)
             ]
         )
@@ -102,7 +146,7 @@ class UserDocument(Document):
 
 
 @registry.register_document
-class PeopleGroupDocument(Document):
+class PeopleGroupDocument(TranslatedDocument):
     class Index:
         name = f"{settings.OPENSEARCH_INDEX_PREFIX}-people_group"
 
@@ -110,7 +154,6 @@ class PeopleGroupDocument(Document):
         model = PeopleGroup
         fields = [
             "id",
-            "name",
             "email",
         ]
         related_models = [
@@ -119,6 +162,7 @@ class PeopleGroupDocument(Document):
 
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
+    name = fields.TextField()
     content = fields.TextField()
     members = fields.TextField()
 
@@ -139,8 +183,11 @@ class PeopleGroupDocument(Document):
     def prepare_last_update(self, instance: PeopleGroup) -> date:
         return instance.updated_at.date()
 
+    def prepare_name(self, instance: PeopleGroup) -> str:
+        return self.prepare_auto_translated_field(instance, "name")
+
     def prepare_content(self, instance: PeopleGroup) -> str:
-        return strip_tags(instance.description)
+        return self.prepare_auto_translated_field(instance, "description", html=True)
 
     def prepare_members(self, instance: PeopleGroup) -> str:
         return " ".join(
@@ -154,7 +201,7 @@ class PeopleGroupDocument(Document):
 
 
 @registry.register_document
-class ProjectDocument(Document):
+class ProjectDocument(TranslatedDocument):
     class Index:
         name = f"{settings.OPENSEARCH_INDEX_PREFIX}-project"
 
@@ -162,8 +209,6 @@ class ProjectDocument(Document):
         model = Project
         fields = [
             "id",
-            "title",
-            "purpose",
         ]
         related_models = [
             ProjectCategory,
@@ -173,6 +218,8 @@ class ProjectDocument(Document):
 
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
+    title = fields.TextField()
+    purpose = fields.TextField()
     content = fields.TextField()
     members = fields.TextField()
     categories = fields.TextField()
@@ -195,12 +242,19 @@ class ProjectDocument(Document):
     def prepare_last_update(self, instance: Project) -> date:
         return instance.updated_at.date()
 
+    def prepare_title(self, instance: Project) -> str:
+        return self.prepare_auto_translated_field(instance, "title")
+
+    def prepare_purpose(self, instance: Project) -> str:
+        return self.prepare_auto_translated_field(instance, "purpose")
+
     def prepare_content(self, instance: Project) -> str:
         return "\n".join(
             [
-                strip_tags(instance.description),
+                self.prepare_auto_translated_field(instance, "description", html=True),
                 *[
-                    f"{entry.title}\n{strip_tags(entry.content)}"
+                    f"{self.prepare_auto_translated_field(entry, 'title')}\n"
+                    f"{self.prepare_auto_translated_field(entry, 'content', html=True)}"
                     for entry in instance.blog_entries.all()
                 ],
             ]
@@ -212,10 +266,17 @@ class ProjectDocument(Document):
         )
 
     def prepare_categories(self, instance: Project) -> str:
-        return " ".join([category.name for category in instance.categories.all()])
+        return " ".join(
+            [
+                self.prepare_auto_translated_field(category, "title")
+                for category in instance.categories.all()
+            ]
+        )
 
     def prepare_tags(self, instance: Project) -> str:
-        return " ".join([tag.title for tag in instance.tags.all()])
+        return " ".join(
+            [self.prepare_translated_field(tag, "title") for tag in instance.tags.all()]
+        )
 
     def get_instances_from_related(
         self, related: Union[ProjectCategory, Tag, Group]
@@ -230,7 +291,7 @@ class ProjectDocument(Document):
 
 
 @registry.register_document
-class TagDocument(Document):
+class TagDocument(TranslatedDocument):
     class Index:
         name = f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"
         settings = {
@@ -241,27 +302,15 @@ class TagDocument(Document):
         model = Tag
         fields = ["id"]
 
-    title_fr = fields.TextField()
-    title_en = fields.TextField()
-    description_fr = fields.TextField()
-    description_en = fields.TextField()
-    alternative_titles_fr = fields.TextField()
-    alternative_titles_en = fields.TextField()
+    title = fields.TextField()
+    content = fields.TextField()
+    alternative_titles = fields.TextField()
 
-    def prepare_title_fr(self, instance: Tag) -> str:
-        return instance.title_fr
+    def prepare_title(self, instance: Tag) -> str:
+        return self.prepare_translated_field(instance, "title")
 
-    def prepare_title_en(self, instance: Tag) -> str:
-        return instance.title_en
+    def prepare_content(self, instance: Tag) -> str:
+        return self.prepare_translated_field(instance, "description")
 
-    def prepare_description_fr(self, instance: Tag) -> str:
-        return instance.description_fr
-
-    def prepare_description_en(self, instance: Tag) -> str:
-        return instance.description_en
-
-    def prepare_alternative_titles_fr(self, instance: Tag) -> str:
-        return instance.alternative_titles_fr
-
-    def prepare_alternative_titles_en(self, instance: Tag) -> str:
-        return instance.alternative_titles_en
+    def prepare_alternative_titles(self, instance: Tag) -> str:
+        return self.prepare_translated_field(instance, "alternative_titles")

@@ -38,16 +38,24 @@ class NotificationsViewSet(ListViewSet):
     serializer_class = NotificationsSerializer
 
     def get_queryset(self):
-        return (
-            Notification.objects.filter(receiver=self.request.user)
-            .order_by("-created")
-            .select_related("sender", "project", "organization")
+        queryset = Notification.objects.filter(receiver=self.request.user)
+        if "organization_code" in self.kwargs:
+            organization = get_object_or_404(
+                Organization, code=self.kwargs["organization_code"]
+            )
+            queryset = queryset.filter(organization=organization)
+        return queryset.order_by("-created").select_related(
+            "sender", "project", "organization"
         )
 
     @transaction.atomic
     def list(self, request, *args, **kwargs):
         response = super(NotificationsViewSet, self).list(request, *args, **kwargs)
-        Notification.objects.filter(receiver=self.request.user).update(is_viewed=True)
+        organization_code = self.kwargs.get("organization_code")
+        mark_viewed = Notification.objects.filter(receiver=self.request.user)
+        if organization_code:
+            mark_viewed = mark_viewed.filter(organization__code=organization_code)
+        mark_viewed.update(is_viewed=True)
         return response
 
 
@@ -87,7 +95,7 @@ class ReportViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=["POST"])
     def abuse(self, request: Request, *args, **kwargs):
         """Allow to send an abuse report email."""
-        organization_code = self.kwargs.get("organization_code", None)
+        organization_code = self.kwargs.get("organization_code")
         organization = get_object_or_404(Organization, code=organization_code)
         serializer = EmailReportSerializer(
             data=request.data, context={"request": request}
@@ -116,7 +124,7 @@ class ReportViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=["POST"])
     def bug(self, request: Request, *args, **kwargs):
         """Allow to send a bug report email."""
-        organization_code = self.kwargs.get("organization_code", None)
+        organization_code = self.kwargs.get("organization_code")
         organization = get_object_or_404(Organization, code=organization_code)
         serializer = EmailReportSerializer(
             data=request.data, context={"request": request}
@@ -152,7 +160,7 @@ class ContactViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=["POST"])
     def us(self, request: Request, *args, **kwargs):
         """Allow to send an abuse report email."""
-        organization_code = self.kwargs.get("organization_code", None)
+        organization_code = self.kwargs.get("organization_code")
         organization = get_object_or_404(Organization, code=organization_code)
         serializer = ContactSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)

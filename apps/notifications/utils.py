@@ -1,6 +1,7 @@
 from typing import Any, Dict, List, Optional, Union
 
 from django.conf import settings
+from django.db.models import Q
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
@@ -8,7 +9,8 @@ from apps.accounts.models import ProjectUser
 from apps.commons.mixins import OrganizationRelated, ProjectRelated
 from apps.emailing.utils import render_message, send_email
 from apps.feedbacks.models import Follow
-from apps.organizations.models import Organization
+from apps.organizations.models import CategoryFollow, Organization
+from apps.organizations.utils import get_above_categories_hierarchy_ids
 from apps.projects.models import Project
 
 from .models import Notification
@@ -21,6 +23,7 @@ class NotificationTaskManager:
     notification_type: Notification.Types.choices
     template_dir: str
     follower_setting_name: str = "followed_project_has_been_edited"
+    category_follower_setting_name: str = "category_project_updated"
     notify_followers: bool = False
     send_immediately: bool = False
     merge: bool = True
@@ -131,6 +134,19 @@ class NotificationTaskManager:
                     project=self.project, follower=recipient
                 ).exists()
             )
+            to_send |= (
+                getattr(
+                    recipient.notification_settings,
+                    self.category_follower_setting_name,
+                    False,
+                )
+                and CategoryFollow.objects.filter(
+                    category__id__in=get_above_categories_hierarchy_ids(
+                        self.project.categories.all().values_list("id", flat=True)
+                    ),
+                    follower=recipient,
+                ).exists()
+            )
         return to_send
 
     def update_or_create_notification_for_recipient(
@@ -211,6 +227,36 @@ class NotificationTaskManager:
                 self.send_email_to_recipient(recipient, **context)
 
 
+class ProjectCreatedNotificationManager(NotificationTaskManager):
+    member_setting_name = "_"  # This notification is not sent to team
+    category_follower_setting_name = "category_project_created"
+    notification_type = Notification.Types.PROJECT_CREATED
+    template_dir = "project_created"
+    merge = False
+    notify_followers = True
+
+    def get_recipients(self) -> List[ProjectUser]:
+        return (
+            ProjectUser.objects.filter(
+                category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                    self.project.categories.all().values_list("id", flat=True)
+                )
+            )
+            .exclude(id=self.sender.id)
+            .distinct()
+        )
+
+    def format_context_for_template(
+        self, context: Dict[str, Any], language: str
+    ) -> Dict[str, Any]:
+        category_pk = context.get("category_pk")
+        if category_pk:
+            category = self.project.categories.get(pk=category_pk)
+            category_name = getattr(category, f"name_{language}")
+            category_name = category_name or category.name
+        return {**context, "category_name": category_name}
+
+
 class ProjectEditedNotificationManager(NotificationTaskManager):
     member_setting_name = "project_has_been_edited"
     notification_type = Notification.Types.PROJECT_UPDATED
@@ -221,7 +267,14 @@ class ProjectEditedNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project).distinct()
+                | ProjectUser.objects.filter(
+                    Q(follows__project=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
+                ).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -252,7 +305,14 @@ class BlogEntryNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project).distinct()
+                | ProjectUser.objects.filter(
+                    Q(follows__project=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
+                ).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -269,7 +329,14 @@ class AnnouncementNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project).distinct()
+                | ProjectUser.objects.filter(
+                    Q(follows__project=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
+                ).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()
@@ -313,9 +380,14 @@ class FollowerCommentNotificationManager(NotificationTaskManager):
     notify_followers = True
 
     def get_recipients(self) -> List[ProjectUser]:
-        recipients = ProjectUser.objects.filter(follows__project=self.project).exclude(
-            id=self.sender.id
-        )
+        recipients = ProjectUser.objects.filter(
+            Q(follows__project=self.project)
+            | Q(
+                category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                    self.project.categories.all().values_list("id", flat=True)
+                )
+            )
+        ).exclude(id=self.sender.id)
         if self.item.reply_on is not None:
             return recipients.exclude(id=self.item.reply_on.author.id).distinct()
         return recipients.distinct()
@@ -354,7 +426,14 @@ class ReviewNotificationManager(NotificationTaskManager):
         return (
             (
                 self.project.get_all_members()
-                | ProjectUser.objects.filter(follows__project=self.project).distinct()
+                | ProjectUser.objects.filter(
+                    Q(follows__project=self.project)
+                    | Q(
+                        category_follows__category__id__in=get_above_categories_hierarchy_ids(
+                            self.project.categories.all().values_list("id", flat=True)
+                        )
+                    )
+                ).distinct()
             )
             .exclude(id=self.sender.id)
             .distinct()

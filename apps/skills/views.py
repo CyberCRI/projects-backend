@@ -114,14 +114,14 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
-        organization_code = self.kwargs.get("organization_code", None)
+        organization_code = self.kwargs.get("organization_code")
         if organization_code:
             organization = get_object_or_404(Organization, code=organization_code)
             context["current_organization"] = organization
         return context
 
     def get_queryset(self):
-        organization_code = self.kwargs.get("organization_code", None)
+        organization_code = self.kwargs.get("organization_code")
         if organization_code:
             return (
                 TagClassification.objects.filter(
@@ -133,7 +133,7 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return TagClassification.objects.none()
 
     def perform_create(self, serializer: TagClassificationSerializer):
-        organization_code = self.kwargs.get("organization_code", None)
+        organization_code = self.kwargs.get("organization_code")
         if organization_code:
             organization = get_object_or_404(Organization, code=organization_code)
             serializer.save(
@@ -191,15 +191,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filter_backends = (
         MultiMatchSearchFieldsFilter(
             f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
-            fields=[
-                *[f"title_{ln}^5" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"alternative_titles_{ln}^3" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"description_{ln}^1" for ln in settings.REQUIRED_LANGUAGES],
-            ],
-            highlight=[
-                *[f"title_{ln}" for ln in settings.REQUIRED_LANGUAGES],
-                *[f"description_{ln}" for ln in settings.REQUIRED_LANGUAGES],
-            ],
+            fields=["title^5", "alternative_titles^3", "content^1"],
+            highlight=["title", "content"],
         ),
         DjangoFilterBackend,
         OrderingFilter,
@@ -266,8 +259,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         - One of the classifications is the Wikipedia classification
         - The search query parameter is provided
         """
-        organization_code = self.kwargs.get("organization_code", None)
-        tag_classification_id = self.kwargs.get("tag_classification_id", None)
+        organization_code = self.kwargs.get("organization_code")
+        tag_classification_id = self.kwargs.get("tag_classification_id")
         if organization_code and not tag_classification_id:
             return Tag.objects.filter(organization__code=organization_code)
         if organization_code and tag_classification_id:
@@ -285,7 +278,7 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             )
             if (
                 wikipedia_classification.id in tag_classification_ids
-                and self.request.query_params.get("search", None)
+                and self.request.query_params.get("search")
             ):
                 self.wikipedia_search(self.request)
             return Tag.objects.filter(
@@ -303,8 +296,8 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         """
         Add the organization to the tag
         """
-        organization_code = self.kwargs.get("organization_code", None)
-        tag_classification_id = self.kwargs.get("tag_classification_id", None)
+        organization_code = self.kwargs.get("organization_code")
+        tag_classification_id = self.kwargs.get("tag_classification_id")
         if organization_code:
             organization = get_object_or_404(Organization, code=organization_code)
             instance = serializer.save(
