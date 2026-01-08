@@ -5,7 +5,7 @@ from django.db.models import Model
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
-from apps.commons.utils import process_text
+from apps.commons.utils import process_text, remove_images_text
 from apps.feedbacks.models import Comment, Review
 from apps.files.models import AttachmentFile, AttachmentLink, OrganizationAttachmentFile
 from apps.invitations.models import AccessRequest, Invitation
@@ -60,7 +60,7 @@ class Command(BaseCommand):
                 **{f"{field}__icontains": "data:image"}
             ):
                 content = getattr(instance, field)
-                new_content, _ = process_text(content, forbid_images=True)
+                new_content = remove_images_text(content)
                 if dry_run:
                     if new_content != content:
                         self.stdout.write(

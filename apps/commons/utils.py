@@ -2,7 +2,6 @@ import base64
 import gc
 import io
 import itertools
-import re
 import uuid
 from contextlib import suppress
 from typing import TYPE_CHECKING, List, Optional, Tuple
@@ -51,16 +50,43 @@ class ArrayPosition(Func):
         super().__init__(*expressions, output_field=output_field, **extra)
 
 
+def iter_img_b64(soup: BeautifulSoup):
+    for img in soup.find_all("img"):
+        src = img.get("src", "")
+        if src.startswith("data:image") and ";base64," in src:
+            yield img
+
+
+def remove_images_text(text: str) -> str:
+    """Process rich text sent by the frontend.
+    Some texts can contain images
+
+    Parameters
+    ----------
+    text : str
+        The text to process.
+
+    Returns
+    -------
+    str
+        The processed text whitout images.
+    """
+    soup = BeautifulSoup(text, "lxml")
+
+    for img in iter_img_b64(soup):
+        img.decompose()
+    return soup.body.decode_contents()
+
+
 def process_text(
     text: str,
-    instance: Optional[Model] = None,
-    upload_to: Optional[str] = None,
-    view: Optional[str] = None,
+    instance: Model | None = None,
+    upload_to: str | None = None,
+    view: str | None = None,
     owner: Optional["ProjectUser"] = None,
     process_template: bool = False,
-    forbid_images: bool = False,
     **kwargs,
-) -> Tuple[str, List[Image]]:
+) -> tuple[str, list[Image]]:
     """
     Process rich text sent by the frontend.
     Some texts can contain images that must be duplicated or linked to the instance :
@@ -92,34 +118,32 @@ def process_text(
     Tuple[str, List[Image]]
         The processed text and the images to link to the instance.
     """
-    if forbid_images:
-        soup = BeautifulSoup(text, "html.parser")
-        for img in soup.find_all("img"):
-            src = img.get("src", "")
-            if src.startswith("data:image") and ";base64," in src:
-                img.decompose()
-        return str(soup), []
-    if not instance or not upload_to or not view:
-        raise ValueError("instance, upload_to and view parameters are required.")
+
+    assert (
+        not instance or not upload_to or not view
+    ), "instance, upload_to and view parameters are required."
+    soup = BeautifulSoup(text, "lxml")
+
     if process_template:
-        text, template_images = process_template_images(
-            text, upload_to, view, owner, **kwargs
+        soup, template_images = process_template_images(
+            soup, upload_to, view, owner, **kwargs
         )
     else:
-        template_images = list()
-    unlinked_images = process_unlinked_images(instance, text)
-    text, base_64_images = process_base64_images(text, upload_to, view, owner, **kwargs)
+        template_images = []
+
+    unlinked_images = process_unlinked_images(instance, soup)
+    soup, base_64_images = process_base64_images(soup, upload_to, view, owner, **kwargs)
     images = list(set(template_images + unlinked_images + base_64_images))
-    return text, images
+    return soup.body.decode_contents(), images
 
 
 def process_base64_images(
-    text: str,
+    soup: BeautifulSoup,
     upload_to: str,
     view: str,
     owner: Optional["ProjectUser"] = None,
     **kwargs,
-) -> Tuple[str, List[Image]]:
+) -> tuple[str, list[Image]]:
     """
     Process base64 images in the text.
 
@@ -141,12 +165,11 @@ def process_base64_images(
     Tuple[str, List[Image]]
         The processed text and the images to link to the instance.
     """
-    base_64_images = re.findall('[\'"]data:image/[^"]*;base64,[^"]*[\'"]', text)
-    base_64_images = [data[1:-1] for data in base_64_images]
-    images = list()
-    for base_64_image in base_64_images:
-        data = base_64_image.split(";base64,")
-        extension = data[0].split("/")[-1]
+    images = []
+    for img in iter_img_b64(soup):
+        info, data = img["src"].split("base64,", 1)[1]
+        mediatype, *_ = info.removeprefix("data:").split(";")
+        extension = mediatype.split("/")[-1]
         file = ContentFile(
             base64.b64decode(data[1]), name=str(f"{uuid.uuid4()}.{extension}")
         )
@@ -154,20 +177,20 @@ def process_base64_images(
         image._upload_to = lambda *args: f"{upload_to}{file.name}"  # noqa: B023
         image.save()
         images.append(image)
-        text = text.replace(
-            base_64_image,
-            reverse(view, kwargs={"pk": image.pk, **kwargs}),
-        )
-    return text, images
+
+        # replace base64 to url
+        img["src"] = reverse(view, kwargs={"pk": image.pk, **kwargs})
+
+    return soup, images
 
 
 def process_template_images(
-    text: str,
+    soup: BeautifulSoup,
     upload_to: str,
     view: str,
     owner: Optional["ProjectUser"] = None,
     **kwargs,
-) -> Tuple[str, List[Image]]:
+) -> tuple[BeautifulSoup, list[Image]]:
     """
     Process template images in the text.
 
@@ -189,11 +212,9 @@ def process_template_images(
     Tuple[str, List[Image]]
         The processed text and the images to link to the instance.
     """
-    soup = BeautifulSoup(text, features="html.parser")
-    images_tags = soup.findAll("img")
-    images = list()
-    for image_tag in images_tags:
-        image_url = image_tag["src"]
+    images = []
+    for img in soup.find_all("img"):
+        image_url = img["src"]
         if (
             image_url.startswith("/v1/organization/")
             and "/template/" in image_url
@@ -204,18 +225,18 @@ def process_template_images(
                 if image_url[-1] != "/"
                 else image_url.split("/")[-2]
             )
+
             with suppress(Image.DoesNotExist):
                 image = Image.objects.get(id=image_id)
                 new_image = image.duplicate(owner=owner, upload_to=upload_to)
                 if new_image is not None:
                     images.append(new_image)
-                    text = text.replace(
-                        image_url, reverse(view, kwargs={"pk": new_image.pk, **kwargs})
-                    )
-    return text, images
+                    img["src"] = reverse(view, kwargs={"pk": new_image.pk, **kwargs})
+
+    return soup, images
 
 
-def process_unlinked_images(instance: Model, text: str) -> List[Image]:
+def process_unlinked_images(instance: Model, text: BeautifulSoup | str) -> list[Image]:
     """
     Find images in the text that are not linked to the instance.
 
@@ -223,7 +244,7 @@ def process_unlinked_images(instance: Model, text: str) -> List[Image]:
     ----------
     instance : Model
         The instance where the text is located.
-    text : str
+    text : BeautifulSoup | str
         The text to process.
 
     Returns
@@ -231,10 +252,13 @@ def process_unlinked_images(instance: Model, text: str) -> List[Image]:
     List[Image]
         The images to link to the instance.
     """
-    soup = BeautifulSoup(text, features="html.parser")
-    images_tags = soup.findAll("img")
-    images = list()
-    for image_tag in images_tags:
+    if isinstance(text, str):
+        soup = BeautifulSoup(text, "lxml")
+    else:
+        soup = text
+
+    images_ids = []
+    for image_tag in soup.find_all("img"):
         image_url = image_tag["src"]
         if image_url.startswith("/v1"):
             image_id = (
@@ -242,11 +266,13 @@ def process_unlinked_images(instance: Model, text: str) -> List[Image]:
                 if image_url[-1] != "/"
                 else image_url.split("/")[-2]
             )
-            with suppress(Image.DoesNotExist):
-                image = Image.objects.get(id=image_id)
-                if image not in instance.images.all():
-                    images.append(image)
-    return images
+            images_ids.append(image_id)
+
+    # get all images already created but not linked to instances
+    images = Image.objects.filter(id__in=images_ids).exclude(
+        id__in=instance.images.all()
+    )
+    return list(images)
 
 
 def get_test_image_file() -> File:
