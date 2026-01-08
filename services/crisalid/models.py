@@ -5,11 +5,12 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
 
+from apps.commons.mixins import OrganizationRelated
 from services.crisalid import relators
 from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
 
-from .manager import DocumentQuerySet
+from .manager import CrisalidQuerySet, DocumentQuerySet
 
 
 class ChoiceArrayField(ArrayField):
@@ -36,17 +37,10 @@ class ChoiceArrayField(ArrayField):
 
 
 class CrisalidDataModel(models.Model):
-    crisalid_uid = models.CharField(
-        max_length=255, blank=True, null=True, db_index=True
-    )
+    updated = models.DateTimeField(auto_created=True, auto_now=True)
 
     class Meta:
         abstract = True
-        constraints = (
-            models.UniqueConstraint(
-                "crisalid_uid", name="%(app_label)s_%(class)s_unique_crisalid_uid"
-            ),
-        )
 
 
 class Identifier(models.Model):
@@ -71,7 +65,10 @@ class Identifier(models.Model):
         constraints = (
             # we cant have the same harvester and value
             models.UniqueConstraint(
-                Lower("harvester"), Lower("value"), name="unique_harvester"
+                Lower("harvester"),
+                Lower("value"),
+                name="unique_harvester",
+                condition=~models.Q(harvester="local"),
             ),
         )
 
@@ -89,15 +86,22 @@ class Researcher(CrisalidDataModel):
         # if no user linked to projects
         null=True,
     )
-    display_name = models.CharField(max_length=200, blank=True, null=True)
+    given_name = models.CharField(max_length=255, blank=True)
+    family_name = models.CharField(max_length=255, blank=True)
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="researchers"
     )
 
+    objects = CrisalidQuerySet.as_manager()
+
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:
             return self.user.get_full_name()
-        return f"{self.display_name}"
+        return self.display_name
+
+    @property
+    def display_name(self):
+        return f"{self.given_name.capitalize()} {self.family_name.capitalize()}"
 
 
 class DocumentContributor(models.Model):
@@ -266,3 +270,32 @@ class DocumentTypeCentralized:
     def values(cls) -> Generator[tuple[str]]:
         for _, v in cls.items():
             yield v
+
+
+class CrisalidConfig(OrganizationRelated, models.Model):
+    """model for crisalid config with host/pass for connected to crisalid,
+    is linked to a one organization
+    """
+
+    organization = models.OneToOneField(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="crisalid",
+    )
+
+    crisalidbus_url = models.CharField(
+        max_length=255, help_text="crisalidbus/rabimqt host:port"
+    )
+    crisalidbus_username = models.CharField(
+        max_length=255, help_text="crisalidbus/rabimqt username"
+    )
+    crisalidbus_password = models.CharField(
+        max_length=255, help_text="crisalidbus/rabimqt password"
+    )
+
+    apollo_url = models.CharField(
+        max_length=255, help_text="apollo/graphql host:port/graphql"
+    )
+    apollo_token = models.CharField(max_length=255, help_text="apollo token")
+
+    active = models.BooleanField(help_text="config is enabled/disabled", default=False)
