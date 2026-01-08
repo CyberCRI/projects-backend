@@ -168,11 +168,11 @@ def process_base64_images(
     """
     images = []
     for img in iter_img_b64(soup):
-        info, data = img["src"].split("base64,", 1)[1]
+        info, data = img["src"].split("base64,", 1)
         mediatype, *_ = info.removeprefix("data:").split(";")
         extension = mediatype.split("/")[-1]
         file = ContentFile(
-            base64.b64decode(data[1]), name=str(f"{uuid.uuid4()}.{extension}")
+            base64.b64decode(data), name=str(f"{uuid.uuid4()}.{extension}")
         )
         image = Image(name=file.name, file=file, owner=owner)
         image._upload_to = lambda *args: f"{upload_to}{file.name}"  # noqa: B023
