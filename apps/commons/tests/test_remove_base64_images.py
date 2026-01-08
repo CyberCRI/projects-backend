@@ -231,10 +231,10 @@ class TextProcessingTestCase(JwtAPITestCase):
     ):
         return f'<p>Untouched text template</p><img src="{reverse("Template-images-detail", args=(organization_code, template_id, template_image_id))}" alt="alt"/></p>'
 
-    def assertCountImg(self, text: str, count: int):
+    def assertCountImg(self, text: str, count: int):  # noqa: N802
         self.assertEqual(len(BeautifulSoup(text, "lxml").find_all("img")), count)
 
-    def assertNotBase64(self, text: str):
+    def assertNotBase64(self, text: str):  # noqa: N802
         elements = list(iter_img_b64(BeautifulSoup(text, "lxml")))
         self.assertEqual(elements, [])
 
