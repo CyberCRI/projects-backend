@@ -119,9 +119,10 @@ def process_text(
         The processed text and the images to link to the instance.
     """
 
-    assert (
-        not instance or not upload_to or not view
+    assert all(
+        (instance, upload_to, view)
     ), "instance, upload_to and view parameters are required."
+
     soup = BeautifulSoup(text, "lxml")
 
     if process_template:
