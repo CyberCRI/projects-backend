@@ -23,6 +23,18 @@ if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
 
 
+class BeautifulSoupProjects(BeautifulSoup):
+    """wrapper around BeautifulSoup with lxml with default parser, and guard clause around empty body"""
+
+    def __init__(self, text: str):
+        super().__init__(text, "lxml")
+
+    def __str__(self) -> str:
+        if self.body:
+            return self.body.decode_contents()
+        return ""
+
+
 class ArrayPosition(Func):
     """Allows to order the rows through a list of column's value.
 
@@ -71,11 +83,11 @@ def remove_images_text(text: str) -> str:
     str
         The processed text whitout images.
     """
-    soup = BeautifulSoup(text, "lxml")
+    soup = BeautifulSoupProjects(text)
 
     for img in iter_img_b64(soup):
         img.decompose()
-    return soup.body.decode_contents()
+    return str(soup)
 
 
 def process_text(
@@ -123,7 +135,7 @@ def process_text(
         (instance, upload_to, view)
     ), "instance, upload_to and view parameters are required."
 
-    soup = BeautifulSoup(text, "lxml")
+    soup = BeautifulSoupProjects(text)
 
     if process_template:
         soup, template_images = process_template_images(
@@ -135,11 +147,11 @@ def process_text(
     unlinked_images = process_unlinked_images(instance, soup)
     soup, base_64_images = process_base64_images(soup, upload_to, view, owner, **kwargs)
     images = list(set(template_images + unlinked_images + base_64_images))
-    return soup.body.decode_contents(), images
+    return str(soup), images
 
 
 def process_base64_images(
-    soup: BeautifulSoup,
+    soup: BeautifulSoupProjects,
     upload_to: str,
     view: str,
     owner: Optional["ProjectUser"] = None,
@@ -186,12 +198,12 @@ def process_base64_images(
 
 
 def process_template_images(
-    soup: BeautifulSoup,
+    soup: BeautifulSoupProjects,
     upload_to: str,
     view: str,
     owner: Optional["ProjectUser"] = None,
     **kwargs,
-) -> tuple[BeautifulSoup, list[Image]]:
+) -> tuple[BeautifulSoupProjects, list[Image]]:
     """
     Process template images in the text.
 
@@ -237,7 +249,9 @@ def process_template_images(
     return soup, images
 
 
-def process_unlinked_images(instance: Model, text: BeautifulSoup | str) -> list[Image]:
+def process_unlinked_images(
+    instance: Model, text: BeautifulSoupProjects | str
+) -> list[Image]:
     """
     Find images in the text that are not linked to the instance.
 
@@ -245,7 +259,7 @@ def process_unlinked_images(instance: Model, text: BeautifulSoup | str) -> list[
     ----------
     instance : Model
         The instance where the text is located.
-    text : BeautifulSoup | str
+    text : BeautifulSoupProjects | str
         The text to process.
 
     Returns
@@ -254,7 +268,7 @@ def process_unlinked_images(instance: Model, text: BeautifulSoup | str) -> list[
         The images to link to the instance.
     """
     if isinstance(text, str):
-        soup = BeautifulSoup(text, "lxml")
+        soup = BeautifulSoupProjects(text)
     else:
         soup = text
 
