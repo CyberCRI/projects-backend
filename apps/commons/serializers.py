@@ -7,7 +7,7 @@ from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
 
 from apps.accounts.models import ProjectUser
-from apps.commons.utils import process_text
+from apps.commons.utils import process_text, remove_images_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -212,7 +212,7 @@ class StringsImagesSerializer(serializers.ModelSerializer):
         for field in self.string_images_forbid_fields:
             if field in self.validated_data:
                 content = self.validated_data[field]
-                new_content, _ = process_text(content, forbid_images=True)
+                new_content = remove_images_text(content)
                 if new_content != content:
                     updated = True
                 self.validated_data[field] = new_content
