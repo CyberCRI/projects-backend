@@ -4,9 +4,14 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
+from apps.accounts.factories import PeopleGroupFactory
 from apps.commons.test import JwtAPITestCase
 from apps.deploys.models import PostDeployProcess
-from apps.deploys.task_managers import InstanceGroupsPermissions
+from apps.deploys.task_managers import (
+    OrganizationsGroupsPermissions,
+    PeopleGroupGroupsPermissions,
+    ProjectGroupsPermissions,
+)
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 
@@ -21,7 +26,7 @@ class ReassignPermissionTestCase(JwtAPITestCase):
     def test_reassign_project_permissions(self, mocked):
         mocked.side_effect = self._mocked_task_status
         PostDeployProcess.objects.get_or_create(
-            task_name=InstanceGroupsPermissions.task_name
+            task_name=ProjectGroupsPermissions.task_name
         )
         project = ProjectFactory(with_owner=True)
 
@@ -31,7 +36,7 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         project.permissions_up_to_date = False
         project.save()
 
-        self.client.force_authenticate(user=project.get_owners().users.first())
+        self.client.force_authenticate(user=project.owners.first())
         response = self.client.get(reverse("Project-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         project.refresh_from_db()
@@ -41,7 +46,7 @@ class ReassignPermissionTestCase(JwtAPITestCase):
     def test_reassign_organization_permissions(self, mocked):
         mocked.side_effect = self._mocked_task_status
         PostDeployProcess.objects.get_or_create(
-            task_name=InstanceGroupsPermissions.task_name
+            task_name=OrganizationsGroupsPermissions.task_name
         )
         organization = OrganizationFactory(with_admin=True)
 
@@ -51,8 +56,30 @@ class ReassignPermissionTestCase(JwtAPITestCase):
         organization.permissions_up_to_date = False
         organization.save()
 
-        self.client.force_authenticate(user=organization.get_admins().users.first())
+        self.client.force_authenticate(user=organization.admins.first())
         response = self.client.get(reverse("Organization-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         organization.refresh_from_db()
         self.assertTrue(organization.permissions_up_to_date)
+
+    @patch("apps.deploys.models.PostDeployProcess._status")
+    def test_reassign_people_group_permissions(self, mocked):
+        mocked.side_effect = self._mocked_task_status
+        PostDeployProcess.objects.get_or_create(
+            task_name=PeopleGroupGroupsPermissions.task_name
+        )
+        people_group = PeopleGroupFactory(with_leader=True)
+
+        for group in people_group.groups.all():
+            group.permissions.clear()
+            self.assertEqual(group.permissions.count(), 0)
+        people_group.permissions_up_to_date = False
+        people_group.save()
+
+        self.client.force_authenticate(user=people_group.leaders.first())
+        response = self.client.get(
+            reverse("PeopleGroup-list", args=(people_group.organization.code,))
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        people_group.refresh_from_db()
+        self.assertTrue(people_group.permissions_up_to_date)
