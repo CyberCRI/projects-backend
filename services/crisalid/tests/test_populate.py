@@ -27,7 +27,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
 
@@ -71,7 +71,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
@@ -105,7 +105,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
@@ -116,7 +116,7 @@ class TestPopulateResearcher(test.TestCase):
         researcher.identifiers.add(iden)
 
         data["identifiers"].append(
-            {"value": "000-666-999", "harvester": Identifier.Harvester.ORCID.value}
+            {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
         )
         self.popu.single(data)
 
@@ -140,8 +140,8 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
-                {"value": "eppn@lpi.com", "harvester": Identifier.Harvester.EPPN.value},
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
+                {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
             ],
         }
         self.popu.single(data)
@@ -166,8 +166,8 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
-                {"value": "eppn@lpi.com", "harvester": Identifier.Harvester.EPPN.value},
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
+                {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
             ],
         }
         # a project user already exists with same eepn
@@ -228,11 +228,11 @@ class TestPopulateDocument(test.TestCase):
                             ],
                             "identifiers": [
                                 {
-                                    "harvester": "eppn",
+                                    "type": "eppn",
                                     "value": "marty.mcfly@non-de-zeus.fr",
                                 },
-                                {"harvester": "idref", "value": "4545454545454"},
-                                {"harvester": "local", "value": "v55555"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
                             ],
                         }
                     ],
@@ -240,7 +240,7 @@ class TestPopulateDocument(test.TestCase):
             ],
             "recorded_by": [
                 {
-                    "harvester": Identifier.Harvester.HAL.value,
+                    "type": Identifier.Harvester.HAL.value,
                     "value": "hals-truc",
                 }
             ],
@@ -375,7 +375,7 @@ class TestPopulateStructure(test.TestCase):
         data = {
             "acronym": "LabEx CAP",
             "names": [{"language": "fr", "value": "CAP"}],
-            "identifiers": [{"harvester": "local", "value": "DGI01"}],
+            "identifiers": [{"type": "local", "value": "DGI01"}],
         }
 
         new_obj = self.popu.single(data)

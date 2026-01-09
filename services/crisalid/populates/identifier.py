@@ -24,9 +24,7 @@ class PopulateIdentifier(AbstractPopulate):
         return harvester
 
     def single(self, data: dict) -> Identifier | None:
-        harvester = self.sanitize_harvester(
-            self.sanitize_string(data["harvester"]).lower()
-        )
+        harvester = self.sanitize_harvester(self.sanitize_string(data["type"]).lower())
         value = self.sanitize_string(data["value"])
 
         if not all((harvester, value)):

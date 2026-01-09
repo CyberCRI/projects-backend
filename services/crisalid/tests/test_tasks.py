@@ -174,8 +174,8 @@ class TestCrisalidTasks(test.TestCase):
             ],
             "recorded_by": [
                 {
-                    "harvester": Identifier.Harvester.HAL.value,
-                    "value": "",
+                    "type": Identifier.Harvester.HAL.value,
+                    "value": "hals-truc",
                 }
             ],
         }
