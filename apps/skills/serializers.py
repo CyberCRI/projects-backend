@@ -14,7 +14,7 @@ from apps.commons.serializers import (
     StringsImagesSerializer,
     TranslatedModelSerializer,
 )
-from apps.commons.utils import process_text
+from apps.commons.utils import remove_images_text
 from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
@@ -288,8 +288,7 @@ class MentoringContactSerializer(serializers.Serializer):
                 self.initial_data["reply_to"] = user.email
 
     def validate_content(self, content: str) -> str:
-        content, _ = process_text(content, forbid_images=True)
-        return content
+        return remove_images_text(content)
 
 
 class MentoringResponseSerializer(serializers.Serializer):
@@ -309,8 +308,7 @@ class MentoringResponseSerializer(serializers.Serializer):
                 self.initial_data["reply_to"] = user.email
 
     def validate_content(self, content: str) -> str:
-        content, _ = process_text(content, forbid_images=True)
-        return content
+        return remove_images_text(content)
 
 
 class MentoringSerializer(serializers.ModelSerializer):

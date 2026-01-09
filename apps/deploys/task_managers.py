@@ -1,13 +1,11 @@
 from typing import Callable
 
-from django.db.models import Count, Q
-
-from apps.commons.mixins import HasPermissionsSetup
-
 from .tasks import (
-    base_groups_permissions,
-    instance_groups_permissions,
     migrate,
+    reassign_base_groups_permissions,
+    reassign_organizations_permissions,
+    reassign_people_groups_permissions,
+    reassign_projects_permissions,
     rebuild_index,
 )
 
@@ -75,43 +73,40 @@ class BaseGroupsPermissions(PostDeployTask):
 
     task_name = "base_groups_permissions"
     priority = 2
-    task = base_groups_permissions
+    task = reassign_base_groups_permissions
     run_in_tests = True
+
+
+class OrganizationsGroupsPermissions(PostDeployTask):
+    """Reassign permissions to the default groups of all organizations"""
+
+    task_name = "organization_groups_permissions"
+    priority = 3
+    task = reassign_organizations_permissions
+
+
+class PeopleGroupGroupsPermissions(PostDeployTask):
+    """Reassign permissions to the default groups of all people groups"""
+
+    task_name = "peoplegroup_groups_permissions"
+    priority = 4
+    task = reassign_people_groups_permissions
+
+
+class ProjectGroupsPermissions(PostDeployTask):
+    """Reassign permissions to the default groups of all projects"""
+
+    task_name = "project_groups_permissions"
+    priority = 5
+    task = reassign_projects_permissions
 
 
 class RebuildIndex(PostDeployTask):
     """Reindex all searchable models in OpenSearch"""
 
     task_name = "rebuild_index"
-    priority = 3
+    priority = 6
     task = rebuild_index
-
-
-class InstanceGroupsPermissions(PostDeployTask):
-    """
-    Assign permissions to the default groups of all models that inherit from
-    HasPermissionsSetup :
-    - Project
-    - PeopleGroup
-    - Organization
-    """
-
-    task_name = "instance_groups_permissions"
-    priority = 4
-    task = instance_groups_permissions
-
-    def get_progress(self):
-        models = HasPermissionsSetup.__subclasses__()
-        updated_objects = total_objects = 0
-        for model in models:
-            result = model.objects.aggregate(
-                updated_objects=Count("id", filter=Q(permissions_up_to_date=True)),
-                total=Count("id"),
-            )
-            updated_objects += result["updated_objects"]
-            total_objects += result["total"]
-
-        return f"{str(round((updated_objects / total_objects)*100, 2))}%"
 
 
 # class CreateDefaultTagClassifications(PostDeployTask):  # noqa

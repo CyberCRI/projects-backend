@@ -88,3 +88,16 @@ class RoleBasedAccessAdmin(admin.ModelAdmin):
         if self.superadmin_only:
             return request.user.is_superuser
         return True
+
+
+class ExtraAdminMixins:
+    """Mixins to convert view to admin custom View"""
+
+    admin_site = None
+    admin_app = None
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx = ctx | self.admin_site.each_context(self.request)
+        ctx |= self.admin_app or {}
+        return ctx

@@ -2978,5 +2978,13 @@ msgstr "Diese Sprache wird nicht unterstützt"
 msgid "Language {language} is not supported"
 msgstr "Die Sprache {language} wird nicht unterstützt"
 
+#: templates/admin/base.html:16
+msgid "Copyright"
+msgstr "Urheberrecht"
+
+#: templates/admin/base.html:16
+msgid "All rights reserved."
+msgstr "Alle Rechte vorbehalten."
+
 #~ msgid "main category"
 #~ msgstr "Hauptkategorie"

@@ -186,7 +186,7 @@ class CommentSerializer(
         """Ensure the project is public."""
         request = self.context.get("request")
         user = request.user
-        if project not in user.get_project_queryset():
+        if not user.get_project_queryset().contains(project):
             raise CommentProjectPermissionDeniedError(project.title)
         return project
 

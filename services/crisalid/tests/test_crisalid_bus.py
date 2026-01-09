@@ -1,13 +1,13 @@
 import json
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 from django import test
 
-from services.crisalid.crisalid_bus import (
-    CrisalidBusClient,
-    CrisalidEventEnum,
-    CrisalidTypeEnum,
-)
+from services.crisalid.bus.client import CrisalidBusClient
+from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
+from services.crisalid.bus.consumer import crisalid_consumer
+from services.crisalid.bus.runner import CLIENTS_ORGA_MAPS, _stop_all_crisalid
+from services.crisalid.factories import CrisalidConfigFactory
 
 
 class TestCrisalidBus(test.TestCase):
@@ -26,8 +26,11 @@ class TestCrisalidBus(test.TestCase):
         cls.properties = Mock()
         cls.method = Mock()
 
+        cls.config = CrisalidConfigFactory()
+
     def setUp(self):
-        self.client = CrisalidBusClient()
+        self.client = CrisalidBusClient(self.config)
+        crisalid_consumer.clear()
 
     def test_dispatch_no_callback(self):
         # this run withtout called any callback
@@ -35,7 +38,7 @@ class TestCrisalidBus(test.TestCase):
 
     def test_dispatch_with_callback(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
@@ -43,23 +46,25 @@ class TestCrisalidBus(test.TestCase):
         self.client._dispatch(self.chanel, self.properties, self.method, self.payload)
 
         # normaly is called
-        callback.assert_called_once_with(json.loads(self.payload)["fields"])
+        callback.assert_called_once_with(
+            self.config.pk, json.loads(self.payload)["fields"]
+        )
 
     def test_add_callback(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
         # try to readd this callback, raise a exception
         with self.assertRaises(AssertionError):
-            self.client.add_callback(
+            crisalid_consumer.add_callback(
                 CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
             )
 
     def test_validated_payload(self):
         callback = Mock()
-        self.client.add_callback(
+        crisalid_consumer.add_callback(
             CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED, callback
         )
 
@@ -117,3 +122,66 @@ class TestCrisalidBus(test.TestCase):
         ).encode("ascii")
         self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
+
+
+@patch("services.crisalid.bus.runner.threading")
+@patch("services.crisalid.bus.runner.CrisalidBusClient")
+class TestCrisalidThread(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+
+    def setUp(self) -> None:
+        super().setUp()
+        # for stop all instance
+        _stop_all_crisalid()
+
+    def test_start_signals(self, clientbus_mock, thread_mock):
+        # not crisalidbus loaded
+        self.assertEqual(CLIENTS_ORGA_MAPS, {})
+
+        self.config.active = True
+        self.config.save()
+
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+        client: Mock = CLIENTS_ORGA_MAPS[self.config.organization.code]
+        self.assertIsNotNone(client)
+
+        clientbus_mock.assert_called_once_with(self.config)
+        thread_mock.Thread.assert_called_once()
+        thread_mock.Thread().start.assert_called_once()
+
+    def test_stop_signals(self, clientbus_mock, thread_mock):
+        self.config.active = True
+        self.config.save()
+
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+        self.config.active = False
+        self.config.save()
+        self.assertNotIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+
+        clientbus_mock().stop.assert_called_once()
+        thread_mock.Thread().join.assert_called_once()
+
+    def test_stop_signals_disable(self, clientbus_mock, thread_mock):
+        self.config.active = False
+        self.config.save()
+
+        self.assertNotIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+
+    def test_start_signals_active(self, clientbus_mock, thread_mock):
+        self.config.active = True
+        self.config.save()
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+
+        self.config.active = True
+        self.config.save()
+        self.assertIn(self.config.organization.code, CLIENTS_ORGA_MAPS)
+
+    def test_delte_signals_active(self, clientbus_mock, thread_mock):
+        config = CrisalidConfigFactory(active=True)
+        self.assertIn(config.organization.code, CLIENTS_ORGA_MAPS)
+
+        config.delete()
+        self.assertNotIn(config.organization.code, CLIENTS_ORGA_MAPS)

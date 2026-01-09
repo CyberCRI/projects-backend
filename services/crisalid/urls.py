@@ -1,7 +1,10 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from apps.commons.urls import researcher_router_register
+from apps.commons.urls import (
+    organization_researcher_router_register,
+    organization_router_register,
+)
 from services.crisalid.views import (
     ConferenceViewSet,
     PublicationViewSet,
@@ -9,16 +12,19 @@ from services.crisalid.views import (
 )
 
 researcher_router = DefaultRouter()
-researcher_router.register(r"researcher", ResearcherViewSet, basename="Researcher")
 
-researcher_router_register(
+organization_router_register(
+    researcher_router, r"researcher", ResearcherViewSet, basename="Researcher"
+)
+
+organization_researcher_router_register(
     researcher_router,
     r"publications",
     PublicationViewSet,
     basename="ResearcherPublications",
 )
 
-researcher_router_register(
+organization_researcher_router_register(
     researcher_router,
     r"conferences",
     ConferenceViewSet,

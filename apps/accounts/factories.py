@@ -116,3 +116,8 @@ class PeopleGroupFactory(factory.django.DjangoModelFactory):
         instance.setup_permissions()
         instance.organization.setup_permissions()
         return instance
+
+    @factory.post_generation
+    def with_leader(self, create, extracted, **kwargs):
+        if create and extracted is True:
+            UserFactory(groups=[self.get_leaders()])

@@ -235,10 +235,13 @@ class Organization(
         """Return the organization related to this model."""
         return [self]
 
-    def get_default_admins_permissions(self) -> QuerySet[Permission]:
-        return Permission.objects.filter(content_type=self.content_type)
+    @classmethod
+    def get_default_admins_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
+        return Permission.objects.filter(content_type=content_type)
 
-    def get_global_admins_permissions(self) -> QuerySet[Permission]:
+    @classmethod
+    def get_global_admins_permissions(cls) -> QuerySet[Permission]:
         return Permission.objects.filter(
             codename__in=[
                 "get_user_by_email",
@@ -250,7 +253,9 @@ class Organization(
             content_type__app_label="accounts",
         )
 
-    def get_default_facilitators_permissions(self) -> QuerySet[Permission]:
+    @classmethod
+    def get_default_facilitators_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
         excluded_permissions = [
             "manage_accessrequest",
             "access_admin",
@@ -267,11 +272,13 @@ class Organization(
                 ]
             ],
         ]
-        return Permission.objects.filter(content_type=self.content_type).exclude(
+        return Permission.objects.filter(content_type=content_type).exclude(
             codename__in=excluded_permissions
         )
 
-    def get_default_users_permissions(self) -> QuerySet[Permission]:
+    @classmethod
+    def get_default_users_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
         filtered_permissions = [
             "view_org_project",
             "view_org_projectuser",
@@ -280,13 +287,11 @@ class Organization(
             "duplicate_project",
         ]
         return Permission.objects.filter(
-            content_type=self.content_type,
+            content_type=content_type,
             codename__in=filtered_permissions,
         )
 
-    def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
-    ):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         admins = self.setup_group_object_permissions(
             self.get_admins(), self.get_default_admins_permissions()
@@ -303,12 +308,9 @@ class Organization(
 
         if user:
             admins.users.add(user)
-        self.groups.set([admins, facilitators, users])
-        if trigger_indexation:
-            self.permissions_up_to_date = True
-            self.save(update_fields=["permissions_up_to_date"])
-        else:
-            Organization.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
+        self.groups.add(admins, facilitators, users)
+        self.permissions_up_to_date = True
+        self.save(update_fields=["permissions_up_to_date"])
 
     def get_admins(self) -> Group:
         """Return the admins group."""

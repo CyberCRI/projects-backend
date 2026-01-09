@@ -28,11 +28,23 @@ class NotificationsTestCase(JwtAPITestCase):
     def test_status_change(self):
         user = UserFactory()
         notifications = NotificationFactory.create_batch(
-            5, receiver=user, project=self.project, is_viewed=False
+            2,
+            receiver=user,
+            project=self.project,
+            organization=self.organization,
+            is_viewed=False,
         )
-        unchanged = NotificationFactory(
-            project=self.project, is_viewed=False, organization=self.organization
-        )
+        unchanged = [
+            NotificationFactory(
+                project=self.project, is_viewed=False, organization=self.organization
+            ),
+            NotificationFactory(
+                receiver=user,
+                project=self.project,
+                organization=OrganizationFactory(),
+                is_viewed=False,
+            ),
+        ]
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Notification-list", args=(self.organization.code,))
@@ -41,5 +53,6 @@ class NotificationsTestCase(JwtAPITestCase):
         for notification in notifications:
             notification.refresh_from_db()
             self.assertTrue(notification.is_viewed)
-        unchanged.refresh_from_db()
-        self.assertFalse(unchanged.is_viewed)
+        for notification in unchanged:
+            notification.refresh_from_db()
+            self.assertFalse(notification.is_viewed)

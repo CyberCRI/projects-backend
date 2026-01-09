@@ -3,52 +3,46 @@ from factory.fuzzy import FuzzyChoice
 from faker import Faker
 
 from apps.accounts.factories import UserFactory
+from apps.organizations.factories import OrganizationFactory
 from services.crisalid import relators
 
-from .models import Document, DocumentContributor, Identifier, Researcher
+from .models import (
+    CrisalidConfig,
+    Document,
+    DocumentContributor,
+    Identifier,
+    Researcher,
+)
 
 faker = Faker()
-
-HAL = "hal"
-SCANR = "scanr"
-OPENALEX = "openalex"
-
-IDREF = "idref"
-SCOPUS = "scopus"
-ORCID = "orcid"
-LOCAL = "local"
-EPPN = "eppn"
-DOI = "doi"
-PMID = "pmid"
-
-
-def harvester_values(harvester_type: Identifier.Harvester):
-    return {
-        Identifier.Harvester.HAL: factory.Faker("url"),
-        Identifier.Harvester.SCANR: factory.Faker("url"),
-        Identifier.Harvester.OPENALEX: factory.Faker("url"),
-        Identifier.Harvester.IDREF: factory.Faker("uuid4"),
-        Identifier.Harvester.SCOPUS: factory.Faker("uuid4"),
-        Identifier.Harvester.ORCID: factory.Faker("uuid4"),
-        Identifier.Harvester.LOCAL: factory.Faker("uuid4"),
-        Identifier.Harvester.EPPN: factory.Faker("email"),
-        Identifier.Harvester.DOI: factory.Faker("doi"),
-        Identifier.Harvester.PMID: factory.Faker("url"),
-    }[harvester_type]
 
 
 class IdentifierFactory(factory.django.DjangoModelFactory):
     harvester = Identifier.Harvester.EPPN
-    value = harvester_values(harvester)
 
     class Meta:
         model = Identifier
 
+    @factory.lazy_attribute
+    def value(self):
+        return {
+            Identifier.Harvester.HAL: faker.unique.url(),
+            Identifier.Harvester.SCANR: faker.unique.url(),
+            Identifier.Harvester.OPENALEX: faker.unique.url(),
+            Identifier.Harvester.IDREF: faker.unique.uuid4(),
+            Identifier.Harvester.SCOPUS: faker.unique.uuid4(),
+            Identifier.Harvester.ORCID: faker.unique.uuid4(),
+            Identifier.Harvester.LOCAL: faker.unique.uuid4(),
+            Identifier.Harvester.EPPN: faker.unique.email(),
+            Identifier.Harvester.DOI: faker.unique.doi(),
+            Identifier.Harvester.PMID: faker.unique.url(),
+        }[self.harvester]
+
 
 class ResearcherFactory(factory.django.DjangoModelFactory):
-    crisalid_uid = factory.Faker("uuid4")
     user = factory.LazyFunction(lambda: UserFactory())
-    display_name = f"{factory.Faker("first_name")} {factory.Faker("last_name")}"
+    given_name = faker.first_name()
+    family_name = faker.last_name()
 
     class Meta:
         model = Researcher
@@ -64,10 +58,9 @@ class ResearcherFactory(factory.django.DjangoModelFactory):
 
 
 class DocumentFactory(factory.django.DjangoModelFactory):
-    crisalid_uid = factory.Faker("uuid4")
-    title = factory.Faker("sentence", nb_words=5)
-    description = factory.Faker("text")
-    publication_date = factory.Faker("date_time")
+    title = faker.sentence(nb_words=5)
+    description = faker.text()
+    publication_date = faker.date_time()
     document_type = FuzzyChoice(
         Document.DocumentType.choices, getter=lambda obj: obj[0]
     )
@@ -92,3 +85,16 @@ class DocumentContributorFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = DocumentContributor
+
+
+class CrisalidConfigFactory(factory.django.DjangoModelFactory):
+    organization = factory.LazyFunction(lambda: OrganizationFactory())
+    crisalidbus_url = faker.url()
+    crisalidbus_username = faker.user_name()
+    crisalidbus_password = faker.password()
+    apollo_url = faker.url()
+    apollo_token = faker.password()
+    active = False
+
+    class Meta:
+        model = CrisalidConfig

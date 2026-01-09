@@ -176,20 +176,24 @@ class PeopleGroup(
         )
         return root_group
 
-    def get_default_managers_permissions(self) -> QuerySet[Permission]:
-        return Permission.objects.filter(content_type=self.content_type)
+    @classmethod
+    def get_default_managers_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
+        return Permission.objects.filter(content_type=content_type)
 
-    def get_default_members_permissions(self) -> QuerySet[Permission]:
+    @classmethod
+    def get_default_members_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
         return Permission.objects.filter(
-            content_type=self.content_type, codename="view_peoplegroup"
+            content_type=content_type, codename="view_peoplegroup"
         )
 
-    def get_default_leaders_permissions(self) -> QuerySet[Permission]:
-        return Permission.objects.filter(content_type=self.content_type)
+    @classmethod
+    def get_default_leaders_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
+        return Permission.objects.filter(content_type=content_type)
 
-    def setup_permissions(
-        self, user: Optional["ProjectUser"] = None, trigger_indexation: bool = True
-    ):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         managers = self.setup_group_object_permissions(
             self.get_managers(), self.get_default_managers_permissions()
@@ -202,12 +206,9 @@ class PeopleGroup(
         )
         if user:
             managers.users.add(user)
-        self.groups.set([managers, members, leaders])
-        if trigger_indexation:
-            self.permissions_up_to_date = True
-            self.save(update_fields=["permissions_up_to_date"])
-        else:
-            PeopleGroup.objects.filter(pk=self.pk).update(permissions_up_to_date=True)
+        self.groups.add(managers, members, leaders)
+        self.permissions_up_to_date = True
+        self.save(update_fields=["permissions_up_to_date"])
 
     def get_managers(self) -> Group:
         """Return the managers group."""
