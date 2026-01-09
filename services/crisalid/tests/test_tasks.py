@@ -107,7 +107,7 @@ class TestCrisalidTasks(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
 
@@ -164,12 +164,9 @@ class TestCrisalidTasks(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {
-                                    "harvester": "eppn",
-                                    "value": "marty.mcfly@non-de-zeus.fr",
-                                },
-                                {"harvester": "idref", "value": "4545454545454"},
-                                {"harvester": "local", "value": "v55555"},
+                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
                             ],
                         }
                     ],
@@ -178,7 +175,7 @@ class TestCrisalidTasks(test.TestCase):
             "recorded_by": [
                 {
                     "harvester": Identifier.Harvester.HAL.value,
-                    "value": "hals-truc",
+                    "value": "",
                 }
             ],
         }

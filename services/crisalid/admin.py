@@ -153,7 +153,7 @@ class ResearcherAdmin(IdentifierAminMixins, admin.ModelAdmin):
                     continue
 
                 user = None
-                email = identifier.value + "@test.fr"
+                email = identifier.value
                 with suppress(ProjectUser.DoesNotExist):
                     user = ProjectUser.objects.get(email=email)
 

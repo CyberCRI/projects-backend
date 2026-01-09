@@ -1,0 +1,104 @@
+:root {
+    --projects-primary: #2f7e8a;
+    --projects-info: #1d727c;
+    --projects-primary-lighter: #f0fffb;
+    --projects-primary-light: #99ffe7;
+    --projects-warning: #fc0;
+    --projects-danger: #ff3c00;
+    --projects-success: #00dba7;
+    --projects-success-darker: #14545b;
+}
+.navbar-success {
+    background-color: var(--projects-primary);
+}
+
+.main-sidebar {
+    background-color: var(--projects-info);
+    color: white
+}
+[class*="sidebar-dark-"] .sidebar a {
+    color: white
+}
+
+.btn {
+    border-radius: 50px !important;
+    border: 0 !important;
+    box-sizing: border-box;
+    font-weight: 700;
+    line-height: 1.2;
+    padding: .5rem 1.5rem;
+}
+.btn:hover {
+    box-shadow: 0 5px 10px #0000001f, 0 4px 8px #0000000f;
+    transform: scale(1.01);
+}
+.btn-group .btn {
+    border-radius: 0 !important;
+}
+.btn-group :first-child {
+    border-top-left-radius: 50px !important;
+    border-bottom-left-radius:50px !important;
+}
+.btn-group :last-child {
+    border-top-right-radius: 50px !important;
+    border-bottom-right-radius: 50px !important;
+}
+
+.btn-primary {
+    background-color: var(--projects-primary);
+}
+.btn-primary:hover {
+    background-color: var(--projects-primary);
+}
+.btn-secondary {
+    background-color: var(--projects-success-darker);
+}
+.btn-secondary:hover {
+    background-color: var(--projects-success-darker);
+}
+.btn-info {
+    background-color: var(--projects-info);
+}
+.btn-info:hover {
+    background-color: var(--projects-info);
+}
+.btn-warning {
+    background-color: var(--projects-warning);
+}
+.btn-warning:hover {
+    background-color: var(--projects-warning);
+}
+.btn-danger {
+    background-color: var(--projects-danger);
+}
+.btn-danger:hover {
+    background-color: var(--projects-danger);
+}
+.btn-success {
+    background-color: var(--projects-success);
+}
+.btn-success:hover {
+    background-color: var(--projects-success-darker);
+}
+
+.nav-link.active {
+    background-color: var(--projects-success) !important;
+}
+
+[class*="sidebar-dark-"] .nav-header {
+    margin-top: 0 !important;
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background-color: var(--projects-primary) !important;
+}
+
+.login-box {
+    input.form-control {
+        border-top-left-radius: 50px !important;
+        border-bottom-left-radius: 50px !important;
+    }
+    .card {
+        border-radius: 50px !important;
+    }
+}

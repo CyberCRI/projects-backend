@@ -287,12 +287,9 @@ class TestPopulateDocument(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {
-                                    "harvester": "eppn",
-                                    "value": "marty.mcfly@non-de-zeus.fr",
-                                },
-                                {"harvester": "idref", "value": "4545454545454"},
-                                {"harvester": "local", "value": "v55555"},
+                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {"type": "idref", "value": "4545454545454"},
+                                {"type": "local", "value": "v55555"},
                             ],
                         }
                     ],

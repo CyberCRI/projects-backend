@@ -2948,5 +2948,13 @@ msgstr "El idioma no es compatible"
 msgid "Language {language} is not supported"
 msgstr "El idioma {language} no es compatible"
 
+#: templates/admin/base.html:16
+msgid "Copyright"
+msgstr "Derechos de autor"
+
+#: templates/admin/base.html:16
+msgid "All rights reserved."
+msgstr "Todos los derechos reservados."
+
 #~ msgid "main category"
 #~ msgstr "categoría principal"
