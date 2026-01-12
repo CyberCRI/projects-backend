@@ -9,7 +9,7 @@ from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from import_export.admin import ExportActionMixin  # type: ignore
 
-from apps.commons.admin import RoleBasedAccessAdmin
+from apps.commons.admin import RoleBasedAccessAdmin, TranslateObjectAdminMixin
 from apps.emailing.models import Email
 from apps.organizations.models import Organization
 from apps.projects.models import Project
@@ -20,7 +20,7 @@ from .models import PeopleGroup, ProjectUser
 from .utils import get_group_permissions
 
 
-class UserAdmin(ExportActionMixin, RoleBasedAccessAdmin):
+class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin):
     resource_classes = [UserResource]
 
     list_display = (
@@ -156,7 +156,7 @@ class GroupAdmin(admin.ModelAdmin):
         return "- " + "\n- ".join(get_group_permissions(instance))
 
 
-class PeopleGroupAdmin(admin.ModelAdmin):
+class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("id", "name", "organization", "email")
     search_fields = ("name", "email", "id")
     filter_horizontal = ("featured_projects",)

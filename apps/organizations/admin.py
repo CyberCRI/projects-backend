@@ -5,7 +5,7 @@ from django.contrib import admin
 from django.db.models import Count, QuerySet
 from django.http.request import HttpRequest
 
-from apps.commons.admin import RoleBasedAccessAdmin
+from apps.commons.admin import RoleBasedAccessAdmin, TranslateObjectAdminMixin
 from services.keycloak.interface import KeycloakService
 
 from .exports import ProjectTemplateExportMixin
@@ -13,7 +13,7 @@ from .models import Organization, ProjectCategory, Template, TemplateCategories
 
 
 @admin.register(Organization)
-class OrganizationAdmin(admin.ModelAdmin):
+class OrganizationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = (
         "code",
         "name",
@@ -54,7 +54,9 @@ class OrganizationAdmin(admin.ModelAdmin):
 
 
 @admin.register(Template)
-class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
+class TemplateAdmin(
+    TranslateObjectAdminMixin, ProjectTemplateExportMixin, RoleBasedAccessAdmin
+):
     list_display = (
         "id",
         "display_organization",
@@ -81,7 +83,7 @@ class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
     @admin.display(
         description="Organization", ordering="categories__organization__name"
     )
-    def display_organization(self, instance: Template) -> Optional[str]:
+    def display_organization(self, instance: Template) -> str | None:
         names = [o.organization.name for o in instance.categories.all()]
         return " / ".join(set(names))
 
@@ -95,7 +97,7 @@ class TemplateAdmin(ProjectTemplateExportMixin, RoleBasedAccessAdmin):
 
 
 @admin.register(ProjectCategory)
-class ProjectCategoryAdmin(admin.ModelAdmin):
+class ProjectCategoryAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("name", "display_templates")
     list_filter = ("name",)
 

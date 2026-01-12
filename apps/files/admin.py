@@ -4,6 +4,8 @@ from django import forms
 from django.contrib import admin
 from django.db import models
 
+from apps.commons.admin import TranslateObjectAdminMixin
+
 from .models import Image, ProjectUserAttachmentFile, ProjectUserAttachmentLink
 
 
@@ -65,14 +67,14 @@ class ImageAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProjectUserAttachmentFile)
-class ProjectUserAttachmentFileAdmin(admin.ModelAdmin):
+class ProjectUserAttachmentFileAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("id", "owner", "title")
     autocomplete_fields = ("owner",)
     search_fields = ("owner", "title", "mime")
 
 
 @admin.register(ProjectUserAttachmentLink)
-class ProjectUserAttachmentLinkAdmin(admin.ModelAdmin):
+class ProjectUserAttachmentLinkAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("id", "owner", "title", "site_url")
     autocomplete_fields = ("owner",)
     search_fields = ("owner", "title", "stie_url")
