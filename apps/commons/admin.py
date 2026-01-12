@@ -110,7 +110,6 @@ class TranslateObjectAdminMixin:
 
     def __init__(self, *ar, **kw):
         super().__init__(*ar, **kw)
-        # raise ValueError("icic")
         self.actions = getattr(self, "actions", [])
         if "translates" not in self.actions:
             self.actions = tuple(list(self.actions) + ["translates"])
@@ -119,8 +118,8 @@ class TranslateObjectAdminMixin:
     def translates(self, request, queryset):
         model = queryset.model
         content_type = ContentType.objects.get_for_model(model)
-        for object in queryset:
-            translate_object.apply_async((content_type.id, object.id))
+        for obj in queryset:
+            translate_object.apply_async((content_type.id, obj.id))
 
         messages.add_message(
             request,
