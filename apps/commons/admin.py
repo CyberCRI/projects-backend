@@ -1,9 +1,11 @@
-from django.contrib import admin
+from django.contrib import admin, messages
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import QuerySet
 from guardian.shortcuts import get_objects_for_user
 
 from apps.accounts.models import ProjectUser
 from apps.organizations.models import Organization
+from services.translator.tasks import translate_object
 
 
 class RoleBasedAccessAdmin(admin.ModelAdmin):
@@ -101,3 +103,26 @@ class ExtraAdminMixins:
         ctx = ctx | self.admin_site.each_context(self.request)
         ctx |= self.admin_app or {}
         return ctx
+
+
+class TranslateObjectAdminMixin:
+    """Admin Mixin for run translated task on objects"""
+
+    def __init__(self, *ar, **kw):
+        super().__init__(*ar, **kw)
+        self.actions = getattr(self, "actions", [])
+        if "translates" not in self.actions:
+            self.actions = tuple(list(self.actions) + ["translates"])
+
+    @admin.action(description="translates manual")
+    def translates(self, request, queryset):
+        model = queryset.model
+        content_type = ContentType.objects.get_for_model(model)
+        for obj in queryset:
+            translate_object.apply_async((content_type.id, obj.id))
+
+        messages.add_message(
+            request,
+            messages.INFO,
+            f"Translates for {queryset.count()} objects created!",
+        )

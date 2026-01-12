@@ -4,6 +4,7 @@ from django.contrib import admin, messages
 from django.db.models import Count
 
 from apps.accounts.models import ProjectUser
+from apps.commons.admin import TranslateObjectAdminMixin
 from services.crisalid.tasks import vectorize_documents
 
 from .models import (
@@ -44,7 +45,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
 
 
 @admin.register(Document)
-class DocumentAdmin(admin.ModelAdmin):
+class DocumentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",

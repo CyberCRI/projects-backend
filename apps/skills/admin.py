@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 
+from apps.commons.admin import TranslateObjectAdminMixin
+
 from .models import Skill, Tag, TagClassification
 
 
@@ -29,7 +31,7 @@ class TagAdmin(admin.ModelAdmin):
     )
 
 
-class TagClassificationAdmin(admin.ModelAdmin):
+class TagClassificationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = (
         "id",
         "slug",
