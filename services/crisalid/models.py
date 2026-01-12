@@ -6,6 +6,7 @@ from django.db import models
 from django.db.models.functions import Lower
 
 from apps.commons.mixins import OrganizationRelated
+from apps.organizations.models import Organization
 from services.crisalid import relators
 from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
@@ -120,7 +121,7 @@ class DocumentContributor(models.Model):
         ]
 
 
-class Document(HasAutoTranslatedFields, CrisalidDataModel):
+class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
@@ -195,6 +196,18 @@ class Document(HasAutoTranslatedFields, CrisalidDataModel):
     identifiers = models.ManyToManyField(
         "crisalid.Identifier", related_name="documents"
     )
+
+    organization_query_string = "contributors__user__groups__organizations"
+
+    def get_related_organizations(self):
+        """organizations from user"""
+        return list(
+            Organization.objects.filter(
+                id__in=self.contributors.all()
+                .values_list("user__groups__organizations", flat=True)
+                .distinct("id")
+            )
+        )
 
     @property
     def document_type_centralized(self) -> list[str]:
