@@ -25,6 +25,7 @@ from apps.accounts.utils import (
 )
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
+    HasModulesRelated,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
@@ -41,6 +42,7 @@ from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroup(
+    HasModulesRelated,
     HasAutoTranslatedFields,
     HasMultipleIDs,
     HasPermissionsSetup,

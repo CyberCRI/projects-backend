@@ -237,6 +237,16 @@ class PeopleGroupSuperLightSerializer(
         fields = read_only_fields
 
 
+class ModulesSerializers(serializers.ModelSerializer):
+    modules = serializers.SerializerMethodField()
+
+    def get_modules(self, instance):
+        request = self.context.get("request")
+
+        cls = instance.get_related_module()
+        return cls(instance, user=request.user).count()
+
+
 class PeopleGroupLightSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
@@ -402,7 +412,10 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class PeopleGroupSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers,
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
 
     string_images_forbid_fields: List[str] = [
@@ -527,7 +540,7 @@ class PeopleGroupSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root", "slug"]
+        read_only_fields = ["is_root", "slug", "modules"]
         fields = read_only_fields + [
             "id",
             "name",
