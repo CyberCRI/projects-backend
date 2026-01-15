@@ -619,6 +619,7 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     """
 
     auto_translated_fields: List[str] = ["html:content"]
+    auto_translate_all_languages: bool = True
 
     organization = models.OneToOneField(
         "organizations.Organization",

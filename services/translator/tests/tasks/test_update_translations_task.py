@@ -24,7 +24,7 @@ from apps.organizations.factories import (
     ProjectCategoryFactory,
     TemplateFactory,
 )
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, TermsAndConditions
 from apps.projects.factories import (
     BlogEntryFactory,
     GoalFactory,
@@ -198,6 +198,39 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                 }
             )
 
+        # Update auto-created TermsOfService instances
+        data = {
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field in TermsAndConditions._html_auto_translated_fields
+                else faker.word()
+            )
+            for field in TermsAndConditions._auto_translated_fields
+        }
+        for organization in [
+            cls.organization_1,
+            cls.organization_2,
+            cls.organization_3,
+        ]:
+            TermsAndConditions.objects.update_or_create(
+                organization=organization, defaults=data
+            )
+        cls.instances.append(
+            {
+                "model": TermsAndConditions,
+                "data": data,
+                "instance_1": TermsAndConditions.objects.get(
+                    organization=cls.organization_1
+                ),
+                "instance_2": TermsAndConditions.objects.get(
+                    organization=cls.organization_2
+                ),
+                "instance_3": TermsAndConditions.objects.get(
+                    organization=cls.organization_3
+                ),
+            }
+        )
+
         # Create instances for models related to projects
         for factory in [
             AnnouncementFactory,
@@ -335,7 +368,11 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                             instance, field.split(":", 1)[1] if ":" in field else field
                         )
                     ],
-                    to_language={str(lang) for lang in self.organization_1.languages},
+                    to_language=(
+                        {str(lang) for lang in self.organization_1.languages}
+                        if not instance.auto_translate_all_languages
+                        else {str(lang) for lang in settings.REQUIRED_LANGUAGES}
+                    ),
                     text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for instance, field in [
@@ -371,7 +408,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
             for field in data["model"]._auto_translated_fields:
                 self.assertEqual(getattr(instance, f"{field}_detected_language"), "en")
             for lang in settings.REQUIRED_LANGUAGES:
-                if lang in self.organization_1.languages:
+                if (
+                    lang in self.organization_1.languages
+                    or instance.auto_translate_all_languages
+                ):
                     for field in data["model"]._auto_translated_fields:
                         self.assertEqual(
                             getattr(instance, f"{field}_{lang}"),

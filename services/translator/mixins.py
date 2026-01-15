@@ -58,6 +58,9 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     - `auto_translated_fields`: A list of field names that should be automatically
       translated. If a field is of type HTML, it should be suffixed with `:html`
       Example: autotrans_set_in_class: List[str] = ["title", "html:content"]
+    - `auto_translate_all_languages`: A boolean indicating whether to translate
+      the fields into all supported languages or only into the related organization's
+      languages. This is useful for content that can be used across multiple organizations.
 
     When the model is saved, it will check if any of the translated fields
     have changed. If they have, it will create or update an `AutoTranslatedField`
@@ -66,6 +69,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     """
 
     auto_translated_fields: List[str] = []
+    auto_translate_all_languages: bool = False
 
     _auto_translated_fields: List[str] = []
     _html_auto_translated_fields: List[str] = []
