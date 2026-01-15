@@ -682,9 +682,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def member(self, request, *args, **kwargs):
         group = self.get_object()
 
-        cls = group.get_related_module()
-        module = cls(group, request.user)
-        queryset = module.members()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.members()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -772,9 +772,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def project(self, request, *args, **kwargs):
         group = self.get_object()
-        cls = group.get_related_module()
-        module = cls(group, request.user)
-        queryset = module.featured_projects()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.featured_projects()
 
         page = self.paginate_queryset(queryset)
         if page is not None:

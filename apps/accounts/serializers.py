@@ -16,7 +16,7 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
-from apps.commons.serializers import StringsImagesSerializer
+from apps.commons.serializers import ModulesSerializers, StringsImagesSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -237,16 +237,6 @@ class PeopleGroupSuperLightSerializer(
         fields = read_only_fields
 
 
-class ModulesSerializers(serializers.ModelSerializer):
-    modules = serializers.SerializerMethodField()
-
-    def get_modules(self, instance):
-        request = self.context.get("request")
-
-        cls = instance.get_related_module()
-        return cls(instance, user=request.user).count()
-
-
 class PeopleGroupLightSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
@@ -260,6 +250,7 @@ class PeopleGroupLightSerializer(
     )
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
+    # TODO(remi): replace this by modules
     def get_members_count(self, group: PeopleGroup) -> int:
         return group.get_all_members().count()
 
