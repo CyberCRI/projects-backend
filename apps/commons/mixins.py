@@ -408,3 +408,12 @@ class HasMultipleIDs:
             if self.get_id_field_name(slug) != "slug":
                 slug = f"{self.slug_prefix}-{slug}"
         return slug
+
+
+class HasModulesRelated:
+    """Mixins for related modules class"""
+
+    def get_related_module(self):
+        from apps.modules.base import get_module
+
+        return get_module(type(self))

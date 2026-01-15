@@ -16,7 +16,7 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
-from apps.commons.serializers import StringsImagesSerializer
+from apps.commons.serializers import ModulesSerializers, StringsImagesSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -250,6 +250,7 @@ class PeopleGroupLightSerializer(
     )
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
+    # TODO(remi): replace this by modules
     def get_members_count(self, group: PeopleGroup) -> int:
         return group.get_all_members().count()
 
@@ -402,7 +403,10 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class PeopleGroupSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers,
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
 
     string_images_forbid_fields: List[str] = [
@@ -527,7 +531,7 @@ class PeopleGroupSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root", "slug"]
+        read_only_fields = ["is_root", "slug", "modules"]
         fields = read_only_fields + [
             "id",
             "name",
