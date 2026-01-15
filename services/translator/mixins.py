@@ -21,16 +21,16 @@ class TranslatedModelMeta(models.base.ModelBase):
     """
 
     def __new__(cls, name, bases, attrs):
-        for field in attrs.get("_auto_translated_fields", []):
+        for field in attrs.get("auto_translated_fields", []):
             field_type, field = (
                 field.split(":", 1) if ":" in field else ("plain", field)
             )
-            attrs["auto_translated_fields"] = attrs.get(
-                "auto_translated_fields", []
+            attrs["_auto_translated_fields"] = attrs.get(
+                "_auto_translated_fields", []
             ) + [field]
             if field_type == "html":
-                attrs["html_auto_translated_fields"] = attrs.get(
-                    "html_auto_translated_fields", []
+                attrs["_html_auto_translated_fields"] = attrs.get(
+                    "_html_auto_translated_fields", []
                 ) + [field]
             base_field = attrs[field]
             attrs[f"{field}_detected_language"] = models.CharField(
@@ -56,7 +56,8 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
 
     Models based on this mixin must implement the following attribute:
     - `auto_translated_fields`: A list of field names that should be automatically
-      translated.
+      translated. If a field is of type HTML, it should be suffixed with `:html`
+      Example: autotrans_set_in_class: List[str] = ["title", "html:content"]
 
     When the model is saved, it will check if any of the translated fields
     have changed. If they have, it will create or update an `AutoTranslatedField`
@@ -64,15 +65,17 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     to know that the translations need to be updated.
     """
 
-    _auto_translated_fields: List[str] = []
     auto_translated_fields: List[str] = []
-    html_auto_translated_fields: List[str] = []
+
+    _auto_translated_fields: List[str] = []
+    _html_auto_translated_fields: List[str] = []
     _original_auto_translated_fields_values: Dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._original_auto_translated_fields_values = {
-            field: self.__dict__.get(field, "") for field in self.auto_translated_fields
+            field: self.__dict__.get(field, "")
+            for field in self._auto_translated_fields
         }
 
     def update_translated_fields(self, force_update: bool = True):
@@ -88,7 +91,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
                 have not changed. Defaults to True.
         """
         content_type = ContentType.objects.get_for_model(self.__class__)
-        for field in self._auto_translated_fields:
+        for field in self.auto_translated_fields:
             field_type, field = (
                 field.split(":", 1)
                 if ":" in field

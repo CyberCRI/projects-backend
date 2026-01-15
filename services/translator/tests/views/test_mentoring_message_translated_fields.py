@@ -40,11 +40,12 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=message.id
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(MentoringMessage.auto_translated_fields)
+            auto_translated_fields.count(),
+            len(MentoringMessage._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(MentoringMessage.auto_translated_fields),
+            set(MentoringMessage._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)

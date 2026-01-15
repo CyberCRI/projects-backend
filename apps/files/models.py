@@ -83,7 +83,7 @@ class AttachmentLink(
     A link that is attached to a project.
     """
 
-    _auto_translated_fields: list[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="links"
@@ -147,7 +147,7 @@ class OrganizationAttachmentFile(
     An attachment file that is related to an organization.
     """
 
-    _auto_translated_fields: list[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     organization = models.ForeignKey(
         "organizations.Organization",
@@ -178,7 +178,7 @@ class AttachmentFile(
     An attachment file that is related to a project.
     """
 
-    _auto_translated_fields: list[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     project = models.ForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="files"
@@ -439,7 +439,7 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
     An attachment file that is related to a project.
     """
 
-    _auto_translated_fields: list[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     owner = models.ForeignKey(
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="files"
@@ -465,7 +465,7 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
     A link that is attached to a project.
     """
 
-    _auto_translated_fields: list[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     owner = models.ForeignKey(
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="links"

@@ -42,11 +42,11 @@ class InstructionTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Instruction.auto_translated_fields)
+            auto_translated_fields.count(), len(Instruction._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(Instruction.auto_translated_fields),
+            set(Instruction._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -60,7 +60,7 @@ class InstructionTranslatedFieldsTestCase(JwtAPITestCase):
 
         # Update one translated field
         payload = {
-            Instruction.auto_translated_fields[0]: faker.word(),
+            Instruction._auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse(
@@ -73,7 +73,7 @@ class InstructionTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=instruction.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Instruction.auto_translated_fields)
+            auto_translated_fields.count(), len(Instruction._auto_translated_fields)
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -84,7 +84,7 @@ class InstructionTranslatedFieldsTestCase(JwtAPITestCase):
         # Update all translated fields
         payload = {
             translated_field: faker.word()
-            for translated_field in Instruction.auto_translated_fields
+            for translated_field in Instruction._auto_translated_fields
         }
         response = self.client.patch(
             reverse(
@@ -97,11 +97,11 @@ class InstructionTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=instruction.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Instruction.auto_translated_fields)
+            auto_translated_fields.count(), len(Instruction._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(Instruction.auto_translated_fields),
+            set(Instruction._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
