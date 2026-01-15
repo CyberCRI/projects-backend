@@ -39,11 +39,11 @@ class GoalTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Goal.auto_translated_fields)
+            auto_translated_fields.count(), len(Goal._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(Goal.auto_translated_fields),
+            set(Goal._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -57,7 +57,7 @@ class GoalTranslatedFieldsTestCase(JwtAPITestCase):
 
         # Update one translated field
         payload = {
-            Goal.auto_translated_fields[0]: faker.word(),
+            Goal._auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse("Goal-detail", args=(self.project.id, goal.pk)),
@@ -68,7 +68,7 @@ class GoalTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=goal.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Goal.auto_translated_fields)
+            auto_translated_fields.count(), len(Goal._auto_translated_fields)
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -79,7 +79,7 @@ class GoalTranslatedFieldsTestCase(JwtAPITestCase):
         # Update all translated fields
         payload = {
             translated_field: faker.word()
-            for translated_field in Goal.auto_translated_fields
+            for translated_field in Goal._auto_translated_fields
         }
         response = self.client.patch(
             reverse("Goal-detail", args=(self.project.id, goal.pk)),
@@ -90,11 +90,11 @@ class GoalTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=goal.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Goal.auto_translated_fields)
+            auto_translated_fields.count(), len(Goal._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(Goal.auto_translated_fields),
+            set(Goal._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:

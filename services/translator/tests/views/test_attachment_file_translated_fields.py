@@ -49,11 +49,11 @@ class AttachmentFileTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(AttachmentFile.auto_translated_fields)
+            auto_translated_fields.count(), len(AttachmentFile._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(AttachmentFile.auto_translated_fields),
+            set(AttachmentFile._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -67,7 +67,7 @@ class AttachmentFileTranslatedFieldsTestCase(JwtAPITestCase):
 
         payload = {
             translated_field: faker.word()
-            for translated_field in AttachmentFile.auto_translated_fields
+            for translated_field in AttachmentFile._auto_translated_fields
         }
         response = self.client.patch(
             reverse("AttachmentFile-detail", args=(self.project.id, file.pk)),
@@ -79,11 +79,11 @@ class AttachmentFileTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=file.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(AttachmentFile.auto_translated_fields)
+            auto_translated_fields.count(), len(AttachmentFile._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(AttachmentFile.auto_translated_fields),
+            set(AttachmentFile._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:

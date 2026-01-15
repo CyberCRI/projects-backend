@@ -40,11 +40,11 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
         )
         self.assertEqual(
             auto_translated_fields.count(),
-            len(TagClassification.auto_translated_fields),
+            len(TagClassification._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(TagClassification.auto_translated_fields),
+            set(TagClassification._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -58,7 +58,7 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
 
         # Update one translated field
         payload = {
-            TagClassification.auto_translated_fields[0]: faker.word(),
+            TagClassification._auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse(
@@ -73,7 +73,7 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
         )
         self.assertEqual(
             auto_translated_fields.count(),
-            len(TagClassification.auto_translated_fields),
+            len(TagClassification._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -84,7 +84,7 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
         # Update all translated fields
         payload = {
             translated_field: faker.word()
-            for translated_field in TagClassification.auto_translated_fields
+            for translated_field in TagClassification._auto_translated_fields
         }
         response = self.client.patch(
             reverse(
@@ -99,11 +99,11 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
         )
         self.assertEqual(
             auto_translated_fields.count(),
-            len(TagClassification.auto_translated_fields),
+            len(TagClassification._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(TagClassification.auto_translated_fields),
+            set(TagClassification._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
