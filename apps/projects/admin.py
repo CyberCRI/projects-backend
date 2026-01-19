@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.db.models import QuerySet
 from import_export.admin import ExportActionMixin  # type: ignore
 
-from apps.commons.admin import RoleBasedAccessAdmin
+from apps.commons.admin import RoleBasedAccessAdmin, TranslateObjectAdminMixin
 from apps.organizations.models import Organization
 
 from .exports import BlogEntryResource, ProjectResource
@@ -10,7 +10,7 @@ from .models import BlogEntry, Project
 
 
 @admin.register(Project)
-class ProjectAdmin(ExportActionMixin, RoleBasedAccessAdmin):
+class ProjectAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin):
     resource_classes = [ProjectResource, BlogEntryResource]
 
     def get_queryset_for_organizations(
@@ -42,7 +42,9 @@ class ProjectAdmin(ExportActionMixin, RoleBasedAccessAdmin):
 
 
 @admin.register(BlogEntry)
-class BlogEntryAdmin(ExportActionMixin, RoleBasedAccessAdmin):
+class BlogEntryAdmin(
+    TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin
+):
     resource_classes = [BlogEntryResource]
 
     def get_queryset_for_organizations(

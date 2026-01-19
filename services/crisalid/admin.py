@@ -7,6 +7,7 @@ from django.db.models.query import QuerySet
 from django.http.request import HttpRequest
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.commons.admin import TranslateObjectAdminMixin
 from services.crisalid.manager import CrisalidQuerySet
 from services.crisalid.tasks import vectorize_documents
 
@@ -20,7 +21,7 @@ from .models import (
 )
 
 
-class IdentifierAminMixins:
+class IdentifierAminMixin:
     @admin.display(description="identifiers count", ordering="identifiers_count")
     def get_identifiers(self, instance):
         # list all harvester name from this profile
@@ -60,7 +61,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
 
 
 @admin.register(Document)
-class DocumentAdmin(IdentifierAminMixins, admin.ModelAdmin):
+class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAminMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",
@@ -106,7 +107,7 @@ class DocumentAdmin(IdentifierAminMixins, admin.ModelAdmin):
 
 
 @admin.register(Researcher)
-class ResearcherAdmin(IdentifierAminMixins, admin.ModelAdmin):
+class ResearcherAdmin(IdentifierAminMixin, admin.ModelAdmin):
     list_display = (
         "given_name",
         "family_name",
@@ -199,7 +200,7 @@ class ResearcherAdmin(IdentifierAminMixins, admin.ModelAdmin):
 
 
 @admin.register(Structure)
-class StructureAdmin(IdentifierAminMixins, admin.ModelAdmin):
+class StructureAdmin(IdentifierAminMixin, admin.ModelAdmin):
     list_display = (
         "acronym",
         "name",

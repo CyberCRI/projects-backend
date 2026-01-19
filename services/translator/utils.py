@@ -1,5 +1,4 @@
 import re
-from typing import List, Union
 
 from bs4 import BeautifulSoup
 
@@ -13,7 +12,7 @@ AZURE_MAX_LENGTH = 50000
 
 def split_content(
     content: str, max_length: int, text_type: str = "plain"
-) -> Union[List[str], List[BeautifulSoup]]:
+) -> list[str] | list[BeautifulSoup]:
     """
     Split content into chunks of max_length, trying to split at html tags.
 
@@ -59,9 +58,8 @@ def update_auto_translated_field(field: AutoTranslatedField):
     organizations = [
         o for o in instance.get_related_organizations() if o.auto_translate_content
     ]
-    languages = list(
-        dict.fromkeys([lang for org in organizations for lang in org.languages])
-    )
+    # iter over languages in set (remove duplicate language)
+    languages: set[str] = {lang for org in organizations for lang in org.languages}
     if languages:
         base_max_length = AZURE_MAX_LENGTH * 0.8  # Safety margin
         max_length = int(base_max_length // len(languages))
