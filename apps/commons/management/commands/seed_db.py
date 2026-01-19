@@ -176,9 +176,9 @@ class Command(BaseCommand):
         # Create the tags and classifications
         tags = [TagFactory(organization=organization) for _ in range(60)]
         # expected by e2e frontend tests
-        tags[0].title = 'Biology'
-        tags[0].title_en = 'Biology'
-        tags[0].title_fr = 'Biologie'
+        tags[0].title = "Biology"
+        tags[0].title_en = "Biology"
+        tags[0].title_fr = "Biologie"
         for i in range(3):
             TagClassificationFactory(
                 organization=organization, tags=tags[i * 20 : (i + 1) * 20]
