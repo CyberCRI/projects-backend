@@ -1,9 +1,12 @@
+from functools import cached_property
+
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.modules.base import AbstractModules, register_module
 from apps.projects.models import Project
 from apps.skills.models import Skill
+from services.crisalid.models import Document, DocumentTypeCentralized
 
 
 @register_module(PeopleGroup)
@@ -55,3 +58,28 @@ class PeopleGroupModules(AbstractModules):
             .order_by("-is_featured", "-is_group_project")
             .prefetch_related("categories")
         )
+
+    @cached_property
+    def _is_structure(self):
+        try:
+            return self.instance.structure
+        # TODO
+        except Exception:
+            pass
+
+    def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
+        # structure = self._is_structure
+        # if not structure:
+        #     return Document.objects.none()
+
+        members_qs = self.members()
+        return Document.objects.filter(
+            document_type__in=documents_type,
+            contributors__user__in=members_qs,
+        ).distinct()
+
+    def publications(self) -> QuerySet[Document]:
+        return self._documents(DocumentTypeCentralized.publications)
+
+    def conferences(self) -> QuerySet[Document]:
+        return self._documents(DocumentTypeCentralized.conferences)

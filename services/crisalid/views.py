@@ -2,6 +2,7 @@ from collections import Counter
 from http import HTTPMethod
 from itertools import chain
 
+from annotated_types import doc
 from django.db.models import Count, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
@@ -15,7 +16,7 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.views import NestedOrganizationViewMixins
+from apps.commons.views import NestedOrganizationViewMixins, NestedPeopleGroupViewMixins
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,
@@ -83,12 +84,24 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
 )
 class AbstractDocumentViewSet(
     NestedOrganizationViewMixins,
-    NestedResearcherViewMixins,
     viewsets.ReadOnlyModelViewSet,
 ):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
+
+    def filter_roles(self, queryset, roles_enabled=True):
+        # filter only by roles (author, co-authors ...ect)
+        roles = [
+            r.strip()
+            for r in self.request.query_params.get("roles", "").split(",")
+            if r.strip()
+        ]
+        if roles and roles_enabled:
+            queryset = queryset.filter(
+                documentcontributor__roles__contains=roles,
+            )
+        return queryset
 
     def filter_queryset(
         self,
@@ -102,17 +115,7 @@ class AbstractDocumentViewSet(
         if year and year_enabled:
             qs = qs.filter(publication_date__year=year)
 
-        # filter only by roles (author, co-authors ...ect)
-        roles = [
-            r.strip()
-            for r in self.request.query_params.get("roles", "").split(",")
-            if r.strip()
-        ]
-        if roles and roles_enabled:
-            qs = qs.filter(
-                documentcontributor__roles__contains=roles,
-                documentcontributor__researcher=self.researcher,
-            )
+        qs = self.filter_roles(qs, roles_enabled)
 
         # filter by pblication_type
         if "document_type" in self.request.query_params and document_type_enabled:
@@ -123,7 +126,6 @@ class AbstractDocumentViewSet(
     def get_queryset(self) -> QuerySet[Document]:
         return (
             Document.objects.filter(
-                contributors=self.researcher,
                 document_type__in=self.document_types,
             )
             .prefetch_related("identifiers", "contributors__user")
@@ -146,15 +148,7 @@ class AbstractDocumentViewSet(
         )
         return self.get_paginated_response(data.data)
 
-    @action(
-        detail=False,
-        methods=[HTTPMethod.GET],
-        url_path="analytics",
-        serializer_class=DocumentAnalyticsSerializer,
-    )
-    def analytics(self, request, *args, **kwargs):
-        """methods to return analytics (how many documents/by year / by document_type) from researcher"""
-
+    def get_analytics(self):
         qs = self.get_queryset()
 
         # get counted all document_types types
@@ -184,10 +178,22 @@ class AbstractDocumentViewSet(
             chain(
                 *DocumentContributor.objects.filter(
                     document__in=self.filter_queryset(qs, roles_enabled=False),
-                    researcher=self.researcher,
                 ).values_list("roles", flat=True)
             )
         )
+
+        return document_types, years, roles
+
+    @action(
+        detail=False,
+        methods=[HTTPMethod.GET],
+        url_path="analytics",
+        serializer_class=DocumentAnalyticsSerializer,
+    )
+    def analytics(self, request, *args, **kwargs):
+        """methods to return analytics (how many documents/by year / by document_type) from researcher"""
+
+        document_types, years, roles = self.get_analytics()
 
         return JsonResponse(
             self.serializer_class(
@@ -200,11 +206,66 @@ class AbstractDocumentViewSet(
         )
 
 
-class PublicationViewSet(AbstractDocumentViewSet):
+class AbstractGroupDocumentViewSet(
+    NestedPeopleGroupViewMixins, AbstractDocumentViewSet
+):
+    def get_queryset(self):
+        modules_manager = self.people_group.get_related_module()
+        modules = modules_manager(self.people_group, self.request.user)
+        return getattr(modules, self.document_name)()
+
+
+class AbstractResearcherDocumentViewSet(
+    NestedResearcherViewMixins, AbstractDocumentViewSet
+):
+
+    def filter_roles(self, queryset, roles_enabled=True):
+        # filter only by roles (author, co-authors ...ect)
+        roles = [
+            r.strip()
+            for r in self.request.query_params.get("roles", "").split(",")
+            if r.strip()
+        ]
+        if roles and roles_enabled:
+            queryset = queryset.filter(
+                documentcontributor__roles__contains=roles,
+                documentcontributor__research=self.researcher,
+            )
+        return queryset
+
+    def get_analytics(self):
+        document_types, years, _ = super().get_analytics()
+        qs = self.get_queryset()
+        roles = Counter(
+            chain(
+                *DocumentContributor.objects.filter(
+                    document__in=self.filter_queryset(qs, roles_enabled=False),
+                    researcher=self.researcher,
+                ).values_list("roles", flat=True)
+            )
+        )
+
+        return (document_types, years, roles)
+
+    def get_queryset(self) -> QuerySet[Document]:
+        return super().get_queryset().filter(contributors=self.researcher)
+
+
+class GroupPublicationViewSet(AbstractGroupDocumentViewSet):
+    document_name = "publications"
     document_types = DocumentTypeCentralized.publications
 
 
-class ConferenceViewSet(AbstractDocumentViewSet):
+class GroupConferenceViewSet(AbstractGroupDocumentViewSet):
+    document_name = "conferences"
+    document_types = DocumentTypeCentralized.conferences
+
+
+class PublicationViewSet(AbstractResearcherDocumentViewSet):
+    document_types = DocumentTypeCentralized.publications
+
+
+class ConferenceViewSet(AbstractResearcherDocumentViewSet):
     document_types = DocumentTypeCentralized.conferences
 
 

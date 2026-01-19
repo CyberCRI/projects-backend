@@ -305,6 +305,9 @@ class Structure(OrganizationRelated, CrisalidDataModel):
         related_name="structures",
     )
     objects = CrisalidQuerySet.as_manager()
+    group = models.OneToOneField(
+        "accounts.PeopleGroup", on_delete=models.SET_NULL, related_name="structure"
+    )
 
     def __str__(self):
         return self.name
