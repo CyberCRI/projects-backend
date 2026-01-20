@@ -40,11 +40,11 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectTab.auto_translated_fields)
+            auto_translated_fields.count(), len(ProjectTab._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(ProjectTab.auto_translated_fields),
+            set(ProjectTab._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -58,7 +58,7 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
 
         # Update one translated field
         payload = {
-            ProjectTab.auto_translated_fields[0]: faker.word(),
+            ProjectTab._auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse("ProjectTab-detail", args=(self.project.id, project_tab.pk)),
@@ -69,7 +69,7 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=project_tab.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectTab.auto_translated_fields)
+            auto_translated_fields.count(), len(ProjectTab._auto_translated_fields)
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -80,7 +80,7 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
         # Update all translated fields
         payload = {
             translated_field: faker.word()
-            for translated_field in ProjectTab.auto_translated_fields
+            for translated_field in ProjectTab._auto_translated_fields
         }
         response = self.client.patch(
             reverse("ProjectTab-detail", args=(self.project.id, project_tab.pk)),
@@ -91,11 +91,11 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=project_tab.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectTab.auto_translated_fields)
+            auto_translated_fields.count(), len(ProjectTab._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(ProjectTab.auto_translated_fields),
+            set(ProjectTab._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:

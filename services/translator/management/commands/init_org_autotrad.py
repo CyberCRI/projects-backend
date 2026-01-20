@@ -24,7 +24,7 @@ class Command(BaseCommand):
 
     def init_autotranslated_fields(self, queryset: QuerySet[T]):
         content_type = ContentType.objects.get_for_model(queryset.model)
-        translated_fields = queryset.model.auto_translated_fields
+        translated_fields = queryset.model._auto_translated_fields
         initial_count = AutoTranslatedField.objects.count()
         AutoTranslatedField.objects.bulk_create(
             [

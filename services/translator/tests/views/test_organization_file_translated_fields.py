@@ -47,11 +47,11 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         )
         self.assertEqual(
             auto_translated_fields.count(),
-            len(OrganizationAttachmentFile.auto_translated_fields),
+            len(OrganizationAttachmentFile._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(OrganizationAttachmentFile.auto_translated_fields),
+            set(OrganizationAttachmentFile._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -67,7 +67,7 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
 
         # Update one translated field
         payload = {
-            OrganizationAttachmentFile.auto_translated_fields[0]: faker.word(),
+            OrganizationAttachmentFile._auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse(
@@ -83,7 +83,7 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         )
         self.assertEqual(
             auto_translated_fields.count(),
-            len(OrganizationAttachmentFile.auto_translated_fields),
+            len(OrganizationAttachmentFile._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -94,7 +94,7 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         # Update all translated fields
         payload = {
             translated_field: faker.word()
-            for translated_field in OrganizationAttachmentFile.auto_translated_fields
+            for translated_field in OrganizationAttachmentFile._auto_translated_fields
         }
         response = self.client.patch(
             reverse(
@@ -110,11 +110,11 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         )
         self.assertEqual(
             auto_translated_fields.count(),
-            len(OrganizationAttachmentFile.auto_translated_fields),
+            len(OrganizationAttachmentFile._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(OrganizationAttachmentFile.auto_translated_fields),
+            set(OrganizationAttachmentFile._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:

@@ -16,10 +16,10 @@ class Command(BaseCommand):
     def init_autotranslated_fields(self, queryset: QuerySet[T]):
         """
         Create AutoTranslatedField entries for new fields marked for
-        auto-translation in the model's `auto_translated_fields`.
+        auto-translation in the model's `_auto_translated_fields`.
         """
         content_type = ContentType.objects.get_for_model(queryset.model)
-        translated_fields = queryset.model.auto_translated_fields
+        translated_fields = queryset.model._auto_translated_fields
         initial_count = AutoTranslatedField.objects.count()
         AutoTranslatedField.objects.bulk_create(
             [
@@ -45,11 +45,11 @@ class Command(BaseCommand):
     def delete_autotranslated_fields(self, queryset: QuerySet[T]):
         """
         Delete AutoTranslatedField entries for fields that are no longer
-        marked for auto-translation in the model's `auto_translated_fields`.
+        marked for auto-translation in the model's `_auto_translated_fields`.
         """
         model = queryset.model
         content_type = ContentType.objects.get_for_model(model)
-        translated_fields = model.auto_translated_fields
+        translated_fields = model._auto_translated_fields
         initial_count = AutoTranslatedField.objects.count()
         AutoTranslatedField.objects.filter(content_type=content_type).exclude(
             field_name__in=translated_fields

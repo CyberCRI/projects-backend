@@ -19,7 +19,7 @@ class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.
     A link that allows a user to join an organization.
     """
 
-    _auto_translated_fields: List[str] = ["description"]
+    auto_translated_fields: List[str] = ["description"]
 
     organization = models.ForeignKey(
         "organizations.Organization", on_delete=models.CASCADE
@@ -54,7 +54,7 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     It can be created by an existing user or by a new user.
     """
 
-    _auto_translated_fields: List[str] = ["message"]
+    auto_translated_fields: List[str] = ["message"]
 
     class Status(models.TextChoices):
         PENDING = "pending"
