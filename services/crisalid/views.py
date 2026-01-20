@@ -17,6 +17,7 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 
 from apps.commons.views import NestedOrganizationViewMixins, NestedPeopleGroupViewMixins
+from apps.organizations.models import Organization
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,
@@ -83,7 +84,6 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
     ),
 )
 class AbstractDocumentViewSet(
-    NestedOrganizationViewMixins,
     viewsets.ReadOnlyModelViewSet,
 ):
     """Abstract class to get documents info from documents types"""
@@ -206,6 +206,17 @@ class AbstractDocumentViewSet(
         )
 
 
+class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
+    """general viewset documents"""
+
+    def get_queryset(self) -> QuerySet[Document]:
+        return (
+            Document.objects.all()
+            .prefetch_related("identifiers", "contributors__user")
+            .order_by("-publication_date")
+        )
+
+
 class AbstractGroupDocumentViewSet(
     NestedPeopleGroupViewMixins, AbstractDocumentViewSet
 ):
@@ -216,7 +227,7 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
-    NestedResearcherViewMixins, AbstractDocumentViewSet
+    NestedOrganizationViewMixins, NestedResearcherViewMixins, AbstractDocumentViewSet
 ):
 
     def filter_roles(self, queryset, roles_enabled=True):
