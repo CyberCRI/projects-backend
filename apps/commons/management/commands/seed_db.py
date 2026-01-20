@@ -175,10 +175,6 @@ class Command(BaseCommand):
 
         # Create the tags and classifications
         tags = [TagFactory(organization=organization) for _ in range(60)]
-        # expected by e2e frontend tests
-        tags[0].title = "Biology"
-        tags[0].title_en = "Biology"
-        tags[0].title_fr = "Biologie"
         for i in range(3):
             TagClassificationFactory(
                 organization=organization, tags=tags[i * 20 : (i + 1) * 20]
@@ -273,3 +269,20 @@ class Command(BaseCommand):
                 project=project, author=random.choice([owner] + members)  # nosec B311
             )
         self.stdout.write(self.style.SUCCESS("Project related items created."))
+
+        # expected by e2e frontend tests
+        e2e_tag = TagFactory(
+            organization=organization,
+            title="Biology",
+            title_en="Biology",
+            title_fr="Biologie",
+            description="Biology",
+            description_en="Biology",
+            description_fr="Biologie",
+        )
+        e2e_classification = TagClassificationFactory(
+            organization=organization, tags=[e2e_tag]
+        )
+        organization.enabled_projects_tag_classifications.add(e2e_classification)
+        organization.enabled_skills_tag_classifications.add(e2e_classification)
+        self.stdout.write(self.style.SUCCESS("E2E frontend test tag created."))
