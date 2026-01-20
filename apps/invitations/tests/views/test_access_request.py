@@ -478,10 +478,53 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
             {"email": ["A user with this email already exists"]},
         )
 
+    def test_create_access_request_existing_user_case_insensitive(self):
+        email = faker.email().lower()
+        upper_email = email.upper()
+
+        UserFactory(email=email)
+        payload = {
+            "email": upper_email,
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+            "job": faker.sentence(),
+            "message": faker.text(),
+        }
+        response = self.client.post(
+            reverse("AccessRequest-list", args=(self.organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"email": ["A user with this email already exists"]},
+        )
+
     def test_create_duplicate_access_request_anonymous(self):
         access_request = AccessRequestFactory(organization=self.organization)
         payload = {
             "email": access_request.email,
+            "given_name": faker.first_name(),
+            "family_name": faker.last_name(),
+            "job": faker.sentence(),
+            "message": faker.text(),
+        }
+        response = self.client.post(
+            reverse("AccessRequest-list", args=(self.organization.code,)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertApiValidationError(
+            response,
+            {"email": ["An access request for this email already exists"]},
+        )
+
+    def test_create_duplicate_access_request_anonymous_case_insensitive(self):
+        email = faker.email().lower()
+        upper_email = email.upper()
+        AccessRequestFactory(organization=self.organization, email=email)
+        payload = {
+            "email": upper_email,
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "job": faker.sentence(),
