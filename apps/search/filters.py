@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from django.db.models import BigIntegerField, Case, F, JSONField, Q, Value, When
 from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter

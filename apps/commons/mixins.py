@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Self, Tuple
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -423,8 +423,8 @@ class HasModulesRelated:
 class HasEmbending:
     def vectorize(self):
         if not getattr(self, "embedding", None):
-            model_embending = type(self).embedding.related.model
-            self.embedding = model_embending(item=self)
+            model_embedding = type(self.embedding)
+            self.embedding = model_embedding(item=self)
             self.embedding.save()
         self.embedding.vectorize()
 
@@ -432,9 +432,9 @@ class HasEmbending:
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
-            model_embending = type(self).embedding.related.model
+            model_embedding = type(self.embedding)
             queryset = type(self).objects.all()
-            return model_embending.vector_search(vector, queryset, threshold).exclude(
+            return model_embedding.vector_search(vector, queryset, threshold).exclude(
                 pk=self.pk
             )
         return type(self).objects.all()

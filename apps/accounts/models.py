@@ -2,7 +2,7 @@ import math
 import uuid
 from datetime import date
 from functools import cached_property
-from typing import Any, List, Optional, Union
+from typing import Any, Optional
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -35,11 +35,15 @@ from apps.commons.mixins import (
 from apps.commons.models import GroupData
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
-from apps.projects.models import Project
+from apps.projects.models import AbstractLocation, Project
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 from services.translator.mixins import HasAutoTranslatedFields
+
+
+class PeopleGroupLocation(AbstractLocation):
+    """base location for group"""
 
 
 class PeopleGroup(
@@ -149,7 +153,13 @@ class PeopleGroup(
     permissions_up_to_date = models.BooleanField(default=False)
 
     tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
-    # address
+    location = models.ForeignKey(
+        PeopleGroupLocation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="people_groups",
+    )
     # links
 
     def __str__(self) -> str:

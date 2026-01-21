@@ -2,7 +2,6 @@ from collections import Counter
 from http import HTTPMethod
 from itertools import chain
 
-from annotated_types import doc
 from django.db.models import Count, QuerySet
 from django.db.models.functions import ExtractYear
 from django.http import JsonResponse
@@ -17,7 +16,6 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 
 from apps.commons.views import NestedOrganizationViewMixins, NestedPeopleGroupViewMixins
-from apps.organizations.models import Organization
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,

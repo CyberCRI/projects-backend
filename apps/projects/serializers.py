@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from django.apps import apps
 from django.conf import settings
@@ -18,6 +18,7 @@ from apps.commons.fields import (
 )
 from apps.commons.models import GroupData
 from apps.commons.serializers import (
+    BaseLocationSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     StringsImagesSerializer,
@@ -182,11 +183,8 @@ class LocationProjectSerializer(
 
 
 class LocationSerializer(
-    StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
-    serializers.ModelSerializer,
+    BaseLocationSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
 
@@ -208,12 +206,6 @@ class LocationSerializer(
             # write_only
             "project_id",
         ]
-
-    def get_related_organizations(self) -> list[Organization]:
-        """Retrieve the related organizations"""
-        if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
 
     def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""

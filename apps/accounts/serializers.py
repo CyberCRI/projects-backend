@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
@@ -16,7 +16,11 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
-from apps.commons.serializers import ModulesSerializers, StringsImagesSerializer
+from apps.commons.serializers import (
+    BaseLocationSerializer,
+    ModulesSerializers,
+    StringsImagesSerializer,
+)
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
@@ -37,7 +41,13 @@ from .exceptions import (
     UserRoleAssignmentError,
     UserRolePermissionDeniedError,
 )
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
+from .models import (
+    AnonymousUser,
+    PeopleGroup,
+    PeopleGroupLocation,
+    PrivacySettings,
+    ProjectUser,
+)
 from .utils import get_default_group, get_instance_from_group
 
 
@@ -224,6 +234,11 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
             skills = Skill.objects.filter(id__in=user.can_mentor_on)
             return SkillLightSerializer(skills, many=True).data
         return []
+
+
+class PeopleGroupLocationSerializer(BaseLocationSerializer):
+    class Meta(BaseLocationSerializer.Meta):
+        model = PeopleGroupLocation
 
 
 class PeopleGroupSuperLightSerializer(
@@ -437,6 +452,7 @@ class PeopleGroupSerializer(
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
     tags = TagSerializer(many=True)
+    location = PeopleGroupLocationSerializer()
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -546,6 +562,7 @@ class PeopleGroupSerializer(
             "roles",
             "sdgs",
             "tags",
+            "location",
             "publication_status",
             "team",
             "featured_projects",
