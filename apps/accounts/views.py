@@ -803,6 +803,22 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="similars",
+        permission_classes=[ReadOnly],
+    )
+    def similars(self, request, *args, **kwargs):
+        obj: PeopleGroup = self.get_object()
+        queryset = obj.similars()
+
+        queryset_page = self.paginate_queryset(queryset)
+        data = self.serializer_class(
+            queryset_page, many=True, context={"request": request}
+        )
+        return self.get_paginated_response(data.data)
+
 
 @extend_schema(
     parameters=[OpenApiParameter("people_group_id", str, OpenApiParameter.PATH)]

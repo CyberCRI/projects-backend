@@ -15,8 +15,8 @@ from .models import SearchObject
 
 def MultiMatchSearchFieldsFilter(  # noqa: N802
     index: str,
-    fields: Optional[List[str]],
-    highlight: Optional[List[str]] = None,
+    fields: list[str] | None,
+    highlight: list[str] | None = None,
     highlight_size: int = 150,
 ):
     class _MultiMatchSearchFieldsFilter(SearchFilter):

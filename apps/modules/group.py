@@ -59,6 +59,9 @@ class PeopleGroupModules(AbstractModules):
             .prefetch_related("categories")
         )
 
+    def similars(self) -> QuerySet[PeopleGroup]:
+        return self.instance.similars()
+
     @cached_property
     def _is_structure(self):
         try:

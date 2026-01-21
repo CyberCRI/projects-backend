@@ -25,6 +25,7 @@ from apps.accounts.utils import (
 )
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
+    HasEmbending,
     HasModulesRelated,
     HasMultipleIDs,
     HasOwner,
@@ -42,6 +43,7 @@ from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroup(
+    HasEmbending,
     HasModulesRelated,
     HasAutoTranslatedFields,
     HasMultipleIDs,
@@ -83,12 +85,12 @@ class PeopleGroup(
             The visibility setting of the group.
     """
 
-    _auto_translated_fields: List[str] = [
+    _auto_translated_fields: list[str] = [
         "name",
         "html:description",
         "short_description",
     ]
-    slugified_fields: List[str] = ["name"]
+    slugified_fields: list[str] = ["name"]
     slug_prefix: str = "group"
 
     class PublicationStatus(models.TextChoices):
@@ -146,6 +148,10 @@ class PeopleGroup(
     updated_at = models.DateTimeField(auto_now=True)
     permissions_up_to_date = models.BooleanField(default=False)
 
+    tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
+    # address
+    # links
+
     def __str__(self) -> str:
         return str(self.name)
 
@@ -158,7 +164,7 @@ class PeopleGroup(
         except ValueError:
             return "slug"
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization] if self.organization else []
 
@@ -267,23 +273,23 @@ class ProjectUser(
     """
 
     organization_query_string: str = "groups__organizations"
-    _auto_translated_fields: List[str] = [
+    _auto_translated_fields: list[str] = [
         "html:description",
         "short_description",
         "job",
     ]
-    slugified_fields: List[str] = ["given_name", "family_name"]
+    slugified_fields: list[str] = ["given_name", "family_name"]
     slug_prefix: str = "user"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._project_queryset: Optional[QuerySet["Project"]] = None
-        self._user_queryset: Optional[QuerySet["ProjectUser"]] = None
-        self._people_group_queryset: Optional[QuerySet["PeopleGroup"]] = None
-        self._news_queryset: Optional[QuerySet["News"]] = None
-        self._event_queryset: Optional[QuerySet["Event"]] = None
-        self._instruction_queryset: Optional[QuerySet["Instruction"]] = None
-        self._related_organizations: list["Organization"] = None
+        self._project_queryset: QuerySet[Project] | None = None
+        self._user_queryset: QuerySet[ProjectUser] | None = None
+        self._people_group_queryset: QuerySet[PeopleGroup] | None = None
+        self._news_queryset: QuerySet[News] | None = None
+        self._event_queryset: QuerySet[Event] | None = None
+        self._instruction_queryset: QuerySet[Instruction] | None = None
+        self._related_organizations: list[Organization] = None
 
     # AbstractUser unused fields
     username_validator = None
@@ -360,7 +366,7 @@ class ProjectUser(
         permissions = (("get_user_by_email", "Can retrieve a user by email"),)
 
     @property
-    def keycloak_id(self) -> Optional[uuid.UUID]:
+    def keycloak_id(self) -> uuid.UUID | None:
         if hasattr(self, "keycloak_account"):
             return str(self.keycloak_account.keycloak_id)
         return None
@@ -386,7 +392,7 @@ class ProjectUser(
         )
 
     @classmethod
-    def get_id_field_name(cls, object_id: Union[uuid.UUID, int, str]) -> str:
+    def get_id_field_name(cls, object_id: uuid.UUID | int | str) -> str:
         """Get the name of the field which contains the given ID."""
         try:
             uuid.UUID(object_id)
@@ -400,7 +406,7 @@ class ProjectUser(
 
     @classmethod
     def get_main_id(
-        cls, object_id: Union[uuid.UUID, int, str], returned_field: str = "id"
+        cls, object_id: uuid.UUID | int | str, returned_field: str = "id"
     ) -> Any:
         try:
             return super().get_main_id(object_id, returned_field)
@@ -472,7 +478,7 @@ class ProjectUser(
         """Get the owner of the object."""
         return self
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         if self._related_organizations is None:
             self._related_organizations = list(
@@ -680,7 +686,7 @@ class ProjectUser(
         """Whether the user can see the project."""
         return self.get_project_queryset().contains(project)
 
-    def get_permissions_representations(self) -> List[str]:
+    def get_permissions_representations(self) -> list[str]:
         """Return a list of the permissions representations."""
         groups_permissions = [
             get_group_permissions(group)
@@ -695,7 +701,7 @@ class ProjectUser(
         ]
         return list(set(groups_permissions))
 
-    def get_instance_permissions_representations(self) -> List[str]:
+    def get_instance_permissions_representations(self) -> list[str]:
         """Return a list of the instance permissions representations."""
         groups = self.groups.exclude(
             projects=None, people_groups=None, organizations=None
@@ -969,7 +975,7 @@ class AnonymousUser:
         """Return a list of the permissions representations."""
         return []
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return []
 

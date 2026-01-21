@@ -5,10 +5,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
 
-from apps.commons.mixins import OrganizationRelated
+from apps.commons.mixins import HasEmbending, OrganizationRelated
 from apps.organizations.models import Organization
 from services.crisalid import relators
-from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
 
 from .manager import CrisalidQuerySet, DocumentQuerySet
@@ -129,7 +128,9 @@ class DocumentContributor(models.Model):
         ]
 
 
-class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
+class Document(
+    HasEmbending, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
+):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
@@ -225,24 +226,6 @@ class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
                 return vals
         return [self.document_type]
 
-    def vectorize(self):
-        if not getattr(self, "embedding", None):
-            self.embedding = DocumentEmbedding(item=self)
-            self.embedding.save()
-        self.embedding.vectorize()
-
-    def similars(self, threshold: float = 0.15) -> DocumentQuerySet:
-        """return similars documents"""
-        if getattr(self, "embedding", None):
-            vector = self.embedding.embedding
-            queryset = Document.objects.all()
-            return (
-                DocumentEmbedding.vector_search(vector, queryset, threshold)
-                .filter(document_type__in=self.document_type_centralized)
-                .exclude(pk=self.pk)
-            )
-        return Document.objects.none()
-
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)
         # when we update models , re-calculate vectorize
@@ -305,8 +288,11 @@ class Structure(OrganizationRelated, CrisalidDataModel):
         related_name="structures",
     )
     objects = CrisalidQuerySet.as_manager()
-    group = models.OneToOneField(
-        "accounts.PeopleGroup", on_delete=models.SET_NULL, related_name="structure"
+    group = models.ForeignKey(
+        "accounts.PeopleGroup",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="structure",
     )
 
     def __str__(self):

@@ -23,7 +23,7 @@ from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer
+from apps.skills.serializers import SkillLightSerializer, TagSerializer
 from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -121,11 +121,11 @@ class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         ]
         fields = read_only_fields
 
-    def get_profile_picture(self, instance: ProjectUser) -> Optional[Dict[str, Any]]:
+    def get_profile_picture(self, instance: ProjectUser) -> dict[str, Any] | None:
         image = instance.profile_picture
         return ImageSerializer(image).data if image else None
 
-    def to_representation(self, instance: ProjectUser) -> Dict[str, Any]:
+    def to_representation(self, instance: ProjectUser) -> dict[str, Any]:
         request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
@@ -190,7 +190,7 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
             "current_org_role": None,
         }
 
-    def get_profile_picture(self, user: ProjectUser) -> Union[Dict, str]:
+    def get_profile_picture(self, user: ProjectUser) -> dict | str:
         if user.profile_picture is None:
             return None
         return ImageSerializer(user.profile_picture).data
@@ -210,16 +210,16 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
             queryset, many=True, context=self.context
         ).data
 
-    def get_skills(self, user: ProjectUser) -> List[Dict]:
+    def get_skills(self, user: ProjectUser) -> list[dict]:
         return SkillLightSerializer(user.skills.all(), many=True).data
 
-    def get_needs_mentor_on(self, user: ProjectUser) -> List[Dict]:
+    def get_needs_mentor_on(self, user: ProjectUser) -> list[dict]:
         if getattr(user, "needs_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.needs_mentor_on)
             return SkillLightSerializer(skills, many=True).data
         return []
 
-    def get_can_mentor_on(self, user: ProjectUser) -> List[Dict]:
+    def get_can_mentor_on(self, user: ProjectUser) -> list[dict]:
         if getattr(user, "can_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.can_mentor_on)
             return SkillLightSerializer(skills, many=True).data
@@ -296,9 +296,7 @@ class PeopleGroupHierarchySerializer(
         ]
         fields = read_only_fields
 
-    def get_children(
-        self, people_group: PeopleGroup
-    ) -> List[Dict[str, Union[str, int]]]:
+    def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
         mapping = context.get("mapping")
@@ -374,7 +372,7 @@ class PeopleGroupAddFeaturedProjectsSerializer(serializers.Serializer):
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
 
-    def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
+    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
             raise FeaturedProjectPermissionDeniedError
@@ -409,7 +407,7 @@ class PeopleGroupSerializer(
     serializers.ModelSerializer,
 ):
 
-    string_images_forbid_fields: List[str] = [
+    string_images_forbid_fields: list[str] = [
         "name",
         "description",
         "short_description",
@@ -438,8 +436,9 @@ class PeopleGroupSerializer(
     featured_projects = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
+    tags = TagSerializer(many=True)
 
-    def get_hierarchy(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
+    def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
         queryset = request.user.get_people_group_queryset()
         hierarchy = []
@@ -451,7 +450,7 @@ class PeopleGroupSerializer(
                 )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
-    def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
+    def get_children(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
         queryset = (
             request.user.get_people_group_queryset()
@@ -464,7 +463,7 @@ class PeopleGroupSerializer(
             queryset, many=True, context=self.context
         ).data
 
-    def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
+    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
             raise FeaturedProjectPermissionDeniedError
@@ -545,6 +544,8 @@ class PeopleGroupSerializer(
             "header_image",
             "logo_image",
             "roles",
+            "sdgs",
+            "tags",
             "publication_status",
             "team",
             "featured_projects",
@@ -555,7 +556,7 @@ class PeopleGroupSerializer(
 class UserSerializer(
     StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
-    string_images_forbid_fields: List[str] = [
+    string_images_forbid_fields: list[str] = [
         "description",
         "short_description",
         "job",
@@ -722,7 +723,7 @@ class UserSerializer(
         self,
         group: Group,
         request_user: ProjectUser,
-        instance: Optional[HasPermissionsSetup] = None,
+        instance: HasPermissionsSetup | None = None,
     ):
         instance = instance or get_instance_from_group(group)
         if not instance or (
@@ -749,7 +750,7 @@ class UserSerializer(
         ):
             raise UserRolePermissionDeniedError(group.name)
 
-    def validate_roles(self, groups: List[Group]) -> List[Group]:
+    def validate_roles(self, groups: list[Group]) -> list[Group]:
         request = self.context.get("request")
         user = request.user
         groups_to_add = (
@@ -795,13 +796,13 @@ class UserSerializer(
             )
         )
 
-    def get_permissions(self, user: ProjectUser) -> List[str]:
+    def get_permissions(self, user: ProjectUser) -> list[str]:
         return user.get_instance_permissions_representations()
 
-    def get_skills(self, user: ProjectUser) -> List[Dict]:
+    def get_skills(self, user: ProjectUser) -> list[dict]:
         return SkillLightSerializer(user.skills.all(), many=True).data
 
-    def get_profile_picture(self, user: ProjectUser) -> Optional[Dict]:
+    def get_profile_picture(self, user: ProjectUser) -> dict | None:
         if user.profile_picture is None:
             return None
         return ImageSerializer(user.profile_picture).data

@@ -8,6 +8,7 @@ from django.db.models import QuerySet
 from django.utils.html import strip_tags
 from pgvector.django import CosineDistance, VectorField
 
+from apps.accounts.models import PeopleGroup
 from apps.commons.models import GroupData
 from apps.projects.models import Project
 
@@ -451,6 +452,32 @@ class DocumentEmbedding(MistralEmbedding):
 
     def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
         prompt = [self.item.title, self.item.description, self.item.document_type]
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self
+
+
+class GroupEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "accounts.PeopleGroup", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    def get_fields(self) -> list[str]:
+        # TODO(remi): add more fields
+        return (
+            self.item.name,
+            self.item.description,
+        )
+
+    def get_is_visible(self) -> bool:
+        return any(self.get_fields())
+
+    def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
+        prompt = self.get_fields()
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:
             prompt = "\n\n".join(prompt)
