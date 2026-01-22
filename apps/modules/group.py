@@ -11,6 +11,8 @@ from services.crisalid.models import Document, DocumentTypeCentralized
 
 @register_module(PeopleGroup)
 class PeopleGroupModules(AbstractModules):
+    instance: PeopleGroup
+
     def members(self) -> QuerySet[ProjectUser]:
         managers_ids = self.instance.managers.all().values_list("id", flat=True)
         leaders_ids = self.instance.leaders.all().values_list("id", flat=True)
@@ -61,6 +63,9 @@ class PeopleGroupModules(AbstractModules):
 
     def similars(self) -> QuerySet[PeopleGroup]:
         return self.instance.similars()
+
+    def subgroups(self) -> QuerySet[PeopleGroup]:
+        return self.instance.children.all()
 
     @cached_property
     def _is_structure(self):

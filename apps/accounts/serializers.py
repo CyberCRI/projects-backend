@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
+from services.crisalid.serializers import ResearcherSerializerLight
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -28,8 +30,6 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer, TagSerializer
-from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -432,7 +432,7 @@ class PeopleGroupSerializer(
         slug_field="code", queryset=Organization.objects.all()
     )
     hierarchy = serializers.SerializerMethodField()
-    children = serializers.SerializerMethodField()
+    # children = serializers.SerializerMethodField()
     parent = serializers.PrimaryKeyRelatedField(
         queryset=PeopleGroup.objects.all(),
         required=False,
@@ -465,19 +465,6 @@ class PeopleGroupSerializer(
                     PeopleGroupSuperLightSerializer(obj, context=self.context).data
                 )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
-
-    def get_children(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
-        request = self.context.get("request")
-        queryset = (
-            request.user.get_people_group_queryset()
-            .select_related("organization")
-            .filter(parent=obj)
-            .order_by("name")
-            .distinct()
-        )
-        return PeopleGroupSuperLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
 
     def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
         request = self.context.get("request")
@@ -556,7 +543,6 @@ class PeopleGroupSerializer(
             "parent",
             "organization",
             "hierarchy",
-            "children",
             "header_image",
             "logo_image",
             "roles",

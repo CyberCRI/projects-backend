@@ -806,12 +806,32 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["GET"],
+        url_path="subgroups",
+        permission_classes=[ReadOnly],
+    )
+    def subgroups(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.subgroups()
+
+        queryset_page = self.paginate_queryset(queryset)
+        data = self.serializer_class(
+            queryset_page, many=True, context={"request": request}
+        )
+        return self.get_paginated_response(data.data)
+
+    @action(
+        detail=True,
+        methods=["GET"],
         url_path="similars",
         permission_classes=[ReadOnly],
     )
     def similars(self, request, *args, **kwargs):
-        obj: PeopleGroup = self.get_object()
-        queryset = obj.similars()
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.similars()
 
         queryset_page = self.paginate_queryset(queryset)
         data = self.serializer_class(
