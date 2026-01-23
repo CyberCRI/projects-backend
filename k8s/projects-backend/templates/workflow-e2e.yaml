@@ -46,6 +46,28 @@ spec:
       envFrom:
         - configMapRef:
             name: {{ tpl $.Values.fullName $ }}
+  - name: delete-old-index
+    container:
+      {{- with $.Values.image }}
+      image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+      args:
+      - "make"
+      - "delete-index"
+      envFrom:
+        - configMapRef:
+            name: {{ tpl $.Values.fullName $ }}
+  - name: rebuild-index
+    container:
+      {{- with $.Values.image }}
+      image: {{ tpl (printf "%s/%s:%s" .repository .path .tag) $ }}
+      {{- end }}
+      args:
+      - "make"
+      - "rebuild-index"
+      envFrom:
+        - configMapRef:
+            name: {{ tpl $.Values.fullName $ }}
     {{- if .Values.config.sensitive }}
       volumeMounts:
       - name: secrets
@@ -62,4 +84,8 @@ spec:
         template: flush-db
     - - name: create-e2e-users
         template: create-e2e-users
+    - - name: delete-old-index
+        template: delete-old-index
+    - - name: rebuild-index
+        template: rebuild-index
 {{- end }}
