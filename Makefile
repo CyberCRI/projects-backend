@@ -117,6 +117,10 @@ post-deploy:
 list-index:
 	python manage.py opensearch index list
 
+.PHONY: delete-index
+delete-index:
+	python manage.py opensearch index delete --force
+
 .PHONY: rebuild-index
 rebuild-index:
 	python manage.py update_or_rebuild_index
