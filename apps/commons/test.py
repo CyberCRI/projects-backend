@@ -35,6 +35,7 @@ class TestRoles(models.TextChoices):
     ORG_ADMIN = "organization_admin"
     ORG_FACILITATOR = "organization_facilitator"
     ORG_USER = "organization_user"
+    ORG_VIEWER = "organization_viewer"
     GROUP_LEADER = "people_group_leader"
     GROUP_MANAGER = "people_group_manager"
     GROUP_MEMBER = "people_group_member"
@@ -130,6 +131,8 @@ class JwtAPITestCase(APITestCase):
                 return UserFactory(groups=[o.get_facilitators() for o in instances])
             if role == TestRoles.ORG_USER:
                 return UserFactory(groups=[o.get_users() for o in instances])
+            if role == TestRoles.ORG_VIEWER:
+                return UserFactory(groups=[o.get_viewers() for o in instances])
         # people group roles
         if isinstance(instances[0], PeopleGroup):
             if role == TestRoles.GROUP_LEADER:
@@ -149,6 +152,10 @@ class JwtAPITestCase(APITestCase):
             if role == TestRoles.ORG_USER:
                 return UserFactory(
                     groups=[p.organization.get_users() for p in instances]
+                )
+            if role == TestRoles.ORG_VIEWER:
+                return UserFactory(
+                    groups=[p.organization.get_viewers() for p in instances]
                 )
         # project roles
         if isinstance(instances[0], Project):
@@ -197,6 +204,13 @@ class JwtAPITestCase(APITestCase):
                 return UserFactory(
                     groups=[
                         o.get_users()
+                        for o in Organization.objects.filter(projects__in=instances)
+                    ]
+                )
+            if role == TestRoles.ORG_VIEWER:
+                return UserFactory(
+                    groups=[
+                        o.get_viewers()
                         for o in Organization.objects.filter(projects__in=instances)
                     ]
                 )
