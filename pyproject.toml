@@ -9,7 +9,7 @@ python = "~3.13"
 boto3 = "^1.18.59"
 bs4 = "^0.0.2"
 celery = { extras = ["redis"], version = "^5.2.1" }
-cryptography = "^44.0.1"
+cryptography = "^46.0.3"
 Django = "^5.2.10"
 django-cleanup = "^6.0.0"
 django-cors-headers = "^4.9.0"
