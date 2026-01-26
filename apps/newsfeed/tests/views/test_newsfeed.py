@@ -273,6 +273,17 @@ class NewsfeedTestCase(JwtAPITestCase):
                 ],
             ),
             (
+                TestRoles.ORG_VIEWER,
+                [
+                    "public_not_complete_announcement",
+                    "all_news",
+                    "public_project",
+                    "public_announcement",
+                    "org_project",
+                    "org_announcement",
+                ],
+            ),
+            (
                 TestRoles.PROJECT_MEMBER,
                 [
                     "public_not_complete_announcement",

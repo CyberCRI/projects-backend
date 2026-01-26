@@ -43,6 +43,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "org", "private")),
             (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
             (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_retrieve_notification_settings(

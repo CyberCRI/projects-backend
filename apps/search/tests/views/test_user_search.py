@@ -92,6 +92,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 ("public_1", "public_2", "private", "org", "no_org"),
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
+            (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org", "no_org")),
         ]
     )
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")

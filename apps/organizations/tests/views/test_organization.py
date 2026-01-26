@@ -490,6 +490,7 @@ class OrganizationFeaturedProjectTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_retrieve_featured_projects(self, role, retrieved_projects):
@@ -657,6 +658,18 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
             ),
             (
                 TestRoles.ORG_USER,
+                (
+                    "root",
+                    "level_1_public",
+                    "level_1_org",
+                    "level_2_public_public",
+                    "level_2_public_org",
+                    "level_2_org_public",
+                    "level_2_org_org",
+                ),
+            ),
+            (
+                TestRoles.ORG_VIEWER,
                 (
                     "root",
                     "level_1_public",
