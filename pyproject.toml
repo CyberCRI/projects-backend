@@ -12,7 +12,7 @@ celery = { extras = ["redis"], version = "^5.2.1" }
 cryptography = "^44.0.1"
 Django = "^5.2.10"
 django-cleanup = "^6.0.0"
-django-cors-headers = "^3.10.0"
+django-cors-headers = "^4.9.0"
 django-extensions = "^4.1.0"
 django-filter = "^25.2"
 django-mjml = { extras = ["requests"], version = "^1.1" }
