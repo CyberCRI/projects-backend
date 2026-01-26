@@ -834,7 +834,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         queryset = modules.similars()
 
         queryset_page = self.paginate_queryset(queryset)
-        data = self.serializer_class(
+        data = PeopleGroupLightSerializer(
             queryset_page, many=True, context={"request": request}
         )
         return self.get_paginated_response(data.data)

@@ -6,8 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
-from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import AutoTranslatedModelSerializer
 
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -30,6 +28,8 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer, TagSerializer
+from services.crisalid.serializers import ResearcherSerializerLight
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -253,10 +253,9 @@ class PeopleGroupSuperLightSerializer(
 
 
 class PeopleGroupLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
     header_image = ImageSerializer(read_only=True)
-    members_count = serializers.SerializerMethodField()
     roles = serializers.SlugRelatedField(
         many=True,
         slug_field="name",
@@ -264,10 +263,6 @@ class PeopleGroupLightSerializer(
         source="groups",
     )
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
-
-    # TODO(remi): replace this by modules
-    def get_members_count(self, group: PeopleGroup) -> int:
-        return group.get_all_members().count()
 
     class Meta:
         model = PeopleGroup
@@ -280,12 +275,25 @@ class PeopleGroupLightSerializer(
             "short_description",
             "email",
             "header_image",
-            "members_count",
             "roles",
+            "modules",
         ]
+
+    def get_modules(self, people_group: PeopleGroup):
+        context = self.context
+        request = context.get("request")
+
+        modules_manager = people_group.get_related_module()
+        modules = modules_manager(people_group, request.user)
+
+        return {
+            "members": modules.members().count(),
+            "subgroups": modules.subgroups().count(),
+        }
 
 
 class PeopleGroupHierarchySerializer(
+    ModulesSerializers,
     AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
@@ -308,13 +316,27 @@ class PeopleGroupHierarchySerializer(
             "header_image",
             "children",
             "roles",
+            "modules",
         ]
         fields = read_only_fields
+
+    def get_modules(self, people_group: PeopleGroup):
+        context = self.context
+        request = context.get("request")
+
+        modules_manager = people_group.get_related_module()
+        modules = modules_manager(people_group, request.user)
+
+        return {
+            "members": modules.members().count(),
+            "subgroups": modules.subgroups().count(),
+        }
 
     def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
         mapping = context.get("mapping")
+
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
                 organization=people_group.organization
@@ -432,7 +454,6 @@ class PeopleGroupSerializer(
         slug_field="code", queryset=Organization.objects.all()
     )
     hierarchy = serializers.SerializerMethodField()
-    # children = serializers.SerializerMethodField()
     parent = serializers.PrimaryKeyRelatedField(
         queryset=PeopleGroup.objects.all(),
         required=False,

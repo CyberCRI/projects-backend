@@ -10,21 +10,24 @@ class AbstractModules:
         self.instance = instance
         self.user = user
 
-    def count(self):
+    def _items(self):
         members = inspect.getmembers(
             self,
             predicate=inspect.ismethod,
         )
 
-        modules = {}
         for name, func in members:
             # ignore private_method and "count" method (this method :D)
             if name.startswith("_") or name in ("count",):
                 continue
 
+            yield name, func
+
+    def count(self):
+        modules = {}
+        for name, func in self._items():
             # func return queryset
             modules[name] = func().count()
-
         return modules
 
 
