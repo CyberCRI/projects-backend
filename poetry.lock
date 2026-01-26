@@ -1016,11 +1016,11 @@ description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["main", "dev"]
-markers = "platform_system == \"Windows\" or sys_platform == \"win32\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
+markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "coverage"
@@ -1375,14 +1375,14 @@ Django = ">=2.2"
 
 [[package]]
 name = "django-import-export"
-version = "4.3.14"
+version = "4.4.0"
 description = "Django application and library for importing and exporting data with included admin integration."
 optional = false
 python-versions = ">=3.9"
 groups = ["main"]
 files = [
-    {file = "django_import_export-4.3.14-py3-none-any.whl", hash = "sha256:ce6484fa082a1cdb2bf4e0b60276d3e2a7f39f74c20ae663b2f8eebb54141a58"},
-    {file = "django_import_export-4.3.14.tar.gz", hash = "sha256:224c7d909fec607378bc58271db38b9c6065982306aa644d26a529fcde64869e"},
+    {file = "django_import_export-4.4.0-py3-none-any.whl", hash = "sha256:2d9b234c0f024d3377167f4d9c5a506e095c5bad98e06d30700e1d0752829e3d"},
+    {file = "django_import_export-4.4.0.tar.gz", hash = "sha256:9900e99c89027594941074fb4cd63a5f2964975e239021765c0f066003fcd412"},
 ]
 
 [package.dependencies]
@@ -5269,4 +5269,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "10b79d2388fea8293409e84b105d392d58af44a26ffce01183388f4b46ad09a9"
+content-hash = "67f2e23425a455ec5b58faf1dc1b30a68f7115de9926cef61963468e7b230823"
