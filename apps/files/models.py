@@ -459,6 +459,10 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
 
+    class Meta:
+        verbose_name = "User file"
+        verbose_name_plural = "User files"
+
 
 class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model):
     """
@@ -491,3 +495,7 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
+
+    class Meta:
+        verbose_name = "User link"
+        verbose_name_plural = "User links"
