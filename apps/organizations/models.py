@@ -291,6 +291,19 @@ class Organization(
             codename__in=filtered_permissions,
         )
 
+    @classmethod
+    def get_default_viewers_permissions(cls) -> QuerySet[Permission]:
+        content_type = ContentType.objects.get_for_model(cls)
+        filtered_permissions = [
+            "view_org_project",
+            "view_org_projectuser",
+            "view_org_peoplegroup",
+        ]
+        return Permission.objects.filter(
+            content_type=content_type,
+            codename__in=filtered_permissions,
+        )
+
     def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         admins = self.setup_group_object_permissions(
@@ -305,10 +318,13 @@ class Organization(
         users = self.setup_group_object_permissions(
             self.get_users(), self.get_default_users_permissions()
         )
+        viewers = self.setup_group_object_permissions(
+            self.get_viewers(), self.get_default_viewers_permissions()
+        )
 
         if user:
             admins.users.add(user)
-        self.groups.add(admins, facilitators, users)
+        self.groups.add(admins, facilitators, users, viewers)
         self.permissions_up_to_date = True
         self.save(update_fields=["permissions_up_to_date"])
 
@@ -324,6 +340,10 @@ class Organization(
         """Return the users group."""
         return self.get_or_create_group(GroupData.Role.USERS)
 
+    def get_viewers(self) -> Group:
+        """Return the viewers group."""
+        return self.get_or_create_group(GroupData.Role.VIEWERS)
+
     @property
     def admins(self) -> List["ProjectUser"]:
         return self.get_admins().users
@@ -336,10 +356,17 @@ class Organization(
     def users(self) -> List["ProjectUser"]:
         return self.get_users().users
 
+    @property
+    def viewers(self) -> List["ProjectUser"]:
+        return self.get_viewers().users
+
     def get_all_members(self) -> List["ProjectUser"]:
         """Return the all members."""
         return (
-            self.admins.all() | self.facilitators.all() | self.users.all()
+            self.admins.all()
+            | self.facilitators.all()
+            | self.users.all()
+            | self.viewers.all()
         ).distinct()
 
 

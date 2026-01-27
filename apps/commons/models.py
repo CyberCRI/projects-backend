@@ -39,6 +39,7 @@ class GroupData(models.Model):
         ADMINS = "admins"
         FACILITATORS = "facilitators"
         USERS = "users"
+        VIEWERS = "viewers"
 
     group = models.OneToOneField(Group, on_delete=models.CASCADE, related_name="data")
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True)
@@ -82,4 +83,5 @@ class GroupData(models.Model):
             cls.Role.ADMINS,
             cls.Role.FACILITATORS,
             cls.Role.USERS,
+            cls.Role.VIEWERS,
         ]

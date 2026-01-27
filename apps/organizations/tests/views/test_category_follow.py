@@ -108,6 +108,7 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "org", "private")),
             (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
             (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_list_category_follows(self, role, retrieved_follows):

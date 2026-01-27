@@ -79,6 +79,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_retrieve_users(self, role, expected_users):
@@ -100,6 +101,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
         ]
     )
     def test_list_users(self, role, expected_users):
@@ -130,6 +132,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_project_members(self, role, expected_users):
@@ -156,6 +159,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_people_group_members(self, role, expected_users):
@@ -190,6 +194,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_users_in_comments(self, role, expected_users):
@@ -220,6 +225,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_users_in_follows(self, role, expected_users):
@@ -250,6 +256,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_users_in_reviews(self, role, expected_users):
@@ -280,6 +287,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_users_in_invitations(self, role, expected_users):
@@ -311,6 +319,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("public", "private", "org")),
             (TestRoles.ORG_USER, ("public", "org", None)),
+            (TestRoles.ORG_VIEWER, ("public", "org", None)),
         ]
     )
     def test_view_users_in_notifications(self, role, expected_users):

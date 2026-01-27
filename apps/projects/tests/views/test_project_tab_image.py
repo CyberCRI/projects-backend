@@ -54,6 +54,7 @@ class RetrieveProjectTabImageTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("public", "org", "private")),
             (TestRoles.ORG_FACILITATOR, ("public", "org", "private")),
             (TestRoles.ORG_USER, ("public", "org")),
+            (TestRoles.ORG_VIEWER, ("public", "org")),
             (TestRoles.PROJECT_MEMBER, ("public", "org", "private")),
             (TestRoles.PROJECT_OWNER, ("public", "org", "private")),
             (TestRoles.PROJECT_REVIEWER, ("public", "org", "private")),

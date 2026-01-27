@@ -172,6 +172,7 @@ class UserMentorshipTestCase(JwtAPITestCase):
                 ),
             ),
             (TestRoles.ORG_USER, ("public_public", "org_public", "public_org")),
+            (TestRoles.ORG_VIEWER, ("public_public", "org_public", "public_org")),
         ]
     )
     def test_retrieve_mentor_candidates(self, role, mentors):
@@ -242,6 +243,7 @@ class UserMentorshipTestCase(JwtAPITestCase):
                 ),
             ),
             (TestRoles.ORG_USER, ("public_public", "org_public", "public_org")),
+            (TestRoles.ORG_VIEWER, ("public_public", "org_public", "public_org")),
         ]
     )
     def test_retrieve_mentoree_candidates(self, role, mentorees):

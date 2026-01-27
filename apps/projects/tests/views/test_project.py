@@ -60,6 +60,7 @@ class CreateProjectTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
             (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
             (TestRoles.ORG_USER, status.HTTP_201_CREATED),
+            (TestRoles.ORG_VIEWER, status.HTTP_403_FORBIDDEN),
         ]
     )
     def test_create_project(self, role, expected_code):

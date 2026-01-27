@@ -31,6 +31,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         admin = UserFactory(groups=[organization.get_admins()])
         facilitator = UserFactory(groups=[organization.get_facilitators()])
         user = UserFactory(groups=[organization.get_users()])
+        viewer = UserFactory(groups=[organization.get_viewers()])
 
         # Get roles permissions
         all_permissions = Permission.objects.filter(
@@ -40,6 +41,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         global_admins_permissions = Organization.get_global_admins_permissions()
         facilitators_permissions = Organization.get_default_facilitators_permissions()
         users_permissions = Organization.get_default_users_permissions()
+        viewers_permissions = Organization.get_default_viewers_permissions()
 
         # Test instance permission setup
         Organization.objects.filter(id=organization.id).update(
@@ -49,12 +51,13 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         organization.refresh_from_db()
 
         self.assertTrue(organization.permissions_up_to_date)
-        self.assertEqual(organization.groups.count(), 3)
+        self.assertEqual(organization.groups.count(), 4)
 
         for role, permissions in [
             (admin, admins_permissions),
             (facilitator, facilitators_permissions),
             (user, users_permissions),
+            (viewer, viewers_permissions),
         ]:
             for perm in all_permissions:
                 if perm in permissions:
@@ -69,10 +72,11 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         organization.refresh_from_db()
 
         self.assertTrue(organization.permissions_up_to_date)
-        self.assertEqual(organization.groups.count(), 3)
+        self.assertEqual(organization.groups.count(), 4)
         for role, permissions in [
             (admin, admins_permissions),
             (facilitator, facilitators_permissions),
+            (viewer, viewers_permissions),
             (user, users_permissions),
         ]:
             for perm in all_permissions:

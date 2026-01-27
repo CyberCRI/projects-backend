@@ -116,11 +116,13 @@ def reassign_organizations_permissions():
     admins_permissions = Organization.get_default_admins_permissions()
     facilitators_permissions = Organization.get_default_facilitators_permissions()
     users_permissions = Organization.get_default_users_permissions()
+    viewers_permissions = Organization.get_default_viewers_permissions()
     Organization.batch_reassign_permissions(
         roles_permissions=(
             (GroupData.Role.ADMINS, admins_permissions),
             (GroupData.Role.FACILITATORS, facilitators_permissions),
             (GroupData.Role.USERS, users_permissions),
+            (GroupData.Role.VIEWERS, viewers_permissions),
         ),
     )
     # Additionally, setup global admin permissions
