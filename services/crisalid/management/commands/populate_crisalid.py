@@ -12,7 +12,7 @@ from services.crisalid.models import (
 )
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 from services.crisalid.populates.base import AbstractPopulate
-from services.crisalid.utils.time import timeit
+from services.crisalid.utils.timer import timeit
 from services.mistral.models import DocumentEmbedding
 
 
