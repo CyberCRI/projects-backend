@@ -27,7 +27,7 @@ from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer, TagSerializer
+from apps.skills.serializers import SkillLightSerializer, TagRelatedField, TagSerializer
 from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -472,7 +472,12 @@ class PeopleGroupSerializer(
     featured_projects = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
-    tags = TagSerializer(many=True)
+    tags = TagRelatedField(many=True, required=False)
+
+    sdgs = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=17),
+        required=False,
+    )
     location = PeopleGroupLocationSerializer()
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
@@ -535,6 +540,8 @@ class PeopleGroupSerializer(
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
+        tags = validated_data.pop("tags", [])
+
         people_group = super(PeopleGroupSerializer, self).create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
             {"people_group": people_group, **team}
@@ -542,12 +549,19 @@ class PeopleGroupSerializer(
         PeopleGroupAddFeaturedProjectsSerializer().create(
             {"people_group": people_group, "featured_projects": featured_projects}
         )
+
+        people_group.tags.set(tags)
         return people_group
 
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
         validated_data.pop("featured_projects", [])
-        return super(PeopleGroupSerializer, self).update(instance, validated_data)
+        tags = validated_data.pop("tags", [])
+        people_group = super(PeopleGroupSerializer, self).update(
+            instance, validated_data
+        )
+        people_group.tags.set(tags)
+        return people_group
 
     def save(self, **kwargs):
         return super().save(**kwargs)
