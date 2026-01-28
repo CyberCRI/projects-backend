@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 16:58+0100\n"
+"POT-Creation-Date: 2026-01-13 18:03+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No pots assignar aquest rol a un usuari"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:140 apps/projects/models.py:161
+#: apps/accounts/models.py:142 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilitat"
 

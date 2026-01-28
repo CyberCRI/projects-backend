@@ -36,6 +36,8 @@ class IdentifierFactory(factory.django.DjangoModelFactory):
             Identifier.Harvester.EPPN: faker.unique.email(),
             Identifier.Harvester.DOI: faker.unique.doi(),
             Identifier.Harvester.PMID: faker.unique.url(),
+            Identifier.Harvester.NNS: faker.unique.uuid4(),
+            Identifier.Harvester.RNSR: faker.unique.uuid4(),
         }[self.harvester]
 
 

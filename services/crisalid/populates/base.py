@@ -19,6 +19,12 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
         self.config = config
         self.cache = cache or LiveCache()
 
+    def sanitize_string(self, value) -> str:
+        """strip value and convert it to string"""
+        if not value:
+            return ""
+        return str(value).strip()
+
     def sanitize_languages(self, values: list[dict[str, str]]) -> str:
         """convert languages choices from crisalid fields
         crisalid return a list of objects with "language" and "value" assosiated from the language
@@ -29,7 +35,7 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         maps_languages = {}
         for value in values:
-            maps_languages[value["language"]] = (value["value"] or "").strip()
+            maps_languages[value["language"]] = self.sanitize_string(value["value"])
 
         return (
             maps_languages.get("en")

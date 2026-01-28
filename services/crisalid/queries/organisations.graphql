@@ -1,0 +1,14 @@
+# this query for organisations ( structure / labo )
+query PopulateFromCrisalid($limit: Int, $offset: Int, $where: OrganisationWhere) {
+  organisations(limit: $limit, offset: $offset, where: $where) {
+    acronym
+    names {
+      language
+      value
+    }
+    identifiers {
+      harvester: type
+      value
+    }
+  }
+}
