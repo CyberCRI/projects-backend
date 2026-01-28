@@ -936,3 +936,27 @@ class TextProcessingTestCase(JwtAPITestCase):
                 ),
                 content["content"],
             )
+
+    def test_html_escape_char(self):
+        self.client.force_authenticate(self.user)
+        title = "this is a & title with many & char"
+        description = "<p>this is a & description with many & char</p>"
+        purpose = "this is a & purpose with many & char"
+        payload = {
+            "title": title,
+            "description": description,
+            "is_locked": faker.boolean(),
+            "is_shareable": faker.boolean(),
+            "purpose": purpose,
+            "organizations_codes": [self.organization.code],
+            "images_ids": [],
+        }
+        response = self.client.post(reverse("Project-list"), data=payload)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        content = response.json()
+
+        self.assertEqual(content["title"], title)
+        # description is a html field so all & is escaped
+        description = "<p>this is a &amp; description with many &amp; char</p>"
+        self.assertEqual(content["description"], description)
+        self.assertEqual(content["purpose"], purpose)
