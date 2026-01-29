@@ -1,5 +1,6 @@
 import base64
 import gc
+import html
 import io
 import itertools
 import uuid
@@ -69,7 +70,7 @@ def iter_img_b64(soup: BeautifulSoup):
             yield img
 
 
-def remove_images_text(text: str) -> str:
+def remove_images_text(text: str, unescape=True) -> str:
     """Process rich text sent by the frontend.
     Some texts can contain images
 
@@ -77,6 +78,8 @@ def remove_images_text(text: str) -> str:
     ----------
     text : str
         The text to process.
+    escape : bool
+        escape html entities in text
 
     Returns
     -------
@@ -87,6 +90,9 @@ def remove_images_text(text: str) -> str:
 
     for img in iter_img_b64(soup):
         img.decompose()
+
+    if unescape:
+        return html.unescape(str(soup))
     return str(soup)
 
 
