@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
+from services.crisalid.serializers import ResearcherSerializerLight
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -27,9 +29,7 @@ from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer, TagRelatedField, TagSerializer
-from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import AutoTranslatedModelSerializer
+from apps.skills.serializers import SkillLightSerializer, TagRelatedField
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
