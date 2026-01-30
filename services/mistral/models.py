@@ -458,3 +458,29 @@ class DocumentEmbedding(MistralEmbedding):
             self.prompt_hashcode = prompt_hashcode
             self.save()
         return self
+
+
+class GroupEmbedding(MistralEmbedding):
+    item = models.OneToOneField(
+        "accounts.PeopleGroup", on_delete=models.CASCADE, related_name="embedding"
+    )
+
+    def get_fields(self) -> list[str]:
+        # TODO(remi): add more fields
+        return (
+            self.item.name,
+            self.item.description,
+        )
+
+    def get_is_visible(self) -> bool:
+        return any(self.get_fields())
+
+    def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
+        prompt = self.get_fields()
+        prompt_hashcode = self.hash_prompt(prompt)
+        if self.prompt_hashcode != prompt_hashcode:
+            prompt = "\n\n".join(prompt)
+            self.embedding = MistralService.get_embedding(prompt)
+            self.prompt_hashcode = prompt_hashcode
+            self.save()
+        return self

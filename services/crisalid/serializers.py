@@ -40,7 +40,12 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Researcher
-        exclude = ("updated",)
+        fields = (
+            "id",
+            "user",
+            "identifiers",
+            "display_name",
+        )
 
     def get_display_name(self, instance):
         return str(instance)
@@ -53,9 +58,9 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
 
     class Meta:
         model = Researcher
-        read_only_fields = ("display_name",)
         fields = (
             "identifiers",
+            "display_name",
             "user",
             "id",
         )

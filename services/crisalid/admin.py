@@ -1,10 +1,14 @@
 from contextlib import suppress
+from typing import Any
 
 from django.contrib import admin, messages
 from django.db.models import Count
+from django.db.models.query import QuerySet
+from django.http.request import HttpRequest
 
-from apps.accounts.models import ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.commons.admin import TranslateObjectAdminMixin
+from services.crisalid.manager import CrisalidQuerySet
 from services.crisalid.tasks import vectorize_documents
 
 from .models import (
@@ -13,7 +17,19 @@ from .models import (
     DocumentContributor,
     Identifier,
     Researcher,
+    Structure,
 )
+
+
+class IdentifierAminMixin:
+    @admin.display(description="identifiers count", ordering="identifiers_count")
+    def get_identifiers(self, instance):
+        # list all harvester name from this profile
+        result = [o.harvester for o in instance.identifiers.all()]
+        if not result:
+            return None
+
+        return f"{', '.join(result)} ({len(result)})"
 
 
 @admin.register(Identifier)
@@ -45,7 +61,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
 
 
 @admin.register(Document)
-class DocumentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAminMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",
@@ -89,22 +105,16 @@ class DocumentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     def get_contributors(self, instance):
         return instance.contributors.count()
 
-    @admin.display(description="identifiers count", ordering="identifiers_count")
-    def get_identifiers(self, instance):
-        # list all harvester name from this profile
-        result = [o.harvester for o in instance.identifiers.all()]
-        if not result:
-            return None
-        return f"{', '.join(result)} ({len(result)})"
-
 
 @admin.register(Researcher)
-class ResearcherAdmin(admin.ModelAdmin):
+class ResearcherAdmin(IdentifierAminMixin, admin.ModelAdmin):
     list_display = (
         "given_name",
         "family_name",
         "user",
         "get_documents",
+        "get_memberships",
+        "get_employments",
         "get_identifiers",
     )
     search_fields = (
@@ -124,6 +134,8 @@ class ResearcherAdmin(admin.ModelAdmin):
             .prefetch_related("identifiers", "documents")
             .annotate(identifiers_count=Count("identifiers__id"))
             .annotate(documents_count=Count("documents__id", distinct=True))
+            .annotate(memberships_count=Count("memberships__id", distinct=True))
+            .annotate(employments_count=Count("employments__id", distinct=True))
         )
 
     @admin.action(description="assign researcher on projects")
@@ -138,17 +150,18 @@ class ResearcherAdmin(admin.ModelAdmin):
                 continue
 
             for identifier in research.identifiers.all():
-                if identifier.harvester != Identifier.Harvester.EPPN.value:
+                if identifier.harvester != Identifier.Harvester.LOCAL.value:
                     continue
 
                 user = None
+                email = identifier.value
                 with suppress(ProjectUser.DoesNotExist):
-                    user = ProjectUser.objects.get(email=identifier.value)
+                    user = ProjectUser.objects.get(email=email)
 
                 if not user:
                     created += 1
                     user = ProjectUser(
-                        email=identifier.value,
+                        email=email,
                         given_name=research.given_name,
                         family_name=research.family_name,
                     )
@@ -177,14 +190,70 @@ class ResearcherAdmin(admin.ModelAdmin):
     def get_documents(self, instance):
         return instance.documents_count
 
-    @admin.display(description="identifiers count", ordering="identifiers_count")
-    def get_identifiers(self, instance):
-        # list all harvester name from this profile
-        result = [o.harvester for o in instance.identifiers.all()]
-        if not result:
-            return None
+    @admin.display(description="number of memberships", ordering="-memberships_count")
+    def get_memberships(self, instance):
+        return instance.memberships_count
 
-        return f"{', '.join(result)} ({len(result)})"
+    @admin.display(description="number of employments", ordering="-employments_count")
+    def get_employments(self, instance):
+        return instance.employments_count
+
+
+@admin.register(Structure)
+class StructureAdmin(IdentifierAminMixin, admin.ModelAdmin):
+    list_display = (
+        "acronym",
+        "name",
+        "organization",
+        "get_memberships",
+        "get_employments",
+        "get_identifiers",
+    )
+    search_fields = ("acronym", "name", "organization__code")
+    autocomplete_fields = ("organization",)
+    actions = ("assign_group",)
+
+    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+        return (
+            super()
+            .get_queryset(request)
+            .select_related("organization")
+            .annotate(
+                memberships_count=Count("memberships__pk", distinct=True),
+                employments_count=Count("employments__pk", distinct=True),
+            )
+        )
+
+    @admin.action(description="create/update groups")
+    def assign_group(self, request, queryset: CrisalidQuerySet):
+        for structure in queryset:
+            name = structure.name or structure.acronym
+            if not name:
+                continue
+
+            parent = PeopleGroup.update_or_create_root(structure.organization)
+            group = PeopleGroup.objects.filter(
+                parent=parent, name=name, organization=structure.organization
+            ).first()
+            if not group:
+                group = PeopleGroup(
+                    name=name, parent=parent, organization=structure.organization
+                )
+
+            group.save()
+            member_group = group.get_members()
+            for membership in structure.memberships.select_related("user").filter(
+                user__isnull=False
+            ):
+                membership.user.groups.add(member_group)
+
+    @admin.display(description="number of memberships", ordering="-memberships_count")
+    def get_memberships(self, instance):
+        return instance.memberships_count
+
+    @admin.display(description="number of employments", ordering="-employments_count")
+    def get_employments(self, instance):
+        return instance.employments_count
 
 
 @admin.register(CrisalidConfig)

@@ -1,10 +1,6 @@
 from services.crisalid import relators
-from services.crisalid.models import (
-    CrisalidConfig,
-    Document,
-    DocumentContributor,
-    Identifier,
-)
+from services.crisalid.models import CrisalidConfig, Document, DocumentContributor
+from services.crisalid.populates.identifier import PopulateIdentifier
 
 from .base import AbstractPopulate
 from .logger import logger
@@ -14,7 +10,10 @@ from .researcher import PopulateResearcher
 class PopulateDocument(AbstractPopulate):
     def __init__(self, config: CrisalidConfig, cache=None):
         super().__init__(config, cache)
-        self.populate_researcher = PopulateResearcher(self.config, self.cache)
+        self.populate_identifiers = PopulateIdentifier(self.config, self.cache)
+        self.populate_researcher = PopulateResearcher(
+            self.config, self.cache, populate_identifiers=self.populate_identifiers
+        )
 
     def sanitize_document_type(self, data: str | None):
         """Check documentType , and return unknow value if is not set in enum"""
@@ -37,15 +36,7 @@ class PopulateDocument(AbstractPopulate):
     def single(self, data: dict) -> Document | None:
         """this method create/update only on document from crisalid"""
         # identifiers (hal, openalex, idref ...ect)
-        documents_identifiers = []
-        for recorded in data["recorded_by"]:
-            identifier = self.cache.model(
-                Identifier,
-                value=recorded["uid"],
-                harvester=recorded["harvester"].lower(),
-            )
-            self.cache.save(identifier)
-            documents_identifiers.append(identifier)
+        documents_identifiers = self.populate_identifiers.multiple(data["recorded_by"])
 
         # no identifiers for this documents, we ignore it
         if not documents_identifiers:
