@@ -153,12 +153,12 @@ class PeopleGroup(
     permissions_up_to_date = models.BooleanField(default=False)
 
     tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
-    location = models.ForeignKey(
+    location = models.OneToOneField(
         PeopleGroupLocation,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="people_groups",
+        related_name="people_group",
     )
     # links
 

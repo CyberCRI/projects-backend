@@ -6,8 +6,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
-from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import AutoTranslatedModelSerializer
 
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -30,6 +28,8 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer, TagRelatedField
+from services.crisalid.serializers import ResearcherSerializerLight
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -248,7 +248,7 @@ class PeopleGroupSuperLightSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["id", "slug", "name", "organization"]
+        read_only_fields = ["id", "slug", "name", "short_description", "organization"]
         fields = read_only_fields
 
 
@@ -588,6 +588,16 @@ class PeopleGroupSerializer(
             "team",
             "featured_projects",
         ]
+
+
+class LocationPeopleGroupSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+    group = PeopleGroupSuperLightSerializer(source="people_group", read_only=True)
+
+    class Meta:
+        model = PeopleGroupLocation
+        fields = "__all__"
 
 
 @extend_schema_serializer(exclude_fields=("roles",))

@@ -4,7 +4,7 @@ from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.modules.base import AbstractModules, register_module
-from apps.projects.models import Project
+from apps.projects.models import Location, Project
 from apps.skills.models import Skill
 from services.crisalid.models import Document, DocumentTypeCentralized
 
@@ -66,6 +66,9 @@ class PeopleGroupModules(AbstractModules):
 
     def subgroups(self) -> QuerySet[PeopleGroup]:
         return self.instance.children.all()
+
+    def locations(self) -> QuerySet[Location]:
+        return Location.objects.filter(project__in=self.featured_projects())
 
     @cached_property
     def _is_structure(self):
