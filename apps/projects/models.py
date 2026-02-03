@@ -864,7 +864,6 @@ class Goal(
 
 class AbstractLocation(
     HasAutoTranslatedFields,
-    ProjectRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -910,10 +909,6 @@ class AbstractLocation(
         default=LocationType.TEAM,
     )
 
-    def get_related_project(self) -> Optional["Project"]:
-        """Return the projects related to this model."""
-        return self.project
-
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
@@ -924,7 +919,7 @@ class AbstractLocation(
         return copy
 
 
-class Location(AbstractLocation):
+class Location(ProjectRelated, AbstractLocation):
     """A project location on Earth.
 
     Attributes
@@ -938,6 +933,10 @@ class Location(AbstractLocation):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="locations"
     )
+
+    def get_related_project(self) -> Optional["Project"]:
+        """Return the projects related to this model."""
+        return self.project
 
     def duplicate(self, project: Project) -> "Location":
         copy = super().duplicate()

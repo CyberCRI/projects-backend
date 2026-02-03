@@ -237,8 +237,22 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
 
 
 class PeopleGroupLocationSerializer(BaseLocationSerializer):
+
     class Meta(BaseLocationSerializer.Meta):
         model = PeopleGroupLocation
+
+
+class PeopleGroupLocationRelated(serializers.RelatedField):
+    def get_queryset(self):
+        return PeopleGroupLocation.objects.all()
+
+    def to_representation(self, instance: PeopleGroupLocation) -> dict:
+        return PeopleGroupLocationSerializer(instance=instance).data
+
+    def to_internal_value(self, element: dict) -> PeopleGroupLocation:
+        if element.get("pk"):
+            return PeopleGroupLocation.objects.get(pk=element["pk"])
+        return PeopleGroupLocation(**element)
 
 
 class PeopleGroupSuperLightSerializer(
@@ -478,7 +492,7 @@ class PeopleGroupSerializer(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
     )
-    location = PeopleGroupLocationSerializer()
+    location = PeopleGroupLocationRelated(required=False, allow_null=True)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -540,7 +554,11 @@ class PeopleGroupSerializer(
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
-        tags = validated_data.pop("tags", [])
+        location = validated_data.pop("location", {})
+
+        if location:
+            location.save()
+            validated_data["id"] = location
 
         people_group = super(PeopleGroupSerializer, self).create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
@@ -549,22 +567,24 @@ class PeopleGroupSerializer(
         PeopleGroupAddFeaturedProjectsSerializer().create(
             {"people_group": people_group, "featured_projects": featured_projects}
         )
-
-        people_group.tags.set(tags)
         return people_group
 
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
         validated_data.pop("featured_projects", [])
-        tags = validated_data.pop("tags", [])
+        location = validated_data.pop("location")
+
+        if not location and getattr(instance, "location", None):
+            instance.location.delete()
+            validated_data["location"] = None
+        elif location:
+            location.save()
+            validated_data["location"] = location
+
         people_group = super(PeopleGroupSerializer, self).update(
             instance, validated_data
         )
-        people_group.tags.set(tags)
         return people_group
-
-    def save(self, **kwargs):
-        return super().save(**kwargs)
 
     class Meta:
         model = PeopleGroup
