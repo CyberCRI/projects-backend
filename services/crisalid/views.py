@@ -152,8 +152,11 @@ class AbstractDocumentViewSet(
         # get counted all document_types types
         # use only here the filter_queryset,
         # the next years values need to have all document_types (non filtered)
+
         document_types = Counter(
-            self.filter_queryset(qs, document_type_enabled=False)
+            Document.objects.filter(
+                id__in=self.filter_queryset(qs, document_type_enabled=False)
+            )
             .order_by("document_type")
             .values_list("document_type", flat=True)
         )
