@@ -12,6 +12,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 
 from apps.commons.mixins import HasPermissionsSetup
 from apps.invitations.models import Invitation
+from services.keycloak.exceptions import KeycloakApiAuthenticationError
 from services.keycloak.interface import KeycloakService
 
 from .exceptions import InactiveUserError, InvalidInvitationError, InvalidTokenError
@@ -41,7 +42,10 @@ class BearerToken(AccessToken):
 
 class AdminAuthentication(ModelBackend):
     def authenticate(self, request, username=None, password=None):
-        token = KeycloakService.get_token_for_user(username, password)
+        try:
+            token = KeycloakService.get_token_for_user(username, password)
+        except KeycloakApiAuthenticationError:
+            return None
         validated_token = BearerToken(token["access_token"])
         user_id = validated_token[api_settings.USER_ID_CLAIM]
         try:
