@@ -157,6 +157,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, 8, 9),
             (TestRoles.ORG_FACILITATOR, 8, 9),
             (TestRoles.ORG_USER, 3, 4),
+            (TestRoles.ORG_VIEWER, 3, 4),
         ]
     )
     def test_retrieve_mentored_skills(self, role, skill_1_mentors, skill_2_mentors):
@@ -182,6 +183,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, 8, 9),
             (TestRoles.ORG_FACILITATOR, 8, 9),
             (TestRoles.ORG_USER, 3, 4),
+            (TestRoles.ORG_VIEWER, 3, 4),
         ]
     )
     def test_retrieve_mentoree_skills(self, role, skill_1_mentorees, skill_2_mentorees):

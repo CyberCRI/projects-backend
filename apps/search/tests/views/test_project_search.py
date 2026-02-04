@@ -119,6 +119,7 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 ("public_1", "public_2", "private", "org", "member", "no_org"),
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
+            (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org", "no_org")),
             (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member", "no_org")),
         ]
     )

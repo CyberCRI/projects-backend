@@ -82,6 +82,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 ("public_1", "public_2", "private", "org", "member"),
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
+            (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org")),
             (TestRoles.GROUP_MEMBER, ("public_1", "public_2", "member")),
         ]
     )

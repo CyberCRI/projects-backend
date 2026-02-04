@@ -72,6 +72,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, PrivacyChoices.PUBLIC, True),
             (TestRoles.ORG_FACILITATOR, PrivacyChoices.PUBLIC, True),
             (TestRoles.ORG_USER, PrivacyChoices.PUBLIC, True),
+            (TestRoles.ORG_VIEWER, PrivacyChoices.PUBLIC, True),
             (TestRoles.ANONYMOUS, PrivacyChoices.ORGANIZATION, False),
             (TestRoles.DEFAULT, PrivacyChoices.ORGANIZATION, False),
             (TestRoles.OWNER, PrivacyChoices.ORGANIZATION, True),
@@ -79,6 +80,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, PrivacyChoices.ORGANIZATION, True),
             (TestRoles.ORG_FACILITATOR, PrivacyChoices.ORGANIZATION, True),
             (TestRoles.ORG_USER, PrivacyChoices.ORGANIZATION, True),
+            (TestRoles.ORG_VIEWER, PrivacyChoices.ORGANIZATION, True),
             (TestRoles.ANONYMOUS, PrivacyChoices.HIDE, False),
             (TestRoles.DEFAULT, PrivacyChoices.HIDE, False),
             (TestRoles.OWNER, PrivacyChoices.HIDE, True),
@@ -86,6 +88,7 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, PrivacyChoices.HIDE, True),
             (TestRoles.ORG_FACILITATOR, PrivacyChoices.HIDE, False),
             (TestRoles.ORG_USER, PrivacyChoices.HIDE, False),
+            (TestRoles.ORG_VIEWER, PrivacyChoices.HIDE, False),
         ]
     )
     def test_view_fields_retrieve_user(
