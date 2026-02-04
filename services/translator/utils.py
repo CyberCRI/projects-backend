@@ -1,6 +1,7 @@
 import re
 
 from bs4 import BeautifulSoup
+from django.conf import settings
 
 from apps.commons.mixins import OrganizationRelated
 
@@ -55,11 +56,20 @@ def update_auto_translated_field(field: AutoTranslatedField):
             f"{instance._meta.model.__name__} does not support translations. "
             "`OrganizationRelated` mixin is required for automatic translations."
         )
-    organizations = [
-        o for o in instance.get_related_organizations() if o.auto_translate_content
-    ]
-    # iter over languages in set (remove duplicate language)
-    languages: set[str] = {lang for org in organizations for lang in org.languages}
+    if getattr(instance, "auto_translate_all_languages", False):
+        languages = (
+            settings.REQUIRED_LANGUAGES
+            if any(
+                o.auto_translate_content for o in instance.get_related_organizations()
+            )
+            else {}
+        )
+    else:
+        organizations = [
+            o for o in instance.get_related_organizations() if o.auto_translate_content
+        ]
+        # iter over languages in set (remove duplicate language)
+        languages: set[str] = {lang for org in organizations for lang in org.languages}
     if languages:
         base_max_length = AZURE_MAX_LENGTH * 0.8  # Safety margin
         max_length = int(base_max_length // len(languages))

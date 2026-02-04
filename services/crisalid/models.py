@@ -178,7 +178,7 @@ class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
         WORKING_PAPER = "Working Paper"
         UNKNOWN = "Unknown"
 
-    _auto_translated_fields = ["title", "description"]
+    auto_translated_fields = ["title", "description"]
 
     title = models.TextField()
     description = models.TextField(default="")

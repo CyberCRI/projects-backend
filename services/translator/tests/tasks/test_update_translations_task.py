@@ -24,7 +24,7 @@ from apps.organizations.factories import (
     ProjectCategoryFactory,
     TemplateFactory,
 )
-from apps.organizations.models import Organization
+from apps.organizations.models import Organization, TermsAndConditions
 from apps.projects.factories import (
     BlogEntryFactory,
     GoalFactory,
@@ -85,10 +85,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
         cls.organization_data = {
             field: (
                 f"<p>{faker.word()}</p>"
-                if field in Organization.html_auto_translated_fields
+                if field in Organization._html_auto_translated_fields
                 else faker.word()
             )
-            for field in Organization.auto_translated_fields
+            for field in Organization._auto_translated_fields
         }
         cls.organization_1 = OrganizationFactory(
             auto_translate_content=True, **cls.organization_data
@@ -112,10 +112,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
         cls.user_data = {
             field: (
                 f"<p>{faker.word()}</p>"
-                if field in ProjectUser.html_auto_translated_fields
+                if field in ProjectUser._html_auto_translated_fields
                 else faker.word()
             )
-            for field in ProjectUser.auto_translated_fields
+            for field in ProjectUser._auto_translated_fields
         }
         cls.user_1 = UserFactory(
             groups=[cls.organization_1.get_users()], **cls.user_data
@@ -139,10 +139,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
         cls.project_data = {
             field: (
                 f"<p>{faker.word()}</p>"
-                if field in Project.html_auto_translated_fields
+                if field in Project._html_auto_translated_fields
                 else faker.word()
             )
-            for field in Project.auto_translated_fields
+            for field in Project._auto_translated_fields
         }
         cls.project_1 = ProjectFactory(
             organizations=[cls.organization_1], **cls.project_data
@@ -180,10 +180,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
             data = {
                 field: (
                     f"<p>{faker.word()}</p>"
-                    if field in model.html_auto_translated_fields
+                    if field in model._html_auto_translated_fields
                     else faker.word()
                 )
-                for field in model.auto_translated_fields
+                for field in model._auto_translated_fields
             }
             instance_1 = factory(organization=cls.organization_1, **data)
             instance_2 = factory(organization=cls.organization_2, **data)
@@ -197,6 +197,39 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                     "instance_3": instance_3,
                 }
             )
+
+        # Update auto-created TermsOfService instances
+        data = {
+            field: (
+                f"<p>{faker.word()}</p>"
+                if field in TermsAndConditions._html_auto_translated_fields
+                else faker.word()
+            )
+            for field in TermsAndConditions._auto_translated_fields
+        }
+        for organization in [
+            cls.organization_1,
+            cls.organization_2,
+            cls.organization_3,
+        ]:
+            TermsAndConditions.objects.update_or_create(
+                organization=organization, defaults=data
+            )
+        cls.instances.append(
+            {
+                "model": TermsAndConditions,
+                "data": data,
+                "instance_1": TermsAndConditions.objects.get(
+                    organization=cls.organization_1
+                ),
+                "instance_2": TermsAndConditions.objects.get(
+                    organization=cls.organization_2
+                ),
+                "instance_3": TermsAndConditions.objects.get(
+                    organization=cls.organization_3
+                ),
+            }
+        )
 
         # Create instances for models related to projects
         for factory in [
@@ -215,10 +248,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
             data = {
                 field: (
                     f"<p>{faker.word()}</p>"
-                    if field in model.html_auto_translated_fields
+                    if field in model._html_auto_translated_fields
                     else faker.word()
                 )
-                for field in model.auto_translated_fields
+                for field in model._auto_translated_fields
             }
             instance_1 = factory(project=cls.project_1, **data)
             instance_2 = factory(project=cls.project_2, **data)
@@ -247,10 +280,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
             field: (
                 f"<p>{faker.word()}</p>"
                 if field
-                in MentoringMessageFactory._meta.model.html_auto_translated_fields
+                in MentoringMessageFactory._meta.model._html_auto_translated_fields
                 else faker.word()
             )
-            for field in MentoringMessageFactory._meta.model.auto_translated_fields
+            for field in MentoringMessageFactory._meta.model._auto_translated_fields
         }
         cls.instances.append(
             {
@@ -276,10 +309,10 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
             field: (
                 f"<p>{faker.word()}</p>"
                 if field
-                in ProjectTabItemFactory._meta.model.html_auto_translated_fields
+                in ProjectTabItemFactory._meta.model._html_auto_translated_fields
                 else faker.word()
             )
-            for field in ProjectTabItemFactory._meta.model.auto_translated_fields
+            for field in ProjectTabItemFactory._meta.model._auto_translated_fields
         }
         cls.instances.append(
             {
@@ -335,14 +368,18 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                             instance, field.split(":", 1)[1] if ":" in field else field
                         )
                     ],
-                    to_language={str(lang) for lang in self.organization_1.languages},
+                    to_language=(
+                        {str(lang) for lang in self.organization_1.languages}
+                        if not instance.auto_translate_all_languages
+                        else {str(lang) for lang in settings.REQUIRED_LANGUAGES}
+                    ),
                     text_type=(field.split(":", 1)[0] if ":" in field else "plain"),
                 )
                 for instance, field in [
                     *[
                         (data["instance_1"], field)
                         for data in self.instances
-                        for field in data["model"]._auto_translated_fields
+                        for field in data["model"].auto_translated_fields
                     ],
                 ]
             ],
@@ -363,28 +400,31 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                 data["instance_3"],
             ]:
                 instance.refresh_from_db()
-                for field in data["model"].auto_translated_fields:
+                for field in data["model"]._auto_translated_fields:
                     self.assertEqual(getattr(instance, field), data["data"][field])
 
             # Translated fields must be correctly set for instance_1
             instance = data["instance_1"]
-            for field in data["model"].auto_translated_fields:
+            for field in data["model"]._auto_translated_fields:
                 self.assertEqual(getattr(instance, f"{field}_detected_language"), "en")
             for lang in settings.REQUIRED_LANGUAGES:
-                if lang in self.organization_1.languages:
-                    for field in data["model"].auto_translated_fields:
+                if (
+                    lang in self.organization_1.languages
+                    or instance.auto_translate_all_languages
+                ):
+                    for field in data["model"]._auto_translated_fields:
                         self.assertEqual(
                             getattr(instance, f"{field}_{lang}"),
                             f"{lang} : {data['data'][field]}",
                         )
                 else:
-                    for field in data["model"].auto_translated_fields:
+                    for field in data["model"]._auto_translated_fields:
                         self.assertEqual(getattr(instance, f"{field}_{lang}") or "", "")
 
             # Translated fields must be empty for instance_2 and instance_3
             for instance in [data["instance_2"], data["instance_3"]]:
                 for lang in settings.REQUIRED_LANGUAGES:
-                    for field in data["model"].auto_translated_fields:
+                    for field in data["model"]._auto_translated_fields:
                         self.assertEqual(getattr(instance, f"{field}_{lang}") or "", "")
 
 
