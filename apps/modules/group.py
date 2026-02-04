@@ -70,6 +70,9 @@ class PeopleGroupModules(AbstractModules):
     def locations(self) -> QuerySet[Location]:
         return Location.objects.filter(project__in=self.featured_projects())
 
+    def gallery(self):
+        return self.instance.images.all()
+
     @cached_property
     def _is_structure(self):
         try:

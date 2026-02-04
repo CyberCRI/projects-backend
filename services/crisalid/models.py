@@ -208,6 +208,10 @@ class Document(
 
     organization_query_string = "contributors__user__groups__organizations"
 
+    class Meta:
+        # order by publicattion date, and put "null date" at last
+        ordering = (models.F("publication_date").desc(nulls_last=True),)
+
     def get_related_organizations(self):
         """organizations from user"""
         return list(
