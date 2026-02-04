@@ -49,6 +49,8 @@ ignore =
     # Unecessary variable assignement before return statement.
     DJ08,
     # Model does not define __str__ method.
+    B042,
+    # Exception classes with a custom __init__ should pass all args to super().__init__()
 per-file-ignores =
     **/models.py: A003
     **/views.py: A003
