@@ -493,7 +493,9 @@ class ProjectUser(
         """Return the first_name plus the last_name, with a space in between."""
         return f"{self.given_name.capitalize()} {self.family_name.capitalize()}".strip()
 
-    def get_project_queryset(self) -> QuerySet["Project"]:
+    def get_project_queryset(
+        self, queryset: QuerySet["Project"] | None = None
+    ) -> QuerySet["Project"]:
         """get Project queryset
 
         :return: the queryset filtered of Project
@@ -517,7 +519,6 @@ class ProjectUser(
         # if user is superuser, we reset all preview filters ( to return all elements)
         if self.is_superuser:
             q_filter = Q()
-
         self._project_queryset = Project.objects.filter(q_filter).distinct()
         return self._project_queryset
 

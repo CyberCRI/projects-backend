@@ -15,10 +15,7 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.views import (
-    NestedOrganizationViewMixins,
-    NestedPeopleGroupViewMixins,
-)
+from apps.commons.views import OrganizationRelatedViewset, PeopleGroupRelatedViewset
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -84,7 +81,11 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         ],
     ),
 )
-class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+class AbstractDocumentViewSet(
+    OrganizationRelatedViewset,
+    NestedResearcherViewMixins,
+    viewsets.ReadOnlyModelViewSet,
+):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
@@ -196,7 +197,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
+class DocumentViewSet(OrganizationRelatedViewset, AbstractDocumentViewSet):
     """general viewset documents"""
 
     def get_queryset(self) -> QuerySet[Document]:
@@ -208,7 +209,7 @@ class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
 
 
 class AbstractGroupDocumentViewSet(
-    NestedPeopleGroupViewMixins, AbstractDocumentViewSet
+    PeopleGroupRelatedViewset, AbstractDocumentViewSet
 ):
     def get_queryset(self):
         modules_manager = self.people_group.get_related_module()
@@ -217,7 +218,7 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
-    NestedOrganizationViewMixins,
+    OrganizationRelatedViewset,
     NestedResearcherViewMixins,
     AbstractDocumentViewSet,
 ):
@@ -342,7 +343,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
         ],
     ),
 )
-class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
+class ResearcherViewSet(OrganizationRelatedViewset, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "id")

@@ -44,7 +44,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     DetailOnlyViewsetMixin,
     MultipleIDViewsetMixin,
-    NestedOrganizationViewMixins,
+    OrganizationRelatedViewset,
     NestedPeopleGroupViewMixins,
 )
 from apps.files.models import Image
