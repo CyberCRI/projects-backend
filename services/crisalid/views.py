@@ -15,7 +15,7 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.views import NestedOrganizationViewMixins
+from apps.commons.views import OrganizationRelatedViewset
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,
@@ -82,7 +82,7 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
     ),
 )
 class AbstractDocumentViewSet(
-    NestedOrganizationViewMixins,
+    OrganizationRelatedViewset,
     NestedResearcherViewMixins,
     viewsets.ReadOnlyModelViewSet,
 ):
@@ -292,7 +292,7 @@ class ConferenceViewSet(AbstractDocumentViewSet):
         ],
     ),
 )
-class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
+class ResearcherViewSet(OrganizationRelatedViewset, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "id")

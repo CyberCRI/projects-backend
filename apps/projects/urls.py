@@ -1,7 +1,11 @@
 from rest_framework.routers import DefaultRouter
 
 from apps.announcements.views import AnnouncementViewSet
-from apps.commons.urls import project_router_register
+from apps.commons.urls import (
+    organization_project_router_register,
+    organization_router_register,
+    project_router_register,
+)
 from apps.feedbacks.views import (
     CommentImagesView,
     CommentViewSet,
@@ -30,7 +34,8 @@ from .views import (
 
 router = DefaultRouter()
 router.register(r"location", ReadLocationViewSet, basename="Read-location")
-router.register(r"project", ProjectViewSet, basename="Project")
+
+organization_router_register(router, r"project", ProjectViewSet, basename="Project")
 
 project_router_register(
     router,
@@ -57,7 +62,9 @@ project_router_register(
     router, r"announcement", AnnouncementViewSet, basename="Announcement"
 )
 project_router_register(router, r"image", ProjectImagesView, basename="Project-images")
-project_router_register(router, r"header", ProjectHeaderView, basename="Project-header")
+organization_project_router_register(
+    router, r"header", ProjectHeaderView, basename="Project-header"
+)
 project_router_register(
     router, r"project-message", ProjectMessageViewSet, basename="ProjectMessage"
 )

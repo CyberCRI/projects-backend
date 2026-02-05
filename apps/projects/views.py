@@ -22,7 +22,11 @@ from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import (
+    MultipleIDViewsetMixin,
+    OrganizationRelatedViewset,
+    ProjectRelatedViewset,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -74,18 +78,23 @@ from .serializers import (
 )
 
 
-class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectViewSet(
+    MultipleIDViewsetMixin, OrganizationRelatedViewset, viewsets.ModelViewSet
+):
     """Main endpoints for projects."""
 
     class InfoDetails(enum.Enum):
         SUMMARY = "summary"
 
+    queryset = Project.objects.all()
     serializer_class = ProjectSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ProjectFilter
     ordering_fields = ["created_at", "updated_at"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+
+    queryset_organization_field = "organizations"
     multiple_lookup_fields = [
         (Project, "id"),
     ]
@@ -105,7 +114,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         return (
-            self.request.user.get_project_queryset()
+            self.organization_filter_queryset(self.request.user.get_project_queryset())
             .select_related("header_image")
             .prefetch_related(
                 "categories",
@@ -129,10 +138,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if self.action == "list" or is_summary:
             return ProjectLightSerializer
         return self.serializer_class
-
-    def get_serializer_context(self):
-        """Adds request to the serializer's context."""
-        return {"request": self.request}
 
     def perform_create(self, serializer: ProjectSerializer):
         project = serializer.save()
@@ -397,24 +402,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(ProjectLightSerializer(queryset, many=True).data)
 
 
-class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
-    permission_classes = [
-        IsAuthenticatedOrReadOnly,
-        ProjectIsNotLocked,
-        ReadOnly
-        | IsOwner
-        | HasBasePermission("change_project", "projects")
-        | HasOrganizationPermission("change_project")
-        | HasProjectPermission("change_project"),
-    ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
-
-    def get_queryset(self):
-        if "project_id" in self.kwargs:
-            return Image.objects.filter(project_header__id=self.kwargs["project_id"])
-        return Image.objects.none()
+class ProjectHeaderView(ProjectRelatedViewset, ImageStorageView):
+    queryset = Image.objects.all()
+    queryset_organization_field: str = "project_header__organizations"
+    queryset_project_field: str = "project_header"
 
     @staticmethod
     def upload_to(instance, filename) -> str:

@@ -76,7 +76,7 @@ def HasProjectPermission(  # noqa: N802
                 if not project:
                     project = self.get_related_project(request, view)
                 if project and app:
-                    request.user.has_perm(f"{app}.{codename}", project)
+                    return request.user.has_perm(f"{app}.{codename}", project)
                 if project:
                     return request.user.has_perm(codename, project)
             return False
