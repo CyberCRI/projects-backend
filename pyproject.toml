@@ -38,7 +38,7 @@ serializers = "^0.2.4"
 shortuuid = "^1.0.1"
 single-source = "^0.3.0"
 whitenoise = { extras = ["brotli"], version = "^6.0.0" }
-babel = "^2.11.0"
+babel = "^2.18.0"
 mixpanel-utils = "^2.2.5"
 django-guardian = "^2.4.0"
 djangorestframework-guardian = "^0.3.0"
