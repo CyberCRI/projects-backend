@@ -23,7 +23,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "organization",
             choices=CrisalidConfig.objects.filter(
-                organization__code__isnull=False
+                organization__code__isnull=False, active=True
             ).values_list("organization__code", flat=True),
             help="organization code",
         )

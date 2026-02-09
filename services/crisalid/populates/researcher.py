@@ -1,10 +1,17 @@
 from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.models import Identifier, Researcher
+from services.crisalid.populates.identifier import PopulateIdentifier
 
 from .base import AbstractPopulate
 
 
 class PopulateResearcher(AbstractPopulate):
+    def __init__(self, *ar, populate_identifiers=None, populate_structures=None, **kw):
+        super().__init__(*ar, **kw)
+        self.populate_identifiers = populate_identifiers or PopulateIdentifier(
+            self.config, self.cache
+        )
+
     def get_names(self, data):
         given_name = family_name = ""
 
@@ -45,29 +52,26 @@ class PopulateResearcher(AbstractPopulate):
         return user
 
     def check_mapping_user(
-        self, researcher: Researcher, data: dict
+        self,
+        researcher: Researcher,
+        identifiers: list[Identifier],
+        given_name: str,
+        family_name: str,
     ) -> ProjectUser | None:
         """match user from researcher (need eppn)"""
 
         if researcher.user:
             return self.update_user(researcher.user)
 
-        for iden in data["identifiers"]:
-            if iden["type"].lower() != Identifier.Harvester.EPPN.value:
+        for iden in identifiers:
+            if iden.harvester != Identifier.Harvester.EPPN:
                 continue
 
-            given_name, family_name = self.get_names(data)
-            return self.create_user(iden["value"], given_name, family_name)
+            return self.create_user(iden.value, given_name, family_name)
         return None
 
     def single(self, data: dict) -> Researcher | None:
-        researcher_identifiers = []
-        for iden in data["identifiers"]:
-            identifier = self.cache.model(
-                Identifier, value=iden["value"], harvester=iden["type"].lower()
-            )
-            self.cache.save(identifier)
-            researcher_identifiers.append(identifier)
+        researcher_identifiers = self.populate_identifiers.multiple(data["identifiers"])
 
         # researcher withtout any identifiers no neeeeeeed to be created
         if not researcher_identifiers:
@@ -85,7 +89,9 @@ class PopulateResearcher(AbstractPopulate):
         )
 
         given_name, family_name = self.get_names(data)
-        user = self.check_mapping_user(researcher, data)
+        user = self.check_mapping_user(
+            researcher, researcher_identifiers, given_name, family_name
+        )
 
         self.cache.save(
             researcher, given_name=given_name, family_name=family_name, user=user
