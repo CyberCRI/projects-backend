@@ -3,7 +3,13 @@ import logging
 from apps.commons.utils import clear_memory
 from projects.celery import app
 
-from .models import DocumentEmbedding, MistralEmbedding, ProjectEmbedding, UserEmbedding
+from .models import (
+    DocumentEmbedding,
+    GroupEmbedding,
+    MistralEmbedding,
+    ProjectEmbedding,
+    UserEmbedding,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,3 +38,4 @@ def _vectorize_updated_objects():
     _vectorize_objects(ProjectEmbedding)
     _vectorize_objects(UserEmbedding)
     _vectorize_objects(DocumentEmbedding)
+    _vectorize_objects(GroupEmbedding)

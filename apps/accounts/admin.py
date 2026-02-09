@@ -20,6 +20,7 @@ from .models import PeopleGroup, ProjectUser
 from .utils import get_group_permissions
 
 
+@admin.register(ProjectUser)
 class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin):
     resource_classes = [UserResource]
 
@@ -88,6 +89,10 @@ class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdm
         verbose_name = "User"
 
 
+admin.unregister(Group)
+
+
+@admin.register(Group)
 class GroupAdmin(admin.ModelAdmin):
     class GroupUsersInline(admin.TabularInline):
         model = Group.users.through
@@ -156,6 +161,7 @@ class GroupAdmin(admin.ModelAdmin):
         return "- " + "\n- ".join(get_group_permissions(instance))
 
 
+@admin.register(PeopleGroup)
 class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("id", "name", "organization", "email")
     search_fields = ("name", "email", "id")
@@ -163,13 +169,8 @@ class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_filter = ("organization",)
 
 
+
+@admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ("name", "codename", "content_type")
     search_fields = ("name", "codename", "content_type__model")
-
-
-admin.site.unregister(Group)
-admin.site.register(Group, GroupAdmin)
-admin.site.register(PeopleGroup, PeopleGroupAdmin)
-admin.site.register(ProjectUser, UserAdmin)
-admin.site.register(Permission, PermissionAdmin)

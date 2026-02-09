@@ -410,6 +410,14 @@ class HasMultipleIDs:
         return slug
 
 
+class HasModulesRelated:
+    """Mixins for related modules class"""
+
+    def get_related_module(self):
+        from apps.modules.base import get_module
+
+        return get_module(type(self))
+
 
 class HasEmbending:
     def vectorize(self):

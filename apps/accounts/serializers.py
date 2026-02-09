@@ -19,11 +19,12 @@ from apps.commons.models import GroupData
 from apps.commons.serializers import StringsImagesSerializer
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
+from apps.modules.serializers import ModulesSerializers
 from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer
+from apps.skills.serializers import SkillLightSerializer, TagRelatedField
 from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -238,10 +239,9 @@ class PeopleGroupSuperLightSerializer(
 
 
 class PeopleGroupLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
     header_image = ImageSerializer(read_only=True)
-    members_count = serializers.SerializerMethodField()
     roles = serializers.SlugRelatedField(
         many=True,
         slug_field="name",
@@ -249,9 +249,6 @@ class PeopleGroupLightSerializer(
         source="groups",
     )
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
-
-    def get_members_count(self, group: PeopleGroup) -> int:
-        return group.get_all_members().count()
 
     class Meta:
         model = PeopleGroup
@@ -264,12 +261,26 @@ class PeopleGroupLightSerializer(
             "short_description",
             "email",
             "header_image",
-            "members_count",
             "roles",
+            "modules",
         ]
+
+    def get_modules(self, people_group: PeopleGroup):
+        context = self.context
+        request = context.get("request")
+
+        modules_manager = people_group.get_related_module()
+        modules = modules_manager(people_group, request.user)
+
+        # return only members and subgroups coun ( for card )
+        return {
+            "members": modules.members().count(),
+            "subgroups": modules.subgroups().count(),
+        }
 
 
 class PeopleGroupHierarchySerializer(
+    ModulesSerializers,
     AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
@@ -292,15 +303,27 @@ class PeopleGroupHierarchySerializer(
             "header_image",
             "children",
             "roles",
+            "modules",
         ]
         fields = read_only_fields
 
-    def get_children(
-        self, people_group: PeopleGroup
-    ) -> List[Dict[str, Union[str, int]]]:
+    def get_modules(self, people_group: PeopleGroup):
+        context = self.context
+        request = context.get("request")
+
+        modules_manager = people_group.get_related_module()
+        modules = modules_manager(people_group, request.user)
+
+        return {
+            "members": modules.members().count(),
+            "subgroups": modules.subgroups().count(),
+        }
+
+    def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
         mapping = context.get("mapping")
+
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
                 organization=people_group.organization
@@ -402,7 +425,10 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class PeopleGroupSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers,
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
 
     string_images_forbid_fields: List[str] = [
@@ -415,7 +441,6 @@ class PeopleGroupSerializer(
         slug_field="code", queryset=Organization.objects.all()
     )
     hierarchy = serializers.SerializerMethodField()
-    children = serializers.SerializerMethodField()
     parent = serializers.PrimaryKeyRelatedField(
         queryset=PeopleGroup.objects.all(),
         required=False,
@@ -434,6 +459,12 @@ class PeopleGroupSerializer(
     featured_projects = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
+    tags = TagRelatedField(many=True, required=False)
+
+    sdgs = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=17),
+        required=False,
+    )
 
     def get_hierarchy(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
         request = self.context.get("request")
@@ -447,20 +478,7 @@ class PeopleGroupSerializer(
                 )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
-    def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
-        request = self.context.get("request")
-        queryset = (
-            request.user.get_people_group_queryset()
-            .select_related("organization")
-            .filter(parent=obj)
-            .order_by("name")
-            .distinct()
-        )
-        return PeopleGroupSuperLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
-
-    def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
+    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
             raise FeaturedProjectPermissionDeniedError
@@ -527,7 +545,7 @@ class PeopleGroupSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root", "slug"]
+        read_only_fields = ["is_root", "slug", "modules"]
         fields = read_only_fields + [
             "id",
             "name",
@@ -541,6 +559,8 @@ class PeopleGroupSerializer(
             "header_image",
             "logo_image",
             "roles",
+            "sdgs",
+            "tags",
             "publication_status",
             "team",
             "featured_projects",
