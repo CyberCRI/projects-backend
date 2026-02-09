@@ -1,5 +1,5 @@
 import uuid
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
@@ -16,14 +16,18 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
-from apps.commons.serializers import StringsImagesSerializer
+from apps.commons.serializers import (
+    BaseLocationSerializer,
+    ModulesSerializers,
+    StringsImagesSerializer,
+)
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.notifications.models import Notification
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
-from apps.skills.serializers import SkillLightSerializer
+from apps.skills.serializers import SkillLightSerializer, TagRelatedField
 from services.crisalid.serializers import ResearcherSerializerLight
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -37,7 +41,13 @@ from .exceptions import (
     UserRoleAssignmentError,
     UserRolePermissionDeniedError,
 )
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
+from .models import (
+    AnonymousUser,
+    PeopleGroup,
+    PeopleGroupLocation,
+    PrivacySettings,
+    ProjectUser,
+)
 from .utils import get_default_group, get_instance_from_group
 
 
@@ -121,11 +131,11 @@ class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         ]
         fields = read_only_fields
 
-    def get_profile_picture(self, instance: ProjectUser) -> Optional[Dict[str, Any]]:
+    def get_profile_picture(self, instance: ProjectUser) -> dict[str, Any] | None:
         image = instance.profile_picture
         return ImageSerializer(image).data if image else None
 
-    def to_representation(self, instance: ProjectUser) -> Dict[str, Any]:
+    def to_representation(self, instance: ProjectUser) -> dict[str, Any]:
         request = self.context.get("request")
         force_display = self.context.get("force_display", False)
         if force_display or (
@@ -190,7 +200,7 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
             "current_org_role": None,
         }
 
-    def get_profile_picture(self, user: ProjectUser) -> Union[Dict, str]:
+    def get_profile_picture(self, user: ProjectUser) -> dict | str:
         if user.profile_picture is None:
             return None
         return ImageSerializer(user.profile_picture).data
@@ -210,20 +220,39 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
             queryset, many=True, context=self.context
         ).data
 
-    def get_skills(self, user: ProjectUser) -> List[Dict]:
+    def get_skills(self, user: ProjectUser) -> list[dict]:
         return SkillLightSerializer(user.skills.all(), many=True).data
 
-    def get_needs_mentor_on(self, user: ProjectUser) -> List[Dict]:
+    def get_needs_mentor_on(self, user: ProjectUser) -> list[dict]:
         if getattr(user, "needs_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.needs_mentor_on)
             return SkillLightSerializer(skills, many=True).data
         return []
 
-    def get_can_mentor_on(self, user: ProjectUser) -> List[Dict]:
+    def get_can_mentor_on(self, user: ProjectUser) -> list[dict]:
         if getattr(user, "can_mentor_on", None):
             skills = Skill.objects.filter(id__in=user.can_mentor_on)
             return SkillLightSerializer(skills, many=True).data
         return []
+
+
+class PeopleGroupLocationSerializer(BaseLocationSerializer):
+
+    class Meta(BaseLocationSerializer.Meta):
+        model = PeopleGroupLocation
+
+
+class PeopleGroupLocationRelated(serializers.RelatedField):
+    def get_queryset(self):
+        return PeopleGroupLocation.objects.all()
+
+    def to_representation(self, instance: PeopleGroupLocation) -> dict:
+        return PeopleGroupLocationSerializer(instance=instance).data
+
+    def to_internal_value(self, element: dict) -> PeopleGroupLocation:
+        if element.get("pk"):
+            return PeopleGroupLocation.objects.get(pk=element["pk"])
+        return PeopleGroupLocation(**element)
 
 
 class PeopleGroupSuperLightSerializer(
@@ -233,15 +262,14 @@ class PeopleGroupSuperLightSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["id", "slug", "name", "organization"]
+        read_only_fields = ["id", "slug", "name", "short_description", "organization"]
         fields = read_only_fields
 
 
 class PeopleGroupLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
     header_image = ImageSerializer(read_only=True)
-    members_count = serializers.SerializerMethodField()
     roles = serializers.SlugRelatedField(
         many=True,
         slug_field="name",
@@ -249,9 +277,6 @@ class PeopleGroupLightSerializer(
         source="groups",
     )
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
-
-    def get_members_count(self, group: PeopleGroup) -> int:
-        return group.get_all_members().count()
 
     class Meta:
         model = PeopleGroup
@@ -264,12 +289,25 @@ class PeopleGroupLightSerializer(
             "short_description",
             "email",
             "header_image",
-            "members_count",
             "roles",
+            "modules",
         ]
+
+    def get_modules(self, people_group: PeopleGroup):
+        context = self.context
+        request = context.get("request")
+
+        modules_manager = people_group.get_related_module()
+        modules = modules_manager(people_group, request.user)
+
+        return {
+            "members": modules.members().count(),
+            "subgroups": modules.subgroups().count(),
+        }
 
 
 class PeopleGroupHierarchySerializer(
+    ModulesSerializers,
     AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
@@ -292,15 +330,27 @@ class PeopleGroupHierarchySerializer(
             "header_image",
             "children",
             "roles",
+            "modules",
         ]
         fields = read_only_fields
 
-    def get_children(
-        self, people_group: PeopleGroup
-    ) -> List[Dict[str, Union[str, int]]]:
+    def get_modules(self, people_group: PeopleGroup):
+        context = self.context
+        request = context.get("request")
+
+        modules_manager = people_group.get_related_module()
+        modules = modules_manager(people_group, request.user)
+
+        return {
+            "members": modules.members().count(),
+            "subgroups": modules.subgroups().count(),
+        }
+
+    def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
         mapping = context.get("mapping")
+
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
                 organization=people_group.organization
@@ -373,7 +423,7 @@ class PeopleGroupAddFeaturedProjectsSerializer(serializers.Serializer):
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
 
-    def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
+    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
             raise FeaturedProjectPermissionDeniedError
@@ -402,10 +452,13 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
 
 
 class PeopleGroupSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers,
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
 
-    string_images_forbid_fields: List[str] = [
+    string_images_forbid_fields: list[str] = [
         "name",
         "description",
         "short_description",
@@ -415,7 +468,6 @@ class PeopleGroupSerializer(
         slug_field="code", queryset=Organization.objects.all()
     )
     hierarchy = serializers.SerializerMethodField()
-    children = serializers.SerializerMethodField()
     parent = serializers.PrimaryKeyRelatedField(
         queryset=PeopleGroup.objects.all(),
         required=False,
@@ -434,8 +486,15 @@ class PeopleGroupSerializer(
     featured_projects = serializers.PrimaryKeyRelatedField(
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
+    tags = TagRelatedField(many=True, required=False)
 
-    def get_hierarchy(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
+    sdgs = serializers.ListField(
+        child=serializers.IntegerField(min_value=1, max_value=17),
+        required=False,
+    )
+    location = PeopleGroupLocationRelated(required=False, allow_null=True)
+
+    def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
         queryset = request.user.get_people_group_queryset()
         hierarchy = []
@@ -447,20 +506,7 @@ class PeopleGroupSerializer(
                 )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
-    def get_children(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
-        request = self.context.get("request")
-        queryset = (
-            request.user.get_people_group_queryset()
-            .select_related("organization")
-            .filter(parent=obj)
-            .order_by("name")
-            .distinct()
-        )
-        return PeopleGroupSuperLightSerializer(
-            queryset, many=True, context=self.context
-        ).data
-
-    def validate_featured_projects(self, projects: List[Project]) -> List[Project]:
+    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
         request = self.context.get("request")
         if not all(request.user.can_see_project(project) for project in projects):
             raise FeaturedProjectPermissionDeniedError
@@ -508,6 +554,12 @@ class PeopleGroupSerializer(
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
+        location = validated_data.pop("location", {})
+
+        if location:
+            location.save()
+            validated_data["id"] = location
+
         people_group = super(PeopleGroupSerializer, self).create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
             {"people_group": people_group, **team}
@@ -520,14 +572,23 @@ class PeopleGroupSerializer(
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
         validated_data.pop("featured_projects", [])
-        return super(PeopleGroupSerializer, self).update(instance, validated_data)
+        location = validated_data.pop("location")
 
-    def save(self, **kwargs):
-        return super().save(**kwargs)
+        if not location and getattr(instance, "location", None):
+            instance.location.delete()
+            validated_data["location"] = None
+        elif location:
+            location.save()
+            validated_data["location"] = location
+
+        people_group = super(PeopleGroupSerializer, self).update(
+            instance, validated_data
+        )
+        return people_group
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["is_root", "slug"]
+        read_only_fields = ["is_root", "slug", "modules"]
         fields = read_only_fields + [
             "id",
             "name",
@@ -537,21 +598,33 @@ class PeopleGroupSerializer(
             "parent",
             "organization",
             "hierarchy",
-            "children",
             "header_image",
             "logo_image",
             "roles",
+            "sdgs",
+            "tags",
+            "location",
             "publication_status",
             "team",
             "featured_projects",
         ]
 
 
+class LocationPeopleGroupSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+    group = PeopleGroupSuperLightSerializer(source="people_group", read_only=True)
+
+    class Meta:
+        model = PeopleGroupLocation
+        fields = "__all__"
+
+
 @extend_schema_serializer(exclude_fields=("roles",))
 class UserSerializer(
     StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
-    string_images_forbid_fields: List[str] = [
+    string_images_forbid_fields: list[str] = [
         "description",
         "short_description",
         "job",
@@ -718,7 +791,7 @@ class UserSerializer(
         self,
         group: Group,
         request_user: ProjectUser,
-        instance: Optional[HasPermissionsSetup] = None,
+        instance: HasPermissionsSetup | None = None,
     ):
         instance = instance or get_instance_from_group(group)
         if not instance or (
@@ -745,7 +818,7 @@ class UserSerializer(
         ):
             raise UserRolePermissionDeniedError(group.name)
 
-    def validate_roles(self, groups: List[Group]) -> List[Group]:
+    def validate_roles(self, groups: list[Group]) -> list[Group]:
         request = self.context.get("request")
         user = request.user
         groups_to_add = (
@@ -791,13 +864,13 @@ class UserSerializer(
             )
         )
 
-    def get_permissions(self, user: ProjectUser) -> List[str]:
+    def get_permissions(self, user: ProjectUser) -> list[str]:
         return user.get_instance_permissions_representations()
 
-    def get_skills(self, user: ProjectUser) -> List[Dict]:
+    def get_skills(self, user: ProjectUser) -> list[dict]:
         return SkillLightSerializer(user.skills.all(), many=True).data
 
-    def get_profile_picture(self, user: ProjectUser) -> Optional[Dict]:
+    def get_profile_picture(self, user: ProjectUser) -> dict | None:
         if user.profile_picture is None:
             return None
         return ImageSerializer(user.profile_picture).data

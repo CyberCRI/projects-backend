@@ -1,0 +1,15 @@
+{
+  "acronym": "LabEx CAP",
+  "names": [
+    {
+      "language": "fr",
+      "value": "CAP"
+    }
+  ],
+  "identifiers": [
+    {
+      "harvester": "local",
+      "value": "DGI01"
+    }
+  ]
+}

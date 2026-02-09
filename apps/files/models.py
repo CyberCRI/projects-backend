@@ -1,6 +1,7 @@
 import datetime
 import uuid
 from contextlib import suppress
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Optional
 
 from azure.core.exceptions import ResourceNotFoundError
@@ -16,6 +17,7 @@ from stdimage import StdImageField
 from apps.commons.mixins import (
     DuplicableModel,
     HasOwner,
+    HasOwners,
     OrganizationRelated,
     ProjectRelated,
 )
@@ -38,7 +40,7 @@ def dynamic_upload_to(instance: Model, filename: str):
         "argument should have a dynamic attribute `_upload_to` set before "
         "saving it for the first time." % instance.__class__.__name__
     )
-    upload_to = instance.__dict__.pop("_upload_to")
+    upload_to = instance.__dict__.pop("_upload_to", instance._upload_to)
     return upload_to(instance, filename)
 
 
@@ -71,6 +73,11 @@ def user_attachment_directory_path(
 ):
     date_part = f"{datetime.datetime.today():%Y-%m-%d}"
     return f"users/attachments/{instance.owner.pk}/{instance.attachment_type}/{date_part}-{filename}"
+
+
+def people_group_images_directory_path(instance: "PeopleGroupImage", filename: str):
+    date_part = f"{datetime.datetime.today():%Y-%m-%d}"
+    return f"peoplegroup/images/{instance.pk}/{date_part}-{filename}"
 
 
 class AttachmentLink(
@@ -238,10 +245,8 @@ class AttachmentFile(
         return None
 
 
-class Image(
-    models.Model, HasOwner, ProjectRelated, OrganizationRelated, DuplicableModel
-):
-    name = models.CharField(max_length=255)
+class BaseImage(models.Model, DuplicableModel):
+    name = models.CharField(max_length=255, null=True, blank=True)
     file = StdImageField(
         upload_to=dynamic_upload_to,
         height_field="height",
@@ -263,6 +268,35 @@ class Image(
     left = models.FloatField(blank=True, null=True)
     top = models.FloatField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ("-created_at",)
+        abstract = True
+
+    def duplicate(self, upload_to: str = "") -> Optional["BaseImage"]:
+        with suppress(ResourceNotFoundError):
+            file_path = self.file.name.split("/")
+            file_name = file_path.pop()
+            file_extension = file_name.split(".")[-1]
+            if upload_to:
+                upload_to = f"{upload_to}{uuid.uuid4()}.{file_extension}"
+            else:
+                upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
+            new_file = SimpleUploadedFile(
+                name=upload_to,
+                content=self.file.read(),
+                content_type=f"image/{file_extension}",
+            )
+            image = deepcopy(self)
+            image.file = new_file
+            image.id = None
+            image._upload_to = lambda instance, filename: upload_to
+            return image
+        return None
+
+
+class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
+    name = models.CharField(max_length=255)
     owner = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
@@ -403,32 +437,9 @@ class Image(
     def duplicate(
         self, owner: Optional["ProjectUser"] = None, upload_to: str = ""
     ) -> Optional["Image"]:
-        with suppress(ResourceNotFoundError):
-            file_path = self.file.name.split("/")
-            file_name = file_path.pop()
-            file_extension = file_name.split(".")[-1]
-            if upload_to:
-                upload_to = f"{upload_to}{uuid.uuid4()}.{file_extension}"
-            else:
-                upload_to = "/".join([*file_path, f"{uuid.uuid4()}.{file_extension}"])
-            new_file = SimpleUploadedFile(
-                name=upload_to,
-                content=self.file.read(),
-                content_type=f"image/{file_extension}",
-            )
-            image = Image(
-                name=self.name,
-                file=new_file,
-                height=self.height,
-                width=self.width,
-                natural_ratio=self.natural_ratio,
-                scale_x=self.scale_x,
-                scale_y=self.scale_y,
-                left=self.left,
-                top=self.top,
-                owner=owner or self.owner,
-            )
-            image._upload_to = lambda instance, filename: upload_to
+        image = super().duplicate(upload_to)
+        if image:
+            image.owner = (owner or self.owner,)
             image.save()
             return image
         return None
@@ -491,3 +502,29 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         return user == self.get_owner()
+
+
+class PeopleGroupImage(BaseImage, HasOwners):
+    people_group = models.ForeignKey(
+        "accounts.PeopleGroup",
+        on_delete=models.CASCADE,
+        null=False,
+        related_name="images",
+    )
+
+    def _upload_to(self, instance, filename):
+        return people_group_images_directory_path(instance, filename)
+
+    def is_owned_by(self, user: "ProjectUser") -> bool:
+        """Whether the given user is the owners of the group."""
+        people_group = self.people_group
+        members = people_group.managers() | people_group.leaders()
+
+        return members.contains(user)
+
+    def get_owners(self):
+        """Get the owners of the group."""
+        people_group = self.people_group
+        members = people_group.managers() | people_group.leaders()
+
+        return list(members)

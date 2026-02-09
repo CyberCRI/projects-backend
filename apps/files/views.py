@@ -17,11 +17,12 @@ from rest_framework.response import Response
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import MultipleIDViewsetMixin, NestedPeopleGroupViewMixins
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
+from lib.views import NestedOrganizationViewMixins
 
 from .exceptions import ProtectedImageError
 from .models import (
@@ -37,6 +38,7 @@ from .serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
     OrganizationAttachmentFileSerializer,
+    PeopleGroupImageSerializer,
     ProjectUserAttachmentFileSerializer,
     ProjectUserAttachmentLinkSerializer,
 )
@@ -275,4 +277,19 @@ class ProjectUserAttachmentFileViewSet(viewsets.ModelViewSet):
     )
     def create(self, request, *ar, **kw):
         request.data["owner"] = int(self.kwargs["user_id"])
+        return super().create(request, *ar, **kw)
+
+
+class PeopleGroupGalleryViewSet(
+    NestedOrganizationViewMixins, NestedPeopleGroupViewMixins, viewsets.ModelViewSet
+):
+    serializer_class = PeopleGroupImageSerializer
+
+    def get_queryset(self):
+        modules_manager = self.people_group.get_related_module()
+        modules = modules_manager(self.people_group, self.request.user)
+        return modules.gallery()
+
+    def create(self, request, *ar, **kw):
+        request.data["people_group"] = self.people_group.id
         return super().create(request, *ar, **kw)

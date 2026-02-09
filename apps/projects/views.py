@@ -17,7 +17,9 @@ from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnl
 from rest_framework.response import Response
 from simple_history.utils import update_change_reason
 
+from apps.accounts.models import PeopleGroupLocation
 from apps.accounts.permissions import HasBasePermission
+from apps.accounts.serializers import LocationPeopleGroupSerializer
 from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
@@ -43,7 +45,7 @@ from apps.projects.exceptions import (
 )
 from services.mistral.models import ProjectEmbedding
 
-from .filters import LocationFilter, ProjectFilter
+from .filters import ProjectFilter
 from .models import (
     BlogEntry,
     Goal,
@@ -612,11 +614,6 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super(LocationViewSet, self).dispatch(request, *args, **kwargs)
 
 
-class ReadLocationViewSet(LocationViewSet):
-    http_method_names = ["get", "list"]
-    filterset_class = LocationFilter
-
-
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
@@ -1004,3 +1001,22 @@ class ProjectTabItemImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 tab_item.save()
             return f"/v1/project/{self.kwargs['project_id']}/tab/{self.kwargs['tab_id']}/item-image/{image.id}"
         return None
+
+
+class GeneralLocationView(viewsets.GenericViewSet):
+    http_method_names = ["get", "list"]
+
+    def list(self, request, *args, **kwargs):
+        qs_project = self.request.user.get_project_related_queryset(
+            Location.objects
+        ).select_related("project")
+
+        qs_group = self.request.user.get_people_group_related_queryset(
+            PeopleGroupLocation.objects
+        ).select_related("people_group")
+
+        data = {
+            "groups": LocationPeopleGroupSerializer(qs_group, many=True).data,
+            "projects": LocationSerializer(qs_project, many=True).data,
+        }
+        return Response(data, status=status.HTTP_200_OK)
