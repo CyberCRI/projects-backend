@@ -5,8 +5,9 @@ from django import test
 from apps.accounts.factories import UserFactory
 from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.factories import CrisalidConfigFactory
-from services.crisalid.models import Document, Identifier, Researcher
+from services.crisalid.models import Document, Identifier, Researcher, Structure
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates.structure import PopulateStructure
 
 
 class TestPopulateResearcher(test.TestCase):
@@ -361,3 +362,46 @@ class TestPopulateDocument(test.TestCase):
             ),
             Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
         )
+
+
+class TestPopulateStructure(test.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        cls.config = CrisalidConfigFactory()
+        cls.popu = PopulateStructure(cls.config)
+
+    def test_create_structure(self):
+        data = {
+            "acronym": "LabEx CAP",
+            "names": [{"language": "fr", "value": "CAP"}],
+            "identifiers": [{"type": "local", "value": "DGI01"}],
+        }
+
+        new_obj = self.popu.single(data)
+
+        # check obj from db
+        obj = Structure.objects.first()
+        self.assertEqual(obj, new_obj)
+
+        self.assertEqual(obj.acronym, "LabEx CAP")
+        self.assertEqual(obj.name, "CAP")
+        self.assertEqual(obj.organization, self.config.organization)
+        self.assertEqual(obj.identifiers.count(), 1)
+        iden = obj.identifiers.first()
+        self.assertEqual(iden.value, "DGI01")
+        self.assertEqual(iden.harvester, "local")
+
+    def test_create_structure_whitout_identifiers(self):
+        data = {
+            "acronym": "LabEx CAP",
+            "names": [{"language": "fr", "value": "CAP"}],
+            "identifiers": [],
+        }
+
+        new_obj = self.popu.single(data)
+
+        # check obj from db
+        obj = Structure.objects.first()
+        self.assertIsNone(obj)
+        self.assertIsNone(new_obj)

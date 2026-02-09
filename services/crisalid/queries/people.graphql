@@ -15,5 +15,29 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: PersonWhere) {
       harvester: type
       value
     }
+
+    employments {
+       acronym
+      names {
+        language
+        value
+      }
+      identifiers {
+        harvester: type
+        value
+     }
+    }
+
+    memberships {
+      acronym
+      names {
+        language
+        value
+      }
+      identifiers {
+        harvester: type
+        value
+     }
+    }
   }
 }

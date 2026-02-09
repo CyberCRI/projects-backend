@@ -1,6 +1,7 @@
 from apps.accounts.models import PrivacySettings, ProjectUser
 from services.crisalid.models import Identifier, Researcher
 from services.crisalid.populates.identifier import PopulateIdentifier
+from services.crisalid.populates.structure import PopulateStructure
 
 from .base import AbstractPopulate
 
@@ -10,6 +11,9 @@ class PopulateResearcher(AbstractPopulate):
         super().__init__(*ar, **kw)
         self.populate_identifiers = populate_identifiers or PopulateIdentifier(
             self.config, self.cache
+        )
+        self.populate_structures = populate_structures or PopulateStructure(
+            self.config, self.cache, populate_identifiers=self.populate_identifiers
         )
 
     def get_names(self, data):
@@ -96,6 +100,17 @@ class PopulateResearcher(AbstractPopulate):
         self.cache.save(
             researcher, given_name=given_name, family_name=family_name, user=user
         )
-        self.cache.save_m2m(researcher, identifiers=researcher_identifiers)
+
+        m2m = {"identifiers": researcher_identifiers}
+
+        memberships = data.get("memberships")
+        if memberships:
+            m2m["memberships"] = self.populate_structures.multiple(memberships)
+
+        employments = data.get("employments")
+        if employments:
+            m2m["employments"] = self.populate_structures.multiple(employments)
+
+        self.cache.save_m2m(researcher, **m2m)
 
         return researcher

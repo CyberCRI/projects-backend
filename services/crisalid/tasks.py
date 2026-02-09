@@ -4,8 +4,15 @@ from projects.celery import app
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import CrisalidConfig, Document, Identifier, Researcher
+from services.crisalid.models import (
+    CrisalidConfig,
+    Document,
+    Identifier,
+    Researcher,
+    Structure,
+)
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
+from services.crisalid.populates.structure import PopulateStructure
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +70,54 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
     logger.info("deleted = %s", deleted)
 
 
+# ----
+# Documents task (publications/conference ....)
+# ----
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.CREATED)
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.UPDATED)
+@app.task(name=f"{__name__}.create_structure")
+def create_structure(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.error("receive %s for organization %s", fields, config.organization)
+
+    service = CrisalidService(config)
+
+    # fetch data from apollo
+    data = service.query(
+        "organisations", offset=0, limit=1, where={"uid_EQ": fields["uid"]}
+    )["organisations"]
+    if not data:
+        logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
+        return
+
+    populate = PopulateStructure(config)
+    populate.single(data[0])
+
+
+@on_event(CrisalidTypeEnum.STRUCTURE, CrisalidEventEnum.DELETED)
+@app.task(name=f"{__name__}.delete_structure")
+def delete_structure(crisalid_config_id: int, fields: dict):
+    config = get_crisalid_config(crisalid_config_id)
+    logger.error("receive %s for organization %s", fields, config.organization)
+
+    identifiers = [
+        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        for iden in fields["identifiers"]
+        if iden["type"].lower()
+        not in (Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN)
+    ]
+
+    qs = Structure.objects.from_identifiers(identifiers, distinct=False).filter(
+        organization=config.organization
+    )
+    deleted, _ = qs.delete()
+
+    logger.info("deleted = %s", deleted)
+
+
+# ----
+# Documents task (publications/conference ....)
+# ----
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.CREATED)
 @on_event(CrisalidTypeEnum.DOCUMENT, CrisalidEventEnum.UPDATED)
 @app.task(name=f"{__name__}.create_document")

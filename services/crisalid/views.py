@@ -15,7 +15,7 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.views import NestedOrganizationViewMixins
+from apps.commons.views import NestedOrganizationViewMixins, NestedPeopleGroupViewMixins
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,
@@ -262,6 +262,15 @@ class AbstractResearcherDocumentViewSet(
     def get_queryset(self) -> QuerySet[Document]:
         return super().get_queryset().filter(contributors=self.researcher)
 
+
+class GroupPublicationViewSet(AbstractGroupDocumentViewSet):
+    document_name = "publications"
+    document_types = DocumentTypeCentralized.publications
+
+
+class GroupConferenceViewSet(AbstractGroupDocumentViewSet):
+    document_name = "conferences"
+    document_types = DocumentTypeCentralized.conferences
 
 
 class PublicationViewSet(AbstractResearcherDocumentViewSet):
