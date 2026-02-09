@@ -1004,11 +1004,11 @@ description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["main", "dev"]
-markers = "platform_system == \"Windows\" or sys_platform == \"win32\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
+markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "coverage"
@@ -1458,18 +1458,19 @@ requests = ["requests (>=2.24)"]
 
 [[package]]
 name = "django-modeltranslation"
-version = "0.17.7"
+version = "0.19.19"
 description = "Translates Django models using a registration approach."
 optional = false
-python-versions = ">=3.6.2"
+python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django-modeltranslation-0.17.7.tar.gz", hash = "sha256:e247840b9038b7e7b2dc6f1b4868dfe88737540883eaed3d4b4775e5bd89c7fd"},
+    {file = "django_modeltranslation-0.19.19-py3-none-any.whl", hash = "sha256:55ac2ce47486b9e8ca18b155f7705170a53b7e1346bf7bf89304e99787486e8f"},
+    {file = "django_modeltranslation-0.19.19.tar.gz", hash = "sha256:26dd8454f19540a2eb05e303608a2d89dd80aacb75ab95f8ea272cf4324d2644"},
 ]
 
 [package.dependencies]
-django = ">=2.2"
-six = ">=1.15.0,<2.0.0"
+django = ">=5.1"
+typing-extensions = ">=4.0.1"
 
 [[package]]
 name = "django-opensearch-dsl"
@@ -5274,4 +5275,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "a48d681be4d3720a44245e84dcbed35671fc87db75843814c85e70f19745efa4"
+content-hash = "da091522a8796844c5d8b6b2bfbd8d89ca29c148854e55d9cb00aad18a01364d"
