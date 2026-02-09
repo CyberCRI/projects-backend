@@ -215,6 +215,7 @@ class RetrieveNewsTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_USER, ("none", "all")),
+            (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),
             (TestRoles.GROUP_MANAGER, ("all", "private")),
             (TestRoles.GROUP_MEMBER, ("all", "private")),

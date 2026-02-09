@@ -82,10 +82,11 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 ("public_1", "public_2", "private", "org", "member"),
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org")),
+            (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org")),
             (TestRoles.GROUP_MEMBER, ("public_1", "public_2", "member")),
         ]
     )
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_people_group(self, role, retrieved_groups, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects[group] for group in retrieved_groups],
@@ -110,7 +111,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {self.groups[group].id for group in retrieved_groups},
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_organization(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["public_2"]],
@@ -134,7 +135,7 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {self.public_people_group_2.id},
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_sdgs(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["public_2"]],

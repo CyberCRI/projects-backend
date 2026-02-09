@@ -163,3 +163,101 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         self.assertEqual(len(hits), 1)
         hit_2 = hits[0]
         self.assertEqual(hit_2.id, self.tag.id)
+
+    @parameterized.expand(
+        [
+            ("project", ["title^2", "content^1"], ["project_2", "project"]),
+            (
+                "people_group",
+                ["name^2", "content^1"],
+                ["people_group_2", "people_group"],
+            ),
+            ("tag", ["title^2", "content^1"], ["tag_2", "tag"]),
+            ("user", ["given_name^2", "family_name^1"], ["user_2", "user"]),
+        ]
+    )
+    def test_multi_match_prefix_search(self, index, fields, expected_results):
+        indices = [
+            f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}",
+        ]
+        response = OpenSearchService.multi_match_prefix_search(
+            indices=indices, query=self.query_2, fields=fields
+        )
+        hits = response.hits
+        self.assertEqual(len(hits), len(expected_results))
+        self.assertListEqual(
+            [hit.id for hit in hits],
+            [self.results[result].id for result in expected_results],
+        )
+
+    @parameterized.expand(
+        [
+            ("project", ["title"], ["project"]),
+            ("people_group", ["name"], ["people_group"]),
+            ("tag", ["title"], ["tag"]),
+            ("user", ["given_name"], ["user"]),
+        ]
+    )
+    def test_multi_match_prefix_search_highlight(
+        self, index, highlight, expected_results
+    ):
+        indices = f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
+        response = OpenSearchService.multi_match_prefix_search(
+            indices=indices, query=self.query, fields=highlight, highlight=highlight
+        )
+        hits = response.hits
+        self.assertEqual(len(hits), len(expected_results))
+        for hit in hits:
+            returned_highlight = hit.meta.highlight.to_dict()
+            for field in highlight:
+                self.assertIn(field, returned_highlight)
+                self.assertTrue(
+                    any(
+                        f"<em>{self.query}</em>" in highlight
+                        for highlight in returned_highlight[field]
+                    )
+                )
+
+    def test_multi_match_prefix_search_multiple_indices(self):
+        indices = [
+            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
+        ]
+        response = OpenSearchService.multi_match_prefix_search(
+            indices=indices,
+            query=self.query_2,
+            fields=["title^2", "content^1"],
+        )
+        hits = response.hits
+        self.assertEqual(len(hits), 2)
+        self.assertSetEqual(
+            {hit.id for hit in hits},
+            {self.tag_2.id, self.tag.id},
+        )
+
+    def test_multi_match_prefix_search_pagination(self):
+        indices = [
+            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
+        ]
+        response = OpenSearchService.multi_match_prefix_search(
+            indices=indices,
+            query=self.query_2,
+            fields=["title^2", "content^1"],
+            limit=1,
+            offset=0,
+        )
+        hits = response.hits
+        self.assertEqual(len(hits), 1)
+        hit_1 = hits[0]
+        self.assertEqual(hit_1.id, self.tag_2.id)
+
+        response = OpenSearchService.multi_match_prefix_search(
+            indices=indices,
+            query=self.query_2,
+            fields=["title^2", "content^1"],
+            limit=1,
+            offset=1,
+        )
+        hits = response.hits
+        self.assertEqual(len(hits), 1)
+        hit_2 = hits[0]
+        self.assertEqual(hit_2.id, self.tag.id)

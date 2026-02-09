@@ -37,11 +37,11 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectMessage.auto_translated_fields)
+            auto_translated_fields.count(), len(ProjectMessage._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(ProjectMessage.auto_translated_fields),
+            set(ProjectMessage._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -55,7 +55,7 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
 
         payload = {
             translated_field: faker.word()
-            for translated_field in ProjectMessage.auto_translated_fields
+            for translated_field in ProjectMessage._auto_translated_fields
         }
         response = self.client.patch(
             reverse(
@@ -68,11 +68,11 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=project_message.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectMessage.auto_translated_fields)
+            auto_translated_fields.count(), len(ProjectMessage._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(ProjectMessage.auto_translated_fields),
+            set(ProjectMessage._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:

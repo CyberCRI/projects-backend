@@ -97,7 +97,7 @@ class SearchViewSet(ListViewSet):
         offset = request.query_params.get("offset", 0)
         search_type = request.query_params.get("search_type", "most_fields")
         fuzziness = request.query_params.get("fuzziness", 1)
-        response = OpenSearchService.multi_match_search(
+        response = OpenSearchService.multi_match_prefix_search(
             indices=indices,
             fields=[
                 # common

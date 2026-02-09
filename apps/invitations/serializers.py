@@ -98,13 +98,13 @@ class AccessRequestSerializer(
         if self.initial_data.get("user"):
             return ""
         if ProjectUser.objects.filter(
-            Q(email=value) | Q(personal_email=value)
+            Q(email__iexact=value) | Q(personal_email__iexact=value)
         ).exists():
             raise AccessRequestUserAlreadyExistsError
         if AccessRequest.objects.filter(
             organization__code=self.initial_data.get("organization"),
             status=AccessRequest.Status.PENDING,
-            email=value,
+            email__iexact=value,
         ).exists():
             raise AccessRequestForEmailAlreadyExistsError
         return value

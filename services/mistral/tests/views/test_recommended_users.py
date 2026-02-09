@@ -137,6 +137,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_FACILITATOR, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_USER, ["org", "public_2", "public"]),
+            (TestRoles.ORG_VIEWER, ["org", "public_2", "public"]),
         ]
     )
     def test_user_recommended_users(self, role, retrieved_users):
@@ -172,6 +173,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2"]),
             (TestRoles.ORG_FACILITATOR, ["org", "private", "public_2"]),
             (TestRoles.ORG_USER, ["org", "public_2"]),
+            (TestRoles.ORG_VIEWER, ["org", "public_2"]),
         ]
     )
     def test_project_recommended_users(self, role, retrieved_users):
@@ -199,6 +201,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2"]),
             (TestRoles.ORG_FACILITATOR, ["org", "private", "public_2"]),
             (TestRoles.ORG_USER, ["org", "public_2"]),
+            (TestRoles.ORG_VIEWER, ["org", "public_2"]),
         ]
     )
     def test_project_recommended_random_users(self, role, retrieved_users):
@@ -228,6 +231,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_FACILITATOR, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_USER, ["org", "public_2", "public"]),
+            (TestRoles.ORG_VIEWER, ["org", "public_2", "public"]),
         ]
     )
     def test_user_recommended_random_users(self, role, retrieved_users):

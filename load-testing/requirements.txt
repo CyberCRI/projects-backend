@@ -1,2 +1,2 @@
-locust==2.43.0
+locust==2.43.2
 requests-oauthlib==2.0.0

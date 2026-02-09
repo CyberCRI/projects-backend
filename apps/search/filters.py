@@ -66,6 +66,61 @@ def MultiMatchSearchFieldsFilter(  # noqa: N802
     return _MultiMatchSearchFieldsFilter
 
 
+def MultiMatchPrefixSearchFieldsFilter(  # noqa: N802
+    index: str,
+    fields: Optional[List[str]],
+    highlight: Optional[List[str]] = None,
+    highlight_size: int = 150,
+):
+    class _MultiMatchPrefixSearchFieldsFilter(SearchFilter):
+        def filter_queryset(self, request, queryset, view):
+            query = self.get_search_terms(request)
+            if isinstance(query, list):
+                query = " ".join(query)
+            if query:
+                limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
+                offset = request.query_params.get("offset", 0)
+                response = OpenSearchService.multi_match_prefix_search(
+                    indices=index,
+                    fields=fields,
+                    query=query,
+                    highlight=highlight,
+                    highlight_size=highlight_size,
+                    limit=limit,
+                    offset=offset,
+                    id=list(queryset.values_list("id", flat=True)),
+                )
+                ids = [hit.id for hit in response.hits]
+                if not ids:
+                    return queryset.none()
+                queryset = queryset.filter(id__in=ids).annotate(
+                    ordering=ArrayPosition(ids, F("id"), base_field=BigIntegerField())
+                )
+                if highlight:
+                    queryset = queryset.annotate(
+                        highlight=Case(
+                            *[
+                                When(
+                                    id=hit.id,
+                                    then=Value(
+                                        (
+                                            hit.meta.highlight.to_dict()
+                                            if hasattr(hit.meta, "highlight")
+                                            else {}
+                                        ),
+                                        output_field=JSONField(),
+                                    ),
+                                )
+                                for hit in response.hits
+                            ],
+                        )
+                    )
+                return queryset.order_by("ordering")
+            return queryset
+
+    return _MultiMatchPrefixSearchFieldsFilter
+
+
 class SearchObjectFilter(filters.FilterSet):
     # Shared filters
     types = MultiValueCharFilter(field_name="type", lookup_expr="in")

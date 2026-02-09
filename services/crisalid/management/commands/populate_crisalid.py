@@ -16,7 +16,7 @@ from services.crisalid.populates import (
     PopulateStructure,
 )
 from services.crisalid.populates.base import AbstractPopulate
-from services.crisalid.utils.time import timeit
+from services.crisalid.utils.timer import timeit
 from services.mistral.models import DocumentEmbedding
 
 

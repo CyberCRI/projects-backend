@@ -39,11 +39,11 @@ class BlogEntryTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(BlogEntry.auto_translated_fields)
+            auto_translated_fields.count(), len(BlogEntry._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(BlogEntry.auto_translated_fields),
+            set(BlogEntry._auto_translated_fields),
         )
         for field in auto_translated_fields:
             self.assertFalse(field.up_to_date)
@@ -57,7 +57,7 @@ class BlogEntryTranslatedFieldsTestCase(JwtAPITestCase):
 
         # Update one translated field
         payload = {
-            BlogEntry.auto_translated_fields[0]: faker.word(),
+            BlogEntry._auto_translated_fields[0]: faker.word(),
         }
         response = self.client.patch(
             reverse("BlogEntry-detail", args=(self.project.id, blog_entry.pk)),
@@ -68,7 +68,7 @@ class BlogEntryTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=blog_entry.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(BlogEntry.auto_translated_fields)
+            auto_translated_fields.count(), len(BlogEntry._auto_translated_fields)
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -79,7 +79,7 @@ class BlogEntryTranslatedFieldsTestCase(JwtAPITestCase):
         # Update all translated fields
         payload = {
             translated_field: faker.word()
-            for translated_field in BlogEntry.auto_translated_fields
+            for translated_field in BlogEntry._auto_translated_fields
         }
         response = self.client.patch(
             reverse("BlogEntry-detail", args=(self.project.id, blog_entry.pk)),
@@ -90,11 +90,11 @@ class BlogEntryTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=blog_entry.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(BlogEntry.auto_translated_fields)
+            auto_translated_fields.count(), len(BlogEntry._auto_translated_fields)
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
-            set(BlogEntry.auto_translated_fields),
+            set(BlogEntry._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:

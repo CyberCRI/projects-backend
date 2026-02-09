@@ -269,3 +269,29 @@ class Command(BaseCommand):
                 project=project, author=random.choice([owner] + members)  # nosec B311
             )
         self.stdout.write(self.style.SUCCESS("Project related items created."))
+
+        # expected by e2e frontend tests
+        e2e_tag_bio = TagFactory(
+            organization=organization,
+            title="Biology",
+            title_en="Biology",
+            title_fr="Biologie",
+            description="Biology",
+            description_en="Biology",
+            description_fr="Biologie",
+        )
+        e2e_tag_pizza = TagFactory(
+            organization=organization,
+            title="Pizza",
+            title_en="Pizza",
+            title_fr="Pizza",
+            description="Pizza",
+            description_en="Pizza",
+            description_fr="Pizza",
+        )
+        e2e_classification = TagClassificationFactory(
+            organization=organization, tags=[e2e_tag_bio, e2e_tag_pizza]
+        )
+        organization.enabled_projects_tag_classifications.add(e2e_classification)
+        organization.enabled_skills_tag_classifications.add(e2e_classification)
+        self.stdout.write(self.style.SUCCESS("E2E frontend test tag created."))

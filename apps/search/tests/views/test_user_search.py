@@ -92,9 +92,10 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 ("public_1", "public_2", "private", "org", "no_org"),
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
+            (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org", "no_org")),
         ]
     )
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_user(self, role, retrieved_users, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects[user] for user in retrieved_users],
@@ -119,7 +120,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {self.users[user].id for user in retrieved_users},
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_organization(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["public_2"]],
@@ -141,7 +142,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {user["user"]["id"] for user in content}, {self.public_user_2.id}
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_sdgs(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["public_2"]],
@@ -161,7 +162,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {user["user"]["id"] for user in content}, {self.public_user_2.id}
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_skills(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["public_2"]],
@@ -183,7 +184,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {user["user"]["id"] for user in content}, {self.public_user_2.id}
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_can_mentor(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[
@@ -209,7 +210,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {self.public_user_1.id, self.public_user_2.id},
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_needs_mentor(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["org"], self.search_objects["private"]],
@@ -232,7 +233,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {self.private_user.id, self.org_user.id},
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_can_mentor_on(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[
@@ -258,7 +259,7 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             {self.public_user_1.id, self.public_user_2.id},
         )
 
-    @patch("apps.search.interface.OpenSearchService.multi_match_search")
+    @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_needs_mentor_on(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
             search_objects=[self.search_objects["org"], self.search_objects["private"]],

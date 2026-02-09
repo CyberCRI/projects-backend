@@ -89,7 +89,7 @@ class PeopleGroup(
             The visibility setting of the group.
     """
 
-    _auto_translated_fields: list[str] = [
+    auto_translated_fields: list[str] = [
         "name",
         "html:description",
         "short_description",
@@ -283,7 +283,7 @@ class ProjectUser(
     """
 
     organization_query_string: str = "groups__organizations"
-    _auto_translated_fields: list[str] = [
+    auto_translated_fields: list[str] = [
         "html:description",
         "short_description",
         "job",

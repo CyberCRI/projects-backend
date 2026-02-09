@@ -748,7 +748,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
                     previous,
                     excluded_fields=[
                         f"{field}_{lang}"
-                        for field in Project.auto_translated_fields
+                        for field in Project._auto_translated_fields
                         for lang in settings.REQUIRED_LANGUAGES
                     ],
                 )

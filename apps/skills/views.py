@@ -29,7 +29,7 @@ from apps.commons.views import (
 from apps.emailing.utils import render_message, send_email
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.search.filters import MultiMatchSearchFieldsFilter
+from apps.search.filters import MultiMatchPrefixSearchFieldsFilter
 from services.wikipedia.interface import WikipediaService
 
 from .exceptions import (
@@ -189,7 +189,7 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = TagSerializer
     filter_backends = (
-        MultiMatchSearchFieldsFilter(
+        MultiMatchPrefixSearchFieldsFilter(
             f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
             fields=["title^5", "alternative_titles^3", "content^1"],
             highlight=["title", "content"],

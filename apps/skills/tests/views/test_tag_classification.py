@@ -215,6 +215,7 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN,),
             (TestRoles.ORG_FACILITATOR,),
             (TestRoles.ORG_USER,),
+            (TestRoles.ORG_VIEWER,),
         ]
     )
     def test_list_tag_classifications(self, role):
@@ -257,6 +258,7 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
             (TestRoles.ORG_ADMIN,),
             (TestRoles.ORG_FACILITATOR,),
             (TestRoles.ORG_USER,),
+            (TestRoles.ORG_VIEWER,),
         ]
     )
     def test_retrieve_tag_classification(self, role):

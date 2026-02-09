@@ -145,6 +145,10 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                     pk__in=organization.users.values_list("pk", flat=True),
                     then=Value(GroupData.Role.USERS),
                 ),
+                When(
+                    pk__in=organization.viewers.values_list("pk", flat=True),
+                    then=Value(GroupData.Role.VIEWERS),
+                ),
                 default=Value(None),
             )
         )
