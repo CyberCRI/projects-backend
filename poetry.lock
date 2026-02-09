@@ -1458,18 +1458,19 @@ requests = ["requests (>=2.24)"]
 
 [[package]]
 name = "django-modeltranslation"
-version = "0.17.7"
+version = "0.19.19"
 description = "Translates Django models using a registration approach."
 optional = false
-python-versions = ">=3.6.2"
+python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "django-modeltranslation-0.17.7.tar.gz", hash = "sha256:e247840b9038b7e7b2dc6f1b4868dfe88737540883eaed3d4b4775e5bd89c7fd"},
+    {file = "django_modeltranslation-0.19.19-py3-none-any.whl", hash = "sha256:55ac2ce47486b9e8ca18b155f7705170a53b7e1346bf7bf89304e99787486e8f"},
+    {file = "django_modeltranslation-0.19.19.tar.gz", hash = "sha256:26dd8454f19540a2eb05e303608a2d89dd80aacb75ab95f8ea272cf4324d2644"},
 ]
 
 [package.dependencies]
-django = ">=2.2"
-six = ">=1.15.0,<2.0.0"
+django = ">=5.1"
+typing-extensions = ">=4.0.1"
 
 [[package]]
 name = "django-opensearch-dsl"
