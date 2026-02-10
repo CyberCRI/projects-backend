@@ -18,6 +18,7 @@ from apps.commons.fields import (
 )
 from apps.commons.models import GroupData
 from apps.commons.serializers import (
+    BaseLocationSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     StringsImagesSerializer,
@@ -182,13 +183,10 @@ class LocationProjectSerializer(
 
 
 class LocationSerializer(
-    StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
-    serializers.ModelSerializer,
+    BaseLocationSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["title", "description"]
+    string_images_forbid_fields: list[str] = ["title", "description"]
 
     project = LocationProjectSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -209,13 +207,7 @@ class LocationSerializer(
             "project_id",
         ]
 
-    def get_related_organizations(self) -> List[Organization]:
-        """Retrieve the related organizations"""
-        if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
-
-    def get_related_project(self) -> Optional[Project]:
+    def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]

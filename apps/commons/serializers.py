@@ -221,3 +221,28 @@ class StringsImagesSerializer(serializers.ModelSerializer):
             return self.instance
         instance = super().save(**kwargs)
         return self.add_string_images_to_instance(instance, images)
+
+
+class BaseLocationSerializer(
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    OrganizationRelatedSerializer,
+    serializers.ModelSerializer,
+):
+    string_images_forbid_fields: list[str] = ["title", "description"]
+
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "description",
+            "lat",
+            "lng",
+            "type",
+        ]
+
+    def get_related_organizations(self) -> list[Organization]:
+        """Retrieve the related organizations"""
+        if "project" in self.validated_data:
+            return self.validated_data["project"].get_related_organizations()
+        return []

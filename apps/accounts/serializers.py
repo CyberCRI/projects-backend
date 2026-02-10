@@ -16,7 +16,10 @@ from apps.commons.fields import (
 )
 from apps.commons.mixins import HasPermissionsSetup
 from apps.commons.models import GroupData
-from apps.commons.serializers import StringsImagesSerializer
+from apps.commons.serializers import (
+    BaseLocationSerializer,
+    StringsImagesSerializer,
+)
 from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.modules.serializers import ModulesSerializers
@@ -38,7 +41,13 @@ from .exceptions import (
     UserRoleAssignmentError,
     UserRolePermissionDeniedError,
 )
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
+from .models import (
+    AnonymousUser,
+    PeopleGroup,
+    PeopleGroupLocation,
+    PrivacySettings,
+    ProjectUser,
+)
 from .utils import get_default_group, get_instance_from_group
 
 
@@ -225,6 +234,24 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
             skills = Skill.objects.filter(id__in=user.can_mentor_on)
             return SkillLightSerializer(skills, many=True).data
         return []
+
+
+class PeopleGroupLocationSerializer(BaseLocationSerializer):
+    class Meta(BaseLocationSerializer.Meta):
+        model = PeopleGroupLocation
+
+
+class PeopleGroupLocationRelated(serializers.RelatedField):
+    def get_queryset(self):
+        return PeopleGroupLocation.objects.all()
+
+    def to_representation(self, instance: PeopleGroupLocation) -> dict:
+        return PeopleGroupLocationSerializer(instance=instance).data
+
+    def to_internal_value(self, element: dict) -> PeopleGroupLocation:
+        if element.get("pk"):
+            return PeopleGroupLocation.objects.get(pk=element["pk"])
+        return PeopleGroupLocation(**element)
 
 
 class PeopleGroupSuperLightSerializer(
@@ -465,6 +492,7 @@ class PeopleGroupSerializer(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
     )
+    location = PeopleGroupLocationRelated(required=False, allow_null=True)
 
     def get_hierarchy(self, obj: PeopleGroup) -> List[Dict[str, Union[str, int]]]:
         request = self.context.get("request")
@@ -526,6 +554,12 @@ class PeopleGroupSerializer(
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
+        location = validated_data.pop("location", {})
+
+        if location:
+            location.save()
+            validated_data["id"] = location
+
         people_group = super(PeopleGroupSerializer, self).create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
             {"people_group": people_group, **team}
@@ -538,10 +572,19 @@ class PeopleGroupSerializer(
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
         validated_data.pop("featured_projects", [])
-        return super(PeopleGroupSerializer, self).update(instance, validated_data)
+        location = validated_data.pop("location")
 
-    def save(self, **kwargs):
-        return super().save(**kwargs)
+        if not location and getattr(instance, "location", None):
+            instance.location.delete()
+            validated_data["location"] = None
+        elif location:
+            location.save()
+            validated_data["location"] = location
+
+        people_group = super(PeopleGroupSerializer, self).update(
+            instance, validated_data
+        )
+        return people_group
 
     class Meta:
         model = PeopleGroup
@@ -565,6 +608,16 @@ class PeopleGroupSerializer(
             "team",
             "featured_projects",
         ]
+
+
+class LocationPeopleGroupSerializer(
+    AutoTranslatedModelSerializer, serializers.ModelSerializer
+):
+    group = PeopleGroupSuperLightSerializer(source="people_group", read_only=True)
+
+    class Meta:
+        model = PeopleGroupLocation
+        fields = "__all__"
 
 
 @extend_schema_serializer(exclude_fields=("roles",))

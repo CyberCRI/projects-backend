@@ -837,9 +837,8 @@ class Goal(
         return self.project
 
 
-class Location(
+class AbstractLocation(
     HasAutoTranslatedFields,
-    ProjectRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -870,37 +869,45 @@ class Location(
 
         TEAM = "team"
         IMPACT = "impact"
+        ADDRESS = "address"
 
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="locations"
-    )
+    class Meta:
+        abstract = True
+
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     lat = models.FloatField()
     lng = models.FloatField()
     type = models.CharField(
-        max_length=6,
+        max_length=10,
         choices=LocationType.choices,
         default=LocationType.TEAM,
     )
-
-    def get_related_project(self) -> Optional["Project"]:
-        """Return the projects related to this model."""
-        return self.project
 
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
-    def duplicate(self, project: "Project") -> "Location":
-        return Location.objects.create(
-            project=project,
-            title=self.title,
-            description=self.description,
-            lat=self.lat,
-            lng=self.lng,
-            type=self.type,
-        )
+
+# TODO(remi): rename to ProjectLocation ?
+class Location(ProjectRelated, AbstractLocation):
+    """A project location on Earth.
+
+    Attributes
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    project: ForeignKey
+        Project at this location.
+    """
+
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="locations"
+    )
+
+    def get_related_project(self) -> Optional["Project"]:
+        """Return the projects related to this model."""
+        return self.project
 
 
 class ProjectMessage(
