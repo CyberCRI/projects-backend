@@ -218,15 +218,6 @@ class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
         )
 
 
-class AbstractGroupDocumentViewSet(
-    NestedPeopleGroupViewMixins, AbstractDocumentViewSet
-):
-    def get_queryset(self):
-        modules_manager = self.people_group.get_related_module()
-        modules = modules_manager(self.people_group, self.request.user)
-        return getattr(modules, self.document_name)()
-
-
 class AbstractResearcherDocumentViewSet(
     NestedOrganizationViewMixins, NestedResearcherViewMixins, AbstractDocumentViewSet
 ):
@@ -261,7 +252,6 @@ class AbstractResearcherDocumentViewSet(
 
     def get_queryset(self) -> QuerySet[Document]:
         return super().get_queryset().filter(contributors=self.researcher)
-
 
 
 class PublicationViewSet(AbstractResearcherDocumentViewSet):

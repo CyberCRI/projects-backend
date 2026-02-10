@@ -1,14 +1,10 @@
 from contextlib import suppress
-from typing import Any
 
 from django.contrib import admin, messages
 from django.db.models import Count
-from django.db.models.query import QuerySet
-from django.http.request import HttpRequest
 
 from apps.accounts.models import ProjectUser
 from apps.commons.admin import TranslateObjectAdminMixin
-from services.crisalid.manager import CrisalidQuerySet
 from services.crisalid.tasks import vectorize_documents
 
 from .models import (
@@ -17,7 +13,6 @@ from .models import (
     DocumentContributor,
     Identifier,
     Researcher,
-    Structure,
 )
 
 

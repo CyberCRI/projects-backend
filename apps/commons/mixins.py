@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Self, Tuple
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -408,7 +408,6 @@ class HasMultipleIDs:
             if self.get_id_field_name(slug) != "slug":
                 slug = f"{self.slug_prefix}-{slug}"
         return slug
-
 
 
 class HasEmbending:
