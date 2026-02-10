@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Self, Tuple
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from guardian.models import GroupObjectPermission
 from guardian.shortcuts import assign_perm, remove_perm
+from copy import deepcopy
 
 from .models import GroupData
 
@@ -268,8 +269,21 @@ class DuplicableModel:
     A model that can be duplicated.
     """
 
-    def duplicate(self, *args, **kwargs) -> "DuplicableModel":
-        raise NotImplementedError()
+    def duplicate(self, **fields) -> Self:
+        """duplicate models elements, set new fields 
+
+        :return: new models
+        """
+
+        instance_copy = deepcopy(self)
+        instance_copy.pk = None
+
+        for name, value in fields.items():
+            setattr(instance_copy, name, value)
+        
+        instance_copy.save()
+        return instance_copy
+
 
 
 class HasMultipleIDs:

@@ -554,18 +554,9 @@ class Project(
     @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
         header = self.header_image.duplicate(owner) if self.header_image else None
-        project = Project.objects.create(
-            title=self.title,
+        project = super().duplicate(
             header_image=header,
-            description=self.description,
-            purpose=self.purpose,
-            is_locked=self.is_locked,
-            is_shareable=self.is_shareable,
             publication_status=Project.PublicationStatus.PRIVATE,
-            life_status=self.life_status,
-            language=self.language,
-            sdgs=self.sdgs,
-            template=self.template,
             duplicated_from=self.id,
         )
         project.setup_permissions(user=owner)
@@ -768,11 +759,7 @@ class BlogEntry(
         initial_project: Optional["Project"] = None,
         owner: Optional["ProjectUser"] = None,
     ) -> "BlogEntry":
-        blog_entry = BlogEntry.objects.create(
-            project=project,
-            title=self.title,
-            content=self.content,
-        )
+        blog_entry = super().duplicate(project=project)
         for image in self.images.all():
             new_image = image.duplicate(owner)
             if new_image is not None:
@@ -850,15 +837,6 @@ class Goal(
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
-
-    def duplicate(self, project: "Project") -> "Goal":
-        return Goal.objects.create(
-            project=project,
-            title=self.title,
-            description=self.description,
-            deadline_at=self.deadline_at,
-            status=self.status,
-        )
 
 
 class Location(
