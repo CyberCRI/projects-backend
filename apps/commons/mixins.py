@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Self, Tuple
 
 from django.contrib.auth.models import Group, Permission
@@ -8,7 +9,6 @@ from django.shortcuts import get_object_or_404
 from django.utils.text import slugify
 from guardian.models import GroupObjectPermission
 from guardian.shortcuts import assign_perm, remove_perm
-from copy import deepcopy
 
 from .models import GroupData
 
@@ -270,7 +270,7 @@ class DuplicableModel:
     """
 
     def duplicate(self, **fields) -> Self:
-        """duplicate models elements, set new fields 
+        """duplicate models elements, set new fields
 
         :return: new models
         """
@@ -280,10 +280,9 @@ class DuplicableModel:
 
         for name, value in fields.items():
             setattr(instance_copy, name, value)
-        
+
         instance_copy.save()
         return instance_copy
-
 
 
 class HasMultipleIDs:
