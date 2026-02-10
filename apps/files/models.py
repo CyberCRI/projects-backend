@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
@@ -394,7 +394,7 @@ class Image(
                 content=self.file.read(),
                 content_type=f"image/{file_extension}",
             )
-            _upload_to = lambda instance, filename: upload_to
+            _upload_to = lambda instance, filename: upload_to  # noqa: E731
             return super().duplicate(_upload_to=_upload_to, file=new_file, **fields)
         return None
 
