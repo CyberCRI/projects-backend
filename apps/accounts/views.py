@@ -759,7 +759,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        response=ProjectLightSerializer(many=True),
+        responses=ProjectLightSerializer(many=True),
         parameters=[
             OpenApiParameter(
                 name="limit",
