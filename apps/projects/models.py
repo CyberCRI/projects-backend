@@ -769,8 +769,6 @@ class BlogEntry(
                         f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
                         f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
                     )
-        blog_entry.created_at = self.created_at
-        blog_entry.save()
         return blog_entry
 
 
