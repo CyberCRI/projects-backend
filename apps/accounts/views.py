@@ -40,7 +40,6 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup

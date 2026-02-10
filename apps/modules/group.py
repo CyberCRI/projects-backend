@@ -2,7 +2,7 @@ from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.modules.base import AbstractModules, register_module
-from apps.projects.models import Location, Project
+from apps.projects.models import Project
 from apps.skills.models import Skill
 from services.crisalid.models import Document, DocumentTypeCentralized
 

@@ -169,7 +169,6 @@ class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_filter = ("organization",)
 
 
-
 @admin.register(Permission)
 class PermissionAdmin(admin.ModelAdmin):
     list_display = ("name", "codename", "content_type")

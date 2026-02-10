@@ -234,7 +234,7 @@ class PeopleGroupSuperLightSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["id", "slug", "name", "organization"]
+        read_only_fields = ["id", "slug", "name", "short_description", "organization"]
         fields = read_only_fields
 
 
@@ -555,7 +555,6 @@ class PeopleGroupSerializer(
             "parent",
             "organization",
             "hierarchy",
-            "children",
             "header_image",
             "logo_image",
             "roles",
