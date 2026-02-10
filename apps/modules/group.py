@@ -65,6 +65,9 @@ class PeopleGroupModules(AbstractModules):
     def subgroups(self) -> QuerySet[PeopleGroup]:
         return self.instance.children.all()
 
+    def locations(self) -> QuerySet[Location]:
+        return Location.objects.filter(project__in=self.featured_projects())
+
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()
         return Document.objects.filter(

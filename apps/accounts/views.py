@@ -40,8 +40,7 @@ from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.models import Project
-from apps.projects.serializers import ProjectLightSerializer
+from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
@@ -843,6 +842,23 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset_page, many=True, context={"request": request}
         )
         return self.get_paginated_response(data.data)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="locations",
+        permission_classes=[ReadOnly],
+    )
+    def locations(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.locations()
+
+        return Response(
+            LocationSerializer(queryset, many=True, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @extend_schema(
