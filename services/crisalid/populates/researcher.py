@@ -6,7 +6,7 @@ from .base import AbstractPopulate
 
 
 class PopulateResearcher(AbstractPopulate):
-    def __init__(self, *ar, populate_identifiers=None, populate_structures=None, **kw):
+    def __init__(self, *ar, populate_identifiers=None, **kw):
         super().__init__(*ar, **kw)
         self.populate_identifiers = populate_identifiers or PopulateIdentifier(
             self.config, self.cache
@@ -18,9 +18,6 @@ class PopulateResearcher(AbstractPopulate):
         for name in data["names"]:
             given_name = self.sanitize_languages(name["first_names"])
             family_name = self.sanitize_languages(name["last_names"])
-
-        given_name = (given_name or "").strip()
-        family_name = (family_name or "").strip()
 
         return given_name, family_name
 
