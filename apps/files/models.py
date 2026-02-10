@@ -10,7 +10,6 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models, transaction
 from django.db.models import ForeignObjectRel, Model, Q, QuerySet
 from django.utils import timezone
-from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
@@ -20,6 +19,7 @@ from apps.commons.mixins import (
     OrganizationRelated,
     ProjectRelated,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .enums import AttachmentLinkCategory, AttachmentType
 from .utils import resize_and_autorotate
