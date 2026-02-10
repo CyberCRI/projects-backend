@@ -11,6 +11,7 @@ from apps.commons.utils import process_text, remove_images_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 
 class ProjectRelatedSerializer(serializers.ModelSerializer):

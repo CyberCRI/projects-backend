@@ -266,7 +266,7 @@ class BaseImage(models.Model, DuplicableModel):
                 content=self.file.read(),
                 content_type=f"image/{file_extension}",
             )
-            _upload_to = lambda instance, filename: upload_to
+            _upload_to = lambda instance, filename: upload_to  # noqa: E731
             return super().duplicate(_upload_to=_upload_to, file=new_file, **fields)
         return None
 
