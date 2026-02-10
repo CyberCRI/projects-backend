@@ -604,6 +604,7 @@ class PeopleGroupSerializer(
             "roles",
             "sdgs",
             "tags",
+            "location",
             "publication_status",
             "team",
             "featured_projects",
