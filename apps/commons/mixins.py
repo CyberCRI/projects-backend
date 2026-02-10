@@ -413,7 +413,7 @@ class HasMultipleIDs:
 class HasEmbending:
     def vectorize(self):
         if not getattr(self, "embedding", None):
-            model_embedding = type(self.embedding)
+            model_embedding = type(self).embedding.related.related_model
             self.embedding = model_embedding(item=self)
             self.embedding.save()
         self.embedding.vectorize()
@@ -422,7 +422,7 @@ class HasEmbending:
         """return similars documents"""
         if getattr(self, "embedding", None):
             vector = self.embedding.embedding
-            model_embedding = type(self.embedding)
+            model_embedding = type(self).embedding.related.related_model
             queryset = type(self).objects.all()
             return model_embedding.vector_search(vector, queryset, threshold).exclude(
                 pk=self.pk
