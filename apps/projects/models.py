@@ -555,25 +555,33 @@ class Project(
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
         header = self.header_image.duplicate(owner=owner) if self.header_image else None
         project = super().duplicate(
+            slug=None,
+            outdated_slugs=[],
             header_image=header,
             publication_status=Project.PublicationStatus.PRIVATE,
             # TODO(remi): add this id (or fk) directly in DuplicateMixins
             duplicated_from=self.id,
         )
-        project.setup_permissions(user=owner)
+
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())
         project.tags.set(self.tags.all())
+        project.setup_permissions(user=owner)
+
+        images_to_set = []
         for image in self.images.all():
             new_image = image.duplicate(owner=owner)
             if new_image is not None:
-                project.images.add(new_image)
+                images_to_set.append(new_image)
                 for identifier in [self.pk, self.slug]:
                     project.description = project.description.replace(
                         f"/v1/project/{identifier}/image/{image.pk}/",
                         f"/v1/project/{project.pk}/image/{new_image.pk}/",
                     )
-        project.save()
+        project.images.set(images_to_set)
+        if images_to_set:
+            project.save()
+
         for blog_entry in self.blog_entries.all():
             blog_entry.duplicate(project=project, initial_project=self, owner=owner)
         for announcement in self.announcements.all():
@@ -587,6 +595,8 @@ class Project(
         for file in self.files.all():
             file.duplicate(project=project)
         Stat.objects.create(project=project)
+
+        project.refresh_from_db()
         return project
 
 

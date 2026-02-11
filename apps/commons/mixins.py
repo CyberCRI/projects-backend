@@ -1,5 +1,6 @@
 from collections.abc import Iterable
-from copy import deepcopy
+from contextlib import suppress
+from copy import copy
 from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
@@ -276,11 +277,15 @@ class DuplicableModel:
         :return: new models
         """
 
-        instance_copy = deepcopy(self)
+        instance_copy = copy(self)
         instance_copy.pk = None
 
         for name, value in fields.items():
             setattr(instance_copy, name, value)
+
+        # remove prefetch m2m
+        with suppress(AttributeError):
+            del instance_copy._prefetched_objects_cache
 
         instance_copy.save()
         return instance_copy
