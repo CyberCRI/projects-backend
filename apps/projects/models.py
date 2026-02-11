@@ -579,8 +579,6 @@ class Project(
                         f"/v1/project/{project.pk}/image/{new_image.pk}/",
                     )
         project.images.set(images_to_set)
-        if images_to_set:
-            project.save()
 
         for blog_entry in self.blog_entries.all():
             blog_entry.duplicate(project=project, initial_project=self, owner=owner)
@@ -594,9 +592,10 @@ class Project(
             link.duplicate(project=project)
         for file in self.files.all():
             file.duplicate(project=project)
+
         Stat.objects.create(project=project)
 
-        project.refresh_from_db()
+        project.save()
         return project
 
 
@@ -771,15 +770,18 @@ class BlogEntry(
         owner: Optional["ProjectUser"] = None,
     ) -> "BlogEntry":
         blog_entry = super().duplicate(project=project)
+        images_to_set = []
         for image in self.images.all():
             new_image = image.duplicate(owner=owner)
             if new_image is not None:
-                blog_entry.images.add(new_image)
+                images_to_set.append(new_image)
                 for identifier in [initial_project.pk, initial_project.slug]:
                     blog_entry.content = blog_entry.content.replace(
                         f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
                         f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
                     )
+        blog_entry.images.set(images_to_set)
+        blog_entry.save()
         return blog_entry
 
 
