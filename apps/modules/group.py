@@ -60,10 +60,14 @@ class PeopleGroupModules(AbstractModules):
         )
 
     def similars(self) -> QuerySet[PeopleGroup]:
-        return self.instance.similars()
+        return self.instance.similars().filter(
+            pk__in=self.user.get_people_group_queryset()
+        )
 
     def subgroups(self) -> QuerySet[PeopleGroup]:
-        return self.instance.children.all()
+        return self.instance.children.filter(
+            pk__in=self.user.get_people_group_queryset()
+        )
 
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()
