@@ -25,6 +25,8 @@ from apps.accounts.utils import (
 )
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
+    HasEmbending,
+    HasModulesRelated,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
@@ -41,6 +43,8 @@ from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroup(
+    HasEmbending,
+    HasModulesRelated,
     HasAutoTranslatedFields,
     HasMultipleIDs,
     HasPermissionsSetup,
@@ -143,6 +147,8 @@ class PeopleGroup(
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     permissions_up_to_date = models.BooleanField(default=False)
+
+    tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
 
     def __str__(self) -> str:
         return str(self.name)

@@ -25,7 +25,10 @@ from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
@@ -33,14 +36,16 @@ from rest_framework.views import APIView
 from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.models import GroupData
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.commons.serializers import EmailAddressSerializer, RetrieveUpdateModelViewSet
+from apps.commons.serializers import (
+    EmailAddressSerializer,
+    RetrieveUpdateModelViewSet,
+)
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
@@ -686,27 +691,10 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def member(self, request, *args, **kwargs):
         group = self.get_object()
-        managers_ids = group.managers.all().values_list("id", flat=True)
-        leaders_ids = group.leaders.all().values_list("id", flat=True)
-        skills_prefetch = Prefetch(
-            "skills", queryset=Skill.objects.select_related("tag")
-        )
-        queryset = (
-            group.get_all_members()
-            .distinct()
-            .annotate(
-                is_leader=Case(
-                    When(id__in=leaders_ids, then=True), default=Value(False)
-                )
-            )
-            .annotate(
-                is_manager=Case(
-                    When(id__in=managers_ids, then=True), default=Value(False)
-                )
-            )
-            .order_by("-is_leader", "-is_manager")
-            .prefetch_related(skills_prefetch, "groups")
-        )
+
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.members()
 
         page = self.paginate_queryset(queryset)
         if page is not None:
@@ -771,6 +759,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
+        responses=ProjectLightSerializer(many=True),
         parameters=[
             OpenApiParameter(
                 name="limit",
@@ -784,7 +773,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 required=False,
                 type=int,
             ),
-        ]
+        ],
     )
     @action(
         detail=True,
@@ -794,38 +783,17 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     def project(self, request, *args, **kwargs):
         group = self.get_object()
-        group_projects_ids = (
-            Project.objects.filter(groups__people_groups=group)
-            .distinct()
-            .values_list("id", flat=True)
-        )
-        queryset = (
-            self.request.user.get_project_queryset()
-            .filter(Q(groups__people_groups=group) | Q(people_groups=group))
-            .annotate(
-                is_group_project=Case(
-                    When(id__in=group_projects_ids, then=True), default=Value(False)
-                ),
-                is_featured=Case(
-                    When(people_groups=group, then=True), default=Value(False)
-                ),
-            )
-            .distinct()
-            .order_by("-is_featured", "-is_group_project")
-            .prefetch_related("categories")
-        )
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.featured_projects()
+
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            project_serializer = ProjectLightSerializer(
-                page, context={"request": request}, many=True
-            )
-            return self.get_paginated_response(project_serializer.data)
-
         project_serializer = ProjectLightSerializer(
-            queryset, context={"request": request}, many=True
+            page, context={"request": request}, many=True
         )
-        return Response(project_serializer.data)
+        return self.get_paginated_response(project_serializer.data)
 
+    @extend_schema(responses=PeopleGroupHierarchySerializer)
     @action(
         detail=True,
         methods=["GET"],
@@ -840,6 +808,44 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ).data,
             status=status.HTTP_200_OK,
         )
+
+    @extend_schema(responses=PeopleGroupLightSerializer(many=True))
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="subgroups",
+        permission_classes=[ReadOnly],
+    )
+    def subgroups(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.subgroups()
+
+        queryset_page = self.paginate_queryset(queryset)
+        data = PeopleGroupLightSerializer(
+            queryset_page, many=True, context={"request": request}
+        )
+        return self.get_paginated_response(data.data)
+
+    @extend_schema(responses=PeopleGroupLightSerializer(many=True))
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="similars",
+        permission_classes=[ReadOnly],
+    )
+    def similars(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.similars()
+
+        queryset_page = self.paginate_queryset(queryset)
+        data = PeopleGroupLightSerializer(
+            queryset_page, many=True, context={"request": request}
+        )
+        return self.get_paginated_response(data.data)
 
 
 @extend_schema(

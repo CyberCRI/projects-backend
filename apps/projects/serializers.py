@@ -38,7 +38,7 @@ from apps.organizations.serializers import (
     ProjectTemplateSerializer,
 )
 from apps.skills.models import Tag
-from apps.skills.serializers import TagRelatedField
+from apps.skills.serializers import TagRelatedField, TagSerializer
 from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
@@ -238,6 +238,7 @@ class ProjectLightSerializer(
     is_followed = serializers.SerializerMethodField(read_only=True)
     is_featured = serializers.BooleanField(read_only=True, required=False)
     is_group_project = serializers.BooleanField(read_only=True, required=False)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Project
@@ -256,6 +257,8 @@ class ProjectLightSerializer(
             "is_followed",
             "is_featured",
             "is_group_project",
+            "updated_at",
+            "tags",
         ]
 
     def get_is_followed(self, project: Project) -> Dict[str, Any]:

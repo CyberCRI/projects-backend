@@ -497,6 +497,12 @@ class DuplicateProjectTestCase(JwtAPITestCase):
         self.assertEqual(
             duplicated_project["publication_status"], Project.PublicationStatus.PRIVATE
         )
+        self.assertNotEqual(
+            duplicated_project["created_at"], initial_project["created_at"]
+        )
+        self.assertNotEqual(
+            duplicated_project["updated_at"], initial_project["updated_at"]
+        )
         for field in fields:
             self.assertEqual(duplicated_project[field], initial_project[field])
 
