@@ -32,16 +32,6 @@ from rest_framework.permissions import (
 from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
-from services.google.models import GoogleAccount, GoogleGroup
-from services.google.tasks import (
-    create_google_account,
-    create_google_group,
-    suspend_google_account,
-    update_google_account,
-    update_google_group,
-)
-from services.keycloak.exceptions import KeycloakAccountNotFound
-from services.keycloak.interface import KeycloakService
 
 from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.models import GroupData
@@ -58,6 +48,16 @@ from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
+from services.google.models import GoogleAccount, GoogleGroup
+from services.google.tasks import (
+    create_google_account,
+    create_google_group,
+    suspend_google_account,
+    update_google_account,
+    update_google_group,
+)
+from services.keycloak.exceptions import KeycloakAccountNotFound
+from services.keycloak.interface import KeycloakService
 
 from .exceptions import EmailTypeMissingError, PermissionNotFoundError
 from .filters import PeopleGroupFilter, UserFilter
