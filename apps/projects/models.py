@@ -14,6 +14,7 @@ from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -27,7 +28,6 @@ from apps.commons.mixins import (
 )
 from apps.commons.models import GroupData
 from apps.commons.utils import get_write_permissions_from_subscopes
-from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -119,9 +119,9 @@ class Project(
     project_query_string: str = ""
     organization_query_string: str = "organizations"
 
-    slugified_fields: List[str] = ["title"]
+    slugified_fields: list[str] = ["title"]
     slug_prefix: str = "project"
-    auto_translated_fields: List[str] = ["title", "html:description", "purpose"]
+    auto_translated_fields: list[str] = ["title", "html:description", "purpose"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -351,7 +351,7 @@ class Project(
             return self.get_cached_views().get("_total", 0)
         return self.mixpanel_events.count()
 
-    def get_views_organizations(self, organizations: List["Organization"]) -> int:
+    def get_views_organizations(self, organizations: list["Organization"]) -> int:
         """Return the project's views inside the given organization.
 
         If you plan on using this method multiple time, prefetch `organizations`
@@ -371,7 +371,7 @@ class Project(
         """Return the project related to this model."""
         return self
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         if self._related_organizations is None:
             self._related_organizations = list(self.organizations.all())
@@ -553,39 +553,49 @@ class Project(
 
     @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
-        header = self.header_image.duplicate(owner) if self.header_image else None
+        header = self.header_image.duplicate(owner=owner) if self.header_image else None
         project = super().duplicate(
+            slug=None,
+            outdated_slugs=[],
             header_image=header,
             publication_status=Project.PublicationStatus.PRIVATE,
+            # TODO(remi): add this id (or fk) directly in DuplicateMixins
             duplicated_from=self.id,
         )
-        project.setup_permissions(user=owner)
+
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())
         project.tags.set(self.tags.all())
+        project.setup_permissions(user=owner)
+
+        images_to_set = []
         for image in self.images.all():
-            new_image = image.duplicate(owner)
+            new_image = image.duplicate(owner=owner)
             if new_image is not None:
-                project.images.add(new_image)
+                images_to_set.append(new_image)
                 for identifier in [self.pk, self.slug]:
                     project.description = project.description.replace(
                         f"/v1/project/{identifier}/image/{image.pk}/",
                         f"/v1/project/{project.pk}/image/{new_image.pk}/",
                     )
-        project.save()
+        project.images.set(images_to_set)
+
         for blog_entry in self.blog_entries.all():
-            blog_entry.duplicate(project, self, owner)
+            blog_entry.duplicate(project=project, initial_project=self, owner=owner)
         for announcement in self.announcements.all():
-            announcement.duplicate(project)
+            announcement.duplicate(project=project)
         for location in self.locations.all():
-            location.duplicate(project)
+            location.duplicate(project=project)
         for goal in self.goals.all():
-            goal.duplicate(project)
+            goal.duplicate(project=project)
         for link in self.links.all():
-            link.duplicate(project)
+            link.duplicate(project=project)
         for file in self.files.all():
-            file.duplicate(project)
+            file.duplicate(project=project)
+
         Stat.objects.create(project=project)
+
+        project.save()
         return project
 
 
@@ -601,7 +611,7 @@ class ProjectScore(models.Model, ProjectRelated):
     def get_related_project(self) -> Project:
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         return self.project.get_related_organizations()
 
     def get_completeness(self) -> float:
@@ -687,7 +697,7 @@ class LinkedProject(models.Model, ProjectRelated):
         """Return the projects related to this model."""
         return self.target
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.target.get_related_organizations()
 
@@ -716,7 +726,7 @@ class BlogEntry(
         Date of the last change made to the blog entry.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="blog_entries"
@@ -749,7 +759,7 @@ class BlogEntry(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -760,15 +770,18 @@ class BlogEntry(
         owner: Optional["ProjectUser"] = None,
     ) -> "BlogEntry":
         blog_entry = super().duplicate(project=project)
+        images_to_set = []
         for image in self.images.all():
-            new_image = image.duplicate(owner)
+            new_image = image.duplicate(owner=owner)
             if new_image is not None:
-                blog_entry.images.add(new_image)
+                images_to_set.append(new_image)
                 for identifier in [initial_project.pk, initial_project.slug]:
                     blog_entry.content = blog_entry.content.replace(
                         f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
                         f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
                     )
+        blog_entry.images.set(images_to_set)
+        blog_entry.save()
         return blog_entry
 
 
@@ -796,7 +809,7 @@ class Goal(
         Status of the Goal.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:description"]
+    auto_translated_fields: list[str] = ["title", "html:description"]
 
     class GoalStatus(models.TextChoices):
         NONE = "na"
@@ -828,7 +841,7 @@ class Goal(
         if hasattr(project, "stat"):
             project.stat.update_goals()
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -862,7 +875,7 @@ class AbstractLocation(
         Type of the location (team or impact).
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     class LocationType(models.TextChoices):
         """Type of a location."""
@@ -884,7 +897,7 @@ class AbstractLocation(
         default=LocationType.TEAM,
     )
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -939,7 +952,7 @@ class ProjectMessage(
         Images used by the message.
     """
 
-    auto_translated_fields: List[str] = ["html:content"]
+    auto_translated_fields: list[str] = ["html:content"]
 
     project = models.ForeignKey(
         "projects.Project",
@@ -971,7 +984,7 @@ class ProjectMessage(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -1011,7 +1024,7 @@ class ProjectTab(
         Description of the tab.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:description"]
+    auto_translated_fields: list[str] = ["title", "html:description"]
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -1034,7 +1047,7 @@ class ProjectTab(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -1059,7 +1072,7 @@ class ProjectTabItem(
     project_query_string: str = "tab__project"
     organization_query_string: str = "tab__project__organizations"
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     tab = models.ForeignKey(
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"
@@ -1077,6 +1090,6 @@ class ProjectTabItem(
         """Return the projects related to this model."""
         return self.tab.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.tab.project.get_related_organizations()

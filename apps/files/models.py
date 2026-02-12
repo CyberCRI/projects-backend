@@ -10,6 +10,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import models, transaction
 from django.db.models import ForeignObjectRel, Model, Q, QuerySet
 from django.utils import timezone
+from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords
 from stdimage import StdImageField
 
@@ -19,7 +20,6 @@ from apps.commons.mixins import (
     OrganizationRelated,
     ProjectRelated,
 )
-from services.translator.mixins import HasAutoTranslatedFields
 
 from .enums import AttachmentLinkCategory, AttachmentType
 from .utils import resize_and_autorotate
@@ -380,7 +380,7 @@ class Image(
             return queryset.first()
         return None
 
-    def duplicate(self, upload_to: str = "", **fields) -> None | Self:
+    def duplicate(self, upload_to: str = "", **fields) -> None | type[Self]:
         with suppress(ResourceNotFoundError):
             file_path = self.file.name.split("/")
             file_name = file_path.pop()

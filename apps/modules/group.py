@@ -2,7 +2,7 @@ from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.modules.base import AbstractModules, register_module
-from apps.projects.models import Location, Project
+from apps.projects.models import Project
 from apps.skills.models import Skill
 from services.crisalid.models import Document, DocumentTypeCentralized
 
@@ -60,10 +60,14 @@ class PeopleGroupModules(AbstractModules):
         )
 
     def similars(self) -> QuerySet[PeopleGroup]:
-        return self.instance.similars()
+        return self.instance.similars().filter(
+            pk__in=self.user.get_people_group_queryset()
+        )
 
     def subgroups(self) -> QuerySet[PeopleGroup]:
-        return self.instance.children.all()
+        return self.instance.children.filter(
+            pk__in=self.user.get_people_group_queryset()
+        )
 
     def locations(self) -> QuerySet[Location]:
         return Location.objects.filter(project__in=self.featured_projects())
