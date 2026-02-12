@@ -7,6 +7,7 @@ from apps.commons.urls import (
 )
 from services.crisalid.views import (
     ConferenceViewSet,
+    DocumentViewSet,
     PublicationViewSet,
     ResearcherViewSet,
 )
@@ -15,6 +16,13 @@ researcher_router = DefaultRouter()
 
 organization_router_register(
     researcher_router, r"researcher", ResearcherViewSet, basename="Researcher"
+)
+
+organization_router_register(
+    researcher_router,
+    r"document",
+    DocumentViewSet,
+    basename="CrisalidDocument",
 )
 
 organization_researcher_router_register(

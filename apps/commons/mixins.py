@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Self, Tuple
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -408,3 +408,23 @@ class HasMultipleIDs:
             if self.get_id_field_name(slug) != "slug":
                 slug = f"{self.slug_prefix}-{slug}"
         return slug
+
+
+class HasEmbending:
+    def vectorize(self):
+        if not getattr(self, "embedding", None):
+            model_embedding = type(self).embedding.related.related_model
+            self.embedding = model_embedding(item=self)
+            self.embedding.save()
+        self.embedding.vectorize()
+
+    def similars(self, threshold: float = 0.15) -> QuerySet[Self]:
+        """return similars documents"""
+        if getattr(self, "embedding", None):
+            vector = self.embedding.embedding
+            model_embedding = type(self).embedding.related.related_model
+            queryset = type(self).objects.all()
+            return model_embedding.vector_search(vector, queryset, threshold).exclude(
+                pk=self.pk
+            )
+        return type(self).objects.none()
