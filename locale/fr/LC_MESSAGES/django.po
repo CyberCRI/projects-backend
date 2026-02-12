@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-12 12:33+0100\n"
+"POT-Creation-Date: 2026-02-12 15:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:148 apps/projects/models.py:161
+#: apps/accounts/models.py:151 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilité"
 
@@ -192,7 +192,7 @@ msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
 
-#: apps/commons/serializers.py:256
+#: apps/commons/serializers.py:249
 msgid "The value must be between -90 and 90."
 msgstr ""
 
