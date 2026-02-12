@@ -9,7 +9,13 @@ from apps.commons.factories import sdg_factory
 from services.keycloak.factories import KeycloakAccountFactory
 from services.keycloak.interface import KeycloakService
 
-from .models import PeopleGroup, PrivacySettings, ProjectUser, UserScore
+from .models import (
+    PeopleGroup,
+    PeopleGroupLocation,
+    PrivacySettings,
+    ProjectUser,
+    UserScore,
+)
 
 faker = Faker()
 
@@ -121,3 +127,14 @@ class PeopleGroupFactory(factory.django.DjangoModelFactory):
     def with_leader(self, create, extracted, **kwargs):
         if create and extracted is True:
             UserFactory(groups=[self.get_leaders()])
+
+
+class PeopleGroupLocationFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("sentence")
+    description = factory.Faker("text")
+    lat = factory.Faker("latitude")
+    lng = factory.Faker("longitude")
+    type = PeopleGroupLocation.LocationType.ADDRESS.value
+
+    class Meta:
+        model = PeopleGroupLocation

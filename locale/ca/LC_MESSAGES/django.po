@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 16:58+0100\n"
+"POT-Creation-Date: 2026-02-12 15:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No pots assignar aquest rol a un usuari"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:140 apps/projects/models.py:161
+#: apps/accounts/models.py:151 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilitat"
 
@@ -189,6 +189,10 @@ msgstr "Id no vàlid \"{user_id}\" - l'objecte no existeix."
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Tipus incorrecte. S'esperava un valor str, s'ha rebut {data_type}."
+
+#: apps/commons/serializers.py:249
+msgid "The value must be between -90 and 90."
+msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -2956,6 +2960,55 @@ msgstr "Drets d'autor"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Tots els drets reservats."
+
+#, fuzzy, python-brace-format
+#~| msgid "Go to message"
+#~ msgid "Error: {message}"
+#~ msgstr "Anar al missatge"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "{value!r} does not match the format {format}."
+#~ msgid_plural "{value!r} does not match the formats {formats}."
+#~ msgstr[0] ""
+#~ "El conjunt de consultes donat no coincideix amb el model relacionat"
+#~ msgstr[1] ""
+#~ "El conjunt de consultes donat no coincideix amb el model relacionat"
+
+#, fuzzy
+#~| msgid "Message by"
+#~ msgid "Messages"
+#~ msgstr "Missatge de"
+
+#, fuzzy
+#~| msgid " and "
+#~ msgid "and"
+#~ msgstr " i "
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_labels)s already exists."
+#~ msgstr "Ja existeix un usuari amb aquest correu electrònic"
+
+#, fuzzy
+#~| msgid "This field is required."
+#~ msgid "This field cannot be null."
+#~ msgstr "Aquest camp és obligatori."
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_label)s already exists."
+#~ msgstr "Ja existeix un usuari amb aquest correu electrònic"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "The inline value did not match the parent instance."
+#~ msgstr "El conjunt de consultes donat no coincideix amb el model relacionat"
+
+#, fuzzy
+#~| msgid "Project"
+#~ msgid "oct"
+#~ msgstr "Projecte"
 
 #~ msgid "main category"
 #~ msgstr "categoria principal"

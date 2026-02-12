@@ -18,6 +18,7 @@ from apps.commons.fields import (
 )
 from apps.commons.models import GroupData
 from apps.commons.serializers import (
+    BaseLocationSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     StringsImagesSerializer,
@@ -38,7 +39,7 @@ from apps.organizations.serializers import (
     ProjectTemplateSerializer,
 )
 from apps.skills.models import Tag
-from apps.skills.serializers import TagRelatedField
+from apps.skills.serializers import TagRelatedField, TagSerializer
 from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
@@ -182,13 +183,10 @@ class LocationProjectSerializer(
 
 
 class LocationSerializer(
-    StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
-    serializers.ModelSerializer,
+    BaseLocationSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["title", "description"]
+    string_images_forbid_fields: list[str] = ["title", "description"]
 
     project = LocationProjectSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -209,13 +207,7 @@ class LocationSerializer(
             "project_id",
         ]
 
-    def get_related_organizations(self) -> List[Organization]:
-        """Retrieve the related organizations"""
-        if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
-
-    def get_related_project(self) -> Optional[Project]:
+    def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]
@@ -238,6 +230,7 @@ class ProjectLightSerializer(
     is_followed = serializers.SerializerMethodField(read_only=True)
     is_featured = serializers.BooleanField(read_only=True, required=False)
     is_group_project = serializers.BooleanField(read_only=True, required=False)
+    tags = TagSerializer(many=True, read_only=True)
 
     class Meta:
         model = Project
@@ -256,6 +249,8 @@ class ProjectLightSerializer(
             "is_followed",
             "is_featured",
             "is_group_project",
+            "updated_at",
+            "tags",
         ]
 
     def get_is_followed(self, project: Project) -> Dict[str, Any]:

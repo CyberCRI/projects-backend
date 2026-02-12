@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
@@ -127,18 +127,6 @@ class AttachmentLink(
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project") -> "AttachmentLink":
-        return AttachmentLink.objects.create(
-            project=project,
-            attachment_type=self.attachment_type,
-            category=self.category,
-            description=self.description,
-            preview_image_url=self.preview_image_url,
-            site_name=self.site_name,
-            site_url=self.site_url,
-            title=self.title,
-        )
-
 
 class OrganizationAttachmentFile(
     HasAutoTranslatedFields, OrganizationRelated, models.Model
@@ -226,15 +214,7 @@ class AttachmentFile(
                 content=self.file.read(),
                 content_type=f"application/{file_extension}",
             )
-            return AttachmentFile.objects.create(
-                project=project,
-                attachment_type=self.attachment_type,
-                file=new_file,
-                mime=self.mime,
-                title=self.title,
-                description=self.description,
-                hashcode=self.hashcode,
-            )
+            return super().duplicate(project=project, file=new_file)
         return None
 
 
@@ -400,9 +380,7 @@ class Image(
             return queryset.first()
         return None
 
-    def duplicate(
-        self, owner: Optional["ProjectUser"] = None, upload_to: str = ""
-    ) -> Optional["Image"]:
+    def duplicate(self, upload_to: str = "", **fields) -> None | type[Self]:
         with suppress(ResourceNotFoundError):
             file_path = self.file.name.split("/")
             file_name = file_path.pop()
@@ -416,21 +394,8 @@ class Image(
                 content=self.file.read(),
                 content_type=f"image/{file_extension}",
             )
-            image = Image(
-                name=self.name,
-                file=new_file,
-                height=self.height,
-                width=self.width,
-                natural_ratio=self.natural_ratio,
-                scale_x=self.scale_x,
-                scale_y=self.scale_y,
-                left=self.left,
-                top=self.top,
-                owner=owner or self.owner,
-            )
-            image._upload_to = lambda instance, filename: upload_to
-            image.save()
-            return image
+            _upload_to = lambda instance, filename: upload_to  # noqa: E731
+            return super().duplicate(_upload_to=_upload_to, file=new_file, **fields)
         return None
 
 

@@ -78,16 +78,5 @@ class Announcement(
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project") -> "Announcement":
-        return Announcement.objects.create(
-            project=project,
-            description=self.description,
-            title=self.title,
-            type=self.type,
-            status=self.status,
-            deadline=self.deadline,
-            is_remunerated=self.is_remunerated,
-        )
-
     def __str__(self):
         return str(self.title)

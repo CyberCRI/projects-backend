@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-17 16:58+0100\n"
+"POT-Creation-Date: 2026-02-12 15:58+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No puedes asignar este rol a un usuario"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No puedes asignar este rol a un usuario: {role}"
 
-#: apps/accounts/models.py:140 apps/projects/models.py:161
+#: apps/accounts/models.py:151 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilidad"
 
@@ -190,6 +190,10 @@ msgstr "ID no válido \"{user_id}\" - el objeto no existe."
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
 "Tipo incorrecto. Se esperaba un valor de cadena, se recibió {data_type}."
+
+#: apps/commons/serializers.py:249
+msgid "The value must be between -90 and 90."
+msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -2955,6 +2959,53 @@ msgstr "Derechos de autor"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
+
+#, fuzzy, python-brace-format
+#~| msgid "Go to message"
+#~ msgid "Error: {message}"
+#~ msgstr "Ir al mensaje"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "{value!r} does not match the format {format}."
+#~ msgid_plural "{value!r} does not match the formats {formats}."
+#~ msgstr[0] "El queryset proporcionado no coincide con el modelo relacionado"
+#~ msgstr[1] "El queryset proporcionado no coincide con el modelo relacionado"
+
+#, fuzzy
+#~| msgid "Message by"
+#~ msgid "Messages"
+#~ msgstr "Mensaje de"
+
+#, fuzzy
+#~| msgid " and "
+#~ msgid "and"
+#~ msgstr " y "
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_labels)s already exists."
+#~ msgstr "Ya existe un usuario con este correo electrónico"
+
+#, fuzzy
+#~| msgid "This field is required."
+#~ msgid "This field cannot be null."
+#~ msgstr "Este campo es obligatorio."
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_label)s already exists."
+#~ msgstr "Ya existe un usuario con este correo electrónico"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "The inline value did not match the parent instance."
+#~ msgstr "El queryset proporcionado no coincide con el modelo relacionado"
+
+#, fuzzy
+#~| msgid "Project"
+#~ msgid "oct"
+#~ msgstr "Proyecto"
 
 #~ msgid "main category"
 #~ msgstr "categoría principal"

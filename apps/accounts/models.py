@@ -25,6 +25,8 @@ from apps.accounts.utils import (
 )
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
+    HasEmbending,
+    HasModulesRelated,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
@@ -33,14 +35,23 @@ from apps.commons.mixins import (
 from apps.commons.models import GroupData
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
-from apps.projects.models import Project
+from apps.projects.models import AbstractLocation, Project
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 from services.translator.mixins import HasAutoTranslatedFields
 
 
+class PeopleGroupLocation(OrganizationRelated, AbstractLocation):
+    """base location for group"""
+
+    def get_related_organizations(self) -> list["Organization"]:
+        return [self.people_group.organization]
+
+
 class PeopleGroup(
+    HasEmbending,
+    HasModulesRelated,
     HasAutoTranslatedFields,
     HasMultipleIDs,
     HasPermissionsSetup,
@@ -143,6 +154,15 @@ class PeopleGroup(
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     permissions_up_to_date = models.BooleanField(default=False)
+
+    tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
+    location = models.OneToOneField(
+        PeopleGroupLocation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="people_group",
+    )
 
     def __str__(self) -> str:
         return str(self.name)
