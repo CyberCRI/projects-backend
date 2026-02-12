@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 17:21+0100\n"
+"POT-Creation-Date: 2026-02-12 12:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:144 apps/projects/models.py:161
+#: apps/accounts/models.py:148 apps/projects/models.py:161
 msgid "visibility"
 msgstr "visibilité"
 
@@ -191,6 +191,10 @@ msgstr "identifiant invalide \"{user_id}\" - cet objet n'existe pas."
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Type incorrect. Valeur str attendue, {data_type} reçue."
+
+#: apps/commons/serializers.py:256
+msgid "The value must be between -90 and 90."
+msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -2958,6 +2962,41 @@ msgstr "Droit d'auteur"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Tous droits réservés."
+
+#, fuzzy, python-brace-format
+#~| msgid "Go to message"
+#~ msgid "Error: {message}"
+#~ msgstr "Voir le message"
+
+#, fuzzy
+#~| msgid "Message by"
+#~ msgid "Messages"
+#~ msgstr "Message de"
+
+#, fuzzy
+#~| msgid " and "
+#~ msgid "and"
+#~ msgstr " et "
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_labels)s already exists."
+#~ msgstr "Un·e utilisateur·rice avec cette adresse email existe déjà"
+
+#, fuzzy
+#~| msgid "This field is required."
+#~ msgid "This field cannot be null."
+#~ msgstr "Ce champ est obligatoire."
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_label)s already exists."
+#~ msgstr "Un·e utilisateur·rice avec cette adresse email existe déjà"
+
+#, fuzzy
+#~| msgid "Project"
+#~ msgid "oct"
+#~ msgstr "Projet"
 
 #~ msgid "main category"
 #~ msgstr "catégorie principale"

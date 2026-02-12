@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 17:21+0100\n"
+"POT-Creation-Date: 2026-02-12 12:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Je kunt deze rol niet toewijzen aan een gebruiker"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Je kunt deze rol niet toewijzen aan een gebruiker: {role}"
 
-#: apps/accounts/models.py:144 apps/projects/models.py:161
+#: apps/accounts/models.py:148 apps/projects/models.py:161
 msgid "visibility"
 msgstr "zichtbaarheid"
 
@@ -191,6 +191,10 @@ msgstr "Ongeldige id \"{user_id}\" - object bestaat niet."
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Onjuist type. Verwachte stringwaarde, ontvangen {data_type}."
+
+#: apps/commons/serializers.py:256
+msgid "The value must be between -90 and 90."
+msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -2971,6 +2975,55 @@ msgstr "Auteursrecht"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Alle rechten voorbehouden."
+
+#, fuzzy, python-brace-format
+#~| msgid "Go to message"
+#~ msgid "Error: {message}"
+#~ msgstr "Ga naar bericht"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "{value!r} does not match the format {format}."
+#~ msgid_plural "{value!r} does not match the formats {formats}."
+#~ msgstr[0] ""
+#~ "De opgegeven queryset komt niet overeen met het gerelateerde model"
+#~ msgstr[1] ""
+#~ "De opgegeven queryset komt niet overeen met het gerelateerde model"
+
+#, fuzzy
+#~| msgid "Message by"
+#~ msgid "Messages"
+#~ msgstr "Bericht door"
+
+#, fuzzy
+#~| msgid " and "
+#~ msgid "and"
+#~ msgstr " en "
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_labels)s already exists."
+#~ msgstr "Een gebruiker met dit e-mailadres bestaat al"
+
+#, fuzzy
+#~| msgid "This field is required."
+#~ msgid "This field cannot be null."
+#~ msgstr "Dit veld is verplicht."
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_label)s already exists."
+#~ msgstr "Een gebruiker met dit e-mailadres bestaat al"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "The inline value did not match the parent instance."
+#~ msgstr "De opgegeven queryset komt niet overeen met het gerelateerde model"
+
+#, fuzzy
+#~| msgid "Project"
+#~ msgid "oct"
+#~ msgstr "Project"
 
 #~ msgid "main category"
 #~ msgstr "hoofdcategorie"

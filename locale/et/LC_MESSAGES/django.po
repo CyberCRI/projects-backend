@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 17:21+0100\n"
+"POT-Creation-Date: 2026-02-12 12:33+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "Sa ei saa seda rolli kasutajale määrata"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Sa ei saa seda rolli kasutajale määrata: {role}"
 
-#: apps/accounts/models.py:144 apps/projects/models.py:161
+#: apps/accounts/models.py:148 apps/projects/models.py:161
 msgid "visibility"
 msgstr "nähtavus"
 
@@ -188,6 +188,10 @@ msgstr "Vigane ID \"{user_id}\" - objekti ei eksisteeri."
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Vale tüüp. Oodati stringi väärtust, saadi {data_type}."
+
+#: apps/commons/serializers.py:256
+msgid "The value must be between -90 and 90."
+msgstr ""
 
 #: apps/emailing/templates/contact/contact/email_with_name.html:13
 #: apps/notifications/templates/new_application/mail.html:13
@@ -2932,6 +2936,53 @@ msgstr "Autoriõigus"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Kõik õigused kaitstud."
+
+#, fuzzy, python-brace-format
+#~| msgid "Go to message"
+#~ msgid "Error: {message}"
+#~ msgstr "Mine sõnumi juurde"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "{value!r} does not match the format {format}."
+#~ msgid_plural "{value!r} does not match the formats {formats}."
+#~ msgstr[0] "Antud päringu tulemus ei vasta seotud mudelile"
+#~ msgstr[1] "Antud päringu tulemus ei vasta seotud mudelile"
+
+#, fuzzy
+#~| msgid "Message by"
+#~ msgid "Messages"
+#~ msgstr "Sõnumi postitas"
+
+#, fuzzy
+#~| msgid " and "
+#~ msgid "and"
+#~ msgstr " ja "
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_labels)s already exists."
+#~ msgstr "Selle e-posti aadressiga kasutaja on juba olemas"
+
+#, fuzzy
+#~| msgid "This field is required."
+#~ msgid "This field cannot be null."
+#~ msgstr "See väli on kohustuslik."
+
+#, fuzzy, python-format
+#~| msgid "A user with this email already exists"
+#~ msgid "%(model_name)s with this %(field_label)s already exists."
+#~ msgstr "Selle e-posti aadressiga kasutaja on juba olemas"
+
+#, fuzzy
+#~| msgid "The given queryset does not match the related model"
+#~ msgid "The inline value did not match the parent instance."
+#~ msgstr "Antud päringu tulemus ei vasta seotud mudelile"
+
+#, fuzzy
+#~| msgid "Project"
+#~ msgid "oct"
+#~ msgstr "Projekt"
 
 #~ msgid "main category"
 #~ msgstr "peamine kategooria"
