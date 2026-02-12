@@ -897,10 +897,6 @@ class AbstractLocation(
         default=LocationType.TEAM,
     )
 
-    def get_related_organizations(self) -> list["Organization"]:
-        """Return the organizations related to this model."""
-        return self.project.get_related_organizations()
-
 
 # TODO(remi): rename to ProjectLocation ?
 class Location(ProjectRelated, AbstractLocation):
@@ -921,6 +917,10 @@ class Location(ProjectRelated, AbstractLocation):
     def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
+
+    def get_related_organizations(self) -> list["Organization"]:
+        """Return the organizations related to this model."""
+        return self.project.get_related_organizations()
 
 
 class ProjectMessage(

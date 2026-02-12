@@ -228,7 +228,6 @@ class StringsImagesSerializer(serializers.ModelSerializer):
 class BaseLocationSerializer(
     StringsImagesSerializer,
     AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
@@ -242,12 +241,6 @@ class BaseLocationSerializer(
             "lng",
             "type",
         ]
-
-    def get_related_organizations(self) -> list[Organization]:
-        """Retrieve the related organizations"""
-        if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
 
     def _check_gis(self, value):
         """check gps coord num"""
