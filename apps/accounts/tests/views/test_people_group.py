@@ -11,7 +11,7 @@ from apps.accounts.factories import (
     SeedUserFactory,
     UserFactory,
 )
-from apps.accounts.models import PeopleGroup
+from apps.accounts.models import PeopleGroup, PeopleGroupLocation
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
@@ -1276,3 +1276,81 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         child.refresh_from_db()
         self.assertEqual(child.parent, main_parent)
+
+    def test_locations_group(self):
+        self.client.force_authenticate(self.superadmin)
+        people_group = PeopleGroupFactory(organization=self.organization)
+
+        # create new groups with location
+        url = reverse(
+            "PeopleGroup-list",
+            args=(people_group.organization.code,),
+        )
+        payload = {
+            "title": "my title",
+            "description": "description",
+            "location": {
+                "lat": 48.853183700426335,
+                "lng": 2.36428239939491,
+                "title": "",
+                "type": PeopleGroupLocation.LocationType.ADDRESS.value,
+            },
+        }
+        response = self.client.post(url, data=payload)
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(data["location"]["lat"], payload["location"]["lat"])
+        self.assertEqual(data["location"]["lng"], payload["location"]["lng"])
+        self.assertEqual(data["location"]["title"], payload["location"]["title"])
+        self.assertEqual(data["location"]["type"], payload["location"]["type"])
+        self.assertIsNotNone(data["location"]["id"])
+
+        # no locations set (from people_group factory)
+        url = reverse(
+            "PeopleGroup-detail",
+            args=(people_group.organization.code, people_group.pk),
+        )
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(data["location"])
+
+        # missings fiels 'lat/lng' to patch
+        payload = {
+            "location": {
+                "title": "",
+                "type": PeopleGroupLocation.LocationType.ADDRESS.value,
+            }
+        }
+        response = self.client.patch(url, data=payload)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+        payload = {
+            "location": {
+                "lat": 48.853183700426335,
+                "lng": 2.36428239939491,
+                "title": "",
+                "type": PeopleGroupLocation.LocationType.ADDRESS.value,
+            }
+        }
+        response = self.client.patch(url, data=payload)
+
+        # locations are created
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(data["location"]["lat"], payload["location"]["lat"])
+        self.assertEqual(data["location"]["lng"], payload["location"]["lng"])
+        self.assertEqual(data["location"]["title"], payload["location"]["title"])
+        self.assertEqual(data["location"]["type"], payload["location"]["type"])
+        self.assertIsNotNone(data["location"]["id"])
+
+        location_pk = data["location"]["id"]
+        payload = {"location": None}
+        response = self.client.patch(url, data=payload)
+
+        # locations are created
+        data = response.json()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(data["location"])
+        # objects are deleted
+        self.assertFalse(PeopleGroupLocation.objects.filter(pk=location_pk).exists())
