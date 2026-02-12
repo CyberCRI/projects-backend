@@ -427,4 +427,4 @@ class HasEmbending:
             return model_embedding.vector_search(vector, queryset, threshold).exclude(
                 pk=self.pk
             )
-        return type(self).objects.all()
+        return type(self).objects.none()
