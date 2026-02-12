@@ -25,7 +25,10 @@ from rest_framework import status, views, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.serializers import BooleanField
 from rest_framework.views import APIView
@@ -33,14 +36,17 @@ from rest_framework.views import APIView
 from apps.commons.filters import UnaccentSearchFilter
 from apps.commons.models import GroupData
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
-from apps.commons.serializers import EmailAddressSerializer, RetrieveUpdateModelViewSet
+from apps.commons.serializers import (
+    EmailAddressSerializer,
+    RetrieveUpdateModelViewSet,
+)
 from apps.commons.utils import map_action_to_permission
 from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.serializers import ProjectLightSerializer
+from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
@@ -753,6 +759,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
+        responses=ProjectLightSerializer(many=True),
         parameters=[
             OpenApiParameter(
                 name="limit",
@@ -766,7 +773,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 required=False,
                 type=int,
             ),
-        ]
+        ],
     )
     @action(
         detail=True,
@@ -781,17 +788,12 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         queryset = modules.featured_projects()
 
         page = self.paginate_queryset(queryset)
-        if page is not None:
-            project_serializer = ProjectLightSerializer(
-                page, context={"request": request}, many=True
-            )
-            return self.get_paginated_response(project_serializer.data)
-
         project_serializer = ProjectLightSerializer(
-            queryset, context={"request": request}, many=True
+            page, context={"request": request}, many=True
         )
-        return Response(project_serializer.data)
+        return self.get_paginated_response(project_serializer.data)
 
+    @extend_schema(responses=PeopleGroupHierarchySerializer)
     @action(
         detail=True,
         methods=["GET"],
@@ -807,6 +809,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             status=status.HTTP_200_OK,
         )
 
+    @extend_schema(responses=PeopleGroupLightSerializer(many=True))
     @action(
         detail=True,
         methods=["GET"],
@@ -820,11 +823,12 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         queryset = modules.subgroups()
 
         queryset_page = self.paginate_queryset(queryset)
-        data = self.serializer_class(
+        data = PeopleGroupLightSerializer(
             queryset_page, many=True, context={"request": request}
         )
         return self.get_paginated_response(data.data)
 
+    @extend_schema(responses=PeopleGroupLightSerializer(many=True))
     @action(
         detail=True,
         methods=["GET"],
@@ -842,6 +846,23 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset_page, many=True, context={"request": request}
         )
         return self.get_paginated_response(data.data)
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="locations",
+        permission_classes=[ReadOnly],
+    )
+    def locations(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.locations()
+
+        return Response(
+            LocationSerializer(queryset, many=True, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
 
 
 @extend_schema(

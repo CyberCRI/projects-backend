@@ -89,7 +89,7 @@ class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdm
         verbose_name = "User"
 
 
-admin.unregister(Group)
+admin.site.unregister(Group)
 
 
 @admin.register(Group)

@@ -2,6 +2,7 @@ from typing import Any, Collection, Dict, List, Optional
 
 from django.conf import settings
 from django.db.models import Model, Q
+from django.utils.translation import gettext_lazy as _
 from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
@@ -227,7 +228,6 @@ class StringsImagesSerializer(serializers.ModelSerializer):
 class BaseLocationSerializer(
     StringsImagesSerializer,
     AutoTranslatedModelSerializer,
-    OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
@@ -242,8 +242,16 @@ class BaseLocationSerializer(
             "type",
         ]
 
-    def get_related_organizations(self) -> list[Organization]:
-        """Retrieve the related organizations"""
-        if "project" in self.validated_data:
-            return self.validated_data["project"].get_related_organizations()
-        return []
+    def _check_gis(self, value):
+        """check gps coord num"""
+        if -90 <= value <= 90:
+            raise serializers.ValidationError(
+                _("The value must be between -90 and 90.")
+            )
+        return value
+
+    def valiate_lat(self, value):
+        return self._check_gis(super().validate_lat(value))
+
+    def valiate_lng(self, value):
+        return self._check_gis(super().validate_lng(value))

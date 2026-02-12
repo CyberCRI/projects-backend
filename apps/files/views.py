@@ -9,16 +9,25 @@ from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from lib.views import NestedOrganizationViewMixins
 from rest_framework import mixins, status, viewsets
 from rest_framework.parsers import MultiPartParser
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 
-from apps.accounts.permissions import HasBasePermission
+from apps.accounts.permissions import (
+    HasBasePermission,
+    HasPeopleGroupPermission,
+)
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin, NestedPeopleGroupViewMixins
+from apps.commons.views import (
+    MultipleIDViewsetMixin,
+    NestedOrganizationViewMixins,
+    NestedPeopleGroupViewMixins,
+)
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
@@ -284,6 +293,18 @@ class PeopleGroupGalleryViewSet(
     NestedOrganizationViewMixins, NestedPeopleGroupViewMixins, viewsets.ModelViewSet
 ):
     serializer_class = PeopleGroupImageSerializer
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "peoplegroup")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "accounts")
+                | HasOrganizationPermission(codename)
+                | HasPeopleGroupPermission(codename),
+            ]
+        return super().get_permissions()
 
     def get_queryset(self):
         modules_manager = self.people_group.get_related_module()
