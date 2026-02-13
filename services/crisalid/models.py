@@ -5,10 +5,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
 
-from apps.commons.mixins import OrganizationRelated
+from apps.commons.mixins import HasEmbending, OrganizationRelated
 from apps.organizations.models import Organization
 from services.crisalid import relators
-from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
 
 from .manager import CrisalidQuerySet, DocumentQuerySet
@@ -58,6 +57,8 @@ class Identifier(models.Model):
         EPPN = "eppn"
         DOI = "doi"
         PMID = "pmid"
+        NNS = "nns"
+        RNSR = "rnsr"
 
     harvester = models.CharField(max_length=50, choices=Harvester.choices)
     value = models.CharField(max_length=255)
@@ -94,6 +95,12 @@ class Researcher(CrisalidDataModel):
     )
 
     objects = CrisalidQuerySet.as_manager()
+    memberships = models.ManyToManyField(
+        "crisalid.Structure", related_name="memberships"
+    )
+    employments = models.ManyToManyField(
+        "crisalid.Structure", related_name="employments"
+    )
 
     def __str__(self):
         if hasattr(self, "user") and self.user is not None:
@@ -121,7 +128,9 @@ class DocumentContributor(models.Model):
         ]
 
 
-class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
+class Document(
+    HasEmbending, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
+):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
@@ -199,6 +208,10 @@ class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
 
     organization_query_string = "contributors__user__groups__organizations"
 
+    class Meta:
+        # order by publicattion date, and put "null date" at last
+        ordering = (models.F("publication_date").desc(nulls_last=True),)
+
     def get_related_organizations(self):
         """organizations from user"""
         return list(
@@ -216,24 +229,6 @@ class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
             if self.document_type in vals:
                 return vals
         return [self.document_type]
-
-    def vectorize(self):
-        if not getattr(self, "embedding", None):
-            self.embedding = DocumentEmbedding(item=self)
-            self.embedding.save()
-        self.embedding.vectorize()
-
-    def similars(self, threshold: float = 0.15) -> DocumentQuerySet:
-        """return similars documents"""
-        if getattr(self, "embedding", None):
-            vector = self.embedding.embedding
-            queryset = Document.objects.all()
-            return (
-                DocumentEmbedding.vector_search(vector, queryset, threshold)
-                .filter(document_type__in=self.document_type_centralized)
-                .exclude(pk=self.pk)
-            )
-        return Document.objects.none()
 
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)
@@ -283,6 +278,29 @@ class DocumentTypeCentralized:
     def values(cls) -> Generator[tuple[str]]:
         for _, v in cls.items():
             yield v
+
+
+class Structure(OrganizationRelated, CrisalidDataModel):
+    acronym = models.TextField(null=True, blank=True)
+    name = models.TextField()
+    identifiers = models.ManyToManyField(
+        "crisalid.Identifier", related_name="structures"
+    )
+    organization = models.ForeignKey(
+        "organizations.Organization",
+        on_delete=models.CASCADE,
+        related_name="structures",
+    )
+    objects = CrisalidQuerySet.as_manager()
+    group = models.ForeignKey(
+        "accounts.PeopleGroup",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="structure",
+    )
+
+    def __str__(self):
+        return self.name
 
 
 class CrisalidConfig(OrganizationRelated, models.Model):
