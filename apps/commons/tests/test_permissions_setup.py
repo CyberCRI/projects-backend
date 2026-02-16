@@ -68,11 +68,17 @@ class PermissionsSetupTestCase(JwtAPITestCase):
             self.assertTrue(admin.has_perm(f"accounts.{perm.codename}"))
 
         # Test whole class permission reassignment
+        organization.groups.all().delete()
         reassign_organizations_permissions()
         organization.refresh_from_db()
 
         self.assertTrue(organization.permissions_up_to_date)
         self.assertEqual(organization.groups.count(), 4)
+
+        admin.groups.set([organization.get_admins()])
+        facilitator.groups.set([organization.get_facilitators()])
+        user.groups.set([organization.get_users()])
+        viewer.groups.set([organization.get_viewers()])
         for role, permissions in [
             (admin, admins_permissions),
             (facilitator, facilitators_permissions),
@@ -152,11 +158,25 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     self.assertFalse(role.has_perm(perm.codename, project))
 
         # Test whole class permission reassignment
+        project.groups.all().delete()
         reassign_projects_permissions()
         project.refresh_from_db()
 
         self.assertTrue(project.permissions_up_to_date)
         self.assertEqual(project.groups.count(), 6)
+
+        owner.groups.set([project.get_owners()])
+        reviewer.groups.set([project.get_reviewers()])
+        member.groups.set([project.get_members()])
+        owner_group_member.groups.set(
+            [project.get_owner_groups(), owner_people_group.get_members()]
+        )
+        reviewer_group_member.groups.set(
+            [project.get_reviewer_groups(), reviewer_people_group.get_members()]
+        )
+        member_group_member.groups.set(
+            [project.get_member_groups(), member_people_group.get_members()]
+        )
         for role, permissions in [
             (owner, owners_permissions),
             (reviewer, reviewers_permissions),
@@ -230,11 +250,16 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     self.assertFalse(role.has_perm(perm.codename, people_group))
 
         # Test whole class permission reassignment
+        people_group.groups.all().delete()
         reassign_people_groups_permissions()
         people_group.refresh_from_db()
 
         self.assertTrue(people_group.permissions_up_to_date)
         self.assertEqual(people_group.groups.count(), 3)
+
+        leader.groups.set([people_group.get_leaders()])
+        manager.groups.set([people_group.get_managers()])
+        member.groups.set([people_group.get_members()])
         for role, permissions in [
             (leader, leaders_permissions),
             (manager, managers_permissions),
