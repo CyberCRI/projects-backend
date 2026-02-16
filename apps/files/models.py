@@ -470,7 +470,7 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
         return user == self.get_owner()
 
 
-class PeopleGroupImage(BaseImage, HasOwners):
+class PeopleGroupImage(BaseImage, HasOwners, OrganizationRelated):
     people_group = models.ForeignKey(
         "accounts.PeopleGroup",
         on_delete=models.CASCADE,
@@ -494,3 +494,7 @@ class PeopleGroupImage(BaseImage, HasOwners):
         members = people_group.managers() | people_group.leaders()
 
         return list(members)
+
+    def get_related_organizations(self) -> list["Organization"]:
+        """Return the organizations related to this model."""
+        return self.people_group.get_related_organizations()
