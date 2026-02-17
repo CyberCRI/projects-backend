@@ -1,10 +1,10 @@
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
+from services.crisalid.models import Document, DocumentTypeCentralized
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.modules.base import AbstractModules, register_module
 from apps.projects.models import Location, Project
 from apps.skills.models import Skill
-from services.crisalid.models import Document, DocumentTypeCentralized
 
 
 @register_module(PeopleGroup)
@@ -74,6 +74,9 @@ class PeopleGroupModules(AbstractModules):
 
     def gallery(self):
         return self.instance.images.all()
+
+    def news(self):
+        return self.instance.news.all()
 
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()

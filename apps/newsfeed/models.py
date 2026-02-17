@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING, List
 
 from django.db import models
+from services.translator.mixins import HasAutoTranslatedFields
 
 from apps.commons.enums import Language
 from apps.commons.mixins import HasOwner, OrganizationRelated
-from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -85,7 +85,7 @@ class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
@@ -96,7 +96,9 @@ class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         related_name="news_header",
     )
     publication_date = models.DateTimeField()
-    people_groups = models.ManyToManyField("accounts.PeopleGroup", related_name="news")
+    people_groups = models.ManyToManyField(
+        "accounts.PeopleGroup", related_name="news", null=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     language = models.CharField(
@@ -139,7 +141,7 @@ class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     owner = models.ForeignKey(
         "accounts.ProjectUser",
@@ -204,7 +206,7 @@ class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         If the news is visible by all the users, connected or not, member of a group or not.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
@@ -220,5 +222,5 @@ class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     visible_by_all = models.BooleanField(default=False)
     images = models.ManyToManyField("files.Image", related_name="events")
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         return [self.organization]

@@ -1,5 +1,7 @@
 from django_filters import rest_framework as filters
 
+from apps.accounts.models import PeopleGroup
+
 from .models import Event, Instruction, News
 
 
@@ -24,7 +26,12 @@ class InstructionFilter(filters.FilterSet):
 class NewsFilter(filters.FilterSet):
     from_date = filters.DateTimeFilter(field_name="publication_date", lookup_expr="gte")
     to_date = filters.DateTimeFilter(field_name="publication_date", lookup_expr="lte")
+    group = filters.ModelMultipleChoiceFilter(
+        field_name="people_groups",
+        to_field_name="id",
+        queryset=PeopleGroup.objects.all(),
+    )
 
     class Meta:
         model = News
-        fields = ["from_date", "to_date"]
+        fields = ["from_date", "to_date", "group"]
