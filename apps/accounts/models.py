@@ -30,6 +30,7 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
+    HasRelatedModules,
     OrganizationRelated,
 )
 from apps.commons.models import GroupData
@@ -44,7 +45,7 @@ from services.translator.mixins import HasAutoTranslatedFields
 
 class PeopleGroup(
     HasEmbending,
-    HasModulesRelated,
+    HasRelatedModules,
     HasAutoTranslatedFields,
     HasMultipleIDs,
     HasPermissionsSetup,

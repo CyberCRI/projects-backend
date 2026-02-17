@@ -429,7 +429,7 @@ class HasMultipleIDs:
         return slug
 
 
-class HasModulesRelated:
+class HasRelatedModules:
     """Mixins for related modules class"""
 
     def get_related_module(self):
