@@ -16,7 +16,7 @@ from .models import (
 )
 
 
-class IdentifierAminMixin:
+class IdentifierAdminMixin:
     @admin.display(description="identifiers count", ordering="identifiers_count")
     def get_identifiers(self, instance):
         # list all harvester name from this profile
@@ -56,7 +56,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
 
 
 @admin.register(Document)
-class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAminMixin, admin.ModelAdmin):
+class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",
@@ -102,7 +102,7 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAminMixin, admin.ModelA
 
 
 @admin.register(Researcher)
-class ResearcherAdmin(IdentifierAminMixin, admin.ModelAdmin):
+class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "given_name",
         "family_name",

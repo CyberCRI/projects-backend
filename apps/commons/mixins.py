@@ -410,7 +410,7 @@ class HasMultipleIDs:
         return slug
 
 
-class HasEmbending:
+class HasEmbedding:
     def vectorize(self):
         if not getattr(self, "embedding", None):
             model_embedding = type(self).embedding.related.related_model

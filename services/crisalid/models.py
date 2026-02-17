@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
 
-from apps.commons.mixins import HasEmbending, OrganizationRelated
+from apps.commons.mixins import HasEmbedding, OrganizationRelated
 from apps.organizations.models import Organization
 from services.crisalid import relators
 from services.translator.mixins import HasAutoTranslatedFields
@@ -121,7 +121,7 @@ class DocumentContributor(models.Model):
 
 
 class Document(
-    HasEmbending, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
+    HasEmbedding, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
 ):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
