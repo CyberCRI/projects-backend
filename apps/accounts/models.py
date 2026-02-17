@@ -26,7 +26,6 @@ from apps.accounts.utils import (
 from apps.commons.enums import SDG, Language
 from apps.commons.mixins import (
     HasEmbending,
-    HasModulesRelated,
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
