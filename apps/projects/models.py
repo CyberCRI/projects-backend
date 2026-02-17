@@ -553,48 +553,49 @@ class Project(
 
     @transaction.atomic
     def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
-        header = self.header_image.duplicate(owner) if self.header_image else None
-        project = Project.objects.create(
-            title=self.title,
+        header = self.header_image.duplicate(owner=owner) if self.header_image else None
+        project = super().duplicate(
+            slug=None,
+            outdated_slugs=[],
             header_image=header,
-            description=self.description,
-            purpose=self.purpose,
-            is_locked=self.is_locked,
-            is_shareable=self.is_shareable,
             publication_status=Project.PublicationStatus.PRIVATE,
-            life_status=self.life_status,
-            language=self.language,
-            sdgs=self.sdgs,
-            template=self.template,
+            # TODO(remi): add this id (or fk) directly in DuplicateMixins
             duplicated_from=self.id,
         )
-        project.setup_permissions(user=owner)
+
         project.categories.set(self.categories.all())
         project.organizations.set(self.organizations.all())
         project.tags.set(self.tags.all())
+        project.setup_permissions(user=owner)
+
+        images_to_set = []
         for image in self.images.all():
-            new_image = image.duplicate(owner)
+            new_image = image.duplicate(owner=owner)
             if new_image is not None:
-                project.images.add(new_image)
+                images_to_set.append(new_image)
                 for identifier in [self.pk, self.slug]:
                     project.description = project.description.replace(
                         f"/v1/project/{identifier}/image/{image.pk}/",
                         f"/v1/project/{project.pk}/image/{new_image.pk}/",
                     )
-        project.save()
+        project.images.set(images_to_set)
+
         for blog_entry in self.blog_entries.all():
-            blog_entry.duplicate(project, self, owner)
+            blog_entry.duplicate(project=project, initial_project=self, owner=owner)
         for announcement in self.announcements.all():
-            announcement.duplicate(project)
+            announcement.duplicate(project=project)
         for location in self.locations.all():
-            location.duplicate(project)
+            location.duplicate(project=project)
         for goal in self.goals.all():
-            goal.duplicate(project)
+            goal.duplicate(project=project)
         for link in self.links.all():
-            link.duplicate(project)
+            link.duplicate(project=project)
         for file in self.files.all():
-            file.duplicate(project)
+            file.duplicate(project=project)
+
         Stat.objects.create(project=project)
+
+        project.save()
         return project
 
 
@@ -768,21 +769,18 @@ class BlogEntry(
         initial_project: Optional["Project"] = None,
         owner: Optional["ProjectUser"] = None,
     ) -> "BlogEntry":
-        blog_entry = BlogEntry.objects.create(
-            project=project,
-            title=self.title,
-            content=self.content,
-        )
+        blog_entry = super().duplicate(project=project)
+        images_to_set = []
         for image in self.images.all():
-            new_image = image.duplicate(owner)
+            new_image = image.duplicate(owner=owner)
             if new_image is not None:
-                blog_entry.images.add(new_image)
+                images_to_set.append(new_image)
                 for identifier in [initial_project.pk, initial_project.slug]:
                     blog_entry.content = blog_entry.content.replace(
                         f"/v1/project/{identifier}/blog-entry-image/{image.pk}/",
                         f"/v1/project/{project.pk}/blog-entry-image/{new_image.pk}/",
                     )
-        blog_entry.created_at = self.created_at
+        blog_entry.images.set(images_to_set)
         blog_entry.save()
         return blog_entry
 
@@ -851,15 +849,6 @@ class Goal(
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project") -> "Goal":
-        return Goal.objects.create(
-            project=project,
-            title=self.title,
-            description=self.description,
-            deadline_at=self.deadline_at,
-            status=self.status,
-        )
-
 
 class Location(
     HasAutoTranslatedFields,
@@ -915,16 +904,6 @@ class Location(
     def get_related_organizations(self) -> List["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
-
-    def duplicate(self, project: "Project") -> "Location":
-        return Location.objects.create(
-            project=project,
-            title=self.title,
-            description=self.description,
-            lat=self.lat,
-            lng=self.lng,
-            type=self.type,
-        )
 
 
 class ProjectMessage(

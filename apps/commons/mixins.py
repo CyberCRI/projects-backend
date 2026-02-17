@@ -1,4 +1,7 @@
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Self, Tuple
+from collections.abc import Iterable
+from contextlib import suppress
+from copy import copy
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -35,7 +38,7 @@ class OrganizationRelated:
             return Q(**{cls.organization_query_string: value})
         return Q(**{key: value})
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         raise NotImplementedError()
 
@@ -91,7 +94,7 @@ class ProjectRelated(OrganizationRelated):
         """Return the projects related to this model."""
         raise NotImplementedError()
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         raise NotImplementedError()
 
@@ -184,7 +187,7 @@ class HasPermissionsSetup:
 
     @classmethod
     def batch_reassign_permissions(
-        cls, roles_permissions: Tuple[str, Iterable[Permission]]
+        cls, roles_permissions: tuple[str, Iterable[Permission]]
     ):
         """
         Reassign permissions for all instances of the model.
@@ -213,6 +216,31 @@ class HasPermissionsSetup:
         ]
         Group.objects.bulk_create(
             groups_to_create,
+            batch_size=1000,
+            ignore_conflicts=True,
+        )
+
+        # Link groups to instances
+        group_names = [g.name for g in groups_to_create]
+        created_groups = {
+            group.name: group for group in Group.objects.filter(name__in=group_names)
+        }
+        through_model = cls.groups.through
+        instance_field_name = cls._meta.model_name
+        relationships = [
+            through_model(
+                **{
+                    instance_field_name: instance,
+                    "group": created_groups[
+                        f"{content_type.model}:#{instance.pk}:{role}"
+                    ],
+                }
+            )
+            for instance in cls.objects.all()
+            for role in roles
+        ]
+        through_model.objects.bulk_create(
+            relationships,
             batch_size=1000,
             ignore_conflicts=True,
         )
@@ -268,8 +296,24 @@ class DuplicableModel:
     A model that can be duplicated.
     """
 
-    def duplicate(self, *args, **kwargs) -> "DuplicableModel":
-        raise NotImplementedError()
+    def duplicate(self, **fields) -> type[Self]:
+        """duplicate models elements, set new fields
+
+        :return: new models
+        """
+
+        instance_copy = copy(self)
+        instance_copy.pk = None
+
+        for name, value in fields.items():
+            setattr(instance_copy, name, value)
+
+        # remove prefetch m2m
+        with suppress(AttributeError):
+            del instance_copy._prefetched_objects_cache
+
+        instance_copy.save()
+        return instance_copy
 
 
 class HasMultipleIDs:
@@ -320,9 +364,9 @@ class HasMultipleIDs:
         The outdated slugs of the object. They are kept for url retro-compatibility.
     """
 
-    _original_slug_fields_value: Dict[str, str] = {}
-    slugified_fields: List[str] = []
-    reserved_slugs: List[str] = []
+    _original_slug_fields_value: dict[str, str] = {}
+    slugified_fields: list[str] = []
+    reserved_slugs: list[str] = []
     slug_prefix: str = ""
 
     def __init__(self, *args, **kwargs):
@@ -371,8 +415,8 @@ class HasMultipleIDs:
 
     @classmethod
     def get_main_ids(
-        cls, objects_ids: List[Any], returned_field: str = "id"
-    ) -> List[Any]:
+        cls, objects_ids: list[Any], returned_field: str = "id"
+    ) -> list[Any]:
         """Get the main IDs from a list of secondary IDs."""
         return [cls.get_main_id(object_id, returned_field) for object_id in objects_ids]
 
