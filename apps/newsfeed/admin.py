@@ -1,5 +1,3 @@
-from typing import Any
-
 from django.contrib import admin
 from django.db.models import Count
 from django.db.models.query import QuerySet
@@ -10,7 +8,11 @@ from apps.newsfeed.models import News
 
 @admin.register(News)
 class NewsAdmin(admin.ModelAdmin):
-    list_display = ("title", "organization", "group_count")
+    list_display = ("title", "organization", "get_group_count")
+    list_display_links = (
+        list_display[0],
+        "organization",
+    )
     list_filter = (
         "organization",
         "people_groups",
@@ -19,7 +21,7 @@ class NewsAdmin(admin.ModelAdmin):
     )
     search_fields = ("title", "content")
 
-    def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
+    def get_queryset(self, request: HttpRequest) -> QuerySet[News]:
         return (
             super()
             .get_queryset(request)
@@ -29,5 +31,5 @@ class NewsAdmin(admin.ModelAdmin):
         )
 
     @admin.display(description="numbers of groups", ordering="-group_count")
-    def group_count(self, instance):
+    def get_group_count(self, instance: News) -> int:
         return instance.group_count

@@ -110,6 +110,9 @@ class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     visible_by_all = models.BooleanField(default=False)
     images = models.ManyToManyField("files.Image", related_name="news")
 
+    class Meta:
+        verbose_name_plural = "news"
+
     def get_related_organizations(self):
         return [self.organization]
 
