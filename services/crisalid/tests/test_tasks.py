@@ -95,10 +95,11 @@ class TestCrisalidTasks(test.TestCase):
 
         self.assertTrue(Researcher.objects.filter(pk=researcher.pk).exists())
 
-    def test_create_researcher(self):
+    @patch("services.crisalid.interface.Client")
+    def test_create_researcher(self, client_gql):
         # other check/tests in test_views.py
-        fields = {
-            "uid": "05-11-1995-uuid",
+        fields = {"uid": "05-11-1995-uuid"}
+        data = {
             "names": [
                 {
                     "first_names": [{"value": "marty", "language": "fr"}],
@@ -109,6 +110,8 @@ class TestCrisalidTasks(test.TestCase):
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
             ],
         }
+
+        client_gql().execute.return_value = {"people": [data]}
 
         create_researcher(self.config.pk, fields)
 
@@ -171,9 +174,8 @@ class TestCrisalidTasks(test.TestCase):
             ],
             "recorded_by": [
                 {
-                    "uid": "hals-truc",
-                    "harvester": Identifier.Harvester.HAL.value,
-                    "value": "",
+                    "type": Identifier.Harvester.HAL.value,
+                    "value": "hals-truc",
                 }
             ],
         }

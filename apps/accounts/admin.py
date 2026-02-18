@@ -171,8 +171,9 @@ class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 
 @admin.register(PeopleGroupLocation)
 class PeopleGroupLocationAdmin(admin.ModelAdmin):
-    list_display = ("title", "description", "type")
-    search_fields = ("title", "description", "type")
+    list_display = ("title", "description", "type", "group")
+    list_display_links = ("group",)
+    search_fields = ("title", "description", "type", "group__title")
 
 
 @admin.register(Permission)

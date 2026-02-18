@@ -226,7 +226,10 @@ class TestPopulateDocument(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {
+                                    "type": "eppn",
+                                    "value": "marty.mcfly@non-de-zeus.fr",
+                                },
                                 {"type": "idref", "value": "4545454545454"},
                                 {"type": "local", "value": "v55555"},
                             ],
@@ -236,9 +239,8 @@ class TestPopulateDocument(test.TestCase):
             ],
             "recorded_by": [
                 {
-                    "uid": "hals-truc",
-                    "harvester": Identifier.Harvester.HAL.value,
-                    "value": "",
+                    "type": Identifier.Harvester.HAL.value,
+                    "value": "hals-truc",
                 }
             ],
         }

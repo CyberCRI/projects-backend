@@ -16,6 +16,8 @@ def get_crisalid_config(crisalid_config_id: int) -> CrisalidConfig:
     )
 
 
+# TODO(remi): convert fields to graphql request
+
 # https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/amqp/amqp_person_event_message_factory.py#L28
 # https://github.com/CRISalid-esr/crisalid-ikg/blob/dev-main/app/amqp/amqp_document_event_message_factory.py#L37
 
@@ -27,8 +29,18 @@ def create_researcher(crisalid_config_id: int, fields: dict):
     config = get_crisalid_config(crisalid_config_id)
     logger.error("receive %s for organization %s", fields, config.organization)
 
+    service = CrisalidService(config)
+
+    # fetch data from apollo
+    data = service.query("people", offset=0, limit=1, where={"uid_EQ": fields["uid"]})[
+        "people"
+    ]
+    if not data:
+        logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
+        return
+
     populate = PopulateResearcher(config)
-    populate.single(fields)
+    populate.single(data[0])
 
 
 @on_event(CrisalidTypeEnum.PERSON, CrisalidEventEnum.DELETED)
@@ -88,6 +100,9 @@ def delete_document(crisalid_config_id: int, fields: dict):
     logger.info("deleted = %s", deleted)
 
 
+# ----
+# Vectorize documents for similarity
+# ----
 @app.task(name="Vectorize documents")
 def vectorize_documents(documents_pks: list[int]):
     for obj in Document.objects.filter(pk__in=documents_pks):

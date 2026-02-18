@@ -847,6 +847,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         return self.get_paginated_response(data.data)
 
+    @extend_schema(responses=LocationSerializer(many=True))
     @action(
         detail=True,
         methods=["GET"],
