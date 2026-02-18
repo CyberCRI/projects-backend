@@ -82,13 +82,24 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
     ),
 )
 class AbstractDocumentViewSet(
-    NestedOrganizationViewMixins,
-    NestedResearcherViewMixins,
     viewsets.ReadOnlyModelViewSet,
 ):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
+
+    def filter_roles(self, queryset, roles_enabled=True):
+        # filter only by roles (author, co-authors ...ect)
+        roles = [
+            r.strip()
+            for r in self.request.query_params.get("roles", "").split(",")
+            if r.strip()
+        ]
+        if roles and roles_enabled:
+            queryset = queryset.filter(
+                documentcontributor__roles__contains=roles,
+            )
+        return queryset
 
     def filter_queryset(
         self,
@@ -102,17 +113,7 @@ class AbstractDocumentViewSet(
         if year and year_enabled:
             qs = qs.filter(publication_date__year=year)
 
-        # filter only by roles (author, co-authors ...ect)
-        roles = [
-            r.strip()
-            for r in self.request.query_params.get("roles", "").split(",")
-            if r.strip()
-        ]
-        if roles and roles_enabled:
-            qs = qs.filter(
-                documentcontributor__roles__contains=roles,
-                documentcontributor__researcher=self.researcher,
-            )
+        qs = self.filter_roles(qs, roles_enabled)
 
         # filter by pblication_type
         if "document_type" in self.request.query_params and document_type_enabled:
@@ -123,7 +124,6 @@ class AbstractDocumentViewSet(
     def get_queryset(self) -> QuerySet[Document]:
         return (
             Document.objects.filter(
-                contributors=self.researcher,
                 document_type__in=self.document_types,
             )
             .prefetch_related("identifiers", "contributors__user")
@@ -146,22 +146,17 @@ class AbstractDocumentViewSet(
         )
         return self.get_paginated_response(data.data)
 
-    @action(
-        detail=False,
-        methods=[HTTPMethod.GET],
-        url_path="analytics",
-        serializer_class=DocumentAnalyticsSerializer,
-    )
-    def analytics(self, request, *args, **kwargs):
-        """methods to return analytics (how many documents/by year / by document_type) from researcher"""
-
+    def get_analytics(self):
         qs = self.get_queryset()
 
         # get counted all document_types types
         # use only here the filter_queryset,
         # the next years values need to have all document_types (non filtered)
+
         document_types = Counter(
-            self.filter_queryset(qs, document_type_enabled=False)
+            Document.objects.filter(
+                id__in=self.filter_queryset(qs, document_type_enabled=False)
+            )
             .order_by("document_type")
             .values_list("document_type", flat=True)
         )
@@ -184,10 +179,22 @@ class AbstractDocumentViewSet(
             chain(
                 *DocumentContributor.objects.filter(
                     document__in=self.filter_queryset(qs, roles_enabled=False),
-                    researcher=self.researcher,
                 ).values_list("roles", flat=True)
             )
         )
+
+        return document_types, years, roles
+
+    @action(
+        detail=False,
+        methods=[HTTPMethod.GET],
+        url_path="analytics",
+        serializer_class=DocumentAnalyticsSerializer,
+    )
+    def analytics(self, request, *args, **kwargs):
+        """methods to return analytics (how many documents/by year / by document_type) from researcher"""
+
+        document_types, years, roles = self.get_analytics()
 
         return JsonResponse(
             self.serializer_class(
@@ -200,11 +207,58 @@ class AbstractDocumentViewSet(
         )
 
 
-class PublicationViewSet(AbstractDocumentViewSet):
+class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
+    """general viewset documents"""
+
+    def get_queryset(self) -> QuerySet[Document]:
+        return (
+            Document.objects.all()
+            .prefetch_related("identifiers", "contributors__user")
+            .order_by("-publication_date")
+        )
+
+
+class AbstractResearcherDocumentViewSet(
+    NestedOrganizationViewMixins, NestedResearcherViewMixins, AbstractDocumentViewSet
+):
+
+    def filter_roles(self, queryset, roles_enabled=True):
+        # filter only by roles (author, co-authors ...ect)
+        roles = [
+            r.strip()
+            for r in self.request.query_params.get("roles", "").split(",")
+            if r.strip()
+        ]
+        if roles and roles_enabled:
+            queryset = queryset.filter(
+                documentcontributor__roles__contains=roles,
+                documentcontributor__research=self.researcher,
+            )
+        return queryset
+
+    def get_analytics(self):
+        document_types, years, _ = super().get_analytics()
+        qs = self.get_queryset()
+        roles = Counter(
+            chain(
+                *DocumentContributor.objects.filter(
+                    document__in=self.filter_queryset(qs, roles_enabled=False),
+                    researcher=self.researcher,
+                ).values_list("roles", flat=True)
+            )
+        )
+
+        return (document_types, years, roles)
+
+    def get_queryset(self) -> QuerySet[Document]:
+        return super().get_queryset().filter(contributors=self.researcher)
+
+
+class PublicationViewSet(AbstractResearcherDocumentViewSet):
     document_types = DocumentTypeCentralized.publications
 
 
-class ConferenceViewSet(AbstractDocumentViewSet):
+class ConferenceViewSet(AbstractResearcherDocumentViewSet):
     document_types = DocumentTypeCentralized.conferences
 
 

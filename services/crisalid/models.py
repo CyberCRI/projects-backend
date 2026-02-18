@@ -5,10 +5,9 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models.functions import Lower
 
-from apps.commons.mixins import OrganizationRelated
+from apps.commons.mixins import HasEmbedding, OrganizationRelated
 from apps.organizations.models import Organization
 from services.crisalid import relators
-from services.mistral.models import DocumentEmbedding
 from services.translator.mixins import HasAutoTranslatedFields
 
 from .manager import CrisalidQuerySet, DocumentQuerySet
@@ -121,7 +120,9 @@ class DocumentContributor(models.Model):
         ]
 
 
-class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
+class Document(
+    HasEmbedding, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
+):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
     """
@@ -199,6 +200,10 @@ class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
 
     organization_query_string = "contributors__user__groups__organizations"
 
+    class Meta:
+        # order by publicattion date, and put "null date" at last
+        ordering = (models.F("publication_date").desc(nulls_last=True),)
+
     def get_related_organizations(self):
         """organizations from user"""
         return list(
@@ -216,24 +221,6 @@ class Document(OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel):
             if self.document_type in vals:
                 return vals
         return [self.document_type]
-
-    def vectorize(self):
-        if not getattr(self, "embedding", None):
-            self.embedding = DocumentEmbedding(item=self)
-            self.embedding.save()
-        self.embedding.vectorize()
-
-    def similars(self, threshold: float = 0.15) -> DocumentQuerySet:
-        """return similars documents"""
-        if getattr(self, "embedding", None):
-            vector = self.embedding.embedding
-            queryset = Document.objects.all()
-            return (
-                DocumentEmbedding.vector_search(vector, queryset, threshold)
-                .filter(document_type__in=self.document_type_centralized)
-                .exclude(pk=self.pk)
-            )
-        return Document.objects.none()
 
     def save(self, *ar, **kw):
         md = super().save(*ar, **kw)

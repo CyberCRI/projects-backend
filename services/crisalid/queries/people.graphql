@@ -1,6 +1,5 @@
 query PopulateFromCrisalid($limit: Int, $offset: Int, $where: PersonWhere) {
   people(limit: $limit, offset: $offset, where: $where) {
-    uid
     display_name
     names {
       first_names {
@@ -13,7 +12,7 @@ query PopulateFromCrisalid($limit: Int, $offset: Int, $where: PersonWhere) {
       }
     }
     identifiers {
-      type
+      harvester: type
       value
     }
   }
