@@ -474,7 +474,6 @@ class PeopleGroupSerializer(
         many=True, write_only=True, required=False, queryset=Project.objects.all()
     )
     tags = TagRelatedField(many=True, required=False)
-
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,

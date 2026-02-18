@@ -16,6 +16,17 @@ from .models import (
 )
 
 
+class IdentifierAdminMixin:
+    @admin.display(description="identifiers count", ordering="identifiers_count")
+    def get_identifiers(self, instance):
+        # list all harvester name from this profile
+        result = [o.harvester for o in instance.identifiers.all()]
+        if not result:
+            return None
+
+        return f"{', '.join(result)} ({len(result)})"
+
+
 @admin.register(Identifier)
 class IdentifierAdmin(admin.ModelAdmin):
     list_display = ("harvester", "value", "get_researcher", "get_documents")
@@ -45,7 +56,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
 
 
 @admin.register(Document)
-class DocumentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",
@@ -89,17 +100,9 @@ class DocumentAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     def get_contributors(self, instance):
         return instance.contributors.count()
 
-    @admin.display(description="identifiers count", ordering="identifiers_count")
-    def get_identifiers(self, instance):
-        # list all harvester name from this profile
-        result = [o.harvester for o in instance.identifiers.all()]
-        if not result:
-            return None
-        return f"{', '.join(result)} ({len(result)})"
-
 
 @admin.register(Researcher)
-class ResearcherAdmin(admin.ModelAdmin):
+class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "given_name",
         "family_name",
@@ -138,17 +141,18 @@ class ResearcherAdmin(admin.ModelAdmin):
                 continue
 
             for identifier in research.identifiers.all():
-                if identifier.harvester != Identifier.Harvester.EPPN.value:
+                if identifier.harvester != Identifier.Harvester.LOCAL.value:
                     continue
 
                 user = None
+                email = identifier.value
                 with suppress(ProjectUser.DoesNotExist):
-                    user = ProjectUser.objects.get(email=identifier.value)
+                    user = ProjectUser.objects.get(email=email)
 
                 if not user:
                     created += 1
                     user = ProjectUser(
-                        email=identifier.value,
+                        email=email,
                         given_name=research.given_name,
                         family_name=research.family_name,
                     )

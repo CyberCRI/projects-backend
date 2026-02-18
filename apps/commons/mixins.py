@@ -220,6 +220,31 @@ class HasPermissionsSetup:
             ignore_conflicts=True,
         )
 
+        # Link groups to instances
+        group_names = [g.name for g in groups_to_create]
+        created_groups = {
+            group.name: group for group in Group.objects.filter(name__in=group_names)
+        }
+        through_model = cls.groups.through
+        instance_field_name = cls._meta.model_name
+        relationships = [
+            through_model(
+                **{
+                    instance_field_name: instance,
+                    "group": created_groups[
+                        f"{content_type.model}:#{instance.pk}:{role}"
+                    ],
+                }
+            )
+            for instance in cls.objects.all()
+            for role in roles
+        ]
+        through_model.objects.bulk_create(
+            relationships,
+            batch_size=1000,
+            ignore_conflicts=True,
+        )
+
         # Make sure all GroupData exist
         group_data_to_create = [
             GroupData(
@@ -429,7 +454,7 @@ class HasMultipleIDs:
         return slug
 
 
-class HasModulesRelated:
+class HasRelatedModules:
     """Mixins for related modules class"""
 
     def get_related_module(self):
@@ -438,7 +463,7 @@ class HasModulesRelated:
         return get_module(type(self))
 
 
-class HasEmbending:
+class HasEmbedding:
     def vectorize(self):
         if not getattr(self, "embedding", None):
             model_embedding = type(self).embedding.related.related_model
@@ -455,4 +480,4 @@ class HasEmbending:
             return model_embedding.vector_search(vector, queryset, threshold).exclude(
                 pk=self.pk
             )
-        return type(self).objects.all()
+        return type(self).objects.none()

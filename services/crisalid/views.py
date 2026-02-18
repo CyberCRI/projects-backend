@@ -15,7 +15,10 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.views import NestedOrganizationViewMixins, NestedPeopleGroupViewMixins
+from apps.commons.views import (
+    NestedOrganizationViewMixins,
+    NestedPeopleGroupViewMixins,
+)
 from services.crisalid import relators
 from services.crisalid.models import (
     Document,
