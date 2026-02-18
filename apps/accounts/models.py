@@ -2,7 +2,7 @@ import math
 import uuid
 from datetime import date
 from functools import cached_property
-from typing import Any, List, Optional, Union
+from typing import Any, Optional
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
