@@ -3,6 +3,7 @@ from rest_framework import mixins, viewsets
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from apps.accounts.models import PeopleGroup
 from apps.organizations.models import Organization
 
 from .mixins import HasMultipleIDs
@@ -148,5 +149,12 @@ class NestedOrganizationViewMixins:
         self.organization = get_object_or_404(
             Organization, code=kwargs["organization_code"]
         )
+
+        super().initial(request, *args, **kwargs)
+
+
+class NestedPeopleGroupViewMixins:
+    def initial(self, request, *args, **kwargs):
+        self.people_group = get_object_or_404(PeopleGroup, id=kwargs["people_group_id"])
 
         super().initial(request, *args, **kwargs)

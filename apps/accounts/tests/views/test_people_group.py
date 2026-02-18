@@ -6,7 +6,11 @@ from faker import Faker
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    UserFactory,
+)
 from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import GroupData
@@ -235,8 +239,16 @@ class ReadPeopleGroupHierarchyTestCase(JwtAPITestCase):
             self.assertEqual(hierarchy[i]["id"], self.parents[parent].id)
             self.assertEqual(hierarchy[i]["order"], i)
 
-        children = content["children"]
-        self.assertEqual(len(children), len(expected_children))
+        subgroups_count = content["modules"]["subgroups"]
+        self.assertEqual(subgroups_count, len(expected_children))
+
+        response = self.client.get(
+            reverse(
+                "PeopleGroup-subgroups",
+                args=(self.organization.code, self.group.id),
+            ),
+        )
+        children = response.json()["results"]
         self.assertSetEqual(
             {child["id"] for child in children},
             {self.children[child].id for child in expected_children},
