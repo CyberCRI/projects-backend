@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-10 17:21+0100\n"
+"POT-Creation-Date: 2026-02-19 13:59+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -316,6 +316,7 @@ msgstr "Ya existe una solicitud de acceso para este usuario"
 
 #: apps/invitations/templates/access_requests_base.html:56
 #: services/keycloak/templates/keycloak_base.html:56
+#: services/keycloak/templates/mood_sso_base.html:56
 msgid ""
 "\n"
 "          Need any help?\n"
@@ -357,6 +358,7 @@ msgstr ""
 
 #: apps/invitations/templates/access_requests_base.html:71
 #: services/keycloak/templates/keycloak_base.html:71
+#: services/keycloak/templates/mood_sso_base.html:66
 msgid ""
 "\n"
 "          We hope you'll enjoy our new platform!\n"
@@ -373,6 +375,7 @@ msgstr ""
 #: apps/invitations/templates/access_requests_base.html:83
 #: apps/skills/templates/mentorship_base.html:206
 #: services/keycloak/templates/keycloak_base.html:83
+#: services/keycloak/templates/mood_sso_base.html:78
 msgid ""
 "\n"
 "          Made with ❤️ by Learning Planet Institute.\n"
@@ -2682,6 +2685,7 @@ msgstr ""
 #: services/keycloak/templates/admin_created/mail.html:28
 #: services/keycloak/templates/force_reset_password/mail.html:28
 #: services/keycloak/templates/invitation/mail.html:28
+#: services/keycloak/templates/mood_sso_create/mail.html:33
 #, python-format
 msgid ""
 "\n"
@@ -2873,6 +2877,182 @@ msgstr ""
 "Confirma tu dirección de correo electrónico para empezar en Proyectos de "
 "%(org_name)s\n"
 
+#: services/keycloak/templates/mood_sso_base.html:61
+msgid ""
+"\n"
+"          For questions or assistance, you can <a class=\"lpi-link\" "
+"href=\"mailto:mood@learningplanetinstitute.org\">email us</a>. We will come "
+"back to you during business hours (mon-fri 9am-6pm) as fast as we can.\n"
+"          "
+msgstr ""
+"\n"
+"          Para preguntas o asistencia, puedes <a class=\"lpi-link\" "
+"href=\"mailto:mood@learningplanetinstitute.org\">enviarnos un correo</a>. Te "
+"responderemos durante el horario de oficina (de lunes a viernes, de 9 a 18 "
+"h) tan rápido como podamos.\n"
+"          "
+
+#: services/keycloak/templates/mood_sso_create/mail.html:8
+#: services/keycloak/templates/mood_sso_switch/mail.html:8
+#, python-format
+msgid ""
+"\n"
+"    Hello %(given_name)s,\n"
+"    "
+msgstr ""
+"\n"
+"    Hola %(given_name)s,\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_create/mail.html:13
+msgid ""
+"\n"
+"    The Learning Planet Institute Hub now uses a unique login system for all "
+"our platforms.\n"
+"    "
+msgstr ""
+"\n"
+"    El Learning Planet Institute Hub ahora utiliza un sistema de inicio de "
+"sesión único para todas nuestras plataformas.\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_create/mail.html:18
+msgid ""
+"\n"
+"    To access your account on the Learning Planet Institute Hub, you need to "
+"set a new password. This account will also allow you to access all our "
+"platforms using the same credentials.\n"
+"    "
+msgstr ""
+"\n"
+"    Para acceder a tu cuenta en el Learning Planet Institute Hub, necesitas "
+"establecer una nueva contraseña. Esta cuenta también te permitirá acceder a "
+"todas nuestras plataformas usando las mismas credenciales.\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_create/mail.html:23
+msgid ""
+"\n"
+"    If you already have an account on the Projects platform, please contact "
+"us at <a class=\"lpi-link\" "
+"href=\"mailto:mood@learningplanetinstitute.org\">mood@learningplanetinstitute.org</"
+"a>. \n"
+"    "
+msgstr ""
+"\n"
+"    Si ya tienes una cuenta en la plataforma de Proyectos, por favor "
+"contáctanos en <a class=\"lpi-link\" "
+"href=\"mailto:mood@learningplanetinstitute.org\">mood@learningplanetinstitute.org</"
+"a>. \n"
+"    "
+
+#: services/keycloak/templates/mood_sso_create/mail.html:28
+msgid ""
+"\n"
+"    Click to create your password\n"
+"    "
+msgstr ""
+"\n"
+"    Haz clic para crear tu contraseña\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_create/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(given_name)s,\n"
+"The Learning Planet Institute Hub now uses a unique login system for all our "
+"platforms.\n"
+"To access your account on the Learning Planet Institute Hub, you need to set "
+"a new password. This account will also allow you to access all our platforms "
+"using the same credentials.\n"
+"If you already have an account on the Projects platform, please contact us "
+"at mood@learningplanetinstitute.org.\n"
+"Click to create your password : %(link)s\n"
+"Link expires on %(expiration_date)s at %(expiration_time)s. Click here to "
+"request a new link : %(refresh_link)s\n"
+msgstr ""
+"\n"
+"Hola %(given_name)s,\n"
+"El Learning Planet Institute Hub ahora utiliza un sistema de inicio de "
+"sesión único para todas nuestras plataformas.\n"
+"Para acceder a tu cuenta en el Learning Planet Institute Hub, necesitas "
+"establecer una nueva contraseña. Esta cuenta también te permitirá acceder a "
+"todas nuestras plataformas usando las mismas credenciales.\n"
+"Si ya tienes una cuenta en la plataforma de Proyectos, por favor contáctanos "
+"en mood@learningplanetinstitute.org.\n"
+"Haz clic para crear tu contraseña: %(link)s\n"
+"El enlace expira el %(expiration_date)s a las %(expiration_time)s. Haz clic "
+"para solicitar un nuevo enlace: %(refresh_link)s\n"
+
+#: services/keycloak/templates/mood_sso_create/object.txt:2
+#: services/keycloak/templates/mood_sso_switch/object.txt:2
+msgid ""
+"\n"
+"Learning Planet Institute Hub unified account !\n"
+msgstr ""
+"\n"
+"¡Cuenta unificada del Learning Planet Institute Hub!\n"
+
+#: services/keycloak/templates/mood_sso_switch/mail.html:13
+msgid ""
+"\n"
+"    The Learning Planet Institute Hub now uses a unique login system for all "
+"our platforms. To access your account on the Learning Planet Institute Hub, "
+"you now need to use the same username and password that you use for the "
+"Projects platform.\n"
+"    "
+msgstr ""
+"\n"
+"    El Learning Planet Institute Hub ahora utiliza un sistema de inicio de "
+"sesión único para todas nuestras plataformas. Para acceder a tu cuenta en el "
+"Learning Planet Institute Hub, ahora necesitas usar el mismo nombre de "
+"usuario y contraseña que usas para la plataforma de Proyectos.\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_switch/mail.html:18
+msgid ""
+"\n"
+"    Go to Projects Platform\n"
+"    "
+msgstr ""
+"\n"
+"    Ir a la plataforma de Proyectos\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_switch/mail.html:23
+msgid ""
+"\n"
+"    Go to Learning Planet Institute Hub\n"
+"    "
+msgstr ""
+"\n"
+"    Ir al Learning Planet Institute Hub\n"
+"    "
+
+#: services/keycloak/templates/mood_sso_switch/mail.txt:2
+#, python-format
+msgid ""
+"\n"
+"Hello %(given_name)s,\n"
+"The Learning Planet Institute Hub now uses a unique login system for all our "
+"platforms. To access your account on the Learning Planet Institute Hub, you "
+"now need to use the same username and password that you use for the Projects "
+"platform.\n"
+"Go to Projects platform : https://projects.learning-planet.org\n"
+"Go to Learning Planet Institute Hub : https://"
+"go.learningplanetinstitute.org\n"
+msgstr ""
+"\n"
+"Hola %(given_name)s,\n"
+"El Learning Planet Institute Hub ahora utiliza un sistema de inicio de "
+"sesión único para todas nuestras plataformas. Para acceder a tu cuenta en el "
+"Learning Planet Institute Hub, ahora necesitas usar el mismo nombre de "
+"usuario y contraseña que usas para la plataforma de Proyectos.\n"
+"Ir a la plataforma de Proyectos : https://projects.learning-planet.org\n"
+"Ir al Learning Planet Institute Hub : https://"
+"go.learningplanetinstitute.org\n"
+
 #: services/keycloak/templates/reset_password/mail.html:8
 msgid ""
 "\n"
@@ -2955,6 +3135,3 @@ msgstr "Derechos de autor"
 #: templates/admin/base.html:16
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
-
-#~ msgid "main category"
-#~ msgstr "categoría principal"

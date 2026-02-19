@@ -1,0 +1,37 @@
+{% extends "../mood_sso_base.html" %}
+{% load i18n %}
+{% load mjml %}
+{% load static %}
+
+{% block content %}
+<mj-text font-size="24px" font-weight="700" align="center" line-height="30px" padding-bottom="20px">
+    {% blocktranslate with given_name=user.given_name %}
+    Hello {{ given_name }},
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate %}
+    The Learning Planet Institute Hub now uses a unique login system for all our platforms.
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate %}
+    To access your account on the Learning Planet Institute Hub, you need to set a new password. This account will also allow you to access all our platforms using the same credentials.
+    {% endblocktranslate %}
+</mj-text>
+<mj-text>
+    {% blocktranslate %}
+    If you already have an account on the Projects platform, please contact us at <a class="lpi-link" href="mailto:mood@learningplanetinstitute.org">mood@learningplanetinstitute.org</a>. 
+    {% endblocktranslate %}
+</mj-text>
+<mj-button css-class="lpi-button" href="{{ link.link }}">
+    {% blocktranslate %}
+    Click to create your password
+    {% endblocktranslate %}
+</mj-button>
+<mj-text>
+    {% blocktranslate with expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link %}
+    Link expires on {{ expiration_date }} at {{ expiration_time }}. <a class="lpi-link" href="{{ refresh_link }}">Click here</a> to request a new link.
+    {% endblocktranslate %}
+</mj-text>
+{% endblock %}

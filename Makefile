@@ -39,6 +39,11 @@ locales:
 # Create translation files
 	python manage.py makemessages --all
 
+.PHONY: compile-locales
+compile-locales:
+# Compile translation files
+	python manage.py compilemessages
+
 TEMP_TRANSLATION_FILES := $(shell mktemp -d --suffix -projects-back-makemessages)
 .PHONY: locales-check
 locales-check:
