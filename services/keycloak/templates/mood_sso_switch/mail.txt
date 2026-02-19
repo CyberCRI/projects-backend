@@ -1,0 +1,7 @@
+{% load i18n %}
+{% blocktranslate with given_name=user.given_name %}
+Hello {{ given_name }},
+The Learning Planet Institute Hub now uses a unique login system for all our platforms. To access your account on the Learning Planet Institute Hub, you now need to use the same username and password that you use for the Projects platform.
+Go to Projects platform : https://projects.learning-planet.org
+Go to Learning Planet Institute Hub : https://go.learningplanetinstitute.org
+{% endblocktranslate %}
