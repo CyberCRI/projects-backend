@@ -1,0 +1,86 @@
+{% load mjml %}
+{% load i18n %}
+{% load static %}
+
+{% mjml %}
+<mjml>
+  <mj-head>
+    <mj-font name="Ubuntu" href="https://fonts.google.com/specimen/Ubuntu"/>
+    <mj-style inline="inline">
+      .lpi-link {
+        color: #1D727C;
+        font-weight: 700;
+      }
+      .lpi-button {
+        padding: 10px !important;
+      }
+      .lpi-button td {
+        border: 1px solid #1d727c !important;
+        border-radius: 50px !important;
+        padding: 11px 1.5rem !important;
+        cursor: pointer !important;
+        overflow: hidden !important;
+        background: #1d727c !important;
+      }
+      .lpi-button a {
+        line-height: 18px !important;
+        font-size: 1rem !important;
+        font-weight: 700 !important;
+        background: #1d727c !important;
+        padding: 0px !important;
+      }
+    </mj-style>
+    <mj-attributes>
+      <mj-text font-family="Ubuntu, Arial" line-height="24px" font-size="16px"/>
+    </mj-attributes>
+  </mj-head>
+  <mj-body>
+    <mj-section>
+      <mj-raw>
+        <div style="display: flex;">
+          {% if organization %}
+            <img src="{{ public_url }}/v1/organization/{{ organization.code }}/logo/{{ organization.logo_image.id }}" alt="organization logo" style="width: auto; height: 50px;"/>
+          {% endif %}
+          <img src="{{ public_url }}{% static 'LPI-sm.png' %}" alt="lpi-logo" style="width: auto; height: 50px; margin-left: auto"/>
+        </div>
+      </mj-raw>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        {% block content %}{% endblock %}
+      </mj-column>
+    </mj-section>
+    <mj-section>
+      <mj-column>
+        <mj-text font-size="20px" font-weight="700" align="center" line-height="30px">
+          {% blocktranslate %}
+          Need any help?
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+          {% blocktranslate %}
+          For questions or assistance, you can <a class="lpi-link" href="mailto:mood@learningplanetinstitute.org">email us</a>. We will come back to you during business hours (mon-fri 9am-6pm) as fast as we can.
+          {% endblocktranslate %}
+        </mj-text>
+        <mj-text>
+          {% blocktranslate %}
+          We hope you'll enjoy our new platform!
+          <br/>
+          The LPI team.
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section background-color="#F1F1F1">
+      <mj-column>
+        <mj-image width="100px" align="center" src="{{ public_url }}{% static 'LPI-sm.png' %}" alt="lpi logo"/>
+        <mj-text align="center">
+          {% blocktranslate %}
+          Made with ❤️ by Learning Planet Institute.
+          {% endblocktranslate %}
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>
+{% endmjml %}
