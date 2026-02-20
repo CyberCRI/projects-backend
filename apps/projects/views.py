@@ -13,13 +13,16 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import LocationPeopleGroupSerializer
+from apps.accounts.serializers import PeopleGroupLocationSuperLightSerializer
 from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
@@ -1016,7 +1019,7 @@ class GeneralLocationView(viewsets.GenericViewSet):
         ).select_related("people_group")
 
         data = {
-            "groups": LocationPeopleGroupSerializer(qs_group, many=True).data,
+            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
             "projects": LocationSerializer(qs_project, many=True).data,
         }
         return Response(data, status=status.HTTP_200_OK)

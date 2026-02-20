@@ -45,6 +45,12 @@ from services.translator.mixins import HasAutoTranslatedFields
 class PeopleGroupLocation(OrganizationRelated, AbstractLocation):
     """base location for group"""
 
+    people_group = models.ForeignKey(
+        "accounts.PeopleGroup",
+        on_delete=models.CASCADE,
+        related_name="locations",
+    )
+
     def get_related_organizations(self) -> list["Organization"]:
         return [self.people_group.organization]
 
@@ -156,13 +162,6 @@ class PeopleGroup(
     permissions_up_to_date = models.BooleanField(default=False)
 
     tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
-    location = models.OneToOneField(
-        PeopleGroupLocation,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="people_group",
-    )
 
     def __str__(self) -> str:
         return str(self.name)
