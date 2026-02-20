@@ -283,6 +283,30 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
         managers = self.managers
         leaders = self.leaders
         projects = self.projects
+        locations = [
+            {
+                "title": "title-location",
+                "description": "description",
+                "lat": 54,
+                "lng": 32,
+                "type": PeopleGroupLocation.LocationType.ADDRESS,
+            },
+            {
+                "title": "title-location-2",
+                "description": "description-2",
+                "lat": 11,
+                "lng": 42,
+                "type": PeopleGroupLocation.LocationType.ADDRESS,
+            },
+            {
+                "title": "title-location-3",
+                "description": "description-3",
+                "lat": 65,
+                "lng": 52,
+                "type": PeopleGroupLocation.LocationType.ADDRESS,
+            },
+        ]
+
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
@@ -296,6 +320,7 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
                 "leaders": [r.id for r in leaders],
             },
             "featured_projects": [p.pk for p in projects],
+            "locations": locations,
         }
         response = self.client.post(
             reverse("PeopleGroup-list", args=(organization.code,)),
@@ -318,6 +343,16 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
                 self.assertIn(leader, people_group.leaders.all())
             for project in projects:
                 self.assertIn(project, people_group.featured_projects.all())
+
+            actual_locations = sorted(
+                response.data["locations"], key=lambda x: x["title"]
+            )
+            for idx, location in enumerate(actual_locations):
+                self.assertEqual(location["title"], locations[idx]["title"])
+                self.assertEqual(location["description"], locations[idx]["description"])
+                self.assertEqual(location["lat"], locations[idx]["lat"])
+                self.assertEqual(location["lng"], locations[idx]["lng"])
+                self.assertEqual(location["type"], locations[idx]["type"])
 
 
 class UpdatePeopleGroupTestCase(JwtAPITestCase):

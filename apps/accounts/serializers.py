@@ -249,7 +249,7 @@ class PeopleGroupSuperLightSerializer(
 
 class PeopleGroupLocationSerializer(BaseLocationSerializer):
     people_group = serializers.PrimaryKeyRelatedField(
-        queryset=PeopleGroup.objects.all()
+        required=False, queryset=PeopleGroup.objects.all()
     )
 
     class Meta(BaseLocationSerializer.Meta):
@@ -259,6 +259,23 @@ class PeopleGroupLocationSerializer(BaseLocationSerializer):
 
 class PeopleGroupLocationSuperLightSerializer(PeopleGroupLocationSerializer):
     people_group = PeopleGroupSuperLightSerializer(read_only=True)
+
+
+class PeopleGroupAddLocationsSerializer(serializers.Serializer):
+    people_group = HiddenPrimaryKeyRelatedField(
+        required=False, write_only=True, queryset=PeopleGroup.objects.all()
+    )
+    locations = PeopleGroupLocationSerializer(many=True)
+
+    def create(self, validated_data):
+        people_group = validated_data["people_group"]
+        locations = validated_data["locations"]
+
+        locations_objs = [
+            PeopleGroupLocation(**datas, people_group=people_group)
+            for datas in locations
+        ]
+        return PeopleGroupLocation.objects.bulk_create(locations_objs)
 
 
 class PeopleGroupLightSerializer(
@@ -487,7 +504,7 @@ class PeopleGroupSerializer(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
     )
-    locations = PeopleGroupLocationSerializer(many=True, read_only=True)
+    locations = PeopleGroupLocationSerializer(many=True, required=False)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -549,6 +566,7 @@ class PeopleGroupSerializer(
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
+        locations = validated_data.pop("locations", [])
 
         people_group = super(PeopleGroupSerializer, self).create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
@@ -557,11 +575,15 @@ class PeopleGroupSerializer(
         PeopleGroupAddFeaturedProjectsSerializer().create(
             {"people_group": people_group, "featured_projects": featured_projects}
         )
+        PeopleGroupAddLocationsSerializer().create(
+            {"people_group": people_group, "locations": locations}
+        )
         return people_group
 
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
         validated_data.pop("featured_projects", [])
+        validated_data.pop("locations", None)
 
         return super(PeopleGroupSerializer, self).update(instance, validated_data)
 
