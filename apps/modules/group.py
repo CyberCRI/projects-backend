@@ -72,6 +72,9 @@ class PeopleGroupModules(AbstractModules):
     def projects_locations(self) -> QuerySet[Location]:
         return Location.objects.filter(project__in=self.featured_projects())
 
+    def gallery(self):
+        return self.instance.images.all()
+
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()
         return Document.objects.filter(
