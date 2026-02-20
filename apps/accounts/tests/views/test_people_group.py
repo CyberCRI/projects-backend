@@ -283,6 +283,30 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
         managers = self.managers
         leaders = self.leaders
         projects = self.projects
+        locations = [
+            {
+                "title": "title-location",
+                "description": "description",
+                "lat": 54,
+                "lng": 32,
+                "type": PeopleGroupLocation.LocationType.ADDRESS,
+            },
+            {
+                "title": "title-location-2",
+                "description": "description-2",
+                "lat": 11,
+                "lng": 42,
+                "type": PeopleGroupLocation.LocationType.ADDRESS,
+            },
+            {
+                "title": "title-location-3",
+                "description": "description-3",
+                "lat": 65,
+                "lng": 52,
+                "type": PeopleGroupLocation.LocationType.ADDRESS,
+            },
+        ]
+
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
@@ -296,6 +320,7 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
                 "leaders": [r.id for r in leaders],
             },
             "featured_projects": [p.pk for p in projects],
+            "locations": locations,
         }
         response = self.client.post(
             reverse("PeopleGroup-list", args=(organization.code,)),
@@ -318,6 +343,16 @@ class CreatePeopleGroupTestCase(JwtAPITestCase):
                 self.assertIn(leader, people_group.leaders.all())
             for project in projects:
                 self.assertIn(project, people_group.featured_projects.all())
+
+            actual_locations = sorted(
+                response.data["locations"], key=lambda x: x["title"]
+            )
+            for idx, location in enumerate(actual_locations):
+                self.assertEqual(location["title"], locations[idx]["title"])
+                self.assertEqual(location["description"], locations[idx]["description"])
+                self.assertEqual(location["lat"], locations[idx]["lat"])
+                self.assertEqual(location["lng"], locations[idx]["lng"])
+                self.assertEqual(location["type"], locations[idx]["type"])
 
 
 class UpdatePeopleGroupTestCase(JwtAPITestCase):
@@ -1277,80 +1312,202 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         child.refresh_from_db()
         self.assertEqual(child.parent, main_parent)
 
-    def test_locations_group(self):
-        self.client.force_authenticate(self.superadmin)
-        people_group = PeopleGroupFactory(organization=self.organization)
 
-        # create new groups with location
-        url = reverse(
-            "PeopleGroup-list",
-            args=(people_group.organization.code,),
+class TestPeopleGroupLocation(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.organization = OrganizationFactory()
+        cls.people_group = PeopleGroupFactory(organization=cls.organization)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_200_OK),
+            (TestRoles.DEFAULT, status.HTTP_200_OK),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_200_OK),
+            (TestRoles.GROUP_LEADER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MANAGER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MEMBER, status.HTTP_200_OK),
+        ]
+    )
+    def test_list(self, role, role_status_code):
+        user = self.get_parameterized_test_user(
+            role=role, instances=[self.people_group]
         )
-        payload = {
-            "title": "my title",
-            "description": "description",
-            "location": {
-                "lat": 48.853183700426335,
-                "lng": 2.36428239939491,
-                "title": "",
-                "type": PeopleGroupLocation.LocationType.ADDRESS.value,
-            },
-        }
-        response = self.client.post(url, data=payload)
-        data = response.json()
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(data["location"]["lat"], payload["location"]["lat"])
-        self.assertEqual(data["location"]["lng"], payload["location"]["lng"])
-        self.assertEqual(data["location"]["title"], payload["location"]["title"])
-        self.assertEqual(data["location"]["type"], payload["location"]["type"])
-        self.assertIsNotNone(data["location"]["id"])
+        self.client.force_authenticate(user)
 
         # no locations set (from people_group factory)
         url = reverse(
             "PeopleGroup-detail",
-            args=(people_group.organization.code, people_group.pk),
+            args=(self.people_group.organization.code, self.people_group.pk),
         )
         response = self.client.get(url)
         data = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(data["location"])
+        self.assertEqual(response.status_code, role_status_code)
+        self.assertEqual(data["locations"], [])
+
+        payload = {
+            "title": "title",
+            "description": "description",
+            "lat": 99,
+            "lng": 11,
+            "type": PeopleGroupLocation.LocationType.ADDRESS,
+        }
+        PeopleGroupLocation.objects.create(people_group=self.people_group, **payload)
+
+        response = self.client.get(url)
+        data = response.json()
+        self.assertEqual(response.status_code, role_status_code)
+        self.assertEqual(len(data["locations"]), 1)
+        self.assertEqual(data["locations"][0]["lat"], payload["lat"])
+        self.assertEqual(data["locations"][0]["lng"], payload["lng"])
+        self.assertEqual(data["locations"][0]["title"], payload["title"])
+        self.assertEqual(data["locations"][0]["type"], payload["type"])
+        self.assertIsNotNone(data["locations"][0]["id"])
+        self.assertEqual(data["locations"][0]["people_group"], self.people_group.id)
+
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_201_CREATED),
+            (TestRoles.GROUP_MANAGER, status.HTTP_201_CREATED),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_create(self, role, role_status_code):
+        user = self.get_parameterized_test_user(
+            role=role, instances=[self.people_group]
+        )
+        self.client.force_authenticate(user)
+        url = reverse(
+            "PeopleGroupLocations-list",
+            args=(self.people_group.organization.code, self.people_group.pk),
+        )
+
+        payload = {
+            "lat": 48.853183700426335,
+            "lng": 2.36428239939491,
+            "title": "",
+            "type": PeopleGroupLocation.LocationType.ADDRESS.value,
+        }
+        response = self.client.post(url, data=payload)
+        data = response.json()
+        self.assertEqual(response.status_code, role_status_code)
+
+        # no need to check more
+        if role_status_code != status.HTTP_201_CREATED:
+            return
+
+        self.assertEqual(data["lat"], payload["lat"])
+        self.assertEqual(data["lng"], payload["lng"])
+        self.assertEqual(data["title"], payload["title"])
+        self.assertEqual(data["type"], payload["type"])
+        self.assertIsNotNone(data["id"])
+        self.assertEqual(data["people_group"], self.people_group.id)
 
         # missings fiels 'lat/lng' to patch
         payload = {
-            "location": {
-                "title": "",
-                "type": PeopleGroupLocation.LocationType.ADDRESS.value,
-            }
+            "title": "",
+            "type": PeopleGroupLocation.LocationType.ADDRESS.value,
         }
-        response = self.client.patch(url, data=payload)
+        response = self.client.post(url, data=payload)
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MANAGER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_update(self, role, role_status_code):
+        user = self.get_parameterized_test_user(
+            role=role, instances=[self.people_group]
+        )
+        self.client.force_authenticate(user)
         payload = {
-            "location": {
-                "lat": 48.853183700426335,
-                "lng": 2.36428239939491,
-                "title": "",
-                "type": PeopleGroupLocation.LocationType.ADDRESS.value,
-            }
+            "title": "title",
+            "description": "description",
+            "lat": 99,
+            "lng": 11,
+            "type": PeopleGroupLocation.LocationType.ADDRESS,
+        }
+        location = PeopleGroupLocation.objects.create(
+            people_group=self.people_group, **payload
+        )
+        url = reverse(
+            "PeopleGroupLocations-detail",
+            args=(
+                self.people_group.organization.code,
+                self.people_group.id,
+                location.id,
+            ),
+        )
+
+        # partial update
+        payload = {
+            "lat": 66,
         }
         response = self.client.patch(url, data=payload)
-
-        # locations are created
         data = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(data["location"]["lat"], payload["location"]["lat"])
-        self.assertEqual(data["location"]["lng"], payload["location"]["lng"])
-        self.assertEqual(data["location"]["title"], payload["location"]["title"])
-        self.assertEqual(data["location"]["type"], payload["location"]["type"])
-        self.assertIsNotNone(data["location"]["id"])
+        self.assertEqual(response.status_code, role_status_code)
+        if role_status_code == status.HTTP_200_OK:
+            self.assertEqual(data["lat"], payload["lat"])
 
-        location_pk = data["location"]["id"]
-        payload = {"location": None}
-        response = self.client.patch(url, data=payload)
+    @parameterized.expand(
+        [
+            (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
+            (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
+            (TestRoles.SUPERADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_ADMIN, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_204_NO_CONTENT),
+            (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
+            (TestRoles.GROUP_LEADER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MANAGER, status.HTTP_204_NO_CONTENT),
+            (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
+        ]
+    )
+    def test_delete(self, role, role_status_code):
+        user = self.get_parameterized_test_user(
+            role=role, instances=[self.people_group]
+        )
+        self.client.force_authenticate(user)
+        payload = {
+            "title": "title",
+            "description": "description",
+            "lat": 99,
+            "lng": 11,
+            "type": PeopleGroupLocation.LocationType.ADDRESS,
+        }
+        location = PeopleGroupLocation.objects.create(
+            people_group=self.people_group, **payload
+        )
+        url = reverse(
+            "PeopleGroupLocations-detail",
+            args=(
+                self.people_group.organization.code,
+                self.people_group.id,
+                location.id,
+            ),
+        )
 
-        # locations are created
-        data = response.json()
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIsNone(data["location"])
-        # objects are deleted
-        self.assertFalse(PeopleGroupLocation.objects.filter(pk=location_pk).exists())
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, role_status_code)
+        if role_status_code == status.HTTP_204_NO_CONTENT:
+            self.assertFalse(
+                PeopleGroupLocation.objects.filter(pk=location.id).exists()
+            )

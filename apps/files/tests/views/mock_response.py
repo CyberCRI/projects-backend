@@ -33,6 +33,4 @@ class MockResponse:
                     </ol>
                 </body>
             </html>
-            """.format(
-            self.title, self.description, self.image, self.site_name
-        )
+            """.format(self.title, self.description, self.image, self.site_name)

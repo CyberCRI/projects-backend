@@ -236,11 +236,6 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         return []
 
 
-class PeopleGroupLocationSerializer(BaseLocationSerializer):
-    class Meta(BaseLocationSerializer.Meta):
-        model = PeopleGroupLocation
-
-
 class PeopleGroupSuperLightSerializer(
     AutoTranslatedModelSerializer, serializers.ModelSerializer
 ):
@@ -250,6 +245,37 @@ class PeopleGroupSuperLightSerializer(
         model = PeopleGroup
         read_only_fields = ["id", "slug", "name", "short_description", "organization"]
         fields = read_only_fields
+
+
+class PeopleGroupLocationSerializer(BaseLocationSerializer):
+    people_group = serializers.PrimaryKeyRelatedField(
+        required=False, queryset=PeopleGroup.objects.all()
+    )
+
+    class Meta(BaseLocationSerializer.Meta):
+        model = PeopleGroupLocation
+        fields = (*BaseLocationSerializer.Meta.fields, "people_group")
+
+
+class PeopleGroupLocationSuperLightSerializer(PeopleGroupLocationSerializer):
+    people_group = PeopleGroupSuperLightSerializer(read_only=True)
+
+
+class PeopleGroupAddLocationsSerializer(serializers.Serializer):
+    people_group = HiddenPrimaryKeyRelatedField(
+        required=False, write_only=True, queryset=PeopleGroup.objects.all()
+    )
+    locations = PeopleGroupLocationSerializer(many=True)
+
+    def create(self, validated_data):
+        people_group = validated_data["people_group"]
+        locations = validated_data["locations"]
+
+        locations_objs = [
+            PeopleGroupLocation(**datas, people_group=people_group)
+            for datas in locations
+        ]
+        return PeopleGroupLocation.objects.bulk_create(locations_objs)
 
 
 class PeopleGroupLightSerializer(
@@ -478,7 +504,7 @@ class PeopleGroupSerializer(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
     )
-    location = PeopleGroupLocationSerializer(required=False, allow_null=True)
+    locations = PeopleGroupLocationSerializer(many=True, required=False)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
@@ -547,10 +573,7 @@ class PeopleGroupSerializer(
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
-        location = validated_data.pop("location", None)
-
-        if location is not None:
-            validated_data["location"] = PeopleGroupLocation.objects.create(**location)
+        locations = validated_data.pop("locations", [])
 
         people_group = super(PeopleGroupSerializer, self).create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
@@ -559,21 +582,15 @@ class PeopleGroupSerializer(
         PeopleGroupAddFeaturedProjectsSerializer().create(
             {"people_group": people_group, "featured_projects": featured_projects}
         )
+        PeopleGroupAddLocationsSerializer().create(
+            {"people_group": people_group, "locations": locations}
+        )
         return people_group
 
     def update(self, instance, validated_data):
         validated_data.pop("team", {})
         validated_data.pop("featured_projects", [])
-        location_data = validated_data.pop("location", None)
-
-        if location_data:
-            location, _ = PeopleGroupLocation.objects.update_or_create(
-                pk=location_data.get("id"), defaults=location_data
-            )
-            instance.location = location
-        elif location_data is None and instance.location:
-            instance.location.delete()
-            instance.location = None
+        validated_data.pop("locations", None)
 
         return super(PeopleGroupSerializer, self).update(instance, validated_data)
 
@@ -594,7 +611,7 @@ class PeopleGroupSerializer(
             "roles",
             "sdgs",
             "tags",
-            "location",
+            "locations",
             "publication_status",
             "team",
             "featured_projects",

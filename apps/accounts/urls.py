@@ -4,11 +4,15 @@ from rest_framework.routers import DefaultRouter
 from apps.accounts.views import (
     AccessTokenView,
     DeleteCookieView,
+    PeopleGroupLocationViewSet,
     PrivacySettingsViewSet,
     UserProfilePictureView,
     UserViewSet,
 )
-from apps.commons.urls import user_router_register
+from apps.commons.urls import (
+    organization_people_group_router_register,
+    user_router_register,
+)
 from apps.feedbacks.views import ReviewViewSet, UserFollowViewSet
 
 router = DefaultRouter()
@@ -19,6 +23,10 @@ user_router_register(router, r"follow", UserFollowViewSet, basename="Follower")
 user_router_register(router, r"review", ReviewViewSet, basename="Reviewer")
 user_router_register(
     router, r"profile-picture", UserProfilePictureView, basename="UserProfilePicture"
+)
+
+organization_people_group_router_register(
+    router, r"locations", PeopleGroupLocationViewSet, basename="PeopleGroupLocations"
 )
 
 

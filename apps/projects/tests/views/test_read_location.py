@@ -50,22 +50,18 @@ class ReadLocationTestCase(JwtAPITestCase):
         cls.public_group = PeopleGroupFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organization=cls.organization,
-            location=PeopleGroupLocationFactory(),
         )
         cls.org_group = PeopleGroupFactory(
             publication_status=Project.PublicationStatus.ORG,
             organization=cls.organization,
-            location=PeopleGroupLocationFactory(),
         )
         cls.private_group = PeopleGroupFactory(
             publication_status=Project.PublicationStatus.PRIVATE,
             organization=cls.organization,
-            location=PeopleGroupLocationFactory(),
         )
         cls.child_group = PeopleGroupFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organization=cls.organization,
-            location=PeopleGroupLocationFactory(),
         )
 
         cls.groups = {
@@ -76,10 +72,10 @@ class ReadLocationTestCase(JwtAPITestCase):
         }
 
         cls.locations_group = {
-            "public": cls.public_group.location,
-            "org": cls.org_group.location,
-            "private": cls.private_group.location,
-            "child": cls.child_group.location,
+            "public": PeopleGroupLocationFactory(people_group=cls.public_group),
+            "org": PeopleGroupLocationFactory(people_group=cls.org_group),
+            "private": PeopleGroupLocationFactory(people_group=cls.private_group),
+            "child": PeopleGroupLocationFactory(people_group=cls.child_group),
         }
 
     @parameterized.expand(

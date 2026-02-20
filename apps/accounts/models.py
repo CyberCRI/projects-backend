@@ -16,6 +16,10 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from guardian.shortcuts import get_objects_for_user
 from keycloak import KeycloakGetError
+from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
+from services.keycloak.interface import KeycloakService
+from services.keycloak.models import KeycloakAccount
+from services.translator.mixins import HasAutoTranslatedFields
 
 from apps.accounts.utils import (
     default_onboarding_status,
@@ -36,14 +40,16 @@ from apps.commons.models import GroupData
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import AbstractLocation, Project
-from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
-from services.keycloak.interface import KeycloakService
-from services.keycloak.models import KeycloakAccount
-from services.translator.mixins import HasAutoTranslatedFields
 
 
 class PeopleGroupLocation(OrganizationRelated, AbstractLocation):
     """base location for group"""
+
+    people_group = models.ForeignKey(
+        "accounts.PeopleGroup",
+        on_delete=models.CASCADE,
+        related_name="locations",
+    )
 
     def get_related_organizations(self) -> list["Organization"]:
         return [self.people_group.organization]
@@ -156,13 +162,6 @@ class PeopleGroup(
     permissions_up_to_date = models.BooleanField(default=False)
 
     tags = models.ManyToManyField("skills.Tag", related_name="people_groups")
-    location = models.OneToOneField(
-        PeopleGroupLocation,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="people_group",
-    )
 
     def __str__(self) -> str:
         return str(self.name)
