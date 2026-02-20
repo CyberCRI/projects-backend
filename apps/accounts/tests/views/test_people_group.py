@@ -1426,11 +1426,11 @@ class TestPeopleGroupLocation(JwtAPITestCase):
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
             (TestRoles.DEFAULT, status.HTTP_403_FORBIDDEN),
             (TestRoles.SUPERADMIN, status.HTTP_200_OK),
-            (TestRoles.ORG_ADMIN, status.HTTP_201_CREATED),
-            (TestRoles.ORG_FACILITATOR, status.HTTP_201_CREATED),
+            (TestRoles.ORG_ADMIN, status.HTTP_200_OK),
+            (TestRoles.ORG_FACILITATOR, status.HTTP_200_OK),
             (TestRoles.ORG_USER, status.HTTP_403_FORBIDDEN),
-            (TestRoles.GROUP_LEADER, status.HTTP_201_CREATED),
-            (TestRoles.GROUP_MANAGER, status.HTTP_201_CREATED),
+            (TestRoles.GROUP_LEADER, status.HTTP_200_OK),
+            (TestRoles.GROUP_MANAGER, status.HTTP_200_OK),
             (TestRoles.GROUP_MEMBER, status.HTTP_403_FORBIDDEN),
         ]
     )
