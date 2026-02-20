@@ -563,13 +563,6 @@ class PeopleGroupSerializer(
             parent = parent.parent
         return value
 
-    def validate_location(self, values):
-        location_serializer = PeopleGroupLocationSerializer(
-            data=values, allow_null=True
-        )
-        location_serializer.is_valid(raise_exception=True)
-        return location_serializer.validated_data
-
     def create(self, validated_data):
         team = validated_data.pop("team", {})
         featured_projects = validated_data.pop("featured_projects", [])
@@ -616,16 +609,6 @@ class PeopleGroupSerializer(
             "team",
             "featured_projects",
         ]
-
-
-class LocationPeopleGroupSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
-    group = PeopleGroupSuperLightSerializer(source="people_group", read_only=True)
-
-    class Meta:
-        model = PeopleGroupLocation
-        fields = "__all__"
 
 
 @extend_schema_serializer(exclude_fields=("roles",))
