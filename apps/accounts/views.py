@@ -41,12 +41,17 @@ from apps.commons.serializers import (
     RetrieveUpdateModelViewSet,
 )
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import DetailOnlyViewsetMixin, MultipleIDViewsetMixin
+from apps.commons.views import (
+    DetailOnlyViewsetMixin,
+    MultipleIDViewsetMixin,
+    NestedOrganizationViewMixins,
+    NestedPeopleGroupViewMixins,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
-from apps.projects.serializers import ProjectLightSerializer
+from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
 from apps.skills.models import Skill
 from services.google.models import GoogleAccount, GoogleGroup
 from services.google.tasks import (
@@ -61,7 +66,13 @@ from services.keycloak.interface import KeycloakService
 
 from .exceptions import EmailTypeMissingError, PermissionNotFoundError
 from .filters import PeopleGroupFilter, UserFilter
-from .models import AnonymousUser, PeopleGroup, PrivacySettings, ProjectUser
+from .models import (
+    AnonymousUser,
+    PeopleGroup,
+    PeopleGroupLocation,
+    PrivacySettings,
+    ProjectUser,
+)
 from .parsers import UserMultipartParser
 from .permissions import HasBasePermission, HasPeopleGroupPermission
 from .serializers import (
@@ -72,6 +83,7 @@ from .serializers import (
     PeopleGroupAddTeamMembersSerializer,
     PeopleGroupHierarchySerializer,
     PeopleGroupLightSerializer,
+    PeopleGroupLocationSerializer,
     PeopleGroupRemoveFeaturedProjectsSerializer,
     PeopleGroupRemoveTeamMembersSerializer,
     PeopleGroupSerializer,
@@ -846,6 +858,53 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             queryset_page, many=True, context={"request": request}
         )
         return self.get_paginated_response(data.data)
+
+    @extend_schema(responses=LocationSerializer(many=True))
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="projects-locations",
+        permission_classes=[ReadOnly],
+    )
+    def locations(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.projects_locations()
+
+        return Response(
+            LocationSerializer(queryset, many=True, context={"request": request}).data,
+            status=status.HTTP_200_OK,
+        )
+
+
+class PeopleGroupLocationViewSet(
+    NestedOrganizationViewMixins, NestedPeopleGroupViewMixins, viewsets.ModelViewSet
+):
+    serializer_class = PeopleGroupLocationSerializer
+
+    def get_permissions(self):
+        codename = map_action_to_permission(self.action, "peoplegroup")
+        if codename:
+            self.permission_classes = [
+                IsAuthenticatedOrReadOnly,
+                ReadOnly
+                | HasBasePermission(codename, "accounts")
+                | HasOrganizationPermission(codename)
+                | HasPeopleGroupPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def get_queryset(self):
+        return PeopleGroupLocation.objects.filter(people_group=self.people_group)
+
+    def update(self, request, *args, **kwargs):
+        request.data["people_group"] = self.people_group.id
+        return super().update(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        request.data["people_group"] = self.people_group.id
+        return super().create(request, *args, **kwargs)
 
 
 @extend_schema(

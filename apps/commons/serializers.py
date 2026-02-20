@@ -2,6 +2,7 @@ from typing import Any, Collection, Dict, List, Optional
 
 from django.conf import settings
 from django.db.models import Model, Q
+from django.utils.translation import gettext_lazy as _
 from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
@@ -11,6 +12,7 @@ from apps.commons.utils import process_text, remove_images_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import AutoTranslatedModelSerializer
 
 
 class ProjectRelatedSerializer(serializers.ModelSerializer):
@@ -221,3 +223,35 @@ class StringsImagesSerializer(serializers.ModelSerializer):
             return self.instance
         instance = super().save(**kwargs)
         return self.add_string_images_to_instance(instance, images)
+
+
+class BaseLocationSerializer(
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
+):
+    string_images_forbid_fields: list[str] = ["title", "description"]
+
+    class Meta:
+        fields = [
+            "id",
+            "title",
+            "description",
+            "lat",
+            "lng",
+            "type",
+        ]
+
+    def _check_gis(self, value):
+        """check gps coord num"""
+        if -90 <= value <= 90:
+            raise serializers.ValidationError(
+                _("The value must be between -90 and 90.")
+            )
+        return value
+
+    def valiate_lat(self, value):
+        return self._check_gis(super().validate_lat(value))
+
+    def valiate_lng(self, value):
+        return self._check_gis(super().validate_lng(value))

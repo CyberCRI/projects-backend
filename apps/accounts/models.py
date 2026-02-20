@@ -35,11 +35,24 @@ from apps.commons.mixins import (
 from apps.commons.models import GroupData
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
-from apps.projects.models import Project
+from apps.projects.models import AbstractLocation, Project
 from services.keycloak.exceptions import RemoteKeycloakAccountNotFound
 from services.keycloak.interface import KeycloakService
 from services.keycloak.models import KeycloakAccount
 from services.translator.mixins import HasAutoTranslatedFields
+
+
+class PeopleGroupLocation(OrganizationRelated, AbstractLocation):
+    """base location for group"""
+
+    people_group = models.ForeignKey(
+        "accounts.PeopleGroup",
+        on_delete=models.CASCADE,
+        related_name="locations",
+    )
+
+    def get_related_organizations(self) -> list["Organization"]:
+        return [self.people_group.organization]
 
 
 class PeopleGroup(

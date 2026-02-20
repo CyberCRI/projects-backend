@@ -2,7 +2,7 @@ import logging
 import math
 import os
 from functools import reduce
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
 import shortuuid as shortuuid
 from django.conf import settings
@@ -119,9 +119,9 @@ class Project(
     project_query_string: str = ""
     organization_query_string: str = "organizations"
 
-    slugified_fields: List[str] = ["title"]
+    slugified_fields: list[str] = ["title"]
     slug_prefix: str = "project"
-    auto_translated_fields: List[str] = ["title", "html:description", "purpose"]
+    auto_translated_fields: list[str] = ["title", "html:description", "purpose"]
 
     class PublicationStatus(models.TextChoices):
         """Visibility setting of a project."""
@@ -351,7 +351,7 @@ class Project(
             return self.get_cached_views().get("_total", 0)
         return self.mixpanel_events.count()
 
-    def get_views_organizations(self, organizations: List["Organization"]) -> int:
+    def get_views_organizations(self, organizations: list["Organization"]) -> int:
         """Return the project's views inside the given organization.
 
         If you plan on using this method multiple time, prefetch `organizations`
@@ -371,7 +371,7 @@ class Project(
         """Return the project related to this model."""
         return self
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         if self._related_organizations is None:
             self._related_organizations = list(self.organizations.all())
@@ -611,7 +611,7 @@ class ProjectScore(models.Model, ProjectRelated):
     def get_related_project(self) -> Project:
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         return self.project.get_related_organizations()
 
     def get_completeness(self) -> float:
@@ -697,7 +697,7 @@ class LinkedProject(models.Model, ProjectRelated):
         """Return the projects related to this model."""
         return self.target
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.target.get_related_organizations()
 
@@ -726,7 +726,7 @@ class BlogEntry(
         Date of the last change made to the blog entry.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="blog_entries"
@@ -759,7 +759,7 @@ class BlogEntry(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -809,7 +809,7 @@ class Goal(
         Status of the Goal.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:description"]
+    auto_translated_fields: list[str] = ["title", "html:description"]
 
     class GoalStatus(models.TextChoices):
         NONE = "na"
@@ -841,7 +841,7 @@ class Goal(
         if hasattr(project, "stat"):
             project.stat.update_goals()
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -850,9 +850,8 @@ class Goal(
         return self.project
 
 
-class Location(
+class AbstractLocation(
     HasAutoTranslatedFields,
-    ProjectRelated,
     DuplicableModel,
     models.Model,
 ):
@@ -876,32 +875,50 @@ class Location(
         Type of the location (team or impact).
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
+    auto_translated_fields: list[str] = ["title", "description"]
 
     class LocationType(models.TextChoices):
         """Type of a location."""
 
         TEAM = "team"
         IMPACT = "impact"
+        ADDRESS = "address"
 
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="locations"
-    )
+    class Meta:
+        abstract = True
+
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
     lat = models.FloatField()
     lng = models.FloatField()
     type = models.CharField(
-        max_length=6,
+        max_length=10,
         choices=LocationType.choices,
         default=LocationType.TEAM,
+    )
+
+
+# TODO(remi): rename to ProjectLocation ?
+class Location(ProjectRelated, AbstractLocation):
+    """A project location on Earth.
+
+    Attributes
+    ----------
+    id: Charfield
+        UUID4 used as the model's PK.
+    project: ForeignKey
+        Project at this location.
+    """
+
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, related_name="locations"
     )
 
     def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -935,7 +952,7 @@ class ProjectMessage(
         Images used by the message.
     """
 
-    auto_translated_fields: List[str] = ["html:content"]
+    auto_translated_fields: list[str] = ["html:content"]
 
     project = models.ForeignKey(
         "projects.Project",
@@ -967,7 +984,7 @@ class ProjectMessage(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -1007,7 +1024,7 @@ class ProjectTab(
         Description of the tab.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:description"]
+    auto_translated_fields: list[str] = ["title", "html:description"]
 
     class TabType(models.TextChoices):
         """Type of a tab."""
@@ -1030,7 +1047,7 @@ class ProjectTab(
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -1055,7 +1072,7 @@ class ProjectTabItem(
     project_query_string: str = "tab__project"
     organization_query_string: str = "tab__project__organizations"
 
-    auto_translated_fields: List[str] = ["title", "html:content"]
+    auto_translated_fields: list[str] = ["title", "html:content"]
 
     tab = models.ForeignKey(
         "projects.ProjectTab", on_delete=models.CASCADE, related_name="items"
@@ -1073,6 +1090,6 @@ class ProjectTabItem(
         """Return the projects related to this model."""
         return self.tab.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.tab.project.get_related_organizations()

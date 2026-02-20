@@ -16,7 +16,7 @@ from apps.projects.models import Project
 from services.keycloak.interface import KeycloakService
 
 from .exports import UserResource
-from .models import PeopleGroup, ProjectUser
+from .models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from .utils import get_group_permissions
 
 
@@ -167,6 +167,16 @@ class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     search_fields = ("name", "email", "id")
     filter_horizontal = ("featured_projects",)
     list_filter = ("organization",)
+
+
+@admin.register(PeopleGroupLocation)
+class PeopleGroupLocationAdmin(admin.ModelAdmin):
+    list_display = ("title", "description", "type", "people_group")
+    list_display_links = (
+        list_display[0],
+        "people_group",
+    )
+    search_fields = ("title", "description", "type", "people_group__title")
 
 
 @admin.register(Permission)
