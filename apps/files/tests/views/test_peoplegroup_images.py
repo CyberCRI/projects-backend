@@ -15,10 +15,11 @@ faker = Faker()
 
 
 class PeopleGroupImageTestCase(JwtAPITestCase):
-    def setUp(self) -> None:
-        super().setUp()
-        self.organization = OrganizationFactory()
-        self.group = PeopleGroupFactory(organization=self.organization)
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.organization = OrganizationFactory()
+        cls.group = PeopleGroupFactory(organization=cls.organization)
 
     def create_images(self):
         image_data = faker.image((1, 1), image_format="jpeg")
