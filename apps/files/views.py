@@ -311,6 +311,10 @@ class PeopleGroupGalleryViewSet(
         modules = modules_manager(self.people_group, self.request.user)
         return modules.gallery()
 
+    def update(self, request, *ar, **kw):
+        request.data["people_group"] = self.people_group.id
+        return super().update(request, *ar, **kw)
+
     def create(self, request, *ar, **kw):
         request.data["people_group"] = self.people_group.id
         return super().create(request, *ar, **kw)
