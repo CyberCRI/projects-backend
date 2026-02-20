@@ -487,7 +487,7 @@ class PeopleGroupSerializer(
         child=serializers.IntegerField(min_value=1, max_value=17),
         required=False,
     )
-    locations = PeopleGroupLocationSerializer(read_only=True, many=True)
+    locations = PeopleGroupLocationSerializer(many=True, read_only=True)
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")

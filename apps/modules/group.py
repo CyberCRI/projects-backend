@@ -69,7 +69,7 @@ class PeopleGroupModules(AbstractModules):
             pk__in=self.user.get_people_group_queryset()
         )
 
-    def featured_projects_locations(self) -> QuerySet[Location]:
+    def projects_locations(self) -> QuerySet[Location]:
         return Location.objects.filter(project__in=self.featured_projects())
 
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:

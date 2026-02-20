@@ -863,7 +863,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["GET"],
-        url_path="projects_locations",
+        url_path="projects-locations",
         permission_classes=[ReadOnly],
     )
     def locations(self, request, *args, **kwargs):
