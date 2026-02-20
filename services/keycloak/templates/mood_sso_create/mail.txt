@@ -1,0 +1,9 @@
+{% load i18n %}
+{% blocktranslate with given_name=user.given_name expiration_date=link.expiration_date expiration_time=link.expiration_time refresh_link=link.refresh_link link=link.link %}
+Hello {{ given_name }},
+The Learning Planet Institute Hub now uses a unique login system for all our platforms.
+To access your account on the Learning Planet Institute Hub, you need to set a new password. This account will also allow you to access all our platforms using the same credentials.
+If you already have an account on the Projects platform, please contact us at mood@learningplanetinstitute.org.
+Click to create your password : {{ link }}
+Link expires on {{ expiration_date }} at {{ expiration_time }}. Click here to request a new link : {{ refresh_link }}
+{% endblocktranslate %}
