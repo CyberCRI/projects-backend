@@ -6,7 +6,10 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.files.models import Image
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 
 faker = Faker()
 
@@ -29,7 +32,9 @@ class CreateProjectCategoryBackgroundTestCase(JwtAPITestCase):
         ]
     )
     def test_create_project_category_background(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -42,10 +47,7 @@ class CreateProjectCategoryBackgroundTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Category-background-list",
-                args=(
-                    self.organization.code,
-                    self.category.id,
-                ),
+                args=(self.organization.code, self.category.id),
             ),
             data=payload,
             format="multipart",
@@ -68,8 +70,7 @@ class UpdateProjectCategoryBackgroundTestCase(JwtAPITestCase):
         cls.image = cls.get_test_image(owner=cls.owner)
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(
-            organization=cls.organization,
-            background_image=cls.image,
+            organization=cls.organization, background_image=cls.image
         )
 
     @parameterized.expand(
@@ -144,7 +145,7 @@ class DeleteProjectCategoryBackgroundTestCase(JwtAPITestCase):
             reverse(
                 "Category-background-detail",
                 args=(self.organization.code, category.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

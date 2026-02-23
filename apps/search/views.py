@@ -34,12 +34,14 @@ class SearchViewSet(ListViewSet):
                     Q(type=SearchObject.SearchObjectType.PROJECT)
                     & Q(project__in=projects)
                 )
-                | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
+                | (
+                    Q(type=SearchObject.SearchObjectType.USER)
+                    & Q(user__in=users)
+                )
             )
             .select_related("user", "project__header_image", "people_group")
             .prefetch_related(
-                "people_group__organization",
-                "project__categories",
+                "people_group__organization", "project__categories"
             )
         )
         if order:
@@ -88,9 +90,9 @@ class SearchViewSet(ListViewSet):
         indices = [
             f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
             for index in (
-                request.query_params.get("types", "project,user,people_group").split(
-                    ","
-                )
+                request.query_params.get(
+                    "types", "project,user,people_group"
+                ).split(",")
             )
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)
@@ -137,7 +139,8 @@ class SearchViewSet(ListViewSet):
         ]
         # sort filtered_search_object by hits index
         ordered_search_objs = sorted(
-            filtered_search_object, key=lambda obj: search_objects_ids.index(obj.id)
+            filtered_search_object,
+            key=lambda obj: search_objects_ids.index(obj.id),
         )
 
         self.pagination_class = SearchPagination(response.hits.total.value)

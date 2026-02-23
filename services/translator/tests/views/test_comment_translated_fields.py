@@ -26,10 +26,7 @@ class CommentTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_create_comment(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "content": faker.word(),
-            "project_id": self.project.id,
-        }
+        payload = {"content": faker.word(), "project_id": self.project.id}
         response = self.client.post(
             reverse("Comment-list", args=(self.project.id,)), data=payload
         )

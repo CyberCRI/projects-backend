@@ -15,12 +15,7 @@ T = TypeVar("T", bound=HasAutoTranslatedFields)
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument(
-            "-c",
-            "--code",
-            type=str,
-            help="Organization code",
-        )
+        parser.add_argument("-c", "--code", type=str, help="Organization code")
 
     def init_autotranslated_fields(self, queryset: QuerySet[T]):
         content_type = ContentType.objects.get_for_model(queryset.model)
@@ -50,7 +45,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         code = options["code"]
         if code is None:
-            raise ValueError("You need to set organization code using -c or --code")
+            raise ValueError(
+                "You need to set organization code using -c or --code"
+            )
         organizations = Organization.objects.filter(code=code)
         if not organizations.exists():
             raise ValueError("Organization not found")

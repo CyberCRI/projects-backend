@@ -20,7 +20,8 @@ class Command(BaseCommand):
     def handle(self, **options):
         data = {
             "relators": {
-                self.sanitize_key(val): val for val in sorted(v for _, v in choices)
+                self.sanitize_key(val): val
+                for val in sorted(v for _, v in choices)
             },
             "document_types": {
                 self.sanitize_key(val): val

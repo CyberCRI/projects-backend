@@ -90,16 +90,16 @@ class UpdateReviewTestCase(JwtAPITestCase):
             role, instances=[self.project], owned_instance=self.review
         )
         self.client.force_authenticate(user)
-        payload = {
-            "description": faker.text(),
-        }
+        payload = {"description": faker.text()}
         response = self.client.patch(
             reverse("Reviewed-detail", args=(self.project.id, self.review.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            self.assertEqual(response.json()["description"], payload["description"])
+            self.assertEqual(
+                response.json()["description"], payload["description"]
+            )
 
     @parameterized.expand(
         [
@@ -120,16 +120,19 @@ class UpdateReviewTestCase(JwtAPITestCase):
             role, instances=[self.project], owned_instance=self.review
         )
         self.client.force_authenticate(user)
-        payload = {
-            "description": faker.text(),
-        }
+        payload = {"description": faker.text()}
         response = self.client.patch(
-            reverse("Reviewer-detail", args=(self.review.reviewer.id, self.review.id)),
+            reverse(
+                "Reviewer-detail",
+                args=(self.review.reviewer.id, self.review.id),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            self.assertEqual(response.json()["description"], payload["description"])
+            self.assertEqual(
+                response.json()["description"], payload["description"]
+            )
 
 
 class ListReviewTestCase(JwtAPITestCase):
@@ -156,8 +159,12 @@ class ListReviewTestCase(JwtAPITestCase):
         }
         cls.reviewer = UserFactory()
         cls.reviews = {
-            "public": ReviewFactory(project=cls.public_project, reviewer=cls.reviewer),
-            "org": ReviewFactory(project=cls.org_project, reviewer=cls.reviewer),
+            "public": ReviewFactory(
+                project=cls.public_project, reviewer=cls.reviewer
+            ),
+            "org": ReviewFactory(
+                project=cls.org_project, reviewer=cls.reviewer
+            ),
             "private": ReviewFactory(
                 project=cls.private_project, reviewer=cls.reviewer
             ),
@@ -180,11 +187,15 @@ class ListReviewTestCase(JwtAPITestCase):
     )
     def test_list_reviewed(self, role, retrieved_reviews):
         user = self.get_parameterized_test_user(
-            role, instances=list(self.projects.values()), owned_instance=self.reviewer
+            role,
+            instances=list(self.projects.values()),
+            owned_instance=self.reviewer,
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
-            response = self.client.get(reverse("Reviewed-list", args=(project.id,)))
+            response = self.client.get(
+                reverse("Reviewed-list", args=(project.id,))
+            )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_reviews:
@@ -192,7 +203,8 @@ class ListReviewTestCase(JwtAPITestCase):
                 self.assertEqual(content[0]["project_id"], project.id)
                 self.assertEqual(content[0]["reviewer"]["id"], self.reviewer.id)
                 self.assertEqual(
-                    content[0]["description"], self.reviews[project_status].description
+                    content[0]["description"],
+                    self.reviews[project_status].description,
                 )
 
     @parameterized.expand(
@@ -212,16 +224,23 @@ class ListReviewTestCase(JwtAPITestCase):
     )
     def test_list_reviewer(self, role, retrieved_reviews):
         user = self.get_parameterized_test_user(
-            role, instances=list(self.projects.values()), owned_instance=self.reviewer
+            role,
+            instances=list(self.projects.values()),
+            owned_instance=self.reviewer,
         )
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Reviewer-list", args=(self.reviewer.id,)))
+        response = self.client.get(
+            reverse("Reviewer-list", args=(self.reviewer.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_reviews))
         self.assertSetEqual(
             {review["id"] for review in content},
-            {self.reviews[project_status].id for project_status in retrieved_reviews},
+            {
+                self.reviews[project_status].id
+                for project_status in retrieved_reviews
+            },
         )
 
 

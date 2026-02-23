@@ -14,7 +14,6 @@ TCACHE = TypeVar("TCACHE", bound=BaseCache)
 
 
 class AbstractPopulate(metaclass=abc.ABCMeta):
-
     def __init__(self, config: CrisalidConfig, cache: TCACHE = None):
         self.config = config
         self.cache = cache or LiveCache()
@@ -35,7 +34,9 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         maps_languages = {}
         for value in values:
-            maps_languages[value["language"]] = self.sanitize_string(value["value"])
+            maps_languages[value["language"]] = self.sanitize_string(
+                value["value"]
+            )
 
         return (
             maps_languages.get("en")

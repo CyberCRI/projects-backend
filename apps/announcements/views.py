@@ -12,7 +12,10 @@ from apps.accounts.permissions import HasBasePermission
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import ReadOnly
 from apps.commons.views import MultipleIDViewsetMixin
-from apps.notifications.tasks import notify_new_announcement, notify_new_application
+from apps.notifications.tasks import (
+    notify_new_announcement,
+    notify_new_application,
+)
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
@@ -38,9 +41,7 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         qs = self.request.user.get_project_related_queryset(
@@ -72,7 +73,9 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @method_decorator(clear_cache_with_key("announcements_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(AnnouncementViewSet, self).dispatch(request, *args, **kwargs)
+        return super(AnnouncementViewSet, self).dispatch(
+            request, *args, **kwargs
+        )
 
 
 class ReadAnnouncementViewSet(AnnouncementViewSet):
@@ -84,4 +87,6 @@ class ReadAnnouncementViewSet(AnnouncementViewSet):
         )
     )
     def list(self, request, *args, **kwargs):
-        return super(ReadAnnouncementViewSet, self).list(request, *args, **kwargs)
+        return super(ReadAnnouncementViewSet, self).list(
+            request, *args, **kwargs
+        )

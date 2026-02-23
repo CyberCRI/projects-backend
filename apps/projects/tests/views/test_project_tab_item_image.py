@@ -85,7 +85,9 @@ class RetrieveProjectTabItemImageTestCase(JwtAPITestCase):
             if publication_status in retrieved_images:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )
 
 
 class CreateProjectTabItemImageTestCase(JwtAPITestCase):
@@ -125,7 +127,10 @@ class CreateProjectTabItemImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse("ProjectTabItem-images-list", args=(self.project.id, self.tab.id)),
+            reverse(
+                "ProjectTabItem-images-list",
+                args=(self.project.id, self.tab.id),
+            ),
             data=payload,
             format="multipart",
         )
@@ -158,7 +163,10 @@ class CreateProjectTabItemImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse("ProjectTabItem-images-list", args=(self.project.id, self.tab.id))
+            reverse(
+                "ProjectTabItem-images-list",
+                args=(self.project.id, self.tab.id),
+            )
             + f"?tab_item_id={self.item.id}",
             data=payload,
             format="multipart",
@@ -174,7 +182,9 @@ class CreateProjectTabItemImageTestCase(JwtAPITestCase):
             ),
         )
         self.item.refresh_from_db()
-        self.assertIn(content["id"], self.item.images.values_list("id", flat=True))
+        self.assertIn(
+            content["id"], self.item.images.values_list("id", flat=True)
+        )
         self.assertEqual(content["scale_x"], payload["scale_x"])
         self.assertEqual(content["scale_y"], payload["scale_y"])
         self.assertEqual(content["left"], payload["left"])
@@ -279,7 +289,7 @@ class DeleteProjectTabItemImageTestCase(JwtAPITestCase):
             reverse(
                 "ProjectTabItem-images-detail",
                 args=(self.project.id, self.tab.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

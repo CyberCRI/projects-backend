@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import TYPE_CHECKING
 
 from babel.dates import format_date, format_time
 from django.conf import settings
@@ -68,8 +68,8 @@ class KeycloakService:
                 verify=True,
             )
             return service.token
-        except KeycloakAuthenticationError:
-            raise KeycloakApiAuthenticationError
+        except KeycloakAuthenticationError as err:
+            raise KeycloakApiAuthenticationError from err
 
     @classmethod
     def get_user(cls, keycloak_id: str):
@@ -80,7 +80,7 @@ class KeycloakService:
         return cls.service().get_users(kwargs)
 
     @classmethod
-    def _create_user(cls, keycloak_data: Dict[str, Union[str, bool]]):
+    def _create_user(cls, keycloak_data: dict[str, str | bool]):
         """
         keycloak_data should respect the following structure :
         keycloak_data = {
@@ -96,7 +96,7 @@ class KeycloakService:
     def create_user(
         cls,
         user: "ProjectUser",
-        password: Optional[str] = None,
+        password: str | None = None,
         email_verified: bool = False,
     ) -> KeycloakAccount:
         email = user.personal_email if hasattr(user, "google_account") else user.email
@@ -107,9 +107,7 @@ class KeycloakService:
             "username": user.email,
             "firstName": user.given_name,
             "lastName": user.family_name,
-            "attributes": {
-                "locale": [user.language],
-            },
+            "attributes": {"locale": [user.language]},
             "requiredActions": [],
         }
 
@@ -132,7 +130,7 @@ class KeycloakService:
         cls,
         keycloak_account: KeycloakAccount,
         email_type: str,
-        actions: List[str],
+        actions: list[str],
         redirect_uri: str,
     ) -> str:
         """
@@ -167,10 +165,10 @@ class KeycloakService:
     @classmethod
     def format_execute_action_link_for_template(
         cls,
-        link: Dict[str, Union[int, str]],
+        link: dict[str, int | str],
         keycloak_account: KeycloakAccount,
-        organization: Optional["Organization"] = None,
-    ) -> Dict[str, Union[int, str]]:
+        organization: Organization | None = None,
+    ) -> dict[str, int | str]:
         """
         Format the link response from Keycloak to be used in an email template.
         """
@@ -198,7 +196,7 @@ class KeycloakService:
         cls,
         keycloak_account: KeycloakAccount,
         email_type: str,
-        actions: Optional[List[str]] = None,
+        actions: list[str] | None = None,
         redirect_organization_code: str = "DEFAULT",
     ) -> bool:
         """
@@ -251,7 +249,10 @@ class KeycloakService:
             link, keycloak_account, organization
         )
         subject, _ = render_message(
-            f"{email_type}/object", user.language, user=user, organization=organization
+            f"{email_type}/object",
+            user.language,
+            user=user,
+            organization=organization,
         )
         text, html = render_message(
             f"{email_type}/mail",
@@ -279,7 +280,10 @@ class KeycloakService:
         )
         user = keycloak_account.user
         link = cls.get_user_execute_actions_link(
-            keycloak_account, cls.EmailType.RESET_PASSWORD, actions, redirect_uri
+            keycloak_account,
+            cls.EmailType.RESET_PASSWORD,
+            actions,
+            redirect_uri,
         )
         link = cls.format_execute_action_link_for_template(link, keycloak_account)
         subject, _ = render_message(
@@ -295,17 +299,17 @@ class KeycloakService:
         return True
 
     @classmethod
-    def is_superuser(cls, keycloak_account: KeycloakAccount) -> List[Group]:
+    def is_superuser(cls, keycloak_account: KeycloakAccount) -> list[Group]:
         keycloak_groups = cls.get_user_groups(keycloak_account)
         keycloak_groups = [group.get("path") for group in keycloak_groups]
         return "/projects/administrators" in keycloak_groups
 
     @classmethod
-    def get_user_groups(cls, keycloak_account: KeycloakAccount) -> List[Dict[str, str]]:
+    def get_user_groups(cls, keycloak_account: KeycloakAccount) -> list[dict[str, str]]:
         return cls.service().get_user_groups(keycloak_account.keycloak_id)
 
     @classmethod
-    def get_superadmins(cls) -> List[Dict]:
+    def get_superadmins(cls) -> list[dict]:
         keycloak_admin = cls.service()
         group = keycloak_admin.get_group_by_path(
             path="/projects/administrators", search_in_subgroups=True
@@ -320,7 +324,8 @@ class KeycloakService:
     def get_members_from_organization(cls, code: str, subgroup: str) -> list:
         keycloak_admin = cls.service()
         group = keycloak_admin.get_group_by_path(
-            path=f"/projects/portals/{code}/{subgroup}", search_in_subgroups=True
+            path=f"/projects/portals/{code}/{subgroup}",
+            search_in_subgroups=True,
         )
         if not group:
             return []
@@ -382,5 +387,5 @@ class KeycloakService:
         return cls.service().get_client(client_id)
 
     @classmethod
-    def update_client(cls, client_id: str, payload: Dict[str, Union[str, bool]]):
+    def update_client(cls, client_id: str, payload: dict[str, str | bool]):
         return cls.service().update_client(client_id, payload)

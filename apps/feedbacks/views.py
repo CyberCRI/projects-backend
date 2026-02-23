@@ -40,10 +40,7 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filterset_class = ReviewFilter
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "review")
@@ -60,17 +57,21 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(Review.objects.all())
+        qs = self.request.user.get_project_related_queryset(
+            Review.objects.all()
+        )
         if self.request.user.is_authenticated:
-            qs = (qs | Review.objects.filter(reviewer=self.request.user)).distinct()
+            qs = (
+                qs | Review.objects.filter(reviewer=self.request.user)
+            ).distinct()
         if "project_id" in self.kwargs:
             return qs.filter(project=self.kwargs["project_id"]).select_related(
                 "reviewer"
             )
         if "user_id" in self.kwargs:
-            return qs.filter(reviewer__id=self.kwargs["user_id"]).select_related(
-                "reviewer"
-            )
+            return qs.filter(
+                reviewer__id=self.kwargs["user_id"]
+            ).select_related("reviewer")
         return Review.objects.none()
 
     def perform_create(self, serializer):
@@ -83,10 +84,7 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "follow")
@@ -102,17 +100,21 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(Follow.objects.all())
+        qs = self.request.user.get_project_related_queryset(
+            Follow.objects.all()
+        )
         if self.request.user.is_authenticated:
-            qs = (qs | Follow.objects.filter(follower=self.request.user)).distinct()
+            qs = (
+                qs | Follow.objects.filter(follower=self.request.user)
+            ).distinct()
         if "project_id" in self.kwargs:
             return qs.filter(project=self.kwargs["project_id"]).select_related(
                 "follower"
             )
         if "user_id" in self.kwargs:
-            return qs.filter(follower__id=self.kwargs["user_id"]).select_related(
-                "follower"
-            )
+            return qs.filter(
+                follower__id=self.kwargs["user_id"]
+            ).select_related("follower")
         return Follow.objects.none()
 
     def check_linked_project_permission(self, project: Project):
@@ -142,15 +144,15 @@ class UserFollowViewSet(FollowViewSet):
             bulk_create = []
             for follow in serializer.validated_data["follows"]:
                 self.check_linked_project_permission(follow["project"])
-                bulk_create.append(Follow(project=follow["project"], follower=user))
+                bulk_create.append(
+                    Follow(project=follow["project"], follower=user)
+                )
             Follow.objects.bulk_create(bulk_create)
 
         context = {"request": request}
         return Response(
             FollowSerializer(
-                Follow.objects.filter(follower=user),
-                context=context,
-                many=True,
+                Follow.objects.filter(follower=user), context=context, many=True
             ).data,
             status=status.HTTP_201_CREATED,
         )
@@ -165,9 +167,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "comment")
@@ -183,9 +183,13 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(Comment.objects.all())
+        qs = self.request.user.get_project_related_queryset(
+            Comment.objects.all()
+        )
         if self.request.user.is_authenticated:
-            qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
+            qs = (
+                qs | Comment.objects.filter(author=self.request.user)
+            ).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
@@ -199,7 +203,8 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         get_object_or_404(
-            self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+            self.request.user.get_project_queryset(),
+            id=self.kwargs["project_id"],
         )
         return super().create(request, *args, **kwargs)
 
@@ -214,9 +219,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         """
@@ -239,7 +242,9 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(comments__project=self.kwargs["project_id"]),
+                Image.objects.filter(
+                    comments__project=self.kwargs["project_id"]
+                ),
                 project_related_name="comments__project",
             )
             # Retrieve images before comment is posted
@@ -250,7 +255,8 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def create(self, request, *args, **kwargs):
         get_object_or_404(
-            self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+            self.request.user.get_project_queryset(),
+            id=self.kwargs["project_id"],
         )
         return super().create(request, *args, **kwargs)
 

@@ -1,6 +1,5 @@
 import hashlib
 import re
-from typing import Optional
 from urllib.parse import urlparse
 
 import requests
@@ -96,7 +95,7 @@ class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
         query_dict = QueryDict(mutable=True)
         query_dict.update(data)
         if "site_url" in data and not re.match(r"^https?://", data.get("site_url", "")):
-            query_dict["site_url"] = f'https://{data["site_url"]}'
+            query_dict["site_url"] = f"https://{data['site_url']}"
         instance = super().to_internal_value(query_dict)
         self.get_url_metadata(instance)
         return instance
@@ -104,9 +103,13 @@ class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
     def get_url_response(self, instance):
         try:
             response = requests.get(
-                instance.get("site_url", ""), timeout=settings.REQUESTS_DEFAULT_TIMEOUT
+                instance.get("site_url", ""),
+                timeout=settings.REQUESTS_DEFAULT_TIMEOUT,
             )
-        except (requests.exceptions.MissingSchema, requests.exceptions.ConnectionError):
+        except (
+            requests.exceptions.MissingSchema,
+            requests.exceptions.ConnectionError,
+        ):
             return None
         return response
 
@@ -179,7 +182,10 @@ class AttachmentLinkSerializer(
     string_images_forbid_fields: list[str] = ["description", "title"]
 
     project_id = serializers.PrimaryKeyRelatedField(
-        many=False, write_only=True, queryset=Project.objects.all(), source="project"
+        many=False,
+        write_only=True,
+        queryset=Project.objects.all(),
+        source="project",
     )
 
     class Meta:
@@ -240,7 +246,9 @@ class AttachmentLinkSerializer(
 
 
 class OrganizationAttachmentFileSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["description", "title"]
 
@@ -297,7 +305,10 @@ class AttachmentFileSerializer(
     string_images_forbid_fields: list[str] = ["description", "title"]
 
     project_id = serializers.PrimaryKeyRelatedField(
-        many=False, write_only=True, queryset=Project.objects.all(), source="project"
+        many=False,
+        write_only=True,
+        queryset=Project.objects.all(),
+        source="project",
     )
     file = serializers.FileField()
     hashcode = serializers.CharField(write_only=True, required=False)
@@ -365,7 +376,7 @@ class AttachmentFileSerializer(
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_project(self) -> Optional["Project"]:
+    def get_related_project(self) -> "Project" | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]

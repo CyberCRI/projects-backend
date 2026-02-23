@@ -39,7 +39,9 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         )
         admins_permissions = Organization.get_default_admins_permissions()
         global_admins_permissions = Organization.get_global_admins_permissions()
-        facilitators_permissions = Organization.get_default_facilitators_permissions()
+        facilitators_permissions = (
+            Organization.get_default_facilitators_permissions()
+        )
         users_permissions = Organization.get_default_users_permissions()
         viewers_permissions = Organization.get_default_viewers_permissions()
 
@@ -101,16 +103,20 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     GroupData.Role.USERS,
                     users_permissions.exclude(id=removed_permission.id),
                 ),
-            ),
+            )
         )
-        self.assertFalse(user.has_perm(removed_permission.codename, organization))
+        self.assertFalse(
+            user.has_perm(removed_permission.codename, organization)
+        )
 
     def test_project_permissions_setup(self):
         """Test project permissions setup"""
         # Setup test data
         project = ProjectFactory(organizations=[self.organization])
         owner_people_group = PeopleGroupFactory(organization=self.organization)
-        reviewer_people_group = PeopleGroupFactory(organization=self.organization)
+        reviewer_people_group = PeopleGroupFactory(
+            organization=self.organization
+        )
         member_people_group = PeopleGroupFactory(organization=self.organization)
         project.owner_groups.add(owner_people_group)
         project.reviewer_groups.add(reviewer_people_group)
@@ -119,13 +125,22 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         reviewer = UserFactory(groups=[project.get_reviewers()])
         member = UserFactory(groups=[project.get_members()])
         owner_group_member = UserFactory(
-            groups=[project.get_owner_groups(), owner_people_group.get_members()]
+            groups=[
+                project.get_owner_groups(),
+                owner_people_group.get_members(),
+            ]
         )
         reviewer_group_member = UserFactory(
-            groups=[project.get_reviewer_groups(), reviewer_people_group.get_members()]
+            groups=[
+                project.get_reviewer_groups(),
+                reviewer_people_group.get_members(),
+            ]
         )
         member_group_member = UserFactory(
-            groups=[project.get_member_groups(), member_people_group.get_members()]
+            groups=[
+                project.get_member_groups(),
+                member_people_group.get_members(),
+            ]
         )
 
         # Get roles permissions
@@ -137,7 +152,9 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         members_permissions = Project.get_default_members_permissions()
 
         # Test instance permission setup
-        Project.objects.filter(id=project.id).update(permissions_up_to_date=False)
+        Project.objects.filter(id=project.id).update(
+            permissions_up_to_date=False
+        )
         project.setup_permissions()
         project.refresh_from_db()
 
@@ -203,7 +220,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     GroupData.Role.MEMBER_GROUPS,
                     members_permissions.exclude(id=removed_permission.id),
                 ),
-            ),
+            )
         )
         self.assertFalse(member.has_perm(removed_permission.codename, project))
         self.assertFalse(
@@ -279,6 +296,8 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     GroupData.Role.MEMBERS,
                     members_permissions.exclude(id=removed_permission.id),
                 ),
-            ),
+            )
         )
-        self.assertFalse(member.has_perm(removed_permission.codename, people_group))
+        self.assertFalse(
+            member.has_perm(removed_permission.codename, people_group)
+        )

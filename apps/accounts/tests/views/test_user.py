@@ -12,7 +12,11 @@ from keycloak import KeycloakDeleteError
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    UserFactory,
+)
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
 from apps.commons.enums import SDG
@@ -33,7 +37,9 @@ class CreateUserTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.projects = ProjectFactory.create_batch(3, organizations=[cls.organization])
+        cls.projects = ProjectFactory.create_batch(
+            3, organizations=[cls.organization]
+        )
         cls.people_groups = PeopleGroupFactory.create_batch(
             3, organization=cls.organization
         )
@@ -63,7 +69,10 @@ class CreateUserTestCase(JwtAPITestCase):
             "roles_to_add": [
                 organization.get_users().name,
                 *[project.get_members().name for project in projects],
-                *[people_group.get_members().name for people_group in people_groups],
+                *[
+                    people_group.get_members().name
+                    for people_group in people_groups
+                ],
             ],
         }
         response = self.client.post(
@@ -111,8 +120,12 @@ class CreateUserTestCase(JwtAPITestCase):
             "given_name": faker.first_name(),
             "family_name": faker.last_name(),
             "sdgs": random.choices(SDG.values, k=3),  # nosec
-            "profile_picture_scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
-            "profile_picture_scale_y": faker.pyfloat(min_value=1.0, max_value=2.0),
+            "profile_picture_scale_x": faker.pyfloat(
+                min_value=1.0, max_value=2.0
+            ),
+            "profile_picture_scale_y": faker.pyfloat(
+                min_value=1.0, max_value=2.0
+            ),
             "profile_picture_left": faker.pyfloat(min_value=1.0, max_value=2.0),
             "profile_picture_top": faker.pyfloat(min_value=1.0, max_value=2.0),
             "profile_picture_natural_ratio": faker.pyfloat(
@@ -122,7 +135,10 @@ class CreateUserTestCase(JwtAPITestCase):
             "roles_to_add": [
                 organization.get_users().name,
                 *[project.get_members().name for project in projects],
-                *[people_group.get_members().name for people_group in people_groups],
+                *[
+                    people_group.get_members().name
+                    for people_group in people_groups
+                ],
             ],
         }
         response = self.client.post(
@@ -140,10 +156,12 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertEqual(content["sdgs"], payload["sdgs"])
         self.assertIsNotNone(content["profile_picture"])
         self.assertEqual(
-            content["profile_picture"]["scale_x"], payload["profile_picture_scale_x"]
+            content["profile_picture"]["scale_x"],
+            payload["profile_picture_scale_x"],
         )
         self.assertEqual(
-            content["profile_picture"]["scale_y"], payload["profile_picture_scale_y"]
+            content["profile_picture"]["scale_y"],
+            payload["profile_picture_scale_y"],
         )
         self.assertEqual(
             content["profile_picture"]["left"], payload["profile_picture_left"]
@@ -162,7 +180,10 @@ class CreateUserTestCase(JwtAPITestCase):
                 get_default_group().name,
                 organization.get_users().name,
                 *[project.get_members().name for project in projects],
-                *[people_group.get_members().name for people_group in people_groups],
+                *[
+                    people_group.get_members().name
+                    for people_group in people_groups
+                ],
             },
         )
         keycloak_user = KeycloakService.get_user(content["keycloak_id"])
@@ -184,7 +205,9 @@ class CreateUserTestCase(JwtAPITestCase):
             "password": faker.password(),
         }
         invitation = InvitationFactory(
-            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(1)),
+            expire_at=make_aware(
+                datetime.datetime.now() + datetime.timedelta(1)
+            ),
             organization=organization,
             people_group=people_group,
         )
@@ -224,7 +247,9 @@ class CreateUserTestCase(JwtAPITestCase):
             "family_name": faker.last_name(),
         }
         invitation = InvitationFactory(
-            expire_at=make_aware(datetime.datetime.now() - datetime.timedelta(1)),
+            expire_at=make_aware(
+                datetime.datetime.now() - datetime.timedelta(1)
+            ),
             organization=organization,
             people_group=people_group,
         )
@@ -266,8 +291,7 @@ class UpdateUserTestCase(JwtAPITestCase):
             "sdgs": random.choices(SDG.values, k=3),  # nosec
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(self.instance.id,)),
-            payload,
+            reverse("ProjectUser-detail", args=(self.instance.id,)), payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -305,7 +329,9 @@ class DeleteUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(ProjectUser.objects.filter(id=instance.id).exists())
+            self.assertFalse(
+                ProjectUser.objects.filter(id=instance.id).exists()
+            )
 
 
 class AdminListUserTestCase(JwtAPITestCase):
@@ -326,7 +352,9 @@ class AdminListUserTestCase(JwtAPITestCase):
                 "requiredActions": [],
             },
         )
-        cls.user_2 = SeedUserFactory(groups=[cls.organization.get_facilitators()])
+        cls.user_2 = SeedUserFactory(
+            groups=[cls.organization.get_facilitators()]
+        )
         KeycloakService._update_user(
             str(cls.user_2.keycloak_id),
             {
@@ -358,7 +386,8 @@ class AdminListUserTestCase(JwtAPITestCase):
         content = {user["id"]: user for user in response.data["results"]}
         for user in self.users:
             self.assertEqual(
-                content[user["user"].id]["email_verified"], user["email_verified"]
+                content[user["user"].id]["email_verified"],
+                user["email_verified"],
             )
 
     def test_order_by_email_verified(self):
@@ -373,8 +402,7 @@ class AdminListUserTestCase(JwtAPITestCase):
             {self.user_2.id, self.user_3.id},
         )
         self.assertSetEqual(
-            {u["id"] for u in response.data["results"][2:]},
-            {self.user_1.id},
+            {u["id"] for u in response.data["results"][2:]}, {self.user_1.id}
         )
 
     def test_order_by_email_verified_reverse(self):
@@ -385,8 +413,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertSetEqual(
-            {u["id"] for u in response.data["results"][:1]},
-            {self.user_1.id},
+            {u["id"] for u in response.data["results"][:1]}, {self.user_1.id}
         )
         self.assertSetEqual(
             {u["id"] for u in response.data["results"][1:]},
@@ -544,13 +571,17 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     @staticmethod
     def mocked_keycloak_error(*args, **kwarg):
         raise KeycloakDeleteError(
-            "error reason", 400, response_body=b'{"errorMessage": "error reason"}'
+            "error reason",
+            400,
+            response_body=b'{"errorMessage": "error reason"}',
         )
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_keycloak_error_create_user(self, mocked):
         mocked.return_value = {}
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[get_superadmins_group()])
+        )
         existing_username = f"{faker.uuid4()}@{faker.domain_name()}"
         KeycloakService._create_user(
             {
@@ -566,7 +597,8 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             "family_name": faker.last_name(),
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
+            reverse("ProjectUser-list")
+            + f"?organization={self.organization.code}",
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)
@@ -577,7 +609,9 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         self.assertFalse(ProjectUser.objects.filter(**payload).exists())
 
     def test_keycloak_error_update_user(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[get_superadmins_group()])
+        )
         existing_username = f"{faker.uuid4()}@{faker.domain_name()}"
         KeycloakService._create_user(
             {
@@ -588,9 +622,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             }
         )
         user = SeedUserFactory()
-        payload = {
-            "email": existing_username,
-        }
+        payload = {"email": existing_username}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
@@ -606,9 +638,13 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     @patch("services.keycloak.interface.KeycloakService.delete_user")
     def test_keycloak_error_delete_user(self, mocked):
         mocked.side_effect = self.mocked_keycloak_error
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[get_superadmins_group()])
+        )
         user = UserFactory()
-        response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
+        response = self.client.delete(
+            reverse("ProjectUser-detail", args=(user.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiTechnicalError(
             response,
@@ -617,9 +653,13 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
         self.assertTrue(ProjectUser.objects.filter(id=user.id).exists())
 
     def test_keycloak_404_delete_user(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[get_superadmins_group()])
+        )
         user = UserFactory()
-        response = self.client.delete(reverse("ProjectUser-detail", args=(user.id,)))
+        response = self.client.delete(
+            reverse("ProjectUser-detail", args=(user.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(ProjectUser.objects.filter(id=user.id).exists())
 
@@ -635,7 +675,9 @@ class ValidateUserTestCase(JwtAPITestCase):
         mocked.return_value = {}
         organization = self.organization
         organization_2 = OrganizationFactory()
-        self.client.force_authenticate(UserFactory(groups=[organization.get_admins()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[organization.get_admins()])
+        )
         payload = {
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "given_name": faker.first_name(),
@@ -663,14 +705,19 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         ProjectUser.objects.all().delete()
-        params = {
-            "given_name": "test",
-            "family_name": "test",
-        }
-        cls.user_a = UserFactory(job="ABC", email="search.ABC@example.com", **params)
-        cls.user_b = UserFactory(job="DEF", email="search.DEF@example.com", **params)
-        cls.user_c = UserFactory(job="GHI", email="search.GHI@example.com", **params)
-        cls.user_d = UserFactory(job="JKL", email="search.JKL@example.com", **params)
+        params = {"given_name": "test", "family_name": "test"}
+        cls.user_a = UserFactory(
+            job="ABC", email="search.ABC@example.com", **params
+        )
+        cls.user_b = UserFactory(
+            job="DEF", email="search.DEF@example.com", **params
+        )
+        cls.user_c = UserFactory(
+            job="GHI", email="search.GHI@example.com", **params
+        )
+        cls.user_d = UserFactory(
+            job="JKL", email="search.JKL@example.com", **params
+        )
         cls.people_group_a = PeopleGroupFactory(name="MNO")
         cls.people_group_b = PeopleGroupFactory(name="PQR")
         cls.people_group_c = PeopleGroupFactory(name="STU")
@@ -690,7 +737,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         SkillFactory(user=cls.user_d, tag=cls.tag_2, needs_mentor=True)
 
     def test_order_by_job(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?ordering=job")
+        response = self.client.get(
+            reverse("ProjectUser-list") + "?ordering=job"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["results"][0]["id"], self.user_a.id)
@@ -699,7 +748,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][3]["id"], self.user_d.id)
 
     def test_order_by_job_reverse(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?ordering=-job")
+        response = self.client.get(
+            reverse("ProjectUser-list") + "?ordering=-job"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["results"][0]["id"], self.user_d.id)
@@ -776,7 +827,8 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         other_organization = OrganizationFactory(parent=self.organization)
         other_organization.admins.add(self.user_d)
         response = self.client.get(
-            reverse("ProjectUser-list") + f"?organizations={self.organization.code}"
+            reverse("ProjectUser-list")
+            + f"?organizations={self.organization.code}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -818,7 +870,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         self.assertEqual(response.json()["results"][0]["id"], self.user_c.id)
 
     def test_filter_can_mentor(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?can_mentor=true")
+        response = self.client.get(
+            reverse("ProjectUser-list") + "?can_mentor=true"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 2)
         self.assertSetEqual(
@@ -827,7 +881,9 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         )
 
     def test_filter_needs_mentor(self):
-        response = self.client.get(reverse("ProjectUser-list") + "?needs_mentor=true")
+        response = self.client.get(
+            reverse("ProjectUser-list") + "?needs_mentor=true"
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.json()["results"]), 2)
         self.assertSetEqual(
@@ -870,7 +926,9 @@ class MiscUserTestCase(JwtAPITestCase):
         NotificationFactory(receiver=user, project=project, is_viewed=True)
         NotificationFactory(project=project)
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(user.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()["notifications"], 5)
 
@@ -918,7 +976,9 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
 
     def test_keycloak_attributes_updated(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[get_superadmins_group()])
+        )
         user = SeedUserFactory(language="en")
         KeycloakService._update_user(
             user.keycloak_id,
@@ -930,9 +990,7 @@ class MiscUserTestCase(JwtAPITestCase):
                 "attributes": {"attribute_1": ["value_1"], "locale": ["en"]},
             },
         )
-        payload = {
-            "language": "fr",
-        }
+        payload = {"language": "fr"}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
@@ -940,7 +998,9 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(response.json()["language"], "fr")
         keycloak_user = KeycloakService.get_user(user.keycloak_id)
         self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
-        self.assertEqual(keycloak_user["attributes"]["attribute_1"], ["value_1"])
+        self.assertEqual(
+            keycloak_user["attributes"]["attribute_1"], ["value_1"]
+        )
 
     def test_add_organization_from_keycloak_attributes(self):
         organization = OrganizationFactory()
@@ -1140,7 +1200,9 @@ class MiscUserTestCase(JwtAPITestCase):
     def test_outdated_slug(self, mocked):
         mocked.return_value = {}
         organization = OrganizationFactory()
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(
+            UserFactory(groups=[get_superadmins_group()])
+        )
         given_name = faker.first_name()
         family_name_a = "name-a"
         family_name_b = "name-b"
@@ -1205,7 +1267,9 @@ class MiscUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        self.assertEqual(content["slug"], f"{given_name.lower()}-{family_name_a}-1")
+        self.assertEqual(
+            content["slug"], f"{given_name.lower()}-{family_name_a}-1"
+        )
 
     def test_integer_slug(self):
         given_name = str(faker.pyint())

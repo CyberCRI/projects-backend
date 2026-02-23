@@ -9,7 +9,10 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
@@ -120,18 +123,26 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
             (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org", "no_org")),
-            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member", "no_org")),
+            (
+                TestRoles.PROJECT_MEMBER,
+                ("public_1", "public_2", "member", "no_org"),
+            ),
         ]
     )
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_project(self, role, retrieved_projects, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[
-                self.search_objects[project] for project in retrieved_projects
-            ],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[
+                    self.search_objects[project]
+                    for project in retrieved_projects
+                ],
+                query="opensearch",
+            )
         )
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("Search-search", args=("opensearch",)) + "?types=project"
@@ -150,9 +161,11 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_organization(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
@@ -174,9 +187,11 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_sdgs(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
@@ -198,9 +213,11 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_language(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
@@ -222,9 +239,11 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_categories(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
@@ -246,9 +265,11 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_tags(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
@@ -270,9 +291,11 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_members(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(

@@ -90,7 +90,9 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
     )
     def test_update_project_header(self, role, expected_code):
         user = self.get_parameterized_test_user(
-            role, instances=[self.project], owned_instance=self.project.header_image
+            role,
+            instances=[self.project],
+            owned_instance=self.project.header_image,
         )
         self.client.force_authenticate(user)
         payload = {
@@ -153,8 +155,10 @@ class DeleteProjectHeaderTestCase(JwtAPITestCase):
             reverse(
                 "Project-header-detail",
                 args=(project.id, project.header_image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(Image.objects.filter(id=project.header_image.id).exists())
+            self.assertFalse(
+                Image.objects.filter(id=project.header_image.id).exists()
+            )

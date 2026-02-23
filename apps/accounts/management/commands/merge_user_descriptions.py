@@ -25,11 +25,19 @@ class Command(BaseCommand):
                     + personnal_header[language]
                     + user.personal_description
                 )
-                ProjectUser.objects.filter(id=user.id).update(description=description)
-            elif user.personal_description and not user.professional_description:
+                ProjectUser.objects.filter(id=user.id).update(
+                    description=description
+                )
+            elif (
+                user.personal_description and not user.professional_description
+            ):
                 description = user.personal_description
-            elif not user.personal_description and user.professional_description:
+            elif (
+                not user.personal_description and user.professional_description
+            ):
                 description = user.professional_description
             else:
                 description = ""
-            ProjectUser.objects.filter(id=user.id).update(description=description)
+            ProjectUser.objects.filter(id=user.id).update(
+                description=description
+            )

@@ -5,7 +5,7 @@ import io
 import itertools
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING, List, Optional, Tuple
+from typing import TYPE_CHECKING
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -101,7 +101,7 @@ def process_text(
     instance: Model | None = None,
     upload_to: str | None = None,
     view: str | None = None,
-    owner: Optional["ProjectUser"] = None,
+    owner: "ProjectUser" | None = None,
     process_template: bool = False,
     **kwargs,
 ) -> tuple[str, list[Image]]:
@@ -160,7 +160,7 @@ def process_base64_images(
     soup: BeautifulSoupProjects,
     upload_to: str,
     view: str,
-    owner: Optional["ProjectUser"] = None,
+    owner: "ProjectUser" | None = None,
     **kwargs,
 ) -> tuple[str, list[Image]]:
     """
@@ -207,7 +207,7 @@ def process_template_images(
     soup: BeautifulSoupProjects,
     upload_to: str,
     view: str,
-    owner: Optional["ProjectUser"] = None,
+    owner: "ProjectUser" | None = None,
     **kwargs,
 ) -> tuple[BeautifulSoupProjects, list[Image]]:
     """
@@ -314,8 +314,8 @@ def get_test_image() -> Image:
 
 
 def get_permissions_from_subscopes(
-    subscopes: List[Tuple[str, str]],
-) -> Tuple[Tuple[str, str]]:
+    subscopes: list[tuple[str, str]],
+) -> tuple[tuple[str, str]]:
     """
     Get the permissions representations from the subscopes.
 
@@ -342,8 +342,8 @@ def get_permissions_from_subscopes(
 
 
 def get_write_permissions_from_subscopes(
-    subscopes: List[Tuple[str, str]],
-) -> Tuple[Tuple[str, str]]:
+    subscopes: list[tuple[str, str]],
+) -> tuple[tuple[str, str]]:
     """
     Get the write permissions representations from the subscopes.
 
@@ -368,7 +368,7 @@ def get_write_permissions_from_subscopes(
     return tuple(itertools.chain.from_iterable(permissions))
 
 
-def map_action_to_permission(action: str, codename: str) -> Optional[str]:
+def map_action_to_permission(action: str, codename: str) -> str | None:
     """
     Map an HTTP action and a model codename to a permission representation.
 
@@ -381,7 +381,7 @@ def map_action_to_permission(action: str, codename: str) -> Optional[str]:
 
     Returns
     -------
-    Optional[str]
+    str | None
         The permission representation.
     """
     return {

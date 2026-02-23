@@ -60,12 +60,7 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
             description_fr="",
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_tags(self, role, mocked_search):
         mocked_search.return_value = self.opensearch_tags_mocked_return(
@@ -81,8 +76,7 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.tags))
         self.assertListEqual(
-            [tag["id"] for tag in content],
-            [tag.id for tag in self.tags],
+            [tag["id"] for tag in content], [tag.id for tag in self.tags]
         )
         for tag in content:
             for value in tag["highlight"].values():
@@ -172,17 +166,17 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
             TagFactory(type=Tag.TagType.WIKIPEDIA, title_en=str(i))
             for i in range(5, 10)
         ]
-        cls.wikipedia_tag_classification = (
-            TagClassification.get_or_create_default_classification(
-                classification_type=TagClassification.TagClassificationType.WIKIPEDIA,
-            )
+        cls.wikipedia_tag_classification = TagClassification.get_or_create_default_classification(
+            classification_type=TagClassification.TagClassificationType.WIKIPEDIA
         )
         cls.wikipedia_tag_classification.tags.add(
             *cls.wikipedia_tags, *cls.not_returned_wikipedia_tags
         )
 
         # other tag classification
-        cls.other_tag = TagFactory(organization=cls.organization, title_en=cls.query)
+        cls.other_tag = TagFactory(
+            organization=cls.organization, title_en=cls.query
+        )
         TagClassificationFactory(
             organization=cls.organization, tags=[cls.tag_1, cls.other_tag]
         )
@@ -241,13 +235,17 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
 
-        mocked_wikipedia_search.return_value = self.search_wikipedia_tag_mocked_return(
-            limit=0,
-            offset=10,
-            wikipedia_qids=[tag.external_id for tag in self.wikipedia_tags],
+        mocked_wikipedia_search.return_value = (
+            self.search_wikipedia_tag_mocked_return(
+                limit=0,
+                offset=10,
+                wikipedia_qids=[tag.external_id for tag in self.wikipedia_tags],
+            )
         )
         mocked_wikipedia_get.return_value = (
-            self.get_existing_wikipedia_tags_mocked_return(tags=self.wikipedia_tags)
+            self.get_existing_wikipedia_tags_mocked_return(
+                tags=self.wikipedia_tags
+            )
         )
         mocked_search.return_value = self.opensearch_tags_mocked_return(
             tags=self.classifications[classification]["tags"], query=self.query

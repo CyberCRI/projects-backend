@@ -65,9 +65,7 @@ class AttachmentLinkViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
@@ -134,9 +132,7 @@ class AttachmentFileViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
@@ -168,8 +164,8 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
         request.
         """
         assert self.upload_to is not None, (
-            "'%s' should either include a `upload_to` attribute, "
-            "or override the `get_upload_to()` method." % self.__class__.__name__
+            f"{self.__class__.__name__!r} should either include a `upload_to` attribute, "
+            "or override the `get_upload_to()` method."
         )
 
         return self.upload_to
@@ -232,9 +228,9 @@ class ImageStorageView(viewsets.GenericViewSet, mixins.UpdateModelMixin):
         image = self.get_object()
         try:
             image.delete()
-        except ProtectedError:
+        except ProtectedError as err:
             relation = self.get_relation(image)
-            raise ProtectedImageError(relation)
+            raise ProtectedImageError(relation) from err
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -247,7 +243,7 @@ class ProjectUserAttachmentLinkViewSet(viewsets.ModelViewSet):
         | IsOwner
         | WillBeOwner
         | HasBasePermission("change_projectuser", "accounts")
-        | HasOrganizationPermission("change_projectuser"),
+        | HasOrganizationPermission("change_projectuser")
     ]
 
     def get_queryset(self) -> QuerySet:
@@ -269,7 +265,7 @@ class ProjectUserAttachmentFileViewSet(viewsets.ModelViewSet):
         | IsOwner
         | WillBeOwner
         | HasBasePermission("change_projectuser", "accounts")
-        | HasOrganizationPermission("change_projectuser"),
+        | HasOrganizationPermission("change_projectuser")
     ]
 
     def get_queryset(self) -> QuerySet:
@@ -290,7 +286,9 @@ class ProjectUserAttachmentFileViewSet(viewsets.ModelViewSet):
 
 
 class PeopleGroupGalleryViewSet(
-    NestedOrganizationViewMixins, NestedPeopleGroupViewMixins, viewsets.ModelViewSet
+    NestedOrganizationViewMixins,
+    NestedPeopleGroupViewMixins,
+    viewsets.ModelViewSet,
 ):
     serializer_class = PeopleGroupImageSerializer
 

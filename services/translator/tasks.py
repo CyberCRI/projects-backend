@@ -18,7 +18,9 @@ def automatic_translations():
         try:
             update_auto_translated_field(field)
         except Exception as e:  # noqa: PIE786
-            logger.error(f"Error updating auto-translated field {field.id}: {e}")
+            logger.error(
+                f"Error updating auto-translated field {field.id}: {e}"
+            )
 
 
 @app.task(name="apps.translations.tasks.translate_object")

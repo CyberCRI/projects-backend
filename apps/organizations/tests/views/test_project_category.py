@@ -27,7 +27,9 @@ class CreateProjectCategoryTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.tags = TagFactory.create_batch(3, organization=cls.organization)
-        cls.templates = TemplateFactory.create_batch(3, organization=cls.organization)
+        cls.templates = TemplateFactory.create_batch(
+            3, organization=cls.organization
+        )
 
     @parameterized.expand(
         [
@@ -40,7 +42,9 @@ class CreateProjectCategoryTestCase(JwtAPITestCase):
         ]
     )
     def test_create_project_category(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         payload = {
             "name": faker.sentence(),
@@ -53,7 +57,8 @@ class CreateProjectCategoryTestCase(JwtAPITestCase):
             "templates_ids": [t.id for t in self.templates],
         }
         response = self.client.post(
-            reverse("Category-list", args=(self.organization.code,)), data=payload
+            reverse("Category-list", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -62,14 +67,19 @@ class CreateProjectCategoryTestCase(JwtAPITestCase):
             self.assertEqual(content["name"], payload["name"])
             self.assertEqual(content["description"], payload["description"])
             self.assertEqual(content["order_index"], payload["order_index"])
-            self.assertEqual(content["background_color"], payload["background_color"])
-            self.assertEqual(content["foreground_color"], payload["foreground_color"])
+            self.assertEqual(
+                content["background_color"], payload["background_color"]
+            )
+            self.assertEqual(
+                content["foreground_color"], payload["foreground_color"]
+            )
             self.assertEqual(content["is_reviewable"], payload["is_reviewable"])
             self.assertSetEqual(
                 {t["id"] for t in content["tags"]}, set(payload["tags"])
             )
             self.assertSetEqual(
-                {t["id"] for t in content["templates"]}, set(payload["templates_ids"])
+                {t["id"] for t in content["templates"]},
+                set(payload["templates_ids"]),
             )
 
 
@@ -83,12 +93,7 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
             3, organizations=[cls.organization], categories=[cls.category]
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_list_project_category(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
@@ -101,17 +106,15 @@ class ReadProjectCategoryTestCase(JwtAPITestCase):
         self.assertEqual(content["results"][0]["id"], self.category.id)
         self.assertEqual(content["results"][0]["projects_count"], 3)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_project_category(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Category-detail", args=(self.organization.code, self.category.id))
+            reverse(
+                "Category-detail",
+                args=(self.organization.code, self.category.id),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -125,7 +128,9 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
-        cls.templates = TemplateFactory.create_batch(3, organization=cls.organization)
+        cls.templates = TemplateFactory.create_batch(
+            3, organization=cls.organization
+        )
 
     @parameterized.expand(
         [
@@ -139,7 +144,9 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase):
     )
     def test_update_project_category(self, role, expected_code):
         tags = TagFactory.create_batch(3, organization=self.organization)
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         payload = {
             "name": faker.sentence(),
@@ -152,7 +159,10 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase):
             "templates_ids": [random.choice(self.templates).id],  # nosec
         }
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, self.category.id)),
+            reverse(
+                "Category-detail",
+                args=(self.organization.code, self.category.id),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -161,14 +171,19 @@ class UpdateProjectCategoryTestCase(JwtAPITestCase):
             self.assertEqual(content["name"], payload["name"])
             self.assertEqual(content["description"], payload["description"])
             self.assertEqual(content["order_index"], payload["order_index"])
-            self.assertEqual(content["background_color"], payload["background_color"])
-            self.assertEqual(content["foreground_color"], payload["foreground_color"])
+            self.assertEqual(
+                content["background_color"], payload["background_color"]
+            )
+            self.assertEqual(
+                content["foreground_color"], payload["foreground_color"]
+            )
             self.assertEqual(content["is_reviewable"], payload["is_reviewable"])
             self.assertSetEqual(
                 {t["id"] for t in content["tags"]}, {t.id for t in tags}
             )
             self.assertSetEqual(
-                {t["id"] for t in content["templates"]}, set(payload["templates_ids"])
+                {t["id"] for t in content["templates"]},
+                set(payload["templates_ids"]),
             )
 
 
@@ -190,14 +205,20 @@ class DeleteProjectCategoryTestCase(JwtAPITestCase):
     )
     def test_delete_project_category(self, role, expected_code):
         category = ProjectCategoryFactory(organization=self.organization)
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse("Category-detail", args=(self.organization.code, category.id))
+            reverse(
+                "Category-detail", args=(self.organization.code, category.id)
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(ProjectCategory.objects.filter(id=category.id).exists())
+            self.assertFalse(
+                ProjectCategory.objects.filter(id=category.id).exists()
+            )
 
 
 class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
@@ -207,8 +228,7 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
         cls.other_project = ProjectFactory(
-            life_status=Project.LifeStatus.RUNNING,
-            is_locked=False,
+            life_status=Project.LifeStatus.RUNNING, is_locked=False
         )
 
     @parameterized.expand(
@@ -222,7 +242,9 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
         ]
     )
     def test_update_project_life_status(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         projects = ProjectFactory.create_batch(
             2,
@@ -231,16 +253,11 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
             organizations=[self.organization],
             categories=[self.category],
         )
-        payload = {
-            "life_status": Project.LifeStatus.COMPLETED,
-        }
+        payload = {"life_status": Project.LifeStatus.COMPLETED}
         response = self.client.post(
             reverse(
                 "Category-projects-life-status",
-                args=(
-                    self.organization.code,
-                    self.category.id,
-                ),
+                args=(self.organization.code, self.category.id),
             ),
             data=payload,
         )
@@ -248,8 +265,12 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
         if expected_code == status.HTTP_200_OK:
             for project in projects:
                 project.refresh_from_db()
-                self.assertEqual(project.life_status, Project.LifeStatus.COMPLETED)
-            self.assertEqual(self.other_project.life_status, Project.LifeStatus.RUNNING)
+                self.assertEqual(
+                    project.life_status, Project.LifeStatus.COMPLETED
+                )
+            self.assertEqual(
+                self.other_project.life_status, Project.LifeStatus.RUNNING
+            )
 
     @parameterized.expand(
         [
@@ -262,7 +283,9 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
         ]
     )
     def test_update_project_locked_status(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         projects = ProjectFactory.create_batch(
             2,
@@ -271,16 +294,11 @@ class ProjectCategoryProjectStatusTestCase(JwtAPITestCase):
             organizations=[self.organization],
             categories=[self.category],
         )
-        payload = {
-            "is_locked": True,
-        }
+        payload = {"is_locked": True}
         response = self.client.post(
             reverse(
                 "Category-projects-locked-status",
-                args=(
-                    self.organization.code,
-                    self.category.id,
-                ),
+                args=(self.organization.code, self.category.id),
             ),
             data=payload,
         )
@@ -312,43 +330,56 @@ class ValidateProjectCategoryTestCase(JwtAPITestCase):
             "parent": parent.id,
         }
         response = self.client.post(
-            reverse("Category-list", args=(self.organization.code,)), data=payload
+            reverse("Category-list", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"parent": ["The parent category must belong to the same organization"]},
+            {
+                "parent": [
+                    "The parent category must belong to the same organization"
+                ]
+            },
         )
 
     def test_update_parent_in_other_organization(self):
         category = ProjectCategoryFactory(organization=self.organization)
         parent = ProjectCategoryFactory()
-        payload = {
-            "parent": parent.id,
-        }
+        payload = {"parent": parent.id}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, category.id)),
+            reverse(
+                "Category-detail", args=(self.organization.code, category.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"parent": ["The parent category must belong to the same organization"]},
+            {
+                "parent": [
+                    "The parent category must belong to the same organization"
+                ]
+            },
         )
 
     def test_own_parent(self):
         category = ProjectCategoryFactory(organization=self.organization)
-        payload = {
-            "parent": category.id,
-        }
+        payload = {"parent": category.id}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, category.id)),
+            reverse(
+                "Category-detail", args=(self.organization.code, category.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"parent": ["You are trying to create a loop in the category's hierarchy"]},
+            {
+                "parent": [
+                    "You are trying to create a loop in the category's hierarchy"
+                ]
+            },
         )
 
     def test_create_hierarchy_loop(self):
@@ -361,20 +392,27 @@ class ValidateProjectCategoryTestCase(JwtAPITestCase):
         )
         payload = {"parent": category_3.id}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, category_1.id)),
+            reverse(
+                "Category-detail", args=(self.organization.code, category_1.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"parent": ["You are trying to create a loop in the category's hierarchy"]},
+            {
+                "parent": [
+                    "You are trying to create a loop in the category's hierarchy"
+                ]
+            },
         )
 
     def test_set_root_category_as_parent_with_none(self):
         child = ProjectCategoryFactory(organization=self.organization)
         payload = {"parent": None}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, child.id)), payload
+            reverse("Category-detail", args=(self.organization.code, child.id)),
+            payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         child.refresh_from_db()
@@ -393,13 +431,21 @@ class MiscProjectCategoryTestCase(JwtAPITestCase):
 
     def test_get_slug(self):
         name = "My AMazing pROjecT categORy !"
-        category = ProjectCategoryFactory(name=name, organization=self.organization)
+        category = ProjectCategoryFactory(
+            name=name, organization=self.organization
+        )
         self.assertEqual(category.slug, "my-amazing-project-category")
-        category = ProjectCategoryFactory(name=name, organization=self.organization)
+        category = ProjectCategoryFactory(
+            name=name, organization=self.organization
+        )
         self.assertEqual(category.slug, "my-amazing-project-category-1")
-        category = ProjectCategoryFactory(name=name, organization=self.organization)
+        category = ProjectCategoryFactory(
+            name=name, organization=self.organization
+        )
         self.assertEqual(category.slug, "my-amazing-project-category-2")
-        category = ProjectCategoryFactory(name="123", organization=self.organization)
+        category = ProjectCategoryFactory(
+            name="123", organization=self.organization
+        )
         self.assertTrue(category.slug.startswith("category-"))
 
     def test_outdated_slug(self):
@@ -407,12 +453,16 @@ class MiscProjectCategoryTestCase(JwtAPITestCase):
         name_a = "name-a"
         name_b = "name-b"
         name_c = "name-c"
-        category = ProjectCategoryFactory(name=name_a, organization=self.organization)
+        category = ProjectCategoryFactory(
+            name=name_a, organization=self.organization
+        )
 
         # Check that the slug is updated and the old one is stored in outdated_slugs
         payload = {"name": name_b}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, category.id)),
+            reverse(
+                "Category-detail", args=(self.organization.code, category.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -423,7 +473,9 @@ class MiscProjectCategoryTestCase(JwtAPITestCase):
         # Check that multiple_slug is correctly updated
         payload = {"name": name_c}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, category.id)),
+            reverse(
+                "Category-detail", args=(self.organization.code, category.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -434,7 +486,9 @@ class MiscProjectCategoryTestCase(JwtAPITestCase):
         # Check that outdated_slugs are reused if relevant
         payload = {"name": name_b}
         response = self.client.patch(
-            reverse("Category-detail", args=(self.organization.code, category.id)),
+            reverse(
+                "Category-detail", args=(self.organization.code, category.id)
+            ),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -447,7 +501,8 @@ class MiscProjectCategoryTestCase(JwtAPITestCase):
         # Check that outdated_slugs respect unicity
         payload = {"name": name_a}
         response = self.client.post(
-            reverse("Category-list", args=(self.organization.code,)), data=payload
+            reverse("Category-list", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()

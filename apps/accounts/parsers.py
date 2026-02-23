@@ -7,7 +7,8 @@ class UserMultipartParser(MultiPartParser):
             stream, media_type=media_type, parser_context=parser_context
         )
         data = {
-            key: self.list_to_value(key, value) for key, value in content.data.lists()
+            key: self.list_to_value(key, value)
+            for key, value in content.data.lists()
         }
         return DataAndFiles(data, content.files)
 

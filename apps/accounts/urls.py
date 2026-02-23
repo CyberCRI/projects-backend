@@ -17,16 +17,24 @@ from apps.feedbacks.views import ReviewViewSet, UserFollowViewSet
 
 router = DefaultRouter()
 router.register(r"user", UserViewSet, basename="ProjectUser")
-router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySettings")
+router.register(
+    r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySettings"
+)
 
 user_router_register(router, r"follow", UserFollowViewSet, basename="Follower")
 user_router_register(router, r"review", ReviewViewSet, basename="Reviewer")
 user_router_register(
-    router, r"profile-picture", UserProfilePictureView, basename="UserProfilePicture"
+    router,
+    r"profile-picture",
+    UserProfilePictureView,
+    basename="UserProfilePicture",
 )
 
 organization_people_group_router_register(
-    router, r"locations", PeopleGroupLocationViewSet, basename="PeopleGroupLocations"
+    router,
+    r"locations",
+    PeopleGroupLocationViewSet,
+    basename="PeopleGroupLocations",
 )
 
 

@@ -21,10 +21,7 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
         "progress",
         "traceback",
     )
-    search_fields = (
-        "id",
-        "task_name",
-    )
+    search_fields = ("id", "task_name")
     exclude = ("_status", "last_run")
     actions = ["run_task", "reset_task"]
     ordering = ("priority",)
@@ -34,7 +31,9 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
             instance.run_task()
 
     def reset_task(self, request, queryset):
-        queryset.update(task_id="", last_run_version="", last_run=None, _status="")
+        queryset.update(
+            task_id="", last_run_version="", last_run=None, _status=""
+        )
 
     def status(self, instance):
         return self.format_status(instance.status)
@@ -51,12 +50,16 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
 
     @staticmethod
     def format_status(status):
-        status = status if status else PostDeployProcess.PostDeployProcessStatus.NONE
+        status = (
+            status if status else PostDeployProcess.PostDeployProcessStatus.NONE
+        )
         color = {
             PostDeployProcess.PostDeployProcessStatus.SUCCESS: "#339933",
             PostDeployProcess.PostDeployProcessStatus.FAILURE: "#A00000",
         }.get(status, "#686868")
-        return format_html(f'<b style="color:{color};">{status.capitalize()}</b>')
+        return format_html(
+            f'<b style="color:{color};">{status.capitalize()}</b>'
+        )
 
 
 admin.site.register(PostDeployProcess, PostDeployProcessAdmin)

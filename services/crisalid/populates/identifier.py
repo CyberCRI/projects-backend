@@ -25,16 +25,16 @@ class PopulateIdentifier(AbstractPopulate):
         return harvester
 
     def single(self, data: dict) -> Identifier | None:
-        harvester = self.sanitize_harvester(self.sanitize_string(data["type"]).lower())
+        harvester = self.sanitize_harvester(
+            self.sanitize_string(data["type"]).lower()
+        )
         value = self.sanitize_string(data["value"])
 
         if not all((harvester, value)):
             return None
 
         identifier = self.cache.model(
-            Identifier,
-            value=value,
-            harvester=harvester,
+            Identifier, value=value, harvester=harvester
         )
         self.cache.save(identifier)
         return identifier

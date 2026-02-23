@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -86,7 +86,7 @@ class Organization(
     """
 
     organization_query_string: str = ""
-    auto_translated_fields: List[str] = [
+    auto_translated_fields: list[str] = [
         "name",
         "dashboard_title",
         "dashboard_subtitle",
@@ -149,14 +149,10 @@ class Organization(
         "projects.Project", related_name="org_featured_projects", blank=True
     )
     default_projects_tags = models.ManyToManyField(
-        "skills.Tag",
-        related_name="default_organizations_projects",
-        blank=True,
+        "skills.Tag", related_name="default_organizations_projects", blank=True
     )
     default_skills_tags = models.ManyToManyField(
-        "skills.Tag",
-        related_name="default_organizations_skills",
-        blank=True,
+        "skills.Tag", related_name="default_organizations_skills", blank=True
     )
     enabled_projects_tag_classifications = models.ManyToManyField(
         "skills.TagClassification",
@@ -225,13 +221,13 @@ class Organization(
         )
 
     def __str__(self) -> str:
-        return "%s object (%s)" % (self.__class__.__name__, self.code)
+        return f"{self.__class__.__name__} object ({self.code})"
 
     @property
     def content_type(self):
         return ContentType.objects.get_for_model(Organization)
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organization related to this model."""
         return [self]
 
@@ -287,8 +283,7 @@ class Organization(
             "duplicate_project",
         ]
         return Permission.objects.filter(
-            content_type=content_type,
-            codename__in=filtered_permissions,
+            content_type=content_type, codename__in=filtered_permissions
         )
 
     @classmethod
@@ -300,11 +295,10 @@ class Organization(
             "view_org_peoplegroup",
         ]
         return Permission.objects.filter(
-            content_type=content_type,
-            codename__in=filtered_permissions,
+            content_type=content_type, codename__in=filtered_permissions
         )
 
-    def setup_permissions(self, user: Optional["ProjectUser"] = None):
+    def setup_permissions(self, user: "ProjectUser" | None = None):
         """Setup the group with default permissions."""
         admins = self.setup_group_object_permissions(
             self.get_admins(), self.get_default_admins_permissions()
@@ -345,22 +339,22 @@ class Organization(
         return self.get_or_create_group(GroupData.Role.VIEWERS)
 
     @property
-    def admins(self) -> List["ProjectUser"]:
+    def admins(self) -> list["ProjectUser"]:
         return self.get_admins().users
 
     @property
-    def facilitators(self) -> List["ProjectUser"]:
+    def facilitators(self) -> list["ProjectUser"]:
         return self.get_facilitators().users
 
     @property
-    def users(self) -> List["ProjectUser"]:
+    def users(self) -> list["ProjectUser"]:
         return self.get_users().users
 
     @property
-    def viewers(self) -> List["ProjectUser"]:
+    def viewers(self) -> list["ProjectUser"]:
         return self.get_viewers().users
 
-    def get_all_members(self) -> List["ProjectUser"]:
+    def get_all_members(self) -> list["ProjectUser"]:
         """Return the all members."""
         return (
             self.admins.all()
@@ -433,7 +427,7 @@ class Template(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         Project's comment content placeholder.
     """
 
-    auto_translated_fields: List[str] = [
+    auto_translated_fields: list[str] = [
         "name",
         "html:description",
         "project_title",
@@ -521,8 +515,8 @@ class ProjectCategory(
         History of the object.
     """
 
-    auto_translated_fields: List[str] = ["name", "html:description"]
-    slugified_fields: List[str] = ["name"]
+    auto_translated_fields: list[str] = ["name", "html:description"]
+    slugified_fields: list[str] = ["name"]
     slug_prefix: str = "category"
 
     name = models.CharField(max_length=100, help_text="name of the category")
@@ -538,7 +532,9 @@ class ProjectCategory(
         related_name="project_category",
     )
     organization = models.ForeignKey(
-        Organization, on_delete=models.CASCADE, related_name="project_categories"
+        Organization,
+        on_delete=models.CASCADE,
+        related_name="project_categories",
     )
     is_reviewable = models.BooleanField(default=True)
     order_index = models.SmallIntegerField(default=0)
@@ -570,7 +566,7 @@ class ProjectCategory(
         except ValueError:
             return "slug"
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
 
@@ -579,9 +575,7 @@ class ProjectCategory(
         root_group, _ = cls.objects.update_or_create(
             organization=organization,
             is_root=True,
-            defaults={
-                "name": organization.name,
-            },
+            defaults={"name": organization.name},
         )
         return root_group
 
@@ -627,7 +621,7 @@ class CategoryFollow(HasOwner, OrganizationRelated, models.Model):
         """Get the owner of the object."""
         return self.follower
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.category.get_related_organizations()
 
@@ -645,7 +639,7 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     Model to store the terms and conditions for an organization.
     """
 
-    auto_translated_fields: List[str] = ["html:content"]
+    auto_translated_fields: list[str] = ["html:content"]
     auto_translate_all_languages: bool = True
 
     organization = models.OneToOneField(
@@ -658,7 +652,7 @@ class TermsAndConditions(HasAutoTranslatedFields, OrganizationRelated, models.Mo
     is_default = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         return [self.organization]
 
     class Meta:

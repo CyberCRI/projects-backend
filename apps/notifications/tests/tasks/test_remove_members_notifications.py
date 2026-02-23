@@ -25,7 +25,9 @@ class DeletedMemberTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -46,14 +48,14 @@ class DeletedMemberTestCase(JwtAPITestCase):
 
         member = UserFactory()
         project.members.add(member)
-        payload = {
-            "users": [member.id],
-        }
+        payload = {"users": [member.id]}
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        notification_task.assert_called_once_with(project.pk, member.pk, owner.pk)
+        notification_task.assert_called_once_with(
+            project.pk, member.pk, owner.pk
+        )
 
     @patch("apps.projects.views.notify_group_member_deleted.delay")
     def test_group_notification_task_called(self, notification_task):
@@ -68,14 +70,14 @@ class DeletedMemberTestCase(JwtAPITestCase):
 
         group = PeopleGroupFactory(organization=self.organization)
         project.member_groups.add(group)
-        payload = {
-            "people_groups": [group.id],
-        }
+        payload = {"people_groups": [group.id]}
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        notification_task.assert_called_once_with(project.pk, group.pk, owner.pk)
+        notification_task.assert_called_once_with(
+            project.pk, group.pk, owner.pk
+        )
 
     def test_notification_task(self):
         project = ProjectFactory(
@@ -91,7 +93,9 @@ class DeletedMemberTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -112,7 +116,9 @@ class DeletedMemberTestCase(JwtAPITestCase):
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.MEMBER_REMOVED)
+            self.assertEqual(
+                notification.type, Notification.Types.MEMBER_REMOVED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -142,7 +148,9 @@ class DeletedMemberTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -163,18 +171,16 @@ class DeletedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         group.members.add(member)
 
-        _notify_group_member_deleted(
-            project.pk,
-            group.pk,
-            sender.pk,
-        )
+        _notify_group_member_deleted(project.pk, group.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
         self.assertEqual(notifications.count(), 2)
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.GROUP_MEMBER_REMOVED)
+            self.assertEqual(
+                notification.type, Notification.Types.GROUP_MEMBER_REMOVED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -202,7 +208,9 @@ class DeletedMemberTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -225,7 +233,9 @@ class DeletedMemberTestCase(JwtAPITestCase):
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.MEMBER_REMOVED)
+            self.assertEqual(
+                notification.type, Notification.Types.MEMBER_REMOVED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)

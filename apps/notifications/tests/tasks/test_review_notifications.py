@@ -9,7 +9,10 @@ from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory, ReviewFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import _notify_new_review, _notify_ready_for_review
+from apps.notifications.tasks import (
+    _notify_new_review,
+    _notify_ready_for_review,
+)
 from apps.organizations.factories import (
     CategoryFollowFactory,
     OrganizationFactory,
@@ -26,7 +29,9 @@ class NewReviewTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -76,7 +81,9 @@ class NewReviewTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -141,7 +148,9 @@ class NewReviewTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -155,7 +164,9 @@ class NewReviewTestCase(JwtAPITestCase):
         not_notified.notification_settings.project_has_been_reviewed = False
         not_notified.notification_settings.save()
 
-        reviews = ReviewFactory.create_batch(2, project=project, reviewer=sender)
+        reviews = ReviewFactory.create_batch(
+            2, project=project, reviewer=sender
+        )
         _notify_new_review(reviews[0].pk)
         _notify_new_review(reviews[1].pk)
 
@@ -179,7 +190,12 @@ class NewReviewTestCase(JwtAPITestCase):
             self.assertEqual(notification.reminder_message_en, "")
 
         self.assertEqual(len(mail.outbox), 8)
-        for user in [notified, follower, category_follower, parent_category_follower]:
+        for user in [
+            notified,
+            follower,
+            category_follower,
+            parent_category_follower,
+        ]:
             self.assertEqual(
                 [mail.outbox[i].to[0] for i in range(8)].count(user.email), 2
             )
@@ -190,7 +206,9 @@ class ReadyForReviewTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -242,7 +260,9 @@ class ReadyForReviewTestCase(JwtAPITestCase):
         self.assertEqual(notifications.count(), 2)
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.READY_FOR_REVIEW)
+            self.assertEqual(
+                notification.type, Notification.Types.READY_FOR_REVIEW
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.receiver, user)
             self.assertFalse(notification.to_send)
@@ -281,7 +301,9 @@ class ReadyForReviewTestCase(JwtAPITestCase):
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.READY_FOR_REVIEW)
+            self.assertEqual(
+                notification.type, Notification.Types.READY_FOR_REVIEW
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.receiver, user)
             self.assertFalse(notification.to_send)

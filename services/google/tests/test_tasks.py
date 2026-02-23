@@ -41,7 +41,9 @@ class GoogleTasksTestCase(GoogleTestCase):
     @patch("services.keycloak.interface.KeycloakService.send_email")
     @patch("services.google.tasks.create_google_user_task.delay")
     @patch("services.google.interface.GoogleService.service")
-    def test_create_google_account(self, mocked, mocked_delay, mocked_send_email):
+    def test_create_google_account(
+        self, mocked, mocked_delay, mocked_send_email
+    ):
         mocked_send_email.return_value = {}
         mocked_delay.side_effect = create_google_user_task
 
@@ -82,10 +84,14 @@ class GoogleTasksTestCase(GoogleTestCase):
                 GoogleService, "create_user", wraps=GoogleService.create_user
             ) as mocked_create_user,
             patch.object(
-                GoogleService, "add_user_alias", wraps=GoogleService.add_user_alias
+                GoogleService,
+                "add_user_alias",
+                wraps=GoogleService.add_user_alias,
             ) as mocked_add_user_alias,
             patch.object(
-                GoogleService, "get_user_groups", wraps=GoogleService.get_user_groups
+                GoogleService,
+                "get_user_groups",
+                wraps=GoogleService.get_user_groups,
             ) as mocked_get_user_groups,
             patch.object(
                 GoogleService,
@@ -106,12 +112,20 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_create_user.assert_called_once_with(user, "/CRI/Test")
             mocked_add_user_alias.assert_called_once_with(user.google_account)
             mocked_get_user_groups.assert_called_once_with(user.google_account)
-            mocked_add_user_to_group.assert_called_once_with(user.google_account, group)
+            mocked_add_user_to_group.assert_called_once_with(
+                user.google_account, group
+            )
             keycloak_user = KeycloakService.get_user(user.keycloak_id)
-            self.assertEqual(user.email.lower(), user.google_account.email.lower())
-            self.assertEqual(user.email.lower(), user.keycloak_account.username.lower())
+            self.assertEqual(
+                user.email.lower(), user.google_account.email.lower()
+            )
+            self.assertEqual(
+                user.email.lower(), user.keycloak_account.username.lower()
+            )
             self.assertEqual(user.email.lower(), content["email"].lower())
-            self.assertEqual(user.email.lower(), keycloak_user["username"].lower())
+            self.assertEqual(
+                user.email.lower(), keycloak_user["username"].lower()
+            )
             self.assertEqual(
                 user.email.lower(),
                 f"{payload['given_name']}.{payload['family_name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower(),
@@ -125,14 +139,18 @@ class GoogleTasksTestCase(GoogleTestCase):
             self.assertEqual(
                 user.personal_email.lower(), keycloak_user["email"].lower()
             )
-            self.assertEqual(user.personal_email.lower(), payload["email"].lower())
+            self.assertEqual(
+                user.personal_email.lower(), payload["email"].lower()
+            )
             self.assertEqual(
                 user.google_account.organizational_unit,
                 payload["google_organizational_unit"],
             )
             self.assertTrue(bool(user.google_account.google_id))
             self.assertFalse(
-                GoogleSyncErrors.objects.filter(google_account__user=user).exists()
+                GoogleSyncErrors.objects.filter(
+                    google_account__user=user
+                ).exists()
             )
 
     @patch("services.google.tasks.update_google_user_task.delay")
@@ -143,7 +161,10 @@ class GoogleTasksTestCase(GoogleTestCase):
         group_1 = GoogleGroupFactory(organization=self.organization)
         group_2 = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
-            groups=[self.organization.get_users(), group_2.people_group.get_members()],
+            groups=[
+                self.organization.get_users(),
+                group_2.people_group.get_members(),
+            ]
         )
         payload = {
             "given_name": faker.first_name(),
@@ -153,7 +174,9 @@ class GoogleTasksTestCase(GoogleTestCase):
         mocked.side_effect = self.google_side_effect(
             [
                 self.update_google_user_success(),  # user is updated
-                self.list_google_groups_success([group_1]),  # user groups are fetched
+                self.list_google_groups_success(
+                    [group_1]
+                ),  # user groups are fetched
                 self.remove_user_from_group_success(),  # user is removed from group_1
                 self.add_user_to_group_success(
                     google_account
@@ -165,7 +188,9 @@ class GoogleTasksTestCase(GoogleTestCase):
                 GoogleService, "update_user", wraps=GoogleService.update_user
             ) as mocked_update_user,
             patch.object(
-                GoogleService, "get_user_groups", wraps=GoogleService.get_user_groups
+                GoogleService,
+                "get_user_groups",
+                wraps=GoogleService.get_user_groups,
             ) as mocked_get_user_groups,
             patch.object(
                 GoogleService,
@@ -180,7 +205,9 @@ class GoogleTasksTestCase(GoogleTestCase):
         ):
             with self.captureOnCommitCallbacks(execute=True):
                 response = self.client.patch(
-                    reverse("ProjectUser-detail", args=(google_account.user.id,)),
+                    reverse(
+                        "ProjectUser-detail", args=(google_account.user.id,)
+                    ),
                     data=payload,
                 )
             mocked_update_user.assert_called_once_with(google_account)
@@ -188,7 +215,9 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_remove_user_from_group.assert_called_once_with(
                 google_account, group_1
             )
-            mocked_add_user_to_group.assert_called_once_with(google_account, group_2)
+            mocked_add_user_to_group.assert_called_once_with(
+                google_account, group_2
+            )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             google_account.refresh_from_db()
             self.assertEqual(
@@ -200,13 +229,15 @@ class GoogleTasksTestCase(GoogleTestCase):
     @patch("services.google.interface.GoogleService.service")
     def test_suspend_google_account(self, mocked, mocked_delay):
         mocked_delay.side_effect = suspend_google_user_task
-        google_account = GoogleAccountFactory(groups=[self.organization.get_users()])
+        google_account = GoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         google_id = google_account.google_id
         mocked.side_effect = self.google_side_effect(
             [
                 self.update_google_user_success(
                     google_account, suspended=True
-                ),  # user is suspended
+                )  # user is suspended
             ]
         )
         with patch.object(
@@ -214,36 +245,41 @@ class GoogleTasksTestCase(GoogleTestCase):
         ) as mocked_suspend_user:
             with self.captureOnCommitCallbacks(execute=True):
                 response = self.client.delete(
-                    reverse("ProjectUser-detail", args=(google_account.user.id,))
+                    reverse(
+                        "ProjectUser-detail", args=(google_account.user.id,)
+                    )
                 )
             mocked_suspend_user.assert_called_once_with(google_account)
             self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-            self.assertFalse(GoogleAccount.objects.filter(google_id=google_id).exists())
+            self.assertFalse(
+                GoogleAccount.objects.filter(google_id=google_id).exists()
+            )
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_with_email(self, mocked, mocked_delay):
         mocked_delay.side_effect = create_google_group_task
-        google_user = GoogleAccountFactory(groups=[self.organization.get_users()])
+        google_user = GoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         payload = {
             "name": f"googlesync-{uuid.uuid4()}",
             "organization": self.organization.code,
             "create_in_google": True,
             "email": f"googlesync-{uuid.uuid4()}@{settings.GOOGLE_EMAIL_DOMAIN}",
             "description": "",
-            "team": {
-                "members": [google_user.user.id],
-            },
+            "team": {"members": [google_user.user.id]},
         }
         mocked.side_effect = self.google_side_effect(
             [
                 self.get_google_group_error(),  # group email is available
                 self.create_google_group_success(
-                    email=payload["email"],
-                    name=payload["name"],
+                    email=payload["email"], name=payload["name"]
                 ),  # group is created
                 self.add_group_alias_success(),  # alias is added
-                self.list_group_members_success([]),  # group members are fetched
+                self.list_group_members_success(
+                    []
+                ),  # group members are fetched
                 self.add_user_to_group_success(),  # user is added to group
             ]
         )
@@ -252,7 +288,9 @@ class GoogleTasksTestCase(GoogleTestCase):
                 GoogleService, "create_group", wraps=GoogleService.create_group
             ) as mocked_create_group,
             patch.object(
-                GoogleService, "add_group_alias", wraps=GoogleService.add_group_alias
+                GoogleService,
+                "add_group_alias",
+                wraps=GoogleService.add_group_alias,
             ) as mocked_add_group_alias,
             patch.object(
                 GoogleService,
@@ -275,16 +313,25 @@ class GoogleTasksTestCase(GoogleTestCase):
             people_group = PeopleGroup.objects.get(id=content["id"])
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
-            mocked_add_group_alias.assert_called_once_with(people_group.google_group)
-            mocked_get_group_members.assert_called_once_with(people_group.google_group)
+            mocked_add_group_alias.assert_called_once_with(
+                people_group.google_group
+            )
+            mocked_get_group_members.assert_called_once_with(
+                people_group.google_group
+            )
             mocked_add_user_to_group.assert_called_once_with(
                 google_user, people_group.google_group
             )
             self.assertEqual(
-                people_group.email.lower(), people_group.google_group.email.lower()
+                people_group.email.lower(),
+                people_group.google_group.email.lower(),
             )
-            self.assertEqual(people_group.email.lower(), content["email"].lower())
-            self.assertEqual(people_group.email.lower(), payload["email"].lower())
+            self.assertEqual(
+                people_group.email.lower(), content["email"].lower()
+            )
+            self.assertEqual(
+                people_group.email.lower(), payload["email"].lower()
+            )
             self.assertTrue(bool(people_group.google_group.google_id))
             self.assertFalse(
                 GoogleSyncErrors.objects.filter(
@@ -294,9 +341,13 @@ class GoogleTasksTestCase(GoogleTestCase):
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
-    def test_create_google_group_with_existing_email(self, mocked, mocked_delay):
+    def test_create_google_group_with_existing_email(
+        self, mocked, mocked_delay
+    ):
         mocked_delay.side_effect = create_google_group_task
-        existing_user = GoogleAccountFactory(groups=[self.organization.get_users()])
+        existing_user = GoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         existing_group = GoogleGroupFactory(organization=self.organization)
         payload = {
             "name": f"googlesync-{uuid.uuid4()}",
@@ -304,15 +355,13 @@ class GoogleTasksTestCase(GoogleTestCase):
             "create_in_google": True,
             "email": existing_group.email,
             "description": "",
-            "team": {
-                "members": [existing_user.user.id],
-            },
+            "team": {"members": [existing_user.user.id]},
         }
         mocked.side_effect = self.google_side_effect(
             [
                 self.get_google_group_success(
                     existing_group
-                ),  # group email is not available
+                )  # group email is not available
             ]
         )
         with (
@@ -320,7 +369,9 @@ class GoogleTasksTestCase(GoogleTestCase):
                 GoogleService, "create_group", wraps=GoogleService.create_group
             ) as mocked_create_group,
             patch.object(
-                GoogleService, "add_group_alias", wraps=GoogleService.add_group_alias
+                GoogleService,
+                "add_group_alias",
+                wraps=GoogleService.add_group_alias,
             ) as mocked_add_group_alias,
             patch.object(
                 GoogleService,
@@ -348,21 +399,23 @@ class GoogleTasksTestCase(GoogleTestCase):
             mocked_add_group_alias.assert_not_called()
             mocked_get_group_members.assert_not_called()
             mocked_add_user_to_group.assert_not_called()
-            self.assertFalse(PeopleGroup.objects.filter(name=payload["name"]).exists())
+            self.assertFalse(
+                PeopleGroup.objects.filter(name=payload["name"]).exists()
+            )
 
     @patch("services.google.tasks.create_google_group_task.delay")
     @patch("services.google.interface.GoogleService.service")
     def test_create_google_group_without_email(self, mocked, mocked_delay):
         mocked_delay.side_effect = create_google_group_task
-        google_user = GoogleAccountFactory(groups=[self.organization.get_users()])
+        google_user = GoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         payload = {
             "name": f"googlesync-{uuid.uuid4()}",
             "organization": self.organization.code,
             "create_in_google": True,
             "description": "",
-            "team": {
-                "members": [google_user.user.id],
-            },
+            "team": {"members": [google_user.user.id]},
         }
         mocked.side_effect = self.google_side_effect(
             [
@@ -373,7 +426,9 @@ class GoogleTasksTestCase(GoogleTestCase):
                     name=payload["name"],
                 ),  # group is created
                 self.add_group_alias_success(),  # alias is added
-                self.list_group_members_success([]),  # group members are fetched
+                self.list_group_members_success(
+                    []
+                ),  # group members are fetched
                 self.add_user_to_group_success(),  # user is added to group
             ]
         )
@@ -382,7 +437,9 @@ class GoogleTasksTestCase(GoogleTestCase):
                 GoogleService, "create_group", wraps=GoogleService.create_group
             ) as mocked_create_group,
             patch.object(
-                GoogleService, "add_group_alias", wraps=GoogleService.add_group_alias
+                GoogleService,
+                "add_group_alias",
+                wraps=GoogleService.add_group_alias,
             ) as mocked_add_group_alias,
             patch.object(
                 GoogleService,
@@ -405,15 +462,22 @@ class GoogleTasksTestCase(GoogleTestCase):
             people_group = PeopleGroup.objects.get(id=content["id"])
             self.assertIsNotNone(people_group.google_group)
             mocked_create_group.assert_called_once_with(people_group)
-            mocked_add_group_alias.assert_called_once_with(people_group.google_group)
-            mocked_get_group_members.assert_called_once_with(people_group.google_group)
+            mocked_add_group_alias.assert_called_once_with(
+                people_group.google_group
+            )
+            mocked_get_group_members.assert_called_once_with(
+                people_group.google_group
+            )
             mocked_add_user_to_group.assert_called_once_with(
                 google_user, people_group.google_group
             )
             self.assertEqual(
-                people_group.email.lower(), people_group.google_group.email.lower()
+                people_group.email.lower(),
+                people_group.google_group.email.lower(),
             )
-            self.assertEqual(people_group.email.lower(), content["email"].lower())
+            self.assertEqual(
+                people_group.email.lower(), content["email"].lower()
+            )
             self.assertEqual(
                 people_group.email.lower(),
                 f"{payload['name']}.1@{settings.GOOGLE_EMAIL_DOMAIN}".lower(),
@@ -439,15 +503,17 @@ class GoogleTasksTestCase(GoogleTestCase):
             ]
         )
 
-        payload = {
-            "name": f"{google_group.people_group.name}-updated",
-        }
+        payload = {"name": f"{google_group.people_group.name}-updated"}
         mocked.side_effect = self.google_side_effect(
             [
                 self.update_google_group_success(),  # group is updated
-                self.list_group_members_success([user_1]),  # group members are fetched
+                self.list_group_members_success(
+                    [user_1]
+                ),  # group members are fetched
                 self.remove_user_from_group_success(),  # user_2 is removed from group
-                self.add_user_to_group_success(user_2),  # user_1 is added to group
+                self.add_user_to_group_success(
+                    user_2
+                ),  # user_1 is added to group
             ]
         )
         with (
@@ -474,14 +540,21 @@ class GoogleTasksTestCase(GoogleTestCase):
                 response = self.client.patch(
                     reverse(
                         "PeopleGroup-detail",
-                        args=(self.organization.code, google_group.people_group.id),
+                        args=(
+                            self.organization.code,
+                            google_group.people_group.id,
+                        ),
                     ),
                     data=payload,
                 )
             mocked_update_group.assert_called_once_with(google_group)
             mocked_get_group_members.assert_called_once_with(google_group)
-            mocked_remove_user_from_group.assert_called_once_with(user_1, google_group)
-            mocked_add_user_to_group.assert_called_once_with(user_2, google_group)
+            mocked_remove_user_from_group.assert_called_once_with(
+                user_1, google_group
+            )
+            mocked_add_user_to_group.assert_called_once_with(
+                user_2, google_group
+            )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             google_group.refresh_from_db()
             self.assertEqual(google_group.people_group.name, payload["name"])

@@ -66,12 +66,14 @@ class RetrieveCommentImageTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("Comment-images-detail", args=(project.id, image.id)),
+                reverse("Comment-images-detail", args=(project.id, image.id))
             )
             if publication_status in retrieved_comments:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )
 
 
 class CreateCommentImageTestCase(JwtAPITestCase):
@@ -144,9 +146,13 @@ class CreateCommentImageTestCase(JwtAPITestCase):
                 self.assertEqual(content["scale_y"], payload["scale_y"])
                 self.assertEqual(content["left"], payload["left"])
                 self.assertEqual(content["top"], payload["top"])
-                self.assertEqual(content["natural_ratio"], payload["natural_ratio"])
+                self.assertEqual(
+                    content["natural_ratio"], payload["natural_ratio"]
+                )
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )
 
     def test_create_comment_image_anonymous(self):
         for project in self.projects.values():
@@ -207,8 +213,7 @@ class UpdateCommentImageTestCase(JwtAPITestCase):
         }
         response = self.client.patch(
             reverse(
-                "Comment-images-detail",
-                args=(self.project.id, self.image.id),
+                "Comment-images-detail", args=(self.project.id, self.image.id)
             ),
             data=payload,
             format="multipart",
@@ -256,7 +261,7 @@ class DeleteCommentImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse("Comment-images-detail", args=(self.project.id, image.id)),
+            reverse("Comment-images-detail", args=(self.project.id, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

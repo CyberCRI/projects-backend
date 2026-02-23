@@ -22,10 +22,7 @@ organization_router_register(
 )
 
 organization_router_register(
-    researcher_router,
-    r"document",
-    DocumentViewSet,
-    basename="CrisalidDocument",
+    researcher_router, r"document", DocumentViewSet, basename="CrisalidDocument"
 )
 
 organization_researcher_router_register(
@@ -57,6 +54,4 @@ organization_people_group_router_register(
     basename="GroupResearcherConferences",
 )
 
-urlpatterns = [
-    path("", include(researcher_router.urls)),
-]
+urlpatterns = [path("", include(researcher_router.urls))]

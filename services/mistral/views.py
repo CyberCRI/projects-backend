@@ -1,5 +1,3 @@
-from typing import List, Optional, Union
-
 from django.conf import settings
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
@@ -26,11 +24,9 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
     ordering_fields = []
     permission_classes = [ReadOnly]
     filterset_class = None
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
-    queryset: QuerySet[Union[Project, ProjectUser]]
-    serializer_class: Union[ProjectLightSerializer, UserLightSerializer]
+    multiple_lookup_fields = [(Project, "project_id")]
+    queryset: QuerySet[Project | ProjectUser]
+    serializer_class: ProjectLightSerializer | UserLightSerializer
 
     def _list(self, request, *args, **kwargs):
         """
@@ -46,7 +42,7 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    def get_user_embedding(self, user: ProjectUser) -> Optional[List[float]]:
+    def get_user_embedding(self, user: ProjectUser) -> list[float] | None:
         """
         Return the user's embedding.
         If the user is not authenticated, return None.
@@ -59,7 +55,7 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
             return embedding.embedding
         return None
 
-    def get_project_embedding(self, project: Project) -> Optional[List[float]]:
+    def get_project_embedding(self, project: Project) -> list[float] | None:
         """
         Return the project's embedding.
         If the embedding is None, create it and return it.
@@ -71,7 +67,7 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
 
     def get_queryset_for_project(
         self, project: Project
-    ) -> QuerySet[Union[Project, ProjectUser]]:
+    ) -> QuerySet[Project | ProjectUser]:
         """
         Return the queryset of objects to recommend for a given project.
         """
@@ -79,13 +75,13 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
 
     def get_queryset_for_user(
         self, user: ProjectUser
-    ) -> QuerySet[Union[Project, ProjectUser]]:
+    ) -> QuerySet[Project | ProjectUser]:
         """
         Return the queryset of objects to recommend for a given user.
         """
         raise NotImplementedError
 
-    def get_queryset(self) -> QuerySet[Union[Project, ProjectUser]]:
+    def get_queryset(self) -> QuerySet[Project | ProjectUser]:
         if "project_id" in self.kwargs:
             project = get_object_or_404(
                 self.request.user.get_project_queryset(),
@@ -100,7 +96,7 @@ class RecommendationsViewset(MultipleIDViewsetMixin, GenericViewSet):
     @redis_cache_viewset_method(
         "recommendations", settings.CACHE_RECOMMENDATION_POOL_TTL
     )
-    def get_queryset_pool_ids(self, pool: int) -> List[Union[str, int]]:
+    def get_queryset_pool_ids(self, pool: int) -> list[str | int]:
         queryset = self.get_queryset()[:pool]
         return list(queryset.values_list("id", flat=True))
 

@@ -6,7 +6,11 @@ from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
 from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
+from apps.feedbacks.factories import (
+    CommentFactory,
+    FollowFactory,
+    ReviewFactory,
+)
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
@@ -87,11 +91,15 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         for user_type, user in self.users.items():
-            response = self.client.get(reverse("ProjectUser-detail", args=(user.id,)))
+            response = self.client.get(
+                reverse("ProjectUser-detail", args=(user.id,))
+            )
             if user_type in expected_users:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )
 
     @parameterized.expand(
         [
@@ -115,7 +123,10 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             self.assertEqual(len(content), len(expected_users) + 1)
             self.assertEqual(
                 {user["id"] for user in content},
-                {user.id, *[self.users[user_type].id for user_type in expected_users]},
+                {
+                    user.id,
+                    *[self.users[user_type].id for user_type in expected_users],
+                },
             )
         else:
             self.assertEqual(len(content), len(expected_users))
@@ -139,14 +150,18 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Project-detail", args=(self.project.pk,)))
+        response = self.client.get(
+            reverse("Project-detail", args=(self.project.pk,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(len(content["team"]["members"]), len(expected_users))
         self.assertEqual(
             {user["id"] for user in content["team"]["members"]},
             {
-                self.users[user_type].id if user_type in expected_users else None
+                self.users[user_type].id
+                if user_type in expected_users
+                else None
                 for user_type in self.users.keys()
             },
         )
@@ -169,10 +184,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "PeopleGroup-member",
-                args=(
-                    organization.code,
-                    self.people_group.pk,
-                ),
+                args=(organization.code, self.people_group.pk),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -181,7 +193,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         self.assertEqual(
             {user["id"] for user in content},
             {
-                self.users[user_type].id if user_type in expected_users else None
+                self.users[user_type].id
+                if user_type in expected_users
+                else None
                 for user_type in self.users.keys()
             },
         )
@@ -201,7 +215,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Comment-list", args=(self.project.id,)))
+        response = self.client.get(
+            reverse("Comment-list", args=(self.project.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
@@ -232,7 +248,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Followed-list", args=(self.project.id,)))
+        response = self.client.get(
+            reverse("Followed-list", args=(self.project.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
@@ -263,7 +281,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("Reviewed-list", args=(self.project.id,)))
+        response = self.client.get(
+            reverse("Reviewed-list", args=(self.project.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
@@ -301,7 +321,10 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertEqual(len(content), len(expected_users))
         self.assertEqual(
-            {(invitation["owner"]["id"], invitation["id"]) for invitation in content},
+            {
+                (invitation["owner"]["id"], invitation["id"])
+                for invitation in content
+            },
             {
                 (
                     (self.users[user_type].id, self.invitations[user_type].id)
@@ -370,7 +393,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
-        other_user = UserFactory(publication_status=PrivacySettings.PrivacyChoices.HIDE)
+        other_user = UserFactory(
+            publication_status=PrivacySettings.PrivacyChoices.HIDE
+        )
         users = [*self.users.values(), other_user]
         for user in users:
             response = self.client.get(
@@ -392,7 +417,9 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
                     self.assertEqual(content["current_org_role"], None)
                     self.assertEqual(content_2["current_org_role"], None)
                 else:
-                    self.assertEqual(content["current_org_role"], GroupData.Role.USERS)
+                    self.assertEqual(
+                        content["current_org_role"], GroupData.Role.USERS
+                    )
                     self.assertEqual(
                         content_2["current_org_role"], GroupData.Role.USERS
                     )

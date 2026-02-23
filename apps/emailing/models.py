@@ -37,7 +37,9 @@ class Email(models.Model):
 
     subject = models.CharField(max_length=255, blank=True, default="")
     content = models.TextField(blank=True, default="")
-    images = models.ManyToManyField("files.Image", related_name="emails", blank=True)
+    images = models.ManyToManyField(
+        "files.Image", related_name="emails", blank=True
+    )
     recipients = models.ManyToManyField(
         "accounts.ProjectUser", related_name="+", blank=True
     )
@@ -83,7 +85,9 @@ class Email(models.Model):
                 ):
                     send_email(subject, text, [user.email], html_content=html)
                 else:
-                    send_email(subject, text, [user.personal_email], html_content=html)
+                    send_email(
+                        subject, text, [user.personal_email], html_content=html
+                    )
                 users_sent.append(user)
             except SMTPException as e:
                 logger.error(f"Failed to send email to user {user.email} : {e}")
@@ -92,7 +96,9 @@ class Email(models.Model):
 
     def send_test(self, user: "ProjectUser"):
         for language in settings.REQUIRED_LANGUAGES:
-            subject = f"[TEST {language}]" + getattr(self, f"subject_{language}")
+            subject = f"[TEST {language}]" + getattr(
+                self, f"subject_{language}"
+            )
             context = {
                 "message": getattr(self, f"content_{language}"),
                 "recipient": user,
@@ -100,7 +106,12 @@ class Email(models.Model):
             text, html = render_message(
                 f"contact/contact/{self.template}", user.language, **context
             )
-            if self.send_to == self.EmailTypeChoices.PRIMARY or not user.personal_email:
+            if (
+                self.send_to == self.EmailTypeChoices.PRIMARY
+                or not user.personal_email
+            ):
                 send_email(subject, text, [user.email], html_content=html)
             else:
-                send_email(subject, text, [user.personal_email], html_content=html)
+                send_email(
+                    subject, text, [user.personal_email], html_content=html
+                )

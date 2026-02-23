@@ -115,7 +115,9 @@ class PaginatedViewSet(viewsets.ViewSet):
         """
         if self.paginator is None:
             return None
-        return self.paginator.paginate_queryset(queryset, self.request, view=self)
+        return self.paginator.paginate_queryset(
+            queryset, self.request, view=self
+        )
 
     def get_paginated_response(self, data):
         """
@@ -128,7 +130,11 @@ class PaginatedViewSet(viewsets.ViewSet):
         """
         Extra context provided to the serializer class.
         """
-        return {"request": self.request, "format": self.format_kwarg, "view": self}
+        return {
+            "request": self.request,
+            "format": self.format_kwarg,
+            "view": self,
+        }
 
     def get_paginated_list(self, queryset):
         page = self.paginate_queryset(queryset)

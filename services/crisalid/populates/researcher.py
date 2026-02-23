@@ -21,18 +21,16 @@ class PopulateResearcher(AbstractPopulate):
 
         return given_name, family_name
 
-    def create_user(self, eppn: str, given_name: str, family_name: str) -> ProjectUser:
-
+    def create_user(
+        self, eppn: str, given_name: str, family_name: str
+    ) -> ProjectUser:
         # filter by eppn
         user = self.cache.model(ProjectUser, email=eppn)
 
         if not user.pk:
             # create only user if we have eppn
             self.cache.save(
-                user,
-                email=eppn,
-                given_name=given_name,
-                family_name=family_name,
+                user, email=eppn, given_name=given_name, family_name=family_name
             )
             # researcher is hidden by default
             self.cache.save(
@@ -68,7 +66,9 @@ class PopulateResearcher(AbstractPopulate):
         return None
 
     def single(self, data: dict) -> Researcher | None:
-        researcher_identifiers = self.populate_identifiers.multiple(data["identifiers"])
+        researcher_identifiers = self.populate_identifiers.multiple(
+            data["identifiers"]
+        )
 
         # researcher withtout any identifiers no neeeeeeed to be created
         if not researcher_identifiers:
@@ -91,7 +91,10 @@ class PopulateResearcher(AbstractPopulate):
         )
 
         self.cache.save(
-            researcher, given_name=given_name, family_name=family_name, user=user
+            researcher,
+            given_name=given_name,
+            family_name=family_name,
+            user=user,
         )
         self.cache.save_m2m(researcher, identifiers=researcher_identifiers)
 

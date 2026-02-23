@@ -25,18 +25,11 @@ organization_router_register(
     basename="TagClassification",
 )
 
-router.register(
-    r"tag",
-    ReadTagViewSet,
-    basename="ReadTag",
-)
+router.register(r"tag", ReadTagViewSet, basename="ReadTag")
 
 
 organization_router_register(
-    router,
-    r"tag",
-    TagViewSet,
-    basename="OrganizationTag",
+    router, r"tag", TagViewSet, basename="OrganizationTag"
 )
 
 organization_router_register(
@@ -56,15 +49,9 @@ organization_router_register(
 )
 
 organization_user_router_register(
-    router,
-    r"",
-    UserMentorshipViewset,
-    basename="UserMentorship",
+    router, r"", UserMentorshipViewset, basename="UserMentorship"
 )
 
 organization_router_register(
-    router,
-    r"mentoring",
-    MentoringViewSet,
-    basename="Mentoring",
+    router, r"mentoring", MentoringViewSet, basename="Mentoring"
 )

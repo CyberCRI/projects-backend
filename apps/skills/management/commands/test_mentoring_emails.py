@@ -45,11 +45,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-contact-mentor",
-                args=(
-                    organization.code,
-                    skill.id,
-                ),
+                "Mentoring-contact-mentor", args=(organization.code, skill.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -67,11 +63,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-contact-mentor",
-                args=(
-                    organization.code,
-                    skill.id,
-                ),
+                "Mentoring-contact-mentor", args=(organization.code, skill.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -89,11 +81,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-contact-mentoree",
-                args=(
-                    organization.code,
-                    skill.id,
-                ),
+                "Mentoring-contact-mentoree", args=(organization.code, skill.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -111,11 +99,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-contact-mentoree",
-                args=(
-                    organization.code,
-                    skill.id,
-                ),
+                "Mentoring-contact-mentoree", args=(organization.code, skill.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -136,11 +120,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -161,11 +141,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -186,11 +162,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -211,11 +183,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -236,11 +204,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -261,11 +225,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -286,11 +246,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -311,11 +267,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -336,11 +288,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -361,11 +309,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},
@@ -386,11 +330,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {french_token}"},
@@ -411,11 +351,7 @@ class Command(BaseCommand):
         response = requests.post(
             "http://localhost:8000"
             + reverse(
-                "Mentoring-respond",
-                args=(
-                    organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(organization.code, mentoring.id)
             ),
             data=payload,
             headers={"Authorization": f"Bearer {english_token}"},

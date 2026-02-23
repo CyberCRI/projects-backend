@@ -1,9 +1,7 @@
-from typing import List
-
 from apps.organizations.models import Organization, ProjectCategory
 
 
-def get_below_hierarchy_codes(codes: List[str]) -> List[str]:
+def get_below_hierarchy_codes(codes: list[str]) -> list[str]:
     """
     Get all the codes of the organizations below in the hierarchy of the given codes
     """
@@ -18,7 +16,7 @@ def get_below_hierarchy_codes(codes: List[str]) -> List[str]:
     return hierarchy_codes
 
 
-def get_above_hierarchy_codes(codes: List[str]) -> List[str]:
+def get_above_hierarchy_codes(codes: list[str]) -> list[str]:
     """
     Get all the codes of the organizations above in the hierarchy of the given codes
     """
@@ -34,7 +32,7 @@ def get_above_hierarchy_codes(codes: List[str]) -> List[str]:
     return hierarchy_codes
 
 
-def get_below_categories_hierarchy_ids(ids: List[int]) -> List[int]:
+def get_below_categories_hierarchy_ids(ids: list[int]) -> list[int]:
     """
     Get all the ids of the categories below in the hierarchy of the given ids
     """
@@ -49,7 +47,7 @@ def get_below_categories_hierarchy_ids(ids: List[int]) -> List[int]:
     return hierarchy_ids
 
 
-def get_above_categories_hierarchy_ids(ids: List[int]) -> List[int]:
+def get_above_categories_hierarchy_ids(ids: list[int]) -> list[int]:
     """
     Get all the ids of the categories above in the hierarchy of the given ids
     """

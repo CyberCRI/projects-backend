@@ -9,7 +9,10 @@ from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import _notify_new_blogentry, _notify_project_changes
+from apps.notifications.tasks import (
+    _notify_new_blogentry,
+    _notify_project_changes,
+)
 from apps.organizations.factories import (
     CategoryFollowFactory,
     OrganizationFactory,
@@ -26,7 +29,9 @@ class ProjectChangesTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -46,8 +51,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
         payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)),
-            data=payload,
+            reverse("Project-detail", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         notification_task.assert_called_once_with(
@@ -68,7 +72,9 @@ class ProjectChangesTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -84,9 +90,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk,
-            {"title": (project.title, faker.sentence())},
-            sender.pk,
+            project.pk, {"title": (project.title, faker.sentence())}, sender.pk
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -100,7 +104,9 @@ class ProjectChangesTestCase(JwtAPITestCase):
             parent_category_follower,
         ]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.PROJECT_UPDATED)
+            self.assertEqual(
+                notification.type, Notification.Types.PROJECT_UPDATED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -130,7 +136,9 @@ class ProjectChangesTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -146,9 +154,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk,
-            {"title": (project.title, faker.sentence())},
-            sender.pk,
+            project.pk, {"title": (project.title, faker.sentence())}, sender.pk
         )
         _notify_project_changes(
             project.pk,
@@ -167,7 +173,9 @@ class ProjectChangesTestCase(JwtAPITestCase):
             parent_category_follower,
         ]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.PROJECT_UPDATED)
+            self.assertEqual(
+                notification.type, Notification.Types.PROJECT_UPDATED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -195,7 +203,9 @@ class NewBlogEntryTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -238,7 +248,9 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -295,7 +307,9 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )

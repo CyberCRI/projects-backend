@@ -37,7 +37,9 @@ class CreateInstructionImageTestCase(JwtAPITestCase):
         instruction = InstructionFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.people_group]
+        )
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -81,8 +83,7 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.image = cls.get_test_image()
         cls.instruction = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
         cls.instruction.images.add(cls.image)
 
@@ -100,7 +101,9 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_instruction_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.people_group]
+        )
         self.client.force_authenticate(user)
         payload = {
             "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
@@ -112,7 +115,11 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Instruction-images-detail",
-                args=(self.organization.code, self.instruction.id, self.image.id),
+                args=(
+                    self.organization.code,
+                    self.instruction.id,
+                    self.image.id,
+                ),
             ),
             data=payload,
             format="multipart",
@@ -123,7 +130,9 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
             self.assertEqual(response.json()["scale_y"], payload["scale_y"])
             self.assertEqual(response.json()["left"], payload["left"])
             self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
+            self.assertEqual(
+                response.json()["natural_ratio"], payload["natural_ratio"]
+            )
 
 
 class DeleteInstructionImageTestCase(JwtAPITestCase):
@@ -133,8 +142,7 @@ class DeleteInstructionImageTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.instruction = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
 
     @parameterized.expand(
@@ -153,18 +161,22 @@ class DeleteInstructionImageTestCase(JwtAPITestCase):
     def test_delete_instruction_image(self, role, expected_code):
         image = self.get_test_image()
         self.instruction.images.add(image)
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.people_group]
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
                 "Instruction-images-detail",
                 args=(self.organization.code, self.instruction.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.instruction.refresh_from_db()
-            self.assertFalse(self.instruction.images.filter(id=image.id).exists())
+            self.assertFalse(
+                self.instruction.images.filter(id=image.id).exists()
+            )
 
 
 class RetrieveInstructionImageTestCase(JwtAPITestCase):
@@ -226,10 +238,7 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
                 "instruction": cls.none_instruction,
                 "image": cls.none_image,
             },
-            "all": {
-                "instruction": cls.all_instruction,
-                "image": cls.all_image,
-            },
+            "all": {"instruction": cls.all_instruction, "image": cls.all_image},
             "public": {
                 "instruction": cls.public_instruction,
                 "image": cls.public_image,
@@ -238,10 +247,7 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
                 "instruction": cls.private_instruction,
                 "image": cls.private_image,
             },
-            "org": {
-                "instruction": cls.org_instruction,
-                "image": cls.org_image,
-            },
+            "org": {"instruction": cls.org_instruction, "image": cls.org_image},
         }
 
     @parameterized.expand(
@@ -250,7 +256,10 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),
@@ -275,4 +284,6 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
             if key in retrieved_instructions:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )

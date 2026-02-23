@@ -1,6 +1,5 @@
 import gc
 import logging
-from typing import Dict, List
 
 from django.conf import settings
 
@@ -66,8 +65,8 @@ def update_esco_data(force_update: bool = False, garbage_collect_frequency: int 
 
 
 def set_default_language_title_and_description(
-    tag_data: Dict[str, str], default_language: str = "en"
-) -> Dict[str, str]:
+    tag_data: dict[str, str], default_language: str = "en"
+) -> dict[str, str]:
     """
     Make sure that the default language title and description are set in
     the tag data used to update or create the tag.
@@ -86,16 +85,14 @@ def set_default_language_title_and_description(
     return tag_data
 
 
-def update_or_create_wikipedia_tags(wikipedia_qids: List[str]) -> List[Tag]:
+def update_or_create_wikipedia_tags(wikipedia_qids: list[str]) -> list[Tag]:
     data = WikipediaService.get_by_ids(wikipedia_qids)
     data = [set_default_language_title_and_description(tag) for tag in data]
     tags = []
     for tag in data:
         external_id = tag.pop("external_id")
         tag, _ = Tag.objects.update_or_create(
-            external_id=external_id,
-            type=Tag.TagType.WIKIPEDIA,
-            defaults=tag,
+            external_id=external_id, type=Tag.TagType.WIKIPEDIA, defaults=tag
         )
         tags.append(tag)
     classification = TagClassification.get_or_create_default_classification(

@@ -39,11 +39,10 @@ class CreateProjectMessageTestCase(JwtAPITestCase):
     def test_create_project_message(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "content": faker.text(),
-        }
+        payload = {"content": faker.text()}
         response = self.client.post(
-            reverse("ProjectMessage-list", args=(self.project.id,)), data=payload
+            reverse("ProjectMessage-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -70,12 +69,10 @@ class CreateProjectMessageTestCase(JwtAPITestCase):
     def test_create_project_message_reply(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "content": faker.text(),
-            "reply_on": self.reply_on.id,
-        }
+        payload = {"content": faker.text(), "reply_on": self.reply_on.id}
         response = self.client.post(
-            reverse("ProjectMessage-list", args=(self.project.id,)), data=payload
+            reverse("ProjectMessage-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -125,7 +122,7 @@ class RetrieveProjectMessageTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("ProjectMessage-list", args=(self.project.id,)),
+            reverse("ProjectMessage-list", args=(self.project.id,))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -170,12 +167,11 @@ class UpdateProjectMessageTestCase(JwtAPITestCase):
     def test_update_project_message(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "content": faker.text(),
-        }
+        payload = {"content": faker.text()}
         response = self.client.patch(
             reverse(
-                "ProjectMessage-detail", args=(self.project.id, self.project_message.id)
+                "ProjectMessage-detail",
+                args=(self.project.id, self.project_message.id),
             ),
             data=payload,
         )
@@ -214,12 +210,15 @@ class DeleteProjectMessageTestCase(JwtAPITestCase):
         project_message = ProjectMessageFactory(project=self.project)
         response = self.client.delete(
             reverse(
-                "ProjectMessage-detail", args=(self.project.id, project_message.id)
-            ),
+                "ProjectMessage-detail",
+                args=(self.project.id, project_message.id),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            project_message = ProjectMessage.objects.filter(id=project_message.id)
+            project_message = ProjectMessage.objects.filter(
+                id=project_message.id
+            )
             self.assertTrue(project_message.exists())
             project_message = project_message.get()
             self.assertIsNotNone(project_message.deleted_at)

@@ -14,5 +14,6 @@ class SignalsTestCase(JwtAPITestCase):
             NotificationSettings.objects.count(), ProjectUser.objects.count()
         )
         self.assertEqual(
-            NotificationSettings.objects.get(user=user), user.notification_settings
+            NotificationSettings.objects.get(user=user),
+            user.notification_settings,
         )

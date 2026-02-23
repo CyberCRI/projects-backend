@@ -49,11 +49,15 @@ class NewAccessRequestTestCase(JwtAPITestCase):
         access_request = AccessRequestFactory(organization=self.organization)
         _notify_new_access_request(access_request.pk)
 
-        notifications = Notification.objects.filter(organization=self.organization)
+        notifications = Notification.objects.filter(
+            organization=self.organization
+        )
         self.assertEqual(notifications.count(), 2)
         for user in [notified, not_notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.ACCESS_REQUEST)
+            self.assertEqual(
+                notification.type, Notification.Types.ACCESS_REQUEST
+            )
             self.assertEqual(notification.project, None)
             self.assertEqual(notification.to_send, False)
             self.assertFalse(notification.is_viewed)
@@ -80,11 +84,15 @@ class NewAccessRequestTestCase(JwtAPITestCase):
         _notify_new_access_request(access_requests[0].pk)
         _notify_new_access_request(access_requests[1].pk)
 
-        notifications = Notification.objects.filter(organization=self.organization)
+        notifications = Notification.objects.filter(
+            organization=self.organization
+        )
         self.assertEqual(notifications.count(), 2)
         for user in [notified, not_notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.ACCESS_REQUEST)
+            self.assertEqual(
+                notification.type, Notification.Types.ACCESS_REQUEST
+            )
             self.assertEqual(notification.project, None)
             self.assertEqual(notification.to_send, False)
             self.assertFalse(notification.is_viewed)

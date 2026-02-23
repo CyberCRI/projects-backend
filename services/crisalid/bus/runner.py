@@ -25,9 +25,7 @@ class OrganizationClient:
 
         self.logger.info("Start thread %s", thread_name)
         self.thread = threading.Thread(
-            target=self.client.connect,
-            name=thread_name,
-            daemon=True,
+            target=self.client.connect, name=thread_name, daemon=True
         )
         self.thread.start()
 
@@ -50,9 +48,9 @@ def start_crisalidbus(config: CrisalidConfig):
         if client is not None:
             stop_crisalidbus(client.config)
 
-        assert (
-            config.active is True
-        ), f"can't instanciate crisalidBus for {config.organization.code=}, active=False"
+        assert config.active is True, (
+            f"can't instanciate crisalidBus for {config.organization.code=}, active=False"
+        )
 
         client = OrganizationClient(config)
         CLIENTS_ORGA_MAPS[config.organization.code] = client

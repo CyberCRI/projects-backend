@@ -14,7 +14,11 @@ from apps.commons.mixins import HasPermissionsSetup
 from apps.invitations.models import Invitation
 from services.keycloak.interface import KeycloakService
 
-from .exceptions import InactiveUserError, InvalidInvitationError, InvalidTokenError
+from .exceptions import (
+    InactiveUserError,
+    InvalidInvitationError,
+    InvalidTokenError,
+)
 from .models import InvitationUser, ProjectUser
 
 logger = logging.getLogger(__name__)
@@ -102,8 +106,8 @@ class ProjectJWTAuthentication(JWTAuthentication):
         """
         try:
             user_id = validated_token[api_settings.USER_ID_CLAIM]
-        except KeyError:
-            raise InvalidTokenError
+        except KeyError as err:
+            raise InvalidTokenError from err
         try:
             user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
         except self.user_model.DoesNotExist:

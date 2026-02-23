@@ -6,8 +6,5 @@ from .models import Email
 
 @register(Email)
 class EmailTranslationOptions(TranslationOptions):
-    fields = (
-        "subject",
-        "content",
-    )
+    fields = ("subject", "content")
     required_languages = settings.REQUIRED_LANGUAGES

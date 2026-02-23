@@ -14,22 +14,9 @@ from .models import Organization, ProjectCategory, Template, TemplateCategories
 
 @admin.register(Organization)
 class OrganizationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
-    list_display = (
-        "code",
-        "name",
-        "website_url",
-        "contact_email",
-    )
-    readonly_fields = (
-        "groups",
-        "images",
-    )
-    search_fields = (
-        "code",
-        "name",
-        "website_url",
-        "contact_email",
-    )
+    list_display = ("code", "name", "website_url", "contact_email")
+    readonly_fields = ("groups", "images")
+    search_fields = ("code", "name", "website_url", "contact_email")
     filter_horizontal = (
         "identity_providers",
         "featured_projects",
@@ -57,11 +44,7 @@ class OrganizationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 class TemplateAdmin(
     TranslateObjectAdminMixin, ProjectTemplateExportMixin, RoleBasedAccessAdmin
 ):
-    list_display = (
-        "id",
-        "display_organization",
-        "display_templates",
-    )
+    list_display = ("id", "display_organization", "display_templates")
     list_filter = ("categories__organization",)
     actions = ["export_data"]
 
@@ -72,10 +55,14 @@ class TemplateAdmin(
 
     def get_queryset(self, request) -> QuerySet:
         return (
-            super().get_queryset(request).prefetch_related("categories__organization")
+            super()
+            .get_queryset(request)
+            .prefetch_related("categories__organization")
         )
 
-    @admin.display(description="categories associates", ordering="categories__name")
+    @admin.display(
+        description="categories associates", ordering="categories__name"
+    )
     def display_templates(self, instance: Template):
         names = [o.name for o in instance.categories.all()]
         return " / ".join(names)
@@ -88,12 +75,16 @@ class TemplateAdmin(
         return " / ".join(set(names))
 
     def get_queryset_for_organizations(
-        self, queryset: QuerySet[Template], organizations: QuerySet[Organization]
+        self,
+        queryset: QuerySet[Template],
+        organizations: QuerySet[Organization],
     ) -> QuerySet[Template]:
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
-        return queryset.filter(categories__organization__in=organizations).distinct()
+        return queryset.filter(
+            categories__organization__in=organizations
+        ).distinct()
 
 
 @admin.register(ProjectCategory)
@@ -103,7 +94,9 @@ class ProjectCategoryAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return (
-            super().get_queryset(request).annotate(count_templates=Count("templates"))
+            super()
+            .get_queryset(request)
+            .annotate(count_templates=Count("templates"))
         )
 
     @admin.display(description="numbers templates", ordering="count_templates")

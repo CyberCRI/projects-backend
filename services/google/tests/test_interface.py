@@ -1,6 +1,6 @@
 import time
 import uuid
-from typing import Callable
+from collections.abc import Callable
 
 from django.conf import settings
 from keycloak import KeycloakGetError
@@ -49,7 +49,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
             GoogleService.delete_group(google_group)
         return super().tearDownClass()
 
-    def retry_test_assertion(self, func: Callable, retries: int = 30, delay: int = 2):
+    def retry_test_assertion(
+        self, func: Callable, retries: int = 30, delay: int = 2
+    ):
         for _ in range(retries):
             try:
                 func()
@@ -59,17 +61,23 @@ class GoogleServiceTestCase(JwtAPITestCase):
         func()
 
     def test_get_user_by_id(self):
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
 
         def test_result():
-            google_user = GoogleService.get_user_by_id(user.google_account.google_id)
+            google_user = GoogleService.get_user_by_id(
+                user.google_account.google_id
+            )
             self.assertIsNotNone(google_user)
             self.assertEqual(google_user["id"], user.google_account.google_id)
 
         self.retry_test_assertion(test_result)
 
     def test_get_user_by_email(self):
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
 
         def test_result():
             google_user = GoogleService.get_user_by_email(user.email)
@@ -88,14 +96,18 @@ class GoogleServiceTestCase(JwtAPITestCase):
             google_user = GoogleService.get_user_by_id(response["id"])
             self.assertIsNotNone(google_user)
             self.assertIsNotNone(google_user["id"])
-            self.assertEqual(google_user["orgUnitPath"], "/CRI/Test Google Sync")
+            self.assertEqual(
+                google_user["orgUnitPath"], "/CRI/Test Google Sync"
+            )
             self.assertTrue(
                 google_user["primaryEmail"].startswith(
                     f"test.{user.given_name}.{user.family_name}".lower()
                 )
             )
             self.assertEqual(google_user["name"]["givenName"], user.given_name)
-            self.assertEqual(google_user["name"]["familyName"], user.family_name)
+            self.assertEqual(
+                google_user["name"]["familyName"], user.family_name
+            )
 
         self.retry_test_assertion(test_result)
         GoogleService.service().users().delete(userKey=response["id"]).execute()
@@ -110,15 +122,21 @@ class GoogleServiceTestCase(JwtAPITestCase):
         GoogleService.update_user(user.google_account)
 
         def test_result():
-            google_user = GoogleService.get_user_by_email(user.google_account.email)
+            google_user = GoogleService.get_user_by_email(
+                user.google_account.email
+            )
             self.assertIsNotNone(google_user)
             self.assertEqual(google_user["name"]["familyName"], "test update")
-            self.assertEqual(google_user["orgUnitPath"], "/CRI/Test Google Sync Update")
+            self.assertEqual(
+                google_user["orgUnitPath"], "/CRI/Test Google Sync Update"
+            )
 
         self.retry_test_assertion(test_result)
 
     def test_suspend_user(self):
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         GoogleService.suspend_user(user.google_account)
 
         def test_result():
@@ -129,7 +147,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         self.retry_test_assertion(test_result)
 
     def test_delete_user(self):
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         GoogleService.delete_user(user.google_account)
 
         def test_result():
@@ -139,7 +159,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         self.retry_test_assertion(test_result)
 
     def test_add_user_alias(self):
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         GoogleService.add_user_alias(user.google_account)
         alias = user.email.replace(
             settings.GOOGLE_EMAIL_DOMAIN, settings.GOOGLE_EMAIL_ALIAS_DOMAIN
@@ -154,20 +176,28 @@ class GoogleServiceTestCase(JwtAPITestCase):
         self.retry_test_assertion(test_result)
 
     def test_get_user_groups(self):
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         group_1 = RemoteGoogleGroupFactory(organization=self.organization)
         group_2 = RemoteGoogleGroupFactory(organization=self.organization)
-        GoogleService.add_user_to_group(user.google_account, group_1.google_group)
-        GoogleService.add_user_to_group(user.google_account, group_2.google_group)
+        GoogleService.add_user_to_group(
+            user.google_account, group_1.google_group
+        )
+        GoogleService.add_user_to_group(
+            user.google_account, group_2.google_group
+        )
 
         def test_result():
             google_groups = GoogleService.get_user_groups(user.google_account)
             self.assertIsNotNone(google_groups)
             self.assertIn(
-                group_1.google_group.google_id, [group["id"] for group in google_groups]
+                group_1.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
             self.assertIn(
-                group_2.google_group.google_id, [group["id"] for group in google_groups]
+                group_2.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
 
         self.retry_test_assertion(test_result)
@@ -186,7 +216,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
         group = RemoteGoogleGroupFactory(organization=self.organization)
 
         def test_result():
-            google_group = GoogleService.get_group_by_id(group.google_group.google_id)
+            google_group = GoogleService.get_group_by_id(
+                group.google_group.google_id
+            )
             self.assertIsNotNone(google_group)
             self.assertEqual(google_group["id"], group.google_group.google_id)
 
@@ -201,17 +233,21 @@ class GoogleServiceTestCase(JwtAPITestCase):
             self.assertNotEqual(google_groups, [])
             self.assertGreater(len(google_groups), 0)
             self.assertIn(
-                group_1.google_group.google_id, [group["id"] for group in google_groups]
+                group_1.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
             self.assertIn(
-                group_2.google_group.google_id, [group["id"] for group in google_groups]
+                group_2.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
 
         self.retry_test_assertion(test_result)
 
     def test_create_group(self):
         group = PeopleGroupFactory(
-            organization=self.organization, email="", name=f"googlesync-{uuid.uuid4()}"
+            organization=self.organization,
+            email="",
+            name=f"googlesync-{uuid.uuid4()}",
         )
         response = GoogleService.create_group(group)
 
@@ -227,7 +263,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
             self.assertEqual(google_group["name"], group.name)
 
         self.retry_test_assertion(test_result)
-        GoogleService.service().groups().delete(groupKey=response["id"]).execute()
+        GoogleService.service().groups().delete(
+            groupKey=response["id"]
+        ).execute()
 
     def test_create_group_with_email(self):
         group = PeopleGroupFactory(
@@ -285,10 +323,18 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
     def test_get_group_members(self):
         group = RemoteGoogleGroupFactory(organization=self.organization)
-        user_1 = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
-        user_2 = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
-        GoogleService.add_user_to_group(user_1.google_account, group.google_group)
-        GoogleService.add_user_to_group(user_2.google_account, group.google_group)
+        user_1 = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
+        user_2 = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
+        GoogleService.add_user_to_group(
+            user_1.google_account, group.google_group
+        )
+        GoogleService.add_user_to_group(
+            user_2.google_account, group.google_group
+        )
 
         def test_result():
             google_members = GoogleService.get_group_members(group.google_group)
@@ -306,7 +352,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
 
     def test_add_and_remove_user_to_group(self):
         group = RemoteGoogleGroupFactory(organization=self.organization)
-        user = RemoteGoogleAccountFactory(groups=[self.organization.get_users()])
+        user = RemoteGoogleAccountFactory(
+            groups=[self.organization.get_users()]
+        )
         GoogleService.add_user_to_group(user.google_account, group.google_group)
 
         def test_add_result():
@@ -318,7 +366,9 @@ class GoogleServiceTestCase(JwtAPITestCase):
             )
 
         self.retry_test_assertion(test_add_result)
-        GoogleService.remove_user_from_group(user.google_account, group.google_group)
+        GoogleService.remove_user_from_group(
+            user.google_account, group.google_group
+        )
 
         def test_remove_result():
             google_members = GoogleService.get_group_members(group.google_group)

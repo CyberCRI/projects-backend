@@ -34,7 +34,9 @@ organization_router_register(
 organization_router_register(
     router, r"category", ProjectCategoryViewSet, basename="Category"
 )
-organization_router_register(router, r"template", TemplateViewSet, basename="Template")
+organization_router_register(
+    router, r"template", TemplateViewSet, basename="Template"
+)
 organization_router_register(
     router,
     r"category/(?P<category_id>[^/]+)/background",
@@ -69,10 +71,7 @@ organization_router_register(
     basename="TermsAndConditions",
 )
 user_router_register(
-    router,
-    r"category-follow",
-    CategoryFollowViewset,
-    basename="CategoryFollow",
+    router, r"category-follow", CategoryFollowViewset, basename="CategoryFollow"
 )
 
 one_to_one_router = OneToOneRouter()
@@ -80,5 +79,8 @@ organization_people_group_router_register(
     one_to_one_router, r"logo", PeopleGroupLogoView, basename="PeopleGroup-logo"
 )
 organization_people_group_router_register(
-    one_to_one_router, r"header", PeopleGroupHeaderView, basename="PeopleGroup-header"
+    one_to_one_router,
+    r"header",
+    PeopleGroupHeaderView,
+    basename="PeopleGroup-header",
 )

@@ -11,8 +11,7 @@ class CrisalidService:
 
     def __init__(self, config: CrisalidConfig):
         self.transport = RequestsHTTPTransport(
-            url=config.apollo_url,
-            headers={"X-API-Key": config.apollo_token},
+            url=config.apollo_url, headers={"X-API-Key": config.apollo_token}
         )
         self.client = Client(
             transport=self.transport, fetch_schema_from_transport=False
@@ -45,7 +44,7 @@ class CrisalidService:
             - kwargs: Additional query parameters.
 
         Returns:
-            - Tuple[List[Dict[str, Any]], Optional[int]]: The list of people and the
+            - Tuple[List[Dict[str, Any]], int | None]: The list of people and the
                 next page offset.
         """
         response = self.query("people", limit=limit, offset=offset, **kwargs)
@@ -83,7 +82,7 @@ class CrisalidService:
             - kwargs: Additional query parameters.
 
         Returns:
-            - Tuple[List[Dict[str, Any]], Optional[int]]: The list of textual documents
+            - Tuple[List[Dict[str, Any]], int | None]: The list of textual documents
                 and the next page offset.
         """
         response = self.query("textual_documents", limit=limit, offset=offset, **kwargs)

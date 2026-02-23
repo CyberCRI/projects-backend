@@ -69,24 +69,22 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
             OpenApiExample(
                 "example",
                 value={
-                    "document_type": {"BookChapter": 32, "ConferenceArticle": 4},
+                    "document_type": {
+                        "BookChapter": 32,
+                        "ConferenceArticle": 4,
+                    },
                     "years": [
                         {"year": 2023, "total": 4},
                         {"year": 2022, "total": 2},
                         {"year": 1996, "total": 8},
                     ],
-                    "roles": {
-                        "author": 43,
-                        "animator": 3,
-                    },
+                    "roles": {"author": 43, "animator": 3},
                 },
             )
         ],
     ),
 )
-class AbstractDocumentViewSet(
-    viewsets.ReadOnlyModelViewSet,
-):
+class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
@@ -100,7 +98,7 @@ class AbstractDocumentViewSet(
         ]
         if roles and roles_enabled:
             queryset = queryset.filter(
-                documentcontributor__roles__contains=roles,
+                documentcontributor__roles__contains=roles
             )
         return queryset
 
@@ -119,25 +117,22 @@ class AbstractDocumentViewSet(
         qs = self.filter_roles(qs, roles_enabled)
 
         # filter by pblication_type
-        if "document_type" in self.request.query_params and document_type_enabled:
+        if (
+            "document_type" in self.request.query_params
+            and document_type_enabled
+        ):
             document_type = self.request.query_params.get("document_type")
             qs = qs.filter(document_type=document_type)
         return qs
 
     def get_queryset(self) -> QuerySet[Document]:
         return (
-            Document.objects.filter(
-                document_type__in=self.document_types,
-            )
+            Document.objects.filter(document_type__in=self.document_types)
             .prefetch_related("identifiers", "contributors__user")
             .order_by("-publication_date")
         )
 
-    @action(
-        detail=True,
-        methods=[HTTPMethod.GET],
-        url_path="similars",
-    )
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
     def similars(self, request, *args, **kwargs):
         """methods to return similars projects"""
         obj: Document = self.get_object()
@@ -167,7 +162,9 @@ class AbstractDocumentViewSet(
         # order all buplications by years
         limit = self.request.query_params.get("limit")
         years = (
-            self.filter_queryset(qs, document_type_enabled=False, year_enabled=False)
+            self.filter_queryset(
+                qs, document_type_enabled=False, year_enabled=False
+            )
             .filter(publication_date__isnull=False)
             .annotate(year=ExtractYear("publication_date"))
             .values("year")
@@ -181,7 +178,7 @@ class AbstractDocumentViewSet(
         roles = Counter(
             chain(
                 *DocumentContributor.objects.filter(
-                    document__in=self.filter_queryset(qs, roles_enabled=False),
+                    document__in=self.filter_queryset(qs, roles_enabled=False)
                 ).values_list("roles", flat=True)
             )
         )
@@ -231,9 +228,10 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
-    NestedOrganizationViewMixins, NestedResearcherViewMixins, AbstractDocumentViewSet
+    NestedOrganizationViewMixins,
+    NestedResearcherViewMixins,
+    AbstractDocumentViewSet,
 ):
-
     def filter_roles(self, queryset, roles_enabled=True):
         # filter only by roles (author, co-authors ...ect)
         roles = [
@@ -339,14 +337,8 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                 required=True,
                 enum=Identifier.Harvester,
                 examples=[
-                    OpenApiExample(
-                        "eppn",
-                        value="eppn",
-                    ),
-                    OpenApiExample(
-                        "idref",
-                        value="idref",
-                    ),
+                    OpenApiExample("eppn", value="eppn"),
+                    OpenApiExample("idref", value="idref"),
                 ],
             ),
             OpenApiParameter(
@@ -359,16 +351,15 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                         "eppn",
                         value="marty.macfly@sorbonne.fr,Hubert.BonisseurdeLaBath@dgse.fr",
                     ),
-                    OpenApiExample(
-                        "idref",
-                        value="0984045,049585804,4559932",
-                    ),
+                    OpenApiExample("idref", value="0984045,049585804,4559932"),
                 ],
             ),
         ],
     ),
 )
-class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
+class ResearcherViewSet(
+    NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet
+):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "id")
@@ -376,17 +367,14 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
     def get_queryset(self):
         return self.request.user.get_user_related_queryset(
             Researcher.objects.filter(
-                user__isnull=False, user__groups__organizations__in=(self.organization,)
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
             )
             .prefetch_related("identifiers")
-            .select_related("user"),
+            .select_related("user")
         )
 
-    @action(
-        detail=False,
-        methods=[HTTPMethod.GET],
-        url_path="search",
-    )
+    @action(detail=False, methods=[HTTPMethod.GET], url_path="search")
     def search(self, request, *args, **kwargs):
         """Method to search researchers by harvester type and multiple harvesters value"""
         qs = self.get_queryset()
@@ -394,7 +382,8 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
         harvester = request.query_params.get("harvester")
         harvester_values = request.query_params.get("values").split(",")
         identifiers = [
-            {"harvester": harvester, "value": value} for value in harvester_values
+            {"harvester": harvester, "value": value}
+            for value in harvester_values
         ]
         qs = qs.from_identifiers(identifiers)
 

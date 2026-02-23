@@ -9,13 +9,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import PeopleGroupHierarchySerializer, UserSerializer
+from apps.accounts.serializers import (
+    PeopleGroupHierarchySerializer,
+    UserSerializer,
+)
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
@@ -59,9 +65,7 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filterset_class = ProjectCategoryFilter
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
-    multiple_lookup_fields = [
-        (ProjectCategory, "id"),
-    ]
+    multiple_lookup_fields = [(ProjectCategory, "id")]
 
     def get_queryset(self):
         if "organization_code" in self.kwargs:
@@ -175,9 +179,7 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "categoryfollow")
@@ -192,7 +194,9 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
 
     def get_queryset(self) -> QuerySet:
         return self.request.user.get_user_related_queryset(
-            CategoryFollow.objects.filter(follower__id=self.kwargs.get("user_id")),
+            CategoryFollow.objects.filter(
+                follower__id=self.kwargs.get("user_id")
+            ),
             user_related_name="follower",
         )
 
@@ -243,15 +247,15 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
         | HasBasePermission("change_projectcategory", "organizations")
         | HasOrganizationPermission("change_projectcategory"),
     ]
-    multiple_lookup_fields = [
-        (ProjectCategory, "category_id"),
-    ]
+    multiple_lookup_fields = [(ProjectCategory, "category_id")]
 
     def get_queryset(self):
         if "category_id" in self.kwargs and "organization_code" in self.kwargs:
             return Image.objects.filter(
                 project_category__id=self.kwargs["category_id"],
-                project_category__organization__code=self.kwargs["organization_code"],
+                project_category__organization__code=self.kwargs[
+                    "organization_code"
+                ],
             )
         return Image.objects.none()
 
@@ -309,7 +313,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     @method_decorator(clear_cache_with_key("organizations_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(OrganizationViewSet, self).dispatch(request, *args, **kwargs)
+        return super(OrganizationViewSet, self).dispatch(
+            request, *args, **kwargs
+        )
 
     @extend_schema(
         request=OrganizationAddTeamMembersSerializer, responses=UserSerializer
@@ -335,7 +341,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        request=OrganizationRemoveTeamMembersSerializer, responses=UserSerializer
+        request=OrganizationRemoveTeamMembersSerializer,
+        responses=UserSerializer,
     )
     @action(
         detail=True,
@@ -529,9 +536,7 @@ class OrganizationBannerView(ImageStorageView):
             )
             organization.banner_image = image
             organization.save()
-            return (
-                f"/v1/organization/{self.kwargs['organization_code']}/banner/{image.id}"
-            )
+            return f"/v1/organization/{self.kwargs['organization_code']}/banner/{image.id}"
         return None
 
 
@@ -566,9 +571,7 @@ class OrganizationLogoView(ImageStorageView):
             )
             organization.logo_image = image
             organization.save()
-            return (
-                f"/v1/organization/{self.kwargs['organization_code']}/logo/{image.id}"
-            )
+            return f"/v1/organization/{self.kwargs['organization_code']}/logo/{image.id}"
         return None
 
 
@@ -607,9 +610,7 @@ class OrganizationImagesView(ImageStorageView):
             )
             organization.images.add(image)
             organization.save()
-            return (
-                f"/v1/organization/{self.kwargs['organization_code']}/image/{image.id}"
-            )
+            return f"/v1/organization/{self.kwargs['organization_code']}/image/{image.id}"
         return None
 
 
@@ -659,7 +660,9 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         )
 
 
-class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
+class TermsAndConditionsViewSet(
+    mixins.UpdateModelMixin, viewsets.GenericViewSet
+):
     serializer_class = TermsAndConditionsSerializer
     organization_code_lookup = "organization__code"
     lookup_field = "id"
@@ -684,7 +687,9 @@ class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet
 
 
 class AvailableLanguagesView(APIView):
-    @extend_schema(responses={200: {"type": "array", "items": {"type": "dict"}}})
+    @extend_schema(
+        responses={200: {"type": "array", "items": {"type": "dict"}}}
+    )
     def get(self, request):
         return Response(
             [{"code": code, "name": name} for code, name in settings.LANGUAGES],

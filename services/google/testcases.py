@@ -1,6 +1,5 @@
 import json
 from random import randint
-from typing import List, Optional
 
 from django.conf import settings
 from googleapiclient.discovery import build
@@ -32,7 +31,9 @@ class GoogleTestCase(JwtAPITestCase):
         """
 
         def mocked_google_service(
-            service: str = "admin", version: str = "directory_v1", admin: str = ""
+            service: str = "admin",
+            version: str = "directory_v1",
+            admin: str = "",
         ):
             http = HttpMockSequence(responses)
             return build(service, version, http=http, developerKey="api_key")
@@ -41,7 +42,7 @@ class GoogleTestCase(JwtAPITestCase):
 
     @classmethod
     def get_google_user_success(
-        cls, google_user: Optional[GoogleAccount] = None, suspended: bool = False
+        cls, google_user: GoogleAccount | None = None, suspended: bool = False
     ):
         user = google_user.user if google_user else None
         content = json.dumps(
@@ -77,7 +78,7 @@ class GoogleTestCase(JwtAPITestCase):
                             )
                             if google_user
                             else ""
-                        ),
+                        )
                     },
                     (
                         {"address": f"{google_user.email}.test-google-a.com"}
@@ -152,7 +153,7 @@ class GoogleTestCase(JwtAPITestCase):
 
     @classmethod
     def update_google_user_success(
-        cls, google_user: Optional[GoogleAccount] = None, suspended: bool = False
+        cls, google_user: GoogleAccount | None = None, suspended: bool = False
     ):
         return cls.get_google_user_success(google_user, suspended)
 
@@ -200,7 +201,7 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": status_code}, content
 
     @classmethod
-    def get_google_group_success(cls, google_group: Optional[GoogleGroup] = None):
+    def get_google_group_success(cls, google_group: GoogleGroup | None = None):
         content = {
             "kind": "admin#directory#group",
             "id": google_group.google_id if google_group else "",
@@ -232,7 +233,7 @@ class GoogleTestCase(JwtAPITestCase):
 
     @classmethod
     def list_google_groups_success(
-        cls, google_groups: List[GoogleGroup], has_next_page: bool = False
+        cls, google_groups: list[GoogleGroup], has_next_page: bool = False
     ):
         content = {
             "kind": "admin#directory#groups",
@@ -252,7 +253,7 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": status_code}, content
 
     @classmethod
-    def add_user_to_group_success(cls, google_user: Optional[GoogleAccount] = None):
+    def add_user_to_group_success(cls, google_user: GoogleAccount | None = None):
         content = json.dumps(
             {
                 "kind": "admin#directory#group",
@@ -268,7 +269,7 @@ class GoogleTestCase(JwtAPITestCase):
 
     @classmethod
     def list_group_members_success(
-        cls, google_users: List[GoogleAccount], has_next_page: bool = False
+        cls, google_users: list[GoogleAccount], has_next_page: bool = False
     ):
         content = {
             "kind": "admin#directory#members",
@@ -297,7 +298,7 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": status_code}, content
 
     @classmethod
-    def update_google_group_success(cls, google_group: Optional[GoogleGroup] = None):
+    def update_google_group_success(cls, google_group: GoogleGroup | None = None):
         content = json.loads(cls.get_google_group_success(google_group)[1])
         return {"status": 200}, json.dumps(content)
 
@@ -307,7 +308,7 @@ class GoogleTestCase(JwtAPITestCase):
         return {"status": status_code}, content
 
     @classmethod
-    def add_group_alias_success(cls, google_group: Optional[GoogleGroup] = None):
+    def add_group_alias_success(cls, google_group: GoogleGroup | None = None):
         content = {
             "kind": "admin#directory#alias",
             "id": google_group.google_id if google_group else "id",

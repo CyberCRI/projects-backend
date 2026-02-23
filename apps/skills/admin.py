@@ -16,10 +16,7 @@ class TagAdmin(admin.ModelAdmin):
         "title",
         "description",
     )
-    list_filter = (
-        "type",
-        "organization",
-    )
+    list_filter = ("type", "organization")
     search_fields = (
         "title",
         "title_en",
@@ -41,15 +38,8 @@ class TagClassificationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
         "title",
         "description",
     )
-    list_filter = (
-        "type",
-        "organization",
-        "is_public",
-    )
-    search_fields = (
-        "title",
-        "description",
-    )
+    list_filter = ("type", "organization", "is_public")
+    search_fields = ("title", "description")
     filter_horizontal = ("tags",)
 
 
@@ -62,11 +52,7 @@ class SkillAdmin(admin.ModelAdmin):
         "can_mentor",
         "needs_mentor",
     )
-    list_filter = (
-        "type",
-        "can_mentor",
-        "needs_mentor",
-    )
+    list_filter = ("type", "can_mentor", "needs_mentor")
     search_fields = (
         "user__email",
         "user__given_name",
@@ -81,7 +67,9 @@ class SkillAdmin(admin.ModelAdmin):
         return mark_safe(f'<a href="{admin_page}">{obj.tag}</a>')  # nosec
 
     def user_link(self, obj):
-        admin_page = reverse("admin:accounts_projectuser_change", args=(obj.user.pk,))
+        admin_page = reverse(
+            "admin:accounts_projectuser_change", args=(obj.user.pk,)
+        )
         return mark_safe(f'<a href="{admin_page}">{obj.user.email}</a>')  # nosec
 
     tag_link.short_description = "Tag"

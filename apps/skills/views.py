@@ -1,5 +1,3 @@
-from typing import Union
-
 from django.conf import settings
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.db import transaction
@@ -11,7 +9,10 @@ from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.request import Request
 from rest_framework.response import Response
 
@@ -70,9 +71,7 @@ class SkillViewSet(MultipleIDViewsetMixin, WriteOnlyModelViewSet):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
@@ -82,8 +81,8 @@ class SkillViewSet(MultipleIDViewsetMixin, WriteOnlyModelViewSet):
     def create(self, request, *args, **kwargs):
         try:
             return super().create(request, *args, **kwargs)
-        except IntegrityError:
-            raise SkillAlreadyAddedError
+        except IntegrityError as err:
+            raise SkillAlreadyAddedError from err
 
     def perform_create(self, serializer):
         if "user_id" in self.kwargs:
@@ -97,9 +96,7 @@ class TagClassificationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     permission_classes = [ReadOnly]
     serializer_class = TagClassificationSerializer
     lookup_field = "id"
-    multiple_lookup_fields = [
-        (TagClassification, "id"),
-    ]
+    multiple_lookup_fields = [(TagClassification, "id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "tagclassification")
@@ -197,13 +194,11 @@ class TagViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         DjangoFilterBackend,
         OrderingFilter,
     )
-    multiple_lookup_fields = [
-        (TagClassification, "tag_classification_id"),
-    ]
+    multiple_lookup_fields = [(TagClassification, "tag_classification_id")]
 
     def get_tag_classification_id_from_lookup_value(
         self, tag_classification_id: str
-    ) -> Union[int, str]:
+    ) -> int | str:
         """
         Override the default method to handle multiple lookup values to allow fetching
         all tags from the organization that are enabled for projects or skills by using
@@ -463,7 +458,9 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
             Tag.objects.filter(skills__in=skills)
             .annotate(
                 mentors_count=Count(
-                    "skills__user", filter=Q(skills__can_mentor=True), distinct=True
+                    "skills__user",
+                    filter=Q(skills__can_mentor=True),
+                    distinct=True,
                 )
             )
             .order_by("-mentors_count")
@@ -505,7 +502,9 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
             Tag.objects.filter(skills__in=skills)
             .annotate(
                 mentorees_count=Count(
-                    "skills__user", filter=Q(skills__needs_mentor=True), distinct=True
+                    "skills__user",
+                    filter=Q(skills__needs_mentor=True),
+                    distinct=True,
                 )
             )
             .order_by("-mentorees_count")
@@ -517,9 +516,7 @@ class OrganizationMentorshipViewset(PaginatedViewSet):
 class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
     serializer_class = UserLightSerializer
     permission_classes = [ReadOnly]
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_organization(self):
         organization_code = self.kwargs["organization_code"]
@@ -588,8 +585,7 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
             self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
         )
         user_mentored_skills = Tag.objects.filter(
-            skills__user=user,
-            skills__can_mentor=True,
+            skills__user=user, skills__can_mentor=True
         ).distinct()
         mentorees_skills = Skill.objects.filter(
             user__in=self.get_user_queryset(),
@@ -639,8 +635,7 @@ class UserMentorshipViewset(MultipleIDViewsetMixin, PaginatedViewSet):
             self.request.user.get_user_queryset(), id=self.kwargs["user_id"]
         )
         user_mentoree_skills = Tag.objects.filter(
-            skills__user=user,
-            skills__needs_mentor=True,
+            skills__user=user, skills__needs_mentor=True
         ).distinct()
         mentors_skills = Skill.objects.filter(
             user__in=self.get_user_queryset(),
@@ -681,7 +676,11 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         return skill.tag.title
 
     def send_email(
-        self, template_folder: str, receiver: ProjectUser, skill: Skill, **kwargs
+        self,
+        template_folder: str,
+        receiver: ProjectUser,
+        skill: Skill,
+        **kwargs,
     ):
         language = receiver.language
         kwargs = {
@@ -694,7 +693,11 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         text, html = render_message(f"{template_folder}/mail", language, **kwargs)
         reply_to = kwargs["reply_to"]
         send_email(
-            subject, text, [receiver.email], html_content=html, reply_to=[reply_to]
+            subject,
+            text,
+            [receiver.email],
+            html_content=html,
+            reply_to=[reply_to],
         )
 
     @extend_schema(
@@ -727,8 +730,8 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
                 mentoree=self.request.user,
                 created_by=self.request.user,
             )
-        except IntegrityError:
-            raise DuplicatedMentoringError
+        except IntegrityError as err:
+            raise DuplicatedMentoringError from err
         # Create the message and send the email
         MentoringMessage.objects.create(
             mentoring=instance,
@@ -778,8 +781,8 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
                 mentoree=skill.user,
                 created_by=self.request.user,
             )
-        except IntegrityError:
-            raise DuplicatedMentoringError
+        except IntegrityError as err:
+            raise DuplicatedMentoringError from err
         # Create the message and send the email
         MentoringMessage.objects.create(
             mentoring=instance,
@@ -800,12 +803,7 @@ class MentoringViewSet(MultipleIDViewsetMixin, ReadDestroyModelViewSet):
         request=MentoringResponseSerializer,
         responses={status.HTTP_200_OK: MentoringSerializer},
     )
-    @action(
-        detail=True,
-        methods=["POST"],
-        url_path="respond",
-        url_name="respond",
-    )
+    @action(detail=True, methods=["POST"], url_path="respond", url_name="respond")
     @transaction.atomic
     def respond(self, request, *args, **kwargs):
         """

@@ -26,7 +26,9 @@ class NewProjectMessageTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -45,9 +47,7 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         project.owners.add(owner)
 
         self.client.force_authenticate(owner)
-        payload = {
-            "content": faker.text(),
-        }
+        payload = {"content": faker.text()}
         response = self.client.post(
             reverse("ProjectMessage-list", args=(project.id,)), data=payload
         )
@@ -69,7 +69,9 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -79,7 +81,9 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
-        not_notified.notification_settings.project_has_new_private_message = False
+        not_notified.notification_settings.project_has_new_private_message = (
+            False
+        )
         not_notified.notification_settings.save()
 
         message = ProjectMessageFactory(project=project, author=sender)
@@ -90,7 +94,9 @@ class NewProjectMessageTestCase(JwtAPITestCase):
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.PROJECT_MESSAGE)
+            self.assertEqual(
+                notification.type, Notification.Types.PROJECT_MESSAGE
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, (user == follower))
             self.assertFalse(notification.is_viewed)
@@ -121,7 +127,9 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -131,10 +139,14 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         project.owners.set([sender, notified, not_notified])
 
         # Disabling notification for 'not_notified'
-        not_notified.notification_settings.project_has_new_private_message = False
+        not_notified.notification_settings.project_has_new_private_message = (
+            False
+        )
         not_notified.notification_settings.save()
 
-        messages = ProjectMessageFactory.create_batch(2, project=project, author=sender)
+        messages = ProjectMessageFactory.create_batch(
+            2, project=project, author=sender
+        )
         _notify_new_private_message(messages[0].pk)
         _notify_new_private_message(messages[1].pk)
 
@@ -143,7 +155,9 @@ class NewProjectMessageTestCase(JwtAPITestCase):
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.PROJECT_MESSAGE)
+            self.assertEqual(
+                notification.type, Notification.Types.PROJECT_MESSAGE
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, (user == follower))
             self.assertFalse(notification.is_viewed)

@@ -106,7 +106,9 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         instance.save()
         self.set_user_privacy_settings(instance, privacy_settings_value)
         self.client.force_authenticate(user)
-        response = self.client.get(reverse("ProjectUser-detail", args=(instance.id,)))
+        response = self.client.get(
+            reverse("ProjectUser-detail", args=(instance.id,))
+        )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         if fields_visible:
             self.assert_fields_visible(instance, response.data)
@@ -138,7 +140,9 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
             (TestRoles.ORG_USER, PrivacyChoices.HIDE, False),
         ]
     )
-    def test_view_fields_list_users(self, role, privacy_settings_value, fields_visible):
+    def test_view_fields_list_users(
+        self, role, privacy_settings_value, fields_visible
+    ):
         organization = self.organization
         instance = UserFactory(groups=[organization.get_users()])
         user = self.get_parameterized_test_user(
@@ -159,7 +163,8 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         retrieved_user = retrieved_user[0]
         if fields_visible:
             self.assertEqual(
-                retrieved_user["profile_picture"]["id"], instance.profile_picture.id
+                retrieved_user["profile_picture"]["id"],
+                instance.profile_picture.id,
             )
         else:
             self.assertIsNone(retrieved_user["profile_picture"])

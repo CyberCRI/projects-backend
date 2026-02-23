@@ -19,19 +19,25 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
+        cls.admins = UserFactory.create_batch(
+            3, groups=[cls.organization.get_admins()]
+        )
         cls.owner = cls.admins[0]
 
     def test_invitation_expires_in_one_week_task(self):
         InvitationFactory(
             organization=self.organization,
             owner=self.owner,
-            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(7)),
+            expire_at=make_aware(
+                datetime.datetime.now() + datetime.timedelta(7)
+            ),
         )
         InvitationFactory(
             organization=self.organization,
             owner=self.owner,
-            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(14)),
+            expire_at=make_aware(
+                datetime.datetime.now() + datetime.timedelta(14)
+            ),
         )
         send_invitations_reminder()
         notifications = Notification.objects.all()
@@ -44,7 +50,9 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
             self.assertFalse(notification.is_viewed)
         self.assertEqual(len(mail.outbox), 3)
         for message in mail.outbox:
-            self.assertEqual(message.subject, "Registration link to expire in one week")
+            self.assertEqual(
+                message.subject, "Registration link to expire in one week"
+            )
 
     def test_invitation_expires_in_one_day_task(self):
         InvitationFactory(
@@ -55,12 +63,15 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
         InvitationFactory(
             organization=self.organization,
             owner=self.owner,
-            expire_at=make_aware(datetime.datetime.now()) + datetime.timedelta(1),
+            expire_at=make_aware(datetime.datetime.now())
+            + datetime.timedelta(1),
         )
         InvitationFactory(
             organization=self.organization,
             owner=self.owner,
-            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(2)),
+            expire_at=make_aware(
+                datetime.datetime.now() + datetime.timedelta(2)
+            ),
         )
         send_invitations_reminder()
         notifications = Notification.objects.all()
@@ -73,4 +84,6 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
             self.assertFalse(notification.is_viewed)
         self.assertEqual(len(mail.outbox), 3)
         for message in mail.outbox:
-            self.assertEqual(message.subject, "Registration link to expire today")
+            self.assertEqual(
+                message.subject, "Registration link to expire today"
+            )

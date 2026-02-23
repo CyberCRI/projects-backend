@@ -10,9 +10,4 @@ class IdentityProviderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IdentityProvider
-        fields = (
-            "id",
-            "alias",
-            "logo",
-            "enabled",
-        )
+        fields = ("id", "alias", "logo", "enabled")

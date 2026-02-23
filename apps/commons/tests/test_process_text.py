@@ -13,7 +13,11 @@ from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory
 from apps.files.enums import AttachmentType
 from apps.files.tests.views.mock_response import MockResponse
-from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.newsfeed.factories import (
+    EventFactory,
+    InstructionFactory,
+    NewsFactory,
+)
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.factories import (
     OrganizationFactory,
@@ -84,12 +88,11 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        self.assertNotIn("<img", content["description"] + content["short_description"])
+        self.assertNotIn(
+            "<img", content["description"] + content["short_description"]
+        )
 
-        payload = {
-            "description": texts[0],
-            "short_description": texts[1],
-        }
+        payload = {"description": texts[0], "short_description": texts[1]}
         response = self.client.patch(
             reverse(
                 "PeopleGroup-detail",
@@ -99,7 +102,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertNotIn("<img", content["description"] + content["short_description"])
+        self.assertNotIn(
+            "<img", content["description"] + content["short_description"]
+        )
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_user(self, mocked):
@@ -115,23 +120,25 @@ class TextProcessingTestCase(JwtAPITestCase):
             "short_description": texts[1],
         }
         response = self.client.post(
-            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
+            reverse("ProjectUser-list")
+            + f"?organization={self.organization.code}",
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        self.assertNotIn("<img", content["description"] + content["short_description"])
+        self.assertNotIn(
+            "<img", content["description"] + content["short_description"]
+        )
 
-        payload = {
-            "description": texts[0],
-            "short_description": texts[1],
-        }
+        payload = {"description": texts[0], "short_description": texts[1]}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(content["id"],)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
-        self.assertNotIn("<img", content["description"] + content["short_description"])
+        self.assertNotIn(
+            "<img", content["description"] + content["short_description"]
+        )
 
     def test_announcement(self):
         text = self.create_base64_image_text()
@@ -153,8 +160,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         payload = {"description": text}
         response = self.client.patch(
             reverse(
-                "Announcement-detail",
-                args=(self.project.id, content["id"]),
+                "Announcement-detail", args=(self.project.id, content["id"])
             ),
             data=payload,
         )
@@ -166,7 +172,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         text = (
             self.create_base64_image_text()
             + self.create_template_image_text()
-            + self.create_unlinked_image_text("Comment-images-detail", self.project.id)
+            + self.create_unlinked_image_text(
+                "Comment-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
         project = self.project
@@ -187,7 +195,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         text = (
             self.create_base64_image_text()
             + self.create_template_image_text()
-            + self.create_unlinked_image_text("Comment-images-detail", self.project.id)
+            + self.create_unlinked_image_text(
+                "Comment-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
         comment = CommentFactory(project=self.project)
@@ -201,7 +211,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
-                reverse("Comment-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "Comment-images-detail", args=(self.project.id, image_id)
+                ),
                 content["content"],
             )
 
@@ -244,7 +256,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             "attachment_type": AttachmentType.FILE,
         }
         response = self.client.post(
-            reverse("OrganizationAttachmentFile-list", args=(self.organization.code,)),
+            reverse(
+                "OrganizationAttachmentFile-list",
+                args=(self.organization.code,),
+            ),
             data=payload,
             format="multipart",
         )
@@ -277,7 +292,8 @@ class TextProcessingTestCase(JwtAPITestCase):
             "description": text,
         }
         response = self.client.post(
-            reverse("AttachmentLink-list", args=(self.project.id,)), data=payload
+            reverse("AttachmentLink-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -286,8 +302,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         payload = {"description": text}
         response = self.client.patch(
             reverse(
-                "AttachmentLink-detail",
-                args=(self.project.id, content["id"]),
+                "AttachmentLink-detail", args=(self.project.id, content["id"])
             ),
             data=payload,
         )
@@ -322,8 +337,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         payload = {"description": text}
         response = self.client.patch(
             reverse(
-                "AttachmentFile-detail",
-                args=(self.project.id, content["id"]),
+                "AttachmentFile-detail", args=(self.project.id, content["id"])
             ),
             data=payload,
             format="multipart",
@@ -378,8 +392,11 @@ class TextProcessingTestCase(JwtAPITestCase):
 
     def test_update_news(self):
         news = NewsFactory(organization=self.organization)
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "News-images-detail", self.organization.code, news.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "News-images-detail", self.organization.code, news.id
+            )
         )
         self.client.force_authenticate(self.user)
         payload = {"content": text}
@@ -429,8 +446,11 @@ class TextProcessingTestCase(JwtAPITestCase):
 
     def test_update_event(self):
         event = EventFactory(organization=self.organization)
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Event-images-detail", self.organization.code, event.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "Event-images-detail", self.organization.code, event.id
+            )
         )
         self.client.force_authenticate(self.user)
         payload = {"content": text}
@@ -480,14 +500,20 @@ class TextProcessingTestCase(JwtAPITestCase):
 
     def test_update_instruction(self):
         instruction = InstructionFactory(organization=self.organization)
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Instruction-images-detail", self.organization.code, instruction.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "Instruction-images-detail",
+                self.organization.code,
+                instruction.id,
+            )
         )
         self.client.force_authenticate(self.user)
         payload = {"content": text}
         response = self.client.patch(
             reverse(
-                "Instruction-detail", args=(self.organization.code, instruction.id)
+                "Instruction-detail",
+                args=(self.organization.code, instruction.id),
             ),
             data=payload,
         )
@@ -560,7 +586,8 @@ class TextProcessingTestCase(JwtAPITestCase):
             "comment_content": texts[6],
         }
         response = self.client.post(
-            reverse("Template-list", args=(self.organization.code,)), data=payload
+            reverse("Template-list", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -604,7 +631,9 @@ class TextProcessingTestCase(JwtAPITestCase):
             "comment_content": texts[6],
         }
         response = self.client.patch(
-            reverse("Template-detail", args=(self.organization.code, template.id)),
+            reverse(
+                "Template-detail", args=(self.organization.code, template.id)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -626,10 +655,7 @@ class TextProcessingTestCase(JwtAPITestCase):
     def test_create_category(self):
         text = self.create_base64_image_text()
         self.client.force_authenticate(self.user)
-        payload = {
-            "name": faker.sentence(),
-            "description": text,
-        }
+        payload = {"name": faker.sentence(), "description": text}
         response = self.client.post(
             reverse("Category-list", args=(self.organization.code,)),
             data=payload,
@@ -641,8 +667,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         payload = {"description": text}
         response = self.client.patch(
             reverse(
-                "Category-detail",
-                args=(self.organization.code, content["id"]),
+                "Category-detail", args=(self.organization.code, content["id"])
             ),
             data=payload,
         )
@@ -651,7 +676,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertNotIn("<img", content["description"])
 
     def test_create_project(self):
-        text = self.create_base64_image_text() + self.create_template_image_text()
+        text = (
+            self.create_base64_image_text() + self.create_template_image_text()
+        )
         self.client.force_authenticate(self.user)
         payload = {
             "title": faker.sentence(),
@@ -678,7 +705,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         text = (
             self.create_base64_image_text()
             + self.create_template_image_text()
-            + self.create_unlinked_image_text("Project-images-detail", self.project.id)
+            + self.create_unlinked_image_text(
+                "Project-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
         payload = {"description": text}
@@ -691,7 +720,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         for image in content["images"]:
             image_id = image["id"]
             self.assertIn(
-                reverse("Project-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "Project-images-detail", args=(self.project.id, image_id)
+                ),
                 content["description"],
             )
 
@@ -717,7 +748,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
-                reverse("BlogEntry-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "BlogEntry-images-detail", args=(self.project.id, image_id)
+                ),
                 content["content"],
             )
 
@@ -733,27 +766,32 @@ class TextProcessingTestCase(JwtAPITestCase):
         blog = BlogEntryFactory(project=self.project)
         payload = {"content": text}
         response = self.client.patch(
-            reverse("BlogEntry-detail", args=(self.project.id, blog.id)), data=payload
+            reverse("BlogEntry-detail", args=(self.project.id, blog.id)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(len(content["images"]), 3)
         for image_id in content["images"]:
             self.assertIn(
-                reverse("BlogEntry-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "BlogEntry-images-detail", args=(self.project.id, image_id)
+                ),
                 content["content"],
             )
 
     def test_create_project_message(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "ProjectMessage-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "ProjectMessage-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
-        payload = {
-            "content": text,
-        }
+        payload = {"content": text}
         response = self.client.post(
-            reverse("ProjectMessage-list", args=(self.project.id,)), data=payload
+            reverse("ProjectMessage-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -761,21 +799,26 @@ class TextProcessingTestCase(JwtAPITestCase):
         for image_id in content["images"]:
             self.assertIn(
                 reverse(
-                    "ProjectMessage-images-detail", args=(self.project.id, image_id)
+                    "ProjectMessage-images-detail",
+                    args=(self.project.id, image_id),
                 ),
                 content["content"],
             )
 
     def test_update_project_message(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "ProjectMessage-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "ProjectMessage-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
         project_message = ProjectMessageFactory(project=self.project)
         payload = {"content": text}
         response = self.client.patch(
             reverse(
-                "ProjectMessage-detail", args=(self.project.id, project_message.id)
+                "ProjectMessage-detail",
+                args=(self.project.id, project_message.id),
             ),
             data=payload,
         )
@@ -785,7 +828,8 @@ class TextProcessingTestCase(JwtAPITestCase):
         for image_id in content["images"]:
             self.assertIn(
                 reverse(
-                    "ProjectMessage-images-detail", args=(self.project.id, image_id)
+                    "ProjectMessage-images-detail",
+                    args=(self.project.id, image_id),
                 ),
                 content["content"],
             )
@@ -800,8 +844,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Goal-list", args=(self.project.id,)),
-            data=payload,
+            reverse("Goal-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -844,14 +887,14 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertNotIn("<img", content["description"])
 
     def test_create_project_tab(self):
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "ProjectTab-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "ProjectTab-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "description": text,
-        }
+        payload = {"title": faker.sentence(), "description": text}
         response = self.client.post(
             reverse("ProjectTab-list", args=(self.project.id,)), data=payload
         )
@@ -860,19 +903,26 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(len(content["images"]), 2)
         for image_id in content["images"]:
             self.assertIn(
-                reverse("ProjectTab-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "ProjectTab-images-detail", args=(self.project.id, image_id)
+                ),
                 content["description"],
             )
 
     def test_update_project_tab(self):
         project_tab = ProjectTabFactory(project=self.project)
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "ProjectTab-images-detail", self.project.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "ProjectTab-images-detail", self.project.id
+            )
         )
         self.client.force_authenticate(self.user)
         payload = {"description": text}
         response = self.client.patch(
-            reverse("ProjectTab-detail", args=(self.project.id, project_tab.id)),
+            reverse(
+                "ProjectTab-detail", args=(self.project.id, project_tab.id)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -880,20 +930,22 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(len(content["images"]), 2)
         for image_id in content["images"]:
             self.assertIn(
-                reverse("ProjectTab-images-detail", args=(self.project.id, image_id)),
+                reverse(
+                    "ProjectTab-images-detail", args=(self.project.id, image_id)
+                ),
                 content["description"],
             )
 
     def test_create_project_tab_item(self):
         tab = ProjectTabFactory(project=self.project)
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "ProjectTabItem-images-detail", self.project.id, tab.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "ProjectTabItem-images-detail", self.project.id, tab.id
+            )
         )
         self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "content": text,
-        }
+        payload = {"title": faker.sentence(), "content": text}
         response = self.client.post(
             reverse("ProjectTabItem-list", args=(self.project.id, tab.id)),
             data=payload,
@@ -913,8 +965,11 @@ class TextProcessingTestCase(JwtAPITestCase):
     def test_update_project_tab_item(self):
         tab = ProjectTabFactory(project=self.project)
         tab_item = ProjectTabItemFactory(tab=tab)
-        text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "ProjectTabItem-images-detail", self.project.id, tab.id
+        text = (
+            self.create_base64_image_text()
+            + self.create_unlinked_image_text(
+                "ProjectTabItem-images-detail", self.project.id, tab.id
+            )
         )
         self.client.force_authenticate(self.user)
         payload = {"content": text}

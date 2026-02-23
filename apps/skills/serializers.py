@@ -1,5 +1,3 @@
-from typing import List
-
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext_lazy as _
@@ -8,7 +6,10 @@ from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.fields import empty
 
-from apps.commons.fields import HiddenPrimaryKeyRelatedField, UserMultipleIdRelatedField
+from apps.commons.fields import (
+    HiddenPrimaryKeyRelatedField,
+    UserMultipleIdRelatedField,
+)
 from apps.commons.serializers import (
     LazySerializer,
     StringsImagesSerializer,
@@ -46,9 +47,11 @@ class TagClassificationLightSerializer(
 
 
 class TagClassificationSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["title", "description"]
+    string_images_forbid_fields: list[str] = ["title", "description"]
 
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
     is_owned = serializers.SerializerMethodField()
@@ -88,11 +91,7 @@ class TagClassificationSerializer(
             "is_enabled_for_projects",
             "is_enabled_for_skills",
         ]
-        fields = read_only_fields + [
-            "title",
-            "description",
-            "is_public",
-        ]
+        fields = read_only_fields + ["title", "description", "is_public"]
 
     def validate(self, attrs: dict) -> dict:
         if self.instance and self.instance.type != Tag.TagType.CUSTOM:
@@ -149,7 +148,7 @@ class TagClassificationAddTagsSerializer(serializers.Serializer):
         many=True, write_only=True, required=False, queryset=Tag.objects.all()
     )
 
-    def validate_tags(self, tags: List[Tag]) -> List[Tag]:
+    def validate_tags(self, tags: list[Tag]) -> list[Tag]:
         organization = self.context.get("current_organization")
         if organization and any(
             (tag.organization and tag.organization != organization) for tag in tags
@@ -194,10 +193,7 @@ class TagSerializer(TranslatedModelSerializer):
             "mentorees_count",
             "highlight",
         ]
-        fields = read_only_fields + [
-            "title",
-            "description",
-        ]
+        fields = read_only_fields + ["title", "description"]
 
     def validate_title(self, title: str) -> str:
         """

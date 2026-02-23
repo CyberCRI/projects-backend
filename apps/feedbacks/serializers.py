@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from rest_framework import serializers
 
@@ -50,13 +50,13 @@ class FollowSerializer(
             "project_id",
         ]
 
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_project(self) -> Optional["Project"]:
+    def get_related_project(self) -> "Project" | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]
@@ -82,7 +82,7 @@ class ReviewSerializer(
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["title", "description"]
+    string_images_forbid_fields: list[str] = ["title", "description"]
 
     reviewer = UserLighterSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
@@ -102,13 +102,13 @@ class ReviewSerializer(
             "reviewer",
         ]
 
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_project(self) -> Optional[Project]:
+    def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]
@@ -122,8 +122,7 @@ class CommentSerializer(
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
-
-    string_images_fields: List[str] = ["content"]
+    string_images_fields: list[str] = ["content"]
     string_images_upload_to: str = "comment/images/"
     string_images_view: str = "Comment-images-detail"
     string_images_process_template: bool = True
@@ -192,17 +191,17 @@ class CommentSerializer(
 
     def get_string_images_kwargs(
         self, instance: Comment, field_name: str, *args: Any, **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get additional kwargs for image processing based on the instance."""
         return {"project_id": instance.project.id}
 
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "project" in self.validated_data:
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_project(self) -> Optional[Project]:
+    def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]

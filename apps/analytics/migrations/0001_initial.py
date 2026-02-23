@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -33,5 +32,5 @@ class Migration(migrations.Migration):
                 ("description_length", models.IntegerField(default=0)),
                 ("last_update", models.DateTimeField(auto_now=True)),
             ],
-        ),
+        )
     ]

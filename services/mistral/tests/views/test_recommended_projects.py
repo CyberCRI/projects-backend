@@ -7,7 +7,10 @@ from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory, ProjectScoreFactory
 from apps.projects.models import Project
-from services.mistral.factories import ProjectEmbeddingFactory, UserEmbeddingFactory
+from services.mistral.factories import (
+    ProjectEmbeddingFactory,
+    UserEmbeddingFactory,
+)
 from services.mistral.testcases import MistralTestCaseMixin
 
 faker = Faker()
@@ -19,7 +22,7 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.other_project = ProjectFactory(
-            publication_status=Project.PublicationStatus.PUBLIC,
+            publication_status=Project.PublicationStatus.PUBLIC
         )
         ProjectScoreFactory(
             project=cls.other_project,
@@ -107,9 +110,7 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
             score=6.0,
         )
         ProjectEmbeddingFactory(
-            item=cls.project,
-            embedding=[*1024 * [1.0]],
-            is_visible=True,
+            item=cls.project, embedding=[*1024 * [1.0]], is_visible=True
         )
         cls.projects = {
             "other": cls.other_project,
@@ -124,9 +125,18 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         [
             (TestRoles.ANONYMOUS, ["public", "main"]),
             (TestRoles.DEFAULT, ["main", "public"]),
-            (TestRoles.SUPERADMIN, ["main", "member", "org", "private", "public"]),
-            (TestRoles.ORG_ADMIN, ["main", "member", "org", "private", "public"]),
-            (TestRoles.ORG_FACILITATOR, ["main", "member", "org", "private", "public"]),
+            (
+                TestRoles.SUPERADMIN,
+                ["main", "member", "org", "private", "public"],
+            ),
+            (
+                TestRoles.ORG_ADMIN,
+                ["main", "member", "org", "private", "public"],
+            ),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ["main", "member", "org", "private", "public"],
+            ),
             (TestRoles.ORG_USER, ["main", "org", "public"]),
             (TestRoles.ORG_VIEWER, ["main", "org", "public"]),
             (TestRoles.PROJECT_OWNER, ["main", "public"]),
@@ -135,15 +145,18 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_user_recommended_projects(self, role, retrieved_projects):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         if role != TestRoles.ANONYMOUS:
-            UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
+            UserEmbeddingFactory(
+                item=user, embedding=[*1024 * [1.0]], is_visible=True
+            )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
-                "RecommendedProjects-for-user",
-                args=(self.organization.code,),
-            ),
+                "RecommendedProjects-for-user", args=(self.organization.code,)
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -168,13 +181,15 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_project_recommended_projects(self, role, retrieved_projects):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
                 "RecommendedProjects-for-project",
                 args=(self.organization.code, self.project.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -198,8 +213,12 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.PROJECT_MEMBER, ["member", "public"]),
         ]
     )
-    def test_project_recommended_random_projects(self, role, retrieved_projects):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+    def test_project_recommended_random_projects(
+        self, role, retrieved_projects
+    ):
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -221,9 +240,18 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         [
             (TestRoles.ANONYMOUS, ["public", "main"]),
             (TestRoles.DEFAULT, ["main", "public"]),
-            (TestRoles.SUPERADMIN, ["main", "member", "org", "private", "public"]),
-            (TestRoles.ORG_ADMIN, ["main", "member", "org", "private", "public"]),
-            (TestRoles.ORG_FACILITATOR, ["main", "member", "org", "private", "public"]),
+            (
+                TestRoles.SUPERADMIN,
+                ["main", "member", "org", "private", "public"],
+            ),
+            (
+                TestRoles.ORG_ADMIN,
+                ["main", "member", "org", "private", "public"],
+            ),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ["main", "member", "org", "private", "public"],
+            ),
             (TestRoles.ORG_USER, ["main", "org", "public"]),
             (TestRoles.ORG_VIEWER, ["main", "org", "public"]),
             (TestRoles.PROJECT_OWNER, ["main", "public"]),
@@ -232,10 +260,14 @@ class RecommendedProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_user_recommended_random_projects(self, role, retrieved_projects):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         self.client.force_authenticate(user)
         if role != TestRoles.ANONYMOUS:
-            UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
+            UserEmbeddingFactory(
+                item=user, embedding=[*1024 * [1.0]], is_visible=True
+            )
         response = self.client.get(
             reverse(
                 "RecommendedProjects-random-for-user",

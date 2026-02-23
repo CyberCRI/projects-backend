@@ -17,7 +17,9 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.mentoring = MentorCreatedMentoringFactory(organization=cls.organization)
+        cls.mentoring = MentorCreatedMentoringFactory(
+            organization=cls.organization
+        )
         cls.user = cls.mentoring.mentoree
         cls.content_type = ContentType.objects.get_for_model(MentoringMessage)
 
@@ -30,7 +32,8 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
         }
         response = self.client.post(
             reverse(
-                "Mentoring-respond", args=(self.organization.code, self.mentoring.id)
+                "Mentoring-respond",
+                args=(self.organization.code, self.mentoring.id),
             ),
             data=payload,
         )

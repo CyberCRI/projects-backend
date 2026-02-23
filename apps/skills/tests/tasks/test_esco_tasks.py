@@ -17,7 +17,8 @@ class EscoServiceTestCase(EscoTestCase):
             type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.SKILL
         )
         existing_occupation = TagFactory(
-            type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.OCCUPATION
+            type=Tag.TagType.ESCO,
+            secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )
         skills_uris = [
             existing_skill.external_id,
@@ -80,7 +81,8 @@ class EscoServiceTestCase(EscoTestCase):
     @patch("services.esco.interface.EscoService.get_object_from_uri")
     def test_update_occupation_data(self, mocked):
         occupation = TagFactory(
-            type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.OCCUPATION
+            type=Tag.TagType.ESCO,
+            secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )
         data = {
             "uri": occupation.external_id,
@@ -95,8 +97,12 @@ class EscoServiceTestCase(EscoTestCase):
         self.assertEqual(updated_occupation.title_en, data["title_en"])
         self.assertEqual(updated_occupation.title_fr, data["title_fr"])
         self.assertEqual(updated_occupation.description, data["description_en"])
-        self.assertEqual(updated_occupation.description_en, data["description_en"])
-        self.assertEqual(updated_occupation.description_fr, data["description_fr"])
+        self.assertEqual(
+            updated_occupation.description_en, data["description_en"]
+        )
+        self.assertEqual(
+            updated_occupation.description_fr, data["description_fr"]
+        )
         self.assertEqual(
             updated_occupation.alternative_titles_en,
             f"{data['title_en']} alternative 1, {data['title_en']} alternative 2",

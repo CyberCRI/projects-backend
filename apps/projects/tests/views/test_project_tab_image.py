@@ -68,12 +68,16 @@ class RetrieveProjectTabImageTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("ProjectTab-images-detail", args=(tab.project.id, image.id))
+                reverse(
+                    "ProjectTab-images-detail", args=(tab.project.id, image.id)
+                )
             )
             if publication_status in retrieved_images:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )
 
 
 class CreateProjectTabImageTestCase(JwtAPITestCase):
@@ -161,7 +165,9 @@ class CreateProjectTabImageTestCase(JwtAPITestCase):
             ),
         )
         self.tab.refresh_from_db()
-        self.assertIn(content["id"], self.tab.images.values_list("id", flat=True))
+        self.assertIn(
+            content["id"], self.tab.images.values_list("id", flat=True)
+        )
         self.assertEqual(content["scale_x"], payload["scale_x"])
         self.assertEqual(content["scale_y"], payload["scale_y"])
         self.assertEqual(content["left"], payload["left"])
@@ -262,9 +268,8 @@ class DeleteProjectTabImageTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
-                "ProjectTab-images-detail",
-                args=(self.project.id, image.id),
-            ),
+                "ProjectTab-images-detail", args=(self.project.id, image.id)
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

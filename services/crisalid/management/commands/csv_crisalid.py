@@ -19,18 +19,11 @@ class Command(BaseCommand):
             help="organization code",
         )
         parser.add_argument(
-            "command",
-            choices=("researcher", "all"),
-            help="elements to dumps",
+            "command", choices=("researcher", "all"), help="elements to dumps"
         )
-        parser.add_argument(
-            "output",
-            default="./",
-            help="output path",
-        )
+        parser.add_argument("output", default="./", help="output path")
 
     def csv_researcher(self, organization: Organization, output: pathlib.Path):
-
         rows = [
             # headers csv
             [
@@ -54,10 +47,9 @@ class Command(BaseCommand):
         ]
 
         # fetch all users with eppn
-        for researcher in Researcher.objects.prefetch_related("identifiers").filter(
-            user__groups__in=(organization.get_users(),)
-        ):
-
+        for researcher in Researcher.objects.prefetch_related(
+            "identifiers"
+        ).filter(user__groups__in=(organization.get_users(),)):
             # convert identifiers to a dict key/value
             identifiers = {
                 identifier.harvester: identifier.value
@@ -108,7 +100,9 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         command = options["command"]
-        config = CrisalidConfig.objects.get(organization__code=options["organization"])
+        config = CrisalidConfig.objects.get(
+            organization__code=options["organization"]
+        )
 
         output = pathlib.Path(options["output"])
 

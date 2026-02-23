@@ -28,7 +28,9 @@ class CreateOrganizationLogoTestCase(JwtAPITestCase):
         ]
     )
     def test_create_organization_logo(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -111,6 +113,6 @@ class DeleteOrganizationLogoTestCase(JwtAPITestCase):
             reverse(
                 "Organization-logo-detail",
                 args=(organization.code, organization.logo_image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)

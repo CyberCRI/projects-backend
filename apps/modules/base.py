@@ -11,10 +11,7 @@ class AbstractModules:
         self.user = user
 
     def _items(self):
-        members = inspect.getmembers(
-            self,
-            predicate=inspect.ismethod,
-        )
+        members = inspect.getmembers(self, predicate=inspect.ismethod)
 
         for name, func in members:
             # ignore private_method and "count" method (this method :D)

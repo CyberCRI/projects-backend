@@ -36,7 +36,9 @@ class RoleBasedAccessAdmin(admin.ModelAdmin):
         """
         Get the organizations for which the user can access the admin panel.
         """
-        return get_objects_for_user(user, "organizations.access_admin", Organization)
+        return get_objects_for_user(
+            user, "organizations.access_admin", Organization
+        )
 
     def get_queryset(self, request) -> QuerySet:
         """

@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from drf_recaptcha.fields import ReCaptchaV2Field
 from rest_framework import serializers
 
@@ -41,12 +39,14 @@ class AnnouncementSerializer(
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
 ):
-
-    string_images_forbid_fields: List[str] = ["title", "description"]
+    string_images_forbid_fields: list[str] = ["title", "description"]
 
     project = ProjectAnnouncementSerializer(read_only=True)
     project_id = serializers.PrimaryKeyRelatedField(
-        many=False, queryset=Project.objects.all(), source="project", write_only=True
+        many=False,
+        queryset=Project.objects.all(),
+        source="project",
+        write_only=True,
     )
 
     class Meta:
@@ -67,7 +67,7 @@ class AnnouncementSerializer(
             "project_id",
         ]
 
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         if "organizations" in self.validated_data:
             return self.validated_data["organizations"]
@@ -75,7 +75,7 @@ class AnnouncementSerializer(
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_project(self) -> Optional[Project]:
+    def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]

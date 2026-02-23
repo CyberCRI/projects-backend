@@ -23,8 +23,5 @@ def init_newsfeed():
     for news in News.objects.all():
         Newsfeed.objects.get_or_create(
             news=news,
-            defaults={
-                "news": news,
-                "type": Newsfeed.NewsfeedType.NEWS,
-            },
+            defaults={"news": news, "type": Newsfeed.NewsfeedType.NEWS},
         )

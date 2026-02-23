@@ -51,15 +51,15 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_update_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
-        tag_classification = TagClassificationFactory(organization=self.organization)
+        tag_classification = TagClassificationFactory(
+            organization=self.organization
+        )
         AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=tag_classification.pk
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            TagClassification._auto_translated_fields[0]: faker.word(),
-        }
+        payload = {TagClassification._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse(
                 "TagClassification-detail",
@@ -113,7 +113,9 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_delete_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
-        tag_classification = TagClassificationFactory(organization=self.organization)
+        tag_classification = TagClassificationFactory(
+            organization=self.organization
+        )
         AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=tag_classification.pk
         ).update(up_to_date=True)

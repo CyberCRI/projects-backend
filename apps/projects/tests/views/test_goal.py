@@ -41,8 +41,7 @@ class CreateGoalTestCase(JwtAPITestCase):
             "project_id": project.id,
         }
         response = self.client.post(
-            reverse("Goal-list", args=(project.id,)),
-            data=payload,
+            reverse("Goal-list", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -112,7 +111,7 @@ class DeleteGoalTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         goal = GoalFactory(project=project)
         response = self.client.delete(
-            reverse("Goal-detail", args=(project.id, goal.id)),
+            reverse("Goal-detail", args=(project.id, goal.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -164,16 +163,13 @@ class ListGoalsTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
-            response = self.client.get(
-                reverse(
-                    "Goal-list",
-                    args=(project.id,),
-                ),
-            )
+            response = self.client.get(reverse("Goal-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_goals:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(content[0]["id"], self.goals[publication_status].id)
+                self.assertEqual(
+                    content[0]["id"], self.goals[publication_status].id
+                )
             else:
                 self.assertEqual(len(content), 0)

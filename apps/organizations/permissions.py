@@ -1,5 +1,3 @@
-from typing import List
-
 from django.db.models import Model
 from rest_framework import permissions
 from rest_framework.generics import get_object_or_404
@@ -22,7 +20,7 @@ from .models import Organization
 class OrganizationRelatedPermission(IgnoreCall):
     def get_related_organizations(
         self, request: Request, view: GenericViewSet, obj: Model = None
-    ) -> List[Organization]:
+    ) -> list[Organization]:
         model = view.get_queryset().model
         if model == Organization:
             code = view.kwargs.get(view.lookup_url_kwarg) or view.kwargs.get(

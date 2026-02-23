@@ -37,7 +37,9 @@ class CreateEventImageTestCase(JwtAPITestCase):
         event = EventFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.people_group]
+        )
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -48,10 +50,7 @@ class CreateEventImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse(
-                "Event-images-list",
-                args=(organization.code, event.id),
-            ),
+            reverse("Event-images-list", args=(organization.code, event.id)),
             data=payload,
             format="multipart",
         )
@@ -81,8 +80,7 @@ class UpdateEventImageTestCase(JwtAPITestCase):
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.image = cls.get_test_image()
         cls.event = EventFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
         cls.event.images.add(cls.image)
 
@@ -100,7 +98,9 @@ class UpdateEventImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_event_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.people_group]
+        )
         self.client.force_authenticate(user)
         payload = {
             "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
@@ -123,7 +123,9 @@ class UpdateEventImageTestCase(JwtAPITestCase):
             self.assertEqual(response.json()["scale_y"], payload["scale_y"])
             self.assertEqual(response.json()["left"], payload["left"])
             self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
+            self.assertEqual(
+                response.json()["natural_ratio"], payload["natural_ratio"]
+            )
 
 
 class DeleteEventImageTestCase(JwtAPITestCase):
@@ -133,8 +135,7 @@ class DeleteEventImageTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.event = EventFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
 
     @parameterized.expand(
@@ -153,13 +154,15 @@ class DeleteEventImageTestCase(JwtAPITestCase):
     def test_delete_event_image(self, role, expected_code):
         image = self.get_test_image()
         self.event.images.add(image)
-        user = self.get_parameterized_test_user(role, instances=[self.people_group])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.people_group]
+        )
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
                 "Event-images-detail",
                 args=(self.organization.code, self.event.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -191,7 +194,9 @@ class RetrieveEventImageTestCase(JwtAPITestCase):
         cls.none_image = cls.get_test_image()
         cls.none_event.images.add(cls.none_image)
 
-        cls.all_event = EventFactory(organization=cls.organization, visible_by_all=True)
+        cls.all_event = EventFactory(
+            organization=cls.organization, visible_by_all=True
+        )
         cls.all_image = cls.get_test_image()
         cls.all_event.images.add(cls.all_image)
 
@@ -220,26 +225,11 @@ class RetrieveEventImageTestCase(JwtAPITestCase):
         cls.org_event.images.add(cls.org_image)
 
         cls.event = {
-            "none": {
-                "event": cls.none_event,
-                "image": cls.none_image,
-            },
-            "all": {
-                "event": cls.all_event,
-                "image": cls.all_image,
-            },
-            "public": {
-                "event": cls.public_event,
-                "image": cls.public_image,
-            },
-            "private": {
-                "event": cls.private_event,
-                "image": cls.private_image,
-            },
-            "org": {
-                "event": cls.org_event,
-                "image": cls.org_image,
-            },
+            "none": {"event": cls.none_event, "image": cls.none_image},
+            "all": {"event": cls.all_event, "image": cls.all_image},
+            "public": {"event": cls.public_event, "image": cls.public_image},
+            "private": {"event": cls.private_event, "image": cls.private_image},
+            "org": {"event": cls.org_event, "image": cls.org_image},
         }
 
     @parameterized.expand(
@@ -248,7 +238,10 @@ class RetrieveEventImageTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),
@@ -273,4 +266,6 @@ class RetrieveEventImageTestCase(JwtAPITestCase):
             if key in retrieved_events:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )

@@ -40,12 +40,7 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Researcher
-        fields = (
-            "id",
-            "user",
-            "identifiers",
-            "display_name",
-        )
+        fields = ("id", "user", "identifiers", "display_name")
 
     def get_display_name(self, instance):
         return str(instance)
@@ -58,12 +53,7 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
 
     class Meta:
         model = Researcher
-        fields = (
-            "identifiers",
-            "display_name",
-            "user",
-            "id",
-        )
+        fields = ("identifiers", "display_name", "user", "id")
 
     def get_display_name(self, instance):
         return str(instance)

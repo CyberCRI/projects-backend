@@ -1,8 +1,10 @@
-from typing import List, Optional
-
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
-from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
+from rest_framework.exceptions import (
+    APIException,
+    PermissionDenied,
+    ValidationError,
+)
 
 # Permission denied errors
 
@@ -12,7 +14,7 @@ class LinkedProjectPermissionDeniedError(PermissionDenied):
     default_detail = _("You don't have the permission to link this project")
     default_code = "linked_project_permission_denied"
 
-    def __init__(self, project_title: Optional[str] = None):
+    def __init__(self, project_title: str | None = None):
         detail = (
             _(
                 "You don't have the permission to link this project : {project_title}"
@@ -53,8 +55,8 @@ class WrongProjectOrganizationError(APIException):
 
     def __init__(
         self,
-        project_title: Optional[str] = None,
-        organizations_names: Optional[List[str]] = None,
+        project_title: str | None = None,
+        organizations_names: list[str] | None = None,
     ):
         detail = (
             f"The project '{project_title}' does not belong to any of the given organizations: {' ,'.join(organizations_names)}"
@@ -104,7 +106,7 @@ class LinkProjectToSelfError(ValidationError):
     default_detail = _("A project can't be linked to itself")
     default_code = "link_project_to_self_error"
 
-    def __init__(self, project_title: Optional[str] = None):
+    def __init__(self, project_title: str | None = None):
         detail = (
             _("The project '{project_title}' can't be linked to itself").format(
                 project_title=project_title

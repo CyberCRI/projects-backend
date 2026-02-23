@@ -59,13 +59,13 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
         ]
     )
     def test_update_terms_and_conditions(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         terms_and_conditions = self.organization.terms_and_conditions
         initial_updated_at = terms_and_conditions.updated_at
-        payload = {
-            "content": faker.text(),
-        }
+        payload = {"content": faker.text()}
         response = self.client.patch(
             reverse(
                 "TermsAndConditions-detail",
@@ -128,9 +128,13 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
             terms_and_conditions["displayed_organization"],
             instance.organization.code,
         )
-        self.assertEqual(terms_and_conditions["displayed_content"], instance.content)
         self.assertEqual(
-            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            terms_and_conditions["displayed_content"], instance.content
+        )
+        self.assertEqual(
+            datetime.fromisoformat(
+                terms_and_conditions["displayed_updated_at"]
+            ),
             instance.updated_at,
         )
 
@@ -148,9 +152,13 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
             terms_and_conditions["displayed_organization"],
             default.organization.code,
         )
-        self.assertEqual(terms_and_conditions["displayed_content"], default.content)
         self.assertEqual(
-            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            terms_and_conditions["displayed_content"], default.content
+        )
+        self.assertEqual(
+            datetime.fromisoformat(
+                terms_and_conditions["displayed_updated_at"]
+            ),
             default.updated_at,
         )
 
@@ -168,9 +176,13 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
             terms_and_conditions["displayed_organization"],
             default.organization.code,
         )
-        self.assertEqual(terms_and_conditions["displayed_content"], default.content)
         self.assertEqual(
-            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            terms_and_conditions["displayed_content"], default.content
+        )
+        self.assertEqual(
+            datetime.fromisoformat(
+                terms_and_conditions["displayed_updated_at"]
+            ),
             default.updated_at,
         )
 
@@ -188,8 +200,12 @@ class MiscTermsAndConditionsTestCase(JwtAPITestCase):
             terms_and_conditions["displayed_organization"],
             instance.organization.code,
         )
-        self.assertEqual(terms_and_conditions["displayed_content"], instance.content)
         self.assertEqual(
-            datetime.fromisoformat(terms_and_conditions["displayed_updated_at"]),
+            terms_and_conditions["displayed_content"], instance.content
+        )
+        self.assertEqual(
+            datetime.fromisoformat(
+                terms_and_conditions["displayed_updated_at"]
+            ),
             instance.updated_at,
         )

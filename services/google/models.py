@@ -1,5 +1,3 @@
-from typing import Optional, Tuple
-
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned, ValidationError
 from django.db import models
@@ -76,9 +74,7 @@ class GoogleSyncErrors(models.Model):
 
 class GoogleGroup(models.Model):
     people_group = models.OneToOneField(
-        PeopleGroup,
-        on_delete=models.CASCADE,
-        related_name="google_group",
+        PeopleGroup, on_delete=models.CASCADE, related_name="google_group"
     )
     google_id = models.CharField(max_length=50, blank=True, default="")
     email = models.EmailField(blank=True, default="")
@@ -107,7 +103,7 @@ class GoogleGroup(models.Model):
             )
         return super().save(*args, **kwargs)
 
-    def update_or_create_error(self, on_task: str, error: Optional[Exception] = None):
+    def update_or_create_error(self, on_task: str, error: Exception | None = None):
         defaults = {"solved": error is None}
         if error is not None:
             defaults["error"] = str(error)
@@ -128,9 +124,7 @@ class GoogleGroup(models.Model):
             error.retries_count += 1
             error.save()
 
-    def create(
-        self, is_retry: bool = False
-    ) -> Tuple["GoogleGroup", Optional[Exception]]:
+    def create(self, is_retry: bool = False) -> tuple["GoogleGroup", Exception | None]:
         try:
             google_group = GoogleService.create_group(self.people_group)
             self.email = google_group["email"]
@@ -212,9 +206,7 @@ class GoogleGroup(models.Model):
 
 class GoogleAccount(models.Model):
     user = models.OneToOneField(
-        ProjectUser,
-        on_delete=models.CASCADE,
-        related_name="google_account",
+        ProjectUser, on_delete=models.CASCADE, related_name="google_account"
     )
     google_id = models.CharField(max_length=50, blank=True, default="")
     email = models.EmailField(blank=True, default="")
@@ -246,11 +238,7 @@ class GoogleAccount(models.Model):
             )
         return super().save(*args, **kwargs)
 
-    def update_or_create_error(
-        self,
-        on_task: str,
-        error: Optional[Exception] = None,
-    ):
+    def update_or_create_error(self, on_task: str, error: Exception | None = None):
         defaults = {"solved": error is None}
         if error is not None:
             defaults["error"] = error
@@ -273,7 +261,7 @@ class GoogleAccount(models.Model):
 
     def create(
         self, is_retry: bool = False
-    ) -> Tuple["GoogleAccount", Optional[Exception]]:
+    ) -> tuple["GoogleAccount", Exception | None]:
         try:
             google_user = GoogleService.create_user(self.user, self.organizational_unit)
             self.email = google_user["primaryEmail"]

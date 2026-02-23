@@ -25,7 +25,9 @@ def _vectorize_objects(model_embedding: MistralEmbedding):
     related_query_name = model_embedding.item.field.related_query_name()
 
     for obj in (
-        related_model.objects.select_related(related_query_name).all().iterator()
+        related_model.objects.select_related(related_query_name)
+        .all()
+        .iterator()
     ):
         embedding = getattr(obj, related_query_name, None)
         # embedding not exists

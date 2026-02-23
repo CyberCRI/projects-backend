@@ -1,4 +1,4 @@
-from typing import Any, Dict, Union
+from typing import Any
 from unittest.mock import patch
 
 from django.urls import reverse
@@ -101,8 +101,8 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @staticmethod
     def get_object_id_from_search_object(
-        search_object: Dict[str, Any],
-    ) -> Union[int, str, None]:
+        search_object: dict[str, Any],
+    ) -> int | str | None:
         if search_object["type"] == SearchObject.SearchObjectType.PEOPLE_GROUP:
             return search_object["people_group"]["id"]
         if search_object["type"] == SearchObject.SearchObjectType.PROJECT:
@@ -114,8 +114,7 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_mixed_index(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=self.search_objects,
-            query="opensearch",
+            search_objects=self.search_objects, query="opensearch"
         )
         response = self.client.get(
             reverse("Search-search", args=("opensearch",))
@@ -134,11 +133,17 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             },
             {
                 (SearchObject.SearchObjectType.PROJECT, self.project_1.pk),
-                (SearchObject.SearchObjectType.PEOPLE_GROUP, self.people_group_2.pk),
+                (
+                    SearchObject.SearchObjectType.PEOPLE_GROUP,
+                    self.people_group_2.pk,
+                ),
                 (SearchObject.SearchObjectType.USER, self.user_2.pk),
                 (SearchObject.SearchObjectType.USER, self.user_1.pk),
                 (SearchObject.SearchObjectType.PROJECT, self.project_2.pk),
-                (SearchObject.SearchObjectType.PEOPLE_GROUP, self.people_group_1.pk),
+                (
+                    SearchObject.SearchObjectType.PEOPLE_GROUP,
+                    self.people_group_1.pk,
+                ),
             },
         )
 
@@ -159,10 +164,16 @@ class MixedSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             ],
             [
                 (SearchObject.SearchObjectType.PROJECT, self.project_1.pk),
-                (SearchObject.SearchObjectType.PEOPLE_GROUP, self.people_group_2.pk),
+                (
+                    SearchObject.SearchObjectType.PEOPLE_GROUP,
+                    self.people_group_2.pk,
+                ),
                 (SearchObject.SearchObjectType.USER, self.user_2.pk),
                 (SearchObject.SearchObjectType.USER, self.user_1.pk),
                 (SearchObject.SearchObjectType.PROJECT, self.project_2.pk),
-                (SearchObject.SearchObjectType.PEOPLE_GROUP, self.people_group_1.pk),
+                (
+                    SearchObject.SearchObjectType.PEOPLE_GROUP,
+                    self.people_group_1.pk,
+                ),
             ],
         )

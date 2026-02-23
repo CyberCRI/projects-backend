@@ -2,7 +2,7 @@ import math
 import uuid
 from datetime import date
 from functools import cached_property
-from typing import Any, Optional
+from typing import Any
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -189,9 +189,7 @@ class PeopleGroup(
         root_group, _ = cls.objects.update_or_create(
             organization=organization,
             is_root=True,
-            defaults={
-                "name": organization.name,
-            },
+            defaults={"name": organization.name},
         )
         return root_group
 
@@ -212,7 +210,7 @@ class PeopleGroup(
         content_type = ContentType.objects.get_for_model(cls)
         return Permission.objects.filter(content_type=content_type)
 
-    def setup_permissions(self, user: Optional["ProjectUser"] = None):
+    def setup_permissions(self, user: "ProjectUser" | None = None):
         """Setup the group with default permissions."""
         managers = self.setup_group_object_permissions(
             self.get_managers(), self.get_default_managers_permissions()
@@ -272,12 +270,16 @@ class PeopleGroup(
                 name="unique_root_group_per_organization",
                 fields=["organization"],
                 condition=Q(is_root=True),
-            ),
+            )
         ]
 
 
 class ProjectUser(
-    HasAutoTranslatedFields, HasMultipleIDs, HasOwner, OrganizationRelated, AbstractUser
+    HasAutoTranslatedFields,
+    HasMultipleIDs,
+    HasOwner,
+    OrganizationRelated,
+    AbstractUser,
 ):
     """
     Override Django base user by a user of projects app
@@ -313,12 +315,13 @@ class ProjectUser(
     REQUIRED_FIELDS = []
 
     people_id = models.UUIDField(
-        auto_created=False, unique=True, null=True, help_text="id of user in people"
+        auto_created=False,
+        unique=True,
+        null=True,
+        help_text="id of user in people",
     )
     external_id = models.CharField(
-        max_length=255,
-        blank=True,
-        help_text="id of user in their organization",
+        max_length=255, blank=True, help_text="id of user in their organization"
     )
     email = models.CharField(max_length=255, unique=True)
     given_name = models.CharField(max_length=255, blank=True)
@@ -421,20 +424,17 @@ class ProjectUser(
     ) -> Any:
         try:
             return super().get_main_id(object_id, returned_field)
-        except Http404 as e:
-            try:
-                user = cls.import_from_keycloak(object_id)
-                return getattr(user, returned_field)
-            except RemoteKeycloakAccountNotFound:
-                raise e
+        except Http404:
+            user = cls.import_from_keycloak(object_id)
+            return getattr(user, returned_field)
 
     @classmethod
     @transaction.atomic
     def import_from_keycloak(cls, keycloak_id: str) -> "ProjectUser":
         try:
             keycloak_user = KeycloakService.get_user(keycloak_id)
-        except KeycloakGetError:
-            raise RemoteKeycloakAccountNotFound
+        except KeycloakGetError as err:
+            raise RemoteKeycloakAccountNotFound from err
         user = cls.objects.create(
             email=keycloak_user.get("username", ""),
             given_name=keycloak_user.get("firstName", ""),
@@ -457,10 +457,7 @@ class ProjectUser(
             item for sublist in organizations_codes for item in sublist
         ]
         organizations = Organization.objects.filter(code__in=organizations_codes)
-        user.groups.add(
-            get_default_group(),
-            *[o.get_users() for o in organizations],
-        )
+        user.groups.add(get_default_group(), *[o.get_users() for o in organizations])
         return user
 
     def add_idp_organizations(self) -> "ProjectUser":
@@ -668,7 +665,9 @@ class ProjectUser(
         return queryset.filter(**{f"{user_related_name}__in": self.get_user_queryset()})
 
     def get_people_group_related_queryset(
-        self, queryset: QuerySet, people_group_related_name: str = "people_group"
+        self,
+        queryset: QuerySet,
+        people_group_related_name: str = "people_group",
     ) -> QuerySet["PeopleGroup"]:
         return queryset.filter(
             **{f"{people_group_related_name}__in": self.get_people_group_queryset()}
@@ -798,40 +797,23 @@ class PrivacySettings(models.Model, HasOwner):
         ORGANIZATION = "org"
         PUBLIC = "pub"
 
-    PRIVACY_CHARFIELD = {
-        "max_length": 4,
-        "choices": PrivacyChoices.choices,
-    }
+    PRIVACY_CHARFIELD = {"max_length": 4, "choices": PrivacyChoices.choices}
 
     user = models.OneToOneField(
-        ProjectUser,
-        on_delete=models.CASCADE,
-        related_name="privacy_settings",
+        ProjectUser, on_delete=models.CASCADE, related_name="privacy_settings"
     )
     publication_status = models.CharField(
-        **PRIVACY_CHARFIELD,
-        default=PrivacyChoices.PUBLIC,
+        **PRIVACY_CHARFIELD, default=PrivacyChoices.PUBLIC
     )
     profile_picture = models.CharField(
-        **PRIVACY_CHARFIELD,
-        default=PrivacyChoices.ORGANIZATION,
+        **PRIVACY_CHARFIELD, default=PrivacyChoices.ORGANIZATION
     )
-    skills = models.CharField(
-        **PRIVACY_CHARFIELD,
-        default=PrivacyChoices.PUBLIC,
-    )
+    skills = models.CharField(**PRIVACY_CHARFIELD, default=PrivacyChoices.PUBLIC)
     mobile_phone = models.CharField(
-        **PRIVACY_CHARFIELD,
-        default=PrivacyChoices.ORGANIZATION,
+        **PRIVACY_CHARFIELD, default=PrivacyChoices.ORGANIZATION
     )
-    email = models.CharField(
-        **PRIVACY_CHARFIELD,
-        default=PrivacyChoices.ORGANIZATION,
-    )
-    socials = models.CharField(
-        **PRIVACY_CHARFIELD,
-        default=PrivacyChoices.ORGANIZATION,
-    )
+    email = models.CharField(**PRIVACY_CHARFIELD, default=PrivacyChoices.ORGANIZATION)
+    socials = models.CharField(**PRIVACY_CHARFIELD, default=PrivacyChoices.ORGANIZATION)
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
@@ -956,7 +938,9 @@ class AnonymousUser:
         )
 
     def get_people_group_related_queryset(
-        self, queryset: QuerySet, people_group_related_name: str = "people_group"
+        self,
+        queryset: QuerySet,
+        people_group_related_name: str = "people_group",
     ) -> QuerySet["PeopleGroup"]:
         return queryset.filter(
             **{

@@ -47,12 +47,15 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_organization(self) -> Organization:
         organization_code = self.kwargs["organization_code"]
         return get_object_or_404(
-            Organization.objects.prefetch_related("projects"), code=organization_code
+            Organization.objects.prefetch_related("projects"),
+            code=organization_code,
         )
 
     def get_queryset(self):
         current_organization = self.get_organization()
-        publication_status = self.request.query_params.get("publication_status", "all")
+        publication_status = self.request.query_params.get(
+            "publication_status", "all"
+        )
         if publication_status == "all":
             return current_organization.projects.all()
         return current_organization.projects.filter(
@@ -93,7 +96,9 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
         # Top ten wikipedia_tags
         tags = (
             Tag.objects.annotate(
-                project_count=Count("projects", filter=Q(projects__in=projects_qs))
+                project_count=Count(
+                    "projects", filter=Q(projects__in=projects_qs)
+                )
             )
             .filter(project_count__gt=0)
             .prefetch_related("projects")

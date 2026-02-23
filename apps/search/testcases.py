@@ -1,5 +1,3 @@
-from typing import List, Union
-
 from apps.search.models import SearchObject
 from apps.skills.models import Tag
 
@@ -22,7 +20,12 @@ class MockedTagHit:
         self.id = tag.id
         fields = {
             field: getattr(tag, field, "")
-            for field in ["name_fr", "name_en", "description_fr", "description_en"]
+            for field in [
+                "name_fr",
+                "name_en",
+                "description_fr",
+                "description_en",
+            ]
         }
         self.meta = MockedHitMeta(
             highlight={
@@ -47,12 +50,12 @@ class MockedSearchObjectHit:
 
 
 class MockedHitsTotal:
-    def __init__(self, hits: List[Union[MockedSearchObjectHit, MockedTagHit]]):
+    def __init__(self, hits: list[MockedSearchObjectHit | MockedTagHit]):
         self.value = len(hits)
 
 
 class MockedHits:
-    def __init__(self, hits: List[Union[MockedSearchObjectHit, MockedTagHit]]):
+    def __init__(self, hits: list[MockedSearchObjectHit | MockedTagHit]):
         self.hits = hits
         self.total = MockedHitsTotal(hits=hits)
 
@@ -61,20 +64,20 @@ class MockedHits:
 
 
 class MockedResponse:
-    def __init__(self, hits: List[Union[MockedSearchObjectHit, MockedTagHit]]):
+    def __init__(self, hits: list[MockedSearchObjectHit | MockedTagHit]):
         self.hits = MockedHits(hits)
 
 
 class SearchTestCaseMixin:
     def opensearch_tags_mocked_return(
-        self, tags: List[Tag], query: str
-    ) -> List[MockedTagHit]:
+        self, tags: list[Tag], query: str
+    ) -> list[MockedTagHit]:
         hits = [MockedTagHit(tag=tag, query=query) for tag in tags]
         return MockedResponse(hits=hits)
 
     def opensearch_search_objects_mocked_return(
-        self, search_objects: List[SearchObject], query: str
-    ) -> List[MockedSearchObjectHit]:
+        self, search_objects: list[SearchObject], query: str
+    ) -> list[MockedSearchObjectHit]:
         hits = [
             MockedSearchObjectHit(search_object=search_object, query=query)
             for search_object in search_objects

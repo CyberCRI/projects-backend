@@ -55,26 +55,24 @@ class ImageForm(forms.ModelForm):
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "name",
-        "file",
-        "owner",
-        "created_at",
-    )
+    list_display = ("id", "name", "file", "owner", "created_at")
     autocomplete_fields = ("owner",)
     form = ImageForm
 
 
 @admin.register(ProjectUserAttachmentFile)
-class ProjectUserAttachmentFileAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+class ProjectUserAttachmentFileAdmin(
+    TranslateObjectAdminMixin, admin.ModelAdmin
+):
     list_display = ("id", "owner", "title")
     autocomplete_fields = ("owner",)
     search_fields = ("owner", "title", "mime")
 
 
 @admin.register(ProjectUserAttachmentLink)
-class ProjectUserAttachmentLinkAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
+class ProjectUserAttachmentLinkAdmin(
+    TranslateObjectAdminMixin, admin.ModelAdmin
+):
     list_display = ("id", "owner", "title", "site_url")
     autocomplete_fields = ("owner",)
     search_fields = ("owner", "title", "stie_url")

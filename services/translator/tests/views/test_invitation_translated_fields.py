@@ -41,7 +41,8 @@ class InvitationTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Invitation._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(Invitation._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -61,7 +62,10 @@ class InvitationTranslatedFieldsTestCase(JwtAPITestCase):
             for translated_field in Invitation._auto_translated_fields
         }
         response = self.client.patch(
-            reverse("Invitation-detail", args=(self.organization.code, invitation.pk)),
+            reverse(
+                "Invitation-detail",
+                args=(self.organization.code, invitation.pk),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -69,7 +73,8 @@ class InvitationTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=invitation.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Invitation._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(Invitation._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -89,7 +94,10 @@ class InvitationTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         response = self.client.delete(
-            reverse("Invitation-detail", args=(self.organization.code, invitation.pk))
+            reverse(
+                "Invitation-detail",
+                args=(self.organization.code, invitation.pk),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(

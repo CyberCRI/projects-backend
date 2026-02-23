@@ -4,10 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
-    dependencies = [
-        ("projects", "0001_initial"),
-    ]
+    dependencies = [("projects", "0001_initial")]
 
     operations = [
         migrations.AlterField(
@@ -22,5 +19,5 @@ class Migration(migrations.Migration):
                 default="team",
                 max_length=10,
             ),
-        ),
+        )
     ]

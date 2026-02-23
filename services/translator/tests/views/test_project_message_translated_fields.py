@@ -25,11 +25,10 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_create_project_message(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "content": faker.word(),
-        }
+        payload = {"content": faker.word()}
         response = self.client.post(
-            reverse("ProjectMessage-list", args=(self.project.id,)), data=payload
+            reverse("ProjectMessage-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -37,7 +36,8 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectMessage._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(ProjectMessage._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -59,7 +59,8 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
         }
         response = self.client.patch(
             reverse(
-                "ProjectMessage-detail", args=(self.project.id, project_message.pk)
+                "ProjectMessage-detail",
+                args=(self.project.id, project_message.pk),
             ),
             data=payload,
         )
@@ -68,7 +69,8 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=project_message.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(ProjectMessage._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(ProjectMessage._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -88,7 +90,10 @@ class ProjectMessageTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         response = self.client.delete(
-            reverse("ProjectMessage-detail", args=(self.project.id, project_message.pk))
+            reverse(
+                "ProjectMessage-detail",
+                args=(self.project.id, project_message.pk),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(

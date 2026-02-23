@@ -74,7 +74,9 @@ class ReadLocationTestCase(JwtAPITestCase):
         cls.locations_group = {
             "public": PeopleGroupLocationFactory(people_group=cls.public_group),
             "org": PeopleGroupLocationFactory(people_group=cls.org_group),
-            "private": PeopleGroupLocationFactory(people_group=cls.private_group),
+            "private": PeopleGroupLocationFactory(
+                people_group=cls.private_group
+            ),
             "child": PeopleGroupLocationFactory(people_group=cls.child_group),
         }
 
@@ -98,7 +100,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("General-location-list", args=(self.organization.code,)),
+            reverse("General-location-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -125,10 +127,12 @@ class ReadLocationTestCase(JwtAPITestCase):
         ]
     )
     def test_list_group_location(self, role, retrieved_locations):
-        user = self.get_parameterized_test_user(role, instances=[*self.groups.values()])
+        user = self.get_parameterized_test_user(
+            role, instances=[*self.groups.values()]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("General-location-list", args=(self.organization.code,)),
+            reverse("General-location-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -136,5 +140,8 @@ class ReadLocationTestCase(JwtAPITestCase):
         self.assertEqual(len(content["groups"]), len(retrieved_locations))
         self.assertSetEqual(
             {a["id"] for a in content["groups"]},
-            {a.id for a in [self.locations_group[a] for a in retrieved_locations]},
+            {
+                a.id
+                for a in [self.locations_group[a] for a in retrieved_locations]
+            },
         )

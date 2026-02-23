@@ -14,7 +14,11 @@ from apps.files.factories import (
     OrganizationAttachmentFileFactory,
 )
 from apps.invitations.factories import AccessRequestFactory
-from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.newsfeed.factories import (
+    EventFactory,
+    InstructionFactory,
+    NewsFactory,
+)
 from apps.organizations.factories import (
     OrganizationFactory,
     ProjectCategoryFactory,
@@ -40,8 +44,12 @@ class TextProcessingTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         organization = OrganizationFactory()
-        category = ProjectCategoryFactory(organization=organization, is_reviewable=True)
-        template = TemplateFactory(categories=[category], organization=organization)
+        category = ProjectCategoryFactory(
+            organization=organization, is_reviewable=True
+        )
+        template = TemplateFactory(
+            categories=[category], organization=organization
+        )
         template_image = cls.get_test_image()
         template.images.add(template_image)
         project = ProjectFactory(
@@ -62,8 +70,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             short_description=cls.base64_image_text,
         )
         cls.announcement = AnnouncementFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.comment = CommentFactory(
             project=project,
@@ -72,30 +79,29 @@ class TextProcessingTestCase(JwtAPITestCase):
                 + cls.create_template_image_text(
                     organization.code, template.id, template_image.id
                 )
-                + cls.create_unlinked_image_text("Comment-images-detail", project.id)
+                + cls.create_unlinked_image_text(
+                    "Comment-images-detail", project.id
+                )
             ),
         )
         cls.review = ReviewFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.org_attachment_file = OrganizationAttachmentFileFactory(
-            organization=organization,
-            description=cls.base64_image_text,
+            organization=organization, description=cls.base64_image_text
         )
         cls.attachment_link = AttachmentLinkFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.attachment_file = AttachmentFileFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.access_request = AccessRequestFactory(
-            organization=organization,
-            message=cls.base64_image_text,
+            organization=organization, message=cls.base64_image_text
         )
-        cls.news = NewsFactory(organization=organization, content=cls.base64_image_text)
+        cls.news = NewsFactory(
+            organization=organization, content=cls.base64_image_text
+        )
         cls.news.content += cls.create_unlinked_image_text(
             "News-images-detail", organization.code, cls.news.id
         )
@@ -115,7 +121,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         )
         cls.instruction.save()
         cls.organization = OrganizationFactory(
-            description=cls.base64_image_text,
+            description=cls.base64_image_text
         )
         cls.organization.description += cls.create_unlinked_image_text(
             "Organization-images-detail", cls.organization.code
@@ -150,8 +156,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
         cls.template.save()
         cls.category = ProjectCategoryFactory(
-            organization=organization,
-            description=cls.base64_image_text,
+            organization=organization, description=cls.base64_image_text
         )
         cls.project = ProjectFactory(
             organizations=[organization],
@@ -185,12 +190,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             ),
         )
         cls.goal = GoalFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.location = LocationFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.project_tab = ProjectTabFactory(
             project=project,
@@ -206,11 +209,15 @@ class TextProcessingTestCase(JwtAPITestCase):
             content=(
                 cls.base64_image_text
                 + cls.create_unlinked_image_text(
-                    "ProjectTabItem-images-detail", cls.project.id, cls.project_tab.id
+                    "ProjectTabItem-images-detail",
+                    cls.project.id,
+                    cls.project_tab.id,
                 )
             ),
         )
-        cls.mentoring_message = MentoringMessageFactory(content=cls.base64_image_text)
+        cls.mentoring_message = MentoringMessageFactory(
+            content=cls.base64_image_text
+        )
 
     @classmethod
     def create_base64_image_text(cls):
@@ -232,7 +239,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         return f'<p>Untouched text template</p><img src="{reverse("Template-images-detail", args=(organization_code, template_id, template_image_id))}" alt="alt"/></p>'
 
     def assertCountImg(self, text: str, count: int):  # noqa: N802
-        self.assertEqual(len(BeautifulSoup(text, "lxml").find_all("img")), count)
+        self.assertEqual(
+            len(BeautifulSoup(text, "lxml").find_all("img")), count
+        )
 
     def assertNotBase64(self, text: str):  # noqa: N802
         elements = list(iter_img_b64(BeautifulSoup(text, "lxml")))
@@ -269,12 +278,18 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.mentoring_message.refresh_from_db()
 
         # Check base64 images removed
-        self.assertEqual(self.people_group.description, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.people_group.description, "<p>Untouched text base64</p>"
+        )
         self.assertEqual(self.user.description, "<p>Untouched text base64</p>")
-        self.assertEqual(self.announcement.description, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.announcement.description, "<p>Untouched text base64</p>"
+        )
         self.assertNotBase64(self.comment.content)
         self.assertCountImg(self.comment.content, 3)
-        self.assertEqual(self.review.description, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.review.description, "<p>Untouched text base64</p>"
+        )
         self.assertEqual(
             self.org_attachment_file.description, "<p>Untouched text base64</p>"
         )
@@ -284,7 +299,9 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertEqual(
             self.attachment_file.description, "<p>Untouched text base64</p>"
         )
-        self.assertEqual(self.access_request.message, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.access_request.message, "<p>Untouched text base64</p>"
+        )
         self.assertNotBase64(self.news.content)
         self.assertCountImg(self.news.content, 2)
         self.assertNotBase64(self.event.content)
@@ -300,10 +317,14 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertCountImg(self.template.description, 2)
         self.assertNotBase64(self.template.project_description)
         self.assertCountImg(self.template.project_description, 2)
-        self.assertEqual(self.template.project_purpose, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.template.project_purpose, "<p>Untouched text base64</p>"
+        )
         self.assertNotBase64(self.template.blogentry_content)
         self.assertCountImg(self.template.blogentry_content, 2)
-        self.assertEqual(self.template.goal_description, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.template.goal_description, "<p>Untouched text base64</p>"
+        )
         self.assertEqual(
             self.template.review_description, "<p>Untouched text base64</p>"
         )
@@ -316,9 +337,13 @@ class TextProcessingTestCase(JwtAPITestCase):
         self.assertNotBase64(self.project_message.content)
         self.assertCountImg(self.project_message.content, 2)
         self.assertEqual(self.goal.description, "<p>Untouched text base64</p>")
-        self.assertEqual(self.location.description, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.location.description, "<p>Untouched text base64</p>"
+        )
         self.assertNotBase64(self.project_tab.description)
         self.assertCountImg(self.project_tab.description, 2)
         self.assertNotBase64(self.project_tab_item.content)
         self.assertCountImg(self.project_tab_item.content, 2)
-        self.assertEqual(self.mentoring_message.content, "<p>Untouched text base64</p>")
+        self.assertEqual(
+            self.mentoring_message.content, "<p>Untouched text base64</p>"
+        )

@@ -106,7 +106,7 @@ class ListLocationTestCase(JwtAPITestCase):
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("Location-list", args=(project.id,)),
+                reverse("Location-list", args=(project.id,))
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
@@ -144,11 +144,11 @@ class UpdateLocationTestCase(JwtAPITestCase):
     def test_update_location(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "description": faker.text(),
-        }
+        payload = {"description": faker.text()}
         response = self.client.patch(
-            reverse("Location-detail", args=(self.project.id, self.location.id)),
+            reverse(
+                "Location-detail", args=(self.project.id, self.location.id)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -185,7 +185,7 @@ class DeleteLocationTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         location = LocationFactory(project=self.project)
         response = self.client.delete(
-            reverse("Location-detail", args=(self.project.id, location.id)),
+            reverse("Location-detail", args=(self.project.id, location.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

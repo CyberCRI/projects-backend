@@ -16,7 +16,9 @@ faker = Faker()
 class ProjectEmbeddingVisibilityTestCase(JwtAPITestCase):
     def test_set_visibility_visible(self):
         project = ProjectFactory()
-        ProjectEmbeddingFactory(item=project, is_visible=True, embedding=1024 * [1])
+        ProjectEmbeddingFactory(
+            item=project, is_visible=True, embedding=1024 * [1]
+        )
         user = UserFactory(groups=[project.get_members()])
         embedding = UserProjectsEmbeddingFactory(item=user)
         embedding.set_visibility()
@@ -40,29 +42,26 @@ class VectorizeUserProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         cls.project_3 = ProjectFactory(organizations=[cls.organization])
 
         cls.vector_1 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2)
+            for _ in range(1024)
         ]
         cls.vector_2 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2)
+            for _ in range(1024)
         ]
         cls.vector_3 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2)
+            for _ in range(1024)
         ]
 
         cls.embedding_1 = ProjectEmbeddingFactory(
-            item=cls.project_1,
-            is_visible=True,
-            embedding=cls.vector_1,
+            item=cls.project_1, is_visible=True, embedding=cls.vector_1
         )
         cls.embedding_2 = ProjectEmbeddingFactory(
-            item=cls.project_2,
-            is_visible=True,
-            embedding=cls.vector_2,
+            item=cls.project_2, is_visible=True, embedding=cls.vector_2
         )
         cls.embedding_3 = ProjectEmbeddingFactory(
-            item=cls.project_3,
-            is_visible=True,
-            embedding=cls.vector_3,
+            item=cls.project_3, is_visible=True, embedding=cls.vector_3
         )
 
     def test_vectorize_user_projects(self):

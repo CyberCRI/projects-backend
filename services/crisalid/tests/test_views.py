@@ -46,7 +46,9 @@ class TestDocumentView(JwtAPITestCase):
                 publication_date=datetime.datetime(1990 + i, 1, 1).date(),
             )
             DocumentContributorFactory(
-                document=document, researcher=cls.researcher_2, roles=["authors"]
+                document=document,
+                researcher=cls.researcher_2,
+                roles=["authors"],
             )
 
         # for both
@@ -59,7 +61,9 @@ class TestDocumentView(JwtAPITestCase):
                 document=document, researcher=cls.researcher, roles=["authors"]
             )
             DocumentContributorFactory(
-                document=document, researcher=cls.researcher_2, roles=["authors"]
+                document=document,
+                researcher=cls.researcher_2,
+                roles=["authors"],
             )
 
     def setUp(self) -> None:
@@ -71,10 +75,7 @@ class TestDocumentView(JwtAPITestCase):
         result = self.client.get(
             reverse(
                 "ResearcherPublications-list",
-                args=(
-                    self.organization.code,
-                    self.researcher.pk,
-                ),
+                args=(self.organization.code, self.researcher.pk),
             )
         )
 
@@ -86,10 +87,7 @@ class TestDocumentView(JwtAPITestCase):
         result = self.client.get(
             reverse(
                 "ResearcherPublications-list",
-                args=(
-                    self.organization.code,
-                    self.researcher_2.pk,
-                ),
+                args=(self.organization.code, self.researcher_2.pk),
             )
         )
 
@@ -101,10 +99,7 @@ class TestDocumentView(JwtAPITestCase):
         result = self.client.get(
             reverse(
                 "ResearcherPublications-analytics",
-                args=(
-                    self.organization.code,
-                    self.researcher.pk,
-                ),
+                args=(self.organization.code, self.researcher.pk),
             )
         )
 
@@ -131,10 +126,7 @@ class TestDocumentView(JwtAPITestCase):
         result = self.client.get(
             reverse(
                 "ResearcherPublications-analytics",
-                args=(
-                    self.organization.code,
-                    self.researcher.pk,
-                ),
+                args=(self.organization.code, self.researcher.pk),
             )
             + "?limit=4"
         )
@@ -181,7 +173,9 @@ class TestResearcherView(JwtAPITestCase):
         )
 
         data = response.json()
-        researcher_ids = sorted(researcher["id"] for researcher in data["results"])
+        researcher_ids = sorted(
+            researcher["id"] for researcher in data["results"]
+        )
         expected = sorted((self.researcher.id, self.researcher_2.id))
         self.assertSequenceEqual(researcher_ids, expected)
 
@@ -189,10 +183,7 @@ class TestResearcherView(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "Researcher-detail",
-                args=(
-                    self.organization.code,
-                    self.researcher.id,
-                ),
+                args=(self.organization.code, self.researcher.id),
             )
         )
 
@@ -201,13 +192,7 @@ class TestResearcherView(JwtAPITestCase):
 
     def test_get_detail_not_know(self):
         response = self.client.get(
-            reverse(
-                "Researcher-detail",
-                args=(
-                    self.organization.code,
-                    666,
-                ),
-            )
+            reverse("Researcher-detail", args=(self.organization.code, 666))
         )
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

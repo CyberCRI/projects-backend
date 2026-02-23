@@ -63,7 +63,8 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         }
         cls.search_objects = {
             key: SearchObject.objects.create(
-                type=SearchObject.SearchObjectType.PEOPLE_GROUP, people_group=value
+                type=SearchObject.SearchObjectType.PEOPLE_GROUP,
+                people_group=value,
             )
             for key, value in cls.groups.items()
         }
@@ -76,7 +77,10 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 TestRoles.SUPERADMIN,
                 ("public_1", "public_2", "private", "org", "member"),
             ),
-            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "member")),
+            (
+                TestRoles.ORG_ADMIN,
+                ("public_1", "public_2", "private", "org", "member"),
+            ),
             (
                 TestRoles.ORG_FACILITATOR,
                 ("public_1", "public_2", "private", "org", "member"),
@@ -88,23 +92,31 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
     )
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_people_group(self, role, retrieved_groups, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects[group] for group in retrieved_groups],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[
+                    self.search_objects[group] for group in retrieved_groups
+                ],
+                query="opensearch",
+            )
         )
         user = self.get_parameterized_test_user(
             role, instances=[self.member_people_group]
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Search-search", args=("opensearch",)) + "?types=people_group"
+            reverse("Search-search", args=("opensearch",))
+            + "?types=people_group"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_groups))
         self.assertEqual(
             {group["type"] for group in content},
-            {SearchObject.SearchObjectType.PEOPLE_GROUP for _ in retrieved_groups},
+            {
+                SearchObject.SearchObjectType.PEOPLE_GROUP
+                for _ in retrieved_groups
+            },
         )
         self.assertSetEqual(
             {group["people_group"]["id"] for group in content},
@@ -113,9 +125,11 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_organization(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(
@@ -137,9 +151,11 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
 
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_by_sdgs(self, mocked_search):
-        mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["public_2"]],
-            query="opensearch",
+        mocked_search.return_value = (
+            self.opensearch_search_objects_mocked_return(
+                search_objects=[self.search_objects["public_2"]],
+                query="opensearch",
+            )
         )
         self.client.force_authenticate(self.superadmin)
         response = self.client.get(

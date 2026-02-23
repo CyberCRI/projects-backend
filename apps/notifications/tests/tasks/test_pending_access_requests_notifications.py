@@ -18,11 +18,15 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
+        cls.admins = UserFactory.create_batch(
+            3, groups=[cls.organization.get_admins()]
+        )
 
     def test_notification_task(self):
         AccessRequestFactory.create_batch(
-            2, organization=self.organization, status=AccessRequest.Status.PENDING
+            2,
+            organization=self.organization,
+            status=AccessRequest.Status.PENDING,
         )
         AccessRequestFactory(
             organization=self.organization, status=AccessRequest.Status.ACCEPTED
@@ -44,20 +48,24 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
 
         self.client.force_authenticate(self.admins[0])
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,)),
+            reverse("Notification-list", args=(self.organization.code,))
         )
         results = response.json()["results"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for ret in results:
-            self.assertEqual(ret["type"], Notification.Types.PENDING_ACCESS_REQUESTS)
+            self.assertEqual(
+                ret["type"], Notification.Types.PENDING_ACCESS_REQUESTS
+            )
             self.assertEqual(ret["context"]["requests_count"], 2)
             self.assertFalse(ret["is_viewed"])
             self.assertEqual(ret["organization"], self.organization.name)
 
     def test_merged_notifications_task(self):
         AccessRequestFactory.create_batch(
-            2, organization=self.organization, status=AccessRequest.Status.PENDING
+            2,
+            organization=self.organization,
+            status=AccessRequest.Status.PENDING,
         )
         AccessRequestFactory(
             organization=self.organization, status=AccessRequest.Status.ACCEPTED

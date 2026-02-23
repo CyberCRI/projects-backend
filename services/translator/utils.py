@@ -60,28 +60,39 @@ def update_auto_translated_field(field: AutoTranslatedField):
         languages = (
             settings.REQUIRED_LANGUAGES
             if any(
-                o.auto_translate_content for o in instance.get_related_organizations()
+                o.auto_translate_content
+                for o in instance.get_related_organizations()
             )
             else {}
         )
     else:
         organizations = [
-            o for o in instance.get_related_organizations() if o.auto_translate_content
+            o
+            for o in instance.get_related_organizations()
+            if o.auto_translate_content
         ]
         # iter over languages in set (remove duplicate language)
-        languages: set[str] = {lang for org in organizations for lang in org.languages}
+        languages: set[str] = {
+            lang for org in organizations for lang in org.languages
+        }
     if languages:
         base_max_length = AZURE_MAX_LENGTH * 0.8  # Safety margin
         max_length = int(base_max_length // len(languages))
         if content:
-            chunks = split_content(content, max_length, text_type=field.field_type)
+            chunks = split_content(
+                content, max_length, text_type=field.field_type
+            )
             translations = {}
             detected_languages = []
             for chunk in chunks:
                 if (
                     field.field_type == "html"
-                    and (not str(chunk).strip() or not chunk.get_text(strip=True))
-                ) or (re.findall(r'data:image\/[a-zA-Z]+;base64,[^"\']+', content)):
+                    and (
+                        not str(chunk).strip() or not chunk.get_text(strip=True)
+                    )
+                ) or (
+                    re.findall(r'data:image\/[a-zA-Z]+;base64,[^"\']+', content)
+                ):
                     chunk_translations = [
                         {"to": lang, "text": str(chunk)} for lang in languages
                     ]
@@ -102,16 +113,22 @@ def update_auto_translated_field(field: AutoTranslatedField):
                                 )
                             )
                             chunk_translations.append(
-                                {"to": lang, "text": lang_chunk_translation[0]["text"]}
+                                {
+                                    "to": lang,
+                                    "text": lang_chunk_translation[0]["text"],
+                                }
                             )
                             detected_languages.append(detected_language)
                     else:
                         chunk_translations = [
-                            {"to": lang, "text": str(chunk)} for lang in languages
+                            {"to": lang, "text": str(chunk)}
+                            for lang in languages
                         ]
                 translations = {
                     f"{field_name}_{translation['to']}": (
-                        translations.get(f"{field_name}_{translation['to']}", "")
+                        translations.get(
+                            f"{field_name}_{translation['to']}", ""
+                        )
                         + translation["text"]
                     )
                     for translation in chunk_translations
@@ -121,9 +138,15 @@ def update_auto_translated_field(field: AutoTranslatedField):
                 detected_language = max(
                     set(detected_languages), key=detected_languages.count
                 )
-                translations[f"{field_name}_detected_language"] = detected_language
+                translations[f"{field_name}_detected_language"] = (
+                    detected_language
+                )
         else:
-            translations = {f"{field_name}_{lang}": content for lang in languages}
-        instance._meta.model.objects.filter(pk=instance.pk).update(**translations)
+            translations = {
+                f"{field_name}_{lang}": content for lang in languages
+            }
+        instance._meta.model.objects.filter(pk=instance.pk).update(
+            **translations
+        )
     field.up_to_date = True
     field.save()

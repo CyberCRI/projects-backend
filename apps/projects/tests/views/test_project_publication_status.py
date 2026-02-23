@@ -52,15 +52,21 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
         ]
     )
     def test_retrieve_projects(self, role, retrieved_projects):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
-            response = self.client.get(reverse("Project-detail", args=(project.id,)))
+            response = self.client.get(
+                reverse("Project-detail", args=(project.id,))
+            )
             if publication_status in retrieved_projects:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
                 self.assertEqual(response.json()["id"], project.id)
             else:
-                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertEqual(
+                    response.status_code, status.HTTP_404_NOT_FOUND
+                )
 
     @parameterized.expand(
         [
@@ -77,7 +83,9 @@ class ProjectPublicationStatusTestCase(JwtAPITestCase):
         ]
     )
     def test_list_projects(self, role, retrieved_projects):
-        user = self.get_parameterized_test_user(role, instances=[self.member_project])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.member_project]
+        )
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Project-list"))
         self.assertEqual(response.status_code, status.HTTP_200_OK)

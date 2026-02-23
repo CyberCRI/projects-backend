@@ -60,8 +60,12 @@ class CreateOrganizationTagTestCase(JwtAPITestCase):
             self.assertEqual(content["title_fr"], payload["title_fr"])
             self.assertEqual(content["title_en"], payload["title_en"])
             self.assertEqual(content["title"], payload["title_en"])
-            self.assertEqual(content["description_fr"], payload["description_fr"])
-            self.assertEqual(content["description_en"], payload["description_fr"])
+            self.assertEqual(
+                content["description_fr"], payload["description_fr"]
+            )
+            self.assertEqual(
+                content["description_en"], payload["description_fr"]
+            )
             self.assertEqual(content["description"], payload["description_fr"])
             tag = Tag.objects.get(id=content["id"])
             self.assertEqual(tag.organization, organization)
@@ -86,7 +90,9 @@ class UpdateOrganizationTagTestCase(JwtAPITestCase):
         ]
     )
     def test_update_tag(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         payload = {
             "title_fr": faker.word(),
@@ -96,7 +102,8 @@ class UpdateOrganizationTagTestCase(JwtAPITestCase):
         }
         response = self.client.patch(
             reverse(
-                "OrganizationTag-detail", args=(self.organization.code, self.tag.id)
+                "OrganizationTag-detail",
+                args=(self.organization.code, self.tag.id),
             ),
             payload,
         )
@@ -106,8 +113,12 @@ class UpdateOrganizationTagTestCase(JwtAPITestCase):
             self.assertEqual(content["title_fr"], payload["title_fr"])
             self.assertEqual(content["title_en"], payload["title_en"])
             self.assertEqual(content["title"], payload["title_en"])
-            self.assertEqual(content["description_fr"], payload["description_fr"])
-            self.assertEqual(content["description_en"], payload["description_en"])
+            self.assertEqual(
+                content["description_fr"], payload["description_fr"]
+            )
+            self.assertEqual(
+                content["description_en"], payload["description_en"]
+            )
             self.assertEqual(content["description"], payload["description_en"])
 
 
@@ -128,11 +139,15 @@ class DeleteOrganizationTagTestCase(JwtAPITestCase):
         ]
     )
     def test_delete_tag(self, role, expected_code):
-        user = self.get_parameterized_test_user(role, instances=[self.organization])
+        user = self.get_parameterized_test_user(
+            role, instances=[self.organization]
+        )
         self.client.force_authenticate(user)
         tag = TagFactory(organization=self.organization)
         response = self.client.delete(
-            reverse("OrganizationTag-detail", args=(self.organization.code, tag.id)),
+            reverse(
+                "OrganizationTag-detail", args=(self.organization.code, tag.id)
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -150,40 +165,30 @@ class RetrieveOrganizationTagTestCase(JwtAPITestCase):
             5, organization=cls.other_organization
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_list_tags(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("OrganizationTag-list", args=(self.organization.code,)),
+            reverse("OrganizationTag-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.tags))
         self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.tags},
+            {tag["id"] for tag in content}, {tag.id for tag in self.tags}
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_tag(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         for tag in self.tags:
             response = self.client.get(
                 reverse(
-                    "OrganizationTag-detail", args=(self.organization.code, tag.id)
-                ),
+                    "OrganizationTag-detail",
+                    args=(self.organization.code, tag.id),
+                )
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
@@ -202,7 +207,9 @@ class AutocompleteOrganizationTagTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
 
         cls.query = faker.word()
-        cls.tag_1 = TagFactory(organization=cls.organization, title_en=cls.query)
+        cls.tag_1 = TagFactory(
+            organization=cls.organization, title_en=cls.query
+        )
         cls.tag_2 = TagFactory(
             organization=cls.organization, title_en=f"{cls.query} abcd"
         )
@@ -225,7 +232,9 @@ class AutocompleteOrganizationTagTestCase(JwtAPITestCase):
 
         # Other tags returned by the autocomplete endpoint
         cls.unused_tags = [
-            TagFactory(organization=cls.organization, title_en=f"{cls.query} {i}")
+            TagFactory(
+                organization=cls.organization, title_en=f"{cls.query} {i}"
+            )
             for i in range(5)
         ]
 
@@ -246,17 +255,14 @@ class AutocompleteOrganizationTagTestCase(JwtAPITestCase):
         cls.project_4.tags.add(cls.tag_1, cls.tag_2, *not_returned)
         cls.project_5.tags.add(cls.tag_1, *not_returned)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_autocomplete_default_limit(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("OrganizationTag-autocomplete", args=(self.organization.code,))
+            reverse(
+                "OrganizationTag-autocomplete", args=(self.organization.code,)
+            )
             + f"?search={self.query}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -273,17 +279,14 @@ class AutocompleteOrganizationTagTestCase(JwtAPITestCase):
             ],
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_autocomplete_custom_limit(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("OrganizationTag-autocomplete", args=(self.organization.code,))
+            reverse(
+                "OrganizationTag-autocomplete", args=(self.organization.code,)
+            )
             + f"?query={self.query}&limit=10"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -299,7 +302,9 @@ class AutocompleteOrganizationTagTestCase(JwtAPITestCase):
                 self.tag_5.title_en,
             ],
         )
-        self.assertSetEqual(set(content[5:]), {tag.title for tag in self.unused_tags})
+        self.assertSetEqual(
+            set(content[5:]), {tag.title for tag in self.unused_tags}
+        )
 
 
 class ValidateOrganizationTagTestCase(JwtAPITestCase):
@@ -312,42 +317,38 @@ class ValidateOrganizationTagTestCase(JwtAPITestCase):
     def test_update_non_custom_tag(self):
         tag = TagFactory(organization=self.organization, type=Tag.TagType.ESCO)
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "title_fr": faker.sentence(),
-        }
+        payload = {"title_fr": faker.sentence()}
         response = self.client.patch(
-            reverse("OrganizationTag-detail", args=(self.organization.code, tag.id)),
+            reverse(
+                "OrganizationTag-detail", args=(self.organization.code, tag.id)
+            ),
             payload,
         )
         self.assertApiTechnicalError(
-            response,
-            "Only custom tags can be updated",
+            response, "Only custom tags can be updated"
         )
 
     def test_validate_title_too_long(self):
         self.client.force_authenticate(self.superadmin)
         for title_field in ["title_fr", "title_en", "title"]:
-            payload = {
-                title_field: 51 * "*",
-                "description": faker.sentence(),
-            }
+            payload = {title_field: 51 * "*", "description": faker.sentence()}
             response = self.client.post(
                 reverse("OrganizationTag-list", args=(self.organization.code,)),
                 payload,
             )
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertApiValidationError(
-                response,
-                {"title": ["Tag title must be 50 characters or less"]},
+                response, {"title": ["Tag title must be 50 characters or less"]}
             )
 
     def test_validate_description_too_long(self):
         self.client.force_authenticate(self.superadmin)
-        for description_field in ["description_fr", "description_en", "description"]:
-            payload = {
-                "title": faker.word(),
-                description_field: 501 * "*",
-            }
+        for description_field in [
+            "description_fr",
+            "description_en",
+            "description",
+        ]:
+            payload = {"title": faker.word(), description_field: 501 * "*"}
             response = self.client.post(
                 reverse("OrganizationTag-list", args=(self.organization.code,)),
                 payload,
@@ -355,5 +356,9 @@ class ValidateOrganizationTagTestCase(JwtAPITestCase):
             self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
             self.assertApiValidationError(
                 response,
-                {"description": ["Tag description must be 500 characters or less"]},
+                {
+                    "description": [
+                        "Tag description must be 500 characters or less"
+                    ]
+                },
             )

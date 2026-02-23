@@ -109,7 +109,9 @@ class DocumentContributor(models.Model):
         models.CharField(max_length=255, choices=relators.choices), default=list
     )
     document = models.ForeignKey("crisalid.Document", on_delete=models.CASCADE)
-    researcher = models.ForeignKey("crisalid.Researcher", on_delete=models.CASCADE)
+    researcher = models.ForeignKey(
+        "crisalid.Researcher", on_delete=models.CASCADE
+    )
 
     class Meta:
         constraints = [
@@ -121,7 +123,10 @@ class DocumentContributor(models.Model):
 
 
 class Document(
-    HasEmbedding, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
+    HasEmbedding,
+    OrganizationRelated,
+    HasAutoTranslatedFields,
+    CrisalidDataModel,
 ):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.
@@ -258,7 +263,9 @@ class DocumentTypeCentralized:
     @classmethod
     def items(cls) -> Generator[tuple[str, tuple[str]]]:
         for v in dir(cls):
-            if not v.startswith("_") and isinstance(getattr(cls, v), (list, tuple)):
+            if not v.startswith("_") and isinstance(
+                getattr(cls, v), (list, tuple)
+            ):
                 yield v, getattr(cls, v)
 
     @classmethod
@@ -298,4 +305,6 @@ class CrisalidConfig(OrganizationRelated, models.Model):
     )
     apollo_token = models.CharField(max_length=255, help_text="apollo token")
 
-    active = models.BooleanField(help_text="config is enabled/disabled", default=False)
+    active = models.BooleanField(
+        help_text="config is enabled/disabled", default=False
+    )

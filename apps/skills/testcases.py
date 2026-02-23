@@ -1,5 +1,4 @@
 import random
-from typing import Dict, List, Optional, Union
 
 from faker import Faker
 from rest_framework import status
@@ -12,10 +11,10 @@ faker = Faker()
 
 
 class EscoTestCase(JwtAPITestCase):
-    def search_skills_return_value(self, uris: List[str]) -> List[Dict[str, str]]:
+    def search_skills_return_value(self, uris: list[str]) -> list[dict[str, str]]:
         return [{"type": "skill", "uri": uri} for uri in uris]
 
-    def search_occupations_return_value(self, uris: List[str]) -> List[Dict[str, str]]:
+    def search_occupations_return_value(self, uris: list[str]) -> list[dict[str, str]]:
         return [{"type": "occupation", "uri": uri} for uri in uris]
 
     @classmethod
@@ -26,10 +25,10 @@ class EscoTestCase(JwtAPITestCase):
         title_fr: str = "",
         description_en: str = "",
         description_fr: str = "",
-        broader_skills: Optional[List[Tag]] = None,
-        essential_for_skills: Optional[List[Tag]] = None,
-        optional_for_skills: Optional[List[Tag]] = None,
-    ) -> Dict[str, Union[str, Dict]]:
+        broader_skills: list[Tag] | None = None,
+        essential_for_skills: list[Tag] | None = None,
+        optional_for_skills: list[Tag] | None = None,
+    ) -> dict[str, str | dict]:
         uri = uri or faker.url()
         title_en = title_en or faker.sentence()
         title_fr = title_fr or faker.sentence()
@@ -44,16 +43,10 @@ class EscoTestCase(JwtAPITestCase):
             "uri": uri,
             "title": title_en,
             "referenceLanguage": ["en"],
-            "preferredLabel": {
-                "fr": title_fr,
-                "en": title_en,
-            },
+            "preferredLabel": {"fr": title_fr, "en": title_en},
             "alternativeLabel": {
                 # Test when alternative label is provided in only one language
-                "en": [
-                    f"{title_en} alternative 1",
-                    f"{title_en} alternative 2",
-                ]
+                "en": [f"{title_en} alternative 1", f"{title_en} alternative 2"]
             },
             "description": {
                 "fr": {"literal": description_fr, "mimetype": "plain/text"},
@@ -104,10 +97,10 @@ class EscoTestCase(JwtAPITestCase):
         title_fr: str = "",
         description_en: str = "",
         description_fr: str = "",
-        broader_occupations: Optional[List[Tag]] = None,
-        essential_skills: Optional[List[Tag]] = None,
-        optional_skills: Optional[List[Tag]] = None,
-    ) -> Dict[str, Union[str, Dict]]:
+        broader_occupations: list[Tag] | None = None,
+        essential_skills: list[Tag] | None = None,
+        optional_skills: list[Tag] | None = None,
+    ) -> dict[str, str | dict]:
         uri = uri or faker.url()
         title_en = title_en or faker.sentence()
         title_fr = title_fr or faker.sentence()
@@ -122,16 +115,10 @@ class EscoTestCase(JwtAPITestCase):
             "uri": uri,
             "title": title_en,
             "referenceLanguage": ["en"],
-            "preferredLabel": {
-                "fr": title_fr,
-                "en": title_en,
-            },
+            "preferredLabel": {"fr": title_fr, "en": title_en},
             "alternativeLabel": {
                 # Test when alternative label is provided in only one language
-                "en": [
-                    f"{title_en} alternative 1",
-                    f"{title_en} alternative 2",
-                ]
+                "en": [f"{title_en} alternative 1", f"{title_en} alternative 2"]
             },
             "description": {
                 "fr": {"literal": description_fr, "mimetype": "plain/text"},
@@ -188,7 +175,7 @@ class WikipediaTestCase(JwtAPITestCase):
     class QueryWikipediaMockResponse:
         status_code = status.HTTP_200_OK
 
-        def __init__(self, limit: int, offset: int, wikipedia_qids: List[str] = None):
+        def __init__(self, limit: int, offset: int, wikipedia_qids: list[str] = None):
             self.results = [
                 {
                     "id": WikipediaTestCase.get_random_wikipedia_qid(),
@@ -214,12 +201,15 @@ class WikipediaTestCase(JwtAPITestCase):
                 self.results = self.results[:limit]
 
         def json(self):
-            return {"search": self.results, "search-continue": self.search_continue}
+            return {
+                "search": self.results,
+                "search-continue": self.search_continue,
+            }
 
     class GetWikipediaTagsMocked:
         status_code = status.HTTP_200_OK
 
-        def __init__(self, wikipedia_qids: List[str], en: bool, fr: bool):
+        def __init__(self, wikipedia_qids: list[str], en: bool, fr: bool):
             self.wikipedia_qids = wikipedia_qids
             self.languages = [
                 language for language, value in {"en": en, "fr": fr}.items() if value
@@ -253,7 +243,7 @@ class WikipediaTestCase(JwtAPITestCase):
     class GetExistingWikipediaTagsMocked:
         status_code = status.HTTP_200_OK
 
-        def __init__(self, tags: List[Tag], en: bool, fr: bool):
+        def __init__(self, tags: list[Tag], en: bool, fr: bool):
             self.tags = tags
             self.languages = [
                 language for language, value in {"en": en, "fr": fr}.items() if value
@@ -295,30 +285,24 @@ class WikipediaTestCase(JwtAPITestCase):
 
     @classmethod
     def get_wikipedia_tags_mocked_return(
-        cls,
-        wikipedia_qids: List[str],
-        en: bool = True,
-        fr: bool = True,
+        cls, wikipedia_qids: list[str], en: bool = True, fr: bool = True
     ):
         return cls.GetWikipediaTagsMocked(wikipedia_qids, en, fr)
 
     @classmethod
     def get_existing_wikipedia_tags_mocked_return(
-        cls,
-        tags: List[Tag],
-        en: bool = True,
-        fr: bool = True,
+        cls, tags: list[Tag], en: bool = True, fr: bool = True
     ):
         return cls.GetExistingWikipediaTagsMocked(tags, en, fr)
 
     @classmethod
     def search_wikipedia_tag_mocked_return(
-        cls, limit: int, offset: int, wikipedia_qids: List[str] = None
+        cls, limit: int, offset: int, wikipedia_qids: list[str] = None
     ):
         return cls.QueryWikipediaMockResponse(limit, offset, wikipedia_qids)
 
     @classmethod
-    def get_wikipedia_tags_mocked_side_effect(cls, wikipedia_qids: List[str]):
+    def get_wikipedia_tags_mocked_side_effect(cls, wikipedia_qids: list[str]):
         return cls.get_wikipedia_tags_mocked_return(wikipedia_qids)
 
     @classmethod
@@ -329,7 +313,7 @@ class WikipediaTestCase(JwtAPITestCase):
 
     @classmethod
     def search_wikipedia_tag_mocked_side_effect_with_given_ids(
-        cls, given_ids: List[str]
+        cls, given_ids: list[str]
     ):
         def side_effect(
             query: str, language: str = "en", limit: int = 10, offset: int = 0

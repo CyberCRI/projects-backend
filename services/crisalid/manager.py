@@ -54,7 +54,9 @@ class DocumentQuerySet(CrisalidQuerySet):
 
         aggregate = {}
         for name, document_types in DocumentTypeCentralized.items():
-            aggregate[name] = Count("id", filter=Q(document_type__in=document_types))
+            aggregate[name] = Count(
+                "id", filter=Q(document_type__in=document_types)
+            )
 
         return self.aggregate(**aggregate)
 
@@ -63,7 +65,9 @@ class DocumentQuerySet(CrisalidQuerySet):
 
         cases = []
         for name, document_types in DocumentTypeCentralized.items():
-            cases.append(When(document_type__in=document_types, then=Value(name)))
+            cases.append(
+                When(document_type__in=document_types, then=Value(name))
+            )
 
         return self.annotate(
             ann_document_type=Case(

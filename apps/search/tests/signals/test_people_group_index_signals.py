@@ -21,7 +21,9 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
-        cls.member_to_remove = UserFactory(groups=[cls.people_group.get_members()])
+        cls.member_to_remove = UserFactory(
+            groups=[cls.people_group.get_members()]
+        )
         cls.member_to_add = UserFactory()
 
     @staticmethod
@@ -29,7 +31,9 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         pass
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    @override_settings(
+        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
+    )
     def test_signal_called_on_people_group_create(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -47,7 +51,9 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(people_group, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    @override_settings(
+        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
+    )
     def test_signal_called_on_people_group_update(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -64,7 +70,9 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.people_group, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    @override_settings(
+        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
+    )
     def test_signal_called_on_member_added(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -81,14 +89,14 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.people_group, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
+    @override_settings(
+        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
+    )
     def test_signal_called_on_member_removed(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "users": [self.member_to_remove.id],
-        }
+        payload = {"users": [self.member_to_remove.id]}
         response = self.client.post(
             reverse(
                 "PeopleGroup-remove-member",

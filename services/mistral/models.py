@@ -111,7 +111,9 @@ class Embedding(models.Model):
 
         qs = (
             queryset.filter(**{f"{related_name}__is_visible": True})
-            .annotate(cosine=CosineDistance(f"{related_name}__embedding", embedding))
+            .annotate(
+                cosine=CosineDistance(f"{related_name}__embedding", embedding)
+            )
             .order_by("cosine")
         )
 
@@ -201,7 +203,10 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
         return self.item
 
     def get_is_visible(self) -> bool:
-        return len(self.project.description) > 10 or self.project.blog_entries.exists()
+        return (
+            len(self.project.description) > 10
+            or self.project.blog_entries.exists()
+        )
 
     @classmethod
     def get_summary_chat_system(cls) -> list[str]:
@@ -232,7 +237,9 @@ class ProjectEmbedding(MistralEmbedding, HasWeight):
         else:
             content = ""
         if self.project.tags.exists():
-            tags = [tag.title_en or tag.title_fr for tag in self.project.tags.all()]
+            tags = [
+                tag.title_en or tag.title_fr for tag in self.project.tags.all()
+            ]
             tags = [tag for tag in tags if tag]
             key_concepts = ", ".join(tags)
         else:
@@ -286,12 +293,10 @@ class UserProfileEmbedding(MistralEmbedding, HasWeight):
         competent_skills = self.user.skills.filter(level=3).values_list(
             "tag__title", flat=True
         )
-        competent_skills = ", ".join(competent_skills) if competent_skills else ""
-        description = "\n".join(
-            [
-                strip_tags(self.user.description)[:10000],
-            ]
+        competent_skills = (
+            ", ".join(competent_skills) if competent_skills else ""
         )
+        description = "\n".join([strip_tags(self.user.description)[:10000]])
         prompt = [
             ("Job", self.user.job),
             ("Expert in", expert_skills),
@@ -336,10 +341,7 @@ class UserProjectsEmbedding(Embedding, HasWeight):
     def set_embedding(self, *args, **kwargs) -> "UserProjectsEmbedding":
         data = [
             [
-                {
-                    "project": group.projects.get(),
-                    "weight": weight,
-                }
+                {"project": group.projects.get(), "weight": weight}
                 for group in self.user.groups.filter(
                     projects__isnull=False,
                     projects__deleted_at__isnull=True,
@@ -361,21 +363,27 @@ class UserProjectsEmbedding(Embedding, HasWeight):
         data = [
             {
                 "vector": d["project"].embedding.embedding,
-                "weight": d["weight"] * d["project"].get_or_create_score().score,
+                "weight": d["weight"]
+                * d["project"].get_or_create_score().score,
             }
             for d in list(itertools.chain.from_iterable(data))
-            if d["project"].embedding and d["project"].embedding.embedding is not None
+            if d["project"].embedding
+            and d["project"].embedding.embedding is not None
         ]
         total_weight = sum(d["weight"] for d in data)
         vectors = [[i * d["weight"] for i in d["vector"]] for d in data]
-        self.embedding = [sum(row) / total_weight for row in zip(*vectors)] or None
+        self.embedding = [
+            sum(row) / total_weight for row in zip(*vectors)
+        ] or None
         self.save()
         return self
 
 
 class UserEmbedding(Embedding):
     item = models.OneToOneField(
-        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="embedding"
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="embedding",
     )
 
     @property
@@ -389,7 +397,10 @@ class UserEmbedding(Embedding):
         projects_embedding, _ = UserProjectsEmbedding.objects.get_or_create(
             item=self.user
         )
-        return profile_embedding.get_is_visible() or projects_embedding.get_is_visible()
+        return (
+            profile_embedding.get_is_visible()
+            or projects_embedding.get_is_visible()
+        )
 
     def set_embedding(self, *args, **kwargs) -> "UserEmbedding":
         profile_embedding, _ = UserProfileEmbedding.objects.get_or_create(
@@ -398,7 +409,10 @@ class UserEmbedding(Embedding):
         projects_embedding, _ = UserProjectsEmbedding.objects.get_or_create(
             item=self.user
         )
-        embeddings = [profile_embedding.vectorize(), projects_embedding.vectorize()]
+        embeddings = [
+            profile_embedding.vectorize(),
+            projects_embedding.vectorize(),
+        ]
 
         total_score = 0
         results = []
@@ -408,7 +422,9 @@ class UserEmbedding(Embedding):
                 results.append([e * score for e in embedding.embedding])
                 total_score += score
         try:
-            self.embedding = [sum(row) / total_score for row in zip(*results)] or None
+            self.embedding = [
+                sum(row) / total_score for row in zip(*results)
+            ] or None
         except ZeroDivisionError:
             self.embedding = None
         self.save()
@@ -428,10 +444,7 @@ class TagEmbedding(MistralEmbedding):
         return bool(self.tag.description) or bool(self.tag.title)
 
     def set_embedding(self, *args, **kwargs) -> "TagEmbedding":
-        prompt = [
-            self.tag.title,
-            self.tag.description,
-        ]
+        prompt = [self.tag.title, self.tag.description]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:
             prompt = "\n\n".join(prompt)
@@ -447,10 +460,16 @@ class DocumentEmbedding(MistralEmbedding):
     )
 
     def get_is_visible(self) -> bool:
-        return any((self.item.title, self.item.description, self.item.document_type))
+        return any(
+            (self.item.title, self.item.description, self.item.document_type)
+        )
 
     def set_embedding(self, *args, **kwargs) -> "DocumentEmbedding":
-        prompt = [self.item.title, self.item.description, self.item.document_type]
+        prompt = [
+            self.item.title,
+            self.item.description,
+            self.item.document_type,
+        ]
         prompt_hashcode = self.hash_prompt(prompt)
         if self.prompt_hashcode != prompt_hashcode:
             prompt = "\n\n".join(prompt)
@@ -462,15 +481,14 @@ class DocumentEmbedding(MistralEmbedding):
 
 class GroupEmbedding(MistralEmbedding):
     item = models.OneToOneField(
-        "accounts.PeopleGroup", on_delete=models.CASCADE, related_name="embedding"
+        "accounts.PeopleGroup",
+        on_delete=models.CASCADE,
+        related_name="embedding",
     )
 
     def get_fields(self) -> list[str]:
         # TODO(remi): add more fields
-        return (
-            self.item.name,
-            self.item.description,
-        )
+        return (self.item.name, self.item.description)
 
     def get_is_visible(self) -> bool:
         return any(self.get_fields())

@@ -24,12 +24,8 @@ class CrisalidEventEnum(enum.StrEnum):
 CRISALID_MESSAGE_SCHEMA = {
     "type": "object",
     "properties": {
-        "type": {
-            "enum": [v.value for v in CrisalidTypeEnum],
-        },
-        "event": {
-            "enum": [v.value for v in CrisalidEventEnum],
-        },
+        "type": {"enum": [v.value for v in CrisalidTypeEnum]},
+        "event": {"enum": [v.value for v in CrisalidEventEnum]},
         "fields": {
             "type": "object"
             # TODO(remi): speficied all fields types ?

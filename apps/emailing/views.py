@@ -12,7 +12,6 @@ from .models import Email
 
 
 class EmailImagesViewSet(ImageStorageView, mixins.RetrieveModelMixin):
-
     permission_classes = [ReadOnly]
 
     def get_queryset(self):

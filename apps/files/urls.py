@@ -24,10 +24,7 @@ organization_router_register(
     basename="OrganizationAttachmentFile",
 )
 project_router_register(
-    router,
-    r"file",
-    AttachmentFileViewSet,
-    basename="AttachmentFile",
+    router, r"file", AttachmentFileViewSet, basename="AttachmentFile"
 )
 project_router_register(
     router, r"link", AttachmentLinkViewSet, basename="AttachmentLink"

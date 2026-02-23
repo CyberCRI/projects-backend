@@ -23,13 +23,22 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
 
     def test_instruction_notification_task(self):
         owner = UserFactory(
-            groups=[self.organization.get_admins(), self.people_group.get_leaders()]
+            groups=[
+                self.organization.get_admins(),
+                self.people_group.get_leaders(),
+            ]
         )
         notified = UserFactory(
-            groups=[self.organization.get_users(), self.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                self.people_group.get_members(),
+            ]
         )
         not_notified = UserFactory(
-            groups=[self.organization.get_users(), self.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                self.people_group.get_members(),
+            ]
         )
         # Disabling notification for 'not_notified'
         not_notified.notification_settings.new_instruction = False
@@ -63,7 +72,9 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
         self.assertEqual(notifications.count(), 2)
         for user in [notified, not_notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.NEW_INSTRUCTION)
+            self.assertEqual(
+                notification.type, Notification.Types.NEW_INSTRUCTION
+            )
             self.assertEqual(notification.project, None)
             self.assertEqual(notification.organization, self.organization)
             self.assertFalse(notification.to_send)

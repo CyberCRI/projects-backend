@@ -1,7 +1,6 @@
 import csv
 import os
 import zipfile
-from typing import List
 
 from bs4 import BeautifulSoup
 from django.contrib import admin
@@ -22,10 +21,10 @@ class ProjectTemplateExportMixin:
     The CSV files are then zipped and returned as a response.
     """
 
-    def _get_project_data(self, project: Project, headers: List[str]) -> str:
+    def _get_project_data(self, project: Project, headers: list[str]) -> str:
         soup = BeautifulSoup(project.description, "html.parser")
         current_header = None
-        data = {header: "" for header in headers}
+        data = dict.fromkeys(headers, "")
         for child in soup.children:
             child_text = child.get_text(strip=True)
             if child.name == "h3":
@@ -35,7 +34,7 @@ class ProjectTemplateExportMixin:
                 data[current_header] += child_text + " "
         return data
 
-    def _get_template_headers(self, template: Template) -> List[str]:
+    def _get_template_headers(self, template: Template) -> list[str]:
         headers = []
         soup = BeautifulSoup(template.description_placeholder, "html.parser")
         for h3_tag in soup.find_all("h3"):
@@ -56,7 +55,10 @@ class ProjectTemplateExportMixin:
                 for project in projects:
                     project_data = self._get_project_data(project, headers)
                     lines.append(
-                        [str(project.id), *[project_data.get(h) for h in headers]]
+                        [
+                            str(project.id),
+                            *[project_data.get(h) for h in headers],
+                        ]
                     )
                 with open(f"{template.id}.csv", "w") as f:
                     writer = csv.writer(f, delimiter=",", quoting=csv.QUOTE_ALL)
@@ -67,9 +69,7 @@ class ProjectTemplateExportMixin:
             response = HttpResponse(
                 zip_file.read(),
                 content_type="application/zip",
-                headers={
-                    "Content-Disposition": f"attachment; filename={zip_filename}",
-                },
+                headers={"Content-Disposition": f"attachment; filename={zip_filename}"},
             )
         os.remove(zip_filename)
         return response

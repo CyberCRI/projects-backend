@@ -6,9 +6,4 @@ from .views import StatsViewSet
 
 router = DefaultRouter()
 
-organization_router_register(
-    router,
-    r"stats",
-    StatsViewSet,
-    basename="Stats",
-)
+organization_router_register(router, r"stats", StatsViewSet, basename="Stats")

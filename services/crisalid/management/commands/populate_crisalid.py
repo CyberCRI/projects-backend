@@ -17,7 +17,9 @@ from services.mistral.models import DocumentEmbedding
 
 
 class Command(BaseCommand):
-    help = "create or update data from researcher/Document crisalid neo4j/graphql"  # noqa: A003
+    help = (  # noqa: A003
+        "create or update data from researcher/Document crisalid neo4j/graphql"
+    )
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -63,16 +65,13 @@ class Command(BaseCommand):
         where: None = None,
         **options,
     ):
-
         offset = int(options["offset"])
         limit = int(options["limit"])
         max_elements = float(options["max"])
         total = 0
 
         with timeit(print, f"Populate All Data from '{query}'"):
-
             while max_elements >= 1:
-
                 with timeit(print, f"GrapQL request {query}"):
                     data = service.query(
                         query, offset=offset, limit=limit, where=where

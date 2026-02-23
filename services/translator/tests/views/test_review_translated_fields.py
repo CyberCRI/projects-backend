@@ -8,7 +8,10 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import ReviewFactory
 from apps.feedbacks.models import Review
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from services.translator.models import AutoTranslatedField

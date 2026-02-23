@@ -100,7 +100,7 @@ class ListBlogEntryTestCase(JwtAPITestCase):
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("BlogEntry-list", args=(project.id,)),
+                reverse("BlogEntry-list", args=(project.id,))
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
@@ -138,12 +138,11 @@ class UpdateBlogEntryTestCase(JwtAPITestCase):
     def test_update_blog_entry(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "title": faker.sentence(),
-            "content": faker.text(),
-        }
+        payload = {"title": faker.sentence(), "content": faker.text()}
         response = self.client.patch(
-            reverse("BlogEntry-detail", args=(self.project.id, self.blog_entry.id)),
+            reverse(
+                "BlogEntry-detail", args=(self.project.id, self.blog_entry.id)
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -181,8 +180,10 @@ class DeleteBlogEntryTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         blog_entry = BlogEntryFactory(project=self.project)
         response = self.client.delete(
-            reverse("BlogEntry-detail", args=(self.project.id, blog_entry.id)),
+            reverse("BlogEntry-detail", args=(self.project.id, blog_entry.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(BlogEntry.objects.filter(id=blog_entry.id).exists())
+            self.assertFalse(
+                BlogEntry.objects.filter(id=blog_entry.id).exists()
+            )

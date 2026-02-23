@@ -24,7 +24,9 @@ class UpdatedMemberTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -45,18 +47,13 @@ class UpdatedMemberTestCase(JwtAPITestCase):
 
         member = UserFactory()
         project.owners.add(member)
-        payload = {
-            GroupData.Role.MEMBERS: [member.id],
-        }
+        payload = {GroupData.Role.MEMBERS: [member.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(
-            project.pk,
-            member.pk,
-            owner.pk,
-            GroupData.Role.MEMBERS.value,
+            project.pk, member.pk, owner.pk, GroupData.Role.MEMBERS.value
         )
 
     def test_notification_task(self):
@@ -73,7 +70,9 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -89,10 +88,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         project.owners.add(member)
         _notify_member_updated(
-            project.pk,
-            member.pk,
-            sender.pk,
-            GroupData.Role.MEMBERS,
+            project.pk, member.pk, sender.pk, GroupData.Role.MEMBERS
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -100,7 +96,9 @@ class UpdatedMemberTestCase(JwtAPITestCase):
 
         for user in [not_notified, notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.MEMBER_UPDATED)
+            self.assertEqual(
+                notification.type, Notification.Types.MEMBER_UPDATED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -120,7 +118,9 @@ class UpdatedMemberTestCase(JwtAPITestCase):
             )
 
         notification = notifications.get(receiver=member)
-        self.assertEqual(notification.type, Notification.Types.MEMBER_UPDATED_SELF)
+        self.assertEqual(
+            notification.type, Notification.Types.MEMBER_UPDATED_SELF
+        )
         self.assertEqual(notification.project, project)
         self.assertFalse(notification.to_send)
         self.assertFalse(notification.is_viewed)
@@ -143,7 +143,9 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -161,16 +163,10 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         project.owners.add(member_1)
         project.owners.add(member_2)
         _notify_member_updated(
-            project.pk,
-            member_1.pk,
-            sender.pk,
-            GroupData.Role.MEMBERS,
+            project.pk, member_1.pk, sender.pk, GroupData.Role.MEMBERS
         )
         _notify_member_updated(
-            project.pk,
-            member_2.pk,
-            sender.pk,
-            GroupData.Role.REVIEWERS,
+            project.pk, member_2.pk, sender.pk, GroupData.Role.REVIEWERS
         )
 
         notifications = Notification.objects.filter(project=project)

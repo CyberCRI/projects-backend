@@ -24,7 +24,9 @@ class ProjectCreatedTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
+        cls.parent_category = ProjectCategoryFactory(
+            organization=cls.organization
+        )
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -62,7 +64,9 @@ class ProjectCreatedTestCase(JwtAPITestCase):
         not_notified = UserFactory()
         not_notified.notification_settings.category_project_created = False
         not_notified.notification_settings.save()
-        CategoryFollowFactory(follower=category_follower, category=self.category)
+        CategoryFollowFactory(
+            follower=category_follower, category=self.category
+        )
         CategoryFollowFactory(follower=not_notified, category=self.category)
         CategoryFollowFactory(follower=self.sender, category=self.category)
         CategoryFollowFactory(
@@ -77,13 +81,11 @@ class ProjectCreatedTestCase(JwtAPITestCase):
         notifications = Notification.objects.filter(project=project)
         self.assertEqual(notifications.count(), 3)
 
-        for user in [
-            category_follower,
-            not_notified,
-            parent_category_follower,
-        ]:
+        for user in [category_follower, not_notified, parent_category_follower]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(notification.type, Notification.Types.PROJECT_CREATED)
+            self.assertEqual(
+                notification.type, Notification.Types.PROJECT_CREATED
+            )
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)

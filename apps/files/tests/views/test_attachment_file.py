@@ -91,7 +91,9 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"title": faker.text(max_nb_chars=50)}
         response = self.client.patch(
-            reverse("AttachmentFile-detail", args=(self.project.id, self.file.id)),
+            reverse(
+                "AttachmentFile-detail", args=(self.project.id, self.file.id)
+            ),
             data=payload,
             format="multipart",
         )
@@ -127,7 +129,7 @@ class DeleteAttachmentFileTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         file = AttachmentFileFactory(project=project)
         response = self.client.delete(
-            reverse("AttachmentFile-detail", args=(project.id, file.id)),
+            reverse("AttachmentFile-detail", args=(project.id, file.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -180,16 +182,15 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
             response = self.client.get(
-                reverse(
-                    "AttachmentFile-list",
-                    args=(project.id,),
-                ),
+                reverse("AttachmentFile-list", args=(project.id,))
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_files:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(content[0]["id"], self.files[publication_status].id)
+                self.assertEqual(
+                    content[0]["id"], self.files[publication_status].id
+                )
             else:
                 self.assertEqual(len(content), 0)
 
@@ -286,7 +287,11 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
         file = AttachmentFileFactory(project=project)
         response = self.client.patch(
             reverse("AttachmentFile-detail", args=(project.id, file.id)),
-            data={"project_id": ProjectFactory(organizations=[self.organization]).id},
+            data={
+                "project_id": ProjectFactory(
+                    organizations=[self.organization]
+                ).id
+            },
             format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

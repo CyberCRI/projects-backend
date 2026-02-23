@@ -37,21 +37,17 @@ class ViewMentoringTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.mentoring = MentorCreatedMentoringFactory(organization=cls.organization)
+        cls.mentoring = MentorCreatedMentoringFactory(
+            organization=cls.organization
+        )
         MentoreeCreatedMentoringFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
             (TestRoles.ANONYMOUS, status.HTTP_401_UNAUTHORIZED),
             (TestRoles.DEFAULT, status.HTTP_404_NOT_FOUND),
-            (
-                "mentor",
-                status.HTTP_200_OK,
-            ),
-            (
-                "mentoree",
-                status.HTTP_200_OK,
-            ),
+            ("mentor", status.HTTP_200_OK),
+            ("mentoree", status.HTTP_200_OK),
         ]
     )
     def test_retrieve_mentoring(self, role, expected_code):
@@ -64,7 +60,8 @@ class ViewMentoringTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
-                "Mentoring-detail", args=(self.organization.code, self.mentoring.id)
+                "Mentoring-detail",
+                args=(self.organization.code, self.mentoring.id),
             )
         )
         self.assertEqual(response.status_code, expected_code)
@@ -89,18 +86,14 @@ class ViewMentoringTestCase(JwtAPITestCase):
             user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(
-                "Mentoring-list",
-                args=(self.organization.code,),
-            )
+            reverse("Mentoring-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, expected_code)
         if retrieved:
             content = response.json()["results"]
             self.assertEqual(len(content), 1)
             self.assertSetEqual(
-                {mentoring["id"] for mentoring in content},
-                {self.mentoring.id},
+                {mentoring["id"] for mentoring in content}, {self.mentoring.id}
             )
 
 
@@ -123,17 +116,11 @@ class CreateMentoringTestCase(JwtAPITestCase):
     def test_contact_mentor(self, role, expected_code):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
-        payload = {
-            "content": faker.text(),
-            "reply_to": faker.email(),
-        }
+        payload = {"content": faker.text(), "reply_to": faker.email()}
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(
-                    self.organization.code,
-                    self.mentor_skill.id,
-                ),
+                args=(self.organization.code, self.mentor_skill.id),
             ),
             data=payload,
         )
@@ -169,17 +156,11 @@ class CreateMentoringTestCase(JwtAPITestCase):
     def test_contact_mentoree(self, role, expected_code):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
-        payload = {
-            "content": faker.text(),
-            "reply_to": faker.email(),
-        }
+        payload = {"content": faker.text(), "reply_to": faker.email()}
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(
-                    self.organization.code,
-                    self.mentoree_skill.id,
-                ),
+                args=(self.organization.code, self.mentoree_skill.id),
             ),
             data=payload,
         )
@@ -236,12 +217,26 @@ class RespondToMentoringTestCase(JwtAPITestCase):
                 Mentoring.MentoringStatus.ACCEPTED.value,
                 status.HTTP_403_FORBIDDEN,
             ),
-            ("mentoree", Mentoring.MentoringStatus.ACCEPTED.value, status.HTTP_200_OK),
-            ("mentoree", Mentoring.MentoringStatus.REJECTED.value, status.HTTP_200_OK),
-            ("mentoree", Mentoring.MentoringStatus.PENDING.value, status.HTTP_200_OK),
+            (
+                "mentoree",
+                Mentoring.MentoringStatus.ACCEPTED.value,
+                status.HTTP_200_OK,
+            ),
+            (
+                "mentoree",
+                Mentoring.MentoringStatus.REJECTED.value,
+                status.HTTP_200_OK,
+            ),
+            (
+                "mentoree",
+                Mentoring.MentoringStatus.PENDING.value,
+                status.HTTP_200_OK,
+            ),
         ]
     )
-    def test_respond_to_mentor_request(self, role, mentoring_status, expected_code):
+    def test_respond_to_mentor_request(
+        self, role, mentoring_status, expected_code
+    ):
         if role == "mentor":
             user = self.mentor_created.mentor
         elif role == "mentoree":
@@ -257,10 +252,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-respond",
-                args=(
-                    self.organization.code,
-                    self.mentor_created.id,
-                ),
+                args=(self.organization.code, self.mentor_created.id),
             ),
             data=payload,
         )
@@ -303,12 +295,26 @@ class RespondToMentoringTestCase(JwtAPITestCase):
                 Mentoring.MentoringStatus.ACCEPTED.value,
                 status.HTTP_403_FORBIDDEN,
             ),
-            ("mentor", Mentoring.MentoringStatus.ACCEPTED.value, status.HTTP_200_OK),
-            ("mentor", Mentoring.MentoringStatus.REJECTED.value, status.HTTP_200_OK),
-            ("mentor", Mentoring.MentoringStatus.PENDING.value, status.HTTP_200_OK),
+            (
+                "mentor",
+                Mentoring.MentoringStatus.ACCEPTED.value,
+                status.HTTP_200_OK,
+            ),
+            (
+                "mentor",
+                Mentoring.MentoringStatus.REJECTED.value,
+                status.HTTP_200_OK,
+            ),
+            (
+                "mentor",
+                Mentoring.MentoringStatus.PENDING.value,
+                status.HTTP_200_OK,
+            ),
         ]
     )
-    def test_respond_to_mentoree_request(self, role, mentoring_status, expected_code):
+    def test_respond_to_mentoree_request(
+        self, role, mentoring_status, expected_code
+    ):
         if role == "mentor":
             user = self.mentoree_created.mentor
         elif role == "mentoree":
@@ -324,10 +330,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-respond",
-                args=(
-                    self.organization.code,
-                    self.mentoree_created.id,
-                ),
+                args=(self.organization.code, self.mentoree_created.id),
             ),
             data=payload,
         )
@@ -368,17 +371,11 @@ class ValidateMentoringTestCase(JwtAPITestCase):
 
     def test_contact_mentor_for_wrong_skill(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "content": faker.text(),
-            "reply_to": faker.email(),
-        }
+        payload = {"content": faker.text(), "reply_to": faker.email()}
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(
-                    self.organization.code,
-                    self.mentor_wrong_skill.id,
-                ),
+                args=(self.organization.code, self.mentor_wrong_skill.id),
             ),
             data=payload,
         )
@@ -389,17 +386,11 @@ class ValidateMentoringTestCase(JwtAPITestCase):
 
     def test_contact_mentoree_for_wrong_skill(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "content": faker.text(),
-            "reply_to": faker.email(),
-        }
+        payload = {"content": faker.text(), "reply_to": faker.email()}
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(
-                    self.organization.code,
-                    self.mentoree_wrong_skill.id,
-                ),
+                args=(self.organization.code, self.mentoree_wrong_skill.id),
             ),
             data=payload,
         )
@@ -410,17 +401,11 @@ class ValidateMentoringTestCase(JwtAPITestCase):
 
     def test_duplicate_mentoree_request(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "content": faker.text(),
-            "reply_to": faker.email(),
-        }
+        payload = {"content": faker.text(), "reply_to": faker.email()}
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(
-                    self.organization.code,
-                    self.mentoree_skill.id,
-                ),
+                args=(self.organization.code, self.mentoree_skill.id),
             ),
             data=payload,
         )
@@ -428,10 +413,7 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentoree",
-                args=(
-                    self.organization.code,
-                    self.mentoree_skill.id,
-                ),
+                args=(self.organization.code, self.mentoree_skill.id),
             ),
             data=payload,
         )
@@ -442,17 +424,11 @@ class ValidateMentoringTestCase(JwtAPITestCase):
 
     def test_duplicate_mentor_request(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "content": faker.text(),
-            "reply_to": faker.email(),
-        }
+        payload = {"content": faker.text(), "reply_to": faker.email()}
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(
-                    self.organization.code,
-                    self.mentor_skill.id,
-                ),
+                args=(self.organization.code, self.mentor_skill.id),
             ),
             data=payload,
         )
@@ -460,10 +436,7 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse(
                 "Mentoring-contact-mentor",
-                args=(
-                    self.organization.code,
-                    self.mentor_skill.id,
-                ),
+                args=(self.organization.code, self.mentor_skill.id),
             ),
             data=payload,
         )
@@ -473,7 +446,9 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         )
 
     def test_update_mentoring_status_with_invalid_status(self):
-        mentoring = MentoreeCreatedMentoringFactory(organization=self.organization)
+        mentoring = MentoreeCreatedMentoringFactory(
+            organization=self.organization
+        )
         self.client.force_authenticate(mentoring.mentor)
         payload = {
             "status": faker.word(),
@@ -482,18 +457,14 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         }
         response = self.client.post(
             reverse(
-                "Mentoring-respond",
-                args=(
-                    self.organization.code,
-                    mentoring.id,
-                ),
+                "Mentoring-respond", args=(self.organization.code, mentoring.id)
             ),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {"status": [f"\"{payload['status']}\" is not a valid choice."]},
+            {"status": [f'"{payload["status"]}" is not a valid choice.']},
         )
 
 
@@ -504,43 +475,35 @@ class MiscMentoringTestCase(JwtAPITestCase):
         tag = TagFactory(title_fr="")
         skill = SkillFactory(user=user, tag=tag)
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"),
-            tag.title_en,
+            MentoringViewSet.get_skill_name(skill, "en"), tag.title_en
         )
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"),
-            tag.title_en,
+            MentoringViewSet.get_skill_name(skill, "fr"), tag.title_en
         )
 
         tag = TagFactory(title_en="")
         skill = SkillFactory(user=user, tag=tag)
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"),
-            tag.title_fr,
+            MentoringViewSet.get_skill_name(skill, "en"), tag.title_fr
         )
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"),
-            tag.title_fr,
+            MentoringViewSet.get_skill_name(skill, "fr"), tag.title_fr
         )
 
         tag = TagFactory()
         skill = SkillFactory(user=user, tag=tag)
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"),
-            tag.title_en,
+            MentoringViewSet.get_skill_name(skill, "en"), tag.title_en
         )
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"),
-            tag.title_fr,
+            MentoringViewSet.get_skill_name(skill, "fr"), tag.title_fr
         )
 
         tag = TagFactory(title_en="", title_fr=None)
         skill = SkillFactory(user=user, tag=tag)
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"),
-            tag.title,
+            MentoringViewSet.get_skill_name(skill, "en"), tag.title
         )
         self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"),
-            tag.title,
+            MentoringViewSet.get_skill_name(skill, "fr"), tag.title
         )

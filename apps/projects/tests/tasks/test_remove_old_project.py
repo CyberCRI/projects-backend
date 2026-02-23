@@ -26,7 +26,10 @@ class RemoveOldProjectTaskTestCase(JwtAPITestCase):
             deleted_at=timezone.localtime(timezone.now())
             - timedelta(days=settings.DELETED_PROJECT_RETENTION_DAYS - 1),
         )
-        roles = [g.name for g in Group.objects.filter(projects__in=projects_to_delete)]
+        roles = [
+            g.name
+            for g in Group.objects.filter(projects__in=projects_to_delete)
+        ]
         remove_old_projects()
         self.assertEqual(len(Project.objects.deleted_projects()), 3)
         self.assertSetEqual(

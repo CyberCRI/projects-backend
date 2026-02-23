@@ -1,5 +1,4 @@
 from datetime import datetime
-from typing import List
 
 from faker import Faker
 from mistralai.models import (
@@ -15,7 +14,7 @@ faker = Faker()
 
 
 class MistralTestCaseMixin:
-    def chat_response_mocked_return(self, messages: List[str]):
+    def chat_response_mocked_return(self, messages: list[str]):
         return ChatCompletionResponse(
             id=faker.pystr(min_chars=32, max_chars=32),
             object="chat.completion",
@@ -24,10 +23,7 @@ class MistralTestCaseMixin:
             choices=[
                 ChatCompletionChoice(
                     index=0,
-                    message=AssistantMessage(
-                        role="assistant",
-                        content=message,
-                    ),
+                    message=AssistantMessage(role="assistant", content=message),
                     finish_reason="stop",
                 )
                 for message in messages
@@ -39,17 +35,13 @@ class MistralTestCaseMixin:
             ),
         )
 
-    def embedding_response_mocked_return(self, embedding: List[float]):
+    def embedding_response_mocked_return(self, embedding: list[float]):
         return EmbeddingResponse(
             id=faker.pystr(min_chars=32, max_chars=32),
             object="list",
             model="mistral-embed",
             data=[
-                EmbeddingResponseData(
-                    object="embedding",
-                    embedding=embedding,
-                    index=0,
-                )
+                EmbeddingResponseData(object="embedding", embedding=embedding, index=0)
             ],
             usage=UsageInfo(
                 prompt_tokens=faker.pyint(min_value=1000, max_value=2000),

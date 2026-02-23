@@ -1,5 +1,5 @@
 from datetime import date, timedelta
-from typing import Any, Dict, Set
+from typing import Any
 
 from babel.dates import format_date
 from django.utils import timezone
@@ -102,7 +102,7 @@ def notify_new_project(project_pk: str, by_pk: int):
 
 
 @app.task(name="apps.notifications.tasks.notify_project_changes")
-def notify_project_changes(project_pk: str, changes: Dict[str, Any], by_pk: int):
+def notify_project_changes(project_pk: str, changes: dict[str, Any], by_pk: int):
     """Notify members and followers of a project when it is modified.
 
     For each change that need to be displayed in the mail, `changes` must
@@ -154,7 +154,7 @@ def notify_new_announcement(announcement_pk: int, by_pk: int):
 
 
 @app.task(name="apps.notifications.tasks.notify_new_application")
-def notify_new_application(announcement_pk: int, application: Dict[str, Any]):
+def notify_new_application(announcement_pk: int, application: dict[str, Any]):
     """Notify members of a new application to an announcement."""
     return _notify_new_application(announcement_pk, application)
 
@@ -212,7 +212,10 @@ def _notify_member_added(project_pk: str, user_pk: int, by_pk: int, role: str):
             "role": str(role),
         }
     ]
-    for manager in [AddMembersNotificationManager, AddMemberNotificationManager]:
+    for manager in [
+        AddMembersNotificationManager,
+        AddMemberNotificationManager,
+    ]:
         manager(
             sender, project, new_members=new_members
         ).create_and_send_notifications()
@@ -239,7 +242,7 @@ def _notify_group_as_member_added(
         ).create_and_send_notifications()
 
 
-def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role: str):
+def _notify_member_updated(project_pk: str, user_pk: set[int], by_pk: int, role: str):
     role = {
         "owners": _("editor"),
         "members": _("participant"),
@@ -256,7 +259,10 @@ def _notify_member_updated(project_pk: str, user_pk: Set[int], by_pk: int, role:
             "family_name": member.family_name,
         }
     ]
-    for manager in [UpdateMembersNotificationManager, UpdatedMemberNotificationManager]:
+    for manager in [
+        UpdateMembersNotificationManager,
+        UpdatedMemberNotificationManager,
+    ]:
         manager(
             sender, project, modified_members=modified_members
         ).create_and_send_notifications()
@@ -283,12 +289,7 @@ def _notify_group_member_deleted(project_pk: str, people_group_pk: int, by_pk: i
     project = Project.objects.get(pk=project_pk)
     sender = ProjectUser.objects.get(pk=by_pk)
     people_group = PeopleGroup.objects.get(pk=people_group_pk)
-    deleted_people_groups = [
-        {
-            "id": people_group.id,
-            "name": people_group.name,
-        }
-    ]
+    deleted_people_groups = [{"id": people_group.id, "name": people_group.name}]
     manager = DeleteGroupMembersNotificationManager(
         sender, project, deleted_people_groups=deleted_people_groups
     )
@@ -306,7 +307,7 @@ def _notify_new_project(project_pk: str, by_pk: int):
     manager.create_and_send_notifications()
 
 
-def _notify_project_changes(project_pk: str, changes: Dict[str, Any], by_pk: int):
+def _notify_project_changes(project_pk: str, changes: dict[str, Any], by_pk: int):
     if changes:
         project = Project.objects.get(pk=project_pk)
         sender = ProjectUser.objects.get(pk=by_pk)
@@ -363,7 +364,7 @@ def _notify_new_announcement(announcement_pk: int, by_pk: int):
     manager.create_and_send_notifications()
 
 
-def _notify_new_application(announcement_pk: int, application: Dict[str, Any]):
+def _notify_new_application(announcement_pk: int, application: dict[str, Any]):
     announcement = Announcement.objects.get(pk=announcement_pk)
     manager = ApplicationNotificationManager(
         None, announcement, application=application

@@ -19,16 +19,14 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         self.assertEqual(SearchObject.objects.count(), 0)
         for _ in range(3):
             SearchObject.objects.create(
-                type=SearchObject.SearchObjectType.PROJECT,
-                project=self.project,
+                type=SearchObject.SearchObjectType.PROJECT, project=self.project
             )
             SearchObject.objects.create(
                 type=SearchObject.SearchObjectType.PEOPLE_GROUP,
                 people_group=self.people_group,
             )
             SearchObject.objects.create(
-                type=SearchObject.SearchObjectType.USER,
-                user=self.user,
+                type=SearchObject.SearchObjectType.USER, user=self.user
             )
         self.assertEqual(SearchObject.objects.count(), 9)
         clean_duplicate_search_objects()

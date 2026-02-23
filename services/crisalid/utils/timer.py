@@ -10,4 +10,4 @@ def timeit(to_log, prefix=""):
         yield
     finally:
         end = time.perf_counter()
-        to_log(f"{prefix}total time: {end  - start:.2f}s")
+        to_log(f"{prefix}total time: {end - start:.2f}s")

@@ -30,10 +30,7 @@ class EscoService:
             content = response.json()
             results = content.get("_embedded", {}).get("results", [])
             results = [
-                {
-                    "type": object_type,
-                    "uri": result.get("uri", ""),
-                }
+                {"type": object_type, "uri": result.get("uri", "")}
                 for result in results
                 # Filter out results that have the "Taxonomy" type
                 if result.get("className", "") != "Taxonomy"

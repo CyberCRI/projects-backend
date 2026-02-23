@@ -90,11 +90,11 @@ class RecursiveField(Field):
         self.bind_args = None
 
         # Call super-constructor to support ModelSerializer
-        super_kwargs = dict(
-            (key, kwargs[key])
+        super_kwargs = {
+            key: kwargs[key]
             for key in kwargs
             if key in inspect.signature(Field.__init__).parameters
-        )
+        }
         super(RecursiveField, self).__init__(**super_kwargs)
 
     def __getattribute__(self, name):

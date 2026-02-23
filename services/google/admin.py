@@ -31,16 +31,8 @@ class GoogleSyncErrorsAdmin(admin.ModelAdmin):
         "error",
     )
     ordering = ("-created_at",)
-    list_filter = (
-        "on_task",
-        "solved",
-    )
-    readonly_fields = (
-        "on_task",
-        "error",
-        "created_at",
-        "retries_count",
-    )
+    list_filter = ("on_task", "solved")
+    readonly_fields = ("on_task", "error", "created_at", "retries_count")
     actions = ["retry", "mark_as_solved"]
 
     def retry(self, request: HttpRequest, queryset: QuerySet[Any]):
@@ -55,12 +47,7 @@ class GoogleSyncErrorsAdmin(admin.ModelAdmin):
 
 
 class GoogleAccountAdmin(admin.ModelAdmin):
-    list_display = (
-        "user",
-        "email",
-        "organizational_unit",
-        "google_id",
-    )
+    list_display = ("user", "email", "organizational_unit", "google_id")
     actions = [
         "create_in_google",
         "create_alias",
@@ -99,11 +86,7 @@ class GoogleAccountAdmin(admin.ModelAdmin):
 
 
 class GoogleGroupAdmin(admin.ModelAdmin):
-    list_display = (
-        "people_group",
-        "email",
-        "google_id",
-    )
+    list_display = ("people_group", "email", "google_id")
     actions = ["create_in_google", "create_alias", "sync_data", "sync_members"]
 
     def create_in_google(self, request: HttpRequest, queryset: QuerySet[Any]):

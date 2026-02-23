@@ -51,7 +51,8 @@ class CreateTagClassificationTestCase(JwtAPITestCase):
             tag_classification = TagClassification.objects.get(id=content["id"])
             self.assertEqual(tag_classification.organization, organization)
             self.assertEqual(
-                tag_classification.type, TagClassification.TagClassificationType.CUSTOM
+                tag_classification.type,
+                TagClassification.TagClassificationType.CUSTOM,
             )
 
 
@@ -97,7 +98,8 @@ class UpdateTagClassificationTestCase(JwtAPITestCase):
             tag_classification = TagClassification.objects.get(id=content["id"])
             self.assertEqual(tag_classification.organization, organization)
             self.assertEqual(
-                tag_classification.type, TagClassification.TagClassificationType.CUSTOM
+                tag_classification.type,
+                TagClassification.TagClassificationType.CUSTOM,
             )
 
 
@@ -126,7 +128,7 @@ class DeleteTagClassificationTestCase(JwtAPITestCase):
             reverse(
                 "TagClassification-detail",
                 args=(organization.code, tag_classification.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -229,10 +231,8 @@ class RetrieveTagClassificationTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.tag_classifications))
         self.assertSetEqual(
-            set(
-                tag_classification.id for tag_classification in self.tag_classifications
-            ),
-            set(tag_classification["id"] for tag_classification in content),
+            {tag_classification.id for tag_classification in self.tag_classifications},
+            {tag_classification["id"] for tag_classification in content},
         )
         for tag in content:
             if tag["id"] in [
@@ -299,9 +299,7 @@ class AddTagsToTagClassificationTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         tags = TagFactory.create_batch(3, organization=organization)
-        payload = {
-            "tags": [tag.id for tag in tags],
-        }
+        payload = {"tags": [tag.id for tag in tags]}
         response = self.client.post(
             reverse(
                 "TagClassification-add-tags",
@@ -340,9 +338,7 @@ class RemoveTagsFromTagClassificationTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         tags = TagFactory.create_batch(3, organization=organization)
         self.tag_classification.tags.add(*tags)
-        payload = {
-            "tags": [tag.id for tag in tags],
-        }
+        payload = {"tags": [tag.id for tag in tags]}
         response = self.client.post(
             reverse(
                 "TagClassification-remove-tags",
@@ -369,9 +365,7 @@ class ValidateTagClassificationTestCase(JwtAPITestCase):
     def test_add_tag_from_other_organization(self):
         self.client.force_authenticate(self.superadmin)
         tag = TagFactory(organization=OrganizationFactory())
-        payload = {
-            "tags": [tag.id],
-        }
+        payload = {"tags": [tag.id]}
         response = self.client.post(
             reverse(
                 "TagClassification-add-tags",
@@ -472,13 +466,15 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
         tag_classification.refresh_from_db()
         self.assertEqual(tag_classification.slug, "title-b")
         self.assertSetEqual(
-            {"title-a", "title-b", "title-c"}, set(tag_classification.outdated_slugs)
+            {"title-a", "title-b", "title-c"},
+            set(tag_classification.outdated_slugs),
         )
 
         # Check that outdated_slugs respect unicity
         payload = {"title": title_a, "description": faker.sentence()}
         response = self.client.post(
-            reverse("TagClassification-list", args=(self.organization.code,)), payload
+            reverse("TagClassification-list", args=(self.organization.code,)),
+            payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -486,33 +482,22 @@ class MiscTagClassificationTestCase(JwtAPITestCase):
 
     def test_validate_title_too_long(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "title": 51 * "*",
-            "description": faker.sentence(),
-        }
+        payload = {"title": 51 * "*", "description": faker.sentence()}
         response = self.client.post(
-            reverse(
-                "TagClassification-list",
-                args=(self.organization.code,),
-            ),
+            reverse("TagClassification-list", args=(self.organization.code,)),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
-            response, {"title": ["Ensure this field has no more than 50 characters."]}
+            response,
+            {"title": ["Ensure this field has no more than 50 characters."]},
         )
 
     def test_validate_description_too_long(self):
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "title": faker.word(),
-            "description": 501 * "*",
-        }
+        payload = {"title": faker.word(), "description": 501 * "*"}
         response = self.client.post(
-            reverse(
-                "TagClassification-list",
-                args=(self.organization.code,),
-            ),
+            reverse("TagClassification-list", args=(self.organization.code,)),
             payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

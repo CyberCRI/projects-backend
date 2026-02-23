@@ -10,7 +10,8 @@ from .models import GoogleAccount, GoogleGroup, GoogleSyncErrors
 
 
 def create_google_account(
-    user: ProjectUser, organizational_unit: str = settings.GOOGLE_DEFAULT_ORG_UNIT
+    user: ProjectUser,
+    organizational_unit: str = settings.GOOGLE_DEFAULT_ORG_UNIT,
 ):
     if user.groups.filter(
         organizations__code=settings.GOOGLE_SYNCED_ORGANIZATION
@@ -20,7 +21,9 @@ def create_google_account(
         )
         google_account, error = google_account.create()
         if not error:
-            transaction.on_commit(lambda: create_google_user_task.delay(user.id))
+            transaction.on_commit(
+                lambda: create_google_user_task.delay(user.id)
+            )
         else:
             for task in [
                 GoogleSyncErrors.OnTaskChoices.USER_ALIAS,
@@ -62,12 +65,16 @@ def create_google_group(people_group: PeopleGroup):
                 GoogleSyncErrors.OnTaskChoices.GROUP_ALIAS,
                 GoogleSyncErrors.OnTaskChoices.SYNC_MEMBERS,
             ]:
-                google_group.update_or_create_error(task, "Error creating google group")
+                google_group.update_or_create_error(
+                    task, "Error creating google group"
+                )
 
 
 def update_google_group(people_group: PeopleGroup):
     if people_group.organization.code == settings.GOOGLE_SYNCED_ORGANIZATION:
-        transaction.on_commit(lambda: update_google_group_task.delay(people_group.pk))
+        transaction.on_commit(
+            lambda: update_google_group_task.delay(people_group.pk)
+        )
 
 
 @app.task(name="services.google.tasks.create_google_user_task")
@@ -121,6 +128,8 @@ def update_google_group_task(people_group_id: int):
 @app.task(name="services.google.tasks.retry_failed_tasks")
 @clear_memory
 def retry_failed_tasks():
-    failed_tasks = GoogleSyncErrors.objects.filter(solved=False).order_by("created_at")
+    failed_tasks = GoogleSyncErrors.objects.filter(solved=False).order_by(
+        "created_at"
+    )
     for failed_task in failed_tasks:
         failed_task.retry()

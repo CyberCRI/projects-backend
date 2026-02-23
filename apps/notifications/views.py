@@ -50,16 +50,22 @@ class NotificationsViewSet(ListViewSet):
 
     @transaction.atomic
     def list(self, request, *args, **kwargs):
-        response = super(NotificationsViewSet, self).list(request, *args, **kwargs)
+        response = super(NotificationsViewSet, self).list(
+            request, *args, **kwargs
+        )
         organization_code = self.kwargs.get("organization_code")
         mark_viewed = Notification.objects.filter(receiver=self.request.user)
         if organization_code:
-            mark_viewed = mark_viewed.filter(organization__code=organization_code)
+            mark_viewed = mark_viewed.filter(
+                organization__code=organization_code
+            )
         mark_viewed.update(is_viewed=True)
         return response
 
 
-class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
+class NotificationSettingsViewSet(
+    MultipleIDViewsetMixin, RetrieveUpdateModelViewSet
+):
     """Allows getting or modifying a user's notification settings."""
 
     serializer_class = NotificationSettingsSerializer
@@ -72,9 +78,7 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
@@ -162,7 +166,9 @@ class ContactViewSet(viewsets.GenericViewSet):
         """Allow to send an abuse report email."""
         organization_code = self.kwargs.get("organization_code")
         organization = get_object_or_404(Organization, code=organization_code)
-        serializer = ContactSerializer(data=request.data, context={"request": request})
+        serializer = ContactSerializer(
+            data=request.data, context={"request": request}
+        )
         serializer.is_valid(raise_exception=True)
 
         text_content, html_content = render_message(
@@ -175,7 +181,10 @@ class ContactViewSet(viewsets.GenericViewSet):
             text_content,
             html_content=html_content,
             from_email=settings.EMAIL_CONTACT_SENDER,
-            to=[*settings.EMAIL_CONTACT_RECIPIENTS, serializer.validated_data["email"]],
+            to=[
+                *settings.EMAIL_CONTACT_RECIPIENTS,
+                serializer.validated_data["email"],
+            ],
         )
 
         return Response(status=status.HTTP_200_OK)

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import APIException, AuthenticationFailed
@@ -39,7 +37,7 @@ class InvalidKeycloakEmailTypeError(APIException):
     default_detail = _("The given email type is not valid")
     default_code = "invalid_email_type_error"
 
-    def __init__(self, email_type: Optional[str] = None):
+    def __init__(self, email_type: str | None = None):
         detail = (
             _("Email type '{email_type}' is not valid").format(email_type=email_type)
             if email_type

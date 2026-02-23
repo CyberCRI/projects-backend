@@ -14,14 +14,19 @@ class Command(BaseCommand):
             if category.exists():
                 category = category.get()
                 organization = category.organization
-                print(f"Adding organization {organization} to template {template.id}")
+                print(
+                    f"Adding organization {organization} to template {template.id}"
+                )
                 template.organization = organization
                 template.save()
 
     def _update_template_image_url(
         self, template: Template, field: str, text: str, image_url: str
     ) -> str:
-        if image_url.startswith("/v1/category/") and "/template-image/" in image_url:
+        if (
+            image_url.startswith("/v1/category/")
+            and "/template-image/" in image_url
+        ):
             image_id = (
                 image_url.split("/")[-1]
                 if image_url[-1] != "/"
@@ -79,7 +84,9 @@ class Command(BaseCommand):
                 Project.objects.filter(id=project.id).update(
                     template=project.main_category.template
                 )
-        no_main_category = Project.objects.filter(main_category__isnull=True).count()
+        no_main_category = Project.objects.filter(
+            main_category__isnull=True
+        ).count()
         print(f"Projects with no main category: {no_main_category}")
         no_template = Project.objects.filter(template__isnull=True).count()
         print(f"Projects with no template: {no_template}")

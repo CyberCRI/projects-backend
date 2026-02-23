@@ -1,11 +1,15 @@
-from typing import List
-
 from django.db.models import Q
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup, ProjectUser
-from apps.accounts.serializers import PeopleGroupLightSerializer, UserLighterSerializer
-from apps.commons.fields import HiddenSlugRelatedField, UserMultipleIdRelatedField
+from apps.accounts.serializers import (
+    PeopleGroupLightSerializer,
+    UserLighterSerializer,
+)
+from apps.commons.fields import (
+    HiddenSlugRelatedField,
+    UserMultipleIdRelatedField,
+)
 from apps.commons.serializers import (
     OrganizationRelatedSerializer,
     StringsImagesSerializer,
@@ -32,7 +36,7 @@ class InvitationSerializer(
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["description"]
+    string_images_forbid_fields: list[str] = ["description"]
 
     owner = UserLighterSerializer(read_only=True)
     organization = HiddenSlugRelatedField(
@@ -40,12 +44,20 @@ class InvitationSerializer(
     )
     people_group = PeopleGroupLightSerializer(read_only=True)
     people_group_id = serializers.PrimaryKeyRelatedField(
-        write_only=True, queryset=PeopleGroup.objects.all(), source="people_group"
+        write_only=True,
+        queryset=PeopleGroup.objects.all(),
+        source="people_group",
     )
 
     class Meta:
         model = Invitation
-        read_only_fields = ["token", "created_at", "people_group", "id", "owner"]
+        read_only_fields = [
+            "token",
+            "created_at",
+            "people_group",
+            "id",
+            "owner",
+        ]
         fields = read_only_fields + [
             "organization",
             "people_group_id",
@@ -55,7 +67,8 @@ class InvitationSerializer(
 
     def validate_people_group_id(self, value):
         if not PeopleGroup.objects.filter(
-            id=value.id, organization__code=self.context.get("organization_code")
+            id=value.id,
+            organization__code=self.context.get("organization_code"),
         ).exists():
             raise InvitationPeopleGroupOrganizationError
         return value
@@ -70,9 +83,11 @@ class InvitationSerializer(
 
 
 class AccessRequestSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
-    string_images_forbid_fields: List[str] = ["message"]
+    string_images_forbid_fields: list[str] = ["message"]
 
     organization = serializers.SlugRelatedField(
         slug_field="code", queryset=Organization.objects.all()

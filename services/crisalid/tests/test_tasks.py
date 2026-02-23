@@ -29,10 +29,7 @@ class TestCrisalidTasks(test.TestCase):
 
         fields = {
             "recorded_by": [
-                {
-                    "harvester": identifier.harvester,
-                    "uid": identifier.value,
-                }
+                {"harvester": identifier.harvester, "uid": identifier.value}
                 for identifier in document.identifiers.all()
             ]
         }
@@ -65,10 +62,7 @@ class TestCrisalidTasks(test.TestCase):
 
         fields = {
             "identifiers": [
-                {
-                    "type": identifier.harvester,
-                    "value": identifier.value,
-                }
+                {"type": identifier.harvester, "value": identifier.value}
                 for identifier in researcher.identifiers.all()
             ]
         }
@@ -140,12 +134,8 @@ class TestCrisalidTasks(test.TestCase):
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
-            "titles": [
-                {"language": "en", "value": "fiction"},
-            ],
-            "abstracts": [
-                {"language": "en", "value": "description"},
-            ],
+            "titles": [{"language": "en", "value": "fiction"}],
+            "abstracts": [{"language": "en", "value": "description"}],
             "publication_date": "1999",
             "has_contributions": [
                 {
@@ -164,7 +154,10 @@ class TestCrisalidTasks(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {
+                                    "type": "eppn",
+                                    "value": "marty.mcfly@non-de-zeus.fr",
+                                },
                                 {"type": "idref", "value": "4545454545454"},
                                 {"type": "local", "value": "v55555"},
                             ],
@@ -173,10 +166,7 @@ class TestCrisalidTasks(test.TestCase):
                 }
             ],
             "recorded_by": [
-                {
-                    "type": Identifier.Harvester.HAL.value,
-                    "value": "hals-truc",
-                }
+                {"type": Identifier.Harvester.HAL.value, "value": "hals-truc"}
             ],
         }
 

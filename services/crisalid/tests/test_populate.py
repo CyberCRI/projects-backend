@@ -74,7 +74,9 @@ class TestPopulateResearcher(test.TestCase):
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
+        researcher = Researcher.objects.create(
+            given_name="marty", family_name="mcfly"
+        )
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -108,7 +110,9 @@ class TestPopulateResearcher(test.TestCase):
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
+        researcher = Researcher.objects.create(
+            given_name="marty", family_name="mcfly"
+        )
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -140,7 +144,10 @@ class TestPopulateResearcher(test.TestCase):
             ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
-                {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
+                {
+                    "value": "eppn@lpi.com",
+                    "type": Identifier.Harvester.EPPN.value,
+                },
             ],
         }
         self.popu.single(data)
@@ -166,7 +173,10 @@ class TestPopulateResearcher(test.TestCase):
             ],
             "identifiers": [
                 {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
-                {"value": "eppn@lpi.com", "type": Identifier.Harvester.EPPN.value},
+                {
+                    "value": "eppn@lpi.com",
+                    "type": Identifier.Harvester.EPPN.value,
+                },
             ],
         }
         # a project user already exists with same eepn
@@ -202,12 +212,8 @@ class TestPopulateDocument(test.TestCase):
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
-            "titles": [
-                {"language": "en", "value": "fiction"},
-            ],
-            "abstracts": [
-                {"language": "en", "value": "description"},
-            ],
+            "titles": [{"language": "en", "value": "fiction"}],
+            "abstracts": [{"language": "en", "value": "description"}],
             "publication_date": "1999",
             "has_contributions": [
                 {
@@ -238,10 +244,7 @@ class TestPopulateDocument(test.TestCase):
                 }
             ],
             "recorded_by": [
-                {
-                    "type": Identifier.Harvester.HAL.value,
-                    "value": "hals-truc",
-                }
+                {"type": Identifier.Harvester.HAL.value, "value": "hals-truc"}
             ],
         }
 
@@ -262,12 +265,8 @@ class TestPopulateDocument(test.TestCase):
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": None,
-            "titles": [
-                {"language": "en", "value": "fiction"},
-            ],
-            "abstracts": [
-                {"language": "en", "value": "description"},
-            ],
+            "titles": [{"language": "en", "value": "fiction"}],
+            "abstracts": [{"language": "en", "value": "description"}],
             "publication_date": "1999",
             "has_contributions": [
                 {
@@ -286,7 +285,10 @@ class TestPopulateDocument(test.TestCase):
                                 }
                             ],
                             "identifiers": [
-                                {"type": "eppn", "value": "marty.mcfly@non-de-zeus.fr"},
+                                {
+                                    "type": "eppn",
+                                    "value": "marty.mcfly@non-de-zeus.fr",
+                                },
                                 {"type": "idref", "value": "4545454545454"},
                                 {"type": "local", "value": "v55555"},
                             ],
@@ -305,13 +307,16 @@ class TestPopulateDocument(test.TestCase):
 
     def test_sanitize_date(self):
         self.assertEqual(
-            self.popu.sanitize_date("1999"), datetime.datetime(1999, 1, 1).date()
+            self.popu.sanitize_date("1999"),
+            datetime.datetime(1999, 1, 1).date(),
         )
         self.assertEqual(
-            self.popu.sanitize_date("1999-05"), datetime.datetime(1999, 5, 1).date()
+            self.popu.sanitize_date("1999-05"),
+            datetime.datetime(1999, 5, 1).date(),
         )
         self.assertEqual(
-            self.popu.sanitize_date("1999-05-11"), datetime.datetime(1999, 5, 11).date()
+            self.popu.sanitize_date("1999-05-11"),
+            datetime.datetime(1999, 5, 11).date(),
         )
         self.assertEqual(self.popu.sanitize_date(""), None)
         self.assertEqual(self.popu.sanitize_date(None), None)
@@ -320,7 +325,9 @@ class TestPopulateDocument(test.TestCase):
     def test_sanitize_titles(self):
         self.assertEqual(self.popu.sanitize_languages([]), "")
         self.assertEqual(
-            self.popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
+            self.popu.sanitize_languages(
+                [{"language": "en", "value": "en-title"}]
+            ),
             "en-title",
         )
         self.assertEqual(
@@ -342,7 +349,9 @@ class TestPopulateDocument(test.TestCase):
             "fr-title",
         )
         self.assertEqual(
-            self.popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
+            self.popu.sanitize_languages(
+                [{"language": "es", "value": "es-title"}]
+            ),
             "es-title",
         )
 

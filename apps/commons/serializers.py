@@ -1,4 +1,5 @@
-from typing import Any, Collection, Dict, List, Optional
+from collections.abc import Collection
+from typing import Any
 
 from django.conf import settings
 from django.db.models import Model, Q
@@ -18,7 +19,7 @@ from services.translator.serializers import AutoTranslatedModelSerializer
 class ProjectRelatedSerializer(serializers.ModelSerializer):
     """Base serializer for serializers related to projects."""
 
-    def get_related_project(self) -> Optional[Project]:
+    def get_related_project(self) -> Project | None:
         """Retrieve the related projects"""
         raise NotImplementedError()
 
@@ -26,7 +27,7 @@ class ProjectRelatedSerializer(serializers.ModelSerializer):
 class OrganizationRelatedSerializer(serializers.ModelSerializer):
     """Base serializer for serializers related to organizations."""
 
-    def get_related_organizations(self) -> List[Organization]:
+    def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
         raise NotImplementedError()
 
@@ -139,9 +140,7 @@ class ReadUpdateModelViewSet(
 
 
 class CreateListModelViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    viewsets.GenericViewSet,
+    mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet
 ):
     """
     A viewset that provides `list` and `create` actions.
@@ -157,8 +156,8 @@ class StringsImagesSerializer(serializers.ModelSerializer):
     It replaces base64 images with uploaded image references during serialization.
     """
 
-    string_images_fields: List[str] = []
-    string_images_forbid_fields: List[str] = []
+    string_images_fields: list[str] = []
+    string_images_forbid_fields: list[str] = []
     string_images_upload_to: str = ""
     string_images_view: str = ""
     string_images_process_template: bool = False
@@ -166,19 +165,19 @@ class StringsImagesSerializer(serializers.ModelSerializer):
 
     def get_string_images_kwargs(
         self, instance: Model, field_name: str, *args: Any, **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get additional kwargs for image processing based on the instance."""
         return {}
 
     def get_string_images_owner(
         self, instance: Model, field_name: str, *args: Any, **kwargs: Any
-    ) -> Optional[ProjectUser]:
+    ) -> ProjectUser | None:
         """Get the owner for image processing based on the instance."""
         request = self.context.get("request")
         return request.user if request else None
 
     def add_string_images_to_instance(
-        self, instance: Model, images: List["Image"]
+        self, instance: Model, images: list["Image"]
     ) -> None:
         """Add images to the instance's images field."""
         if self.instance and images:
@@ -233,14 +232,7 @@ class BaseLocationSerializer(
     string_images_forbid_fields: list[str] = ["title", "description"]
 
     class Meta:
-        fields = [
-            "id",
-            "title",
-            "description",
-            "lat",
-            "lng",
-            "type",
-        ]
+        fields = ["id", "title", "description", "lat", "lng", "type"]
 
     def _check_gis(self, value):
         """check gps coord num"""

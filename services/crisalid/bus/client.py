@@ -7,7 +7,10 @@ import jsonschema
 import pika
 from urllib3.util import parse_url
 
-from services.crisalid.bus.constant import CRISALID_MESSAGE_SCHEMA, CrisalidEventEnum
+from services.crisalid.bus.constant import (
+    CRISALID_MESSAGE_SCHEMA,
+    CrisalidEventEnum,
+)
 from services.crisalid.models import CrisalidConfig
 
 from .consumer import crisalid_consumer
@@ -54,7 +57,8 @@ class CrisalidBusClient:
             if parameters["password"]:
                 parameters["password"] = "*" * 10
             self.logger.critical(
-                "Can't instantiate CrisalidBus: invalid parameters, %s", parameters
+                "Can't instantiate CrisalidBus: invalid parameters, %s",
+                parameters,
             )
             return None
 
@@ -88,7 +92,7 @@ class CrisalidBusClient:
                         port=parameters["port"],
                         credentials=credentials,
                         virtual_host="/",
-                    ),
+                    )
                 )
                 self._channel = self._conn.channel()
                 exchange = self.CRISALID_EXCHANGE
@@ -101,11 +105,15 @@ class CrisalidBusClient:
                 self._channel.queue_declare(queue=queue_name, exclusive=True)
                 for routing_key in self.CRISALID_ROUTING_KEYS:
                     self._channel.queue_bind(
-                        exchange=exchange, queue=queue_name, routing_key=routing_key
+                        exchange=exchange,
+                        queue=queue_name,
+                        routing_key=routing_key,
                     )
 
                 self._channel.basic_consume(
-                    queue=queue_name, on_message_callback=self._dispatch, auto_ack=True
+                    queue=queue_name,
+                    on_message_callback=self._dispatch,
+                    auto_ack=True,
                 )
 
                 self.logger.info("Start channel Consuming")
