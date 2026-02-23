@@ -2,7 +2,7 @@ import math
 import uuid
 from datetime import date
 from functools import cached_property
-from typing import Any
+from typing import Any, Optional
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -210,7 +210,7 @@ class PeopleGroup(
         content_type = ContentType.objects.get_for_model(cls)
         return Permission.objects.filter(content_type=content_type)
 
-    def setup_permissions(self, user: "ProjectUser" | None = None):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         managers = self.setup_group_object_permissions(
             self.get_managers(), self.get_default_managers_permissions()

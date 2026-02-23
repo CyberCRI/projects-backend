@@ -2,7 +2,7 @@ import logging
 import math
 import os
 from functools import reduce
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 import shortuuid as shortuuid
 from django.conf import settings
@@ -373,7 +373,7 @@ class Project(
             return sum(self.get_cached_views().get(o.code, 0) for o in organizations)
         return self.mixpanel_events.filter(organization__in=organizations).count()
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self
 
@@ -413,7 +413,7 @@ class Project(
             ],
         )
 
-    def setup_permissions(self, user: "ProjectUser" | None = None):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         reviewers_permissions = self.get_default_reviewers_permissions()
         owners_permissions = self.get_default_owners_permissions()
@@ -563,7 +563,7 @@ class Project(
         return score
 
     @transaction.atomic
-    def duplicate(self, owner: "ProjectUser" | None = None) -> "Project":
+    def duplicate(self, owner: Optional["ProjectUser"] = None) -> "Project":
         header = self.header_image.duplicate(owner=owner) if self.header_image else None
         project = super().duplicate(
             slug=None,
@@ -704,7 +704,7 @@ class LinkedProject(models.Model, ProjectRelated):
     class Meta:
         unique_together = ("project", "target")
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.target
 
@@ -761,7 +761,7 @@ class BlogEntry(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models
         if hasattr(project, "stat"):
             project.stat.update_blog_entries()
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
 
@@ -772,8 +772,8 @@ class BlogEntry(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models
     def duplicate(
         self,
         project: "Project",
-        initial_project: "Project" | None = None,
-        owner: "ProjectUser" | None = None,
+        initial_project: Optional["Project"] = None,
+        owner: Optional["ProjectUser"] = None,
     ) -> "BlogEntry":
         blog_entry = super().duplicate(project=project)
         images_to_set = []
@@ -846,7 +846,7 @@ class Goal(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Mode
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
 
@@ -909,7 +909,7 @@ class Location(ProjectRelated, AbstractLocation):
         Project, on_delete=models.CASCADE, related_name="locations"
     )
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
 

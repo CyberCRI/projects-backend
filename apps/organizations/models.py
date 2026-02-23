@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -298,7 +298,7 @@ class Organization(
             content_type=content_type, codename__in=filtered_permissions
         )
 
-    def setup_permissions(self, user: "ProjectUser" | None = None):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Setup the group with default permissions."""
         admins = self.setup_group_object_permissions(
             self.get_admins(), self.get_default_admins_permissions()

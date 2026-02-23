@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from contextlib import suppress
 from copy import copy
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -90,7 +90,7 @@ class ProjectRelated(OrganizationRelated):
             return Q(**{cls.organization_query_string: value})
         return Q(**{key: value})
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         raise NotImplementedError()
 
@@ -181,7 +181,7 @@ class HasPermissionsSetup:
             )
         return group
 
-    def setup_permissions(self, user: "ProjectUser" | None = None):
+    def setup_permissions(self, user: Optional["ProjectUser"] = None):
         """Initialize permissions for the instance."""
         raise NotImplementedError()
 

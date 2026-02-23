@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from django.db import models, transaction
 from django.utils import timezone
@@ -67,7 +67,7 @@ class Follow(HasOwner, ProjectRelated, models.Model):
         """Get the owner of the object."""
         return self.follower
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
 
@@ -168,7 +168,7 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         """Get the owner of the object."""
         return self.author
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
 
@@ -225,7 +225,7 @@ class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         """Get the owner of the object."""
         return self.reviewer
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the projects related to this model."""
         return self.project
 

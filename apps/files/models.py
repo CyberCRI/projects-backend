@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING, Any, Self
+from typing import TYPE_CHECKING, Any, Optional, Self
 
 from azure.core.exceptions import ResourceNotFoundError
 from django.apps import apps
@@ -129,7 +129,7 @@ class AttachmentLink(
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
 
@@ -206,11 +206,11 @@ class AttachmentFile(
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
 
-    def duplicate(self, project: "Project") -> "AttachmentFile" | None:
+    def duplicate(self, project: "Project") -> Optional["AttachmentFile"]:
         with suppress(ResourceNotFoundError):
             file_path = self.file.name.split("/")
             file_name = file_path.pop()
@@ -385,7 +385,7 @@ class Image(BaseImage, HasOwner, ProjectRelated, OrganizationRelated):
             ).distinct()
         )
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """
         Return the project related to this model.
 

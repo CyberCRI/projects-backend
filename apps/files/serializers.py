@@ -1,5 +1,6 @@
 import hashlib
 import re
+from typing import Optional
 from urllib.parse import urlparse
 
 import requests
@@ -376,7 +377,7 @@ class AttachmentFileSerializer(
             return self.validated_data["project"].get_related_organizations()
         return []
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Retrieve the related projects"""
         if "project" in self.validated_data:
             return self.validated_data["project"]

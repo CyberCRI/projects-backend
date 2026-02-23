@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from django.db import models
 
@@ -75,7 +75,7 @@ class Announcement(
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
-    def get_related_project(self) -> "Project" | None:
+    def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
 

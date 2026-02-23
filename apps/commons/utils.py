@@ -5,7 +5,7 @@ import io
 import itertools
 import uuid
 from contextlib import suppress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -101,7 +101,7 @@ def process_text(
     instance: Model | None = None,
     upload_to: str | None = None,
     view: str | None = None,
-    owner: "ProjectUser" | None = None,
+    owner: Optional["ProjectUser"] = None,
     process_template: bool = False,
     **kwargs,
 ) -> tuple[str, list[Image]]:
@@ -160,7 +160,7 @@ def process_base64_images(
     soup: BeautifulSoupProjects,
     upload_to: str,
     view: str,
-    owner: "ProjectUser" | None = None,
+    owner: Optional["ProjectUser"] = None,
     **kwargs,
 ) -> tuple[str, list[Image]]:
     """
@@ -207,7 +207,7 @@ def process_template_images(
     soup: BeautifulSoupProjects,
     upload_to: str,
     view: str,
-    owner: "ProjectUser" | None = None,
+    owner: Optional["ProjectUser"] = None,
     **kwargs,
 ) -> tuple[BeautifulSoupProjects, list[Image]]:
     """
