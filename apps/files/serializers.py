@@ -34,6 +34,7 @@ from .models import (
     AttachmentType,
     Image,
     OrganizationAttachmentFile,
+    PeopleGroupImage,
     ProjectUserAttachmentFile,
     ProjectUserAttachmentLink,
 )
@@ -463,3 +464,9 @@ class ProjectUserAttachmentFileSerializer(
         if file.size > limit:
             raise FileTooLargeError
         return file
+
+
+class PeopleGroupImageSerializer(ImageSerializer):
+    class Meta(ImageSerializer.Meta):
+        model = PeopleGroupImage
+        fields = (*ImageSerializer.Meta.fields, "people_group")

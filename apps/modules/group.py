@@ -1,6 +1,7 @@
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.files.models import PeopleGroupImage
 from apps.modules.base import AbstractModules, register_module
 from apps.projects.models import Location, Project
 from apps.skills.models import Skill
@@ -71,6 +72,9 @@ class PeopleGroupModules(AbstractModules):
 
     def projects_locations(self) -> QuerySet[Location]:
         return Location.objects.filter(project__in=self.featured_projects())
+
+    def gallery(self):
+        return PeopleGroupImage.objects.filter(people_group=self.instance)
 
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()

@@ -1,4 +1,5 @@
 import hashlib
+import mimetypes
 
 import factory
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -13,6 +14,7 @@ from .models import (
     AttachmentLinkCategory,
     AttachmentType,
     OrganizationAttachmentFile,
+    PeopleGroupImage,
 )
 
 faker = Faker()
@@ -82,3 +84,19 @@ class AttachmentLinkFactory(factory.django.DjangoModelFactory):
 
     class Meta:
         model = AttachmentLink
+
+
+def get_image_file():
+    image_data = faker.image((1, 1), image_format="jpeg")
+    return SimpleUploadedFile(
+        "img.jpeg", image_data, content_type=mimetypes.types_map[".jpeg"]
+    )
+
+
+class PeopleGroupImageFactory(factory.django.DjangoModelFactory):
+    name = factory.Faker("word")
+
+    file = factory.django.FileField(filename="img.jpeg", from_func=get_image_file)
+
+    class Meta:
+        model = PeopleGroupImage
