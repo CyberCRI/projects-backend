@@ -19,9 +19,9 @@ class CrisalidConsumer:
 
     def clear(self):
         """remove all registered callback"""
-        self._consumers: dict[
-            CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]
-        ] = defaultdict(lambda: defaultdict(lambda: None))
+        self._consumers: dict[CrisalidTypeEnum, dict[CrisalidEventEnum, Callable]] = (
+            defaultdict(lambda: defaultdict(lambda: None))
+        )
 
     def add_callback(
         self,
@@ -52,9 +52,7 @@ def is_task_celery(func):
 
 
 # easy decorator method
-def on_event(
-    crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum
-):
+def on_event(crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum):
     """shortcut decorator to crisalid_bus.add_callback
 
     :param crisalid_type: crisalid type name
