@@ -484,14 +484,14 @@ class PeopleGroupImage(BaseImage, HasOwners, OrganizationRelated):
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owners of the group."""
         people_group = self.people_group
-        members = people_group.managers() | people_group.leaders()
+        members = people_group.managers.all() | people_group.leaders.all()
 
         return members.contains(user)
 
     def get_owners(self):
         """Get the owners of the group."""
         people_group = self.people_group
-        members = people_group.managers() | people_group.leaders()
+        members = people_group.managers.all() | people_group.leaders.all()
 
         return list(members)
 
