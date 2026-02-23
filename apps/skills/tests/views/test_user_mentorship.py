@@ -94,9 +94,7 @@ class UserMentorshipTestCase(JwtAPITestCase):
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        cls.other_user.privacy_settings.skills = (
-            PrivacySettings.PrivacyChoices.PUBLIC
-        )
+        cls.other_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.PUBLIC
         cls.other_user.privacy_settings.save()
 
         cls.users = {
@@ -127,12 +125,8 @@ class UserMentorshipTestCase(JwtAPITestCase):
             else:
                 SkillFactory(user=user, tag=cls.mentor_skill_1, can_mentor=True)
                 SkillFactory(user=user, tag=cls.mentor_skill_2, can_mentor=True)
-                SkillFactory(
-                    user=user, tag=cls.mentoree_skill_1, needs_mentor=True
-                )
-                SkillFactory(
-                    user=user, tag=cls.mentoree_skill_2, needs_mentor=True
-                )
+                SkillFactory(user=user, tag=cls.mentoree_skill_1, needs_mentor=True)
+                SkillFactory(user=user, tag=cls.mentoree_skill_2, needs_mentor=True)
                 SkillFactory(user=user, tag=cls.other_skill)
 
     @parameterized.expand(

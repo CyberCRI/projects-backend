@@ -12,12 +12,8 @@ class AnnouncementFactory(factory.django.DjangoModelFactory):
     )  # Subfactory seems to not trigger `create()`
     title = factory.Faker("sentence")
     description = factory.Faker("text")
-    type = FuzzyChoice(
-        Announcement.AnnouncementType.choices, getter=lambda c: c[0]
-    )
-    status = FuzzyChoice(
-        Announcement.AnnouncementStatus.choices, getter=lambda c: c[0]
-    )
+    type = FuzzyChoice(Announcement.AnnouncementType.choices, getter=lambda c: c[0])
+    status = FuzzyChoice(Announcement.AnnouncementStatus.choices, getter=lambda c: c[0])
     deadline = None
     is_remunerated = factory.Faker("boolean")
 

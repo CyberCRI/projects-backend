@@ -97,9 +97,7 @@ class GoogleRetryErrorsTestCase(GoogleTestCase):
             ),
         ]
     )
-    def test_retry_failed_account_and_group_tasks(
-        self, failed_task, mocked_task
-    ):
+    def test_retry_failed_account_and_group_tasks(self, failed_task, mocked_task):
         GoogleSyncErrorFactory(
             google_group=self.google_group,
             google_account=self.google_account,
@@ -156,9 +154,7 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             ),
         ]
     )
-    def test_retry_failure_increment_account_tasks(
-        self, failed_task, mocked_task
-    ):
+    def test_retry_failure_increment_account_tasks(self, failed_task, mocked_task):
         error = GoogleSyncErrorFactory(
             google_account=self.google_account,
             on_task=failed_task,
@@ -195,9 +191,7 @@ class GoogleRetryErrorsIncrementTestCase(GoogleTestCase):
             ),
         ]
     )
-    def test_retry_failure_increment_group_tasks(
-        self, failed_task, mocked_task
-    ):
+    def test_retry_failure_increment_group_tasks(self, failed_task, mocked_task):
         error = GoogleSyncErrorFactory(
             google_group=self.google_group,
             on_task=failed_task,

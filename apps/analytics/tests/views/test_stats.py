@@ -102,15 +102,15 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             total = content["total"]
             by_month = content["by_month"]
 
-            by_month_1 = [
-                m for m in by_month if m["month"] == str(self.date_1.date())
-            ][0]
-            by_month_2 = [
-                m for m in by_month if m["month"] == str(self.date_2.date())
-            ][0]
-            by_month_3 = [
-                m for m in by_month if m["month"] == str(self.date_3.date())
-            ][0]
+            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())][
+                0
+            ]
+            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())][
+                0
+            ]
+            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())][
+                0
+            ]
             by_sdg = [s for s in content["by_sdg"] if s["project_count"] > 0]
             by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1][0]
             by_sdg_2 = [s for s in by_sdg if s["sdg"] == 2][0]
@@ -133,13 +133,9 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             self.assertEqual(len(content["top_tags"]), 3)
             self.assertEqual(content["top_tags"][0]["id"], self.tag_1.pk)
             self.assertEqual(content["top_tags"][0]["project_count"], 2)
-            self.assertIn(
-                content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk]
-            )
+            self.assertIn(content["top_tags"][1]["id"], [self.tag_2.pk, self.tag_3.pk])
             self.assertEqual(content["top_tags"][1]["project_count"], 1)
-            self.assertIn(
-                content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk]
-            )
+            self.assertIn(content["top_tags"][2]["id"], [self.tag_2.pk, self.tag_3.pk])
             self.assertEqual(content["top_tags"][2]["project_count"], 1)
 
             # ORG 2
@@ -148,16 +144,14 @@ class RetrieveStatsTestCase(JwtAPITestCase):
             total = content["total"]
             by_month = content["by_month"]
 
-            by_month_1 = [
-                m for m in by_month if m["month"] == str(self.date_1.date())
-            ]
+            by_month_1 = [m for m in by_month if m["month"] == str(self.date_1.date())]
 
-            by_month_2 = [
-                m for m in by_month if m["month"] == str(self.date_2.date())
-            ][0]
-            by_month_3 = [
-                m for m in by_month if m["month"] == str(self.date_3.date())
-            ][0]
+            by_month_2 = [m for m in by_month if m["month"] == str(self.date_2.date())][
+                0
+            ]
+            by_month_3 = [m for m in by_month if m["month"] == str(self.date_3.date())][
+                0
+            ]
             by_sdg = [s for s in content["by_sdg"] if s["project_count"] > 0]
             by_sdg_1 = [s for s in by_sdg if s["sdg"] == 1]
 

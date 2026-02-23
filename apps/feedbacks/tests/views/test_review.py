@@ -97,9 +97,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            self.assertEqual(
-                response.json()["description"], payload["description"]
-            )
+            self.assertEqual(response.json()["description"], payload["description"])
 
     @parameterized.expand(
         [
@@ -130,9 +128,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            self.assertEqual(
-                response.json()["description"], payload["description"]
-            )
+            self.assertEqual(response.json()["description"], payload["description"])
 
 
 class ListReviewTestCase(JwtAPITestCase):
@@ -159,12 +155,8 @@ class ListReviewTestCase(JwtAPITestCase):
         }
         cls.reviewer = UserFactory()
         cls.reviews = {
-            "public": ReviewFactory(
-                project=cls.public_project, reviewer=cls.reviewer
-            ),
-            "org": ReviewFactory(
-                project=cls.org_project, reviewer=cls.reviewer
-            ),
+            "public": ReviewFactory(project=cls.public_project, reviewer=cls.reviewer),
+            "org": ReviewFactory(project=cls.org_project, reviewer=cls.reviewer),
             "private": ReviewFactory(
                 project=cls.private_project, reviewer=cls.reviewer
             ),
@@ -193,9 +185,7 @@ class ListReviewTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
-            response = self.client.get(
-                reverse("Reviewed-list", args=(project.id,))
-            )
+            response = self.client.get(reverse("Reviewed-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_reviews:
@@ -229,18 +219,13 @@ class ListReviewTestCase(JwtAPITestCase):
             owned_instance=self.reviewer,
         )
         self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("Reviewer-list", args=(self.reviewer.id,))
-        )
+        response = self.client.get(reverse("Reviewer-list", args=(self.reviewer.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_reviews))
         self.assertSetEqual(
             {review["id"] for review in content},
-            {
-                self.reviews[project_status].id
-                for project_status in retrieved_reviews
-            },
+            {self.reviews[project_status].id for project_status in retrieved_reviews},
         )
 
 

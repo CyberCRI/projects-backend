@@ -57,21 +57,17 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(
-            Review.objects.all()
-        )
+        qs = self.request.user.get_project_related_queryset(Review.objects.all())
         if self.request.user.is_authenticated:
-            qs = (
-                qs | Review.objects.filter(reviewer=self.request.user)
-            ).distinct()
+            qs = (qs | Review.objects.filter(reviewer=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             return qs.filter(project=self.kwargs["project_id"]).select_related(
                 "reviewer"
             )
         if "user_id" in self.kwargs:
-            return qs.filter(
-                reviewer__id=self.kwargs["user_id"]
-            ).select_related("reviewer")
+            return qs.filter(reviewer__id=self.kwargs["user_id"]).select_related(
+                "reviewer"
+            )
         return Review.objects.none()
 
     def perform_create(self, serializer):
@@ -100,21 +96,17 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(
-            Follow.objects.all()
-        )
+        qs = self.request.user.get_project_related_queryset(Follow.objects.all())
         if self.request.user.is_authenticated:
-            qs = (
-                qs | Follow.objects.filter(follower=self.request.user)
-            ).distinct()
+            qs = (qs | Follow.objects.filter(follower=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             return qs.filter(project=self.kwargs["project_id"]).select_related(
                 "follower"
             )
         if "user_id" in self.kwargs:
-            return qs.filter(
-                follower__id=self.kwargs["user_id"]
-            ).select_related("follower")
+            return qs.filter(follower__id=self.kwargs["user_id"]).select_related(
+                "follower"
+            )
         return Follow.objects.none()
 
     def check_linked_project_permission(self, project: Project):
@@ -144,9 +136,7 @@ class UserFollowViewSet(FollowViewSet):
             bulk_create = []
             for follow in serializer.validated_data["follows"]:
                 self.check_linked_project_permission(follow["project"])
-                bulk_create.append(
-                    Follow(project=follow["project"], follower=user)
-                )
+                bulk_create.append(Follow(project=follow["project"], follower=user))
             Follow.objects.bulk_create(bulk_create)
 
         context = {"request": request}
@@ -183,13 +173,9 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self) -> QuerySet:
-        qs = self.request.user.get_project_related_queryset(
-            Comment.objects.all()
-        )
+        qs = self.request.user.get_project_related_queryset(Comment.objects.all())
         if self.request.user.is_authenticated:
-            qs = (
-                qs | Comment.objects.filter(author=self.request.user)
-            ).distinct()
+            qs = (qs | Comment.objects.filter(author=self.request.user)).distinct()
         if "project_id" in self.kwargs:
             qs = qs.filter(project=self.kwargs["project_id"])
         if self.action in ["retrieve", "list"]:
@@ -242,9 +228,7 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(
-                    comments__project=self.kwargs["project_id"]
-                ),
+                Image.objects.filter(comments__project=self.kwargs["project_id"]),
                 project_related_name="comments__project",
             )
             # Retrieve images before comment is posted

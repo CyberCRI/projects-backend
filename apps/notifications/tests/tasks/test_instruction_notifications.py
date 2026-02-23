@@ -72,9 +72,7 @@ class InvitationExpiresNotificationsTestCase(JwtAPITestCase):
         self.assertEqual(notifications.count(), 2)
         for user in [notified, not_notified]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(
-                notification.type, Notification.Types.NEW_INSTRUCTION
-            )
+            self.assertEqual(notification.type, Notification.Types.NEW_INSTRUCTION)
             self.assertEqual(notification.project, None)
             self.assertEqual(notification.organization, self.organization)
             self.assertFalse(notification.to_send)

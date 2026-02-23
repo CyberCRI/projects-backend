@@ -48,9 +48,7 @@ class CreateInvitationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            self.assertEqual(
-                content["people_group"]["id"], payload["people_group_id"]
-            )
+            self.assertEqual(content["people_group"]["id"], payload["people_group_id"])
             self.assertEqual(content["description"], payload["description"])
 
 
@@ -75,9 +73,7 @@ class UpdateInvitationTestCase(JwtAPITestCase):
         ]
     )
     def test_update_invitation(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {"description": faker.text()}
         response = self.client.patch(
@@ -118,15 +114,11 @@ class DeleteInvitationTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Invitation-detail", args=(organization.code, invitation.id)
-            )
+            reverse("Invitation-detail", args=(organization.code, invitation.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(
-                Invitation.objects.filter(id=invitation.id).exists()
-            )
+            self.assertFalse(Invitation.objects.filter(id=invitation.id).exists())
 
 
 class ValidateInvitationTestCase(JwtAPITestCase):
@@ -194,11 +186,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {
-                "organization": [
-                    "You cannot change the organization of an invitation"
-                ]
-            },
+            {"organization": ["You cannot change the organization of an invitation"]},
         )
 
     def test_create_with_org_in_payload(self):
@@ -222,15 +210,9 @@ class OrderInvitationTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.people_group_a = PeopleGroupFactory(
-            organization=cls.organization, name="A"
-        )
-        cls.people_group_b = PeopleGroupFactory(
-            organization=cls.organization, name="B"
-        )
-        cls.people_group_c = PeopleGroupFactory(
-            organization=cls.organization, name="C"
-        )
+        cls.people_group_a = PeopleGroupFactory(organization=cls.organization, name="A")
+        cls.people_group_b = PeopleGroupFactory(organization=cls.organization, name="B")
+        cls.people_group_c = PeopleGroupFactory(organization=cls.organization, name="C")
         user_a = UserFactory(given_name="A", family_name="A")
         user_b = UserFactory(given_name="B", family_name="B")
         user_c = UserFactory(given_name="C", family_name="C")

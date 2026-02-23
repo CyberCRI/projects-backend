@@ -20,13 +20,9 @@ class MistralServiceTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
         self.assertEqual(response, "\n".join(messages))
 
-    @patch(
-        "services.mistral.interface.MistralService.service.embeddings.create"
-    )
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_get_embedding(self, mocked):
-        embedding = [
-            faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)
-        ]
+        embedding = [faker.pyfloat(min_value=0, max_value=1) for _ in range(1024)]
         mocked.return_value = self.embedding_response_mocked_return(embedding)
         response = MistralService.get_embedding(faker.text())
         self.assertEqual(response, embedding)

@@ -164,9 +164,7 @@ class PeopleGroupImageTestCase(JwtAPITestCase):
             ),
         ]
     )
-    def test_peoplegroup_images(
-        self, role, publication_status, role_status_code
-    ):
+    def test_peoplegroup_images(self, role, publication_status, role_status_code):
         people_group = PeopleGroupFactory(
             organization=self.organization,
             publication_status=publication_status,

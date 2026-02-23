@@ -21,9 +21,7 @@ class PopulateResearcher(AbstractPopulate):
 
         return given_name, family_name
 
-    def create_user(
-        self, eppn: str, given_name: str, family_name: str
-    ) -> ProjectUser:
+    def create_user(self, eppn: str, given_name: str, family_name: str) -> ProjectUser:
         # filter by eppn
         user = self.cache.model(ProjectUser, email=eppn)
 
@@ -66,9 +64,7 @@ class PopulateResearcher(AbstractPopulate):
         return None
 
     def single(self, data: dict) -> Researcher | None:
-        researcher_identifiers = self.populate_identifiers.multiple(
-            data["identifiers"]
-        )
+        researcher_identifiers = self.populate_identifiers.multiple(data["identifiers"])
 
         # researcher withtout any identifiers no neeeeeeed to be created
         if not researcher_identifiers:

@@ -22,9 +22,7 @@ from apps.projects.factories import BlogEntryFactory, ProjectFactory
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument(
-            "--lang", type=str, help="Language used for the emails."
-        )
+        parser.add_argument("--lang", type=str, help="Language used for the emails.")
 
     def handle(self, *args, **options):
         language = options.get("lang") if options.get("lang") else "en"

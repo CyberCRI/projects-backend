@@ -37,9 +37,9 @@ def create_researcher(crisalid_config_id: int, fields: dict):
     service = CrisalidService(config)
 
     # fetch data from apollo
-    data = service.query(
-        "people", offset=0, limit=1, where={"uid_EQ": fields["uid"]}
-    )["people"]
+    data = service.query("people", offset=0, limit=1, where={"uid_EQ": fields["uid"]})[
+        "people"
+    ]
     if not data:
         logger.warning("no result fetching crisalid_uid=%s", fields["uid"])
         return
@@ -62,9 +62,7 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
     ]
 
     # TODO(remi): check only one elements are deleted
-    pks = Researcher.objects.from_identifiers(identifiers).values_list(
-        "pk", flat=True
-    )
+    pks = Researcher.objects.from_identifiers(identifiers).values_list("pk", flat=True)
     deleted, _ = Researcher.objects.filter(pk__in=pks).delete()
 
     logger.info("deleted = %s", deleted)
@@ -102,9 +100,7 @@ def delete_document(crisalid_config_id: int, fields: dict):
         for iden in fields["recorded_by"]
     ]
 
-    pks = Document.objects.from_identifiers(identifiers).values_list(
-        "pk", flat=True
-    )
+    pks = Document.objects.from_identifiers(identifiers).values_list("pk", flat=True)
     deleted, _ = Document.objects.filter(pk__in=pks).delete()
     logger.info("deleted = %s", deleted)
 

@@ -31,13 +31,9 @@ class Command(BaseCommand):
             stat = Stat(project=project)
             stat.save()
         stat = project.stat
-        stat.comments = project.comments.filter(
-            reply_on=None, deleted_at=None
-        ).count()
+        stat.comments = project.comments.filter(reply_on=None, deleted_at=None).count()
         stat.replies = (
-            project.comments.filter(deleted_at=None)
-            .exclude(reply_on=None)
-            .count()
+            project.comments.filter(deleted_at=None).exclude(reply_on=None).count()
         )
         stat.follows = project.follows.count()
         stat.links = project.links.count()

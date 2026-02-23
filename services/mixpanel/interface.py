@@ -48,9 +48,7 @@ class MixpanelService:
             "mixpanel_id": properties["$insert_id"],
             "date": datetime.date.fromtimestamp(properties["time"]),
             "project": project.get() if project.exists() else None,
-            "organization": organization.get()
-            if organization.exists()
-            else None,
+            "organization": organization.get() if organization.exists() else None,
         }
 
     @classmethod

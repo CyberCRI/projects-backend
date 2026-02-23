@@ -39,9 +39,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         )
         admins_permissions = Organization.get_default_admins_permissions()
         global_admins_permissions = Organization.get_global_admins_permissions()
-        facilitators_permissions = (
-            Organization.get_default_facilitators_permissions()
-        )
+        facilitators_permissions = Organization.get_default_facilitators_permissions()
         users_permissions = Organization.get_default_users_permissions()
         viewers_permissions = Organization.get_default_viewers_permissions()
 
@@ -105,18 +103,14 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                 ),
             )
         )
-        self.assertFalse(
-            user.has_perm(removed_permission.codename, organization)
-        )
+        self.assertFalse(user.has_perm(removed_permission.codename, organization))
 
     def test_project_permissions_setup(self):
         """Test project permissions setup"""
         # Setup test data
         project = ProjectFactory(organizations=[self.organization])
         owner_people_group = PeopleGroupFactory(organization=self.organization)
-        reviewer_people_group = PeopleGroupFactory(
-            organization=self.organization
-        )
+        reviewer_people_group = PeopleGroupFactory(organization=self.organization)
         member_people_group = PeopleGroupFactory(organization=self.organization)
         project.owner_groups.add(owner_people_group)
         project.reviewer_groups.add(reviewer_people_group)
@@ -152,9 +146,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         members_permissions = Project.get_default_members_permissions()
 
         # Test instance permission setup
-        Project.objects.filter(id=project.id).update(
-            permissions_up_to_date=False
-        )
+        Project.objects.filter(id=project.id).update(permissions_up_to_date=False)
         project.setup_permissions()
         project.refresh_from_db()
 
@@ -298,6 +290,4 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                 ),
             )
         )
-        self.assertFalse(
-            member.has_perm(removed_permission.codename, people_group)
-        )
+        self.assertFalse(member.has_perm(removed_permission.codename, people_group))

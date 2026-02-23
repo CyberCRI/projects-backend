@@ -39,9 +39,7 @@ class CreateEventTestCase(JwtAPITestCase):
     )
     def test_create_event(self, role, expected_code):
         organization = self.organization
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "organization": self.organization.code,
@@ -86,9 +84,7 @@ class UpdateEventTestCase(JwtAPITestCase):
         ]
     )
     def test_update_event(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "title": faker.sentence(),
@@ -96,9 +92,7 @@ class UpdateEventTestCase(JwtAPITestCase):
             "event_date": datetime.date.today().isoformat(),
         }
         response = self.client.patch(
-            reverse(
-                "Event-detail", args=(self.organization.code, self.event.id)
-            ),
+            reverse("Event-detail", args=(self.organization.code, self.event.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -133,9 +127,7 @@ class DeleteEventTestCase(JwtAPITestCase):
             organization=self.organization, people_groups=[self.people_group]
         )
         event_id = event.id
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse("Event-detail", args=(self.organization.code, event.id))
@@ -237,9 +229,7 @@ class ValidateEventTestCase(JwtAPITestCase):
         super().setUp()
 
     def test_create_event_with_people_group_in_other_organization(self):
-        user = self.get_parameterized_test_user(
-            TestRoles.SUPERADMIN, instances=[]
-        )
+        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN, instances=[])
         self.client.force_authenticate(user=user)
         payload = {
             "organization": self.organization.code,
@@ -267,9 +257,7 @@ class ValidateEventTestCase(JwtAPITestCase):
         event = EventFactory(
             organization=self.organization, people_groups=[people_group]
         )
-        user = self.get_parameterized_test_user(
-            TestRoles.SUPERADMIN, instances=[]
-        )
+        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN, instances=[])
         self.client.force_authenticate(user=user)
         payload = {"people_groups": [self.other_org_people_group.id]}
         response = self.client.patch(
@@ -296,15 +284,9 @@ class FilterOrderEventTestCase(JwtAPITestCase):
         cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
         cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
         cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
-        cls.event_1 = EventFactory(
-            organization=cls.organization, event_date=cls.date_1
-        )
-        cls.event_2 = EventFactory(
-            organization=cls.organization, event_date=cls.date_2
-        )
-        cls.event_3 = EventFactory(
-            organization=cls.organization, event_date=cls.date_3
-        )
+        cls.event_1 = EventFactory(organization=cls.organization, event_date=cls.date_1)
+        cls.event_2 = EventFactory(organization=cls.organization, event_date=cls.date_2)
+        cls.event_3 = EventFactory(organization=cls.organization, event_date=cls.date_3)
 
     def test_filter_from_date(self):
         self.client.force_authenticate(self.user)

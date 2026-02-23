@@ -97,12 +97,8 @@ class EscoServiceTestCase(EscoTestCase):
         self.assertEqual(updated_occupation.title_en, data["title_en"])
         self.assertEqual(updated_occupation.title_fr, data["title_fr"])
         self.assertEqual(updated_occupation.description, data["description_en"])
-        self.assertEqual(
-            updated_occupation.description_en, data["description_en"]
-        )
-        self.assertEqual(
-            updated_occupation.description_fr, data["description_fr"]
-        )
+        self.assertEqual(updated_occupation.description_en, data["description_en"])
+        self.assertEqual(updated_occupation.description_fr, data["description_fr"])
         self.assertEqual(
             updated_occupation.alternative_titles_en,
             f"{data['title_en']} alternative 1, {data['title_en']} alternative 2",

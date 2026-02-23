@@ -32,9 +32,7 @@ class UserEmbeddingVisibilityTestCase(JwtAPITestCase):
 
     def test_set_visibility_with_project(self):
         project = ProjectFactory()
-        ProjectEmbeddingFactory(
-            item=project, is_visible=True, embedding=1024 * [1]
-        )
+        ProjectEmbeddingFactory(item=project, is_visible=True, embedding=1024 * [1])
         user = UserFactory(description="", groups=[project.get_members()])
         embedding = UserEmbeddingFactory(item=user)
         embedding.set_visibility()
@@ -55,19 +53,15 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
         cls.organization = OrganizationFactory()
 
     @patch("services.mistral.interface.MistralService.service.chat.complete")
-    @patch(
-        "services.mistral.interface.MistralService.service.embeddings.create"
-    )
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_user_embedding(self, mocked_embeddings, mocked_chat):
         project_1 = ProjectFactory(organizations=[self.organization])
         project_2 = ProjectFactory(organizations=[self.organization])
         projects_vector_1 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2)
-            for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
         projects_vector_2 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2)
-            for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
         ProjectEmbeddingFactory(
             item=project_1, is_visible=True, embedding=projects_vector_1
@@ -76,8 +70,7 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
             item=project_2, is_visible=True, embedding=projects_vector_2
         )
         profile_embedding = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2)
-            for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
 
         mocked_chat.return_value = self.chat_response_mocked_return(
@@ -87,9 +80,7 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
             profile_embedding
         )
 
-        user = UserFactory(
-            groups=[project_1.get_members(), project_2.get_members()]
-        )
+        user = UserFactory(groups=[project_1.get_members(), project_2.get_members()])
         embedding = UserEmbeddingFactory(item=user)
         embedding.vectorize()
 
@@ -129,6 +120,4 @@ class VectorizeUserTestCase(JwtAPITestCase, MistralTestCaseMixin):
             )
             for i in range(1024)
         ]
-        self.assertEqual(
-            [round(e, 2) for e in embedding.embedding], expected_result
-        )
+        self.assertEqual([round(e, 2) for e in embedding.embedding], expected_result)

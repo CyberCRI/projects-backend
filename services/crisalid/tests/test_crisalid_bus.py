@@ -34,9 +34,7 @@ class TestCrisalidBus(test.TestCase):
 
     def test_dispatch_no_callback(self):
         # this run withtout called any callback
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, self.payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, self.payload)
 
     def test_dispatch_with_callback(self):
         callback = Mock()
@@ -45,9 +43,7 @@ class TestCrisalidBus(test.TestCase):
         )
 
         # this run withtout called any callback
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, self.payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, self.payload)
 
         # normaly is called
         callback.assert_called_once_with(
@@ -74,16 +70,12 @@ class TestCrisalidBus(test.TestCase):
 
         # this run withtout called any callback, invalid payload "string"
         payload = b""
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
         # empty object {}
         payload = json.dumps({}).encode()
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
         # invalid type
@@ -94,9 +86,7 @@ class TestCrisalidBus(test.TestCase):
                 "type": "invalid_type",
             }
         ).encode()
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
         # invalid event
@@ -107,9 +97,7 @@ class TestCrisalidBus(test.TestCase):
                 "event": "invalid_event",
             }
         ).encode()
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
         # invalid fields
@@ -120,9 +108,7 @@ class TestCrisalidBus(test.TestCase):
                 "event": CrisalidEventEnum.CREATED.value,
             }
         ).encode()
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
         # invalid decode str
@@ -134,9 +120,7 @@ class TestCrisalidBus(test.TestCase):
                 "event": CrisalidEventEnum.CREATED.value,
             }
         ).encode("ascii")
-        self.client._dispatch(
-            self.chanel, self.properties, self.method, payload
-        )
+        self.client._dispatch(self.chanel, self.properties, self.method, payload)
         callback.assert_not_called()
 
 

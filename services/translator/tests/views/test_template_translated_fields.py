@@ -67,9 +67,7 @@ class TemplateTranslatedFieldsTestCase(JwtAPITestCase):
         # Update one translated field
         payload = {Template._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
-            reverse(
-                "Template-detail", args=(self.organization.code, template.pk)
-            ),
+            reverse("Template-detail", args=(self.organization.code, template.pk)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -92,9 +90,7 @@ class TemplateTranslatedFieldsTestCase(JwtAPITestCase):
             for translated_field in Template._auto_translated_fields
         }
         response = self.client.patch(
-            reverse(
-                "Template-detail", args=(self.organization.code, template.pk)
-            ),
+            reverse("Template-detail", args=(self.organization.code, template.pk)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -123,9 +119,7 @@ class TemplateTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         response = self.client.delete(
-            reverse(
-                "Template-detail", args=(self.organization.code, template.pk)
-            )
+            reverse("Template-detail", args=(self.organization.code, template.pk))
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(

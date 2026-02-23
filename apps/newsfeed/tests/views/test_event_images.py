@@ -37,9 +37,7 @@ class CreateEventImageTestCase(JwtAPITestCase):
         event = EventFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -98,9 +96,7 @@ class UpdateEventImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_event_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
@@ -123,9 +119,7 @@ class UpdateEventImageTestCase(JwtAPITestCase):
             self.assertEqual(response.json()["scale_y"], payload["scale_y"])
             self.assertEqual(response.json()["left"], payload["left"])
             self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(
-                response.json()["natural_ratio"], payload["natural_ratio"]
-            )
+            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteEventImageTestCase(JwtAPITestCase):
@@ -154,9 +148,7 @@ class DeleteEventImageTestCase(JwtAPITestCase):
     def test_delete_event_image(self, role, expected_code):
         image = self.get_test_image()
         self.event.images.add(image)
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
@@ -194,9 +186,7 @@ class RetrieveEventImageTestCase(JwtAPITestCase):
         cls.none_image = cls.get_test_image()
         cls.none_event.images.add(cls.none_image)
 
-        cls.all_event = EventFactory(
-            organization=cls.organization, visible_by_all=True
-        )
+        cls.all_event = EventFactory(organization=cls.organization, visible_by_all=True)
         cls.all_image = cls.get_test_image()
         cls.all_event.images.add(cls.all_image)
 
@@ -266,6 +256,4 @@ class RetrieveEventImageTestCase(JwtAPITestCase):
             if key in retrieved_events:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(
-                    response.status_code, status.HTTP_404_NOT_FOUND
-                )
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

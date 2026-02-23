@@ -205,6 +205,4 @@ class StatsTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.stat.refresh_from_db()
-        self.assertEqual(
-            self.stat.description_length, len(payload["description"])
-        )
+        self.assertEqual(self.stat.description_length, len(payload["description"]))

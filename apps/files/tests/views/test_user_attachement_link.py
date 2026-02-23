@@ -61,15 +61,11 @@ class UpdateProjectUserAttachmentLinkTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user)
 
-        link = ProjectUserAttachmentLink.objects.create(
-            title="title", owner=user
-        )
+        link = ProjectUserAttachmentLink.objects.create(title="title", owner=user)
 
         payload = {"title": "test"}
         response = self.client.patch(
-            reverse(
-                "ProjectUserAttachmentLink-detail", args=(user.id, link.id)
-            ),
+            reverse("ProjectUserAttachmentLink-detail", args=(user.id, link.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -85,16 +81,12 @@ class UpdateProjectUserAttachmentLinkTestCase(JwtAPITestCase):
         user_2 = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user_1)
 
-        link = ProjectUserAttachmentLink.objects.create(
-            title="title", owner=user_1
-        )
+        link = ProjectUserAttachmentLink.objects.create(title="title", owner=user_1)
 
         payload = {"title": "test"}
         response = self.client.patch(
             # we try to add attachement on user_2 with user_1 connected
-            reverse(
-                "ProjectUserAttachmentLink-detail", args=(user_2.id, link.id)
-            ),
+            reverse("ProjectUserAttachmentLink-detail", args=(user_2.id, link.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -105,32 +97,24 @@ class DeleteProjectUserAttachmentLinkTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user)
 
-        link = ProjectUserAttachmentLink.objects.create(
-            title="title", owner=user
-        )
+        link = ProjectUserAttachmentLink.objects.create(title="title", owner=user)
 
         response = self.client.delete(
             reverse("ProjectUserAttachmentLink-detail", args=(user.id, link.id))
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(
-            ProjectUserAttachmentLink.objects.filter(id=link.id).exists()
-        )
+        self.assertFalse(ProjectUserAttachmentLink.objects.filter(id=link.id).exists())
 
     def test_delete_attachment_link_different_user(self):
         user_1 = self.get_parameterized_test_user(TestRoles.DEFAULT)
         user_2 = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user_1)
 
-        link = ProjectUserAttachmentLink.objects.create(
-            title="title", owner=user_1
-        )
+        link = ProjectUserAttachmentLink.objects.create(title="title", owner=user_1)
 
         response = self.client.delete(
             # we try to add attachement on user_2 with user_1 connected
-            reverse(
-                "ProjectUserAttachmentLink-detail", args=(user_2.id, link.id)
-            )
+            reverse("ProjectUserAttachmentLink-detail", args=(user_2.id, link.id))
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

@@ -194,9 +194,7 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
 
     def get_queryset(self) -> QuerySet:
         return self.request.user.get_user_related_queryset(
-            CategoryFollow.objects.filter(
-                follower__id=self.kwargs.get("user_id")
-            ),
+            CategoryFollow.objects.filter(follower__id=self.kwargs.get("user_id")),
             user_related_name="follower",
         )
 
@@ -253,9 +251,7 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
         if "category_id" in self.kwargs and "organization_code" in self.kwargs:
             return Image.objects.filter(
                 project_category__id=self.kwargs["category_id"],
-                project_category__organization__code=self.kwargs[
-                    "organization_code"
-                ],
+                project_category__organization__code=self.kwargs["organization_code"],
             )
         return Image.objects.none()
 
@@ -313,9 +309,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     @method_decorator(clear_cache_with_key("organizations_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(OrganizationViewSet, self).dispatch(
-            request, *args, **kwargs
-        )
+        return super(OrganizationViewSet, self).dispatch(request, *args, **kwargs)
 
     @extend_schema(
         request=OrganizationAddTeamMembersSerializer, responses=UserSerializer
@@ -536,7 +530,9 @@ class OrganizationBannerView(ImageStorageView):
             )
             organization.banner_image = image
             organization.save()
-            return f"/v1/organization/{self.kwargs['organization_code']}/banner/{image.id}"
+            return (
+                f"/v1/organization/{self.kwargs['organization_code']}/banner/{image.id}"
+            )
         return None
 
 
@@ -571,7 +567,9 @@ class OrganizationLogoView(ImageStorageView):
             )
             organization.logo_image = image
             organization.save()
-            return f"/v1/organization/{self.kwargs['organization_code']}/logo/{image.id}"
+            return (
+                f"/v1/organization/{self.kwargs['organization_code']}/logo/{image.id}"
+            )
         return None
 
 
@@ -610,7 +608,9 @@ class OrganizationImagesView(ImageStorageView):
             )
             organization.images.add(image)
             organization.save()
-            return f"/v1/organization/{self.kwargs['organization_code']}/image/{image.id}"
+            return (
+                f"/v1/organization/{self.kwargs['organization_code']}/image/{image.id}"
+            )
         return None
 
 
@@ -660,9 +660,7 @@ class TemplateImagesView(MultipleIDViewsetMixin, ImageStorageView):
         )
 
 
-class TermsAndConditionsViewSet(
-    mixins.UpdateModelMixin, viewsets.GenericViewSet
-):
+class TermsAndConditionsViewSet(mixins.UpdateModelMixin, viewsets.GenericViewSet):
     serializer_class = TermsAndConditionsSerializer
     organization_code_lookup = "organization__code"
     lookup_field = "id"
@@ -687,9 +685,7 @@ class TermsAndConditionsViewSet(
 
 
 class AvailableLanguagesView(APIView):
-    @extend_schema(
-        responses={200: {"type": "array", "items": {"type": "dict"}}}
-    )
+    @extend_schema(responses={200: {"type": "array", "items": {"type": "dict"}}})
     def get(self, request):
         return Response(
             [{"code": code, "name": name} for code, name in settings.LANGUAGES],

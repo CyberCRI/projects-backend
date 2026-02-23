@@ -79,9 +79,7 @@ class PostDeployProcess(models.Model):
     def recreate_processes(cls):
         if settings.ENVIRONMENT in cls.LocalEnvironments.values:
             cls._tasks = {
-                key: value
-                for key, value in cls._tasks.items()
-                if value.run_in_tests
+                key: value for key, value in cls._tasks.items() if value.run_in_tests
             }
         bulk_update_or_create = []
         for task in cls._tasks.values():

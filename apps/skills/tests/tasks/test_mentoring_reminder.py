@@ -38,9 +38,7 @@ class MentoringReminderTestCase(JwtAPITestCase):
             (Mentoring.MentoringStatus.REJECTED, 10, False),
         ]
     )
-    def test_mentoree_reminder(
-        self, mentoring_status, inactivity_days, email_sent
-    ):
+    def test_mentoree_reminder(self, mentoring_status, inactivity_days, email_sent):
         # Mentor created mentoring with latest message at the given date
         mentoring_1 = MentorCreatedMentoringFactory(
             organization=self.organization,
@@ -66,9 +64,9 @@ class MentoringReminderTestCase(JwtAPITestCase):
             mentoring=mentoring_2, sender=self.mentoree, content=faker.text()
         )
 
-        MentoringMessage.objects.filter(
-            id__in=[message_1.id, message_2.id]
-        ).update(created_at=timezone.now() - timedelta(days=inactivity_days))
+        MentoringMessage.objects.filter(id__in=[message_1.id, message_2.id]).update(
+            created_at=timezone.now() - timedelta(days=inactivity_days)
+        )
 
         _send_mentoring_reminder(inactivity_days)
         if email_sent:
@@ -79,9 +77,7 @@ class MentoringReminderTestCase(JwtAPITestCase):
                 mentoring_1.skill.tag, f"title_{self.mentoree.language}"
             )
             if inactivity_days == 3:
-                subject = (
-                    f"Do you want to be mentored in {skill_name}? (reminder)"
-                )
+                subject = f"Do you want to be mentored in {skill_name}? (reminder)"
             else:
                 subject = f"Do you want to be mentored in {skill_name}? (last reminder)"
             self.assertEqual(email.subject, subject)
@@ -100,9 +96,7 @@ class MentoringReminderTestCase(JwtAPITestCase):
             (Mentoring.MentoringStatus.REJECTED, 10, False),
         ]
     )
-    def test_mentor_reminder(
-        self, mentoring_status, inactivity_days, email_sent
-    ):
+    def test_mentor_reminder(self, mentoring_status, inactivity_days, email_sent):
         # Mentor created mentoring with latest message at the given date
         mentoring_1 = MentoreeCreatedMentoringFactory(
             organization=self.organization,
@@ -128,9 +122,9 @@ class MentoringReminderTestCase(JwtAPITestCase):
             mentoring=mentoring_2, sender=self.mentor, content=faker.text()
         )
 
-        MentoringMessage.objects.filter(
-            id__in=[message_1.id, message_2.id]
-        ).update(created_at=timezone.now() - timedelta(days=inactivity_days))
+        MentoringMessage.objects.filter(id__in=[message_1.id, message_2.id]).update(
+            created_at=timezone.now() - timedelta(days=inactivity_days)
+        )
 
         _send_mentoring_reminder(inactivity_days)
         if email_sent:

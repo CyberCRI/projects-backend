@@ -101,9 +101,7 @@ class ProjectTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=project.pk
         ).update(up_to_date=True)
 
-        response = self.client.delete(
-            reverse("Project-detail", args=(project.pk,))
-        )
+        response = self.client.delete(reverse("Project-detail", args=(project.pk,)))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=project.pk

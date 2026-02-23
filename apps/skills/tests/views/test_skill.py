@@ -56,12 +56,8 @@ class CreateSkillTestCase(JwtAPITestCase):
             self.assertEqual(
                 response.json()["level_to_reach"], payload["level_to_reach"]
             )
-            self.assertEqual(
-                response.json()["needs_mentor"], payload["needs_mentor"]
-            )
-            self.assertEqual(
-                response.json()["can_mentor"], payload["can_mentor"]
-            )
+            self.assertEqual(response.json()["needs_mentor"], payload["needs_mentor"])
+            self.assertEqual(response.json()["can_mentor"], payload["can_mentor"])
             self.assertEqual(response.json()["comment"], payload["comment"])
 
 
@@ -108,12 +104,8 @@ class UpdateSkillTestCase(JwtAPITestCase):
             self.assertEqual(
                 response.json()["level_to_reach"], payload["level_to_reach"]
             )
-            self.assertEqual(
-                response.json()["needs_mentor"], payload["needs_mentor"]
-            )
-            self.assertEqual(
-                response.json()["can_mentor"], payload["can_mentor"]
-            )
+            self.assertEqual(response.json()["needs_mentor"], payload["needs_mentor"])
+            self.assertEqual(response.json()["can_mentor"], payload["can_mentor"])
             self.assertEqual(response.json()["comment"], payload["comment"])
 
 

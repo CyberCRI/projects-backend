@@ -50,22 +50,16 @@ class NotificationsViewSet(ListViewSet):
 
     @transaction.atomic
     def list(self, request, *args, **kwargs):
-        response = super(NotificationsViewSet, self).list(
-            request, *args, **kwargs
-        )
+        response = super(NotificationsViewSet, self).list(request, *args, **kwargs)
         organization_code = self.kwargs.get("organization_code")
         mark_viewed = Notification.objects.filter(receiver=self.request.user)
         if organization_code:
-            mark_viewed = mark_viewed.filter(
-                organization__code=organization_code
-            )
+            mark_viewed = mark_viewed.filter(organization__code=organization_code)
         mark_viewed.update(is_viewed=True)
         return response
 
 
-class NotificationSettingsViewSet(
-    MultipleIDViewsetMixin, RetrieveUpdateModelViewSet
-):
+class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet):
     """Allows getting or modifying a user's notification settings."""
 
     serializer_class = NotificationSettingsSerializer
@@ -166,9 +160,7 @@ class ContactViewSet(viewsets.GenericViewSet):
         """Allow to send an abuse report email."""
         organization_code = self.kwargs.get("organization_code")
         organization = get_object_or_404(Organization, code=organization_code)
-        serializer = ContactSerializer(
-            data=request.data, context={"request": request}
-        )
+        serializer = ContactSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
 
         text_content, html_content = render_message(

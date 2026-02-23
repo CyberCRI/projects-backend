@@ -24,6 +24,4 @@ def clean_duplicate_search_objects():
         search_objects=Count("search_object")
     ).filter(search_objects__gt=1)
     for project in project_duplicates:
-        project.search_object.exclude(
-            id=project.search_object.first().id
-        ).delete()
+        project.search_object.exclude(id=project.search_object.first().id).delete()

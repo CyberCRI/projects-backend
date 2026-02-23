@@ -17,16 +17,12 @@ class Command(BaseCommand):
             updated_at = instance.updated_at
             images = process_unlinked_images(instance, instance.content)
             instance.images.add(*images)
-            BlogEntry.objects.filter(id=instance.id).update(
-                updated_at=updated_at
-            )
+            BlogEntry.objects.filter(id=instance.id).update(updated_at=updated_at)
         for instance in Template.objects.all():
             images1 = process_unlinked_images(
                 instance, instance.description_placeholder
             )
-            images2 = process_unlinked_images(
-                instance, instance.blogentry_placeholder
-            )
+            images2 = process_unlinked_images(instance, instance.blogentry_placeholder)
             instance.images.add(*(images1 + images2))
         for instance in Comment.objects.all():
             updated_at = instance.updated_at

@@ -26,9 +26,7 @@ class CreateAccessRequestTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory(
             access_request_enabled=True, language="en"
         )
-        cls.admins = UserFactory.create_batch(
-            3, groups=[cls.organization.get_admins()]
-        )
+        cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
         cls.user_1 = UserFactory(groups=[cls.organization.get_users()])
 
     def test_create_access_request_anonymous(self):
@@ -98,9 +96,7 @@ class ListAccessRequestTestCase(JwtAPITestCase):
         ]
     )
     def test_list_access_requests(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("AccessRequest-list", args=(self.organization.code,))
@@ -225,12 +221,8 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 2)
-        self.assertEqual(
-            response.data["results"][0]["id"], self.access_requests_c.id
-        )
-        self.assertEqual(
-            response.data["results"][1]["id"], self.access_requests_d.id
-        )
+        self.assertEqual(response.data["results"][0]["id"], self.access_requests_c.id)
+        self.assertEqual(response.data["results"][1]["id"], self.access_requests_d.id)
 
     def test_filter_by_status_accepted(self):
         response = self.client.get(
@@ -239,9 +231,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(
-            response.data["results"][0]["id"], self.access_requests_a.id
-        )
+        self.assertEqual(response.data["results"][0]["id"], self.access_requests_a.id)
 
     def test_filter_by_status_declined(self):
         response = self.client.get(
@@ -250,9 +240,7 @@ class FilterOrderUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
-        self.assertEqual(
-            response.data["results"][0]["id"], self.access_requests_b.id
-        )
+        self.assertEqual(response.data["results"][0]["id"], self.access_requests_b.id)
 
 
 class AcceptAccessRequestTestCase(JwtAPITestCase):
@@ -290,9 +278,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "access_requests": [
-                access_request.id for access_request in access_requests
-            ]
+            "access_requests": [access_request.id for access_request in access_requests]
         }
         response = self.client.post(
             reverse("AccessRequest-accept", args=(organization.code,)),
@@ -314,9 +300,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
 
             for access_request in anonymous_access_request:
                 access_request.refresh_from_db()
-                self.assertEqual(
-                    access_request.status, AccessRequest.Status.ACCEPTED
-                )
+                self.assertEqual(access_request.status, AccessRequest.Status.ACCEPTED)
                 user = ProjectUser.objects.filter(email=access_request.email)
                 self.assertTrue(user.exists())
                 user = user.get()
@@ -342,9 +326,7 @@ class AcceptAccessRequestTestCase(JwtAPITestCase):
     def test_accept_access_requests_with_other_requests(self):
         access_request = AccessRequestFactory(organization=self.organization)
         access_request_2 = AccessRequestFactory(email=access_request.email)
-        self.client.force_authenticate(
-            UserFactory(groups=[get_superadmins_group()])
-        )
+        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
         payload = {"access_requests": [access_request.id]}
         response = self.client.post(
             reverse("AccessRequest-accept", args=(self.organization.code,)),
@@ -394,9 +376,7 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "access_requests": [
-                access_request.id for access_request in access_requests
-            ]
+            "access_requests": [access_request.id for access_request in access_requests]
         }
         response = self.client.post(
             reverse("AccessRequest-decline", args=(organization.code,)),
@@ -418,9 +398,7 @@ class DeclineAccessRequestTestCase(JwtAPITestCase):
 
             for access_request in anonymous_access_request:
                 access_request.refresh_from_db()
-                self.assertEqual(
-                    access_request.status, AccessRequest.Status.DECLINED
-                )
+                self.assertEqual(access_request.status, AccessRequest.Status.DECLINED)
                 user = ProjectUser.objects.filter(email=access_request.email)
                 self.assertFalse(user.exists())
 
@@ -459,11 +437,7 @@ class ValidateRequestAccessTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertApiValidationError(
             response,
-            {
-                "organization": [
-                    "This organization does not accept access requests"
-                ]
-            },
+            {"organization": ["This organization does not accept access requests"]},
         )
 
     def test_create_access_request_user_in_organization(self):

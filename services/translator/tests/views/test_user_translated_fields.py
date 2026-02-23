@@ -34,8 +34,7 @@ class UserTranslatedFieldsTestCase(JwtAPITestCase):
             "job": faker.word(),
         }
         response = self.client.post(
-            reverse("ProjectUser-list")
-            + f"?organization={self.organization.code}",
+            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -113,9 +112,7 @@ class UserTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=user.pk
         ).update(up_to_date=True)
 
-        response = self.client.delete(
-            reverse("ProjectUser-detail", args=(user.pk,))
-        )
+        response = self.client.delete(reverse("ProjectUser-detail", args=(user.pk,)))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         auto_translated_fields = AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=user.pk

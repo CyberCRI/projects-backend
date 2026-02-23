@@ -17,9 +17,7 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.mentoring = MentorCreatedMentoringFactory(
-            organization=cls.organization
-        )
+        cls.mentoring = MentorCreatedMentoringFactory(organization=cls.organization)
         cls.user = cls.mentoring.mentoree
         cls.content_type = ContentType.objects.get_for_model(MentoringMessage)
 

@@ -48,9 +48,7 @@ class ListCommentTestCase(JwtAPITestCase):
             "public": CommentFactory(
                 project=cls.public_project, reply_on=cls.public_comment
             ),
-            "org": CommentFactory(
-                project=cls.org_project, reply_on=cls.org_comment
-            ),
+            "org": CommentFactory(project=cls.org_project, reply_on=cls.org_comment),
             "private": CommentFactory(
                 project=cls.private_project, reply_on=cls.private_comment
             ),
@@ -79,16 +77,12 @@ class ListCommentTestCase(JwtAPITestCase):
                 owned_instance=self.comments[project_status],
             )
             self.client.force_authenticate(user)
-            response = self.client.get(
-                reverse("Comment-list", args=(project.id,))
-            )
+            response = self.client.get(reverse("Comment-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_comments:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(
-                    content[0]["id"], self.comments[project_status].id
-                )
+                self.assertEqual(content[0]["id"], self.comments[project_status].id)
                 self.assertEqual(
                     content[0]["replies"][0]["id"],
                     self.replies[project_status].id,
@@ -148,9 +142,7 @@ class CreateCommentTestCase(JwtAPITestCase):
                 self.assertEqual(response.json()["content"], payload["content"])
                 self.assertEqual(response.json()["author"]["id"], user.id)
             else:
-                self.assertEqual(
-                    response.status_code, status.HTTP_404_NOT_FOUND
-                )
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_comment_anonymous(self):
         for project in self.projects.values():
@@ -236,9 +228,7 @@ class DeleteCommentTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            response = self.client.get(
-                reverse("Comment-list", args=(self.project.id,))
-            )
+            response = self.client.get(reverse("Comment-list", args=(self.project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             self.assertNotIn(comment.id, [c["id"] for c in content])
@@ -256,9 +246,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
     def test_can_delete_reply(self):
         self.client.force_authenticate(self.user)
         comment = CommentFactory(project=self.project)
-        reply = CommentFactory(
-            project=self.project, reply_on=comment, author=self.user
-        )
+        reply = CommentFactory(project=self.project, reply_on=comment, author=self.user)
         response = self.client.delete(
             reverse("Comment-detail", args=(self.project.id, reply.id))
         )
@@ -267,9 +255,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
     def test_can_patch_reply(self):
         self.client.force_authenticate(self.user)
         comment = CommentFactory(project=self.project)
-        reply = CommentFactory(
-            project=self.project, reply_on=comment, author=self.user
-        )
+        reply = CommentFactory(project=self.project, reply_on=comment, author=self.user)
         payload = {
             "content": faker.text(),
             "project_id": reply.project_id,
@@ -298,9 +284,7 @@ class ReplyToCommentTestCase(JwtAPITestCase):
     def test_cannot_reply_to_reply(self):
         self.client.force_authenticate(self.user)
         comment = CommentFactory(project=self.project)
-        reply = CommentFactory(
-            project=self.project, reply_on=comment, author=self.user
-        )
+        reply = CommentFactory(project=self.project, reply_on=comment, author=self.user)
         payload = {
             "content": faker.text(),
             "project_id": self.project.id,
@@ -319,13 +303,9 @@ class ReplyToCommentTestCase(JwtAPITestCase):
         comment = CommentFactory(
             project=self.project, deleted_at=make_aware(faker.date_time())
         )
-        CommentFactory(
-            project=self.project, deleted_at=make_aware(faker.date_time())
-        )
+        CommentFactory(project=self.project, deleted_at=make_aware(faker.date_time()))
         CommentFactory(project=self.project, reply_on=comment)
-        response = self.client.get(
-            reverse("Comment-list", args=(self.project.id,))
-        )
+        response = self.client.get(reverse("Comment-list", args=(self.project.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
         self.assertEqual(content["count"], 1)

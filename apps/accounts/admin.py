@@ -21,9 +21,7 @@ from .utils import get_group_permissions
 
 
 @admin.register(ProjectUser)
-class UserAdmin(
-    TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin
-):
+class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin):
     resource_classes = [UserResource]
 
     list_display = (
@@ -52,9 +50,7 @@ class UserAdmin(
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
-        return queryset.filter(
-            groups__organizations__in=organizations
-        ).distinct()
+        return queryset.filter(groups__organizations__in=organizations).distinct()
 
     def keycloak_account_link(self, obj):
         if hasattr(obj, "keycloak_account"):
@@ -144,9 +140,7 @@ class GroupAdmin(admin.ModelAdmin):
     def format_permissions_up_to_date(permissions_up_to_date: bool) -> str:
         colors = {False: "#A00000", True: "#339933"}
         color = colors.get(permissions_up_to_date, "#686868")
-        return format_html(
-            f'<b style="color:{color};">{permissions_up_to_date}</b>'
-        )
+        return format_html(f'<b style="color:{color};">{permissions_up_to_date}</b>')
 
     def permissions_up_to_date(self, instance: Group) -> str:
         with suppress(Project.DoesNotExist):

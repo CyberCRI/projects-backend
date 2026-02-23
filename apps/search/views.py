@@ -34,15 +34,10 @@ class SearchViewSet(ListViewSet):
                     Q(type=SearchObject.SearchObjectType.PROJECT)
                     & Q(project__in=projects)
                 )
-                | (
-                    Q(type=SearchObject.SearchObjectType.USER)
-                    & Q(user__in=users)
-                )
+                | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
             )
             .select_related("user", "project__header_image", "people_group")
-            .prefetch_related(
-                "people_group__organization", "project__categories"
-            )
+            .prefetch_related("people_group__organization", "project__categories")
         )
         if order:
             return queryset.order_by(F("last_update").desc(nulls_last=True))
@@ -90,9 +85,9 @@ class SearchViewSet(ListViewSet):
         indices = [
             f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
             for index in (
-                request.query_params.get(
-                    "types", "project,user,people_group"
-                ).split(",")
+                request.query_params.get("types", "project,user,people_group").split(
+                    ","
+                )
             )
         ]
         limit = request.query_params.get("limit", api_settings.PAGE_SIZE)

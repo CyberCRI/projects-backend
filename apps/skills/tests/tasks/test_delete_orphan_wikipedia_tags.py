@@ -100,16 +100,10 @@ class DeleteOrphanWikipediaTagsTestCase(JwtAPITestCase):
 
         deleted = delete_orphan_wikipedia_tags()
 
-        self.assertEqual(
-            deleted, [tags[Tag.TagType.WIKIPEDIA]["orphan_outdated"].id]
-        )
-        self.assertEqual(
-            Tag.objects.filter(type=Tag.TagType.WIKIPEDIA).count(), 11
-        )
+        self.assertEqual(deleted, [tags[Tag.TagType.WIKIPEDIA]["orphan_outdated"].id])
+        self.assertEqual(Tag.objects.filter(type=Tag.TagType.WIKIPEDIA).count(), 11)
         self.assertEqual(Tag.objects.filter(type=Tag.TagType.ESCO).count(), 12)
-        self.assertEqual(
-            Tag.objects.filter(type=Tag.TagType.CUSTOM).count(), 12
-        )
+        self.assertEqual(Tag.objects.filter(type=Tag.TagType.CUSTOM).count(), 12)
         self.assertFalse(
             Tag.objects.filter(
                 id=tags[Tag.TagType.WIKIPEDIA]["orphan_outdated"].id

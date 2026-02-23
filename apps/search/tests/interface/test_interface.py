@@ -50,9 +50,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
             organization=cls.organization, name=cls.query_2
         )
         cls.user_2 = UserFactory(given_name=cls.query_2)
-        cls.tag_2 = TagFactory(
-            organization=cls.organization, title_fr=cls.query_2
-        )
+        cls.tag_2 = TagFactory(organization=cls.organization, title_fr=cls.query_2)
 
         ProjectFactory(organizations=[cls.organization])
         PeopleGroupFactory(organization=cls.organization)
@@ -70,13 +68,9 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
             "tag_2": cls.tag_2,
         }
         with suppress(SystemExit):
-            call_command(
-                "opensearch", "index", "rebuild", "--force", "--ignore-error"
-            )
+            call_command("opensearch", "index", "rebuild", "--force", "--ignore-error")
         with suppress(SystemExit):
-            call_command(
-                "opensearch", "document", "index", "--force", "--refresh"
-            )
+            call_command("opensearch", "document", "index", "--force", "--refresh")
 
     @parameterized.expand(
         [
@@ -110,9 +104,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
             ("user", ["given_name"], ["user"]),
         ]
     )
-    def test_multi_match_search_highlight(
-        self, index, highlight, expected_results
-    ):
+    def test_multi_match_search_highlight(self, index, highlight, expected_results):
         indices = f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
         response = OpenSearchService.multi_match_search(
             indices=indices,
@@ -140,9 +132,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         )
         hits = response.hits
         self.assertEqual(len(hits), 2)
-        self.assertSetEqual(
-            {hit.id for hit in hits}, {self.tag_2.id, self.tag.id}
-        )
+        self.assertSetEqual({hit.id for hit in hits}, {self.tag_2.id, self.tag.id})
 
     def test_multi_match_search_pagination(self):
         indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"]
@@ -232,9 +222,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         )
         hits = response.hits
         self.assertEqual(len(hits), 2)
-        self.assertSetEqual(
-            {hit.id for hit in hits}, {self.tag_2.id, self.tag.id}
-        )
+        self.assertSetEqual({hit.id for hit in hits}, {self.tag_2.id, self.tag.id})
 
     def test_multi_match_prefix_search_pagination(self):
         indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"]

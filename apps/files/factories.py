@@ -94,9 +94,7 @@ def get_image_file():
 class PeopleGroupImageFactory(factory.django.DjangoModelFactory):
     name = factory.Faker("word")
 
-    file = factory.django.FileField(
-        filename="img.jpeg", from_func=get_image_file
-    )
+    file = factory.django.FileField(filename="img.jpeg", from_func=get_image_file)
 
     class Meta:
         model = PeopleGroupImage

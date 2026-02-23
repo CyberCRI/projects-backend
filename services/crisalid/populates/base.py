@@ -34,9 +34,7 @@ class AbstractPopulate(metaclass=abc.ABCMeta):
 
         maps_languages = {}
         for value in values:
-            maps_languages[value["language"]] = self.sanitize_string(
-                value["value"]
-            )
+            maps_languages[value["language"]] = self.sanitize_string(value["value"])
 
         return (
             maps_languages.get("en")

@@ -8,15 +8,11 @@ from services.translator.models import AutoTranslatedField
 class Command(BaseCommand):
     def handle(self, *args, **options):
         for field in AutoTranslatedField.objects.all():
-            instance = field.content_type.get_object_for_this_type(
-                pk=field.object_id
-            )
+            instance = field.content_type.get_object_for_this_type(pk=field.object_id)
             field_name = field.field_name
 
             translations = {
-                f"{field_name}_{lang}": getattr(
-                    instance, f"{field_name}_{lang}"
-                )
+                f"{field_name}_{lang}": getattr(instance, f"{field_name}_{lang}")
                 for lang in settings.REQUIRED_LANGUAGES
             }
             updated_translations = {

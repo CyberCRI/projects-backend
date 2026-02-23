@@ -51,9 +51,7 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_update_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
-        tag_classification = TagClassificationFactory(
-            organization=self.organization
-        )
+        tag_classification = TagClassificationFactory(organization=self.organization)
         AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=tag_classification.pk
         ).update(up_to_date=True)
@@ -113,9 +111,7 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_delete_tag_classification(self):
         self.client.force_authenticate(self.superadmin)
-        tag_classification = TagClassificationFactory(
-            organization=self.organization
-        )
+        tag_classification = TagClassificationFactory(organization=self.organization)
         AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=tag_classification.pk
         ).update(up_to_date=True)

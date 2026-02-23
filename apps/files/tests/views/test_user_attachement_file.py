@@ -33,9 +33,7 @@ class CreateProjectUserAttachmentFileTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(content["mime"], payload["mime"])
         self.assertEqual(content["title"], payload["title"])
-        with ProjectUserAttachmentFile.objects.get(
-            id=content["id"]
-        ).file as file:
+        with ProjectUserAttachmentFile.objects.get(id=content["id"]).file as file:
             self.assertEqual(file.read(), b"test attachment file")
 
     def test_create_attachment_file_different_user(self):
@@ -67,15 +65,11 @@ class UpdateProjectUserAttachmentFileTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user)
 
-        file = ProjectUserAttachmentFile.objects.create(
-            title="title", owner=user
-        )
+        file = ProjectUserAttachmentFile.objects.create(title="title", owner=user)
 
         payload = {"title": "test"}
         response = self.client.patch(
-            reverse(
-                "ProjectUserAttachmentFile-detail", args=(user.id, file.id)
-            ),
+            reverse("ProjectUserAttachmentFile-detail", args=(user.id, file.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -87,16 +81,12 @@ class UpdateProjectUserAttachmentFileTestCase(JwtAPITestCase):
         user_2 = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user_1)
 
-        file = ProjectUserAttachmentFile.objects.create(
-            title="title", owner=user_1
-        )
+        file = ProjectUserAttachmentFile.objects.create(title="title", owner=user_1)
 
         payload = {"title": "test"}
         response = self.client.patch(
             # we try to add attachement on user_2 with user_1 connected
-            reverse(
-                "ProjectUserAttachmentFile-detail", args=(user_2.id, file.id)
-            ),
+            reverse("ProjectUserAttachmentFile-detail", args=(user_2.id, file.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -107,32 +97,24 @@ class DeleteProjectUserAttachmentFileTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user)
 
-        file = ProjectUserAttachmentFile.objects.create(
-            title="title", owner=user
-        )
+        file = ProjectUserAttachmentFile.objects.create(title="title", owner=user)
 
         response = self.client.delete(
             reverse("ProjectUserAttachmentFile-detail", args=(user.id, file.id))
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(
-            ProjectUserAttachmentFile.objects.filter(id=file.id).exists()
-        )
+        self.assertFalse(ProjectUserAttachmentFile.objects.filter(id=file.id).exists())
 
     def test_delete_attachment_file_different_user(self):
         user_1 = self.get_parameterized_test_user(TestRoles.DEFAULT)
         user_2 = self.get_parameterized_test_user(TestRoles.DEFAULT)
         self.client.force_authenticate(user_1)
 
-        file = ProjectUserAttachmentFile.objects.create(
-            title="title", owner=user_1
-        )
+        file = ProjectUserAttachmentFile.objects.create(title="title", owner=user_1)
 
         response = self.client.delete(
             # we try to add attachement on user_2 with user_1 connected
-            reverse(
-                "ProjectUserAttachmentFile-detail", args=(user_2.id, file.id)
-            )
+            reverse("ProjectUserAttachmentFile-detail", args=(user_2.id, file.id))
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 

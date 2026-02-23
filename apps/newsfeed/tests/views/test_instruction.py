@@ -50,9 +50,7 @@ class CreateInstructionTestCase(JwtAPITestCase):
     )
     def test_create_instruction(self, role, expected_code):
         organization = self.organization
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "organization": self.organization.code,
@@ -105,9 +103,7 @@ class UpdateInstructionTestCase(JwtAPITestCase):
         ]
     )
     def test_update_instruction(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "title": faker.sentence(),
@@ -159,9 +155,7 @@ class DeleteInstructionTestCase(JwtAPITestCase):
             organization=self.organization, people_groups=[self.people_group]
         )
         instruction_id = instruction.id
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
@@ -171,9 +165,7 @@ class DeleteInstructionTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(
-                Instruction.objects.filter(id=instruction_id).exists()
-            )
+            self.assertFalse(Instruction.objects.filter(id=instruction_id).exists())
 
 
 class RetrieveInstructionTestCase(JwtAPITestCase):

@@ -28,9 +28,7 @@ class CreateOrganizationBannerTestCase(JwtAPITestCase):
         ]
     )
     def test_create_organization_banner(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -129,9 +127,7 @@ class DeleteOrganizationBannerTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Organization-banner-detail", args=(organization.code, image.id)
-            )
+            reverse("Organization-banner-detail", args=(organization.code, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

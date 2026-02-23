@@ -32,10 +32,7 @@ def rebuild_index():
 @app.task(name="apps.deploys.tasks.default_tag_classifications")
 def default_tag_classifications():
     for classification_type in TagClassification.TagClassificationType.values:
-        if (
-            classification_type
-            != TagClassification.TagClassificationType.CUSTOM
-        ):
+        if classification_type != TagClassification.TagClassificationType.CUSTOM:
             TagClassification.get_or_create_default_classification(
                 classification_type=classification_type
             )
@@ -53,8 +50,8 @@ def reassign_base_groups_permissions():
     default_group = get_default_group()
     default_group_permissions = get_default_group_permissions()
     current_default_group_permissions = default_group.permissions.all()
-    default_group_permissions_to_remove = (
-        current_default_group_permissions.difference(default_group_permissions)
+    default_group_permissions_to_remove = current_default_group_permissions.difference(
+        default_group_permissions
     )
     default_group_permissions_to_add = default_group_permissions.difference(
         current_default_group_permissions
@@ -69,14 +66,10 @@ def reassign_base_groups_permissions():
     superadmins_group_permissions = get_superadmins_group_permissions()
     current_superadmins_group_permissions = superadmins_group.permissions.all()
     superadmins_group_permissions_to_remove = (
-        current_superadmins_group_permissions.difference(
-            superadmins_group_permissions
-        )
+        current_superadmins_group_permissions.difference(superadmins_group_permissions)
     )
-    superadmins_group_permissions_to_add = (
-        superadmins_group_permissions.difference(
-            current_superadmins_group_permissions
-        )
+    superadmins_group_permissions_to_add = superadmins_group_permissions.difference(
+        current_superadmins_group_permissions
     )
     for permission in superadmins_group_permissions_to_add:
         assign_perm(permission, superadmins_group)
@@ -121,9 +114,7 @@ def reassign_people_groups_permissions():
 def reassign_organizations_permissions():
     """Reassign permissions for all organizations."""
     admins_permissions = Organization.get_default_admins_permissions()
-    facilitators_permissions = (
-        Organization.get_default_facilitators_permissions()
-    )
+    facilitators_permissions = Organization.get_default_facilitators_permissions()
     users_permissions = Organization.get_default_users_permissions()
     viewers_permissions = Organization.get_default_viewers_permissions()
     Organization.batch_reassign_permissions(

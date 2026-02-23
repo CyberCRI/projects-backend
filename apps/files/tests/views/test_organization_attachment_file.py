@@ -31,9 +31,7 @@ class CreateOrganizationAttachmentFileTestCase(JwtAPITestCase):
         ]
     )
     def test_create_organization_attachment_file(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "mime": "text/plain",
@@ -56,9 +54,7 @@ class CreateOrganizationAttachmentFileTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
             content = response.json()
-            attachment_file = OrganizationAttachmentFile.objects.get(
-                id=content["id"]
-            )
+            attachment_file = OrganizationAttachmentFile.objects.get(id=content["id"])
             self.assertEqual(attachment_file.organization, self.organization)
             self.assertEqual(content["mime"], payload["mime"])
             self.assertEqual(content["title"], payload["title"])
@@ -71,9 +67,7 @@ class UpdateOrganizationAttachmentFileTestCase(JwtAPITestCase):
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.file = OrganizationAttachmentFileFactory(
-            organization=cls.organization
-        )
+        cls.file = OrganizationAttachmentFileFactory(organization=cls.organization)
 
     @parameterized.expand(
         [
@@ -86,9 +80,7 @@ class UpdateOrganizationAttachmentFileTestCase(JwtAPITestCase):
         ]
     )
     def test_update_organization_attachment_file(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {"title": faker.text(max_nb_chars=50)}
         response = self.client.patch(
@@ -122,9 +114,7 @@ class DeleteOrganizationAttachmentFileTestCase(JwtAPITestCase):
         ]
     )
     def test_delete_organization_attachment_file(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         file = OrganizationAttachmentFileFactory(organization=self.organization)
         response = self.client.delete(
@@ -292,9 +282,7 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
             ),
         }
         response = self.client.post(
-            reverse(
-                "OrganizationAttachmentFile-list", args=(organization.code,)
-            ),
+            reverse("OrganizationAttachmentFile-list", args=(organization.code,)),
             data=payload,
             format="multipart",
         )

@@ -21,9 +21,7 @@ class Stat(models.Model):
             reply_on=None, deleted_at=None
         ).count()
         self.replies = (
-            self.project.comments.filter(deleted_at=None)
-            .exclude(reply_on=None)
-            .count()
+            self.project.comments.filter(deleted_at=None).exclude(reply_on=None).count()
         )
         self.save()
 

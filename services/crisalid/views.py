@@ -97,9 +97,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
             if r.strip()
         ]
         if roles and roles_enabled:
-            queryset = queryset.filter(
-                documentcontributor__roles__contains=roles
-            )
+            queryset = queryset.filter(documentcontributor__roles__contains=roles)
         return queryset
 
     def filter_queryset(
@@ -117,10 +115,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         qs = self.filter_roles(qs, roles_enabled)
 
         # filter by pblication_type
-        if (
-            "document_type" in self.request.query_params
-            and document_type_enabled
-        ):
+        if "document_type" in self.request.query_params and document_type_enabled:
             document_type = self.request.query_params.get("document_type")
             qs = qs.filter(document_type=document_type)
         return qs
@@ -162,9 +157,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         # order all buplications by years
         limit = self.request.query_params.get("limit")
         years = (
-            self.filter_queryset(
-                qs, document_type_enabled=False, year_enabled=False
-            )
+            self.filter_queryset(qs, document_type_enabled=False, year_enabled=False)
             .filter(publication_date__isnull=False)
             .annotate(year=ExtractYear("publication_date"))
             .values("year")
@@ -357,9 +350,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
         ],
     ),
 )
-class ResearcherViewSet(
-    NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet
-):
+class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "id")
@@ -382,8 +373,7 @@ class ResearcherViewSet(
         harvester = request.query_params.get("harvester")
         harvester_values = request.query_params.get("values").split(",")
         identifiers = [
-            {"harvester": harvester, "value": value}
-            for value in harvester_values
+            {"harvester": harvester, "value": value} for value in harvester_values
         ]
         qs = qs.from_identifiers(identifiers)
 

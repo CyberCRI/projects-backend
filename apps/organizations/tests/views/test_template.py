@@ -36,9 +36,7 @@ class CreateTemplateTestCase(JwtAPITestCase):
         ]
     )
     def test_create_template(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "name": faker.sentence(),
@@ -70,26 +68,16 @@ class CreateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["project_description"], payload["project_description"]
             )
-            self.assertEqual(
-                content["project_purpose"], payload["project_purpose"]
-            )
-            self.assertEqual(
-                content["blogentry_title"], payload["blogentry_title"]
-            )
-            self.assertEqual(
-                content["blogentry_content"], payload["blogentry_content"]
-            )
+            self.assertEqual(content["project_purpose"], payload["project_purpose"])
+            self.assertEqual(content["blogentry_title"], payload["blogentry_title"])
+            self.assertEqual(content["blogentry_content"], payload["blogentry_content"])
             self.assertEqual(content["goal_title"], payload["goal_title"])
-            self.assertEqual(
-                content["goal_description"], payload["goal_description"]
-            )
+            self.assertEqual(content["goal_description"], payload["goal_description"])
             self.assertEqual(content["review_title"], payload["review_title"])
             self.assertEqual(
                 content["review_description"], payload["review_description"]
             )
-            self.assertEqual(
-                content["comment_content"], payload["comment_content"]
-            )
+            self.assertEqual(content["comment_content"], payload["comment_content"])
             self.assertSetEqual(
                 {t["id"] for t in content["project_tags"]},
                 set(payload["project_tags"]),
@@ -157,9 +145,7 @@ class UpdateTemplateTestCase(JwtAPITestCase):
         ]
     )
     def test_update_template(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "name": faker.sentence(),
@@ -194,26 +180,16 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             self.assertEqual(
                 content["project_description"], payload["project_description"]
             )
-            self.assertEqual(
-                content["project_purpose"], payload["project_purpose"]
-            )
-            self.assertEqual(
-                content["blogentry_title"], payload["blogentry_title"]
-            )
-            self.assertEqual(
-                content["blogentry_content"], payload["blogentry_content"]
-            )
+            self.assertEqual(content["project_purpose"], payload["project_purpose"])
+            self.assertEqual(content["blogentry_title"], payload["blogentry_title"])
+            self.assertEqual(content["blogentry_content"], payload["blogentry_content"])
             self.assertEqual(content["goal_title"], payload["goal_title"])
-            self.assertEqual(
-                content["goal_description"], payload["goal_description"]
-            )
+            self.assertEqual(content["goal_description"], payload["goal_description"])
             self.assertEqual(content["review_title"], payload["review_title"])
             self.assertEqual(
                 content["review_description"], payload["review_description"]
             )
-            self.assertEqual(
-                content["comment_content"], payload["comment_content"]
-            )
+            self.assertEqual(content["comment_content"], payload["comment_content"])
             self.assertSetEqual(
                 {t["id"] for t in content["project_tags"]},
                 set(payload["project_tags"]),
@@ -242,14 +218,10 @@ class DeleteTemplateTestCase(JwtAPITestCase):
     )
     def test_delete_template(self, role, expected_code):
         template = TemplateFactory(organization=self.organization)
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Template-detail", args=(self.organization.code, template.id)
-            )
+            reverse("Template-detail", args=(self.organization.code, template.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

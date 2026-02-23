@@ -108,9 +108,7 @@ class ListProjectTabsTestCase(JwtAPITestCase):
             project = tab.project
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
-            response = self.client.get(
-                reverse("ProjectTab-list", args=(project.id,))
-            )
+            response = self.client.get(reverse("ProjectTab-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_tabs:
@@ -212,9 +210,7 @@ class ValidateProjectTabTestCase(JwtAPITestCase):
 
     def test_update_tab_type(self):
         self.client.force_authenticate(self.superadmin)
-        tab = ProjectTabFactory(
-            project=self.project, type=ProjectTab.TabType.TEXT
-        )
+        tab = ProjectTabFactory(project=self.project, type=ProjectTab.TabType.TEXT)
         payload = {"type": ProjectTab.TabType.TEXT}
         response = self.client.patch(
             reverse("ProjectTab-detail", args=(self.project.id, tab.id)),

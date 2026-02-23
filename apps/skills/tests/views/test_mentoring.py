@@ -37,9 +37,7 @@ class ViewMentoringTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.mentoring = MentorCreatedMentoringFactory(
-            organization=cls.organization
-        )
+        cls.mentoring = MentorCreatedMentoringFactory(organization=cls.organization)
         MentoreeCreatedMentoringFactory(organization=cls.organization)
 
     @parameterized.expand(
@@ -234,9 +232,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             ),
         ]
     )
-    def test_respond_to_mentor_request(
-        self, role, mentoring_status, expected_code
-    ):
+    def test_respond_to_mentor_request(self, role, mentoring_status, expected_code):
         if role == "mentor":
             user = self.mentor_created.mentor
         elif role == "mentoree":
@@ -312,9 +308,7 @@ class RespondToMentoringTestCase(JwtAPITestCase):
             ),
         ]
     )
-    def test_respond_to_mentoree_request(
-        self, role, mentoring_status, expected_code
-    ):
+    def test_respond_to_mentoree_request(self, role, mentoring_status, expected_code):
         if role == "mentor":
             user = self.mentoree_created.mentor
         elif role == "mentoree":
@@ -446,9 +440,7 @@ class ValidateMentoringTestCase(JwtAPITestCase):
         )
 
     def test_update_mentoring_status_with_invalid_status(self):
-        mentoring = MentoreeCreatedMentoringFactory(
-            organization=self.organization
-        )
+        mentoring = MentoreeCreatedMentoringFactory(organization=self.organization)
         self.client.force_authenticate(mentoring.mentor)
         payload = {
             "status": faker.word(),
@@ -456,9 +448,7 @@ class ValidateMentoringTestCase(JwtAPITestCase):
             "reply_to": faker.email(),
         }
         response = self.client.post(
-            reverse(
-                "Mentoring-respond", args=(self.organization.code, mentoring.id)
-            ),
+            reverse("Mentoring-respond", args=(self.organization.code, mentoring.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -474,36 +464,20 @@ class MiscMentoringTestCase(JwtAPITestCase):
 
         tag = TagFactory(title_fr="")
         skill = SkillFactory(user=user, tag=tag)
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"), tag.title_en
-        )
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"), tag.title_en
-        )
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "en"), tag.title_en)
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "fr"), tag.title_en)
 
         tag = TagFactory(title_en="")
         skill = SkillFactory(user=user, tag=tag)
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"), tag.title_fr
-        )
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"), tag.title_fr
-        )
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "en"), tag.title_fr)
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "fr"), tag.title_fr)
 
         tag = TagFactory()
         skill = SkillFactory(user=user, tag=tag)
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"), tag.title_en
-        )
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"), tag.title_fr
-        )
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "en"), tag.title_en)
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "fr"), tag.title_fr)
 
         tag = TagFactory(title_en="", title_fr=None)
         skill = SkillFactory(user=user, tag=tag)
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "en"), tag.title
-        )
-        self.assertEqual(
-            MentoringViewSet.get_skill_name(skill, "fr"), tag.title
-        )
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "en"), tag.title)
+        self.assertEqual(MentoringViewSet.get_skill_name(skill, "fr"), tag.title)

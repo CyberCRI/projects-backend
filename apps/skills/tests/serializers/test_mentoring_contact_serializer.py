@@ -36,9 +36,7 @@ class MiscMentoringTestCase(JwtAPITestCase):
         if reply_to:
             self.assertEqual(serializer.validated_data["reply_to"], reply_to)
         else:
-            self.assertEqual(
-                serializer.validated_data["reply_to"], self.user.email
-            )
+            self.assertEqual(serializer.validated_data["reply_to"], self.user.email)
 
     def test_mentoring_contact_serializer_no_reply_to(self):
         data = {"content": faker.text()}
@@ -64,9 +62,7 @@ class MiscMentoringTestCase(JwtAPITestCase):
         if reply_to:
             self.assertEqual(serializer.validated_data["reply_to"], reply_to)
         else:
-            self.assertEqual(
-                serializer.validated_data["reply_to"], self.user.email
-            )
+            self.assertEqual(serializer.validated_data["reply_to"], self.user.email)
 
     def test_mentoring_response_serializer_no_reply_to(self):
         data = {

@@ -31,9 +31,7 @@ class ReportTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Report-bug", args=(self.organization.code,)), data=payload
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, response.content
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()
 
     @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
@@ -51,7 +49,5 @@ class ReportTestCase(JwtAPITestCase):
             reverse("Report-abuse", args=(self.organization.code,)),
             data=payload,
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, response.content
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()

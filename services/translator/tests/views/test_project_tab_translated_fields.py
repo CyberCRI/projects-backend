@@ -60,9 +60,7 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
         # Update one translated field
         payload = {ProjectTab._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
-            reverse(
-                "ProjectTab-detail", args=(self.project.id, project_tab.pk)
-            ),
+            reverse("ProjectTab-detail", args=(self.project.id, project_tab.pk)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -85,9 +83,7 @@ class ProjectTabTranslatedFieldsTestCase(JwtAPITestCase):
             for translated_field in ProjectTab._auto_translated_fields
         }
         response = self.client.patch(
-            reverse(
-                "ProjectTab-detail", args=(self.project.id, project_tab.pk)
-            ),
+            reverse("ProjectTab-detail", args=(self.project.id, project_tab.pk)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

@@ -10,9 +10,7 @@ from .models import BlogEntry, Project
 
 
 @admin.register(Project)
-class ProjectAdmin(
-    TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin
-):
+class ProjectAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdmin):
     resource_classes = [ProjectResource, BlogEntryResource]
 
     def get_queryset_for_organizations(
@@ -43,9 +41,7 @@ class BlogEntryAdmin(
         queryset: QuerySet[BlogEntry],
         organizations: QuerySet[Organization],
     ) -> QuerySet[BlogEntry]:
-        return queryset.filter(
-            project__organizations__in=organizations
-        ).distinct()
+        return queryset.filter(project__organizations__in=organizations).distinct()
 
     list_display = ("id", "title", "project", "created_at", "updated_at")
     readonly_fields = ("created_at", "updated_at", "images")

@@ -113,9 +113,7 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
     )
     def test_delete_linked_project(self, role, expected_code):
         project = ProjectFactory(organizations=[self.organization])
-        instance = LinkedProjectFactory(
-            target=project, project=self.linked_project_1
-        )
+        instance = LinkedProjectFactory(target=project, project=self.linked_project_1)
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
         response = self.client.delete(
@@ -123,9 +121,7 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(
-                project.linked_projects.filter(id=instance.id).exists()
-            )
+            self.assertFalse(project.linked_projects.filter(id=instance.id).exists())
 
     @parameterized.expand(
         [
@@ -144,27 +140,17 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(organizations=[self.organization])
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
-        instance_1 = LinkedProjectFactory(
-            target=project, project=self.linked_project_1
-        )
-        instance_2 = LinkedProjectFactory(
-            target=project, project=self.linked_project_2
-        )
-        payload = {
-            "project_ids": [self.linked_project_1.id, self.linked_project_2.id]
-        }
+        instance_1 = LinkedProjectFactory(target=project, project=self.linked_project_1)
+        instance_2 = LinkedProjectFactory(target=project, project=self.linked_project_2)
+        payload = {"project_ids": [self.linked_project_1.id, self.linked_project_2.id]}
         response = self.client.delete(
             reverse("LinkedProjects-delete-many", args=(project.id,)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
-            self.assertFalse(
-                project.linked_projects.filter(id=instance_1.id).exists()
-            )
-            self.assertFalse(
-                project.linked_projects.filter(id=instance_2.id).exists()
-            )
+            self.assertFalse(project.linked_projects.filter(id=instance_1.id).exists())
+            self.assertFalse(project.linked_projects.filter(id=instance_2.id).exists())
 
 
 class ValidateLinkedProjectTestCase(JwtAPITestCase):

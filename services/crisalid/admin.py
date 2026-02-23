@@ -17,9 +17,7 @@ from .models import (
 
 
 class IdentifierAdminMixin:
-    @admin.display(
-        description="identifiers count", ordering="identifiers_count"
-    )
+    @admin.display(description="identifiers count", ordering="identifiers_count")
     def get_identifiers(self, instance):
         # list all harvester name from this profile
         result = [o.harvester for o in instance.identifiers.all()]
@@ -43,15 +41,11 @@ class IdentifierAdmin(admin.ModelAdmin):
             .annotate(researchers_count=Count("researchers__id", distinct=True))
         )
 
-    @admin.display(
-        description="researchers assosiate", ordering="researchers_count"
-    )
+    @admin.display(description="researchers assosiate", ordering="researchers_count")
     def get_researcher(self, instance):
         return instance.researchers_count
 
-    @admin.display(
-        description="documents assosiate", ordering="documents_count"
-    )
+    @admin.display(description="documents assosiate", ordering="documents_count")
     def get_documents(self, instance):
         return instance.documents_count
 
@@ -62,9 +56,7 @@ class DocumentContributorAdminInline(admin.StackedInline):
 
 
 @admin.register(Document)
-class DocumentAdmin(
-    TranslateObjectAdminMixin, IdentifierAdminMixin, admin.ModelAdmin
-):
+class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.ModelAdmin):
     list_display = (
         "title",
         "publication_date",
@@ -101,14 +93,10 @@ class DocumentAdmin(
             .get_queryset(request)
             .prefetch_related("contributors", "identifiers")
             .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(
-                contributors_count=Count("contributors__id", distinct=True)
-            )
+            .annotate(contributors_count=Count("contributors__id", distinct=True))
         )
 
-    @admin.display(
-        description="contributors count", ordering="contributors_count"
-    )
+    @admin.display(description="contributors count", ordering="contributors_count")
     def get_contributors(self, instance):
         return instance.contributors.count()
 
@@ -147,9 +135,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         researcher_updated = []
         created = assigned = notfound = 0
 
-        for research in queryset.prefetch_related("identifiers").select_related(
-            "user"
-        ):
+        for research in queryset.prefetch_related("identifiers").select_related("user"):
             # already set
             if research.user:
                 continue
@@ -183,13 +169,9 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
         Researcher.objects.bulk_update(researcher_updated, fields=["user"])
 
         if created:
-            messages.add_message(
-                request, messages.INFO, f"Create {created} user."
-            )
+            messages.add_message(request, messages.INFO, f"Create {created} user.")
         if assigned:
-            messages.add_message(
-                request, messages.INFO, f"Assign {assigned} user."
-            )
+            messages.add_message(request, messages.INFO, f"Assign {assigned} user.")
         if notfound:
             messages.add_message(
                 request,
@@ -201,9 +183,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     def get_documents(self, instance):
         return instance.documents_count
 
-    @admin.display(
-        description="identifiers count", ordering="identifiers_count"
-    )
+    @admin.display(description="identifiers count", ordering="identifiers_count")
     def get_identifiers(self, instance):
         # list all harvester name from this profile
         result = [o.harvester for o in instance.identifiers.all()]

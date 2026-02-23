@@ -53,9 +53,7 @@ class CategoryTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_update_project_category(self):
         self.client.force_authenticate(self.superadmin)
-        project_category = ProjectCategoryFactory(
-            organization=self.organization
-        )
+        project_category = ProjectCategoryFactory(organization=self.organization)
         AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=project_category.pk
         ).update(up_to_date=True)
@@ -115,9 +113,7 @@ class CategoryTranslatedFieldsTestCase(JwtAPITestCase):
 
     def test_delete_project_category(self):
         self.client.force_authenticate(self.superadmin)
-        project_category = ProjectCategoryFactory(
-            organization=self.organization
-        )
+        project_category = ProjectCategoryFactory(organization=self.organization)
         AutoTranslatedField.objects.filter(
             content_type=self.content_type, object_id=project_category.pk
         ).update(up_to_date=True)

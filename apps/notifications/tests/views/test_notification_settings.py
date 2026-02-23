@@ -62,9 +62,7 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
             if publication_status in retrieved_notification_settings:
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
             else:
-                self.assertEqual(
-                    response.status_code, status.HTTP_404_NOT_FOUND
-                )
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class UpdateNotificationSettingsTestCase(JwtAPITestCase):

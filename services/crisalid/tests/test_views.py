@@ -173,9 +173,7 @@ class TestResearcherView(JwtAPITestCase):
         )
 
         data = response.json()
-        researcher_ids = sorted(
-            researcher["id"] for researcher in data["results"]
-        )
+        researcher_ids = sorted(researcher["id"] for researcher in data["results"])
         expected = sorted((self.researcher.id, self.researcher_2.id))
         self.assertSequenceEqual(researcher_ids, expected)
 

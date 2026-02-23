@@ -16,9 +16,7 @@ def resize_and_autorotate(file_name, variations, storage):
             file_format = image.format
             try:
                 exif = image._getexif()
-            except (
-                AttributeError
-            ):  # Some images formats don't implement _getexif
+            except AttributeError:  # Some images formats don't implement _getexif
                 exif = None
             # if image has exif data about orientation, rotate it
             orientation_key = 274  # cf ExifTags

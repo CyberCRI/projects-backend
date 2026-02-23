@@ -29,9 +29,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(
-            organization=cls.organization
-        )
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -72,9 +70,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -104,9 +100,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
             parent_category_follower,
         ]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(
-                notification.type, Notification.Types.PROJECT_UPDATED
-            )
+            self.assertEqual(notification.type, Notification.Types.PROJECT_UPDATED)
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -136,9 +130,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -173,9 +165,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
             parent_category_follower,
         ]:
             notification = notifications.get(receiver=user)
-            self.assertEqual(
-                notification.type, Notification.Types.PROJECT_UPDATED
-            )
+            self.assertEqual(notification.type, Notification.Types.PROJECT_UPDATED)
             self.assertEqual(notification.project, project)
             self.assertEqual(notification.to_send, user != not_notified)
             self.assertFalse(notification.is_viewed)
@@ -203,9 +193,7 @@ class NewBlogEntryTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(
-            organization=cls.organization
-        )
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -248,9 +236,7 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -307,9 +293,7 @@ class NewBlogEntryTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )

@@ -56,9 +56,7 @@ class CreateAttachmentLinkTestCase(JwtAPITestCase):
             content = response.json()
             self.assertEqual(content["attachment_type"], "link")
             self.assertEqual(content["site_url"], payload["site_url"])
-            self.assertEqual(
-                content["preview_image_url"], mocked_response.image
-            )
+            self.assertEqual(content["preview_image_url"], mocked_response.image)
             self.assertEqual(content["site_name"], mocked_response.site_name)
 
 
@@ -90,9 +88,7 @@ class UpdateAttachmentLinkTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"category": AttachmentLinkCategory.TOOL}
         response = self.client.patch(
-            reverse(
-                "AttachmentLink-detail", args=(self.project.id, self.link.id)
-            ),
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -186,9 +182,7 @@ class ListAttachmentLinkTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_links:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(
-                    content[0]["id"], self.links[publication_status].id
-                )
+                self.assertEqual(content[0]["id"], self.links[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)
 
@@ -285,9 +279,7 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"site_url": self.url}
         response = self.client.patch(
-            reverse(
-                "AttachmentLink-detail", args=(self.project.id, self.link.id)
-            ),
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -297,9 +289,7 @@ class ValidateAttachmentLinkTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         project = ProjectFactory(organizations=[self.organization])
         response = self.client.patch(
-            reverse(
-                "AttachmentLink-detail", args=(self.project.id, self.link.id)
-            ),
+            reverse("AttachmentLink-detail", args=(self.project.id, self.link.id)),
             data={"project_id": project.id},
             format="multipart",
         )

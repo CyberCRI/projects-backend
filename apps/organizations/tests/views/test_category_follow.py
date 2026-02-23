@@ -64,15 +64,11 @@ class DestroyCategoryFollowTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, owned_instance=follow)
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "CategoryFollow-detail", args=(follow.follower.id, follow.id)
-            )
+            reverse("CategoryFollow-detail", args=(follow.follower.id, follow.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(
-                CategoryFollow.objects.filter(id=follow.id).exists()
-            )
+            self.assertFalse(CategoryFollow.objects.filter(id=follow.id).exists())
 
 
 class ListCategoryFollowTestCase(JwtAPITestCase):
@@ -99,9 +95,7 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
             "private": cls.private_user,
         }
         cls.category_follows = {
-            key: CategoryFollowFactory(
-                category=cls.category, follower=cls.users[key]
-            )
+            key: CategoryFollowFactory(category=cls.category, follower=cls.users[key])
             for key in cls.users.keys()
         }
 
@@ -125,9 +119,7 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
-            response = self.client.get(
-                reverse("CategoryFollow-list", args=(user.id,))
-            )
+            response = self.client.get(reverse("CategoryFollow-list", args=(user.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if publication_status in retrieved_follows:

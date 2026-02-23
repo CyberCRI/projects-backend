@@ -16,9 +16,7 @@ faker = Faker()
 class ProjectEmbeddingVisibilityTestCase(JwtAPITestCase):
     def test_set_visibility_visible(self):
         project = ProjectFactory()
-        ProjectEmbeddingFactory(
-            item=project, is_visible=True, embedding=1024 * [1]
-        )
+        ProjectEmbeddingFactory(item=project, is_visible=True, embedding=1024 * [1])
         user = UserFactory(groups=[project.get_members()])
         embedding = UserProjectsEmbeddingFactory(item=user)
         embedding.set_visibility()
@@ -42,16 +40,13 @@ class VectorizeUserProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         cls.project_3 = ProjectFactory(organizations=[cls.organization])
 
         cls.vector_1 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2)
-            for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
         cls.vector_2 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2)
-            for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
         cls.vector_3 = [
-            round(faker.pyfloat(min_value=0, max_value=1), 2)
-            for _ in range(1024)
+            round(faker.pyfloat(min_value=0, max_value=1), 2) for _ in range(1024)
         ]
 
         cls.embedding_1 = ProjectEmbeddingFactory(

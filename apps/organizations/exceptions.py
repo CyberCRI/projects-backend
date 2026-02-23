@@ -33,25 +33,19 @@ class NonRootCategoryParentError(ValidationError):
 
 class ParentCategoryOrganizationError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _(
-        "The parent category must belong to the same organization"
-    )
+    default_detail = _("The parent category must belong to the same organization")
     default_code = "parent_category_organization_error"
 
 
 class CategoryHierarchyLoopError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _(
-        "You are trying to create a loop in the category's hierarchy"
-    )
+    default_detail = _("You are trying to create a loop in the category's hierarchy")
     default_code = "category_hierarchy_loop_error"
 
 
 class DefaultTagClassificationIsNotEnabledError(ValidationError):
     status_code = status.HTTP_400_BAD_REQUEST
-    default_detail = _(
-        "You must choose a default tag classification that is enabled"
-    )
+    default_detail = _("You must choose a default tag classification that is enabled")
     default_code = "default_tag_classification_is_not_enabled_error"
 
 

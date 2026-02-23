@@ -119,9 +119,7 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase):
             self.assertEqual(response.json()["scale_y"], payload["scale_y"])
             self.assertEqual(response.json()["left"], payload["left"])
             self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(
-                response.json()["natural_ratio"], payload["natural_ratio"]
-            )
+            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
 
 
 class DeletePeopleGroupHeaderTestCase(JwtAPITestCase):

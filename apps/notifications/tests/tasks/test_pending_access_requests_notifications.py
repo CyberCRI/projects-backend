@@ -18,9 +18,7 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.admins = UserFactory.create_batch(
-            3, groups=[cls.organization.get_admins()]
-        )
+        cls.admins = UserFactory.create_batch(3, groups=[cls.organization.get_admins()])
 
     def test_notification_task(self):
         AccessRequestFactory.create_batch(
@@ -54,9 +52,7 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         for ret in results:
-            self.assertEqual(
-                ret["type"], Notification.Types.PENDING_ACCESS_REQUESTS
-            )
+            self.assertEqual(ret["type"], Notification.Types.PENDING_ACCESS_REQUESTS)
             self.assertEqual(ret["context"]["requests_count"], 2)
             self.assertFalse(ret["is_viewed"])
             self.assertEqual(ret["organization"], self.organization.name)

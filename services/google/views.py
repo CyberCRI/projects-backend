@@ -10,9 +10,7 @@ from .serializers import EmailAvailableSerializer
 
 
 class UserEmailAvailableView(APIView):
-    @extend_schema(
-        request=EmailAddressSerializer, responses=EmailAvailableSerializer
-    )
+    @extend_schema(request=EmailAddressSerializer, responses=EmailAvailableSerializer)
     def post(self, request):
         serializer = EmailAddressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -25,9 +23,7 @@ class UserEmailAvailableView(APIView):
 
 
 class GroupEmailAvailableView(APIView):
-    @extend_schema(
-        request=EmailAddressSerializer, responses=EmailAvailableSerializer
-    )
+    @extend_schema(request=EmailAddressSerializer, responses=EmailAvailableSerializer)
     def post(self, request):
         serializer = EmailAddressSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -40,9 +36,7 @@ class GroupEmailAvailableView(APIView):
 
 
 class OrgUnitsView(APIView):
-    @extend_schema(
-        responses={200: {"type": "array", "items": {"type": "string"}}}
-    )
+    @extend_schema(responses={200: {"type": "array", "items": {"type": "string"}}})
     def get(self, request):
         default_org_unit = settings.GOOGLE_DEFAULT_ORG_UNIT
         org_units = GoogleService.get_org_units()

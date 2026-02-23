@@ -105,9 +105,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
             groups=[cls.organization.get_users()],
             publication_status=PrivacySettings.PrivacyChoices.PUBLIC,
         )
-        cls.other_user.privacy_settings.skills = (
-            PrivacySettings.PrivacyChoices.PUBLIC
-        )
+        cls.other_user.privacy_settings.skills = PrivacySettings.PrivacyChoices.PUBLIC
         cls.other_user.privacy_settings.save()
 
         cls.users = {
@@ -142,19 +140,13 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
                 SkillFactory(user=user, tag=cls.mentor_skill_1)
                 SkillFactory(user=user, tag=cls.mentor_skill_2, can_mentor=True)
                 SkillFactory(user=user, tag=cls.mentoree_skill_1)
-                SkillFactory(
-                    user=user, tag=cls.mentoree_skill_2, needs_mentor=True
-                )
+                SkillFactory(user=user, tag=cls.mentoree_skill_2, needs_mentor=True)
                 SkillFactory(user=user, tag=cls.other_skill)
             else:
                 SkillFactory(user=user, tag=cls.mentor_skill_1, can_mentor=True)
                 SkillFactory(user=user, tag=cls.mentor_skill_2, can_mentor=True)
-                SkillFactory(
-                    user=user, tag=cls.mentoree_skill_1, needs_mentor=True
-                )
-                SkillFactory(
-                    user=user, tag=cls.mentoree_skill_2, needs_mentor=True
-                )
+                SkillFactory(user=user, tag=cls.mentoree_skill_1, needs_mentor=True)
+                SkillFactory(user=user, tag=cls.mentoree_skill_2, needs_mentor=True)
                 SkillFactory(user=user, tag=cls.other_skill)
 
     @parameterized.expand(
@@ -168,9 +160,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
             (TestRoles.ORG_VIEWER, 3, 4),
         ]
     )
-    def test_retrieve_mentored_skills(
-        self, role, skill_1_mentors, skill_2_mentors
-    ):
+    def test_retrieve_mentored_skills(self, role, skill_1_mentors, skill_2_mentors):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
@@ -199,9 +189,7 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
             (TestRoles.ORG_VIEWER, 3, 4),
         ]
     )
-    def test_retrieve_mentoree_skills(
-        self, role, skill_1_mentorees, skill_2_mentorees
-    ):
+    def test_retrieve_mentoree_skills(self, role, skill_1_mentorees, skill_2_mentorees):
         organization = self.organization
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)

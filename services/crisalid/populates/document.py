@@ -42,9 +42,7 @@ class PopulateDocument(AbstractPopulate):
     def single(self, data: dict) -> Document | None:
         """this method create/update only on document from crisalid"""
         # identifiers (hal, openalex, idref ...ect)
-        documents_identifiers = self.populate_identifiers.multiple(
-            data["recorded_by"]
-        )
+        documents_identifiers = self.populate_identifiers.multiple(data["recorded_by"])
 
         # no identifiers for this documents, we ignore it
         if not documents_identifiers:

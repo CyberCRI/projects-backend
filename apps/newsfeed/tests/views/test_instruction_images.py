@@ -37,9 +37,7 @@ class CreateInstructionImageTestCase(JwtAPITestCase):
         instruction = InstructionFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -101,9 +99,7 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_instruction_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
@@ -130,9 +126,7 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
             self.assertEqual(response.json()["scale_y"], payload["scale_y"])
             self.assertEqual(response.json()["left"], payload["left"])
             self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(
-                response.json()["natural_ratio"], payload["natural_ratio"]
-            )
+            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteInstructionImageTestCase(JwtAPITestCase):
@@ -161,9 +155,7 @@ class DeleteInstructionImageTestCase(JwtAPITestCase):
     def test_delete_instruction_image(self, role, expected_code):
         image = self.get_test_image()
         self.instruction.images.add(image)
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
@@ -174,9 +166,7 @@ class DeleteInstructionImageTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
             self.instruction.refresh_from_db()
-            self.assertFalse(
-                self.instruction.images.filter(id=image.id).exists()
-            )
+            self.assertFalse(self.instruction.images.filter(id=image.id).exists())
 
 
 class RetrieveInstructionImageTestCase(JwtAPITestCase):
@@ -284,6 +274,4 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
             if key in retrieved_instructions:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(
-                    response.status_code, status.HTTP_404_NOT_FOUND
-                )
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

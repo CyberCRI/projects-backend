@@ -47,9 +47,7 @@ class GetInstanceFromGroupTestCase(TestCase):
         project = ProjectFactory(organizations=[self.organization])
         member_people_group = PeopleGroupFactory(organization=self.organization)
         owner_people_group = PeopleGroupFactory(organization=self.organization)
-        reviewer_people_group = PeopleGroupFactory(
-            organization=self.organization
-        )
+        reviewer_people_group = PeopleGroupFactory(organization=self.organization)
         project.member_groups.add(member_people_group)
         project.owner_groups.add(owner_people_group)
         project.reviewer_groups.add(reviewer_people_group)

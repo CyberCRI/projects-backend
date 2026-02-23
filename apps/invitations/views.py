@@ -117,9 +117,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
         request.data.update(
             {
                 "organization": self.kwargs["organization_code"],
-                "user": request.user.id
-                if request.user.is_authenticated
-                else None,
+                "user": request.user.id if request.user.is_authenticated else None,
             }
         )
         return super().create(request, *args, **kwargs)

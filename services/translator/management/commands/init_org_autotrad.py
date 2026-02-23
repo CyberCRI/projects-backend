@@ -45,9 +45,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         code = options["code"]
         if code is None:
-            raise ValueError(
-                "You need to set organization code using -c or --code"
-            )
+            raise ValueError("You need to set organization code using -c or --code")
         organizations = Organization.objects.filter(code=code)
         if not organizations.exists():
             raise ValueError("Organization not found")

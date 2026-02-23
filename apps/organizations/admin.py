@@ -55,14 +55,10 @@ class TemplateAdmin(
 
     def get_queryset(self, request) -> QuerySet:
         return (
-            super()
-            .get_queryset(request)
-            .prefetch_related("categories__organization")
+            super().get_queryset(request).prefetch_related("categories__organization")
         )
 
-    @admin.display(
-        description="categories associates", ordering="categories__name"
-    )
+    @admin.display(description="categories associates", ordering="categories__name")
     def display_templates(self, instance: Template):
         names = [o.name for o in instance.categories.all()]
         return " / ".join(names)
@@ -82,9 +78,7 @@ class TemplateAdmin(
         """
         Filter the queryset based on the organizations the user has admin access to.
         """
-        return queryset.filter(
-            categories__organization__in=organizations
-        ).distinct()
+        return queryset.filter(categories__organization__in=organizations).distinct()
 
 
 @admin.register(ProjectCategory)
@@ -94,9 +88,7 @@ class ProjectCategoryAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 
     def get_queryset(self, request: HttpRequest) -> QuerySet[Any]:
         return (
-            super()
-            .get_queryset(request)
-            .annotate(count_templates=Count("templates"))
+            super().get_queryset(request).annotate(count_templates=Count("templates"))
         )
 
     @admin.display(description="numbers templates", ordering="count_templates")

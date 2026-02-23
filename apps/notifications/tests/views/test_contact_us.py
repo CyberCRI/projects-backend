@@ -30,7 +30,5 @@ class ContactTestCase(JwtAPITestCase):
         response = self.client.post(
             reverse("Contact-us", args=(self.organization.code,)), data=payload
         )
-        self.assertEqual(
-            response.status_code, status.HTTP_200_OK, response.content
-        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()

@@ -63,9 +63,7 @@ class RetrieveTagTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         for tag in self.tags:
-            response = self.client.get(
-                reverse("ReadTag-detail", args=(tag.id,))
-            )
+            response = self.client.get(reverse("ReadTag-detail", args=(tag.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
             self.assertEqual(content["title_fr"], tag.title_fr)

@@ -74,9 +74,7 @@ class TestPopulateResearcher(test.TestCase):
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(
-            given_name="marty", family_name="mcfly"
-        )
+        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -110,9 +108,7 @@ class TestPopulateResearcher(test.TestCase):
             ],
         }
         # create same object in db
-        researcher = Researcher.objects.create(
-            given_name="marty", family_name="mcfly"
-        )
+        researcher = Researcher.objects.create(given_name="marty", family_name="mcfly")
         iden = Identifier.objects.create(
             value="hals-truc", harvester=Identifier.Harvester.HAL.value
         )
@@ -325,9 +321,7 @@ class TestPopulateDocument(test.TestCase):
     def test_sanitize_titles(self):
         self.assertEqual(self.popu.sanitize_languages([]), "")
         self.assertEqual(
-            self.popu.sanitize_languages(
-                [{"language": "en", "value": "en-title"}]
-            ),
+            self.popu.sanitize_languages([{"language": "en", "value": "en-title"}]),
             "en-title",
         )
         self.assertEqual(
@@ -349,9 +343,7 @@ class TestPopulateDocument(test.TestCase):
             "fr-title",
         )
         self.assertEqual(
-            self.popu.sanitize_languages(
-                [{"language": "es", "value": "es-title"}]
-            ),
+            self.popu.sanitize_languages([{"language": "es", "value": "es-title"}]),
             "es-title",
         )
 

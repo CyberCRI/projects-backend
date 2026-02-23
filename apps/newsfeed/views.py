@@ -45,9 +45,7 @@ class NewsfeedViewSet(ListViewSet):
                     type=Newsfeed.NewsfeedType.PROJECT,
                     project__deleted_at__isnull=True,
                     project__score__completeness__gte=5,
-                    project__organizations__code=self.kwargs[
-                        "organization_code"
-                    ],
+                    project__organizations__code=self.kwargs["organization_code"],
                 )
             )
             .annotate(date=F("project__updated_at"))
@@ -69,11 +67,7 @@ class NewsfeedViewSet(ListViewSet):
                 project_related_name="announcement__project",
             )
             .filter(
-                Q(
-                    announcement__deadline__gte=timezone.localtime(
-                        timezone.now()
-                    )
-                )
+                Q(announcement__deadline__gte=timezone.localtime(timezone.now()))
                 | Q(announcement__deadline__isnull=True)
             )
             .annotate(date=F("announcement__updated_at"))
@@ -87,9 +81,7 @@ class NewsfeedViewSet(ListViewSet):
                 queryset=Newsfeed.objects.filter(
                     type=Newsfeed.NewsfeedType.NEWS,
                     news__organization__code=self.kwargs["organization_code"],
-                    news__publication_date__lte=timezone.localtime(
-                        timezone.now()
-                    ),
+                    news__publication_date__lte=timezone.localtime(timezone.now()),
                 )
             )
             .annotate(date=F("news__publication_date"))
@@ -97,9 +89,7 @@ class NewsfeedViewSet(ListViewSet):
             .distinct()
         )
 
-    def merge_querysets(
-        self, *querysets: QuerySet[Newsfeed]
-    ) -> QuerySet[Newsfeed]:
+    def merge_querysets(self, *querysets: QuerySet[Newsfeed]) -> QuerySet[Newsfeed]:
         """
         Merge the querysets into a single queryset using a round-robin strategy.
         The order of the querysets is preserved, as well as the order of the items in each queryset.
@@ -112,9 +102,7 @@ class NewsfeedViewSet(ListViewSet):
         merge_querysets(queryset_a, queryset_b, queryset_c) returns:
         [a1, b1, c1, a2, b2, c2, a3, b3, b4, b5]
         """
-        merged = list(
-            chain.from_iterable(zip_longest(*querysets, fillvalue=None))
-        )
+        merged = list(chain.from_iterable(zip_longest(*querysets, fillvalue=None)))
         return [item for item in merged if item is not None]
 
     def get_queryset(self):
@@ -122,9 +110,7 @@ class NewsfeedViewSet(ListViewSet):
         news = self.get_news_queryset()
         projects = self.get_projects_queryset()
         if announcements.exists():
-            limit = self.request.query_params.get(
-                "limit", api_settings.PAGE_SIZE
-            )
+            limit = self.request.query_params.get("limit", api_settings.PAGE_SIZE)
             first_page_announcements = announcements[: ((int(limit) + 2) // 3)]
             excluded_projects = first_page_announcements.values_list(
                 "announcement__project__id", flat=True
@@ -172,9 +158,7 @@ class NewsViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {"organization": self.kwargs["organization_code"]}
-            )
+            self.request.data.update({"organization": self.kwargs["organization_code"]})
         return super().get_serializer(*args, **kwargs)
 
 
@@ -189,9 +173,7 @@ class NewsHeaderView(ImageStorageView):
     def get_queryset(self):
         if "news_id" in self.kwargs and "organization_code" in self.kwargs:
             return Image.objects.filter(
-                news_header__organization__code=self.kwargs[
-                    "organization_code"
-                ],
+                news_header__organization__code=self.kwargs["organization_code"],
                 news_header__id=self.kwargs["news_id"],
             )
         return Image.objects.none()
@@ -280,9 +262,7 @@ class InstructionViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {"organization": self.kwargs["organization_code"]}
-            )
+            self.request.data.update({"organization": self.kwargs["organization_code"]})
         return super().get_serializer(*args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Instruction]:
@@ -311,15 +291,10 @@ class InstructionImagesView(ImageStorageView):
     ]
 
     def get_queryset(self):
-        if (
-            "instruction_id" in self.kwargs
-            and "organization_code" in self.kwargs
-        ):
+        if "instruction_id" in self.kwargs and "organization_code" in self.kwargs:
             return self.request.user.get_instruction_related_queryset(
                 Image.objects.filter(
-                    instructions__organization__code=self.kwargs[
-                        "organization_code"
-                    ],
+                    instructions__organization__code=self.kwargs["organization_code"],
                     instructions__id=self.kwargs["instruction_id"],
                 ),
                 instruction_related_name="instructions",
@@ -335,10 +310,7 @@ class InstructionImagesView(ImageStorageView):
         return redirect(image.file.url)
 
     def add_image_to_model(self, image):
-        if (
-            "instruction_id" in self.kwargs
-            and "organization_code" in self.kwargs
-        ):
+        if "instruction_id" in self.kwargs and "organization_code" in self.kwargs:
             instruction = Instruction.objects.get(
                 id=self.kwargs["instruction_id"],
                 organization__code=self.kwargs["organization_code"],
@@ -388,9 +360,7 @@ class EventViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {"organization": self.kwargs["organization_code"]}
-            )
+            self.request.data.update({"organization": self.kwargs["organization_code"]})
         return super().get_serializer(*args, **kwargs)
 
 

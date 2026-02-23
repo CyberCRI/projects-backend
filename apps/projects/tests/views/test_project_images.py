@@ -68,9 +68,7 @@ class RetrieveProjectImageTestCase(JwtAPITestCase):
             if publication_status in retrieved_images:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(
-                    response.status_code, status.HTTP_404_NOT_FOUND
-                )
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 class CreateProjectImageTestCase(JwtAPITestCase):
@@ -170,9 +168,7 @@ class UpdateProjectImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
-            reverse(
-                "Project-images-detail", args=(self.project.id, self.image.id)
-            ),
+            reverse("Project-images-detail", args=(self.project.id, self.image.id)),
             data=payload,
             format="multipart",
         )

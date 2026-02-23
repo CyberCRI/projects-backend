@@ -36,15 +36,12 @@ class UpdateNewUserPendingAccessRequestsTestCase(JwtAPITestCase):
             "roles_to_add": [self.organization.get_users().name],
         }
         response = self.client.post(
-            reverse("ProjectUser-list")
-            + f"?organization={self.organization.code}",
+            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        mocked_task.assert_called_once_with(
-            content["id"], self.organization.code
-        )
+        mocked_task.assert_called_once_with(content["id"], self.organization.code)
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
     @patch("apps.accounts.tasks.update_new_user_pending_access_requests.delay")
@@ -53,9 +50,7 @@ class UpdateNewUserPendingAccessRequestsTestCase(JwtAPITestCase):
         invitation = InvitationFactory(
             organization=self.organization,
             people_group=PeopleGroupFactory(organization=self.organization),
-            expire_at=make_aware(
-                datetime.datetime.now() + datetime.timedelta(1)
-            ),
+            expire_at=make_aware(datetime.datetime.now() + datetime.timedelta(1)),
         )
         self.client.force_authenticate(  # nosec
             token=invitation.token, token_type="Invite"
@@ -67,15 +62,12 @@ class UpdateNewUserPendingAccessRequestsTestCase(JwtAPITestCase):
             "password": faker.password(),
         }
         response = self.client.post(
-            reverse("ProjectUser-list")
-            + f"?organization={self.organization.code}",
+            reverse("ProjectUser-list") + f"?organization={self.organization.code}",
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
-        mocked_task.assert_called_once_with(
-            content["id"], self.organization.code
-        )
+        mocked_task.assert_called_once_with(content["id"], self.organization.code)
 
     def test_update_new_user_pending_access_requests(self):
         organization_2 = OrganizationFactory()

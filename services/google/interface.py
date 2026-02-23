@@ -139,7 +139,9 @@ class GoogleService:
         same_address_count = 0
         while google_user:
             same_address_count += 1
-            email_address = f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
+            email_address = (
+                f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
+            )
             google_user = cls.get_user_by_email(email_address)
 
         google_data = {
@@ -199,10 +201,7 @@ class GoogleService:
     @classmethod
     def get_user_groups(cls, google_account: "GoogleAccount"):
         response = (
-            cls.service()
-            .groups()
-            .list(userKey=google_account.google_id)
-            .execute()
+            cls.service().groups().list(userKey=google_account.google_id).execute()
         )
         return response.get("groups", [])
 
@@ -243,9 +242,7 @@ class GoogleService:
     @classmethod
     def get_groups(cls):
         groups = []
-        request = (
-            cls.service().groups().list(customer=settings.GOOGLE_CUSTOMER_ID)
-        )
+        request = cls.service().groups().list(customer=settings.GOOGLE_CUSTOMER_ID)
         while request is not None:
             response = request.execute()
             groups += response.get("groups", [])
@@ -258,9 +255,7 @@ class GoogleService:
             google_group = cls.get_group_by_email(group.email)
             if (
                 google_group is not None
-                and PeopleGroup.objects.filter(
-                    google_group__email=group.email
-                ).exists()
+                and PeopleGroup.objects.filter(google_group__email=group.email).exists()
             ):
                 raise GoogleGroupEmailUnavailable
             email = group.email
@@ -273,7 +268,9 @@ class GoogleService:
             same_address_count = 0
             while google_group:
                 same_address_count += 1
-                email = f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
+                email = (
+                    f"{username}.{same_address_count}@{settings.GOOGLE_EMAIL_DOMAIN}"
+                )
                 google_group = cls.get_group_by_email(email)
 
         body = {
@@ -365,7 +362,4 @@ class GoogleService:
             )
             .execute()
         )
-        return [
-            org_unit["orgUnitPath"]
-            for org_unit in org_units["organizationUnits"]
-        ]
+        return [org_unit["orgUnitPath"] for org_unit in org_units["organizationUnits"]]

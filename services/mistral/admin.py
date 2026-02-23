@@ -85,22 +85,16 @@ class EmbeddingErrorAdmin(admin.ModelAdmin):
 
     def link_to_item(self, item: EmbeddingError) -> str:
         if item.item_type == Project.__name__:
-            admin_page = reverse(
-                "admin:projects_project_change", args=(item.item_id,)
-            )
+            admin_page = reverse("admin:projects_project_change", args=(item.item_id,))
         elif item.item_type == ProjectUser.__name__:
             admin_page = reverse(
                 "admin:accounts_projectuser_change", args=(item.item_id,)
             )
         elif item.item_type == Document.__name__:
-            admin_page = reverse(
-                "admin:crisalid_document_change", args=(item.item_id,)
-            )
+            admin_page = reverse("admin:crisalid_document_change", args=(item.item_id,))
         else:
             return None
-        return mark_safe(
-            f'<a href="{admin_page}">{item.item_type}: {item.item_id}</a>'
-        )
+        return mark_safe(f'<a href="{admin_page}">{item.item_type}: {item.item_id}</a>')
 
     link_to_item.short_description = "Item"
 

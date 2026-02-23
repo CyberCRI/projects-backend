@@ -61,18 +61,14 @@ class ImageAdmin(admin.ModelAdmin):
 
 
 @admin.register(ProjectUserAttachmentFile)
-class ProjectUserAttachmentFileAdmin(
-    TranslateObjectAdminMixin, admin.ModelAdmin
-):
+class ProjectUserAttachmentFileAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("id", "owner", "title")
     autocomplete_fields = ("owner",)
     search_fields = ("owner", "title", "mime")
 
 
 @admin.register(ProjectUserAttachmentLink)
-class ProjectUserAttachmentLinkAdmin(
-    TranslateObjectAdminMixin, admin.ModelAdmin
-):
+class ProjectUserAttachmentLinkAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
     list_display = ("id", "owner", "title", "site_url")
     autocomplete_fields = ("owner",)
     search_fields = ("owner", "title", "stie_url")

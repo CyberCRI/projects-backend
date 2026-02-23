@@ -168,8 +168,6 @@ class ListGoalsTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_goals:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(
-                    content[0]["id"], self.goals[publication_status].id
-                )
+                self.assertEqual(content[0]["id"], self.goals[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)

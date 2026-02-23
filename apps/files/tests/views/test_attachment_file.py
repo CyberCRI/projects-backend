@@ -91,9 +91,7 @@ class UpdateAttachmentFileTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"title": faker.text(max_nb_chars=50)}
         response = self.client.patch(
-            reverse(
-                "AttachmentFile-detail", args=(self.project.id, self.file.id)
-            ),
+            reverse("AttachmentFile-detail", args=(self.project.id, self.file.id)),
             data=payload,
             format="multipart",
         )
@@ -188,9 +186,7 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
             content = response.json()["results"]
             if publication_status in retrieved_files:
                 self.assertEqual(len(content), 1)
-                self.assertEqual(
-                    content[0]["id"], self.files[publication_status].id
-                )
+                self.assertEqual(content[0]["id"], self.files[publication_status].id)
             else:
                 self.assertEqual(len(content), 0)
 
@@ -287,11 +283,7 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
         file = AttachmentFileFactory(project=project)
         response = self.client.patch(
             reverse("AttachmentFile-detail", args=(project.id, file.id)),
-            data={
-                "project_id": ProjectFactory(
-                    organizations=[self.organization]
-                ).id
-            },
+            data={"project_id": ProjectFactory(organizations=[self.organization]).id},
             format="multipart",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -49,9 +49,7 @@ class CreateOrganizationImageTestCase(JwtAPITestCase):
         ]
     )
     def test_create_organization_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),

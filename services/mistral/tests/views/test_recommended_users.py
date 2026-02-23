@@ -34,9 +34,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[OrganizationFactory().get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=other_user, completeness=20.0, activity=5.0, score=25.0
-        )
+        UserScoreFactory(user=other_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
             item=other_user, embedding=[*1024 * [1.0]], is_visible=True
         )
@@ -58,9 +56,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=public_user, completeness=20.0, activity=5.0, score=25.0
-        )
+        UserScoreFactory(user=public_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
             item=public_user, embedding=[*1024 * [0.0]], is_visible=True
         )
@@ -84,9 +80,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=private_user, completeness=20.0, activity=5.0, score=25.0
-        )
+        UserScoreFactory(user=private_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
             item=private_user,
             embedding=[*512 * [0.0], *512 * [1.0]],
@@ -98,9 +92,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=org_user, completeness=20.0, activity=5.0, score=25.0
-        )
+        UserScoreFactory(user=org_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
             item=org_user,
             embedding=[*256 * [0.0], *768 * [1.0]],
@@ -135,13 +127,9 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_user_recommended_users(self, role, retrieved_users):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         if role != TestRoles.ANONYMOUS:
-            UserEmbeddingFactory(
-                item=user, embedding=[*1024 * [1.0]], is_visible=True
-            )
+            UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse("RecommendedUsers-for-user", args=(self.organization.code,))
@@ -172,9 +160,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_project_recommended_users(self, role, retrieved_users):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -202,9 +188,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_project_recommended_random_users(self, role, retrieved_users):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
@@ -237,14 +221,10 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
     )
     def test_user_recommended_random_users(self, role, retrieved_users):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         if role != TestRoles.ANONYMOUS:
-            UserEmbeddingFactory(
-                item=user, embedding=[*1024 * [1.0]], is_visible=True
-            )
+            UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
         response = self.client.get(
             reverse(
                 "RecommendedUsers-random-for-user",
@@ -262,9 +242,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         )
 
     @patch("services.mistral.interface.MistralService.service.chat.complete")
-    @patch(
-        "services.mistral.interface.MistralService.service.embeddings.create"
-    )
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_get_recommended_users_create_embedding_vector(
         self, mocked_embeddings, mocked_chat
     ):
@@ -275,9 +253,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         messages = [faker.sentence() for _ in range(3)]
         vector = [*1024 * [1.0]]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
-        mocked_embeddings.return_value = self.embedding_response_mocked_return(
-            vector
-        )
+        mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         response = self.client.get(
             reverse("RecommendedUsers-for-user", args=(self.organization.code,))
         )
@@ -288,16 +264,11 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(len(content), 4)
         self.assertListEqual(
             [user["id"] for user in content],
-            [
-                self.users[user].id
-                for user in ["org", "private", "public_2", "public"]
-            ],
+            [self.users[user].id for user in ["org", "private", "public_2", "public"]],
         )
 
     @patch("services.mistral.interface.MistralService.service.chat.complete")
-    @patch(
-        "services.mistral.interface.MistralService.service.embeddings.create"
-    )
+    @patch("services.mistral.interface.MistralService.service.embeddings.create")
     def test_get_recommended_users_create_embedding_object(
         self, mocked_embeddings, mocked_chat
     ):
@@ -307,9 +278,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         messages = [faker.sentence() for _ in range(3)]
         vector = [*1024 * [1.0]]
         mocked_chat.return_value = self.chat_response_mocked_return(messages)
-        mocked_embeddings.return_value = self.embedding_response_mocked_return(
-            vector
-        )
+        mocked_embeddings.return_value = self.embedding_response_mocked_return(vector)
         response = self.client.get(
             reverse("RecommendedUsers-for-user", args=(self.organization.code,))
         )
@@ -321,8 +290,5 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
         self.assertEqual(len(content), 4)
         self.assertListEqual(
             [user["id"] for user in content],
-            [
-                self.users[user].id
-                for user in ["org", "private", "public_2", "public"]
-            ],
+            [self.users[user].id for user in ["org", "private", "public_2", "public"]],
         )

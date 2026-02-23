@@ -63,9 +63,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
                 "mobile_phone",
                 "email",
             ]:
-                self.assertEqual(
-                    content[key], getattr(instance.privacy_settings, key)
-                )
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
     @parameterized.expand(
         [
@@ -101,9 +99,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
                 "mobile_phone",
                 "email",
             ]:
-                self.assertEqual(
-                    content[key], getattr(instance.privacy_settings, key)
-                )
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
     @parameterized.expand(
         [
@@ -139,9 +135,7 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
                 "mobile_phone",
                 "email",
             ]:
-                self.assertEqual(
-                    content[key], getattr(instance.privacy_settings, key)
-                )
+                self.assertEqual(content[key], getattr(instance.privacy_settings, key))
 
 
 class UpdatePrivacySettingsTestCase(JwtAPITestCase):

@@ -52,9 +52,7 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
                 receiver = mentoring.mentor
                 template_folder = f"reminder_mentor_{inactivity_days}_days"
             else:
-                raise ValueError(
-                    "Mentoring created_by is not the mentor or mentoree"
-                )
+                raise ValueError("Mentoring created_by is not the mentor or mentoree")
             first_message = mentoring.messages.order_by("created_at").first()
             reply_to = receiver.email
             language = receiver.language
@@ -70,12 +68,8 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
                 "reply_to": reply_to,
                 "content": first_message.content,
             }
-            subject, _ = render_message(
-                f"{template_folder}/object", language, **kwargs
-            )
-            text, html = render_message(
-                f"{template_folder}/mail", language, **kwargs
-            )
+            subject, _ = render_message(f"{template_folder}/object", language, **kwargs)
+            text, html = render_message(f"{template_folder}/mail", language, **kwargs)
             send_email(
                 subject,
                 text,

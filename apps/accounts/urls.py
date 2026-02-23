@@ -17,9 +17,7 @@ from apps.feedbacks.views import ReviewViewSet, UserFollowViewSet
 
 router = DefaultRouter()
 router.register(r"user", UserViewSet, basename="ProjectUser")
-router.register(
-    r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySettings"
-)
+router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySettings")
 
 user_router_register(router, r"follow", UserFollowViewSet, basename="Follower")
 user_router_register(router, r"review", ReviewViewSet, basename="Reviewer")

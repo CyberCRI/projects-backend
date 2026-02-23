@@ -84,13 +84,9 @@ class ListProjectTabItemsTestCase(JwtAPITestCase):
             "private": ProjectTabFactory(project=cls.private_project),
         }
         cls.items = {
-            "public": ProjectTabItemFactory.create_batch(
-                2, tab=cls.tabs["public"]
-            ),
+            "public": ProjectTabItemFactory.create_batch(2, tab=cls.tabs["public"]),
             "org": ProjectTabItemFactory.create_batch(2, tab=cls.tabs["org"]),
-            "private": ProjectTabItemFactory.create_batch(
-                2, tab=cls.tabs["private"]
-            ),
+            "private": ProjectTabItemFactory.create_batch(2, tab=cls.tabs["private"]),
         }
 
     @parameterized.expand(
@@ -123,9 +119,7 @@ class ListProjectTabItemsTestCase(JwtAPITestCase):
                 self.assertSetEqual(
                     {item["id"] for item in content}, {item.id for item in item}
                 )
-                self.assertGreater(
-                    content[0]["created_at"], content[1]["created_at"]
-                )
+                self.assertGreater(content[0]["created_at"], content[1]["created_at"])
             else:
                 self.assertEqual(len(content), 0)
 

@@ -67,9 +67,7 @@ class SkillAdmin(admin.ModelAdmin):
         return mark_safe(f'<a href="{admin_page}">{obj.tag}</a>')  # nosec
 
     def user_link(self, obj):
-        admin_page = reverse(
-            "admin:accounts_projectuser_change", args=(obj.user.pk,)
-        )
+        admin_page = reverse("admin:accounts_projectuser_change", args=(obj.user.pk,))
         return mark_safe(f'<a href="{admin_page}">{obj.user.email}</a>')  # nosec
 
     tag_link.short_description = "Tag"

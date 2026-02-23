@@ -148,9 +148,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer: ProjectSerializer):
         project = serializer.save()
         changes = serializer.validated_data
-        update_change_reason(
-            project, f"Updated: {' + '.join(changes.keys())}"[:100]
-        )
+        update_change_reason(project, f"Updated: {' + '.join(changes.keys())}"[:100])
         if (
             settings.ENABLE_CACHE
             and changes.get("publication_status")
@@ -210,9 +208,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    @extend_schema(
-        request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer
-    )
+    @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
     @action(
         detail=True,
         methods=["POST"],
@@ -385,18 +381,14 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         if vector is None:
             return Response([])
         organizations = [
-            o
-            for o in request.query_params.get("organizations", "").split(",")
-            if o
+            o for o in request.query_params.get("organizations", "").split(",") if o
         ]
         if not organizations:
             raise OrganizationsParameterMissing
         threshold = int(request.query_params.get("threshold", 5))
         queryset = (
             self.request.user.get_project_queryset()
-            .filter(
-                organizations__code__in=get_below_hierarchy_codes(organizations)
-            )
+            .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
             .exclude(id=project.id)
             .prefetch_related("categories")
         )
@@ -418,9 +410,7 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
-            return Image.objects.filter(
-                project_header__id=self.kwargs["project_id"]
-            )
+            return Image.objects.filter(project_header__id=self.kwargs["project_id"])
         return Image.objects.none()
 
     @staticmethod
@@ -523,9 +513,7 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(
-                    blog_entries__project=self.kwargs["project_id"]
-                ),
+                Image.objects.filter(blog_entries__project=self.kwargs["project_id"]),
                 project_related_name="blog_entries__project",
             )
             # Retrieve images before blog entry is posted
@@ -551,7 +539,9 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 )
                 blog_entry.images.add(image)
                 blog_entry.save()
-            return f"/v1/project/{self.kwargs['project_id']}/blog-entry-image/{image.id}"
+            return (
+                f"/v1/project/{self.kwargs['project_id']}/blog-entry-image/{image.id}"
+            )
         return None
 
 
@@ -572,9 +562,7 @@ class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                Goal.objects.all()
-            )
+            qs = self.request.user.get_project_related_queryset(Goal.objects.all())
             return qs.filter(project=self.kwargs["project_id"])
         return Goal.objects.none()
 
@@ -601,9 +589,7 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return qs.select_related("project")
 
     @method_decorator(
-        redis_cache_view(
-            "locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL
-        )
+        redis_cache_view("locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL)
     )
     def list(self, request, *args, **kwargs):
         return super(LocationViewSet, self).list(request, *args, **kwargs)
@@ -613,9 +599,7 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super(LocationViewSet, self).dispatch(request, *args, **kwargs)
 
 
-class HistoricalProjectViewSet(
-    MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet
-):
+class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
     multiple_lookup_fields = [(Project, "project_id")]
@@ -631,9 +615,7 @@ class HistoricalProjectViewSet(
                 self.request.user.get_project_queryset(),
                 id=self.kwargs["project_id"],
             )
-            return apps.get_model(
-                "projects", "HistoricalProject"
-            ).objects.filter(
+            return apps.get_model("projects", "HistoricalProject").objects.filter(
                 history_relation=project, history_change_reason__isnull=False
             )
         return apps.get_model("projects", "HistoricalProject").objects.none()
@@ -740,9 +722,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         to_unlink = serializer.validated_data["linked_projects"]
-        LinkedProject.objects.filter(
-            project__in=to_unlink, target=project
-        ).delete()
+        LinkedProject.objects.filter(project__in=to_unlink, target=project).delete()
 
         context = {"request": request}
         return Response(
@@ -772,9 +752,7 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             # get_project_related_queryset is not needed because the publication_status is not checked here
-            queryset = ProjectMessage.objects.filter(
-                project=self.kwargs["project_id"]
-            )
+            queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
             if self.action in ["retrieve", "list"]:
                 queryset = queryset.exclude(reply_on__isnull=False)
             return queryset.select_related("author").prefetch_related(
@@ -878,9 +856,7 @@ class ProjectTabImagesView(MultipleIDViewsetMixin, ImageStorageView):
     def get_queryset(self):
         if "project_id" in self.kwargs:
             qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(
-                    project_tabs__project=self.kwargs["project_id"]
-                ),
+                Image.objects.filter(project_tabs__project=self.kwargs["project_id"]),
                 project_related_name="project_tabs__project",
             )
             # Retrieve images before tab is posted
@@ -906,9 +882,7 @@ class ProjectTabImagesView(MultipleIDViewsetMixin, ImageStorageView):
                 )
                 project_tab.images.add(image)
                 project_tab.save()
-            return (
-                f"/v1/project/{self.kwargs['project_id']}/tab-image/{image.id}"
-            )
+            return f"/v1/project/{self.kwargs['project_id']}/tab-image/{image.id}"
         return None
 
 
@@ -944,9 +918,7 @@ class ProjectTabItemViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         project_id = self.kwargs.get("project_id")
         tab_id = self.kwargs.get("tab_id")
         if project_id and tab_id:
-            tab = get_object_or_404(
-                ProjectTab, id=tab_id, project_id=project_id
-            )
+            tab = get_object_or_404(ProjectTab, id=tab_id, project_id=project_id)
             serializer.save(tab=tab)
 
 
@@ -1012,9 +984,7 @@ class GeneralLocationView(viewsets.GenericViewSet):
         ).select_related("people_group")
 
         data = {
-            "groups": PeopleGroupLocationSuperLightSerializer(
-                qs_group, many=True
-            ).data,
+            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
             "projects": LocationSerializer(qs_project, many=True).data,
         }
         return Response(data, status=status.HTTP_200_OK)

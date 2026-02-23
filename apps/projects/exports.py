@@ -33,9 +33,7 @@ class ProjectResource(resources.ModelResource):
         ]
 
     def dehydrate_members_names(self, project: Project):
-        return ",".join(
-            [f"{u.get_full_name()}" for u in project.get_all_members()]
-        )
+        return ",".join([f"{u.get_full_name()}" for u in project.get_all_members()])
 
     def dehydrate_members_emails(self, project: Project):
         return ",".join([f"{u.email}" for u in project.get_all_members()])

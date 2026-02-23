@@ -41,9 +41,7 @@ class CreateNewsTestCase(JwtAPITestCase):
     )
     def test_create_news(self, role, expected_code):
         organization = self.organization
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "organization": self.organization.code,
@@ -90,9 +88,7 @@ class UpdateNewsTestCase(JwtAPITestCase):
         ]
     )
     def test_update_news(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "title": faker.sentence(),
@@ -137,9 +133,7 @@ class DeleteNewsTestCase(JwtAPITestCase):
             organization=self.organization, people_groups=[self.people_group]
         )
         news_id = news.id
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse("News-detail", args=(self.organization.code, news.id))
@@ -216,9 +210,7 @@ class RetrieveNewsTestCase(JwtAPITestCase):
             role, instances=self.data["private"]["groups"]
         )
         self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse("News-list", args=(self.organization.code,))
-        )
+        response = self.client.get(reverse("News-list", args=(self.organization.code,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertSetEqual(
@@ -267,9 +259,7 @@ class ValidateNewsTestCase(JwtAPITestCase):
 
     def test_update_news_with_people_group_in_other_organization(self):
         people_group = PeopleGroupFactory(organization=self.organization)
-        news = NewsFactory(
-            organization=self.organization, people_groups=[people_group]
-        )
+        news = NewsFactory(organization=self.organization, people_groups=[people_group])
         user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
         payload = {"people_groups": [self.other_org_people_group.id]}

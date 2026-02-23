@@ -28,9 +28,7 @@ organization_router_register(
 router.register(r"tag", ReadTagViewSet, basename="ReadTag")
 
 
-organization_router_register(
-    router, r"tag", TagViewSet, basename="OrganizationTag"
-)
+organization_router_register(router, r"tag", TagViewSet, basename="OrganizationTag")
 
 organization_router_register(
     router,

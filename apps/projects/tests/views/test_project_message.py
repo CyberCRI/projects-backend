@@ -216,9 +216,7 @@ class DeleteProjectMessageTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            project_message = ProjectMessage.objects.filter(
-                id=project_message.id
-            )
+            project_message = ProjectMessage.objects.filter(id=project_message.id)
             self.assertTrue(project_message.exists())
             project_message = project_message.get()
             self.assertIsNotNone(project_message.deleted_at)

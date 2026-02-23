@@ -29,6 +29,4 @@ def create_or_update_newsfeed_announcement(sender, instance, created, **kwargs):
 @receiver(post_save, sender=News)
 def create_or_update_newsfeed_news(sender, instance, created, **kwargs):
     """Create a newsfeed object upon a news' creation or update the updated_at field."""
-    Newsfeed.objects.update_or_create(
-        news=instance, type=Newsfeed.NewsfeedType.NEWS
-    )
+    Newsfeed.objects.update_or_create(news=instance, type=Newsfeed.NewsfeedType.NEWS)

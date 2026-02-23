@@ -11,9 +11,7 @@ class MixpanelEvent(models.Model):
     project = models.ForeignKey(
         Project, on_delete=models.CASCADE, related_name="mixpanel_events"
     )
-    organization = models.ForeignKey(
-        Organization, null=True, on_delete=models.CASCADE
-    )
+    organization = models.ForeignKey(Organization, null=True, on_delete=models.CASCADE)
     mixpanel_id = models.CharField(max_length=255, unique=True)
 
     @classmethod

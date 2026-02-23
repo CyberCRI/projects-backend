@@ -24,12 +24,10 @@ for relator in relators:
         continue
 
     dict_relators[url] = {
-        "key": relator["http://www.loc.gov/mads/rdf/v1#code"][0][
+        "key": relator["http://www.loc.gov/mads/rdf/v1#code"][0]["@value"].upper(),
+        "value": relator["http://www.loc.gov/mads/rdf/v1#authoritativeLabel"][0][
             "@value"
-        ].upper(),
-        "value": relator["http://www.loc.gov/mads/rdf/v1#authoritativeLabel"][
-            0
-        ]["@value"],
+        ],
     }
 
 del relators

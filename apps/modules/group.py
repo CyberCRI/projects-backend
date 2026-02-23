@@ -45,8 +45,7 @@ class PeopleGroupModules(AbstractModules):
         return (
             self.user.get_project_queryset()
             .filter(
-                Q(groups__people_groups=self.instance)
-                | Q(people_groups=self.instance)
+                Q(groups__people_groups=self.instance) | Q(people_groups=self.instance)
             )
             .annotate(
                 is_group_project=Case(
@@ -79,9 +78,7 @@ class PeopleGroupModules(AbstractModules):
     def gallery(self):
         return PeopleGroupImage.objects.filter(people_group=self.instance)
 
-    def _documents(
-        self, documents_type: DocumentTypeCentralized
-    ) -> QuerySet[Document]:
+    def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()
         return Document.objects.filter(
             document_type__in=documents_type, contributors__user__in=members_qs

@@ -14,9 +14,7 @@ class Command(BaseCommand):
                 keycloak_user = KeycloakService.get_user(user.keycloak_id)
                 if keycloak_user:
                     user.created_at = make_aware(
-                        datetime.fromtimestamp(
-                            keycloak_user["createdTimestamp"] / 1000
-                        )
+                        datetime.fromtimestamp(keycloak_user["createdTimestamp"] / 1000)
                     )
                     user.save()
             except Exception as e:  # noqa: PIE786

@@ -60,9 +60,7 @@ class NewsfeedTestCase(JwtAPITestCase):
         ProjectScoreFactory(project=cls.org_project, completeness=5.0)
         ProjectScoreFactory(project=cls.private_project, completeness=5.0)
         ProjectScoreFactory(project=cls.public_project, completeness=5.0)
-        ProjectScoreFactory(
-            project=cls.public_project_not_complete, completeness=4.0
-        )
+        ProjectScoreFactory(project=cls.public_project_not_complete, completeness=4.0)
 
         # Projects that won't be returned because they have announcements on the newsfeed's first page
         cls.announcement_member_project = ProjectFactory(
@@ -85,18 +83,10 @@ class NewsfeedTestCase(JwtAPITestCase):
             organizations=[cls.organization],
             updated_at=cls.date_4,
         )
-        ProjectScoreFactory(
-            project=cls.announcement_member_project, completeness=5.0
-        )
-        ProjectScoreFactory(
-            project=cls.announcement_org_project, completeness=5.0
-        )
-        ProjectScoreFactory(
-            project=cls.announcement_private_project, completeness=5.0
-        )
-        ProjectScoreFactory(
-            project=cls.announcement_public_project, completeness=5.0
-        )
+        ProjectScoreFactory(project=cls.announcement_member_project, completeness=5.0)
+        ProjectScoreFactory(project=cls.announcement_org_project, completeness=5.0)
+        ProjectScoreFactory(project=cls.announcement_private_project, completeness=5.0)
+        ProjectScoreFactory(project=cls.announcement_public_project, completeness=5.0)
 
         # Announcements that will be returned if they are visible by the user
         cls.member_announcement = AnnouncementFactory(
@@ -163,8 +153,7 @@ class NewsfeedTestCase(JwtAPITestCase):
             organization=cls.organization,
             people_groups=None,
             visible_by_all=True,
-            publication_date=timezone.localtime(timezone.now())
-            + timedelta(days=1),
+            publication_date=timezone.localtime(timezone.now()) + timedelta(days=1),
         )
         cls.newsfeed = {
             # announcements
@@ -177,9 +166,7 @@ class NewsfeedTestCase(JwtAPITestCase):
             "private_announcement": Newsfeed.objects.get(
                 announcement=cls.private_announcement
             ),
-            "org_announcement": Newsfeed.objects.get(
-                announcement=cls.org_announcement
-            ),
+            "org_announcement": Newsfeed.objects.get(announcement=cls.org_announcement),
             "member_announcement": Newsfeed.objects.get(
                 announcement=cls.member_announcement
             ),
@@ -190,9 +177,7 @@ class NewsfeedTestCase(JwtAPITestCase):
             "all_news": Newsfeed.objects.get(news=cls.all_news),
             # projects
             "public_project": Newsfeed.objects.get(project=cls.public_project),
-            "private_project": Newsfeed.objects.get(
-                project=cls.private_project
-            ),
+            "private_project": Newsfeed.objects.get(project=cls.private_project),
             "org_project": Newsfeed.objects.get(project=cls.org_project),
             "member_project": Newsfeed.objects.get(project=cls.member_project),
         }

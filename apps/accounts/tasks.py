@@ -15,9 +15,7 @@ def calculate_users_scores():
     bulk_create: list[UserScore] = []
 
     for user in (
-        ProjectUser.objects.select_related("score")
-        .prefetch_related("skills")
-        .all()
+        ProjectUser.objects.select_related("score").prefetch_related("skills").all()
     ):
         user.calculate_score()
         if user.score.pk:
@@ -27,16 +25,12 @@ def calculate_users_scores():
 
     # update or creates scores
     UserScore.objects.bulk_create(bulk_create)
-    UserScore.objects.bulk_update(
-        bulk_update, ["score", "completeness", "activity"]
-    )
+    UserScore.objects.bulk_update(bulk_update, ["score", "completeness", "activity"])
 
 
 @app.task(name="apps.accounts.tasks.send_email_to_user")
 @clear_memory
-def update_new_user_pending_access_requests(
-    user_pk: int, organization_code: str
-):
+def update_new_user_pending_access_requests(user_pk: int, organization_code: str):
     user = ProjectUser.objects.get(pk=user_pk)
     AccessRequest.objects.filter(
         organization__code=organization_code,

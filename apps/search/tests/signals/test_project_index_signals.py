@@ -26,9 +26,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.category = ProjectCategoryFactory(organization=cls.organization)
-        cls.category_to_add = ProjectCategoryFactory(
-            organization=cls.organization
-        )
+        cls.category_to_add = ProjectCategoryFactory(organization=cls.organization)
         cls.tag = TagFactory(organization=cls.organization)
         cls.tag_to_add = TagFactory(organization=cls.organization)
         cls.project = ProjectFactory(
@@ -45,9 +43,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         pass
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_project_create(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -68,9 +64,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         )
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_project_update(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -83,9 +77,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.project, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_add_members(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -98,9 +90,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.project, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_remove_members(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -113,9 +103,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.project, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_add_category(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -133,9 +121,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.project, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_change_category(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -160,9 +146,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         )
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_add_tags(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 
@@ -175,9 +159,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.assert_has_calls([call(self.project, "index")])
 
     @patch("django_opensearch_dsl.documents.Document.update")
-    @override_settings(
-        OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True
-    )
+    @override_settings(OPENSEARCH_DSL_AUTO_REFRESH=True, OPENSEARCH_DSL_AUTOSYNC=True)
     def test_signal_called_on_change_tags(self, mocked_update):
         mocked_update.side_effect = self.mocked_update
 

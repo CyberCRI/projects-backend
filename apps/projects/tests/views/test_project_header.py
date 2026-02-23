@@ -159,6 +159,4 @@ class DeleteProjectHeaderTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
-            self.assertFalse(
-                Image.objects.filter(id=project.header_image.id).exists()
-            )
+            self.assertFalse(Image.objects.filter(id=project.header_image.id).exists())

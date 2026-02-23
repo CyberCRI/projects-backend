@@ -44,9 +44,7 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
         ]
     )
     def test_create_template_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -164,14 +162,10 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
         ]
     )
     def test_create_no_template_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.organization]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.organization])
         self.client.force_authenticate(user)
         response = self.client.post(
-            reverse(
-                "Template-images-list", args=(self.organization.code, "-1")
-            ),
+            reverse("Template-images-list", args=(self.organization.code, "-1")),
             data={"file": self.get_test_image_file()},
             format="multipart",
         )

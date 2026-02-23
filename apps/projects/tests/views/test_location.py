@@ -105,9 +105,7 @@ class ListLocationTestCase(JwtAPITestCase):
             project = location.project
             user = self.get_parameterized_test_user(role, instances=[project])
             self.client.force_authenticate(user)
-            response = self.client.get(
-                reverse("Location-list", args=(project.id,))
-            )
+            response = self.client.get(reverse("Location-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()
             if publication_status in retrieved_locations:
@@ -146,9 +144,7 @@ class UpdateLocationTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"description": faker.text()}
         response = self.client.patch(
-            reverse(
-                "Location-detail", args=(self.project.id, self.location.id)
-            ),
+            reverse("Location-detail", args=(self.project.id, self.location.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)

@@ -26,9 +26,7 @@ class NewCommentTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(
-            organization=cls.organization
-        )
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -70,9 +68,7 @@ class NewCommentTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -133,9 +129,7 @@ class NewCommentTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -148,9 +142,7 @@ class NewCommentTestCase(JwtAPITestCase):
         not_notified.notification_settings.project_has_been_commented = False
         not_notified.notification_settings.save()
 
-        comments = CommentFactory.create_batch(
-            2, project=project, author=sender
-        )
+        comments = CommentFactory.create_batch(2, project=project, author=sender)
         _notify_new_comment(comments[0].pk)
         _notify_new_comment(comments[1].pk)
 
@@ -191,9 +183,7 @@ class NewReplyTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
-        cls.parent_category = ProjectCategoryFactory(
-            organization=cls.organization
-        )
+        cls.parent_category = ProjectCategoryFactory(organization=cls.organization)
         cls.category = ProjectCategoryFactory(
             organization=cls.organization, parent=cls.parent_category
         )
@@ -240,9 +230,7 @@ class NewReplyTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -314,9 +302,7 @@ class NewReplyTestCase(JwtAPITestCase):
         parent_category_follower = UserFactory()
         child_category_follower = UserFactory()
         FollowFactory(follower=follower, project=project)
-        CategoryFollowFactory(
-            follower=category_follower, category=self.category
-        )
+        CategoryFollowFactory(follower=category_follower, category=self.category)
         CategoryFollowFactory(
             follower=parent_category_follower, category=self.parent_category
         )
@@ -330,12 +316,8 @@ class NewReplyTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         comment = CommentFactory(project=project, author=notified)
-        reply_1 = CommentFactory(
-            project=project, reply_on=comment, author=sender
-        )
-        reply_2 = CommentFactory(
-            project=project, reply_on=comment, author=sender
-        )
+        reply_1 = CommentFactory(project=project, reply_on=comment, author=sender)
+        reply_2 = CommentFactory(project=project, reply_on=comment, author=sender)
         _notify_new_comment(reply_1.pk)
         _notify_new_comment(reply_2.pk)
 

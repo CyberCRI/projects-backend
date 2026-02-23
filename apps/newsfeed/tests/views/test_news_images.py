@@ -37,9 +37,7 @@ class CreateNewsImageTestCase(JwtAPITestCase):
         news = NewsFactory(
             organization=self.organization, people_groups=[self.people_group]
         )
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "file": self.get_test_image_file(),
@@ -98,9 +96,7 @@ class UpdateNewsImageTestCase(JwtAPITestCase):
         ]
     )
     def test_update_news_image(self, role, expected_code):
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         payload = {
             "scale_x": faker.pyfloat(min_value=1.0, max_value=2.0),
@@ -123,9 +119,7 @@ class UpdateNewsImageTestCase(JwtAPITestCase):
             self.assertEqual(response.json()["scale_y"], payload["scale_y"])
             self.assertEqual(response.json()["left"], payload["left"])
             self.assertEqual(response.json()["top"], payload["top"])
-            self.assertEqual(
-                response.json()["natural_ratio"], payload["natural_ratio"]
-            )
+            self.assertEqual(response.json()["natural_ratio"], payload["natural_ratio"])
 
 
 class DeleteNewsImageTestCase(JwtAPITestCase):
@@ -154,9 +148,7 @@ class DeleteNewsImageTestCase(JwtAPITestCase):
     def test_delete_news_image(self, role, expected_code):
         image = self.get_test_image()
         self.news.images.add(image)
-        user = self.get_parameterized_test_user(
-            role, instances=[self.people_group]
-        )
+        user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
@@ -188,15 +180,11 @@ class RetrieveNewsImageTestCase(JwtAPITestCase):
             publication_status=PeopleGroup.PublicationStatus.ORG,
         )
 
-        cls.none_news = NewsFactory(
-            organization=cls.organization, visible_by_all=False
-        )
+        cls.none_news = NewsFactory(organization=cls.organization, visible_by_all=False)
         cls.none_image = cls.get_test_image()
         cls.none_news.images.add(cls.none_image)
 
-        cls.all_news = NewsFactory(
-            organization=cls.organization, visible_by_all=True
-        )
+        cls.all_news = NewsFactory(organization=cls.organization, visible_by_all=True)
         cls.all_image = cls.get_test_image()
         cls.all_news.images.add(cls.all_image)
 
@@ -266,6 +254,4 @@ class RetrieveNewsImageTestCase(JwtAPITestCase):
             if key in retrieved_news:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
             else:
-                self.assertEqual(
-                    response.status_code, status.HTTP_404_NOT_FOUND
-                )
+                self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

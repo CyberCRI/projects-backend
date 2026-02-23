@@ -15,9 +15,7 @@ from .views import (
 
 router = DefaultRouter()
 
-organization_router_register(
-    router, r"newsfeed", NewsfeedViewSet, basename="Newsfeed"
-)
+organization_router_register(router, r"newsfeed", NewsfeedViewSet, basename="Newsfeed")
 
 organization_router_register(router, r"news", NewsViewSet, basename="News")
 

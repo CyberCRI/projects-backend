@@ -21,9 +21,7 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
-        cls.content_type = ContentType.objects.get_for_model(
-            OrganizationAttachmentFile
-        )
+        cls.content_type = ContentType.objects.get_for_model(OrganizationAttachmentFile)
 
     def test_create_organization_file(self):
         self.client.force_authenticate(self.superadmin)
@@ -71,9 +69,7 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            OrganizationAttachmentFile._auto_translated_fields[0]: faker.word()
-        }
+        payload = {OrganizationAttachmentFile._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse(
                 "OrganizationAttachmentFile-detail",
