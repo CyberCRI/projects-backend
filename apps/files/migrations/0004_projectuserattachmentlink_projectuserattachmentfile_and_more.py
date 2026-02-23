@@ -9,6 +9,7 @@ import apps.files.models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("files", "0003_initial"),
@@ -76,17 +77,38 @@ class Migration(migrations.Migration):
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
-                ("description_ca", models.TextField(blank=True, null=True)),
-                ("description_de", models.TextField(blank=True, null=True)),
+                (
+                    "description_ca",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_de",
+                    models.TextField(blank=True, null=True),
+                ),
                 (
                     "description_detected_language",
                     models.CharField(blank=True, max_length=10, null=True),
                 ),
-                ("description_en", models.TextField(blank=True, null=True)),
-                ("description_es", models.TextField(blank=True, null=True)),
-                ("description_et", models.TextField(blank=True, null=True)),
-                ("description_fr", models.TextField(blank=True, null=True)),
-                ("description_nl", models.TextField(blank=True, null=True)),
+                (
+                    "description_en",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_es",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_et",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_fr",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_nl",
+                    models.TextField(blank=True, null=True),
+                ),
                 (
                     "title_ca",
                     models.CharField(blank=True, max_length=1020, null=True),
@@ -165,17 +187,38 @@ class Migration(migrations.Migration):
                         to=settings.AUTH_USER_MODEL,
                     ),
                 ),
-                ("description_ca", models.TextField(blank=True, null=True)),
-                ("description_de", models.TextField(blank=True, null=True)),
+                (
+                    "description_ca",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_de",
+                    models.TextField(blank=True, null=True),
+                ),
                 (
                     "description_detected_language",
                     models.CharField(blank=True, max_length=10, null=True),
                 ),
-                ("description_en", models.TextField(blank=True, null=True)),
-                ("description_es", models.TextField(blank=True, null=True)),
-                ("description_et", models.TextField(blank=True, null=True)),
-                ("description_fr", models.TextField(blank=True, null=True)),
-                ("description_nl", models.TextField(blank=True, null=True)),
+                (
+                    "description_en",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_es",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_et",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_fr",
+                    models.TextField(blank=True, null=True),
+                ),
+                (
+                    "description_nl",
+                    models.TextField(blank=True, null=True),
+                ),
                 (
                     "title_ca",
                     models.CharField(blank=True, max_length=1020, null=True),
@@ -204,10 +247,7 @@ class Migration(migrations.Migration):
                     "title_fr",
                     models.CharField(blank=True, max_length=1020, null=True),
                 ),
-                (
-                    "title_nl",
-                    models.CharField(blank=True, max_length=1020, null=True),
-                ),
+                ("title_nl", models.CharField(blank=True, max_length=1020, null=True)),
             ],
             bases=(apps.commons.mixins.HasOwner, models.Model),
         ),

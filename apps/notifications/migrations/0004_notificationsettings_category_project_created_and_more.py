@@ -4,7 +4,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [("notifications", "0003_initial")]
+
+    dependencies = [
+        ("notifications", "0003_initial"),
+    ]
 
     operations = [
         migrations.AddField(

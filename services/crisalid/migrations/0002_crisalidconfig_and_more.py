@@ -30,6 +30,7 @@ def prepare_display_name(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         ("organizations", "0003_initial"),
         ("crisalid", "0001_initial"),
@@ -51,8 +52,7 @@ class Migration(migrations.Migration):
                 (
                     "crisalidbus_url",
                     models.CharField(
-                        help_text="crisalidbus/rabimqt host:port",
-                        max_length=255,
+                        help_text="crisalidbus/rabimqt host:port", max_length=255
                     ),
                 ),
                 (
@@ -70,8 +70,7 @@ class Migration(migrations.Migration):
                 (
                     "apollo_url",
                     models.CharField(
-                        help_text="apollo/graphql host:port/graphql",
-                        max_length=255,
+                        help_text="apollo/graphql host:port/graphql", max_length=255
                     ),
                 ),
                 (
@@ -88,17 +87,25 @@ class Migration(migrations.Migration):
             bases=(apps.commons.mixins.OrganizationRelated, models.Model),
         ),
         migrations.RemoveConstraint(
-            model_name="document", name="crisalid_document_unique_crisalid_uid"
+            model_name="document",
+            name="crisalid_document_unique_crisalid_uid",
         ),
         migrations.RemoveConstraint(
-            model_name="identifier", name="unique_harvester"
+            model_name="identifier",
+            name="unique_harvester",
         ),
         migrations.RemoveConstraint(
             model_name="researcher",
             name="crisalid_researcher_unique_crisalid_uid",
         ),
-        migrations.RemoveField(model_name="document", name="crisalid_uid"),
-        migrations.RemoveField(model_name="researcher", name="crisalid_uid"),
+        migrations.RemoveField(
+            model_name="document",
+            name="crisalid_uid",
+        ),
+        migrations.RemoveField(
+            model_name="researcher",
+            name="crisalid_uid",
+        ),
         migrations.AddField(
             model_name="document",
             name="updated",
@@ -115,7 +122,10 @@ class Migration(migrations.Migration):
             field=models.CharField(blank=True, max_length=255),
         ),
         migrations.RunPython(prepare_display_name),
-        migrations.RemoveField(model_name="researcher", name="display_name"),
+        migrations.RemoveField(
+            model_name="researcher",
+            name="display_name",
+        ),
         migrations.AddField(
             model_name="researcher",
             name="updated",

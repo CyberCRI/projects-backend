@@ -4,14 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [("accounts", "0002_initial"), ("skills", "0001_initial")]
+
+    dependencies = [
+        ("accounts", "0002_initial"),
+        ("skills", "0001_initial"),
+    ]
 
     operations = [
         migrations.AddField(
             model_name="peoplegroup",
             name="tags",
-            field=models.ManyToManyField(
-                related_name="people_groups", to="skills.tag"
-            ),
-        )
+            field=models.ManyToManyField(related_name="people_groups", to="skills.tag"),
+        ),
     ]

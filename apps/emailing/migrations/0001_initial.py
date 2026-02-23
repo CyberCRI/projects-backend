@@ -4,6 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     initial = True
 
     dependencies = []
@@ -21,88 +22,47 @@ class Migration(migrations.Migration):
                         verbose_name="ID",
                     ),
                 ),
-                (
-                    "subject",
-                    models.CharField(blank=True, default="", max_length=255),
-                ),
+                ("subject", models.CharField(blank=True, default="", max_length=255)),
                 (
                     "subject_en",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 (
                     "subject_fr",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 (
                     "subject_de",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 (
                     "subject_nl",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 (
                     "subject_et",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 (
                     "subject_ca",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 (
                     "subject_es",
-                    models.CharField(
-                        blank=True, default="", max_length=255, null=True
-                    ),
+                    models.CharField(blank=True, default="", max_length=255, null=True),
                 ),
                 ("content", models.TextField(blank=True, default="")),
-                (
-                    "content_en",
-                    models.TextField(blank=True, default="", null=True),
-                ),
-                (
-                    "content_fr",
-                    models.TextField(blank=True, default="", null=True),
-                ),
-                (
-                    "content_de",
-                    models.TextField(blank=True, default="", null=True),
-                ),
-                (
-                    "content_nl",
-                    models.TextField(blank=True, default="", null=True),
-                ),
-                (
-                    "content_et",
-                    models.TextField(blank=True, default="", null=True),
-                ),
-                (
-                    "content_ca",
-                    models.TextField(blank=True, default="", null=True),
-                ),
-                (
-                    "content_es",
-                    models.TextField(blank=True, default="", null=True),
-                ),
+                ("content_en", models.TextField(blank=True, default="", null=True)),
+                ("content_fr", models.TextField(blank=True, default="", null=True)),
+                ("content_de", models.TextField(blank=True, default="", null=True)),
+                ("content_nl", models.TextField(blank=True, default="", null=True)),
+                ("content_et", models.TextField(blank=True, default="", null=True)),
+                ("content_ca", models.TextField(blank=True, default="", null=True)),
+                ("content_es", models.TextField(blank=True, default="", null=True)),
                 (
                     "send_to",
                     models.CharField(
-                        choices=[
-                            ("primary", "Primary"),
-                            ("personal", "Personal"),
-                        ],
+                        choices=[("primary", "Primary"), ("personal", "Personal")],
                         default="primary",
                         max_length=8,
                     ),
@@ -120,6 +80,8 @@ class Migration(migrations.Migration):
                 ),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
             ],
-            options={"ordering": ["-created_at"]},
-        )
+            options={
+                "ordering": ["-created_at"],
+            },
+        ),
     ]

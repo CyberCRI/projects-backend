@@ -6,6 +6,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     dependencies = [
         ("accounts", "0003_peoplegroup_tags"),
         ("mistral", "0004_documentembedding"),
@@ -25,16 +26,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("last_update", models.DateTimeField(auto_now=True)),
-                (
-                    "embedding",
-                    pgvector.django.VectorField(dimensions=1024, null=True),
-                ),
+                ("embedding", pgvector.django.VectorField(dimensions=1024, null=True)),
                 ("is_visible", models.BooleanField(default=False)),
                 ("summary", models.TextField(blank=True)),
-                (
-                    "prompt_hashcode",
-                    models.CharField(default="", max_length=64),
-                ),
+                ("prompt_hashcode", models.CharField(default="", max_length=64)),
                 (
                     "item",
                     models.OneToOneField(
@@ -44,6 +39,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"abstract": False},
-        )
+            options={
+                "abstract": False,
+            },
+        ),
     ]

@@ -4,7 +4,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [("crisalid", "0002_crisalidconfig_and_more")]
+
+    dependencies = [
+        ("crisalid", "0002_crisalidconfig_and_more"),
+    ]
 
     operations = [
         migrations.AlterModelOptions(
@@ -12,11 +15,9 @@ class Migration(migrations.Migration):
             options={
                 "ordering": (
                     models.OrderBy(
-                        models.F("publication_date"),
-                        descending=True,
-                        nulls_last=True,
+                        models.F("publication_date"), descending=True, nulls_last=True
                     ),
                 )
             },
-        )
+        ),
     ]

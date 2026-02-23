@@ -4,6 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+
     initial = True
 
     dependencies = []
@@ -23,10 +24,7 @@ class Migration(migrations.Migration):
                 ),
                 ("task_name", models.CharField(max_length=100, unique=True)),
                 ("priority", models.IntegerField(default=99)),
-                (
-                    "task_id",
-                    models.CharField(blank=True, default="", max_length=100),
-                ),
+                ("task_id", models.CharField(blank=True, default="", max_length=100)),
                 (
                     "last_run_version",
                     models.CharField(blank=True, default="", max_length=255),
@@ -51,5 +49,5 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "Post deploy processes",
                 "ordering": ["priority"],
             },
-        )
+        ),
     ]
