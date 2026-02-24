@@ -49,10 +49,12 @@ class PeopleGroupModules(AbstractModules):
             )
             .annotate(
                 is_group_project=Case(
-                    When(id__in=group_projects_ids, then=True), default=Value(False)
+                    When(id__in=group_projects_ids, then=True),
+                    default=Value(False),
                 ),
                 is_featured=Case(
-                    When(people_groups=self.instance, then=True), default=Value(False)
+                    When(people_groups=self.instance, then=True),
+                    default=Value(False),
                 ),
             )
             .distinct()
@@ -79,8 +81,7 @@ class PeopleGroupModules(AbstractModules):
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()
         return Document.objects.filter(
-            document_type__in=documents_type,
-            contributors__user__in=members_qs,
+            document_type__in=documents_type, contributors__user__in=members_qs
         ).distinct()
 
     def publications(self) -> QuerySet[Document]:

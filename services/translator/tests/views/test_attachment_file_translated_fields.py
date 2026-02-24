@@ -49,7 +49,8 @@ class AttachmentFileTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(AttachmentFile._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(AttachmentFile._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -79,7 +80,8 @@ class AttachmentFileTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=file.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(AttachmentFile._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(AttachmentFile._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},

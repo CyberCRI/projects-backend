@@ -49,8 +49,7 @@ class CreateAnnouncementTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(self.project.id,)),
-            data=payload,
+            reverse("Announcement-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_201_CREATED:
@@ -125,10 +124,7 @@ class DeleteAnnouncementTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Announcement-detail",
-                args=(self.project.id, announcement.id),
-            ),
+            reverse("Announcement-detail", args=(self.project.id, announcement.id))
         )
         self.assertEqual(response.status_code, expected_status_code)
         if expected_status_code == status.HTTP_204_NO_CONTENT:
@@ -359,7 +355,11 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertSetEqual(
             {a["id"] for a in content},
-            {self.announcement_2.id, self.announcement_3.id, self.announcement_4.id},
+            {
+                self.announcement_2.id,
+                self.announcement_3.id,
+                self.announcement_4.id,
+            },
         )
 
     def test_filter_to_date_with_null(self):
@@ -372,7 +372,11 @@ class FilterOrderAnnouncementTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertSetEqual(
             {a["id"] for a in content},
-            {self.announcement_1.id, self.announcement_2.id, self.announcement_4.id},
+            {
+                self.announcement_1.id,
+                self.announcement_2.id,
+                self.announcement_4.id,
+            },
         )
 
     def test_order_by_deadline(self):

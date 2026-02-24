@@ -29,7 +29,6 @@ def get_random_binary_file(size: int = 128) -> bytes:
 
 
 class OrganizationAttachmentFileFactory(factory.django.DjangoModelFactory):
-
     organization = factory.LazyFunction(
         lambda: OrganizationFactory()
     )  # Subfactory seems to not trigger `create()`
@@ -51,7 +50,6 @@ class OrganizationAttachmentFileFactory(factory.django.DjangoModelFactory):
 
 
 class AttachmentFileFactory(factory.django.DjangoModelFactory):
-
     project = factory.LazyFunction(
         lambda: ProjectFactory()
     )  # Subfactory seems to not trigger `create()`

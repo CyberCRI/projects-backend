@@ -28,7 +28,9 @@ class PageInfoLimitOffsetPagination(LimitOffsetPagination):
     def get_last(self) -> str:
         url = self.request.build_absolute_uri()
         return replace_query_param(
-            url, self.offset_query_param, (self.get_total_page() - 1) * self.limit
+            url,
+            self.offset_query_param,
+            (self.get_total_page() - 1) * self.limit,
         )
 
     def get_first(self) -> str:
@@ -57,39 +59,21 @@ class PageInfoLimitOffsetPagination(LimitOffsetPagination):
         schema = super().get_paginated_response_schema(schema)
         schema["properties"].update(
             {
-                "total_page": {
-                    "type": "integer",
-                    "example": 123,
-                },
-                "current_page": {
-                    "type": "integer",
-                    "example": 123,
-                },
-                "next_page": {
-                    "type": "integer",
-                    "example": 123,
-                },
-                "previous_page": {
-                    "type": "integer",
-                    "example": 123,
-                },
+                "total_page": {"type": "integer", "example": 123},
+                "current_page": {"type": "integer", "example": 123},
+                "next_page": {"type": "integer", "example": 123},
+                "previous_page": {"type": "integer", "example": 123},
                 "last": {
                     "type": "string",
                     "nullable": False,
                     "format": "uri",
-                    "example": "http://api.example.org/accounts/?{offset_param}=400&{limit_param}=100".format(
-                        offset_param=self.offset_query_param,
-                        limit_param=self.limit_query_param,
-                    ),
+                    "example": f"http://api.example.org/accounts/?{self.offset_query_param}=400&{self.limit_query_param}=100",
                 },
                 "first": {
                     "type": "string",
                     "nullable": False,
                     "format": "uri",
-                    "example": "http://api.example.org/accounts/?{offset_param}=0&{limit_param}=100".format(
-                        offset_param=self.offset_query_param,
-                        limit_param=self.limit_query_param,
-                    ),
+                    "example": f"http://api.example.org/accounts/?{self.offset_query_param}=0&{self.limit_query_param}=100",
                 },
             }
         )

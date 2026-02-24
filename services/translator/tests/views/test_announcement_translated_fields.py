@@ -40,7 +40,8 @@ class AnnouncementTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Announcement._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(Announcement._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -69,7 +70,8 @@ class AnnouncementTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=announcement.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(Announcement._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(Announcement._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},

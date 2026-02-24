@@ -29,8 +29,7 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
             "email": faker.email(),
         }
         response = self.client.post(
-            reverse("PeopleGroup-list", args=(self.organization.code,)),
-            payload,
+            reverse("PeopleGroup-list", args=(self.organization.code,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -38,7 +37,8 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(PeopleGroup._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(PeopleGroup._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -55,12 +55,11 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            PeopleGroup._auto_translated_fields[0]: faker.word(),
-        }
+        payload = {PeopleGroup._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
+                "PeopleGroup-detail",
+                args=(self.organization.code, people_group.pk),
             ),
             data=payload,
         )
@@ -69,7 +68,8 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=people_group.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(PeopleGroup._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(PeopleGroup._auto_translated_fields),
         )
         for field in auto_translated_fields:
             if field.field_name in payload:
@@ -84,7 +84,8 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
         }
         response = self.client.patch(
             reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
+                "PeopleGroup-detail",
+                args=(self.organization.code, people_group.pk),
             ),
             data=payload,
         )
@@ -93,7 +94,8 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=people_group.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(PeopleGroup._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(PeopleGroup._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -114,7 +116,8 @@ class PeopleGroupTranslatedFieldsTestCase(JwtAPITestCase):
 
         response = self.client.delete(
             reverse(
-                "PeopleGroup-detail", args=(self.organization.code, people_group.pk)
+                "PeopleGroup-detail",
+                args=(self.organization.code, people_group.pk),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

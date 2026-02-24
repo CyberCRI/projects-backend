@@ -47,7 +47,8 @@ class StatsViewSet(mixins.ListModelMixin, GenericViewSet):
     def get_organization(self) -> Organization:
         organization_code = self.kwargs["organization_code"]
         return get_object_or_404(
-            Organization.objects.prefetch_related("projects"), code=organization_code
+            Organization.objects.prefetch_related("projects"),
+            code=organization_code,
         )
 
     def get_queryset(self):

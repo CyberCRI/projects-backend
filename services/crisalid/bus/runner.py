@@ -25,9 +25,7 @@ class OrganizationClient:
 
         self.logger.info("Start thread %s", thread_name)
         self.thread = threading.Thread(
-            target=self.client.connect,
-            name=thread_name,
-            daemon=True,
+            target=self.client.connect, name=thread_name, daemon=True
         )
         self.thread.start()
 

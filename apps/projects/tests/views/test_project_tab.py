@@ -190,7 +190,7 @@ class DeleteProjectTabTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         tab = ProjectTabFactory(project=self.project)
         response = self.client.delete(
-            reverse("ProjectTab-detail", args=(self.project.id, tab.id)),
+            reverse("ProjectTab-detail", args=(self.project.id, tab.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

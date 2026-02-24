@@ -66,7 +66,9 @@ class Notification(models.Model, HasOwner):
     created = models.DateTimeField(auto_now=True)
     reminder_message = models.CharField(max_length=255, blank=True, default="")
     type = models.CharField(
-        max_length=30, choices=Types.choices, default=Types.PROJECT_UPDATED.value
+        max_length=30,
+        choices=Types.choices,
+        default=Types.PROJECT_UPDATED.value,
     )
     context = models.JSONField(default=dict)
     count = models.IntegerField(default=1)

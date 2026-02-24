@@ -50,7 +50,9 @@ class RetrieveNotificationSettingsTestCase(JwtAPITestCase):
         self, role, retrieved_notification_settings
     ):
         user = self.get_parameterized_test_user(
-            role, instances=[self.organization], owned_instance=self.private_user
+            role,
+            instances=[self.organization],
+            owned_instance=self.private_user,
         )
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():

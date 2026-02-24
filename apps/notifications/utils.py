@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
 
 from django.conf import settings
 from django.db.models import Q
@@ -30,9 +30,9 @@ class NotificationTaskManager:
 
     def __init__(
         self,
-        sender: Optional[ProjectUser],
-        item: Optional[Union[Project, ProjectRelated, OrganizationRelated]] = None,
-        organization: Optional[Organization] = None,
+        sender: ProjectUser | None,
+        item: Project | ProjectRelated | OrganizationRelated | None = None,
+        organization: Organization | None = None,
         **kwargs,
     ):
         self.sender = sender
@@ -64,7 +64,7 @@ class NotificationTaskManager:
             **kwargs,
         }
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         """
         Return the recipients of the notification.
         """
@@ -87,7 +87,9 @@ class NotificationTaskManager:
             {"recipient": recipient, **context}, recipient.language
         )
         subject, _ = render_message(
-            f"{self.template_dir}/object", recipient.language, **recipient_context
+            f"{self.template_dir}/object",
+            recipient.language,
+            **recipient_context,
         )
         text, html = render_message(
             f"{self.template_dir}/mail", recipient.language, **recipient_context
@@ -95,8 +97,8 @@ class NotificationTaskManager:
         send_email(subject, text, [recipient.email], html_content=html)
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         """
         Return the context to be passed to the templates.
         """
@@ -104,8 +106,8 @@ class NotificationTaskManager:
 
     @staticmethod
     def merge_context_lists(
-        current_value: List[Any], new_value: List[Any]
-    ) -> Dict[str, Any]:
+        current_value: list[Any], new_value: list[Any]
+    ) -> dict[str, Any]:
         """
         Return the context to be passed to the front.
         """
@@ -128,7 +130,9 @@ class NotificationTaskManager:
             to_send &= self.project.get_all_members().filter(id=recipient.id).exists()
             to_send |= (
                 getattr(
-                    recipient.notification_settings, self.follower_setting_name, False
+                    recipient.notification_settings,
+                    self.follower_setting_name,
+                    False,
                 )
                 and Follow.objects.filter(
                     project=self.project, follower=recipient
@@ -214,7 +218,11 @@ class NotificationTaskManager:
                 )
         notification.context = context
         notification.save()
-        context = {"count": notification.count, **self.template_context, **context}
+        context = {
+            "count": notification.count,
+            **self.template_context,
+            **context,
+        }
         return notification, context
 
     def create_and_send_notifications(self) -> None:
@@ -235,7 +243,7 @@ class ProjectCreatedNotificationManager(NotificationTaskManager):
     merge = False
     notify_followers = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return (
             ProjectUser.objects.filter(
                 category_follows__category__id__in=get_above_categories_hierarchy_ids(
@@ -247,8 +255,8 @@ class ProjectCreatedNotificationManager(NotificationTaskManager):
         )
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         category_pk = context.get("category_pk")
         if category_pk:
             category = self.project.categories.get(pk=category_pk)
@@ -263,7 +271,7 @@ class ProjectEditedNotificationManager(NotificationTaskManager):
     template_dir = "project_edited"
     notify_followers = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return (
             (
                 self.project.get_all_members()
@@ -281,8 +289,8 @@ class ProjectEditedNotificationManager(NotificationTaskManager):
         )
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         join_word = _(" and ")
         updated_fields = context.get("updated_fields", [])
         with translation.override(language):
@@ -301,7 +309,7 @@ class BlogEntryNotificationManager(NotificationTaskManager):
     template_dir = "new_blogentry"
     notify_followers = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return (
             (
                 self.project.get_all_members()
@@ -325,7 +333,7 @@ class AnnouncementNotificationManager(NotificationTaskManager):
     template_dir = "new_announcement"
     notify_followers = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return (
             (
                 self.project.get_all_members()
@@ -351,12 +359,12 @@ class ApplicationNotificationManager(NotificationTaskManager):
     send_immediately = True
     merge = False
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.project.get_all_members()
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         return {"announcement_title": self.item.title, **context}
 
 
@@ -366,7 +374,7 @@ class CommentNotificationManager(NotificationTaskManager):
     template_dir = "new_comment"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         recipients = self.project.get_all_members().exclude(id=self.sender.id)
         if self.item.reply_on is not None:
             return recipients.exclude(id=self.item.reply_on.author.id).distinct()
@@ -379,7 +387,7 @@ class FollowerCommentNotificationManager(NotificationTaskManager):
     template_dir = "new_comment"
     notify_followers = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         recipients = ProjectUser.objects.filter(
             Q(follows__project=self.project)
             | Q(
@@ -399,7 +407,7 @@ class CommentReplyNotificationManager(NotificationTaskManager):
     template_dir = "new_reply"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         if self.item.reply_on is not None:
             return [self.item.reply_on.author]
         return []
@@ -411,7 +419,7 @@ class ReadyForReviewNotificationManager(NotificationTaskManager):
     template_dir = "project_ready_for_review"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.project.reviewers.all().exclude(id=self.sender.id).distinct()
 
 
@@ -422,7 +430,7 @@ class ReviewNotificationManager(NotificationTaskManager):
     notify_followers = True
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return (
             (
                 self.project.get_all_members()
@@ -447,7 +455,7 @@ class PrivateMessageNotificationManager(NotificationTaskManager):
     notify_followers = False
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.project.get_all_members().exclude(id=self.sender.id).distinct()
 
 
@@ -456,7 +464,7 @@ class DeleteMembersNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.MEMBER_REMOVED
     template_dir = "member_removed_other"
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.project.get_all_members().exclude(id=self.sender.id).distinct()
 
 
@@ -465,7 +473,7 @@ class DeleteGroupMembersNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.GROUP_MEMBER_REMOVED
     template_dir = "group_member_removed_other"
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.project.get_all_members().exclude(id=self.sender.id).distinct()
 
 
@@ -474,7 +482,7 @@ class UpdateMembersNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.MEMBER_UPDATED
     template_dir = "member_updated_other"
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         ids = [
             self.sender.id,
             *[m["id"] for m in self.base_context["modified_members"]],
@@ -482,9 +490,8 @@ class UpdateMembersNotificationManager(NotificationTaskManager):
         return self.project.get_all_members().exclude(id__in=ids).distinct()
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
-
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         modified_members = context.get("modified_members", [])
         with translation.override(language):
             modified_members = [
@@ -500,13 +507,13 @@ class UpdatedMemberNotificationManager(NotificationTaskManager):
     template_dir = "member_updated_self"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         ids = [m["id"] for m in self.base_context["modified_members"]]
         return ProjectUser.objects.filter(id__in=ids).exclude(id=self.sender.id)
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         modified_members = context.get("modified_members", [{}])
         with translation.override(language):
             role = translation.gettext(_(modified_members[0].get("role")))
@@ -518,7 +525,7 @@ class AddMembersNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.MEMBER_ADDED
     template_dir = "member_added_other"
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         ids = [
             self.sender.id,
             *[m["id"] for m in self.base_context["new_members"]],
@@ -532,7 +539,7 @@ class AddMemberNotificationManager(NotificationTaskManager):
     template_dir = "member_added_self"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         ids = [m["id"] for m in self.base_context["new_members"]]
         return ProjectUser.objects.filter(id__in=ids).exclude(id=self.sender.id)
 
@@ -542,10 +549,8 @@ class AddGroupMembersNotificationManager(NotificationTaskManager):
     notification_type = Notification.Types.GROUP_MEMBER_ADDED
     template_dir = "group_member_added_other"
 
-    def get_recipients(self) -> List[ProjectUser]:
-        ids = self.base_context["new_members"] + [
-            self.sender.id,
-        ]
+    def get_recipients(self) -> list[ProjectUser]:
+        ids = self.base_context["new_members"] + [self.sender.id]
         return self.project.get_all_members().exclude(id__in=ids).distinct()
 
 
@@ -555,7 +560,7 @@ class AddGroupMemberNotificationManager(NotificationTaskManager):
     template_dir = "group_member_added_self"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return ProjectUser.objects.filter(
             id__in=self.base_context["new_members"]
         ).exclude(id=self.sender.id)
@@ -567,12 +572,12 @@ class NewAccessRequestNotificationManager(NotificationTaskManager):
     template_dir = "new_access_request"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.organization.admins.all()
 
     def format_context_for_template(
-        self, context: Dict[str, Any], language: str
-    ) -> Dict[str, Any]:
+        self, context: dict[str, Any], language: str
+    ) -> dict[str, Any]:
         if self.item.user:
             return {
                 **context,
@@ -598,7 +603,7 @@ class PendingAccessRequestsNotificationManager(NotificationTaskManager):
     template_dir = "pending_access_request"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.organization.admins.all()
 
 
@@ -609,7 +614,7 @@ class InvitationExpiresTodayNotificationManager(NotificationTaskManager):
     send_immediately = True
     merge = False
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.organization.admins.all()
 
 
@@ -620,7 +625,7 @@ class InvitationExpiresInOneWeekNotificationManager(NotificationTaskManager):
     send_immediately = True
     merge = False
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         return self.organization.admins.all()
 
 
@@ -630,7 +635,7 @@ class NewInstructionNotificationManager(NotificationTaskManager):
     template_dir = "new_instruction"
     send_immediately = True
 
-    def get_recipients(self) -> List[ProjectUser]:
+    def get_recipients(self) -> list[ProjectUser]:
         if self.item.people_groups.exists():
             queryset = ProjectUser.objects.filter(
                 groups__people_groups__in=self.item.people_groups.all()

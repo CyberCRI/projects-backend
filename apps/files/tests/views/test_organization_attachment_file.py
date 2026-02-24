@@ -44,7 +44,10 @@ class CreateOrganizationAttachmentFileTestCase(JwtAPITestCase):
             "attachment_type": AttachmentType.FILE,
         }
         response = self.client.post(
-            reverse("OrganizationAttachmentFile-list", args=(self.organization.code,)),
+            reverse(
+                "OrganizationAttachmentFile-list",
+                args=(self.organization.code,),
+            ),
             data=payload,
             format="multipart",
         )
@@ -140,32 +143,24 @@ class ReadOrganizationAttachmentFileTestCase(JwtAPITestCase):
             2, organization=cls.organization_2
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_list_organization_attachment_file_unauthorized(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("OrganizationAttachmentFile-list", args=(self.organization.code,))
+            reverse(
+                "OrganizationAttachmentFile-list",
+                args=(self.organization.code,),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.files))
         self.assertSetEqual(
-            {file["id"] for file in content},
-            {file.id for file in self.files},
+            {file["id"] for file in content}, {file.id for file in self.files}
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_organization_attachment_file_unauthorized(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
@@ -202,7 +197,10 @@ class ValidateAttachmentFileTestCase(JwtAPITestCase):
             ),
         }
         response = self.client.post(
-            reverse("OrganizationAttachmentFile-list", args=(self.organization.code,)),
+            reverse(
+                "OrganizationAttachmentFile-list",
+                args=(self.organization.code,),
+            ),
             data=payload,
             format="multipart",
         )

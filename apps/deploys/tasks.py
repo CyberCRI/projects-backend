@@ -91,7 +91,7 @@ def reassign_projects_permissions():
             (GroupData.Role.REVIEWER_GROUPS, reviewers_permissions),
             (GroupData.Role.MEMBERS, members_permissions),
             (GroupData.Role.MEMBER_GROUPS, members_permissions),
-        ),
+        )
     )
 
 
@@ -106,7 +106,7 @@ def reassign_people_groups_permissions():
             (GroupData.Role.LEADERS, leaders_permissions),
             (GroupData.Role.MANAGERS, managers_permissions),
             (GroupData.Role.MEMBERS, members_permissions),
-        ),
+        )
     )
 
 
@@ -123,10 +123,11 @@ def reassign_organizations_permissions():
             (GroupData.Role.FACILITATORS, facilitators_permissions),
             (GroupData.Role.USERS, users_permissions),
             (GroupData.Role.VIEWERS, viewers_permissions),
-        ),
+        )
     )
     # Additionally, setup global admin permissions
     for organization in Organization.objects.all():
         organization.setup_group_global_permissions(
-            organization.get_admins(), organization.get_global_admins_permissions()
+            organization.get_admins(),
+            organization.get_global_admins_permissions(),
         )

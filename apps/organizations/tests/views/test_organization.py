@@ -70,7 +70,7 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             "background_color": faker.color(),
             "logo_image_id": self.logo_image.id,
             "language": language,
-            "languages": list(set([language, random.choice(Language.values)])),  # nosec
+            "languages": list({language, random.choice(Language.values)}),  # nosec
             "is_logo_visible_on_parent_dashboard": faker.boolean(),
             "access_request_enabled": faker.boolean(),
             "onboarding_enabled": faker.boolean(),
@@ -115,13 +115,15 @@ class CreateOrganizationTestCase(JwtAPITestCase):
             )
             self.assertEqual(content["parent_code"], self.parent.code)
             self.assertEqual(
-                content["access_request_enabled"], payload["access_request_enabled"]
+                content["access_request_enabled"],
+                payload["access_request_enabled"],
             )
             self.assertEqual(
                 content["onboarding_enabled"], payload["onboarding_enabled"]
             )
             self.assertEqual(
-                content["force_login_form_display"], payload["force_login_form_display"]
+                content["force_login_form_display"],
+                payload["force_login_form_display"],
             )
             self.assertFalse(content["auto_translate_content"])
             self.assertSetEqual(
@@ -163,12 +165,7 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_organization(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
@@ -179,12 +176,7 @@ class ReadOrganizationTestCase(JwtAPITestCase):
         content = response.json()
         self.assertEqual(content["code"], self.organization.code)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_list_organization(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
@@ -248,7 +240,8 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
             "default_skills_tags": [t.id for t in self.default_skills_tags],
         }
         response = self.client.patch(
-            reverse("Organization-detail", args=(self.organization.code,)), data=payload
+            reverse("Organization-detail", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -270,13 +263,15 @@ class UpdateOrganizationTestCase(JwtAPITestCase):
                 payload["is_logo_visible_on_parent_dashboard"],
             )
             self.assertEqual(
-                content["access_request_enabled"], payload["access_request_enabled"]
+                content["access_request_enabled"],
+                payload["access_request_enabled"],
             )
             self.assertEqual(
                 content["onboarding_enabled"], payload["onboarding_enabled"]
             )
             self.assertEqual(
-                content["force_login_form_display"], payload["force_login_form_display"]
+                content["force_login_form_display"],
+                payload["force_login_form_display"],
             )
             self.assertSetEqual(
                 {c["id"] for c in content["enabled_projects_tag_classifications"]},
@@ -357,7 +352,8 @@ class OrganizationMembersTestCase(JwtAPITestCase):
             "facilitators": [f.id for f in self.facilitators],
         }
         response = self.client.post(
-            reverse("Organization-add-member", args=(organization.code,)), data=payload
+            reverse("Organization-add-member", args=(organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -386,7 +382,7 @@ class OrganizationMembersTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         payload = {
-            "users": [u.id for u in self.users + self.admins + self.facilitators],
+            "users": [u.id for u in self.users + self.admins + self.facilitators]
         }
         response = self.client.post(
             reverse("Organization-remove-member", args=(organization.code,)),
@@ -440,10 +436,7 @@ class OrganizationFeaturedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"featured_projects_ids": [p.pk for p in projects.values()]}
         response = self.client.post(
-            reverse(
-                "Organization-add-featured-project",
-                args=([organization.code]),
-            ),
+            reverse("Organization-add-featured-project", args=([organization.code])),
             payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -600,8 +593,14 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
 
     @parameterized.expand(
         [
-            (TestRoles.ANONYMOUS, ("root", "level_1_public", "level_2_public_public")),
-            (TestRoles.DEFAULT, ("root", "level_1_public", "level_2_public_public")),
+            (
+                TestRoles.ANONYMOUS,
+                ("root", "level_1_public", "level_2_public_public"),
+            ),
+            (
+                TestRoles.DEFAULT,
+                ("root", "level_1_public", "level_2_public_public"),
+            ),
             (
                 TestRoles.SUPERADMIN,
                 (
@@ -732,7 +731,10 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Organization-people-groups-hierarchy", args=([organization.code]))
+            reverse(
+                "Organization-people-groups-hierarchy",
+                args=([organization.code]),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         groups = [response.json()]
@@ -853,9 +855,7 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
         tag_classification = TagClassification.get_or_create_default_classification(
             TagClassification.TagClassificationType.WIKIPEDIA
         )
-        payload = {
-            "default_projects_tag_classification": tag_classification.id,
-        }
+        payload = {"default_projects_tag_classification": tag_classification.id}
         response = self.client.patch(
             reverse("Organization-detail", args=(organization.code,)),
             data=payload,
@@ -870,7 +870,9 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
             },
         )
 
-    def test_update_with_removed_enable_default_projects_tag_classification(self):
+    def test_update_with_removed_enable_default_projects_tag_classification(
+        self,
+    ):
         self.client.force_authenticate(self.superadmin)
         organization = OrganizationFactory()
         tag_classification = TagClassification.get_or_create_default_classification(
@@ -928,9 +930,7 @@ class ValidateOrganizationTestCase(JwtAPITestCase):
         tag_classification = TagClassification.get_or_create_default_classification(
             TagClassification.TagClassificationType.WIKIPEDIA
         )
-        payload = {
-            "default_skills_tag_classification": tag_classification.id,
-        }
+        payload = {"default_skills_tag_classification": tag_classification.id}
         response = self.client.patch(
             reverse("Organization-detail", args=(organization.code,)),
             data=payload,
@@ -996,10 +996,7 @@ class MiscOrganizationTestCase(JwtAPITestCase):
         organization = OrganizationFactory()
         roles_names = [r.name for r in organization.groups.all()]
         response = self.client.delete(
-            reverse(
-                "Organization-detail",
-                args=(organization.code,),
-            )
+            reverse("Organization-detail", args=(organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(Group.objects.filter(name__in=roles_names).exists())

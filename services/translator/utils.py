@@ -102,7 +102,10 @@ def update_auto_translated_field(field: AutoTranslatedField):
                                 )
                             )
                             chunk_translations.append(
-                                {"to": lang, "text": lang_chunk_translation[0]["text"]}
+                                {
+                                    "to": lang,
+                                    "text": lang_chunk_translation[0]["text"],
+                                }
                             )
                             detected_languages.append(detected_language)
                     else:

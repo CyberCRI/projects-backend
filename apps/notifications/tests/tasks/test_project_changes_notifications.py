@@ -9,7 +9,10 @@ from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import _notify_new_blogentry, _notify_project_changes
+from apps.notifications.tasks import (
+    _notify_new_blogentry,
+    _notify_project_changes,
+)
 from apps.organizations.factories import (
     CategoryFollowFactory,
     OrganizationFactory,
@@ -46,8 +49,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         self.client.force_authenticate(owner)
         payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)),
-            data=payload,
+            reverse("Project-detail", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         notification_task.assert_called_once_with(
@@ -84,9 +86,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk,
-            {"title": (project.title, faker.sentence())},
-            sender.pk,
+            project.pk, {"title": (project.title, faker.sentence())}, sender.pk
         )
 
         notifications = Notification.objects.filter(project=project)
@@ -146,9 +146,7 @@ class ProjectChangesTestCase(JwtAPITestCase):
         not_notified.notification_settings.save()
 
         _notify_project_changes(
-            project.pk,
-            {"title": (project.title, faker.sentence())},
-            sender.pk,
+            project.pk, {"title": (project.title, faker.sentence())}, sender.pk
         )
         _notify_project_changes(
             project.pk,

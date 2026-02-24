@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from django.db.models import BigIntegerField, Case, F, JSONField, Q, Value, When
 from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter
@@ -15,8 +13,8 @@ from .models import SearchObject
 
 def MultiMatchSearchFieldsFilter(  # noqa: N802
     index: str,
-    fields: Optional[List[str]],
-    highlight: Optional[List[str]] = None,
+    fields: list[str] | None,
+    highlight: list[str] | None = None,
     highlight_size: int = 150,
 ):
     class _MultiMatchSearchFieldsFilter(SearchFilter):
@@ -59,7 +57,7 @@ def MultiMatchSearchFieldsFilter(  # noqa: N802
                                     ),
                                 )
                                 for hit in response.hits
-                            ],
+                            ]
                         )
                     )
                 return queryset.order_by("ordering")
@@ -70,8 +68,8 @@ def MultiMatchSearchFieldsFilter(  # noqa: N802
 
 def MultiMatchPrefixSearchFieldsFilter(  # noqa: N802
     index: str,
-    fields: Optional[List[str]],
-    highlight: Optional[List[str]] = None,
+    fields: list[str] | None,
+    highlight: list[str] | None = None,
     highlight_size: int = 150,
 ):
     class _MultiMatchPrefixSearchFieldsFilter(SearchFilter):
@@ -114,7 +112,7 @@ def MultiMatchPrefixSearchFieldsFilter(  # noqa: N802
                                     ),
                                 )
                                 for hit in response.hits
-                            ],
+                            ]
                         )
                     )
                 return queryset.order_by("ordering")
@@ -223,10 +221,7 @@ class SearchObjectFilter(filters.FilterSet):
             SearchObject.SearchObjectType.PEOPLE_GROUP,
         ]
         return queryset.filter(
-            Q(
-                user__skills__can_mentor=True,
-                user__skills__tag__id__in=value,
-            )
+            Q(user__skills__can_mentor=True, user__skills__tag__id__in=value)
             | Q(type__in=unaffected_types)
         ).distinct()
 
@@ -236,10 +231,7 @@ class SearchObjectFilter(filters.FilterSet):
             SearchObject.SearchObjectType.PEOPLE_GROUP,
         ]
         return queryset.filter(
-            Q(
-                user__skills__needs_mentor=True,
-                user__skills__tag__id__in=value,
-            )
+            Q(user__skills__needs_mentor=True, user__skills__tag__id__in=value)
             | Q(type__in=unaffected_types)
         ).distinct()
 

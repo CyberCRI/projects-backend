@@ -158,11 +158,7 @@ class NewsViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
+            self.request.data.update({"organization": self.kwargs["organization_code"]})
         return super().get_serializer(*args, **kwargs)
 
 
@@ -266,11 +262,7 @@ class InstructionViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
+            self.request.data.update({"organization": self.kwargs["organization_code"]})
         return super().get_serializer(*args, **kwargs)
 
     def get_queryset(self) -> QuerySet[Instruction]:
@@ -368,11 +360,7 @@ class EventViewSet(viewsets.ModelViewSet):
         Force the usage of the organization code from the url in the serializer
         """
         if self.action in ["create", "update", "partial_update"]:
-            self.request.data.update(
-                {
-                    "organization": self.kwargs["organization_code"],
-                }
-            )
+            self.request.data.update({"organization": self.kwargs["organization_code"]})
         return super().get_serializer(*args, **kwargs)
 
 

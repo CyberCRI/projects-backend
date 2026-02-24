@@ -50,19 +50,13 @@ class VectorizeUserProjectsTestCase(JwtAPITestCase, MistralTestCaseMixin):
         ]
 
         cls.embedding_1 = ProjectEmbeddingFactory(
-            item=cls.project_1,
-            is_visible=True,
-            embedding=cls.vector_1,
+            item=cls.project_1, is_visible=True, embedding=cls.vector_1
         )
         cls.embedding_2 = ProjectEmbeddingFactory(
-            item=cls.project_2,
-            is_visible=True,
-            embedding=cls.vector_2,
+            item=cls.project_2, is_visible=True, embedding=cls.vector_2
         )
         cls.embedding_3 = ProjectEmbeddingFactory(
-            item=cls.project_3,
-            is_visible=True,
-            embedding=cls.vector_3,
+            item=cls.project_3, is_visible=True, embedding=cls.vector_3
         )
 
     def test_vectorize_user_projects(self):

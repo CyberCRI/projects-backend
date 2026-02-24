@@ -139,7 +139,10 @@ class Project(
         TO_REVIEW = "toreview"
 
     id = models.CharField(
-        primary_key=True, auto_created=True, default=uuid_generator, max_length=8
+        primary_key=True,
+        auto_created=True,
+        default=uuid_generator,
+        max_length=8,
     )
     title = models.CharField(max_length=255, verbose_name=_("title"))
     slug = models.SlugField(unique=True)
@@ -195,7 +198,10 @@ class Project(
         verbose_name=_("sustainable development goals"),
     )
     template = models.ForeignKey(
-        "organizations.Template", on_delete=models.SET_NULL, null=True, blank=True
+        "organizations.Template",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     groups = models.ManyToManyField(Group, related_name="projects")
     history = HistoricalRecords(
@@ -435,7 +441,12 @@ class Project(
         if user:
             owners.users.add(user)
         self.groups.add(
-            owners, reviewers, members, owner_groups, reviewer_groups, member_groups
+            owners,
+            reviewers,
+            members,
+            owner_groups,
+            reviewer_groups,
+            member_groups,
         )
         self.permissions_up_to_date = True
         self.save(update_fields=["permissions_up_to_date"])
@@ -702,12 +713,7 @@ class LinkedProject(models.Model, ProjectRelated):
         return self.target.get_related_organizations()
 
 
-class BlogEntry(
-    HasAutoTranslatedFields,
-    ProjectRelated,
-    DuplicableModel,
-    models.Model,
-):
+class BlogEntry(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Model):
     """A blog entry in a project.
 
     Attributes
@@ -785,12 +791,7 @@ class BlogEntry(
         return blog_entry
 
 
-class Goal(
-    HasAutoTranslatedFields,
-    ProjectRelated,
-    DuplicableModel,
-    models.Model,
-):
+class Goal(HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Model):
     """Goal of a project.
 
     Attributes
@@ -850,11 +851,7 @@ class Goal(
         return self.project
 
 
-class AbstractLocation(
-    HasAutoTranslatedFields,
-    DuplicableModel,
-    models.Model,
-):
+class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
     """A project location on Earth.
 
     Attributes
@@ -892,9 +889,7 @@ class AbstractLocation(
     lat = models.FloatField()
     lng = models.FloatField()
     type = models.CharField(
-        max_length=10,
-        choices=LocationType.choices,
-        default=LocationType.TEAM,
+        max_length=10, choices=LocationType.choices, default=LocationType.TEAM
     )
 
 
@@ -923,12 +918,7 @@ class Location(ProjectRelated, AbstractLocation):
         return self.project.get_related_organizations()
 
 
-class ProjectMessage(
-    HasAutoTranslatedFields,
-    ProjectRelated,
-    HasOwner,
-    models.Model,
-):
+class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.Model):
     """
     A message in a project.
 
@@ -955,9 +945,7 @@ class ProjectMessage(
     auto_translated_fields: list[str] = ["html:content"]
 
     project = models.ForeignKey(
-        "projects.Project",
-        on_delete=models.CASCADE,
-        related_name="messages",
+        "projects.Project", on_delete=models.CASCADE, related_name="messages"
     )
     author = models.ForeignKey(
         "accounts.ProjectUser",
@@ -1005,11 +993,7 @@ class ProjectMessage(
         return self.author == user
 
 
-class ProjectTab(
-    HasAutoTranslatedFields,
-    ProjectRelated,
-    models.Model,
-):
+class ProjectTab(HasAutoTranslatedFields, ProjectRelated, models.Model):
     """A tab in the project page.
 
     Attributes
@@ -1033,7 +1017,9 @@ class ProjectTab(
         BLOG = "blog"
 
     project = models.ForeignKey(
-        "projects.Project", on_delete=models.CASCADE, related_name="additional_tabs"
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="additional_tabs",
     )
     type = models.CharField(
         max_length=32, choices=TabType.choices, default=TabType.TEXT
@@ -1052,11 +1038,7 @@ class ProjectTab(
         return self.project.get_related_organizations()
 
 
-class ProjectTabItem(
-    HasAutoTranslatedFields,
-    ProjectRelated,
-    models.Model,
-):
+class ProjectTabItem(HasAutoTranslatedFields, ProjectRelated, models.Model):
     """An item in a project tab.
 
     Attributes

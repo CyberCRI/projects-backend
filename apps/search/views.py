@@ -37,10 +37,7 @@ class SearchViewSet(ListViewSet):
                 | (Q(type=SearchObject.SearchObjectType.USER) & Q(user__in=users))
             )
             .select_related("user", "project__header_image", "people_group")
-            .prefetch_related(
-                "people_group__organization",
-                "project__categories",
-            )
+            .prefetch_related("people_group__organization", "project__categories")
         )
         if order:
             return queryset.order_by(F("last_update").desc(nulls_last=True))
@@ -137,7 +134,8 @@ class SearchViewSet(ListViewSet):
         ]
         # sort filtered_search_object by hits index
         ordered_search_objs = sorted(
-            filtered_search_object, key=lambda obj: search_objects_ids.index(obj.id)
+            filtered_search_object,
+            key=lambda obj: search_objects_ids.index(obj.id),
         )
 
         self.pagination_class = SearchPagination(response.hits.total.value)

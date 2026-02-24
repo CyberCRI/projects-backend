@@ -7,7 +7,10 @@ from apps.commons.test import JwtAPITestCase
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 from apps.skills.factories import SkillFactory
-from services.mistral.factories import ProjectEmbeddingFactory, UserEmbeddingFactory
+from services.mistral.factories import (
+    ProjectEmbeddingFactory,
+    UserEmbeddingFactory,
+)
 from services.mistral.testcases import MistralTestCaseMixin
 
 faker = Faker()

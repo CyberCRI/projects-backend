@@ -86,9 +86,7 @@ class PeopleGroupIndexUpdateSignalTestCase(JwtAPITestCase):
         mocked_update.side_effect = self.mocked_update
 
         self.client.force_authenticate(self.superadmin)
-        payload = {
-            "users": [self.member_to_remove.id],
-        }
+        payload = {"users": [self.member_to_remove.id]}
         response = self.client.post(
             reverse(
                 "PeopleGroup-remove-member",

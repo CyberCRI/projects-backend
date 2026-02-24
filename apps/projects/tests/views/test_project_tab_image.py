@@ -261,10 +261,7 @@ class DeleteProjectTabImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "ProjectTab-images-detail",
-                args=(self.project.id, image.id),
-            ),
+            reverse("ProjectTab-images-detail", args=(self.project.id, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

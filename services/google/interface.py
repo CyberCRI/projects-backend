@@ -169,10 +169,7 @@ class GoogleService:
         return (
             cls.service()
             .users()
-            .update(
-                userKey=google_account.google_id,
-                body=body,
-            )
+            .update(userKey=google_account.google_id, body=body)
             .execute()
         )
 
@@ -346,7 +343,10 @@ class GoogleService:
         return (
             cls.service()
             .members()
-            .delete(groupKey=google_group.google_id, memberKey=google_account.google_id)
+            .delete(
+                groupKey=google_group.google_id,
+                memberKey=google_account.google_id,
+            )
             .execute()
         )
 
@@ -355,7 +355,11 @@ class GoogleService:
         org_units = (
             cls.service()
             .orgunits()
-            .list(customerId=settings.GOOGLE_CUSTOMER_ID, orgUnitPath="", type="all")
+            .list(
+                customerId=settings.GOOGLE_CUSTOMER_ID,
+                orgUnitPath="",
+                type="all",
+            )
             .execute()
         )
         return [org_unit["orgUnitPath"] for org_unit in org_units["organizationUnits"]]

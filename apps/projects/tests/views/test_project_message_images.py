@@ -48,8 +48,9 @@ class RetrieveProjectMessageImageTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         response = self.client.get(
             reverse(
-                "ProjectMessage-images-detail", args=(self.project.id, self.image.id)
-            ),
+                "ProjectMessage-images-detail",
+                args=(self.project.id, self.image.id),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
 
@@ -203,10 +204,7 @@ class DeleteProjectMessageImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "ProjectMessage-images-detail",
-                args=(self.project.id, image.id),
-            ),
+            reverse("ProjectMessage-images-detail", args=(self.project.id, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

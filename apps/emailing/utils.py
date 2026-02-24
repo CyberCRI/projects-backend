@@ -1,6 +1,5 @@
 import logging
 import smtplib
-from typing import List, Optional, Union
 
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
@@ -14,11 +13,11 @@ logger = logging.getLogger(__name__)
 def send_email(
     subject: str,
     text_content: str,
-    to: List[str],
+    to: list[str],
     from_email: str = settings.EMAIL_HOST_USER,
-    html_content: Optional[str] = None,
-    reply_to: Optional[List[str]] = None,
-    cc: Optional[List[str]] = None,
+    html_content: str | None = None,
+    reply_to: list[str] | None = None,
+    cc: list[str] | None = None,
 ):
     try:
         message = EmailMultiAlternatives(
@@ -39,13 +38,13 @@ def send_email(
 def send_email_with_attached_file(
     subject: str,
     text_content: str,
-    to: List[str],
-    file: Union[str, bytes],
+    to: list[str],
+    file: str | bytes,
     file_type: str,
     from_email: str = settings.EMAIL_HOST_USER,
-    html_content: Optional[str] = None,
-    reply_to: Optional[List[str]] = None,
-    cc: Optional[List[str]] = None,
+    html_content: str | None = None,
+    reply_to: list[str] | None = None,
+    cc: list[str] | None = None,
 ):
     try:
         message = EmailMultiAlternatives(
@@ -85,7 +84,7 @@ def render_message(template_name: str, language: str = "en", **kwargs):
 
     Returns
     -------
-    Tuple[str, Optional[str]]
+    Tuple[str, str | None]
         A tuple `(text_content, html_content)` where `text_content` is the
         rendered text and `html_content` the rendered HTML (`None` if no HTML
         template was found).

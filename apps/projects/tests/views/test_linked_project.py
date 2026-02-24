@@ -68,8 +68,14 @@ class CreateLinkedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {
             "projects": [
-                {"project_id": self.linked_project_1.id, "target_id": project.id},
-                {"project_id": self.linked_project_2.id, "target_id": project.id},
+                {
+                    "project_id": self.linked_project_1.id,
+                    "target_id": project.id,
+                },
+                {
+                    "project_id": self.linked_project_2.id,
+                    "target_id": project.id,
+                },
             ]
         }
         response = self.client.post(
@@ -138,7 +144,8 @@ class DeleteLinkedProjectTestCase(JwtAPITestCase):
         instance_2 = LinkedProjectFactory(target=project, project=self.linked_project_2)
         payload = {"project_ids": [self.linked_project_1.id, self.linked_project_2.id]}
         response = self.client.delete(
-            reverse("LinkedProjects-delete-many", args=(project.id,)), data=payload
+            reverse("LinkedProjects-delete-many", args=(project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:

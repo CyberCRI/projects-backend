@@ -90,24 +90,19 @@ class NewsfeedTestCase(JwtAPITestCase):
 
         # Announcements that will be returned if they are visible by the user
         cls.member_announcement = AnnouncementFactory(
-            project=cls.announcement_member_project,
-            updated_at=cls.date_1,
+            project=cls.announcement_member_project, updated_at=cls.date_1
         )
         cls.org_announcement = AnnouncementFactory(
-            project=cls.announcement_org_project,
-            updated_at=cls.date_2,
+            project=cls.announcement_org_project, updated_at=cls.date_2
         )
         cls.private_announcement = AnnouncementFactory(
-            project=cls.announcement_private_project,
-            updated_at=cls.date_3,
+            project=cls.announcement_private_project, updated_at=cls.date_3
         )
         cls.public_announcement = AnnouncementFactory(
-            project=cls.announcement_public_project,
-            updated_at=cls.date_4,
+            project=cls.announcement_public_project, updated_at=cls.date_4
         )
         cls.public_not_complete_announcement = AnnouncementFactory(
-            project=cls.public_project_not_complete,
-            updated_at=cls.date_5,
+            project=cls.public_project_not_complete, updated_at=cls.date_5
         )
         cls.expired_announcement = AnnouncementFactory(
             project=cls.public_project,
@@ -298,7 +293,8 @@ class NewsfeedTestCase(JwtAPITestCase):
     )
     def test_newsfeed(self, role, retrieved_newsfeed):
         user = self.get_parameterized_test_user(
-            role, instances=[self.member_project, self.announcement_member_project]
+            role,
+            instances=[self.member_project, self.announcement_member_project],
         )
         self.client.force_authenticate(user)
         response = self.client.get(

@@ -12,11 +12,7 @@ class SetFilesHashTestCase(JwtAPITestCase):
     @staticmethod
     def call_command():
         out = StringIO()
-        call_command(
-            "set_files_hash",
-            stdout=out,
-            stderr=StringIO(),
-        )
+        call_command("set_files_hash", stdout=out, stderr=StringIO())
         return out.getvalue()
 
     def test_run_command(self):

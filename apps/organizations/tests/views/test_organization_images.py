@@ -19,12 +19,7 @@ class RetrieveOrganizationImageTestCase(JwtAPITestCase):
         cls.image = cls.get_test_image()
         cls.organization.images.add(cls.image)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_organization_image(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
@@ -166,7 +161,7 @@ class DeleteOrganizationImageTestCase(JwtAPITestCase):
             reverse(
                 "Organization-images-detail",
                 args=(self.organization.code, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

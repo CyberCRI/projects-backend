@@ -1,5 +1,3 @@
-from typing import List, Optional
-
 from django.contrib.auth.models import Group
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -50,7 +48,7 @@ class GroupData(models.Model):
         return f"{self.group} - {self.role}"
 
     @property
-    def instance(self) -> Optional[models.Model]:
+    def instance(self) -> models.Model | None:
         """Return the related instance."""
         if self.content_type:
             obj = self.content_type.get_object_for_this_type(pk=self.object_id)
@@ -59,7 +57,7 @@ class GroupData(models.Model):
         return None
 
     @classmethod
-    def project_roles(cls) -> List[str]:
+    def project_roles(cls) -> list[str]:
         return [
             cls.Role.REVIEWERS,
             cls.Role.OWNERS,
@@ -70,15 +68,11 @@ class GroupData(models.Model):
         ]
 
     @classmethod
-    def people_group_roles(cls) -> List[str]:
-        return [
-            cls.Role.LEADERS,
-            cls.Role.MANAGERS,
-            cls.Role.MEMBERS,
-        ]
+    def people_group_roles(cls) -> list[str]:
+        return [cls.Role.LEADERS, cls.Role.MANAGERS, cls.Role.MEMBERS]
 
     @classmethod
-    def organization_roles(cls) -> List[str]:
+    def organization_roles(cls) -> list[str]:
         return [
             cls.Role.ADMINS,
             cls.Role.FACILITATORS,

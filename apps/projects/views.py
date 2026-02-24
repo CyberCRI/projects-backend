@@ -91,9 +91,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     ordering_fields = ["created_at", "updated_at"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
-    multiple_lookup_fields = [
-        (Project, "id"),
-    ]
+    multiple_lookup_fields = [(Project, "id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "project")
@@ -373,11 +371,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ),
         ],
     )
-    @action(
-        detail=True,
-        methods=["GET"],
-        permission_classes=[ReadOnly],
-    )
+    @action(detail=True, methods=["GET"], permission_classes=[ReadOnly])
     def similar(self, request, *args, **kwargs):
         project = self.get_object()
         embedding, _ = ProjectEmbedding.objects.get_or_create(item=project)
@@ -412,9 +406,7 @@ class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -444,9 +436,7 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -490,9 +480,7 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
@@ -520,9 +508,7 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -572,9 +558,7 @@ class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
@@ -596,9 +580,7 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         qs = self.request.user.get_project_related_queryset(Location.objects)
@@ -620,9 +602,7 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
     lookup_field = "pk"
     permission_classes = [ReadOnly]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_serializer_class(self):
         if self.action == "list":
@@ -632,11 +612,11 @@ class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelVie
     def get_queryset(self) -> QuerySet:
         if "project_id" in self.kwargs:
             project = get_object_or_404(
-                self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+                self.request.user.get_project_queryset(),
+                id=self.kwargs["project_id"],
             )
             return apps.get_model("projects", "HistoricalProject").objects.filter(
-                history_relation=project,
-                history_change_reason__isnull=False,
+                history_relation=project, history_change_reason__isnull=False
             )
         return apps.get_model("projects", "HistoricalProject").objects.none()
 
@@ -654,9 +634,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -684,8 +662,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         super(LinkedProjectViewSet, self).perform_update(serializer)
 
     @extend_schema(
-        request=ProjectAddLinkedProjectSerializer,
-        responses=ProjectSerializer,
+        request=ProjectAddLinkedProjectSerializer, responses=ProjectSerializer
     )
     @action(
         detail=False,
@@ -758,9 +735,7 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ProjectMessageSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectmessage")
@@ -796,9 +771,7 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectmessage")
@@ -852,9 +825,7 @@ class ProjectTabViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet[ProjectTab]:
         if "project_id" in self.kwargs:
@@ -880,9 +851,7 @@ class ProjectTabImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs:
@@ -932,9 +901,7 @@ class ProjectTabItemViewset(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet[ProjectTabItem]:
         if "project_id" in self.kwargs and "tab_id" in self.kwargs:
@@ -965,9 +932,7 @@ class ProjectTabItemImagesView(MultipleIDViewsetMixin, ImageStorageView):
         | HasOrganizationPermission("change_project")
         | HasProjectPermission("change_project"),
     ]
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
         if "project_id" in self.kwargs and "tab_id" in self.kwargs:

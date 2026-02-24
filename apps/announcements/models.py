@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from django.db import models
 
@@ -11,10 +11,7 @@ if TYPE_CHECKING:
 
 
 class Announcement(
-    HasAutoTranslatedFields,
-    ProjectRelated,
-    DuplicableModel,
-    models.Model,
+    HasAutoTranslatedFields, ProjectRelated, DuplicableModel, models.Model
 ):
     """Information about an announcement working on a Project.
 
@@ -40,7 +37,7 @@ class Announcement(
         Date of the last change made to the announcement.
     """
 
-    auto_translated_fields: List[str] = ["title", "html:description"]
+    auto_translated_fields: list[str] = ["title", "html:description"]
 
     class AnnouncementType(models.TextChoices):
         NONE = ("na", "Not applicable")
@@ -53,12 +50,16 @@ class Announcement(
         CLOSED = "closed"
 
     project = models.ForeignKey(
-        "projects.Project", on_delete=models.CASCADE, related_name="announcements"
+        "projects.Project",
+        on_delete=models.CASCADE,
+        related_name="announcements",
     )
     description = models.TextField(blank=True)
     title = models.CharField(max_length=100)
     type = models.CharField(
-        max_length=12, choices=AnnouncementType.choices, default=AnnouncementType.NONE
+        max_length=12,
+        choices=AnnouncementType.choices,
+        default=AnnouncementType.NONE,
     )
     status = models.CharField(
         max_length=12,
@@ -70,7 +71,7 @@ class Announcement(
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 

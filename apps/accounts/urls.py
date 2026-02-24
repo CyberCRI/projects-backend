@@ -22,11 +22,17 @@ router.register(r"privacy-settings", PrivacySettingsViewSet, basename="PrivacySe
 user_router_register(router, r"follow", UserFollowViewSet, basename="Follower")
 user_router_register(router, r"review", ReviewViewSet, basename="Reviewer")
 user_router_register(
-    router, r"profile-picture", UserProfilePictureView, basename="UserProfilePicture"
+    router,
+    r"profile-picture",
+    UserProfilePictureView,
+    basename="UserProfilePicture",
 )
 
 organization_people_group_router_register(
-    router, r"locations", PeopleGroupLocationViewSet, basename="PeopleGroupLocations"
+    router,
+    r"locations",
+    PeopleGroupLocationViewSet,
+    basename="PeopleGroupLocations",
 )
 
 

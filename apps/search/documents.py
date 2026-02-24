@@ -1,5 +1,5 @@
+from collections.abc import Iterable
 from datetime import date
-from typing import Iterable, Optional, Union
 
 from django.conf import settings
 from django.contrib.auth.models import Group
@@ -23,7 +23,11 @@ class TranslatedDocument(Document):
     """
 
     def _get_field_translation(
-        self, instance: models.Model, field_name: str, lang: str, html: bool = False
+        self,
+        instance: models.Model,
+        field_name: str,
+        lang: str,
+        html: bool = False,
     ) -> str:
         field_value = getattr(instance, f"{field_name}_{lang}", "") or ""
         if html and field_value:
@@ -61,17 +65,8 @@ class UserDocument(TranslatedDocument):
 
     class Django:
         model = ProjectUser
-        fields = [
-            "id",
-            "given_name",
-            "family_name",
-            "email",
-            "personal_email",
-        ]
-        related_models = [
-            Tag,
-            Skill,
-        ]
+        fields = ["id", "given_name", "family_name", "email", "personal_email"]
+        related_models = [Tag, Skill]
 
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
@@ -95,7 +90,7 @@ class UserDocument(TranslatedDocument):
             return self.prepare_search_object_id(instance)
         return search_object.id
 
-    def prepare_last_update(self, instance: ProjectUser) -> Optional[date]:
+    def prepare_last_update(self, instance: ProjectUser) -> date | None:
         return instance.last_login.date() if instance.last_login else None
 
     def prepare_job(self, instance: ProjectUser) -> str:
@@ -135,9 +130,7 @@ class UserDocument(TranslatedDocument):
             ]
         )
 
-    def get_instances_from_related(
-        self, related: Union[Tag, Skill]
-    ) -> Iterable[ProjectUser]:
+    def get_instances_from_related(self, related: Tag | Skill) -> Iterable[ProjectUser]:
         if isinstance(related, Tag):
             return ProjectUser.objects.filter(skills__tag=related).distinct()
         if isinstance(related, Skill):
@@ -152,13 +145,8 @@ class PeopleGroupDocument(TranslatedDocument):
 
     class Django:
         model = PeopleGroup
-        fields = [
-            "id",
-            "email",
-        ]
-        related_models = [
-            Group,
-        ]
+        fields = ["id", "email"]
+        related_models = [Group]
 
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
@@ -175,7 +163,8 @@ class PeopleGroupDocument(TranslatedDocument):
             )
         except MultipleObjectsReturned:
             SearchObject.objects.filter(
-                type=SearchObject.SearchObjectType.PEOPLE_GROUP, people_group=instance
+                type=SearchObject.SearchObjectType.PEOPLE_GROUP,
+                people_group=instance,
             ).delete()
             return self.prepare_search_object_id(instance)
         return search_object.id
@@ -207,14 +196,8 @@ class ProjectDocument(TranslatedDocument):
 
     class Django:
         model = Project
-        fields = [
-            "id",
-        ]
-        related_models = [
-            ProjectCategory,
-            Tag,
-            Group,
-        ]
+        fields = ["id"]
+        related_models = [ProjectCategory, Tag, Group]
 
     search_object_id = fields.IntegerField()
     last_update = fields.DateField()
@@ -279,7 +262,7 @@ class ProjectDocument(TranslatedDocument):
         )
 
     def get_instances_from_related(
-        self, related: Union[ProjectCategory, Tag, Group]
+        self, related: ProjectCategory | Tag | Group
     ) -> Iterable[Project]:
         if isinstance(related, ProjectCategory):
             return Project.objects.filter(categories=related).distinct()
@@ -294,9 +277,7 @@ class ProjectDocument(TranslatedDocument):
 class TagDocument(TranslatedDocument):
     class Index:
         name = f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"
-        settings = {
-            "max_terms_count": 100000,
-        }
+        settings = {"max_terms_count": 100000}
 
     class Django:
         model = Tag

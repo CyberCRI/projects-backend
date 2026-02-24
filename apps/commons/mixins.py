@@ -169,7 +169,7 @@ class HasPermissionsSetup:
         if created:
             self.groups.add(group)
         try:
-            group.data
+            _ = group.data
         except GroupData.DoesNotExist:
             GroupData.objects.update_or_create(
                 group=group,
@@ -215,9 +215,7 @@ class HasPermissionsSetup:
             for role in roles
         ]
         Group.objects.bulk_create(
-            groups_to_create,
-            batch_size=1000,
-            ignore_conflicts=True,
+            groups_to_create, batch_size=1000, ignore_conflicts=True
         )
 
         # Link groups to instances
@@ -240,9 +238,7 @@ class HasPermissionsSetup:
             for role in roles
         ]
         through_model.objects.bulk_create(
-            relationships,
-            batch_size=1000,
-            ignore_conflicts=True,
+            relationships, batch_size=1000, ignore_conflicts=True
         )
 
         # Make sure all GroupData exist
@@ -282,8 +278,7 @@ class HasPermissionsSetup:
                 for perm in permissions
             ]
             GroupObjectPermission.objects.filter(
-                content_type=content_type,
-                group__data__role=role,
+                content_type=content_type, group__data__role=role
             ).exclude(permission__in=permissions).delete()
             GroupObjectPermission.objects.bulk_create(
                 permissions_to_create, ignore_conflicts=True, batch_size=1000

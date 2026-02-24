@@ -55,7 +55,8 @@ class CreateTemplateTestCase(JwtAPITestCase):
             "project_tags": [t.id for t in self.tags],
         }
         response = self.client.post(
-            reverse("Template-list", args=(self.organization.code,)), data=payload
+            reverse("Template-list", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -78,10 +79,12 @@ class CreateTemplateTestCase(JwtAPITestCase):
             )
             self.assertEqual(content["comment_content"], payload["comment_content"])
             self.assertSetEqual(
-                {t["id"] for t in content["project_tags"]}, set(payload["project_tags"])
+                {t["id"] for t in content["project_tags"]},
+                set(payload["project_tags"]),
             )
             self.assertSetEqual(
-                {t["id"] for t in content["categories"]}, set(payload["categories_ids"])
+                {t["id"] for t in content["categories"]},
+                set(payload["categories_ids"]),
             )
 
 
@@ -93,12 +96,7 @@ class ReadTemplateTestCase(JwtAPITestCase):
         cls.template = TemplateFactory(organization=cls.organization)
         TemplateFactory()
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_list_template(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
@@ -110,17 +108,15 @@ class ReadTemplateTestCase(JwtAPITestCase):
         self.assertEqual(content["count"], 1)
         self.assertEqual(content["results"][0]["id"], self.template.id)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_template(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("Template-detail", args=(self.organization.code, self.template.id))
+            reverse(
+                "Template-detail",
+                args=(self.organization.code, self.template.id),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -168,7 +164,10 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             "project_tags": [t.id for t in self.tags],
         }
         response = self.client.patch(
-            reverse("Template-detail", args=(self.organization.code, self.template.id)),
+            reverse(
+                "Template-detail",
+                args=(self.organization.code, self.template.id),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -192,10 +191,12 @@ class UpdateTemplateTestCase(JwtAPITestCase):
             )
             self.assertEqual(content["comment_content"], payload["comment_content"])
             self.assertSetEqual(
-                {t["id"] for t in content["project_tags"]}, set(payload["project_tags"])
+                {t["id"] for t in content["project_tags"]},
+                set(payload["project_tags"]),
             )
             self.assertSetEqual(
-                {t["id"] for t in content["categories"]}, set(payload["categories_ids"])
+                {t["id"] for t in content["categories"]},
+                set(payload["categories_ids"]),
             )
 
 

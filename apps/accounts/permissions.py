@@ -1,5 +1,3 @@
-from typing import List
-
 from django.db.models import Model
 from rest_framework import permissions
 from rest_framework.request import Request
@@ -31,7 +29,7 @@ def HasBasePermission(  # noqa: N802
 class PeopleGroupRelatedPermission(IgnoreCall):
     def get_related_people_groups(
         self, view: GenericViewSet, obj: Model = None
-    ) -> List[PeopleGroup]:
+    ) -> list[PeopleGroup]:
         if view.get_queryset().model == PeopleGroup:
             if obj is not None:
                 return [obj]

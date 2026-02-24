@@ -81,8 +81,7 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.image = cls.get_test_image()
         cls.instruction = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
         cls.instruction.images.add(cls.image)
 
@@ -112,7 +111,11 @@ class UpdateInstructionImageTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Instruction-images-detail",
-                args=(self.organization.code, self.instruction.id, self.image.id),
+                args=(
+                    self.organization.code,
+                    self.instruction.id,
+                    self.image.id,
+                ),
             ),
             data=payload,
             format="multipart",
@@ -133,8 +136,7 @@ class DeleteInstructionImageTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.instruction = InstructionFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
 
     @parameterized.expand(
@@ -159,7 +161,7 @@ class DeleteInstructionImageTestCase(JwtAPITestCase):
             reverse(
                 "Instruction-images-detail",
                 args=(self.organization.code, self.instruction.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -226,10 +228,7 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
                 "instruction": cls.none_instruction,
                 "image": cls.none_image,
             },
-            "all": {
-                "instruction": cls.all_instruction,
-                "image": cls.all_image,
-            },
+            "all": {"instruction": cls.all_instruction, "image": cls.all_image},
             "public": {
                 "instruction": cls.public_instruction,
                 "image": cls.public_image,
@@ -238,10 +237,7 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
                 "instruction": cls.private_instruction,
                 "image": cls.private_image,
             },
-            "org": {
-                "instruction": cls.org_instruction,
-                "image": cls.org_image,
-            },
+            "org": {"instruction": cls.org_instruction, "image": cls.org_image},
         }
 
     @parameterized.expand(
@@ -250,7 +246,10 @@ class RetrieveInstructionImageTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),

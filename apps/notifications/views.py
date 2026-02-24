@@ -72,9 +72,7 @@ class NotificationSettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelVie
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
@@ -175,7 +173,10 @@ class ContactViewSet(viewsets.GenericViewSet):
             text_content,
             html_content=html_content,
             from_email=settings.EMAIL_CONTACT_SENDER,
-            to=[*settings.EMAIL_CONTACT_RECIPIENTS, serializer.validated_data["email"]],
+            to=[
+                *settings.EMAIL_CONTACT_RECIPIENTS,
+                serializer.validated_data["email"],
+            ],
         )
 
         return Response(status=status.HTTP_200_OK)

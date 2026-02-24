@@ -30,7 +30,8 @@ class MentoringMessageTranslatedFieldsTestCase(JwtAPITestCase):
         }
         response = self.client.post(
             reverse(
-                "Mentoring-respond", args=(self.organization.code, self.mentoring.id)
+                "Mentoring-respond",
+                args=(self.organization.code, self.mentoring.id),
             ),
             data=payload,
         )

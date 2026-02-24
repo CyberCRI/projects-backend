@@ -5,7 +5,10 @@ from factory.fuzzy import FuzzyChoice, FuzzyInteger
 
 from apps.accounts.factories import UserFactory
 from apps.commons.factories import language_factory, sdg_factory
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 
 from .models import (
     BlogEntry,
@@ -32,7 +35,7 @@ class ProjectFactory(factory.django.DjangoModelFactory):
     is_shareable = factory.Faker("boolean")
     sdgs = factory.LazyFunction(
         lambda: sorted(
-            set(sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz()))
+            {sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz())}
         )
     )
 

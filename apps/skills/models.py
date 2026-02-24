@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -8,7 +8,12 @@ from django.db import models
 from django.db.models import ForeignObjectRel, QuerySet
 from django.utils import timezone
 
-from apps.commons.mixins import HasMultipleIDs, HasOwner, HasOwners, OrganizationRelated
+from apps.commons.mixins import (
+    HasMultipleIDs,
+    HasOwner,
+    HasOwners,
+    OrganizationRelated,
+)
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
@@ -79,7 +84,11 @@ class Tag(models.Model, OrganizationRelated):
         return f"{self.type.capitalize()} Tag - {self.title}"
 
     def save(
-        self, force_insert=False, force_update=False, using=None, update_fields=None
+        self,
+        force_insert=False,
+        force_update=False,
+        using=None,
+        update_fields=None,
     ):
         """
         For custom tags, we generate a random UUID as the external ID.
@@ -97,7 +106,7 @@ class Tag(models.Model, OrganizationRelated):
 
     @classmethod
     def get_orphan_tags(
-        cls, threshold: Optional[int] = None, **filters
+        cls, threshold: int | None = None, **filters
     ) -> QuerySet["Tag"]:
         """Return a QuerySet containing all the orphan tags.
 
@@ -126,18 +135,15 @@ class Tag(models.Model, OrganizationRelated):
 
 
 class TagClassification(
-    HasAutoTranslatedFields,
-    HasMultipleIDs,
-    OrganizationRelated,
-    models.Model,
+    HasAutoTranslatedFields, HasMultipleIDs, OrganizationRelated, models.Model
 ):
     """
     Subset of tags that can be used as Skills, Hobbies or Project tags.
     Users are allowed to create their own tags and classifications.
     """
 
-    auto_translated_fields: List[str] = ["title", "description"]
-    slugified_fields: List[str] = ["title"]
+    auto_translated_fields: list[str] = ["title", "description"]
+    slugified_fields: list[str] = ["title"]
     slug_prefix: str = "tag-classification"
     reserved_slugs = ["enabled-for-projects", "enabled-for-skills"]
 
@@ -195,10 +201,7 @@ class TagClassification(
             raise ValueError("Invalid classification type")
         classification, _ = cls.objects.prefetch_related("tags").get_or_create(
             type=classification_type,
-            defaults={
-                "title": classification_type,
-                "is_public": True,
-            },
+            defaults={"title": classification_type, "is_public": True},
         )
         return classification
 
@@ -261,11 +264,7 @@ class Mentoring(models.Model, HasOwners, OrganizationRelated):
     skill = models.ForeignKey(
         "skills.Skill", on_delete=models.CASCADE, related_name="mentorings"
     )
-    status = models.CharField(
-        max_length=8,
-        choices=MentoringStatus.choices,
-        null=True,
-    )
+    status = models.CharField(max_length=8, choices=MentoringStatus.choices, null=True)
     created_by = models.ForeignKey(
         "accounts.ProjectUser",
         on_delete=models.CASCADE,
@@ -275,17 +274,13 @@ class Mentoring(models.Model, HasOwners, OrganizationRelated):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = (
-            "mentor",
-            "mentoree",
-            "skill",
-        )
+        unique_together = ("mentor", "mentoree", "skill")
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is an owner of the object."""
         return user in self.get_owners()
 
-    def get_owners(self) -> List["ProjectUser"]:
+    def get_owners(self) -> list["ProjectUser"]:
         """
         Get the owners of the object.
 
@@ -317,7 +312,7 @@ class MentoringMessage(
     """
 
     organization_query_string: str = "mentoring__organization"
-    auto_translated_fields: List[str] = ["content"]
+    auto_translated_fields: list[str] = ["content"]
 
     mentoring = models.ForeignKey(
         "skills.Mentoring", on_delete=models.CASCADE, related_name="messages"

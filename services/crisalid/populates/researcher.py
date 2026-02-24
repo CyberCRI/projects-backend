@@ -22,17 +22,13 @@ class PopulateResearcher(AbstractPopulate):
         return given_name, family_name
 
     def create_user(self, eppn: str, given_name: str, family_name: str) -> ProjectUser:
-
         # filter by eppn
         user = self.cache.model(ProjectUser, email=eppn)
 
         if not user.pk:
             # create only user if we have eppn
             self.cache.save(
-                user,
-                email=eppn,
-                given_name=given_name,
-                family_name=family_name,
+                user, email=eppn, given_name=given_name, family_name=family_name
             )
             # researcher is hidden by default
             self.cache.save(
@@ -91,7 +87,10 @@ class PopulateResearcher(AbstractPopulate):
         )
 
         self.cache.save(
-            researcher, given_name=given_name, family_name=family_name, user=user
+            researcher,
+            given_name=given_name,
+            family_name=family_name,
+            user=user,
         )
         self.cache.save_m2m(researcher, identifiers=researcher_identifiers)
 

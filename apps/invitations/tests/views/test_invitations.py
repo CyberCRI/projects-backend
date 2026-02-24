@@ -43,8 +43,7 @@ class CreateInvitationTestCase(JwtAPITestCase):
             "description": faker.text(),
         }
         response = self.client.post(
-            reverse("Invitation-list", args=(organization.code,)),
-            data=payload,
+            reverse("Invitation-list", args=(organization.code,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -80,10 +79,7 @@ class UpdateInvitationTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Invitation-detail",
-                args=(
-                    self.organization.code,
-                    self.invitation.id,
-                ),
+                args=(self.organization.code, self.invitation.id),
             ),
             data=payload,
         )
@@ -118,13 +114,7 @@ class DeleteInvitationTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Invitation-detail",
-                args=(
-                    organization.code,
-                    invitation.id,
-                ),
-            )
+            reverse("Invitation-detail", args=(organization.code, invitation.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -169,10 +159,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Invitation-detail",
-                args=(
-                    self.organization.code,
-                    invitation.id,
-                ),
+                args=(self.organization.code, invitation.id),
             ),
             data={"people_group_id": self.people_group_2.id},
         )
@@ -192,10 +179,7 @@ class ValidateInvitationTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Invitation-detail",
-                args=(
-                    self.organization.code,
-                    invitation.id,
-                ),
+                args=(self.organization.code, invitation.id),
             ),
             data={"organization": self.organization_2.code},
         )

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-20 12:31+0100\n"
+"POT-Creation-Date: 2026-02-23 15:55+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,40 +18,40 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: apps/accounts/exceptions.py:17
+#: apps/accounts/exceptions.py:15
 msgid "Token contained no recognizable user identification"
 msgstr "El token no conté cap identificació d'usuari recognoscible"
 
-#: apps/accounts/exceptions.py:23
+#: apps/accounts/exceptions.py:21
 msgid "User is inactive"
 msgstr "L'usuari està inactiu"
 
-#: apps/accounts/exceptions.py:29
+#: apps/accounts/exceptions.py:27
 msgid "Invitation link not found or expired"
 msgstr "Enllaç d'invitació no trobat o caducat"
 
-#: apps/accounts/exceptions.py:35
+#: apps/accounts/exceptions.py:33
 msgid "Access token has expired"
 msgstr "El token d'accés ha caducat"
 
-#: apps/accounts/exceptions.py:41
+#: apps/accounts/exceptions.py:39
 msgid "Token prefix is missing"
 msgstr "Falta el prefix del token"
 
-#: apps/accounts/exceptions.py:50 apps/organizations/exceptions.py:18
+#: apps/accounts/exceptions.py:48 apps/organizations/exceptions.py:18
 msgid "You cannot add projects that you do not have access to"
 msgstr "No pots afegir projectes als quals no tens accés"
 
-#: apps/accounts/exceptions.py:56
+#: apps/accounts/exceptions.py:54
 msgid "You do not have the permission to assign this role"
 msgstr "No tens permís per assignar aquest rol"
 
-#: apps/accounts/exceptions.py:61
+#: apps/accounts/exceptions.py:59
 #, python-brace-format
 msgid "You do not have the permission to assign this role : {role}"
 msgstr "No tens permís per assignar aquest rol: {role}"
 
-#: apps/accounts/exceptions.py:76
+#: apps/accounts/exceptions.py:74
 msgid ""
 "email_type query parameter is missing. Choices are : admin_created, "
 "invitation, reset_password"
@@ -59,58 +59,58 @@ msgstr ""
 "Falta el paràmetre de consulta email_type. Les opcions són: admin_created, "
 "invitation, reset_password"
 
-#: apps/accounts/exceptions.py:83
+#: apps/accounts/exceptions.py:81
 msgid "Permission not found"
 msgstr "Permís no trobat"
 
-#: apps/accounts/exceptions.py:89
+#: apps/accounts/exceptions.py:87
 msgid "An error occurred while syncing with Keycloak"
 msgstr "S'ha produït un error en sincronitzar amb Keycloak"
 
-#: apps/accounts/exceptions.py:94
+#: apps/accounts/exceptions.py:92
 #, python-brace-format
 msgid "An error occurred while syncing with Keycloak : {message}"
 msgstr "S'ha produït un error en sincronitzar amb Keycloak: {message}"
 
-#: apps/accounts/exceptions.py:106
+#: apps/accounts/exceptions.py:104
 msgid "An error occurred while syncing with Google"
 msgstr "S'ha produït un error en sincronitzar amb Google"
 
-#: apps/accounts/exceptions.py:111
+#: apps/accounts/exceptions.py:109
 #, python-brace-format
 msgid "An error occurred while syncing with Google : {message}"
 msgstr "S'ha produït un error en sincronitzar amb Google: {message}"
 
-#: apps/accounts/exceptions.py:126
+#: apps/accounts/exceptions.py:124
 msgid "The organization of a group cannot be changed"
 msgstr "L'organització d'un grup no es pot canviar"
 
-#: apps/accounts/exceptions.py:132
+#: apps/accounts/exceptions.py:130
 msgid "The root group cannot have a parent group"
 msgstr "El grup arrel no pot tenir un grup pare"
 
-#: apps/accounts/exceptions.py:138
+#: apps/accounts/exceptions.py:136
 msgid "A non-root group must have a parent group"
 msgstr "Un grup no arrel ha de tenir un grup pare"
 
-#: apps/accounts/exceptions.py:144
+#: apps/accounts/exceptions.py:142
 msgid "The parent group must belong to the same organization"
 msgstr "El grup pare ha de pertànyer a la mateixa organització"
 
-#: apps/accounts/exceptions.py:150
+#: apps/accounts/exceptions.py:148
 msgid "You are trying to create a loop in the group's hierarchy"
 msgstr "Estàs intentant crear un bucle a la jerarquia del grup"
 
-#: apps/accounts/exceptions.py:156
+#: apps/accounts/exceptions.py:154
 msgid "You cannot assign this role to a user"
 msgstr "No pots assignar aquest rol a un usuari"
 
-#: apps/accounts/exceptions.py:161
+#: apps/accounts/exceptions.py:159
 #, python-brace-format
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:157 apps/projects/models.py:161
+#: apps/accounts/models.py:157 apps/projects/models.py:164
 msgid "visibility"
 msgstr "visibilitat"
 
@@ -167,16 +167,16 @@ msgstr ""
 "per trobar-lo 😊</p>\n"
 "</div>\n"
 
-#: apps/analytics/exceptions.py:10
+#: apps/analytics/exceptions.py:8
 msgid "Unknown publication status"
 msgstr "Estat de publicació desconegut"
 
-#: apps/analytics/exceptions.py:15
+#: apps/analytics/exceptions.py:13
 #, python-brace-format
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Estat de publicació desconegut '{publication_status}'"
 
-#: apps/commons/fields.py:30 apps/skills/serializers.py:114
+#: apps/commons/fields.py:30 apps/skills/serializers.py:113
 msgid "This field is required."
 msgstr "Aquest camp és obligatori."
 
@@ -185,12 +185,12 @@ msgstr "Aquest camp és obligatori."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "Id no vàlid \"{user_id}\" - l'objecte no existeix."
 
-#: apps/commons/fields.py:33 apps/skills/serializers.py:119
+#: apps/commons/fields.py:33 apps/skills/serializers.py:118
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr "Tipus incorrecte. S'esperava un valor str, s'ha rebut {data_type}."
 
-#: apps/commons/serializers.py:249
+#: apps/commons/serializers.py:241
 msgid "The value must be between -90 and 90."
 msgstr ""
 
@@ -212,64 +212,64 @@ msgstr ""
 msgid "Hello %(given_name)s,"
 msgstr "Hola %(given_name)s,"
 
-#: apps/feedbacks/exceptions.py:12
+#: apps/feedbacks/exceptions.py:10
 msgid "You don't have the permission to comment on this project"
 msgstr "No tens permís per comentar en aquest projecte"
 
-#: apps/feedbacks/exceptions.py:18
+#: apps/feedbacks/exceptions.py:16
 #, python-brace-format
 msgid ""
 "You don't have the permission to comment on this project : {project_title}"
 msgstr "No tens permís per comentar en aquest projecte: {project_title}"
 
-#: apps/feedbacks/exceptions.py:28
+#: apps/feedbacks/exceptions.py:26
 msgid "You don't have the permission to follow this project"
 msgstr "No tens permís per seguir aquest projecte"
 
-#: apps/feedbacks/exceptions.py:34
+#: apps/feedbacks/exceptions.py:32
 #, python-brace-format
 msgid "You don't have the permission to follow this project : {project_title}"
 msgstr "No tens permís per seguir aquest projecte: {project_title}"
 
-#: apps/feedbacks/exceptions.py:47 apps/projects/exceptions.py:120
+#: apps/feedbacks/exceptions.py:45 apps/projects/exceptions.py:122
 msgid "You cannot reply to a reply"
 msgstr "No pots respondre a una resposta"
 
-#: apps/feedbacks/exceptions.py:53
+#: apps/feedbacks/exceptions.py:51
 msgid "A comment cannot be a reply to itself"
 msgstr "Un comentari no pot ser una resposta a si mateix"
 
-#: apps/files/exceptions.py:14
+#: apps/files/exceptions.py:12
 msgid "The file you are trying to upload is already attached to this project"
 msgstr "El fitxer que intentes pujar ja està adjuntat a aquest projecte"
 
-#: apps/files/exceptions.py:22
+#: apps/files/exceptions.py:20
 msgid ""
 "The file you are trying to upload is already attached to this organization"
 msgstr "El fitxer que intentes pujar ja està adjuntat a aquest organització"
 
-#: apps/files/exceptions.py:30
+#: apps/files/exceptions.py:28
 msgid "The link you are trying to attach is already attached to this project"
 msgstr "L'enllaç que intentes adjuntar ja està adjuntat a aquest projecte"
 
-#: apps/files/exceptions.py:38
+#: apps/files/exceptions.py:36
 #, python-brace-format
 msgid "File too large. Size should not exceed {max_file_size} MB"
 msgstr "Fitxer massa gran. La mida no ha de superar {max_file_size} MB"
 
-#: apps/files/exceptions.py:45
+#: apps/files/exceptions.py:43
 msgid "You can't change the project of a file"
 msgstr "No pots canviar el projecte d'un fitxer"
 
-#: apps/files/exceptions.py:51
+#: apps/files/exceptions.py:49
 msgid "You can't change the project of a link"
 msgstr "No pots canviar el projecte d'un enllaç"
 
-#: apps/files/exceptions.py:60
+#: apps/files/exceptions.py:58
 msgid "You can't delete this picture: It is related to another object"
 msgstr "No pots esborrar aquesta imatge: està relacionada amb un altre objecte"
 
-#: apps/files/exceptions.py:66
+#: apps/files/exceptions.py:64
 #, python-brace-format
 msgid ""
 "You can't delete this picture: It is related to an instance of {model} with "
@@ -278,40 +278,40 @@ msgstr ""
 "No pots esborrar aquesta imatge: està relacionada amb una instància de "
 "{model} amb pk={pk} a través del camp {field}"
 
-#: apps/invitations/exceptions.py:12
+#: apps/invitations/exceptions.py:10
 msgid "The email type is not valid"
 msgstr "El tipus de correu electrònic no és vàlid"
 
-#: apps/invitations/exceptions.py:17
+#: apps/invitations/exceptions.py:15
 #, python-brace-format
 msgid "The email type '{email_type}' is not valid"
 msgstr "El tipus de correu electrònic '{email_type}' no és vàlid"
 
-#: apps/invitations/exceptions.py:31
+#: apps/invitations/exceptions.py:29
 msgid "People group must belong to the invitation's organization"
 msgstr "El grup de persones ha de pertànyer a l'organització de la invitació"
 
-#: apps/invitations/exceptions.py:37
+#: apps/invitations/exceptions.py:35
 msgid "You cannot change the organization of an invitation"
 msgstr "No pots canviar l'organització d'una invitació"
 
-#: apps/invitations/exceptions.py:43
+#: apps/invitations/exceptions.py:41
 msgid "This user is already a member of this organization"
 msgstr "Aquest usuari ja és membre d'aquesta organització"
 
-#: apps/invitations/exceptions.py:49
+#: apps/invitations/exceptions.py:47
 msgid "A user with this email already exists"
 msgstr "Ja existeix un usuari amb aquest correu electrònic"
 
-#: apps/invitations/exceptions.py:55
+#: apps/invitations/exceptions.py:53
 msgid "This organization does not accept access requests"
 msgstr "Aquesta organització no accepta sol·licituds d'accés"
 
-#: apps/invitations/exceptions.py:61
+#: apps/invitations/exceptions.py:59
 msgid "An access request for this email already exists"
 msgstr "Ja existeix una sol·licitud d'accés per a aquest correu electrònic"
 
-#: apps/invitations/exceptions.py:67
+#: apps/invitations/exceptions.py:65
 msgid "An access request for this user already exists"
 msgstr "Ja existeix una sol·licitud d'accés per a aquest usuari"
 
@@ -567,15 +567,15 @@ msgstr ""
 "Els grups de persones d'una instrucció han de pertànyer a la mateixa "
 "organització"
 
-#: apps/notifications/tasks.py:200 apps/notifications/tasks.py:244
+#: apps/notifications/tasks.py:200 apps/notifications/tasks.py:247
 msgid "editor"
 msgstr "editor"
 
-#: apps/notifications/tasks.py:201 apps/notifications/tasks.py:245
+#: apps/notifications/tasks.py:201 apps/notifications/tasks.py:248
 msgid "participant"
 msgstr "participant"
 
-#: apps/notifications/tasks.py:202 apps/notifications/tasks.py:246
+#: apps/notifications/tasks.py:202 apps/notifications/tasks.py:249
 msgid "reviewer"
 msgstr "revisor"
 
@@ -1458,7 +1458,7 @@ msgstr ""
 msgid "New highlights on Projects"
 msgstr "Nous destacats a Projectes"
 
-#: apps/notifications/utils.py:286
+#: apps/notifications/utils.py:294
 msgid " and "
 msgstr " i "
 
@@ -1496,48 +1496,48 @@ msgstr "El paràmetre `is_locked` és obligatori"
 msgid "`life_status` parameter is required"
 msgstr "El paràmetre `life_status` és obligatori"
 
-#: apps/projects/exceptions.py:12
+#: apps/projects/exceptions.py:14
 msgid "You don't have the permission to link this project"
 msgstr "No tens permís per enllaçar aquest projecte"
 
-#: apps/projects/exceptions.py:18
+#: apps/projects/exceptions.py:20
 #, python-brace-format
 msgid "You don't have the permission to link this project : {project_title}"
 msgstr "No tens permís per enllaçar aquest projecte: {project_title}"
 
-#: apps/projects/exceptions.py:29
+#: apps/projects/exceptions.py:31
 msgid "You do not have the rights to add a project in this organization"
 msgstr "No tens els drets per afegir un projecte a aquesta organització"
 
-#: apps/projects/exceptions.py:36
+#: apps/projects/exceptions.py:38
 msgid "You cannot modify a locked project"
 msgstr "No pots modificar un projecte bloquejat"
 
-#: apps/projects/exceptions.py:45
+#: apps/projects/exceptions.py:47
 msgid "The organizations parameter is mandatory"
 msgstr "El paràmetre de les organitzacions és obligatori"
 
-#: apps/projects/exceptions.py:51
+#: apps/projects/exceptions.py:53
 msgid "The project does not belong to any of the given organizations"
 msgstr "El projecte no pertany a cap de les organitzacions donades"
 
-#: apps/projects/exceptions.py:72
+#: apps/projects/exceptions.py:74
 msgid "You cannot remove all the owners of a project"
 msgstr "No pots eliminar tots els propietaris d'un projecte"
 
-#: apps/projects/exceptions.py:78
+#: apps/projects/exceptions.py:80
 msgid "A project must belong to at least one organization"
 msgstr "Un projecte ha de pertànyer almenys a una organització"
 
-#: apps/projects/exceptions.py:84
+#: apps/projects/exceptions.py:86
 msgid "Only a reviewer can change this project's status"
 msgstr "Només un revisor pot canviar l'estat d'aquest projecte"
 
-#: apps/projects/exceptions.py:90
+#: apps/projects/exceptions.py:92
 msgid "You cannot empty the description of a project"
 msgstr "No pots buidar la descripció d'un projecte"
 
-#: apps/projects/exceptions.py:97
+#: apps/projects/exceptions.py:99
 msgid ""
 "A project cannot be in a category if it doesn't belong to one of the "
 "project's organizations"
@@ -1545,93 +1545,93 @@ msgstr ""
 "Un projecte no pot estar en una categoria si no pertany a una de les "
 "organitzacions del projecte"
 
-#: apps/projects/exceptions.py:104
+#: apps/projects/exceptions.py:106
 msgid "A project can't be linked to itself"
 msgstr "Un projecte no es pot enllaçar a si mateix"
 
-#: apps/projects/exceptions.py:109
+#: apps/projects/exceptions.py:111
 #, python-brace-format
 msgid "The project '{project_title}' can't be linked to itself"
 msgstr "El projecte '{project_title}' no es pot enllaçar a si mateix"
 
-#: apps/projects/exceptions.py:126
+#: apps/projects/exceptions.py:128
 msgid "A message cannot be a reply to itself"
 msgstr "Un missatge no pot ser una resposta a si mateix"
 
-#: apps/projects/exceptions.py:132
+#: apps/projects/exceptions.py:134
 msgid "You cannot change the type of a project's tab"
 msgstr "No pots canviar el tipus d'una pestanya d'un projecte"
 
-#: apps/projects/models.py:144
+#: apps/projects/models.py:147
 msgid "title"
 msgstr "títol"
 
-#: apps/projects/models.py:154
+#: apps/projects/models.py:157
 msgid "main goal"
 msgstr "objectiu principal"
 
-#: apps/projects/models.py:167
+#: apps/projects/models.py:170
 msgid "life status"
 msgstr "estat de vida"
 
-#: apps/projects/models.py:178
+#: apps/projects/models.py:181
 msgid "categories"
 msgstr "categories"
 
-#: apps/projects/models.py:195
+#: apps/projects/models.py:198
 msgid "sustainable development goals"
 msgstr "objectius de desenvolupament sostenible"
 
-#: apps/skills/exceptions.py:11
+#: apps/skills/exceptions.py:15
 msgid "You cannot change the status of a mentoring request you created"
 msgstr "No pots canviar l'estat d'una sol·licitud de mentoria que vas crear"
 
-#: apps/skills/exceptions.py:21
+#: apps/skills/exceptions.py:25
 msgid "User ID must be provided through url"
 msgstr "L'ID d'usuari s'ha de proporcionar a través de l'URL"
 
-#: apps/skills/exceptions.py:27
+#: apps/skills/exceptions.py:31
 msgid "This user cannot be a mentor for this skill"
 msgstr "Aquest usuari no pot ser mentor d'aquesta habilitat"
 
-#: apps/skills/exceptions.py:33
+#: apps/skills/exceptions.py:37
 msgid "This user does not need a mentor for this skill"
 msgstr "Aquest usuari no necessita un mentor per a aquesta habilitat"
 
-#: apps/skills/exceptions.py:39
+#: apps/skills/exceptions.py:43
 msgid "You already have this skill in your profile"
 msgstr "Ja tens aquesta habilitat al teu perfil"
 
-#: apps/skills/exceptions.py:45
+#: apps/skills/exceptions.py:49
 msgid "Only custom tags can be updated"
 msgstr "Només es poden actualitzar les etiquetes personalitzades"
 
-#: apps/skills/exceptions.py:51
+#: apps/skills/exceptions.py:55
 msgid "Only custom tags classifications can be updated"
 msgstr ""
 "Només es poden actualitzar les classificacions d'etiquetes personalitzades"
 
-#: apps/skills/exceptions.py:57
+#: apps/skills/exceptions.py:61
 msgid "You can only search for 50 Wikipedia tags at a time"
 msgstr "Només pots cercar 50 etiquetes de Viquipèdia alhora"
 
-#: apps/skills/exceptions.py:63
+#: apps/skills/exceptions.py:67
 msgid "You already made a mentoring request for this skill"
 msgstr "Ja has fet una sol·licitud de mentoria per a aquesta habilitat"
 
-#: apps/skills/exceptions.py:72
+#: apps/skills/exceptions.py:76
 msgid "Tags must belong to the classification's organization"
 msgstr "Les etiquetes han de pertànyer a l'organització de la classificació"
 
-#: apps/skills/exceptions.py:78
+#: apps/skills/exceptions.py:82
 msgid "Tag title must be 50 characters or less"
 msgstr "El títol de l'etiqueta ha de tenir 50 caràcters o menys"
 
-#: apps/skills/exceptions.py:84
+#: apps/skills/exceptions.py:88
 msgid "Tag description must be 500 characters or less"
 msgstr "La descripció de l'etiqueta ha de tenir 500 caràcters o menys"
 
-#: apps/skills/serializers.py:116
+#: apps/skills/serializers.py:115
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "Id no vàlid \"{tag_classification_id}\" - l'objecte no existeix."
@@ -2621,27 +2621,27 @@ msgstr "Aquest correu electrònic ja està sent utilitzat per un altre grup"
 msgid "This email is already used by another user"
 msgstr "Aquest correu electrònic ja està sent utilitzat per un altre usuari"
 
-#: services/keycloak/exceptions.py:12
+#: services/keycloak/exceptions.py:10
 msgid "Invalid user credentials"
 msgstr "Credencials d'usuari no vàlides"
 
-#: services/keycloak/exceptions.py:21
+#: services/keycloak/exceptions.py:19
 msgid "Given user does not have a keycloak account"
 msgstr "L'usuari proporcionat no té un compte de Keycloak"
 
-#: services/keycloak/exceptions.py:27
+#: services/keycloak/exceptions.py:25
 msgid "No user was found with the given keycloak id"
 msgstr "No s'ha trobat cap usuari amb l'ID de Keycloak proporcionat"
 
-#: services/keycloak/exceptions.py:33
+#: services/keycloak/exceptions.py:31
 msgid "The 'redirect_uri' parameter is mandatory"
 msgstr "El paràmetre 'redirect_uri' és obligatori"
 
-#: services/keycloak/exceptions.py:39
+#: services/keycloak/exceptions.py:37
 msgid "The given email type is not valid"
 msgstr "El tipus de correu electrònic proporcionat no és vàlid"
 
-#: services/keycloak/exceptions.py:44
+#: services/keycloak/exceptions.py:42
 #, python-brace-format
 msgid "Email type '{email_type}' is not valid"
 msgstr "El tipus de correu electrònic '{email_type}' no és vàlid"
@@ -3115,20 +3115,20 @@ msgstr ""
 msgid "The given queryset does not match the related model"
 msgstr "El conjunt de consultes donat no coincideix amb el model relacionat"
 
-#: services/wikipedia/exceptions.py:12
+#: services/wikipedia/exceptions.py:10
 msgid "Wikipedia API error"
 msgstr "Error de l'API de Viquipèdia"
 
-#: services/wikipedia/exceptions.py:17
+#: services/wikipedia/exceptions.py:15
 #, python-brace-format
 msgid "Wikipedia API returned {status_code}"
 msgstr "L'API de Viquipèdia ha retornat {status_code}"
 
-#: services/wikipedia/exceptions.py:26
+#: services/wikipedia/exceptions.py:24
 msgid "Language is not supported"
 msgstr "L'idioma no és compatible"
 
-#: services/wikipedia/exceptions.py:31
+#: services/wikipedia/exceptions.py:29
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr "L'idioma {language} no és compatible"

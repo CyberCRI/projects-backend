@@ -6,7 +6,11 @@ from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import PeopleGroup, PrivacySettings, ProjectUser
 from apps.commons.models import GroupData
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.feedbacks.factories import CommentFactory, FollowFactory, ReviewFactory
+from apps.feedbacks.factories import (
+    CommentFactory,
+    FollowFactory,
+    ReviewFactory,
+)
 from apps.invitations.factories import InvitationFactory
 from apps.notifications.factories import NotificationFactory
 from apps.organizations.factories import OrganizationFactory
@@ -115,7 +119,10 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
             self.assertEqual(len(content), len(expected_users) + 1)
             self.assertEqual(
                 {user["id"] for user in content},
-                {user.id, *[self.users[user_type].id for user_type in expected_users]},
+                {
+                    user.id,
+                    *[self.users[user_type].id for user_type in expected_users],
+                },
             )
         else:
             self.assertEqual(len(content), len(expected_users))
@@ -169,10 +176,7 @@ class UserPublicationStatusTestCase(JwtAPITestCase):
         response = self.client.get(
             reverse(
                 "PeopleGroup-member",
-                args=(
-                    organization.code,
-                    self.people_group.pk,
-                ),
+                args=(organization.code, self.people_group.pk),
             )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

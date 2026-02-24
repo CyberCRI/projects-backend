@@ -65,7 +65,7 @@ class RetrieveBlogEntryImageTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("BlogEntry-images-detail", args=(project.id, image.id)),
+                reverse("BlogEntry-images-detail", args=(project.id, image.id))
             )
             if publication_status in retrieved_images:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -152,10 +152,7 @@ class CreateBlogEntryImageTestCase(JwtAPITestCase):
         self.assertIsNotNone(content["static_url"])
         self.assertEqual(
             content["static_url"] + "/",
-            reverse(
-                "BlogEntry-images-detail",
-                args=(self.project.id, content["id"]),
-            ),
+            reverse("BlogEntry-images-detail", args=(self.project.id, content["id"])),
         )
         self.blog_entry.refresh_from_db()
         self.assertIn(
@@ -209,10 +206,7 @@ class UpdateBlogEntryImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
-            reverse(
-                "BlogEntry-images-detail",
-                args=(self.project.id, self.image.id),
-            ),
+            reverse("BlogEntry-images-detail", args=(self.project.id, self.image.id)),
             data=payload,
             format="multipart",
         )
@@ -260,10 +254,7 @@ class DeleteBlogEntryImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "BlogEntry-images-detail",
-                args=(self.project.id, image.id),
-            ),
+            reverse("BlogEntry-images-detail", args=(self.project.id, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

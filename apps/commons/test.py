@@ -3,7 +3,6 @@ import io
 import logging
 import os
 import uuid
-from typing import Dict, List, Optional
 from unittest import skipUnless, util
 
 from django.conf import settings
@@ -102,11 +101,11 @@ class JwtAPITestCase(APITestCase):
     def get_parameterized_test_user(
         cls,
         role,
-        instances: Optional[List[models.Model]] = None,
-        owned_instance: Optional[models.Model] = None,
+        instances: list[models.Model] | None = None,
+        owned_instance: models.Model | None = None,
     ) -> ProjectUser:
         if instances:
-            instances_type = set([type(instance) for instance in instances])
+            instances_type = {type(instance) for instance in instances}
             if len(instances_type) > 1:
                 instances_types = ", ".join([str(t) for t in instances_type])
                 raise ValueError(
@@ -256,7 +255,7 @@ class JwtAPITestCase(APITestCase):
         return image
 
     def assertApiValidationError(  # noqa: N802
-        self, response, messages: Optional[Dict[str, List[str]]] = None
+        self, response, messages: dict[str, list[str]] | None = None
     ):
         content = response.json()
         self.assertEqual(content["type"], ExceptionType.VALIDATION.value)
@@ -264,7 +263,7 @@ class JwtAPITestCase(APITestCase):
             self.assertEqual(content["errors"], messages)
 
     def assertApiPermissionError(  # noqa: N802
-        self, response, detail: Optional[str] = None
+        self, response, detail: str | None = None
     ):
         content = response.json()
         self.assertEqual(content["type"], ExceptionType.PERMISSION.value)
@@ -272,7 +271,7 @@ class JwtAPITestCase(APITestCase):
             self.assertEqual(content["detail"], detail)
 
     def assertApiTechnicalError(  # noqa: N802
-        self, response, detail: Optional[str] = None
+        self, response, detail: str | None = None
     ):
         content = response.json()
         self.assertEqual(content["type"], ExceptionType.TECHNICAL.value)
@@ -280,7 +279,7 @@ class JwtAPITestCase(APITestCase):
             self.assertEqual(content["detail"], detail)
 
     def assertApiAuthenticationError(  # noqa: N802
-        self, response, detail: Optional[str] = None
+        self, response, detail: str | None = None
     ):
         content = response.json()
         self.assertEqual(content["type"], ExceptionType.AUTHENTHICATION.value)

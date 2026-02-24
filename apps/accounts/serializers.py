@@ -243,7 +243,13 @@ class PeopleGroupSuperLightSerializer(
 
     class Meta:
         model = PeopleGroup
-        read_only_fields = ["id", "slug", "name", "short_description", "organization"]
+        read_only_fields = [
+            "id",
+            "slug",
+            "name",
+            "short_description",
+            "organization",
+        ]
         fields = read_only_fields
 
 
@@ -279,14 +285,13 @@ class PeopleGroupAddLocationsSerializer(serializers.Serializer):
 
 
 class PeopleGroupLightSerializer(
-    ModulesSerializers, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    ModulesSerializers,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
     header_image = ImageSerializer(read_only=True)
     roles = serializers.SlugRelatedField(
-        many=True,
-        slug_field="name",
-        read_only=True,
-        source="groups",
+        many=True, slug_field="name", read_only=True, source="groups"
     )
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
@@ -327,10 +332,7 @@ class PeopleGroupHierarchySerializer(
     children = serializers.SerializerMethodField()
     header_image = ImageSerializer(read_only=True)
     roles = serializers.SlugRelatedField(
-        many=True,
-        slug_field="name",
-        read_only=True,
-        source="groups",
+        many=True, slug_field="name", read_only=True, source="groups"
     )
 
     class Meta:
@@ -388,13 +390,22 @@ class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
         required=False, write_only=True, queryset=PeopleGroup.objects.all()
     )
     leaders = UserMultipleIdRelatedField(
-        many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=ProjectUser.objects.all(),
     )
     managers = UserMultipleIdRelatedField(
-        many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=ProjectUser.objects.all(),
     )
     members = UserMultipleIdRelatedField(
-        many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=ProjectUser.objects.all(),
     )
 
     def create(self, validated_data):
@@ -415,7 +426,10 @@ class PeopleGroupRemoveTeamMembersSerializer(serializers.Serializer):
         write_only=True, queryset=PeopleGroup.objects.all()
     )
     users = UserMultipleIdRelatedField(
-        many=True, write_only=True, required=False, queryset=ProjectUser.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=ProjectUser.objects.all(),
     )
 
     def create(self, validated_data):
@@ -433,7 +447,10 @@ class PeopleGroupAddFeaturedProjectsSerializer(serializers.Serializer):
         required=False, write_only=True, queryset=PeopleGroup.objects.all()
     )
     featured_projects = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=True, required=False, queryset=Project.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=Project.objects.all(),
     )
 
     def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
@@ -454,7 +471,10 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         write_only=True, queryset=PeopleGroup.objects.all()
     )
     featured_projects = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=True, required=False, queryset=Project.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=Project.objects.all(),
     )
 
     def create(self, validated_data):
@@ -470,7 +490,6 @@ class PeopleGroupSerializer(
     AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
-
     string_images_forbid_fields: list[str] = [
         "name",
         "description",
@@ -490,14 +509,14 @@ class PeopleGroupSerializer(
     header_image = ImageSerializer(read_only=True)
     logo_image = ImageSerializer(read_only=True)
     roles = serializers.SlugRelatedField(
-        many=True,
-        slug_field="name",
-        read_only=True,
-        source="groups",
+        many=True, slug_field="name", read_only=True, source="groups"
     )
     team = PeopleGroupAddTeamMembersSerializer(required=False, write_only=True)
     featured_projects = serializers.PrimaryKeyRelatedField(
-        many=True, write_only=True, required=False, queryset=Project.objects.all()
+        many=True,
+        write_only=True,
+        required=False,
+        queryset=Project.objects.all(),
     )
     tags = TagRelatedField(many=True, required=False)
     sdgs = serializers.ListField(
@@ -573,7 +592,10 @@ class PeopleGroupSerializer(
             {"people_group": people_group, **team}
         )
         PeopleGroupAddFeaturedProjectsSerializer().create(
-            {"people_group": people_group, "featured_projects": featured_projects}
+            {
+                "people_group": people_group,
+                "featured_projects": featured_projects,
+            }
         )
         PeopleGroupAddLocationsSerializer().create(
             {"people_group": people_group, "locations": locations}
@@ -613,7 +635,9 @@ class PeopleGroupSerializer(
 
 @extend_schema_serializer(exclude_fields=("roles",))
 class UserSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer, serializers.ModelSerializer
+    StringsImagesSerializer,
+    AutoTranslatedModelSerializer,
+    serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = [
         "description",
@@ -719,7 +743,13 @@ class UserSerializer(
 
     class Meta:
         model = ProjectUser
-        read_only_fields = ["id", "slug", "created_at", "researcher", "resources"]
+        read_only_fields = [
+            "id",
+            "slug",
+            "created_at",
+            "researcher",
+            "resources",
+        ]
         fields = read_only_fields + [
             "roles",
             "roles_to_add",
@@ -801,7 +831,8 @@ class UserSerializer(
                 ),
                 *[
                     request_user.has_perm(
-                        f"organizations.change_{content_type.model}", organization
+                        f"organizations.change_{content_type.model}",
+                        organization,
                     )
                     for organization in instance.get_related_organizations()
                 ],
@@ -846,13 +877,11 @@ class UserSerializer(
         if default_group not in groups:
             groups.append(default_group)
         return list(
-            set(
-                [
-                    group
-                    for group in groups + additional_groups_to_add
-                    if group not in additional_groups_to_remove
-                ]
-            )
+            {
+                group
+                for group in groups + additional_groups_to_add
+                if group not in additional_groups_to_remove
+            }
         )
 
     def get_permissions(self, user: ProjectUser) -> list[str]:
@@ -893,7 +922,14 @@ class UserSerializer(
     def create(self, validated_data):
         profile_picture = {
             field: validated_data.pop(f"profile_picture_{field}", None)
-            for field in ["file", "scale_x", "scale_y", "left", "top", "natural_ratio"]
+            for field in [
+                "file",
+                "scale_x",
+                "scale_y",
+                "left",
+                "top",
+                "natural_ratio",
+            ]
         }
         instance = super(UserSerializer, self).create(validated_data)
         if profile_picture["file"]:
@@ -934,7 +970,10 @@ class UserSerializer(
                         name__in=group_instance.groups.values_list("name", flat=True)
                     )
                 groups = Group.objects.filter(
-                    name__in=[group.name, *groups.values_list("name", flat=True)]
+                    name__in=[
+                        group.name,
+                        *groups.values_list("name", flat=True),
+                    ]
                 )
             data["roles"] = groups
         else:
@@ -942,8 +981,7 @@ class UserSerializer(
 
         # Get default language from organization if not provided
         organization_groups = Group.objects.filter(
-            organizations__isnull=False,
-            name__in=groups_to_add,
+            organizations__isnull=False, name__in=groups_to_add
         )
         if organization_groups.exists() and "language" not in data.keys():
             group = organization_groups.first()

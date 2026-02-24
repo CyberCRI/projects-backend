@@ -22,15 +22,15 @@ class RetrieveTagTestCase(JwtAPITestCase):
         cls.esco_tag = TagFactory(type=Tag.TagType.ESCO)
         cls.wikipedia_tag = TagFactory(type=Tag.TagType.WIKIPEDIA)
         cls.other_tags = TagFactory.create_batch(2)
-        cls.filtered_tags = [cls.tag_1, cls.tag_2, cls.esco_tag, cls.wikipedia_tag]
+        cls.filtered_tags = [
+            cls.tag_1,
+            cls.tag_2,
+            cls.esco_tag,
+            cls.wikipedia_tag,
+        ]
         cls.tags = [*cls.filtered_tags, *cls.other_tags]
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_list_tags(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
@@ -39,16 +39,10 @@ class RetrieveTagTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.tags))
         self.assertSetEqual(
-            {tag["id"] for tag in content},
-            {tag.id for tag in self.tags},
+            {tag["id"] for tag in content}, {tag.id for tag in self.tags}
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_filter_tags_by_ids(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)
@@ -64,12 +58,7 @@ class RetrieveTagTestCase(JwtAPITestCase):
             {tag.id for tag in self.filtered_tags},
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_tag(self, role):
         user = self.get_parameterized_test_user(role)
         self.client.force_authenticate(user)

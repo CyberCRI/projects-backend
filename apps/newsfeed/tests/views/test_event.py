@@ -92,13 +92,7 @@ class UpdateEventTestCase(JwtAPITestCase):
             "event_date": datetime.date.today().isoformat(),
         }
         response = self.client.patch(
-            reverse(
-                "Event-detail",
-                args=(
-                    self.organization.code,
-                    self.event.id,
-                ),
-            ),
+            reverse("Event-detail", args=(self.organization.code, self.event.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -136,13 +130,7 @@ class DeleteEventTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Event-detail",
-                args=(
-                    self.organization.code,
-                    event.id,
-                ),
-            )
+            reverse("Event-detail", args=(self.organization.code, event.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -150,20 +138,13 @@ class DeleteEventTestCase(JwtAPITestCase):
 
 
 class RetrieveEventTestCase(JwtAPITestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.data = {
-            "none": {
-                "groups": [],
-                "visible_by_all": False,
-            },
-            "all": {
-                "groups": [],
-                "visible_by_all": True,
-            },
+            "none": {"groups": [], "visible_by_all": False},
+            "all": {"groups": [], "visible_by_all": True},
             "public": {
                 "groups": [
                     PeopleGroupFactory(
@@ -207,7 +188,10 @@ class RetrieveEventTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),
@@ -275,17 +259,9 @@ class ValidateEventTestCase(JwtAPITestCase):
         )
         user = self.get_parameterized_test_user(TestRoles.SUPERADMIN, instances=[])
         self.client.force_authenticate(user=user)
-        payload = {
-            "people_groups": [self.other_org_people_group.id],
-        }
+        payload = {"people_groups": [self.other_org_people_group.id]}
         response = self.client.patch(
-            reverse(
-                "Event-detail",
-                args=(
-                    self.organization.code,
-                    event.id,
-                ),
-            ),
+            reverse("Event-detail", args=(self.organization.code, event.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

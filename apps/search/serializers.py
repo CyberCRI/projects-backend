@@ -1,8 +1,11 @@
-from typing import Any, Dict
+from typing import Any
 
 from rest_framework import serializers
 
-from apps.accounts.serializers import PeopleGroupLightSerializer, UserLighterSerializer
+from apps.accounts.serializers import (
+    PeopleGroupLightSerializer,
+    UserLighterSerializer,
+)
 from apps.feedbacks.models import Follow
 from apps.files.serializers import ImageSerializer
 from apps.organizations.serializers import ProjectCategoryLightSerializer
@@ -37,7 +40,7 @@ class ProjectSearchSerializer(
             "is_followed",
         ]
 
-    def get_is_followed(self, project: Project) -> Dict[str, Any]:
+    def get_is_followed(self, project: Project) -> dict[str, Any]:
         if "request" in self.context:
             user = self.context["request"].user
             if not user.is_anonymous:

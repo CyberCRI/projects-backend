@@ -43,7 +43,9 @@ class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdm
     )
 
     def get_queryset_for_organizations(
-        self, queryset: QuerySet[ProjectUser], organizations: QuerySet[Organization]
+        self,
+        queryset: QuerySet[ProjectUser],
+        organizations: QuerySet[Organization],
     ) -> QuerySet[ProjectUser]:
         """
         Filter the queryset based on the organizations the user has admin access to.
@@ -53,7 +55,8 @@ class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdm
     def keycloak_account_link(self, obj):
         if hasattr(obj, "keycloak_account"):
             admin_page = reverse(
-                "admin:keycloak_keycloakaccount_change", args=(obj.keycloak_account.pk,)
+                "admin:keycloak_keycloakaccount_change",
+                args=(obj.keycloak_account.pk,),
             )
             return mark_safe(
                 f'<a href="{admin_page}">{obj.keycloak_account}</a>'
@@ -135,10 +138,7 @@ class GroupAdmin(admin.ModelAdmin):
 
     @staticmethod
     def format_permissions_up_to_date(permissions_up_to_date: bool) -> str:
-        colors = {
-            False: "#A00000",
-            True: "#339933",
-        }
+        colors = {False: "#A00000", True: "#339933"}
         color = colors.get(permissions_up_to_date, "#686868")
         return format_html(f'<b style="color:{color};">{permissions_up_to_date}</b>')
 
@@ -172,10 +172,7 @@ class PeopleGroupAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 @admin.register(PeopleGroupLocation)
 class PeopleGroupLocationAdmin(admin.ModelAdmin):
     list_display = ("title", "description", "type", "people_group")
-    list_display_links = (
-        list_display[0],
-        "people_group",
-    )
+    list_display_links = (list_display[0], "people_group")
     search_fields = ("title", "description", "type", "people_group__title")
 
 

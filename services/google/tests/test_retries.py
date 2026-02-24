@@ -47,7 +47,9 @@ class GoogleRetryErrorsTestCase(GoogleTestCase):
     )
     def test_retry_failed_account_tasks(self, failed_task, mocked_task):
         GoogleSyncErrorFactory(
-            google_account=self.google_account, on_task=failed_task, solved=False
+            google_account=self.google_account,
+            on_task=failed_task,
+            solved=False,
         )
         with patch(mocked_task) as mock:
             mock.return_value = None

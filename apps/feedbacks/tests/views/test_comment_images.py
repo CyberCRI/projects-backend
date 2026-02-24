@@ -66,7 +66,7 @@ class RetrieveCommentImageTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("Comment-images-detail", args=(project.id, image.id)),
+                reverse("Comment-images-detail", args=(project.id, image.id))
             )
             if publication_status in retrieved_comments:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -206,10 +206,7 @@ class UpdateCommentImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
-            reverse(
-                "Comment-images-detail",
-                args=(self.project.id, self.image.id),
-            ),
+            reverse("Comment-images-detail", args=(self.project.id, self.image.id)),
             data=payload,
             format="multipart",
         )
@@ -256,7 +253,7 @@ class DeleteCommentImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse("Comment-images-detail", args=(self.project.id, image.id)),
+            reverse("Comment-images-detail", args=(self.project.id, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

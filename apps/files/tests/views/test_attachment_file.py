@@ -127,7 +127,7 @@ class DeleteAttachmentFileTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         file = AttachmentFileFactory(project=project)
         response = self.client.delete(
-            reverse("AttachmentFile-detail", args=(project.id, file.id)),
+            reverse("AttachmentFile-detail", args=(project.id, file.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -180,10 +180,7 @@ class ListAttachmentFileTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
             response = self.client.get(
-                reverse(
-                    "AttachmentFile-list",
-                    args=(project.id,),
-                ),
+                reverse("AttachmentFile-list", args=(project.id,))
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]

@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Tuple
+from collections.abc import Callable
 
 from django.conf import settings
 from rest_framework.request import Request
@@ -13,7 +13,7 @@ class CookieTokenMiddleware:
     def __init__(self, get_response: Callable[[Request], Response]):
         self.get_response = get_response
 
-    def _get_token(self, request: Request) -> Tuple[Optional[str], str]:
+    def _get_token(self, request: Request) -> tuple[str | None, str]:
         """Try to retrieve the JWT access token from the headers or cookies."""
         if "HTTP_AUTHORIZATION" in request.META:
             token = request.META["HTTP_AUTHORIZATION"].split(" ", 1)

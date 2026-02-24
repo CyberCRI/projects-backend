@@ -81,12 +81,18 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         [
             (TestRoles.ANONYMOUS, ("public_1", "public_2", "no_org")),
             (TestRoles.DEFAULT, ("public_1", "public_2", "no_org")),
-            (TestRoles.OWNER, ("public_1", "public_2", "private", "org", "no_org")),
+            (
+                TestRoles.OWNER,
+                ("public_1", "public_2", "private", "org", "no_org"),
+            ),
             (
                 TestRoles.SUPERADMIN,
                 ("public_1", "public_2", "private", "org", "no_org"),
             ),
-            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "no_org")),
+            (
+                TestRoles.ORG_ADMIN,
+                ("public_1", "public_2", "private", "org", "no_org"),
+            ),
             (
                 TestRoles.ORG_FACILITATOR,
                 ("public_1", "public_2", "private", "org", "no_org"),
@@ -102,7 +108,9 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             query="opensearch",
         )
         user = self.get_parameterized_test_user(
-            role, instances=[self.organization], owned_instance=self.private_user
+            role,
+            instances=[self.organization],
+            owned_instance=self.private_user,
         )
         self.client.force_authenticate(user)
         response = self.client.get(
@@ -136,7 +144,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content}, {self.public_user_2.id}
@@ -156,7 +165,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content}, {self.public_user_2.id}
@@ -178,7 +188,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 1)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content}, {self.public_user_2.id}
@@ -203,7 +214,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 2)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content},
@@ -213,7 +225,10 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_needs_mentor(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["org"], self.search_objects["private"]],
+            search_objects=[
+                self.search_objects["org"],
+                self.search_objects["private"],
+            ],
             query="opensearch",
         )
         self.client.force_authenticate(self.superadmin)
@@ -226,7 +241,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 2)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content},
@@ -252,7 +268,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 2)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content},
@@ -262,7 +279,10 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_filter_needs_mentor_on(self, mocked_search):
         mocked_search.return_value = self.opensearch_search_objects_mocked_return(
-            search_objects=[self.search_objects["org"], self.search_objects["private"]],
+            search_objects=[
+                self.search_objects["org"],
+                self.search_objects["private"],
+            ],
             query="opensearch",
         )
         self.client.force_authenticate(self.superadmin)
@@ -275,7 +295,8 @@ class UserSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), 2)
         self.assertEqual(
-            {user["type"] for user in content}, {SearchObject.SearchObjectType.USER}
+            {user["type"] for user in content},
+            {SearchObject.SearchObjectType.USER},
         )
         self.assertSetEqual(
             {user["user"]["id"] for user in content},

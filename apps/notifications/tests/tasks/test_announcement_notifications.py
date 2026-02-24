@@ -11,7 +11,10 @@ from apps.announcements.models import Announcement
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import _notify_new_announcement, _notify_new_application
+from apps.notifications.tasks import (
+    _notify_new_announcement,
+    _notify_new_application,
+)
 from apps.organizations.factories import (
     CategoryFollowFactory,
     OrganizationFactory,
@@ -55,8 +58,7 @@ class NewAnnouncementTestCase(JwtAPITestCase):
             "project_id": project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(project.id,)),
-            data=payload,
+            reverse("Announcement-list", args=(project.id,)), data=payload
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

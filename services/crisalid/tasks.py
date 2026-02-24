@@ -4,7 +4,12 @@ from projects.celery import app
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
 from services.crisalid.bus.consumer import on_event
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import CrisalidConfig, Document, Identifier, Researcher
+from services.crisalid.models import (
+    CrisalidConfig,
+    Document,
+    Identifier,
+    Researcher,
+)
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
 
 logger = logging.getLogger(__name__)

@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import APIException
@@ -12,7 +10,7 @@ class WikibaseAPIException(APIException):
     default_detail = _("Wikipedia API error")
     default_code = "wikibase_api_error"
 
-    def __init__(self, status_code: Optional[int] = None):
+    def __init__(self, status_code: int | None = None):
         detail = (
             _("Wikipedia API returned {status_code}").format(status_code=status_code)
             if status_code
@@ -26,7 +24,7 @@ class UnsupportedWikipediaLanguageError(APIException):
     default_detail = _("Language is not supported")
     default_code = "unsupported_wikipedia_language_error"
 
-    def __init__(self, language: Optional[str] = None):
+    def __init__(self, language: str | None = None):
         detail = (
             _("Language {language} is not supported").format(language=language)
             if language

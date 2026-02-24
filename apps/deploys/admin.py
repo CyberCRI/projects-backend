@@ -21,10 +21,7 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
         "progress",
         "traceback",
     )
-    search_fields = (
-        "id",
-        "task_name",
-    )
+    search_fields = ("id", "task_name")
     exclude = ("_status", "last_run")
     actions = ["run_task", "reset_task"]
     ordering = ("priority",)

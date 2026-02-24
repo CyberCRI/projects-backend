@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import Any
 
 from rest_framework import serializers
 
@@ -76,7 +76,7 @@ class NewsSerializer(
 
     def get_string_images_kwargs(
         self, instance: News, field_name: str, *args: Any, **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get additional kwargs for image processing based on the instance."""
         return {
             "organization_code": instance.organization.code,
@@ -130,14 +130,15 @@ class InstructionSerializer(
     def validate_people_groups_ids(self, value):
         for group in value:
             if not PeopleGroup.objects.filter(
-                id=group.id, organization__code=self.context.get("organization_code")
+                id=group.id,
+                organization__code=self.context.get("organization_code"),
             ).exists():
                 raise InstructionPeopleGroupOrganizationError
         return value
 
     def get_string_images_kwargs(
         self, instance: Instruction, field_name: str, *args: Any, **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get additional kwargs for image processing based on the instance."""
         return {
             "organization_code": instance.organization.code,
@@ -204,7 +205,7 @@ class EventSerializer(
 
     def get_string_images_kwargs(
         self, instance: Instruction, field_name: str, *args: Any, **kwargs: Any
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Get additional kwargs for image processing based on the instance."""
         return {
             "organization_code": instance.organization.code,

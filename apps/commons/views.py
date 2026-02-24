@@ -128,7 +128,11 @@ class PaginatedViewSet(viewsets.ViewSet):
         """
         Extra context provided to the serializer class.
         """
-        return {"request": self.request, "format": self.format_kwarg, "view": self}
+        return {
+            "request": self.request,
+            "format": self.format_kwarg,
+            "view": self,
+        }
 
     def get_paginated_list(self, queryset):
         page = self.paginate_queryset(queryset)

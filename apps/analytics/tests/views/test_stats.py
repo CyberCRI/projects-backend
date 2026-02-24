@@ -81,7 +81,6 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         ]
     )
     def test_retrieve_stats(self, role, expected_code):
-
         user = self.get_parameterized_test_user(
             role, instances=[self.organization_1, self.organization_2]
         )
@@ -97,7 +96,6 @@ class RetrieveStatsTestCase(JwtAPITestCase):
         self.assertEqual(response_org_2.status_code, expected_code)
 
         if expected_code == status.HTTP_200_OK:
-
             # ORG 1
 
             content = response_org_1.json()

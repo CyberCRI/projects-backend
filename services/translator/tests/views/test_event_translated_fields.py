@@ -34,8 +34,7 @@ class EventTranslatedFieldsTestCase(JwtAPITestCase):
             "people_groups": [],
         }
         response = self.client.post(
-            reverse("Event-list", args=(self.organization.code,)),
-            data=payload,
+            reverse("Event-list", args=(self.organization.code,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -60,9 +59,7 @@ class EventTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            Event._auto_translated_fields[0]: faker.word(),
-        }
+        payload = {Event._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse("Event-detail", args=(self.organization.code, event.pk)),
             data=payload,

@@ -1,5 +1,9 @@
 from services.crisalid import relators
-from services.crisalid.models import CrisalidConfig, Document, DocumentContributor
+from services.crisalid.models import (
+    CrisalidConfig,
+    Document,
+    DocumentContributor,
+)
 from services.crisalid.populates.identifier import PopulateIdentifier
 
 from .base import AbstractPopulate
@@ -12,7 +16,9 @@ class PopulateDocument(AbstractPopulate):
         super().__init__(config, cache)
         self.populate_identifiers = PopulateIdentifier(self.config, self.cache)
         self.populate_researcher = PopulateResearcher(
-            self.config, self.cache, populate_identifiers=self.populate_identifiers
+            self.config,
+            self.cache,
+            populate_identifiers=self.populate_identifiers,
         )
 
     def sanitize_document_type(self, data: str | None):
@@ -57,7 +63,6 @@ class PopulateDocument(AbstractPopulate):
             for researcher in self.populate_researcher.multiple(
                 contribution["contributor"]
             ):
-
                 roles = self.sanitize_roles(contribution["roles"])
 
                 contribution = self.cache.model(

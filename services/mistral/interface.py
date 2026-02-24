@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 from django.conf import settings
 from mistralai import Mistral
@@ -9,7 +9,7 @@ class MistralService:
     service = Mistral(api_key=settings.MISTRAL_API_KEY)
 
     @classmethod
-    def get_chat_response(cls, system: List[str], prompt: List[str], **kwargs) -> str:
+    def get_chat_response(cls, system: list[str], prompt: list[str], **kwargs) -> str:
         """
         Get the chat response from Mistral API.
         """
@@ -24,8 +24,8 @@ class MistralService:
 
     @classmethod
     def get_json_chat_response(
-        cls, system: List[str], prompt: List[str], **kwargs
-    ) -> Dict[str, Any]:
+        cls, system: list[str], prompt: list[str], **kwargs
+    ) -> dict[str, Any]:
         messages = [
             *[{"content": message, "role": "system"} for message in system],
             *[{"content": message, "role": "user"} for message in prompt],
@@ -34,17 +34,14 @@ class MistralService:
             model="mistral-small",
             messages=messages,
             response_format={"type": "json_object"},
-            **kwargs
+            **kwargs,
         )
         return json.loads(response.choices[0].message.content)
 
     @classmethod
-    def get_embedding(cls, prompt: str) -> List[float]:
+    def get_embedding(cls, prompt: str) -> list[float]:
         """
         Get the prompt's vector in 1024 dimensions from Mistral API.
         """
-        response = cls.service.embeddings.create(
-            model="mistral-embed",
-            inputs=[prompt],
-        )
+        response = cls.service.embeddings.create(model="mistral-embed", inputs=[prompt])
         return response.data[0].embedding

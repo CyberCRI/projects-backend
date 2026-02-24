@@ -9,7 +9,10 @@ from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.search.models import SearchObject
@@ -120,7 +123,10 @@ class ProjectSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
             ),
             (TestRoles.ORG_USER, ("public_1", "public_2", "org", "no_org")),
             (TestRoles.ORG_VIEWER, ("public_1", "public_2", "org", "no_org")),
-            (TestRoles.PROJECT_MEMBER, ("public_1", "public_2", "member", "no_org")),
+            (
+                TestRoles.PROJECT_MEMBER,
+                ("public_1", "public_2", "member", "no_org"),
+            ),
         ]
     )
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")

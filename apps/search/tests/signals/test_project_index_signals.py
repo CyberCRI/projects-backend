@@ -9,7 +9,10 @@ from rest_framework import status
 from apps.accounts.factories import UserFactory
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
 from apps.projects.models import Project
 from apps.skills.factories import TagFactory
@@ -106,7 +109,10 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
 
         self.client.force_authenticate(self.superadmin)
         payload = {
-            "project_categories_ids": [self.category_to_add.id, self.category.id]
+            "project_categories_ids": [
+                self.category_to_add.id,
+                self.category.id,
+            ]
         }
         response = self.client.patch(
             reverse("Project-detail", args=(self.project.id,)), payload
@@ -124,10 +130,7 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Category-detail",
-                args=(
-                    self.organization.code,
-                    self.category.id,
-                ),
+                args=(self.organization.code, self.category.id),
             ),
             payload,
         )
@@ -165,7 +168,8 @@ class ProjectIndexUpdateSignalTestCase(JwtAPITestCase):
         payload = {"title": title, "title_en": title, "title_fr": title}
         response = self.client.patch(
             reverse(
-                "OrganizationTag-detail", args=(self.organization.code, self.tag.id)
+                "OrganizationTag-detail",
+                args=(self.organization.code, self.tag.id),
             ),
             payload,
         )

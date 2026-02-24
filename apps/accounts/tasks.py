@@ -39,7 +39,5 @@ def update_new_user_pending_access_requests(user_pk: int, organization_code: str
         email=user.email,
     ).update(user=user, status=AccessRequest.Status.ACCEPTED)
     AccessRequest.objects.exclude(organization__code=organization_code).filter(
-        status=AccessRequest.Status.PENDING,
-        user__isnull=True,
-        email=user.email,
+        status=AccessRequest.Status.PENDING, user__isnull=True, email=user.email
     ).update(user=user)

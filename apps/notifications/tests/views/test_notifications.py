@@ -36,7 +36,9 @@ class NotificationsTestCase(JwtAPITestCase):
         )
         unchanged = [
             NotificationFactory(
-                project=self.project, is_viewed=False, organization=self.organization
+                project=self.project,
+                is_viewed=False,
+                organization=self.organization,
             ),
             NotificationFactory(
                 receiver=user,

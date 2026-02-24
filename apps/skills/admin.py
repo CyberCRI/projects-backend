@@ -16,10 +16,7 @@ class TagAdmin(admin.ModelAdmin):
         "title",
         "description",
     )
-    list_filter = (
-        "type",
-        "organization",
-    )
+    list_filter = ("type", "organization")
     search_fields = (
         "title",
         "title_en",
@@ -41,15 +38,8 @@ class TagClassificationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
         "title",
         "description",
     )
-    list_filter = (
-        "type",
-        "organization",
-        "is_public",
-    )
-    search_fields = (
-        "title",
-        "description",
-    )
+    list_filter = ("type", "organization", "is_public")
+    search_fields = ("title", "description")
     filter_horizontal = ("tags",)
 
 
@@ -62,11 +52,7 @@ class SkillAdmin(admin.ModelAdmin):
         "can_mentor",
         "needs_mentor",
     )
-    list_filter = (
-        "type",
-        "can_mentor",
-        "needs_mentor",
-    )
+    list_filter = ("type", "can_mentor", "needs_mentor")
     search_fields = (
         "user__email",
         "user__given_name",

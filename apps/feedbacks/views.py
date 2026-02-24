@@ -40,10 +40,7 @@ class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filterset_class = ReviewFilter
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "review")
@@ -83,10 +80,7 @@ class FollowViewSet(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "follow")
@@ -148,9 +142,7 @@ class UserFollowViewSet(FollowViewSet):
         context = {"request": request}
         return Response(
             FollowSerializer(
-                Follow.objects.filter(follower=user),
-                context=context,
-                many=True,
+                Follow.objects.filter(follower=user), context=context, many=True
             ).data,
             status=status.HTTP_201_CREATED,
         )
@@ -165,9 +157,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "comment")
@@ -199,7 +189,8 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         get_object_or_404(
-            self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+            self.request.user.get_project_queryset(),
+            id=self.kwargs["project_id"],
         )
         return super().create(request, *args, **kwargs)
 
@@ -214,9 +205,7 @@ class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
-    multiple_lookup_fields = [
-        (Project, "project_id"),
-    ]
+    multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
         """
@@ -250,7 +239,8 @@ class CommentImagesView(MultipleIDViewsetMixin, ImageStorageView):
 
     def create(self, request, *args, **kwargs):
         get_object_or_404(
-            self.request.user.get_project_queryset(), id=self.kwargs["project_id"]
+            self.request.user.get_project_queryset(),
+            id=self.kwargs["project_id"],
         )
         return super().create(request, *args, **kwargs)
 

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Optional
 
 from django.db import models, transaction
 from django.utils import timezone
@@ -36,9 +36,7 @@ class Follow(HasOwner, ProjectRelated, models.Model):
         "projects.Project", on_delete=models.CASCADE, related_name="follows"
     )
     follower = models.ForeignKey(
-        "accounts.ProjectUser",
-        on_delete=models.CASCADE,
-        related_name="follows",
+        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="follows"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -73,7 +71,7 @@ class Follow(HasOwner, ProjectRelated, models.Model):
         """Return the project related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -113,7 +111,7 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         History of the object.
     """
 
-    auto_translated_fields: List[str] = ["html:content"]
+    auto_translated_fields: list[str] = ["html:content"]
 
     project = HistoricForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="comments"
@@ -135,7 +133,10 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     deleted_at = models.DateTimeField(null=True, default=None)
     deleted_by = models.ForeignKey(
-        "accounts.ProjectUser", on_delete=models.SET_NULL, null=True, default=None
+        "accounts.ProjectUser",
+        on_delete=models.SET_NULL,
+        null=True,
+        default=None,
     )
     images = models.ManyToManyField("files.Image", related_name="comments")
     history = HistoricalRecords()
@@ -171,7 +172,7 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
 
@@ -200,7 +201,7 @@ class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         Date of the last change made to the review.
     """
 
-    auto_translated_fields: List[str] = ["html:description", "title"]
+    auto_translated_fields: list[str] = ["html:description", "title"]
 
     description = models.TextField(blank=True)
     title = models.CharField(max_length=100)
@@ -228,6 +229,6 @@ class Review(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
         """Return the projects related to this model."""
         return self.project
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()

@@ -1,6 +1,6 @@
 import json
 from base64 import b64decode
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any
 
 import jwt
 from cryptography.hazmat.primitives import serialization
@@ -24,7 +24,7 @@ from .exceptions import (
 )
 
 
-def decode_token(request: Request) -> Optional[Dict[str, Any]]:
+def decode_token(request: Request) -> dict[str, Any] | None:
     """Decode the request's JWT token."""
     authorization_header = request.headers.get("Authorization")
     if not authorization_header:
@@ -41,10 +41,10 @@ def decode_token(request: Request) -> Optional[Dict[str, Any]]:
             algorithms=["RS256"],
             options={"verify_signature": settings.AUTH_CONFIG["VERIFY_SIGNATURE"]},
         )
-    except jwt.ExpiredSignatureError:
-        raise ExpiredTokenError
-    except IndexError:
-        raise TokenPrefixMissingError
+    except jwt.ExpiredSignatureError as err:
+        raise ExpiredTokenError from err
+    except IndexError as err:
+        raise TokenPrefixMissingError from err
 
 
 def get_default_group_permissions():
@@ -72,7 +72,7 @@ def get_superadmins_group():
 
 
 def get_permission_representation(
-    permission: Union[Permission, str], instance: Optional[HasPermissionsSetup] = None
+    permission: Permission | str, instance: HasPermissionsSetup | None = None
 ) -> str:
     if instance:
         content_type = ContentType.objects.get_for_model(instance)
@@ -80,7 +80,7 @@ def get_permission_representation(
     return f"{permission.content_type.app_label}.{permission.codename}"
 
 
-def get_instance_from_group(group: Group) -> Optional[HasPermissionsSetup]:
+def get_instance_from_group(group: Group) -> HasPermissionsSetup | None:
     """
     Get the related instance from a django.contrib.auth.models.Group instance.
     The instance can be an Organization, a Project or a PeopleGroup.
@@ -96,30 +96,26 @@ def get_instance_from_group(group: Group) -> Optional[HasPermissionsSetup]:
         return None
 
 
-def get_group_permissions(group: Group) -> List[str]:
+def get_group_permissions(group: Group) -> list[str]:
     instance = get_instance_from_group(group)
     if instance:
         return list(
-            set(
-                [
-                    get_permission_representation(permission, instance)
-                    for permission in get_group_perms(group, instance)
-                ]
-            )
+            {
+                get_permission_representation(permission, instance)
+                for permission in get_group_perms(group, instance)
+            }
         )
     return list(
-        set(
-            [
-                get_permission_representation(permission)
-                for permission in group.permissions.all()
-            ]
-        )
+        {
+            get_permission_representation(permission)
+            for permission in group.permissions.all()
+        }
     )
 
 
 def get_permission_from_representation(
     representation: str,
-) -> Tuple[Optional[str], Optional[HasPermissionsSetup]]:
+) -> tuple[str | None, HasPermissionsSetup | None]:
     split_representation = representation.split(".")
     if len(split_representation) == 2:
         return representation, None
@@ -143,7 +139,7 @@ def default_onboarding_status():
 
 
 def account_sync_errors_handler(
-    keycloak_error: Union[KeycloakError, Tuple[KeycloakError]] = KeycloakError,
+    keycloak_error: KeycloakError | tuple[KeycloakError] = KeycloakError,
     google_error: HttpError = HttpError,
 ):
     def decorator(func):
@@ -152,9 +148,9 @@ def account_sync_errors_handler(
                 return func(request, *args, **kwargs)
             except keycloak_error as e:
                 message = json.loads(e.response_body.decode()).get("errorMessage")
-                raise KeycloakSyncError(message=message, code=e.response_code)
+                raise KeycloakSyncError(message=message, code=e.response_code) from e
             except google_error as e:
-                raise GoogleSyncError(message=e.reason, code=e.status_code)
+                raise GoogleSyncError(message=e.reason, code=e.status_code) from e
 
         return wrapper
 

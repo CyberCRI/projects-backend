@@ -17,12 +17,7 @@ class ReportTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     @patch("apps.notifications.views.send_email_task.delay")
     def test_bug_report(self, role, send_email):
         user = self.get_parameterized_test_user(role, instances=[])
@@ -39,12 +34,7 @@ class ReportTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     @patch("apps.notifications.views.send_email_task.delay")
     def test_abuse_report(self, role, send_email):
         user = self.get_parameterized_test_user(role, instances=[])
@@ -56,7 +46,8 @@ class ReportTestCase(JwtAPITestCase):
             "url": faker.url(),
         }
         response = self.client.post(
-            reverse("Report-abuse", args=(self.organization.code,)), data=payload
+            reverse("Report-abuse", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK, response.content)
         send_email.assert_called_once()

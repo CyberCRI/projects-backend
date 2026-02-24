@@ -6,9 +6,16 @@ from faker import Faker
 
 from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import ProjectFactory
-from apps.skills.factories import SkillFactory, TagClassificationFactory, TagFactory
+from apps.skills.factories import (
+    SkillFactory,
+    TagClassificationFactory,
+    TagFactory,
+)
 from apps.skills.models import Tag
 from apps.skills.tasks import delete_orphan_wikipedia_tags
 from services.mistral.factories import TagEmbeddingFactory

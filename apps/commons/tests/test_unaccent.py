@@ -19,9 +19,7 @@ class UnaccentSearchTestCase(JwtAPITestCase):
         )
         UserFactory(given_name="abc", family_name="abc", email="abc@abc.abc", job="abc")
         for query in ["ééé", "èèè", "êêê", "ëëë", "eee"]:
-            response = self.client.get(
-                reverse("ProjectUser-list") + f"?search={query}",
-            )
+            response = self.client.get(reverse("ProjectUser-list") + f"?search={query}")
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             self.assertEqual(len(content), 1)
@@ -41,7 +39,7 @@ class UnaccentSearchTestCase(JwtAPITestCase):
         for query in ["ééé", "èèè", "êêê", "ëëë", "eee"]:
             response = self.client.get(
                 reverse("PeopleGroup-list", args=(self.organization.code,))
-                + f"?search={query}",
+                + f"?search={query}"
             )
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]

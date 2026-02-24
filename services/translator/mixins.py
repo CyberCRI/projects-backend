@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
@@ -44,8 +42,7 @@ class TranslatedModelMeta(models.base.ModelBase):
                     # Adjust max_length for translated fields if necessary
                     kwargs["max_length"] = int(kwargs["max_length"] * 4)
                 attrs[f"{field}_{lang}"] = base_field.__class__(
-                    *args,
-                    **{**kwargs, "blank": True, "null": True},
+                    *args, **{**kwargs, "blank": True, "null": True}
                 )
         return super().__new__(cls, name, bases, attrs)
 
@@ -68,12 +65,12 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
     to know that the translations need to be updated.
     """
 
-    auto_translated_fields: List[str] = []
+    auto_translated_fields: list[str] = []
     auto_translate_all_languages: bool = False
 
-    _auto_translated_fields: List[str] = []
-    _html_auto_translated_fields: List[str] = []
-    _original_auto_translated_fields_values: Dict[str, str] = {}
+    _auto_translated_fields: list[str] = []
+    _html_auto_translated_fields: list[str] = []
+    _original_auto_translated_fields_values: dict[str, str] = {}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -110,10 +107,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
                     content_type=content_type,
                     object_id=str(self.pk),
                     field_name=field,
-                    defaults={
-                        "up_to_date": False,
-                        "field_type": field_type,
-                    },
+                    defaults={"up_to_date": False, "field_type": field_type},
                 )
 
     def _delete_auto_translated_fields(self):

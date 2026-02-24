@@ -42,10 +42,19 @@ class SDG(models.IntegerChoices):
         "Industry, innovation and infrastructure",
     )
     REDUCED_INEQUALITIES = 10, "Reduces inequalities"
-    SUSTAINABLE_CITIES_AND_COMMUNITIES = 11, "Sustainable cities and communities"
-    RESPONSIBLE_CONSUMPTION_AND_PRODUCTION = 12, "Responsible consumption & production"
+    SUSTAINABLE_CITIES_AND_COMMUNITIES = (
+        11,
+        "Sustainable cities and communities",
+    )
+    RESPONSIBLE_CONSUMPTION_AND_PRODUCTION = (
+        12,
+        "Responsible consumption & production",
+    )
     CLIMATE_ACTION = 13, "Climate action"
     LIFE_BELOW_WATER = 14, "Life below water"
     LIFE_ON_LAND = 15, "Life on land"
-    PEACE_JUSTICE_AND_STRONG_INSTITUTIONS = 16, "Peace, justice and strong institutions"
+    PEACE_JUSTICE_AND_STRONG_INSTITUTIONS = (
+        16,
+        "Peace, justice and strong institutions",
+    )
     PARTNERSHIPS_FOR_THE_GOALS = 17, "Partnerships for the goals"

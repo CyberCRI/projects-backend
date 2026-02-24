@@ -14,7 +14,11 @@ from apps.files.factories import (
     OrganizationAttachmentFileFactory,
 )
 from apps.invitations.factories import AccessRequestFactory
-from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.newsfeed.factories import (
+    EventFactory,
+    InstructionFactory,
+    NewsFactory,
+)
 from apps.organizations.factories import (
     OrganizationFactory,
     ProjectCategoryFactory,
@@ -62,8 +66,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             short_description=cls.base64_image_text,
         )
         cls.announcement = AnnouncementFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.comment = CommentFactory(
             project=project,
@@ -75,25 +78,18 @@ class TextProcessingTestCase(JwtAPITestCase):
                 + cls.create_unlinked_image_text("Comment-images-detail", project.id)
             ),
         )
-        cls.review = ReviewFactory(
-            project=project,
-            description=cls.base64_image_text,
-        )
+        cls.review = ReviewFactory(project=project, description=cls.base64_image_text)
         cls.org_attachment_file = OrganizationAttachmentFileFactory(
-            organization=organization,
-            description=cls.base64_image_text,
+            organization=organization, description=cls.base64_image_text
         )
         cls.attachment_link = AttachmentLinkFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.attachment_file = AttachmentFileFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.access_request = AccessRequestFactory(
-            organization=organization,
-            message=cls.base64_image_text,
+            organization=organization, message=cls.base64_image_text
         )
         cls.news = NewsFactory(organization=organization, content=cls.base64_image_text)
         cls.news.content += cls.create_unlinked_image_text(
@@ -114,9 +110,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "Instruction-images-detail", organization.code, cls.instruction.id
         )
         cls.instruction.save()
-        cls.organization = OrganizationFactory(
-            description=cls.base64_image_text,
-        )
+        cls.organization = OrganizationFactory(description=cls.base64_image_text)
         cls.organization.description += cls.create_unlinked_image_text(
             "Organization-images-detail", cls.organization.code
         )
@@ -150,8 +144,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             )
         cls.template.save()
         cls.category = ProjectCategoryFactory(
-            organization=organization,
-            description=cls.base64_image_text,
+            organization=organization, description=cls.base64_image_text
         )
         cls.project = ProjectFactory(
             organizations=[organization],
@@ -184,13 +177,9 @@ class TextProcessingTestCase(JwtAPITestCase):
                 "ProjectMessage-images-detail", cls.project.id
             ),
         )
-        cls.goal = GoalFactory(
-            project=project,
-            description=cls.base64_image_text,
-        )
+        cls.goal = GoalFactory(project=project, description=cls.base64_image_text)
         cls.location = LocationFactory(
-            project=project,
-            description=cls.base64_image_text,
+            project=project, description=cls.base64_image_text
         )
         cls.project_tab = ProjectTabFactory(
             project=project,
@@ -206,7 +195,9 @@ class TextProcessingTestCase(JwtAPITestCase):
             content=(
                 cls.base64_image_text
                 + cls.create_unlinked_image_text(
-                    "ProjectTabItem-images-detail", cls.project.id, cls.project_tab.id
+                    "ProjectTabItem-images-detail",
+                    cls.project.id,
+                    cls.project_tab.id,
                 )
             ),
         )

@@ -47,9 +47,7 @@ class MentoringReminderTestCase(JwtAPITestCase):
             status=mentoring_status,
         )
         message_1 = MentoringMessage.objects.create(
-            mentoring=mentoring_1,
-            sender=self.mentor,
-            content=faker.text(),
+            mentoring=mentoring_1, sender=self.mentor, content=faker.text()
         )
 
         # Mentor created mentoring with message at the given date and a more recent one
@@ -60,14 +58,10 @@ class MentoringReminderTestCase(JwtAPITestCase):
             status=mentoring_status,
         )
         message_2 = MentoringMessage.objects.create(
-            mentoring=mentoring_2,
-            sender=self.mentor,
-            content=faker.text(),
+            mentoring=mentoring_2, sender=self.mentor, content=faker.text()
         )
         MentoringMessage.objects.create(
-            mentoring=mentoring_2,
-            sender=self.mentoree,
-            content=faker.text(),
+            mentoring=mentoring_2, sender=self.mentoree, content=faker.text()
         )
 
         MentoringMessage.objects.filter(id__in=[message_1.id, message_2.id]).update(
@@ -111,9 +105,7 @@ class MentoringReminderTestCase(JwtAPITestCase):
             status=mentoring_status,
         )
         message_1 = MentoringMessage.objects.create(
-            mentoring=mentoring_1,
-            sender=self.mentoree,
-            content=faker.text(),
+            mentoring=mentoring_1, sender=self.mentoree, content=faker.text()
         )
 
         # Mentor created mentoring with message at the given date and a more recent one
@@ -124,14 +116,10 @@ class MentoringReminderTestCase(JwtAPITestCase):
             status=mentoring_status,
         )
         message_2 = MentoringMessage.objects.create(
-            mentoring=mentoring_2,
-            sender=self.mentoree,
-            content=faker.text(),
+            mentoring=mentoring_2, sender=self.mentoree, content=faker.text()
         )
         MentoringMessage.objects.create(
-            mentoring=mentoring_2,
-            sender=self.mentor,
-            content=faker.text(),
+            mentoring=mentoring_2, sender=self.mentor, content=faker.text()
         )
 
         MentoringMessage.objects.filter(id__in=[message_1.id, message_2.id]).update(

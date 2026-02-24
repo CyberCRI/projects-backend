@@ -101,7 +101,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     GroupData.Role.USERS,
                     users_permissions.exclude(id=removed_permission.id),
                 ),
-            ),
+            )
         )
         self.assertFalse(user.has_perm(removed_permission.codename, organization))
 
@@ -119,13 +119,22 @@ class PermissionsSetupTestCase(JwtAPITestCase):
         reviewer = UserFactory(groups=[project.get_reviewers()])
         member = UserFactory(groups=[project.get_members()])
         owner_group_member = UserFactory(
-            groups=[project.get_owner_groups(), owner_people_group.get_members()]
+            groups=[
+                project.get_owner_groups(),
+                owner_people_group.get_members(),
+            ]
         )
         reviewer_group_member = UserFactory(
-            groups=[project.get_reviewer_groups(), reviewer_people_group.get_members()]
+            groups=[
+                project.get_reviewer_groups(),
+                reviewer_people_group.get_members(),
+            ]
         )
         member_group_member = UserFactory(
-            groups=[project.get_member_groups(), member_people_group.get_members()]
+            groups=[
+                project.get_member_groups(),
+                member_people_group.get_members(),
+            ]
         )
 
         # Get roles permissions
@@ -203,7 +212,7 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     GroupData.Role.MEMBER_GROUPS,
                     members_permissions.exclude(id=removed_permission.id),
                 ),
-            ),
+            )
         )
         self.assertFalse(member.has_perm(removed_permission.codename, project))
         self.assertFalse(
@@ -279,6 +288,6 @@ class PermissionsSetupTestCase(JwtAPITestCase):
                     GroupData.Role.MEMBERS,
                     members_permissions.exclude(id=removed_permission.id),
                 ),
-            ),
+            )
         )
         self.assertFalse(member.has_perm(removed_permission.codename, people_group))

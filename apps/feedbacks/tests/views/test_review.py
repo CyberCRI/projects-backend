@@ -90,9 +90,7 @@ class UpdateReviewTestCase(JwtAPITestCase):
             role, instances=[self.project], owned_instance=self.review
         )
         self.client.force_authenticate(user)
-        payload = {
-            "description": faker.text(),
-        }
+        payload = {"description": faker.text()}
         response = self.client.patch(
             reverse("Reviewed-detail", args=(self.project.id, self.review.id)),
             data=payload,
@@ -120,11 +118,12 @@ class UpdateReviewTestCase(JwtAPITestCase):
             role, instances=[self.project], owned_instance=self.review
         )
         self.client.force_authenticate(user)
-        payload = {
-            "description": faker.text(),
-        }
+        payload = {"description": faker.text()}
         response = self.client.patch(
-            reverse("Reviewer-detail", args=(self.review.reviewer.id, self.review.id)),
+            reverse(
+                "Reviewer-detail",
+                args=(self.review.reviewer.id, self.review.id),
+            ),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -180,7 +179,9 @@ class ListReviewTestCase(JwtAPITestCase):
     )
     def test_list_reviewed(self, role, retrieved_reviews):
         user = self.get_parameterized_test_user(
-            role, instances=list(self.projects.values()), owned_instance=self.reviewer
+            role,
+            instances=list(self.projects.values()),
+            owned_instance=self.reviewer,
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
@@ -192,7 +193,8 @@ class ListReviewTestCase(JwtAPITestCase):
                 self.assertEqual(content[0]["project_id"], project.id)
                 self.assertEqual(content[0]["reviewer"]["id"], self.reviewer.id)
                 self.assertEqual(
-                    content[0]["description"], self.reviews[project_status].description
+                    content[0]["description"],
+                    self.reviews[project_status].description,
                 )
 
     @parameterized.expand(
@@ -212,7 +214,9 @@ class ListReviewTestCase(JwtAPITestCase):
     )
     def test_list_reviewer(self, role, retrieved_reviews):
         user = self.get_parameterized_test_user(
-            role, instances=list(self.projects.values()), owned_instance=self.reviewer
+            role,
+            instances=list(self.projects.values()),
+            owned_instance=self.reviewer,
         )
         self.client.force_authenticate(user)
         response = self.client.get(reverse("Reviewer-list", args=(self.reviewer.id,)))

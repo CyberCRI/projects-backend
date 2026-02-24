@@ -23,12 +23,7 @@ class EmbeddingAdmin(admin.ModelAdmin):
     item_admin_page: str = ""
     search_fields: tuple | None = None
 
-    list_display = (
-        "id",
-        "item_link",
-        "is_visible",
-        "last_update",
-    )
+    list_display = ("id", "item_link", "is_visible", "last_update")
     actions = ["vectorize"]
     list_filter = ("is_visible",)
 
@@ -54,7 +49,12 @@ class EmbeddingAdmin(admin.ModelAdmin):
 
 class UserEmbeddingAdmin(EmbeddingAdmin):
     item_admin_page = "admin:accounts_projectuser_change"
-    search_fields = ("item__given_name", "item__family_name", "item__email", "summary")
+    search_fields = (
+        "item__given_name",
+        "item__family_name",
+        "item__email",
+        "summary",
+    )
 
     def display_item_link(self, item: Embedding) -> str:
         return item.email
@@ -80,12 +80,7 @@ class DocumentEmbeddingAdmin(EmbeddingAdmin):
 
 
 class EmbeddingErrorAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "link_to_item",
-        "error",
-        "created_at",
-    )
+    list_display = ("id", "link_to_item", "error", "created_at")
     list_filter = ("error",)
 
     def link_to_item(self, item: EmbeddingError) -> str:

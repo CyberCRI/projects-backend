@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional
+from collections.abc import Callable
 
 from django.core.management.base import BaseCommand
 from django.db.models import Model
@@ -7,7 +7,11 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
 from apps.commons.utils import process_text, remove_images_text
 from apps.feedbacks.models import Comment, Review
-from apps.files.models import AttachmentFile, AttachmentLink, OrganizationAttachmentFile
+from apps.files.models import (
+    AttachmentFile,
+    AttachmentLink,
+    OrganizationAttachmentFile,
+)
 from apps.invitations.models import AccessRequest, Invitation
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import (
@@ -29,7 +33,6 @@ from apps.skills.models import MentoringMessage, TagClassification
 
 
 class Command(BaseCommand):
-
     def add_arguments(self, parser):
         parser.add_argument(
             "--dry-run",
@@ -40,13 +43,13 @@ class Command(BaseCommand):
     def _handle_model(
         self,
         model_class: Model,
-        images_fields: Optional[List[str]] = None,
-        forbid_images_fields: Optional[List[str]] = None,
+        images_fields: list[str] | None = None,
+        forbid_images_fields: list[str] | None = None,
         upload_to: str = "",
         view: str = "",
         process_template: bool = False,
-        get_kwargs: Optional[Callable] = None,
-        get_owner: Optional[Callable] = None,
+        get_kwargs: Callable | None = None,
+        get_owner: Callable | None = None,
         dry_run: bool = False,
     ):
         images_fields = images_fields or []
@@ -110,7 +113,9 @@ class Command(BaseCommand):
             dry_run=dry_run,
         )
         self._handle_model(
-            Announcement, forbid_images_fields=["title", "description"], dry_run=dry_run
+            Announcement,
+            forbid_images_fields=["title", "description"],
+            dry_run=dry_run,
         )
         self._handle_model(
             Comment,
@@ -123,7 +128,9 @@ class Command(BaseCommand):
             dry_run=dry_run,
         )
         self._handle_model(
-            Review, forbid_images_fields=["title", "description"], dry_run=dry_run
+            Review,
+            forbid_images_fields=["title", "description"],
+            dry_run=dry_run,
         )
         self._handle_model(
             AttachmentLink,
@@ -228,7 +235,9 @@ class Command(BaseCommand):
             dry_run=dry_run,
         )
         self._handle_model(
-            TermsAndConditions, forbid_images_fields=["content"], dry_run=dry_run
+            TermsAndConditions,
+            forbid_images_fields=["content"],
+            dry_run=dry_run,
         )
         self._handle_model(
             Project,
@@ -254,7 +263,9 @@ class Command(BaseCommand):
             Goal, forbid_images_fields=["title", "description"], dry_run=dry_run
         )
         self._handle_model(
-            Location, forbid_images_fields=["title", "description"], dry_run=dry_run
+            Location,
+            forbid_images_fields=["title", "description"],
+            dry_run=dry_run,
         )
         self._handle_model(
             ProjectMessage,

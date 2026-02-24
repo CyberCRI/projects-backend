@@ -107,12 +107,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_value_regex = (
         "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|[a-zA-Z0-9_-]{1,}"
     )
-    search_fields = [
-        "given_name",
-        "family_name",
-        "email",
-        "job",
-    ]
+    search_fields = ["given_name", "family_name", "email", "job"]
     parser_classes = (JSONParser, UserMultipartParser)
     filter_backends = (
         UnaccentSearchFilter,
@@ -130,9 +125,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         "last_login",
         "created_at",
     ]
-    multiple_lookup_fields = [
-        (ProjectUser, "id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "projectuser")
@@ -176,10 +169,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         email_not_verified = [user["id"] for user in email_not_verified]
         return queryset.annotate(
             email_verified=Case(
-                When(
-                    keycloak_account__isnull=True,
-                    then=Value(False),
-                ),
+                When(keycloak_account__isnull=True, then=Value(False)),
                 When(
                     keycloak_account__keycloak_id__in=email_not_verified,
                     then=Value(False),
@@ -199,10 +189,9 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         skills_prefetch = Prefetch(
             "skills", queryset=Skill.objects.select_related("tag")
         )
-        return queryset.prefetch_related(
-            skills_prefetch,
-            "groups",
-        ).select_related("researcher")
+        return queryset.prefetch_related(skills_prefetch, "groups").select_related(
+            "researcher"
+        )
 
     def get_object(self):
         """
@@ -246,7 +235,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 required=False,
                 type=str,
             )
-        ],
+        ]
     )
     @action(
         detail=False,
@@ -265,10 +254,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             Q(email=kwargs.get("email")) | Q(personal_email=kwargs.get("email"))
         ).distinct()
         if user.exists():
-            context = {
-                **self.get_serializer_context(),
-                "force_display": True,
-            }
+            context = {**self.get_serializer_context(), "force_display": True}
             return Response(UserLightSerializer(user.get(), context=context).data)
         raise Http404
 
@@ -317,9 +303,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def admin_list(self, request, *args, **kwargs):
         return super().list(request, *args, **kwargs)
 
-    @extend_schema(
-        responses={200: UserSerializer},
-    )
+    @extend_schema(responses={200: UserSerializer})
     @action(detail=False, methods=["GET"])
     def anonymous(self, request, *args, **kwargs):
         user = AnonymousUser()
@@ -368,7 +352,11 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @method_decorator(
         account_sync_errors_handler(
-            keycloak_error=(KeycloakPostError, KeycloakPutError, KeycloakGetError)
+            keycloak_error=(
+                KeycloakPostError,
+                KeycloakPutError,
+                KeycloakGetError,
+            )
         )
     )
     def create(self, request, *args, **kwargs):
@@ -537,9 +525,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         DjangoFilterBackend,
         OrderingFilter,
     )
-    multiple_lookup_fields = [
-        (PeopleGroup, "id"),
-    ]
+    multiple_lookup_fields = [(PeopleGroup, "id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "peoplegroup")
@@ -618,7 +604,8 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         self.google_sync(instance, self.request.data)
 
     @extend_schema(
-        request=PeopleGroupAddTeamMembersSerializer, responses=PeopleGroupSerializer
+        request=PeopleGroupAddTeamMembersSerializer,
+        responses=PeopleGroupSerializer,
     )
     @action(
         detail=True,
@@ -640,7 +627,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             with transaction.atomic():
                 serializer.save()
-                self.google_sync(people_group, dict())
+                self.google_sync(people_group, {})
             return Response(status=status.HTTP_204_NO_CONTENT)
         except HttpError as e:
             return Response(
@@ -649,7 +636,8 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             )
 
     @extend_schema(
-        request=PeopleGroupRemoveTeamMembersSerializer, responses=PeopleGroupSerializer
+        request=PeopleGroupRemoveTeamMembersSerializer,
+        responses=PeopleGroupSerializer,
     )
     @action(
         detail=True,
@@ -671,7 +659,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             serializer.is_valid(raise_exception=True)
             with transaction.atomic():
                 serializer.save()
-                self.google_sync(people_group, dict())
+                self.google_sync(people_group, {})
             return Response(status=status.HTTP_204_NO_CONTENT)
         except HttpError as e:
             return Response(
@@ -879,7 +867,9 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
 
 class PeopleGroupLocationViewSet(
-    NestedOrganizationViewMixins, NestedPeopleGroupViewMixins, viewsets.ModelViewSet
+    NestedOrganizationViewMixins,
+    NestedPeopleGroupViewMixins,
+    viewsets.ModelViewSet,
 ):
     serializer_class = PeopleGroupLocationSerializer
 
@@ -923,9 +913,7 @@ class PeopleGroupHeaderView(
     ]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (PeopleGroup, "people_group_id"),
-    ]
+    multiple_lookup_fields = [(PeopleGroup, "people_group_id")]
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
@@ -969,9 +957,7 @@ class PeopleGroupLogoView(
     ]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (PeopleGroup, "people_group_id"),
-    ]
+    multiple_lookup_fields = [(PeopleGroup, "people_group_id")]
 
     def get_queryset(self):
         if all(k in self.kwargs for k in ["people_group_id", "organization_code"]):
@@ -1017,9 +1003,7 @@ class UserProfilePictureView(MultipleIDViewsetMixin, ImageStorageView):
         | HasBasePermission("change_projectuser", "accounts")
         | HasOrganizationPermission("change_projectuser"),
     ]
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
         if "user_id" in self.kwargs:
@@ -1054,9 +1038,7 @@ class PrivacySettingsViewSet(MultipleIDViewsetMixin, RetrieveUpdateModelViewSet)
     serializer_class = PrivacySettingsSerializer
     lookup_field = "user_id"
     lookup_url_kwarg = "user_id"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_queryset(self):
         if "user_id" in self.kwargs:

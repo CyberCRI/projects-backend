@@ -21,12 +21,7 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
         cls.image = cls.get_test_image(owner=cls.owner)
         cls.template.images.add(cls.image)
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     def test_retrieve_template_image(self, role):
         user = self.get_parameterized_test_user(role, instances=[])
         self.client.force_authenticate(user)
@@ -61,7 +56,8 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
         }
         response = self.client.post(
             reverse(
-                "Template-images-list", args=(self.organization.code, self.template.id)
+                "Template-images-list",
+                args=(self.organization.code, self.template.id),
             ),
             data=payload,
             format="multipart",
@@ -74,7 +70,11 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
                 content["static_url"] + "/",
                 reverse(
                     "Template-images-detail",
-                    args=(self.organization.code, self.template.id, content["id"]),
+                    args=(
+                        self.organization.code,
+                        self.template.id,
+                        content["id"],
+                    ),
                 ),
             )
             self.assertEqual(content["scale_x"], payload["scale_x"])
@@ -145,7 +145,7 @@ class RetrieveTemplateImageTestCase(JwtAPITestCase):
             reverse(
                 "Template-images-detail",
                 args=(self.organization.code, self.template.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

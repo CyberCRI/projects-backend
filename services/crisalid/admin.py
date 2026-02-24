@@ -174,7 +174,9 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
             messages.add_message(request, messages.INFO, f"Assign {assigned} user.")
         if notfound:
             messages.add_message(
-                request, messages.ERROR, f"Can't found {notfound} user with eppn."
+                request,
+                messages.ERROR,
+                f"Can't found {notfound} user with eppn.",
             )
 
     @admin.display(description="documents count", ordering="documents_count")
@@ -223,7 +225,5 @@ class CrisalidConfigAdmin(admin.ModelAdmin):
             obj.save()
 
         messages.add_message(
-            request,
-            messages.INFO,
-            f"CrisalidBus listener stoped ({total}).",
+            request, messages.INFO, f"CrisalidBus listener stoped ({total})."
         )

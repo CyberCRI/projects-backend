@@ -14,7 +14,6 @@ TCACHE = TypeVar("TCACHE", bound=BaseCache)
 
 
 class AbstractPopulate(metaclass=abc.ABCMeta):
-
     def __init__(self, config: CrisalidConfig, cache: TCACHE = None):
         self.config = config
         self.cache = cache or LiveCache()

@@ -24,20 +24,11 @@ class MiscMentoringTestCase(JwtAPITestCase):
         cls.user = UserFactory()
         cls.request = MockedRequest(cls.user)
 
-    @parameterized.expand(
-        [
-            ("email_given",),
-            (None,),
-            ("",),
-        ]
-    )
+    @parameterized.expand([("email_given",), (None,), ("",)])
     def test_mentoring_contact_serializer(self, reply_to):
         if reply_to == "email_given":
             reply_to = faker.email()
-        data = {
-            "content": faker.text(),
-            "reply_to": reply_to,
-        }
+        data = {"content": faker.text(), "reply_to": reply_to}
         serializer = MentoringContactSerializer(
             data=data, context={"request": self.request}
         )
@@ -48,22 +39,14 @@ class MiscMentoringTestCase(JwtAPITestCase):
             self.assertEqual(serializer.validated_data["reply_to"], self.user.email)
 
     def test_mentoring_contact_serializer_no_reply_to(self):
-        data = {
-            "content": faker.text(),
-        }
+        data = {"content": faker.text()}
         serializer = MentoringContactSerializer(
             data=data, context={"request": self.request}
         )
         self.assertTrue(serializer.is_valid())
         self.assertEqual(serializer.validated_data["reply_to"], self.user.email)
 
-    @parameterized.expand(
-        [
-            ("email_given",),
-            (None,),
-            ("",),
-        ]
-    )
+    @parameterized.expand([("email_given",), (None,), ("",)])
     def test_mentoring_response_serializer(self, reply_to):
         if reply_to == "email_given":
             reply_to = faker.email()

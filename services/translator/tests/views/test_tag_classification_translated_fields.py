@@ -57,9 +57,7 @@ class TagClassificationTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            TagClassification._auto_translated_fields[0]: faker.word(),
-        }
+        payload = {TagClassification._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse(
                 "TagClassification-detail",

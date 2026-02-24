@@ -45,9 +45,7 @@ class NewProjectMessageTestCase(JwtAPITestCase):
         project.owners.add(owner)
 
         self.client.force_authenticate(owner)
-        payload = {
-            "content": faker.text(),
-        }
+        payload = {"content": faker.text()}
         response = self.client.post(
             reverse("ProjectMessage-list", args=(project.id,)), data=payload
         )

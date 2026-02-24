@@ -12,7 +12,11 @@ from keycloak import KeycloakDeleteError
 from parameterized import parameterized
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    UserFactory,
+)
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_default_group, get_superadmins_group
 from apps.commons.enums import SDG
@@ -140,10 +144,12 @@ class CreateUserTestCase(JwtAPITestCase):
         self.assertEqual(content["sdgs"], payload["sdgs"])
         self.assertIsNotNone(content["profile_picture"])
         self.assertEqual(
-            content["profile_picture"]["scale_x"], payload["profile_picture_scale_x"]
+            content["profile_picture"]["scale_x"],
+            payload["profile_picture_scale_x"],
         )
         self.assertEqual(
-            content["profile_picture"]["scale_y"], payload["profile_picture_scale_y"]
+            content["profile_picture"]["scale_y"],
+            payload["profile_picture_scale_y"],
         )
         self.assertEqual(
             content["profile_picture"]["left"], payload["profile_picture_left"]
@@ -266,8 +272,7 @@ class UpdateUserTestCase(JwtAPITestCase):
             "sdgs": random.choices(SDG.values, k=3),  # nosec
         }
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(self.instance.id,)),
-            payload,
+            reverse("ProjectUser-detail", args=(self.instance.id,)), payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_200_OK:
@@ -358,7 +363,8 @@ class AdminListUserTestCase(JwtAPITestCase):
         content = {user["id"]: user for user in response.data["results"]}
         for user in self.users:
             self.assertEqual(
-                content[user["user"].id]["email_verified"], user["email_verified"]
+                content[user["user"].id]["email_verified"],
+                user["email_verified"],
             )
 
     def test_order_by_email_verified(self):
@@ -373,8 +379,7 @@ class AdminListUserTestCase(JwtAPITestCase):
             {self.user_2.id, self.user_3.id},
         )
         self.assertSetEqual(
-            {u["id"] for u in response.data["results"][2:]},
-            {self.user_1.id},
+            {u["id"] for u in response.data["results"][2:]}, {self.user_1.id}
         )
 
     def test_order_by_email_verified_reverse(self):
@@ -385,8 +390,7 @@ class AdminListUserTestCase(JwtAPITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertSetEqual(
-            {u["id"] for u in response.data["results"][:1]},
-            {self.user_1.id},
+            {u["id"] for u in response.data["results"][:1]}, {self.user_1.id}
         )
         self.assertSetEqual(
             {u["id"] for u in response.data["results"][1:]},
@@ -544,7 +548,9 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
     @staticmethod
     def mocked_keycloak_error(*args, **kwarg):
         raise KeycloakDeleteError(
-            "error reason", 400, response_body=b'{"errorMessage": "error reason"}'
+            "error reason",
+            400,
+            response_body=b'{"errorMessage": "error reason"}',
         )
 
     @patch("services.keycloak.interface.KeycloakService.send_email")
@@ -588,9 +594,7 @@ class UserSyncErrorsTestCase(JwtAPITestCase):
             }
         )
         user = SeedUserFactory()
-        payload = {
-            "email": existing_username,
-        }
+        payload = {"email": existing_username}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )
@@ -663,10 +667,7 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         ProjectUser.objects.all().delete()
-        params = {
-            "given_name": "test",
-            "family_name": "test",
-        }
+        params = {"given_name": "test", "family_name": "test"}
         cls.user_a = UserFactory(job="ABC", email="search.ABC@example.com", **params)
         cls.user_b = UserFactory(job="DEF", email="search.DEF@example.com", **params)
         cls.user_c = UserFactory(job="GHI", email="search.GHI@example.com", **params)
@@ -930,9 +931,7 @@ class MiscUserTestCase(JwtAPITestCase):
                 "attributes": {"attribute_1": ["value_1"], "locale": ["en"]},
             },
         )
-        payload = {
-            "language": "fr",
-        }
+        payload = {"language": "fr"}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(user.id,)), data=payload
         )

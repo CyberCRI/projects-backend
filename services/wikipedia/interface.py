@@ -1,5 +1,3 @@
-from typing import Dict, List, Optional, Tuple
-
 import requests
 from django.conf import settings
 from mediawiki import MediaWiki
@@ -49,7 +47,7 @@ class WikipediaService:
         )
 
     @classmethod
-    def wbgetentities(cls, wikipedia_qids: List[str]) -> requests.Response:
+    def wbgetentities(cls, wikipedia_qids: list[str]) -> requests.Response:
         """
         Get the data for multiple Wikipedia Tags from the Wikimedia API.
         """
@@ -68,7 +66,7 @@ class WikipediaService:
         )
 
     @classmethod
-    def get_by_ids(cls, wikipedia_qids: List[str]) -> List[Dict[str, str]]:
+    def get_by_ids(cls, wikipedia_qids: list[str]) -> list[dict[str, str]]:
         """
         Get and format the data for multiple Wikipedia Tags from the Wikimedia API.
         """
@@ -123,7 +121,7 @@ class WikipediaService:
     @classmethod
     def search(
         cls, query: str, language: str = "en", limit: int = 10, offset: int = 0
-    ) -> Tuple[List[Dict[str, str]], Optional[int]]:
+    ) -> tuple[list[dict[str, str]], int | None]:
         """
         Search Tags and get formatted data from the Wikimedia API.
         """

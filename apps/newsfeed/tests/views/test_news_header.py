@@ -47,10 +47,7 @@ class CreateNewsHeaderTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse(
-                "News-header-list",
-                args=(organization.code, news.id),
-            ),
+            reverse("News-header-list", args=(organization.code, news.id)),
             data=payload,
             format="multipart",
         )
@@ -110,7 +107,11 @@ class UpdateNewsHeaderTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "News-header-detail",
-                args=(self.organization.code, self.news.id, self.news.header_image.id),
+                args=(
+                    self.organization.code,
+                    self.news.id,
+                    self.news.header_image.id,
+                ),
             ),
             data=payload,
             format="multipart",
@@ -161,7 +162,7 @@ class DeleteNewsHeaderTestCase(JwtAPITestCase):
             reverse(
                 "News-header-detail",
                 args=(self.organization.code, news.id, news.header_image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

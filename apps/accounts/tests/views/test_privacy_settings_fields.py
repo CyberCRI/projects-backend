@@ -159,7 +159,8 @@ class PrivacySettingsFieldsTestCase(JwtAPITestCase):
         retrieved_user = retrieved_user[0]
         if fields_visible:
             self.assertEqual(
-                retrieved_user["profile_picture"]["id"], instance.profile_picture.id
+                retrieved_user["profile_picture"]["id"],
+                instance.profile_picture.id,
             )
         else:
             self.assertIsNone(retrieved_user["profile_picture"])

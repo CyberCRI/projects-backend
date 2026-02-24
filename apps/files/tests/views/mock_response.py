@@ -7,14 +7,14 @@ class MockResponse:
         )
         self.image = "https://as1.ftcdn.net/v2/jpg/01/13/96/70/1000_F_113967069_We6GnlQl7icXaoKIVreKLpZIM4xSQEwn.jpg"
         self.site_name = "Super clickbait"
-        self.text = """
+        self.text = f"""
             <!DOCTYPE html>
             <html lang="en">
                 <head>
-                    <meta content="{}" property="og:title"/>
-                    <meta content="{}" property="og:description"/>
-                    <meta content="{}" property="og:image"/>
-                    <meta content="{}" property="og:site_name"/>
+                    <meta content="{self.title}" property="og:title"/>
+                    <meta content="{self.description}" property="og:description"/>
+                    <meta content="{self.image}" property="og:image"/>
+                    <meta content="{self.site_name}" property="og:site_name"/>
                     <title>Super clickbait</title>
                 </head>
                 <body>
@@ -33,4 +33,4 @@ class MockResponse:
                     </ol>
                 </body>
             </html>
-            """.format(self.title, self.description, self.image, self.site_name)
+            """

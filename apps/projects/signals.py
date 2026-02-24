@@ -1,5 +1,3 @@
-from typing import Type
-
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
 
@@ -11,7 +9,7 @@ from apps.projects.models import BlogEntry, Goal, LinkedProject, Location
 
 @receiver(post_save, sender="projects.BlogEntry")
 def on_blog_entry_change(
-    sender: Type[BlogEntry], instance: BlogEntry, created: bool, **kwargs
+    sender: type[BlogEntry], instance: BlogEntry, created: bool, **kwargs
 ):
     project = instance.project
     action = "Added" if created else "Updated"
@@ -20,14 +18,14 @@ def on_blog_entry_change(
 
 
 @receiver(post_delete, sender="projects.BlogEntry")
-def on_blog_entry_delete(sender: Type[BlogEntry], instance: BlogEntry, **kwargs):
+def on_blog_entry_delete(sender: type[BlogEntry], instance: BlogEntry, **kwargs):
     project = instance.project
     project._change_reason = "Removed blog entry"
     project.save()
 
 
 @receiver(post_save, sender="projects.Goal")
-def on_goal_change(sender: Type[Goal], instance: Goal, created: bool, **kwargs):
+def on_goal_change(sender: type[Goal], instance: Goal, created: bool, **kwargs):
     project = instance.project
     action = "Added" if created else "Updated"
     project._change_reason = action + " goal"
@@ -35,7 +33,7 @@ def on_goal_change(sender: Type[Goal], instance: Goal, created: bool, **kwargs):
 
 
 @receiver(post_delete, sender="projects.Goal")
-def on_goal_delete(sender: Type[Goal], instance: Goal, **kwargs):
+def on_goal_delete(sender: type[Goal], instance: Goal, **kwargs):
     project = instance.project
     project._change_reason = "Removed goal"
     project.save()
@@ -43,7 +41,7 @@ def on_goal_delete(sender: Type[Goal], instance: Goal, **kwargs):
 
 @receiver(post_save, sender="projects.Location")
 def on_location_change(
-    sender: Type[Location], instance: Location, created: bool, **kwargs
+    sender: type[Location], instance: Location, created: bool, **kwargs
 ):
     project = instance.project
     action = "Added" if created else "Updated"
@@ -52,7 +50,7 @@ def on_location_change(
 
 
 @receiver(post_delete, sender="projects.Location")
-def on_location_delete(sender: Type[Location], instance: Location, **kwargs):
+def on_location_delete(sender: type[Location], instance: Location, **kwargs):
     project = instance.project
     project._change_reason = "Removed location"
     project.save()
@@ -60,7 +58,10 @@ def on_location_delete(sender: Type[Location], instance: Location, **kwargs):
 
 @receiver(post_save, sender="projects.LinkedProject")
 def on_linked_project_change(
-    sender: Type[LinkedProject], instance: LinkedProject, created: bool, **kwargs
+    sender: type[LinkedProject],
+    instance: LinkedProject,
+    created: bool,
+    **kwargs,
 ):
     project = instance.target
     action = "Added" if created else "Updated"
@@ -70,7 +71,7 @@ def on_linked_project_change(
 
 @receiver(post_delete, sender="projects.LinkedProject")
 def on_linked_project_delete_post(
-    sender: Type[LinkedProject], instance: LinkedProject, **kwargs
+    sender: type[LinkedProject], instance: LinkedProject, **kwargs
 ):
     project = instance.target
     project._change_reason = "Removed linked project"
@@ -79,7 +80,7 @@ def on_linked_project_delete_post(
 
 @receiver(post_save, sender="feedbacks.Comment")
 def on_comment_change(
-    sender: Type[Comment], instance: Comment, created: bool, **kwargs
+    sender: type[Comment], instance: Comment, created: bool, **kwargs
 ):
     project = instance.project
     action = "Added" if created else ("Removed" if instance.deleted_at else "Updated")
@@ -89,7 +90,10 @@ def on_comment_change(
 
 @receiver(post_save, sender="files.AttachmentLink")
 def on_attachment_link_change(
-    sender: Type[AttachmentLink], instance: AttachmentLink, created: bool, **kwargs
+    sender: type[AttachmentLink],
+    instance: AttachmentLink,
+    created: bool,
+    **kwargs,
 ):
     project = instance.project
     action = "Added" if created else "Updated"
@@ -99,7 +103,7 @@ def on_attachment_link_change(
 
 @receiver(post_delete, sender="files.AttachmentLink")
 def on_attachment_link_delete(
-    sender: Type[AttachmentLink], instance: AttachmentLink, **kwargs
+    sender: type[AttachmentLink], instance: AttachmentLink, **kwargs
 ):
     project = instance.project
     project._change_reason = "Removed attachment link"
@@ -108,7 +112,10 @@ def on_attachment_link_delete(
 
 @receiver(post_save, sender="files.AttachmentFile")
 def on_attachment_file_change(
-    sender: Type[AttachmentFile], instance: AttachmentFile, created: bool, **kwargs
+    sender: type[AttachmentFile],
+    instance: AttachmentFile,
+    created: bool,
+    **kwargs,
 ):
     project = instance.project
     action = "Added" if created else "Updated"
@@ -118,7 +125,7 @@ def on_attachment_file_change(
 
 @receiver(post_delete, sender="files.AttachmentFile")
 def on_attachment_file_delete(
-    sender: Type[AttachmentFile], instance: AttachmentFile, **kwargs
+    sender: type[AttachmentFile], instance: AttachmentFile, **kwargs
 ):
     project = instance.project
     project._change_reason = "Removed attachment file"
@@ -127,7 +134,7 @@ def on_attachment_file_delete(
 
 @receiver(post_save, sender="announcements.Announcement")
 def on_announcement_change(
-    sender: Type[Announcement], instance: Announcement, created: bool, **kwargs
+    sender: type[Announcement], instance: Announcement, created: bool, **kwargs
 ):
     project = instance.project
     action = "Added" if created else "Updated"
@@ -137,7 +144,7 @@ def on_announcement_change(
 
 @receiver(post_delete, sender="announcements.Announcement")
 def on_announcement_delete(
-    sender: Type[Announcement], instance: Announcement, **kwargs
+    sender: type[Announcement], instance: Announcement, **kwargs
 ):
     project = instance.project
     project._change_reason = "Removed announcement"

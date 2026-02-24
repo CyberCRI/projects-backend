@@ -113,7 +113,9 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
     )
     def test_list_category_follows(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, instances=[self.organization], owned_instance=self.private_user
+            role,
+            instances=[self.organization],
+            owned_instance=self.private_user,
         )
         self.client.force_authenticate(user)
         for publication_status, user in self.users.items():
@@ -123,7 +125,8 @@ class ListCategoryFollowTestCase(JwtAPITestCase):
             if publication_status in retrieved_follows:
                 self.assertEqual(len(content), 1)
                 self.assertEqual(
-                    content[0]["id"], self.category_follows[publication_status].id
+                    content[0]["id"],
+                    self.category_follows[publication_status].id,
                 )
             else:
                 self.assertEqual(len(content), 0)

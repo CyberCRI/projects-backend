@@ -127,10 +127,7 @@ class DeleteOrganizationBannerTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Organization-banner-detail",
-                args=(organization.code, image.id),
-            ),
+            reverse("Organization-banner-detail", args=(organization.code, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

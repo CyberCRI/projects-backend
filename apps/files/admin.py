@@ -55,13 +55,7 @@ class ImageForm(forms.ModelForm):
 
 @admin.register(Image)
 class ImageAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "name",
-        "file",
-        "owner",
-        "created_at",
-    )
+    list_display = ("id", "name", "file", "owner", "created_at")
     autocomplete_fields = ("owner",)
     form = ImageForm
 

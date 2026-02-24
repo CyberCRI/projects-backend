@@ -69,24 +69,22 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
             OpenApiExample(
                 "example",
                 value={
-                    "document_type": {"BookChapter": 32, "ConferenceArticle": 4},
+                    "document_type": {
+                        "BookChapter": 32,
+                        "ConferenceArticle": 4,
+                    },
                     "years": [
                         {"year": 2023, "total": 4},
                         {"year": 2022, "total": 2},
                         {"year": 1996, "total": 8},
                     ],
-                    "roles": {
-                        "author": 43,
-                        "animator": 3,
-                    },
+                    "roles": {"author": 43, "animator": 3},
                 },
             )
         ],
     ),
 )
-class AbstractDocumentViewSet(
-    viewsets.ReadOnlyModelViewSet,
-):
+class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
@@ -99,9 +97,7 @@ class AbstractDocumentViewSet(
             if r.strip()
         ]
         if roles and roles_enabled:
-            queryset = queryset.filter(
-                documentcontributor__roles__contains=roles,
-            )
+            queryset = queryset.filter(documentcontributor__roles__contains=roles)
         return queryset
 
     def filter_queryset(
@@ -126,18 +122,12 @@ class AbstractDocumentViewSet(
 
     def get_queryset(self) -> QuerySet[Document]:
         return (
-            Document.objects.filter(
-                document_type__in=self.document_types,
-            )
+            Document.objects.filter(document_type__in=self.document_types)
             .prefetch_related("identifiers", "contributors__user")
             .order_by("-publication_date")
         )
 
-    @action(
-        detail=True,
-        methods=[HTTPMethod.GET],
-        url_path="similars",
-    )
+    @action(detail=True, methods=[HTTPMethod.GET], url_path="similars")
     def similars(self, request, *args, **kwargs):
         """methods to return similars projects"""
         obj: Document = self.get_object()
@@ -181,7 +171,7 @@ class AbstractDocumentViewSet(
         roles = Counter(
             chain(
                 *DocumentContributor.objects.filter(
-                    document__in=self.filter_queryset(qs, roles_enabled=False),
+                    document__in=self.filter_queryset(qs, roles_enabled=False)
                 ).values_list("roles", flat=True)
             )
         )
@@ -231,9 +221,10 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
-    NestedOrganizationViewMixins, NestedResearcherViewMixins, AbstractDocumentViewSet
+    NestedOrganizationViewMixins,
+    NestedResearcherViewMixins,
+    AbstractDocumentViewSet,
 ):
-
     def filter_roles(self, queryset, roles_enabled=True):
         # filter only by roles (author, co-authors ...ect)
         roles = [
@@ -339,14 +330,8 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                 required=True,
                 enum=Identifier.Harvester,
                 examples=[
-                    OpenApiExample(
-                        "eppn",
-                        value="eppn",
-                    ),
-                    OpenApiExample(
-                        "idref",
-                        value="idref",
-                    ),
+                    OpenApiExample("eppn", value="eppn"),
+                    OpenApiExample("idref", value="idref"),
                 ],
             ),
             OpenApiParameter(
@@ -359,10 +344,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
                         "eppn",
                         value="marty.macfly@sorbonne.fr,Hubert.BonisseurdeLaBath@dgse.fr",
                     ),
-                    OpenApiExample(
-                        "idref",
-                        value="0984045,049585804,4559932",
-                    ),
+                    OpenApiExample("idref", value="0984045,049585804,4559932"),
                 ],
             ),
         ],
@@ -376,17 +358,14 @@ class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelView
     def get_queryset(self):
         return self.request.user.get_user_related_queryset(
             Researcher.objects.filter(
-                user__isnull=False, user__groups__organizations__in=(self.organization,)
+                user__isnull=False,
+                user__groups__organizations__in=(self.organization,),
             )
             .prefetch_related("identifiers")
-            .select_related("user"),
+            .select_related("user")
         )
 
-    @action(
-        detail=False,
-        methods=[HTTPMethod.GET],
-        url_path="search",
-    )
+    @action(detail=False, methods=[HTTPMethod.GET], url_path="search")
     def search(self, request, *args, **kwargs):
         """Method to search researchers by harvester type and multiple harvesters value"""
         qs = self.get_queryset()

@@ -40,7 +40,8 @@ class AttachmentLinkTranslatedFieldsTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("AttachmentLink-list", args=(self.project.id,)), data=payload
+            reverse("AttachmentLink-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -48,7 +49,8 @@ class AttachmentLinkTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=content["id"]
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(AttachmentLink._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(AttachmentLink._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},
@@ -77,7 +79,8 @@ class AttachmentLinkTranslatedFieldsTestCase(JwtAPITestCase):
             content_type=self.content_type, object_id=link.pk
         )
         self.assertEqual(
-            auto_translated_fields.count(), len(AttachmentLink._auto_translated_fields)
+            auto_translated_fields.count(),
+            len(AttachmentLink._auto_translated_fields),
         )
         self.assertSetEqual(
             {field.field_name for field in auto_translated_fields},

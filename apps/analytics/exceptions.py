@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
@@ -10,7 +8,7 @@ class UnknownPublicationStatusError(ValidationError):
     default_detail = _("Unknown publication status")
     default_code = "unknown_publication_status_error"
 
-    def __init__(self, publication_status: Optional[str] = None):
+    def __init__(self, publication_status: str | None = None):
         detail = (
             _("Unknown publication status '{publication_status}'").format(
                 publication_status=publication_status

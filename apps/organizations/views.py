@@ -9,13 +9,19 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.permissions import (
+    IsAuthenticated,
+    IsAuthenticatedOrReadOnly,
+)
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import PeopleGroupHierarchySerializer, UserSerializer
+from apps.accounts.serializers import (
+    PeopleGroupHierarchySerializer,
+    UserSerializer,
+)
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
@@ -59,9 +65,7 @@ class ProjectCategoryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     filterset_class = ProjectCategoryFilter
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
-    multiple_lookup_fields = [
-        (ProjectCategory, "id"),
-    ]
+    multiple_lookup_fields = [(ProjectCategory, "id")]
 
     def get_queryset(self):
         if "organization_code" in self.kwargs:
@@ -175,9 +179,7 @@ class CategoryFollowViewset(MultipleIDViewsetMixin, CreateListDestroyViewSet):
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
-    multiple_lookup_fields = [
-        (ProjectUser, "user_id"),
-    ]
+    multiple_lookup_fields = [(ProjectUser, "user_id")]
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "categoryfollow")
@@ -243,9 +245,7 @@ class ProjectCategoryBackgroundView(MultipleIDViewsetMixin, ImageStorageView):
         | HasBasePermission("change_projectcategory", "organizations")
         | HasOrganizationPermission("change_projectcategory"),
     ]
-    multiple_lookup_fields = [
-        (ProjectCategory, "category_id"),
-    ]
+    multiple_lookup_fields = [(ProjectCategory, "category_id")]
 
     def get_queryset(self):
         if "category_id" in self.kwargs and "organization_code" in self.kwargs:
@@ -335,7 +335,8 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @extend_schema(
-        request=OrganizationRemoveTeamMembersSerializer, responses=UserSerializer
+        request=OrganizationRemoveTeamMembersSerializer,
+        responses=UserSerializer,
     )
     @action(
         detail=True,

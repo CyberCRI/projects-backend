@@ -77,11 +77,7 @@ class ProjectCreatedTestCase(JwtAPITestCase):
         notifications = Notification.objects.filter(project=project)
         self.assertEqual(notifications.count(), 3)
 
-        for user in [
-            category_follower,
-            not_notified,
-            parent_category_follower,
-        ]:
+        for user in [category_follower, not_notified, parent_category_follower]:
             notification = notifications.get(receiver=user)
             self.assertEqual(notification.type, Notification.Types.PROJECT_CREATED)
             self.assertEqual(notification.project, project)

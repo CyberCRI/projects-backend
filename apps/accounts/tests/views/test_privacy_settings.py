@@ -44,7 +44,9 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         organization = self.organization
         instance = self.public_user
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance.privacy_settings
+            role,
+            instances=[organization],
+            owned_instance=instance.privacy_settings,
         )
         self.client.force_authenticate(user)
         response = self.client.get(
@@ -78,7 +80,9 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         organization = self.organization
         instance = self.org_user
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance.privacy_settings
+            role,
+            instances=[organization],
+            owned_instance=instance.privacy_settings,
         )
         self.client.force_authenticate(user)
         response = self.client.get(
@@ -112,7 +116,9 @@ class RetrievePrivacySettingsTestCase(JwtAPITestCase):
         organization = self.organization
         instance = self.private_user
         user = self.get_parameterized_test_user(
-            role, instances=[organization], owned_instance=instance.privacy_settings
+            role,
+            instances=[organization],
+            owned_instance=instance.privacy_settings,
         )
         self.client.force_authenticate(user)
         response = self.client.get(

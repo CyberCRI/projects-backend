@@ -42,10 +42,7 @@ class CreateTabItemTestCase(JwtAPITestCase):
     def test_create_project_tab_item(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "title": faker.sentence(),
-            "content": faker.text(),
-        }
+        payload = {"title": faker.sentence(), "content": faker.text()}
         response = self.client.post(
             reverse("ProjectTabItem-list", args=(self.project.id, self.tab.id)),
             data=payload,
@@ -120,8 +117,7 @@ class ListProjectTabItemsTestCase(JwtAPITestCase):
             if publication_status in retrieved_items:
                 self.assertEqual(len(content), 2)
                 self.assertSetEqual(
-                    {item["id"] for item in content},
-                    {item.id for item in item},
+                    {item["id"] for item in content}, {item.id for item in item}
                 )
                 self.assertGreater(content[0]["created_at"], content[1]["created_at"])
             else:
@@ -156,10 +152,7 @@ class UpdateProjectTabItemTestCase(JwtAPITestCase):
     def test_update_project_tab_item(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "title": faker.sentence(),
-            "content": faker.text(),
-        }
+        payload = {"title": faker.sentence(), "content": faker.text()}
         response = self.client.patch(
             reverse(
                 "ProjectTabItem-detail",
@@ -204,8 +197,9 @@ class DeleteProjectTabItemTestCase(JwtAPITestCase):
         item = ProjectTabItemFactory(tab=self.tab)
         response = self.client.delete(
             reverse(
-                "ProjectTabItem-detail", args=(self.project.id, self.tab.id, item.id)
-            ),
+                "ProjectTabItem-detail",
+                args=(self.project.id, self.tab.id, item.id),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

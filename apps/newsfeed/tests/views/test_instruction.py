@@ -71,7 +71,8 @@ class CreateInstructionTestCase(JwtAPITestCase):
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
             self.assertEqual(
-                content["people_groups"][0]["id"], payload["people_groups_ids"][0]
+                content["people_groups"][0]["id"],
+                payload["people_groups_ids"][0],
             )
             self.assertEqual(
                 content["has_to_be_notified"], payload["has_to_be_notified"]
@@ -114,10 +115,7 @@ class UpdateInstructionTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Instruction-detail",
-                args=(
-                    self.organization.code,
-                    self.instruction.id,
-                ),
+                args=(self.organization.code, self.instruction.id),
             ),
             data=payload,
         )
@@ -162,10 +160,7 @@ class DeleteInstructionTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse(
                 "Instruction-detail",
-                args=(
-                    self.organization.code,
-                    instruction.id,
-                ),
+                args=(self.organization.code, instruction.id),
             )
         )
         self.assertEqual(response.status_code, expected_code)
@@ -174,20 +169,13 @@ class DeleteInstructionTestCase(JwtAPITestCase):
 
 
 class RetrieveInstructionTestCase(JwtAPITestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.data = {
-            "none": {
-                "groups": [],
-                "visible_by_all": False,
-            },
-            "all": {
-                "groups": [],
-                "visible_by_all": True,
-            },
+            "none": {"groups": [], "visible_by_all": False},
+            "all": {"groups": [], "visible_by_all": True},
             "public": {
                 "groups": [
                     PeopleGroupFactory(
@@ -231,7 +219,10 @@ class RetrieveInstructionTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),
@@ -281,7 +272,8 @@ class ValidateInstructionTestCase(JwtAPITestCase):
             "has_to_be_notified": True,
         }
         response = self.client.post(
-            reverse("Instruction-list", args=(self.organization.code,)), data=payload
+            reverse("Instruction-list", args=(self.organization.code,)),
+            data=payload,
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -301,16 +293,11 @@ class ValidateInstructionTestCase(JwtAPITestCase):
         )
         user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
-        payload = {
-            "people_groups_ids": [self.other_org_people_group.id],
-        }
+        payload = {"people_groups_ids": [self.other_org_people_group.id]}
         response = self.client.patch(
             reverse(
                 "Instruction-detail",
-                args=(
-                    self.organization.code,
-                    instruction.id,
-                ),
+                args=(self.organization.code, instruction.id),
             ),
             data=payload,
         )
@@ -380,7 +367,11 @@ class FilterOrderInstructionTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertListEqual(
             [instruction["id"] for instruction in content],
-            [self.instruction_1.id, self.instruction_2.id, self.instruction_3.id],
+            [
+                self.instruction_1.id,
+                self.instruction_2.id,
+                self.instruction_3.id,
+            ],
         )
 
     def test_order_by_publication_date_reverse(self):
@@ -393,5 +384,9 @@ class FilterOrderInstructionTestCase(JwtAPITestCase):
         content = response.json()["results"]
         self.assertListEqual(
             [instruction["id"] for instruction in content],
-            [self.instruction_3.id, self.instruction_2.id, self.instruction_1.id],
+            [
+                self.instruction_3.id,
+                self.instruction_2.id,
+                self.instruction_1.id,
+            ],
         )

@@ -56,9 +56,7 @@ class GoalTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            Goal._auto_translated_fields[0]: faker.word(),
-        }
+        payload = {Goal._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse("Goal-detail", args=(self.project.id, goal.pk)),
             data=payload,

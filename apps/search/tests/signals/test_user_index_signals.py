@@ -6,7 +6,11 @@ from django.urls import reverse
 from faker import Faker
 from rest_framework import status
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    UserFactory,
+)
 from apps.accounts.models import ProjectUser
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.models import GroupData
@@ -103,7 +107,8 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {"roles_to_remove": [self.organization.get_users().name]}
         response = self.client.patch(
-            reverse("ProjectUser-detail", args=(self.role_remove_member.id,)), payload
+            reverse("ProjectUser-detail", args=(self.role_remove_member.id,)),
+            payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mocked_update.assert_has_calls([call(self.role_remove_member, "index")])
@@ -150,8 +155,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {GroupData.Role.MEMBERS: [self.user.id]}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)),
-            payload,
+            reverse("Project-add-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         mocked_update.assert_has_calls([call(self.user, "index")])
@@ -164,8 +168,7 @@ class UserIndexUpdateSignalTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.superadmin)
         payload = {"users": [self.project_remove_member.id]}
         response = self.client.post(
-            reverse("Project-remove-member", args=(self.project.id,)),
-            payload,
+            reverse("Project-remove-member", args=(self.project.id,)), payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         mocked_update.assert_has_calls([call(self.project_remove_member, "index")])

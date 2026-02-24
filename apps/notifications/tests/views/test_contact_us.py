@@ -17,12 +17,7 @@ class ContactTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     @patch("apps.notifications.views.send_email_task.delay")
     def test_contact_us(self, role, send_email):
         user = self.get_parameterized_test_user(role, instances=[])

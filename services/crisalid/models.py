@@ -121,7 +121,10 @@ class DocumentContributor(models.Model):
 
 
 class Document(
-    HasEmbedding, OrganizationRelated, HasAutoTranslatedFields, CrisalidDataModel
+    HasEmbedding,
+    OrganizationRelated,
+    HasAutoTranslatedFields,
+    CrisalidDataModel,
 ):
     """
     Represents a research publicaiton (or 'document') in the Crisalid system.

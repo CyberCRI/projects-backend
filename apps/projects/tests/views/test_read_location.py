@@ -98,7 +98,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("General-location-list", args=(self.organization.code,)),
+            reverse("General-location-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -128,7 +128,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[*self.groups.values()])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("General-location-list", args=(self.organization.code,)),
+            reverse("General-location-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()

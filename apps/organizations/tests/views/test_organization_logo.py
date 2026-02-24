@@ -111,6 +111,6 @@ class DeleteOrganizationLogoTestCase(JwtAPITestCase):
             reverse(
                 "Organization-logo-detail",
                 args=(organization.code, organization.logo_image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_409_CONFLICT)

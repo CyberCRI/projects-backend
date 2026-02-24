@@ -1,6 +1,6 @@
 import time
 import uuid
-from typing import Callable
+from collections.abc import Callable
 
 from django.conf import settings
 from keycloak import KeycloakGetError
@@ -164,10 +164,12 @@ class GoogleServiceTestCase(JwtAPITestCase):
             google_groups = GoogleService.get_user_groups(user.google_account)
             self.assertIsNotNone(google_groups)
             self.assertIn(
-                group_1.google_group.google_id, [group["id"] for group in google_groups]
+                group_1.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
             self.assertIn(
-                group_2.google_group.google_id, [group["id"] for group in google_groups]
+                group_2.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
 
         self.retry_test_assertion(test_result)
@@ -201,17 +203,21 @@ class GoogleServiceTestCase(JwtAPITestCase):
             self.assertNotEqual(google_groups, [])
             self.assertGreater(len(google_groups), 0)
             self.assertIn(
-                group_1.google_group.google_id, [group["id"] for group in google_groups]
+                group_1.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
             self.assertIn(
-                group_2.google_group.google_id, [group["id"] for group in google_groups]
+                group_2.google_group.google_id,
+                [group["id"] for group in google_groups],
             )
 
         self.retry_test_assertion(test_result)
 
     def test_create_group(self):
         group = PeopleGroupFactory(
-            organization=self.organization, email="", name=f"googlesync-{uuid.uuid4()}"
+            organization=self.organization,
+            email="",
+            name=f"googlesync-{uuid.uuid4()}",
         )
         response = GoogleService.create_group(group)
 

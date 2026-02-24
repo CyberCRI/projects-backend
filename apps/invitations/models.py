@@ -1,5 +1,4 @@
 import uuid
-from typing import List
 
 from django.db import models, transaction
 
@@ -19,7 +18,7 @@ class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.
     A link that allows a user to join an organization.
     """
 
-    auto_translated_fields: List[str] = ["description"]
+    auto_translated_fields: list[str] = ["description"]
 
     organization = models.ForeignKey(
         "organizations.Organization", on_delete=models.CASCADE
@@ -30,7 +29,9 @@ class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.
     token = models.UUIDField(default=uuid.uuid4)
     description = models.CharField(max_length=255, blank=True)
     owner = models.ForeignKey(
-        "accounts.ProjectUser", on_delete=models.CASCADE, related_name="invitations"
+        "accounts.ProjectUser",
+        on_delete=models.CASCADE,
+        related_name="invitations",
     )
     expire_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
@@ -43,7 +44,7 @@ class Invitation(HasAutoTranslatedFields, HasOwner, OrganizationRelated, models.
         """Get the owner of the object."""
         return self.owner
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
 
@@ -54,7 +55,7 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     It can be created by an existing user or by a new user.
     """
 
-    auto_translated_fields: List[str] = ["message"]
+    auto_translated_fields: list[str] = ["message"]
 
     class Status(models.TextChoices):
         PENDING = "pending"
@@ -114,7 +115,7 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
             "job": self.job,
         }
 
-    def send_email(self, email_type: str, emails: List[str] = None):
+    def send_email(self, email_type: str, emails: list[str] = None):
         if email_type not in self.EmailType.values:
             raise InvalidEmailTypeError(email_type=email_type)
         subject, _ = render_message(
@@ -153,16 +154,15 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
                 job=self.job,
                 language=self.organization.language,
             )
-            self.user.groups.add(
-                self.organization.get_users(),
-                get_default_group(),
-            )
+            self.user.groups.add(self.organization.get_users(), get_default_group())
             keycloak_account = KeycloakService.create_user(self.user)
             self.status = AccessRequest.Status.ACCEPTED
             self.save()
             # Update other pending access requests with the same email
             AccessRequest.objects.filter(
-                user__isnull=True, email=self.email, status=AccessRequest.Status.PENDING
+                user__isnull=True,
+                email=self.email,
+                status=AccessRequest.Status.PENDING,
             ).update(user=self.user)
         KeycloakService.send_email(
             keycloak_account=keycloak_account,
@@ -176,7 +176,7 @@ class AccessRequest(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         self.save()
         self.send_email(AccessRequest.EmailType.REQUEST_DECLINED)
 
-    def get_related_organizations(self) -> List["Organization"]:
+    def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return [self.organization]
 

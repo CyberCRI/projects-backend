@@ -63,7 +63,7 @@ class RetrieveProjectImageTestCase(JwtAPITestCase):
             )
             self.client.force_authenticate(user)
             response = self.client.get(
-                reverse("Project-images-detail", args=(project.id, image.id)),
+                reverse("Project-images-detail", args=(project.id, image.id))
             )
             if publication_status in retrieved_images:
                 self.assertEqual(response.status_code, status.HTTP_302_FOUND)
@@ -168,10 +168,7 @@ class UpdateProjectImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.patch(
-            reverse(
-                "Project-images-detail",
-                args=(self.project.id, self.image.id),
-            ),
+            reverse("Project-images-detail", args=(self.project.id, self.image.id)),
             data=payload,
             format="multipart",
         )
@@ -218,10 +215,7 @@ class DeleteProjectImageTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Project-images-detail",
-                args=(self.project.id, image.id),
-            ),
+            reverse("Project-images-detail", args=(self.project.id, image.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

@@ -45,18 +45,13 @@ class UpdatedMemberTestCase(JwtAPITestCase):
 
         member = UserFactory()
         project.owners.add(member)
-        payload = {
-            GroupData.Role.MEMBERS: [member.id],
-        }
+        payload = {GroupData.Role.MEMBERS: [member.id]}
         response = self.client.post(
             reverse("Project-add-member", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         notification_task.assert_called_once_with(
-            project.pk,
-            member.pk,
-            owner.pk,
-            GroupData.Role.MEMBERS.value,
+            project.pk, member.pk, owner.pk, GroupData.Role.MEMBERS.value
         )
 
     def test_notification_task(self):
@@ -88,12 +83,7 @@ class UpdatedMemberTestCase(JwtAPITestCase):
 
         member = UserFactory()
         project.owners.add(member)
-        _notify_member_updated(
-            project.pk,
-            member.pk,
-            sender.pk,
-            GroupData.Role.MEMBERS,
-        )
+        _notify_member_updated(project.pk, member.pk, sender.pk, GroupData.Role.MEMBERS)
 
         notifications = Notification.objects.filter(project=project)
         self.assertEqual(notifications.count(), 3)
@@ -161,16 +151,10 @@ class UpdatedMemberTestCase(JwtAPITestCase):
         project.owners.add(member_1)
         project.owners.add(member_2)
         _notify_member_updated(
-            project.pk,
-            member_1.pk,
-            sender.pk,
-            GroupData.Role.MEMBERS,
+            project.pk, member_1.pk, sender.pk, GroupData.Role.MEMBERS
         )
         _notify_member_updated(
-            project.pk,
-            member_2.pk,
-            sender.pk,
-            GroupData.Role.REVIEWERS,
+            project.pk, member_2.pk, sender.pk, GroupData.Role.REVIEWERS
         )
 
         notifications = Notification.objects.filter(project=project)

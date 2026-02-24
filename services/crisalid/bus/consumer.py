@@ -62,7 +62,6 @@ def on_event(crisalid_type: CrisalidTypeEnum, crisalid_event: CrisalidEventEnum)
     def _wraps(func):
         original_func = func
         if is_task_celery(func):
-
             # if is a task, add correct seriliazer for data
             @wraps(func)
             def _tasks(*args):

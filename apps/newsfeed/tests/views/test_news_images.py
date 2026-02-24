@@ -48,10 +48,7 @@ class CreateNewsImageTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse(
-                "News-images-list",
-                args=(organization.code, news.id),
-            ),
+            reverse("News-images-list", args=(organization.code, news.id)),
             data=payload,
             format="multipart",
         )
@@ -81,8 +78,7 @@ class UpdateNewsImageTestCase(JwtAPITestCase):
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.image = cls.get_test_image()
         cls.news = NewsFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
         cls.news.images.add(cls.image)
 
@@ -133,8 +129,7 @@ class DeleteNewsImageTestCase(JwtAPITestCase):
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(organization=cls.organization)
         cls.news = NewsFactory(
-            organization=cls.organization,
-            people_groups=[cls.people_group],
+            organization=cls.organization, people_groups=[cls.people_group]
         )
 
     @parameterized.expand(
@@ -159,7 +154,7 @@ class DeleteNewsImageTestCase(JwtAPITestCase):
             reverse(
                 "News-images-detail",
                 args=(self.organization.code, self.news.id, image.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -218,26 +213,11 @@ class RetrieveNewsImageTestCase(JwtAPITestCase):
         cls.org_news.images.add(cls.org_image)
 
         cls.news = {
-            "none": {
-                "news": cls.none_news,
-                "image": cls.none_image,
-            },
-            "all": {
-                "news": cls.all_news,
-                "image": cls.all_image,
-            },
-            "public": {
-                "news": cls.public_news,
-                "image": cls.public_image,
-            },
-            "private": {
-                "news": cls.private_news,
-                "image": cls.private_image,
-            },
-            "org": {
-                "news": cls.org_news,
-                "image": cls.org_image,
-            },
+            "none": {"news": cls.none_news, "image": cls.none_image},
+            "all": {"news": cls.all_news, "image": cls.all_image},
+            "public": {"news": cls.public_news, "image": cls.public_image},
+            "private": {"news": cls.private_news, "image": cls.private_image},
+            "org": {"news": cls.org_news, "image": cls.org_image},
         }
 
     @parameterized.expand(
@@ -246,7 +226,10 @@ class RetrieveNewsImageTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),

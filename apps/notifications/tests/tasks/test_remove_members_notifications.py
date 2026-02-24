@@ -46,9 +46,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
 
         member = UserFactory()
         project.members.add(member)
-        payload = {
-            "users": [member.id],
-        }
+        payload = {"users": [member.id]}
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
@@ -68,9 +66,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
 
         group = PeopleGroupFactory(organization=self.organization)
         project.member_groups.add(group)
-        payload = {
-            "people_groups": [group.id],
-        }
+        payload = {"people_groups": [group.id]}
         response = self.client.post(
             reverse("Project-remove-member", args=(project.id,)), data=payload
         )
@@ -163,11 +159,7 @@ class DeletedMemberTestCase(JwtAPITestCase):
         member = UserFactory()
         group.members.add(member)
 
-        _notify_group_member_deleted(
-            project.pk,
-            group.pk,
-            sender.pk,
-        )
+        _notify_group_member_deleted(project.pk, group.pk, sender.pk)
 
         notifications = Notification.objects.filter(project=project)
         self.assertEqual(notifications.count(), 2)

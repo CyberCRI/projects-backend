@@ -17,7 +17,8 @@ class EscoServiceTestCase(EscoTestCase):
             type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.SKILL
         )
         existing_occupation = TagFactory(
-            type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.OCCUPATION
+            type=Tag.TagType.ESCO,
+            secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )
         skills_uris = [
             existing_skill.external_id,
@@ -80,7 +81,8 @@ class EscoServiceTestCase(EscoTestCase):
     @patch("services.esco.interface.EscoService.get_object_from_uri")
     def test_update_occupation_data(self, mocked):
         occupation = TagFactory(
-            type=Tag.TagType.ESCO, secondary_type=Tag.SecondaryTagType.OCCUPATION
+            type=Tag.TagType.ESCO,
+            secondary_type=Tag.SecondaryTagType.OCCUPATION,
         )
         data = {
             "uri": occupation.external_id,

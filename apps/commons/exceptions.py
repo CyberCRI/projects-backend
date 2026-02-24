@@ -46,13 +46,7 @@ def projects_exception_handler(exc, context):
     if response is not None:
         exception_type = get_exception_type(exc)
         if exception_type == ExceptionType.VALIDATION.value:
-            response.data = {
-                "type": exception_type,
-                "errors": response.data,
-            }
+            response.data = {"type": exception_type, "errors": response.data}
         else:
-            response.data = {
-                "type": exception_type,
-                **response.data,
-            }
+            response.data = {"type": exception_type, **response.data}
     return response

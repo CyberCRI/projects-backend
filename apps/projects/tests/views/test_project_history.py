@@ -16,7 +16,10 @@ from apps.feedbacks.factories import CommentFactory
 from apps.files.enums import AttachmentType
 from apps.files.factories import AttachmentFileFactory, AttachmentLinkFactory
 from apps.files.tests.views.mock_response import MockResponse
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.projects.factories import (
     BlogEntryFactory,
     GoalFactory,
@@ -68,12 +71,9 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {
-            GroupData.Role.MEMBERS: [self.user.id],
-        }
+        payload = {GroupData.Role.MEMBERS: [self.user.id]}
         self.client.post(
-            reverse("Project-add-member", args=(project.id,)),
-            data=payload,
+            reverse("Project-add-member", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -101,12 +101,9 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         project.members.add(self.user)
-        payload = {
-            "users": [self.user.id],
-        }
+        payload = {"users": [self.user.id]}
         self.client.post(
-            reverse("Project-remove-member", args=(project.id,)),
-            data=payload,
+            reverse("Project-remove-member", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -135,13 +132,9 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {
-            "project_id": project.id,
-            "content": faker.text(),
-        }
+        payload = {"project_id": project.id, "content": faker.text()}
         response = self.client.post(
-            reverse("Comment-list", args=(project.id,)),
-            data=payload,
+            reverse("Comment-list", args=(project.id,)), data=payload
         )
         comment_id = response.json()["id"]
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
@@ -172,12 +165,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        self.client.delete(
-            reverse(
-                "Comment-detail",
-                args=(project.id, comment.id),
-            )
-        )
+        self.client.delete(reverse("Comment-detail", args=(project.id, comment.id)))
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
         response = self.client.get(
@@ -208,10 +196,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         payload = {"content": faker.text()}
         self.client.patch(
-            reverse(
-                "Comment-detail",
-                args=(project.id, comment.id),
-            ),
+            reverse("Comment-detail", args=(project.id, comment.id)),
             data=payload,
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
@@ -248,8 +233,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             "target_id": project.id,
         }
         self.client.post(
-            reverse("LinkedProjects-list", args=(project.id,)),
-            data=payload,
+            reverse("LinkedProjects-list", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -283,7 +267,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         self.client.delete(
-            reverse("LinkedProjects-detail", args=(project.id, linked_project.id)),
+            reverse("LinkedProjects-detail", args=(project.id, linked_project.id))
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -299,7 +283,8 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             initial_count + 1,
         )
         self.assertNotIn(
-            to_unlink.id, [p["project"]["id"] for p in version["linked_projects"]]
+            to_unlink.id,
+            [p["project"]["id"] for p in version["linked_projects"]],
         )
         self.assertEqual(version["history_change_reason"], "Removed linked project")
         project.refresh_from_db()
@@ -357,8 +342,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             ]
         }
         self.client.post(
-            reverse("LinkedProjects-add-many", args=(project.id,)),
-            data=payload,
+            reverse("LinkedProjects-add-many", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -410,7 +394,8 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             initial_count + 1,
         )
         self.assertNotIn(
-            to_unlink.id, [p["project"]["id"] for p in version["linked_projects"]]
+            to_unlink.id,
+            [p["project"]["id"] for p in version["linked_projects"]],
         )
         self.assertEqual(version["history_change_reason"], "Removed linked project")
         project.refresh_from_db()
@@ -483,10 +468,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {
-            "title": faker.sentence(),
-            "purpose": faker.sentence(),
-        }
+        payload = {"title": faker.sentence(), "purpose": faker.sentence()}
         self.client.patch(reverse("Project-detail", args=(project.id,)), data=payload)
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -613,9 +595,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {
-            "title": faker.sentence(),
-        }
+        payload = {"title": faker.sentence()}
         self.client.patch(
             reverse("BlogEntry-detail", args=(project.id, blog_entry.id)),
             data=payload,
@@ -648,7 +628,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         self.client.delete(
-            reverse("BlogEntry-detail", args=(project.id, blog_entry.id)),
+            reverse("BlogEntry-detail", args=(project.id, blog_entry.id))
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -713,8 +693,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         payload = {"title": faker.sentence()}
         self.client.patch(
-            reverse("Goal-detail", args=(project.id, goal.id)),
-            data=payload,
+            reverse("Goal-detail", args=(project.id, goal.id)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -743,9 +722,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        self.client.delete(
-            reverse("Goal-detail", args=(project.id, goal.id)),
-        )
+        self.client.delete(reverse("Goal-detail", args=(project.id, goal.id)))
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
         response = self.client.get(
@@ -842,9 +819,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        self.client.delete(
-            reverse("Location-detail", args=(project.id, location.id)),
-        )
+        self.client.delete(reverse("Location-detail", args=(project.id, location.id)))
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
         response = self.client.get(
@@ -874,10 +849,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .exclude(history_change_reason=None)
             .count()
         )
-        payload = {
-            "site_url": faker.url(),
-            "project_id": project.id,
-        }
+        payload = {"site_url": faker.url(), "project_id": project.id}
         response = self.client.post(
             reverse("AttachmentLink-list", args=(project.id,)), data=payload
         )
@@ -944,7 +916,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         self.client.delete(
-            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id)),
+            reverse("AttachmentLink-detail", args=(project.id, attachment_link.id))
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -1049,7 +1021,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         self.client.delete(
-            reverse("AttachmentFile-detail", args=(project.id, attachment_file.id)),
+            reverse("AttachmentFile-detail", args=(project.id, attachment_file.id))
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -1085,8 +1057,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             "project_id": project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(project.id,)),
-            data=payload,
+            reverse("Announcement-list", args=(project.id,)), data=payload
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()
@@ -1148,7 +1119,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
             .count()
         )
         self.client.delete(
-            reverse("Announcement-detail", args=(project.id, announcement.id)),
+            reverse("Announcement-detail", args=(project.id, announcement.id))
         )
         history = HistoricalProject.objects.filter(history_relation__id=project.id)
         latest_version = history.order_by("-history_date").first()

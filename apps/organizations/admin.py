@@ -14,22 +14,9 @@ from .models import Organization, ProjectCategory, Template, TemplateCategories
 
 @admin.register(Organization)
 class OrganizationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
-    list_display = (
-        "code",
-        "name",
-        "website_url",
-        "contact_email",
-    )
-    readonly_fields = (
-        "groups",
-        "images",
-    )
-    search_fields = (
-        "code",
-        "name",
-        "website_url",
-        "contact_email",
-    )
+    list_display = ("code", "name", "website_url", "contact_email")
+    readonly_fields = ("groups", "images")
+    search_fields = ("code", "name", "website_url", "contact_email")
     filter_horizontal = (
         "identity_providers",
         "featured_projects",
@@ -57,11 +44,7 @@ class OrganizationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
 class TemplateAdmin(
     TranslateObjectAdminMixin, ProjectTemplateExportMixin, RoleBasedAccessAdmin
 ):
-    list_display = (
-        "id",
-        "display_organization",
-        "display_templates",
-    )
+    list_display = ("id", "display_organization", "display_templates")
     list_filter = ("categories__organization",)
     actions = ["export_data"]
 
@@ -88,7 +71,9 @@ class TemplateAdmin(
         return " / ".join(set(names))
 
     def get_queryset_for_organizations(
-        self, queryset: QuerySet[Template], organizations: QuerySet[Organization]
+        self,
+        queryset: QuerySet[Template],
+        organizations: QuerySet[Organization],
     ) -> QuerySet[Template]:
         """
         Filter the queryset based on the organizations the user has admin access to.

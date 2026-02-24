@@ -76,9 +76,7 @@ class Command(BaseCommand):
 
         # member removed
         _notify_member_deleted(
-            project_pk=project.pk,
-            user_pk=user.pk,
-            by_pk=UserFactory().pk,
+            project_pk=project.pk, user_pk=user.pk, by_pk=UserFactory().pk
         )
 
         # for announcement
@@ -111,7 +109,9 @@ class Command(BaseCommand):
         _notify_new_application(announcement.pk, payload)
         _notify_ready_for_review(project.pk, user.pk)
         _notify_project_changes(
-            project.pk, {"title": "", "description": "", "sdgs": ""}, reviewer.pk
+            project.pk,
+            {"title": "", "description": "", "sdgs": ""},
+            reviewer.pk,
         )
         _notify_project_changes(project.pk, {"title": ""}, reviewer.pk)
         _notify_project_changes(project.pk, {"purpose": ""}, reviewer.pk)

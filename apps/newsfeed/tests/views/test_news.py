@@ -97,13 +97,7 @@ class UpdateNewsTestCase(JwtAPITestCase):
             "publication_date": datetime.date.today().isoformat(),
         }
         response = self.client.patch(
-            reverse(
-                "News-detail",
-                args=(
-                    self.organization.code,
-                    self.news.id,
-                ),
-            ),
+            reverse("News-detail", args=(self.organization.code, self.news.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
@@ -142,13 +136,7 @@ class DeleteNewsTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[self.people_group])
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "News-detail",
-                args=(
-                    self.organization.code,
-                    news.id,
-                ),
-            )
+            reverse("News-detail", args=(self.organization.code, news.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -156,20 +144,13 @@ class DeleteNewsTestCase(JwtAPITestCase):
 
 
 class RetrieveNewsTestCase(JwtAPITestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.data = {
-            "none": {
-                "groups": [],
-                "visible_by_all": False,
-            },
-            "all": {
-                "groups": [],
-                "visible_by_all": True,
-            },
+            "none": {"groups": [], "visible_by_all": False},
+            "all": {"groups": [], "visible_by_all": True},
             "public": {
                 "groups": [
                     PeopleGroupFactory(
@@ -213,7 +194,10 @@ class RetrieveNewsTestCase(JwtAPITestCase):
             (TestRoles.DEFAULT, ("all",)),
             (TestRoles.SUPERADMIN, ("none", "all", "public", "private", "org")),
             (TestRoles.ORG_ADMIN, ("none", "all", "public", "private", "org")),
-            (TestRoles.ORG_FACILITATOR, ("none", "all", "public", "private", "org")),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ("none", "all", "public", "private", "org"),
+            ),
             (TestRoles.ORG_USER, ("none", "all")),
             (TestRoles.ORG_VIEWER, ("none", "all")),
             (TestRoles.GROUP_LEADER, ("all", "private")),
@@ -278,17 +262,9 @@ class ValidateNewsTestCase(JwtAPITestCase):
         news = NewsFactory(organization=self.organization, people_groups=[people_group])
         user = self.get_parameterized_test_user("superadmin", instances=[])
         self.client.force_authenticate(user=user)
-        payload = {
-            "people_groups": [self.other_org_people_group.id],
-        }
+        payload = {"people_groups": [self.other_org_people_group.id]}
         response = self.client.patch(
-            reverse(
-                "News-detail",
-                args=(
-                    self.organization.code,
-                    news.id,
-                ),
-            ),
+            reverse("News-detail", args=(self.organization.code, news.id)),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -330,8 +306,7 @@ class FilterOrderNewsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertSetEqual(
-            {news["id"] for news in content},
-            {self.news_2.id, self.news_3.id},
+            {news["id"] for news in content}, {self.news_2.id, self.news_3.id}
         )
 
     def test_filter_to_date(self):
@@ -343,8 +318,7 @@ class FilterOrderNewsTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertSetEqual(
-            {news["id"] for news in content},
-            {self.news_1.id, self.news_2.id},
+            {news["id"] for news in content}, {self.news_1.id, self.news_2.id}
         )
 
     def test_order_by_publication_date(self):

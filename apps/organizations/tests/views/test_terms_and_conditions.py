@@ -63,9 +63,7 @@ class UpdateTermsAndConditionsTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         terms_and_conditions = self.organization.terms_and_conditions
         initial_updated_at = terms_and_conditions.updated_at
-        payload = {
-            "content": faker.text(),
-        }
+        payload = {"content": faker.text()}
         response = self.client.patch(
             reverse(
                 "TermsAndConditions-detail",

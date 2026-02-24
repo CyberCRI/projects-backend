@@ -18,20 +18,9 @@ class ProjectAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccess
     ) -> QuerySet[Project]:
         return queryset.filter(organizations__in=organizations).distinct()
 
-    list_display = (
-        "id",
-        "title",
-        "purpose",
-    )
-    readonly_fields = (
-        "groups",
-        "images",
-    )
-    search_fields = (
-        "id",
-        "title",
-        "purpose",
-    )
+    list_display = ("id", "title", "purpose")
+    readonly_fields = ("groups", "images")
+    search_fields = ("id", "title", "purpose")
     filter_horizontal = ("tags",)
     list_filter = (
         ("organizations", admin.RelatedOnlyFieldListFilter),
@@ -48,17 +37,13 @@ class BlogEntryAdmin(
     resource_classes = [BlogEntryResource]
 
     def get_queryset_for_organizations(
-        self, queryset: QuerySet[BlogEntry], organizations: QuerySet[Organization]
+        self,
+        queryset: QuerySet[BlogEntry],
+        organizations: QuerySet[Organization],
     ) -> QuerySet[BlogEntry]:
         return queryset.filter(project__organizations__in=organizations).distinct()
 
-    list_display = (
-        "id",
-        "title",
-        "project",
-        "created_at",
-        "updated_at",
-    )
+    list_display = ("id", "title", "project", "created_at", "updated_at")
     readonly_fields = ("created_at", "updated_at", "images")
     search_fields = ("id", "title", "content")
     list_filter = (

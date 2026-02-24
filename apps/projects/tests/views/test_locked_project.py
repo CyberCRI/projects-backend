@@ -35,7 +35,8 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         cls.user = UserFactory(groups=[cls.project.get_owners()])
 
         cls.linked_project = LinkedProjectFactory(
-            target=cls.project, project=ProjectFactory(organizations=[cls.organization])
+            target=cls.project,
+            project=ProjectFactory(organizations=[cls.organization]),
         )
         cls.blog_entry = BlogEntryFactory(project=cls.project)
         cls.goal = GoalFactory(project=cls.project)
@@ -56,12 +57,9 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
     def test_update_locked_project(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "title": faker.sentence(),
-        }
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Project-detail", args=(self.project.id,)),
-            data=payload,
+            reverse("Project-detail", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -82,12 +80,9 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         project = ProjectFactory(is_locked=True, organizations=[self.organization])
         user = self.get_parameterized_test_user(role, instances=[project])
         self.client.force_authenticate(user)
-        payload = {
-            "title": faker.sentence(),
-        }
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
-            reverse("Project-detail", args=(project.id,)),
-            data=payload,
+            reverse("Project-detail", args=(project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -107,12 +102,9 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
     def test_add_member_to_locked_project(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "members": [],
-        }
+        payload = {"members": []}
         response = self.client.post(
-            reverse("Project-add-member", args=(self.project.id,)),
-            data=payload,
+            reverse("Project-add-member", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -132,9 +124,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
     def test_remove_member_from_locked_project(self, role, expected_code):
         user = self.get_parameterized_test_user(role, instances=[self.project])
         self.client.force_authenticate(user)
-        payload = {
-            "users": [],
-        }
+        payload = {"users": []}
         response = self.client.post(
             reverse("Project-remove-member", args=(self.project.id,)),
             data=payload,
@@ -181,8 +171,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Goal-list", args=(self.project.id,)),
-            data=payload,
+            reverse("Goal-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -215,7 +204,8 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             "target_id": self.project.id,
         }
         response = self.client.post(
-            reverse("LinkedProjects-list", args=(self.project.id,)), data=payload
+            reverse("LinkedProjects-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -232,8 +222,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Announcement-list", args=(self.project.id,)),
-            data=payload,
+            reverse("Announcement-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -267,12 +256,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         # Add link
         mocked_response = MockResponse()
         mocked.return_value = mocked_response
-        payload = {
-            "site_url": faker.url(),
-            "project_id": self.project.id,
-        }
+        payload = {"site_url": faker.url(), "project_id": self.project.id}
         response = self.client.post(
-            reverse("AttachmentLink-list", args=(self.project.id,)), data=payload
+            reverse("AttachmentLink-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -294,9 +281,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
 
         # Update blog entry
-        payload = {
-            "title": faker.sentence(),
-        }
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
             reverse("BlogEntry-detail", args=(self.project.id, self.blog_entry.id)),
             data=payload,
@@ -308,9 +293,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             )
 
         # Update goal
-        payload = {
-            "title": faker.sentence(),
-        }
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
             reverse("Goal-detail", args=(self.project.id, self.goal.id)),
             data=payload,
@@ -322,9 +305,7 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             )
 
         # Update location
-        payload = {
-            "title": faker.word(),
-        }
+        payload = {"title": faker.word()}
         response = self.client.patch(
             reverse("Location-detail", args=(self.project.id, self.location.id)),
             data=payload,
@@ -336,12 +317,11 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             )
 
         # Update announcement
-        payload = {
-            "title": faker.sentence(),
-        }
+        payload = {"title": faker.sentence()}
         response = self.client.patch(
             reverse(
-                "Announcement-detail", args=(self.project.id, self.announcement.id)
+                "Announcement-detail",
+                args=(self.project.id, self.announcement.id),
             ),
             data=payload,
         )
@@ -352,12 +332,11 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             )
 
         # Update file
-        payload = {
-            "title": faker.word(),
-        }
+        payload = {"title": faker.word()}
         response = self.client.patch(
             reverse(
-                "AttachmentFile-detail", args=(self.project.id, self.attachment_file.id)
+                "AttachmentFile-detail",
+                args=(self.project.id, self.attachment_file.id),
             ),
             data=payload,
             format="multipart",
@@ -369,12 +348,11 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             )
 
         # Update link
-        payload = {
-            "title": faker.word(),
-        }
+        payload = {"title": faker.word()}
         response = self.client.patch(
             reverse(
-                "AttachmentLink-detail", args=(self.project.id, self.attachment_link.id)
+                "AttachmentLink-detail",
+                args=(self.project.id, self.attachment_link.id),
             ),
             data=payload,
         )
@@ -436,7 +414,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
             project=ProjectFactory(organizations=[self.organization]),
         )
         response = self.client.delete(
-            reverse("LinkedProjects-detail", args=(self.project.id, linked_project.id))
+            reverse(
+                "LinkedProjects-detail",
+                args=(self.project.id, linked_project.id),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -458,7 +439,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         # Destroy file
         attachment_file = AttachmentFileFactory(project=self.project)
         response = self.client.delete(
-            reverse("AttachmentFile-detail", args=(self.project.id, attachment_file.id))
+            reverse(
+                "AttachmentFile-detail",
+                args=(self.project.id, attachment_file.id),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:
@@ -469,7 +453,10 @@ class UpdateLockedProjectTestCase(JwtAPITestCase):
         # Destroy link
         attachment_link = AttachmentLinkFactory(project=self.project)
         response = self.client.delete(
-            reverse("AttachmentLink-detail", args=(self.project.id, attachment_link.id))
+            reverse(
+                "AttachmentLink-detail",
+                args=(self.project.id, attachment_link.id),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_403_FORBIDDEN:

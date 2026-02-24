@@ -1,7 +1,10 @@
 from rest_framework.routers import DefaultRouter
 
 from apps.announcements.views import AnnouncementViewSet
-from apps.commons.urls import organization_router_register, project_router_register
+from apps.commons.urls import (
+    organization_router_register,
+    project_router_register,
+)
 from apps.feedbacks.views import (
     CommentImagesView,
     CommentViewSet,
@@ -36,14 +39,14 @@ organization_router_register(
 router.register(r"project", ProjectViewSet, basename="Project")
 
 project_router_register(
-    router,
-    r"history",
-    HistoricalProjectViewSet,
-    basename="Project-versions",
+    router, r"history", HistoricalProjectViewSet, basename="Project-versions"
 )
 project_router_register(router, r"blog-entry", BlogEntryViewSet, basename="BlogEntry")
 project_router_register(
-    router, r"blog-entry-image", BlogEntryImagesView, basename="BlogEntry-images"
+    router,
+    r"blog-entry-image",
+    BlogEntryImagesView,
+    basename="BlogEntry-images",
 )
 project_router_register(router, r"location", LocationViewSet, basename="Location")
 project_router_register(

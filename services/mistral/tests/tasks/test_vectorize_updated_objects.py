@@ -1,7 +1,10 @@
 from unittest.mock import call, patch
 
 from apps.commons.test import JwtAPITestCase
-from services.mistral.factories import ProjectEmbeddingFactory, UserEmbeddingFactory
+from services.mistral.factories import (
+    ProjectEmbeddingFactory,
+    UserEmbeddingFactory,
+)
 from services.mistral.models import EmbeddingError
 from services.mistral.tasks import _vectorize_updated_objects
 
@@ -33,8 +36,7 @@ class VectorizeUpdatedObjectsTest(JwtAPITestCase):
         _vectorize_updated_objects()
         mocked_user_vectorize.assert_has_calls([call()])
         error = EmbeddingError.objects.filter(
-            item_id=embedding.item.id,
-            item_type="ProjectUser",
+            item_id=embedding.item.id, item_type="ProjectUser"
         )
         self.assertTrue(error.exists())
         error = error.get()
@@ -48,8 +50,7 @@ class VectorizeUpdatedObjectsTest(JwtAPITestCase):
         _vectorize_updated_objects()
         mocked_project_vectorize.assert_has_calls([call()])
         error = EmbeddingError.objects.filter(
-            item_id=embedding.item.id,
-            item_type="Project",
+            item_id=embedding.item.id, item_type="Project"
         )
         self.assertTrue(error.exists())
         error = error.get()

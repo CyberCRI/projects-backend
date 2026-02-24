@@ -15,19 +15,9 @@ from .views import (
 
 router = DefaultRouter()
 
-organization_router_register(
-    router,
-    r"newsfeed",
-    NewsfeedViewSet,
-    basename="Newsfeed",
-)
+organization_router_register(router, r"newsfeed", NewsfeedViewSet, basename="Newsfeed")
 
-organization_router_register(
-    router,
-    r"news",
-    NewsViewSet,
-    basename="News",
-)
+organization_router_register(router, r"news", NewsViewSet, basename="News")
 
 organization_router_register(
     router,
@@ -43,12 +33,7 @@ organization_router_register(
     basename="News-images",
 )
 
-organization_router_register(
-    router,
-    r"event",
-    EventViewSet,
-    basename="Event",
-)
+organization_router_register(router, r"event", EventViewSet, basename="Event")
 
 organization_router_register(
     router,
@@ -58,10 +43,7 @@ organization_router_register(
 )
 
 organization_router_register(
-    router,
-    r"instruction",
-    InstructionViewSet,
-    basename="Instruction",
+    router, r"instruction", InstructionViewSet, basename="Instruction"
 )
 
 organization_router_register(

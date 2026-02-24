@@ -1,6 +1,10 @@
 from unittest.mock import patch
 
-from apps.accounts.factories import PeopleGroupFactory, SeedUserFactory, UserFactory
+from apps.accounts.factories import (
+    PeopleGroupFactory,
+    SeedUserFactory,
+    UserFactory,
+)
 from apps.accounts.utils import get_superadmins_group
 from apps.organizations.factories import OrganizationFactory
 from services.google.factories import (
@@ -42,7 +46,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = create_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         google_account = GoogleAccount.objects.create(user=user)
         GoogleSyncErrorFactory(
@@ -95,7 +102,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = create_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         google_account = GoogleAccount.objects.create(user=user)
         GoogleSyncErrorFactory(
@@ -136,7 +146,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = create_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         google_account = GoogleAccount.objects.create(user=user)
         GoogleSyncErrorFactory(
@@ -176,7 +189,10 @@ class GoogleCreateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = create_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         user = SeedUserFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         google_account = GoogleAccount.objects.create(user=user)
         GoogleSyncErrorFactory(
@@ -230,7 +246,10 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = update_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         GoogleSyncErrorFactory(
             google_account=google_account,
@@ -265,7 +284,10 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = update_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         GoogleSyncErrorFactory(
             google_account=google_account,
@@ -299,7 +321,10 @@ class GoogleUpdateUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = update_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         GoogleSyncErrorFactory(
             google_account=google_account,
@@ -347,7 +372,10 @@ class GoogleSuspendUserErrorTestCase(GoogleTestCase):
         mocked_delay.side_effect = suspend_google_user_task
         group = GoogleGroupFactory(organization=self.organization)
         google_account = GoogleAccountFactory(
-            groups=[self.organization.get_users(), group.people_group.get_members()]
+            groups=[
+                self.organization.get_users(),
+                group.people_group.get_members(),
+            ]
         )
         GoogleSyncErrorFactory(
             google_account=google_account,
@@ -355,9 +383,7 @@ class GoogleSuspendUserErrorTestCase(GoogleTestCase):
             solved=True,
         )
         mocked.side_effect = self.google_side_effect(
-            [
-                self.update_google_user_error(),  # suspend user error
-            ]
+            [self.update_google_user_error()]  # suspend user error
         )
         with self.captureOnCommitCallbacks(execute=True):
             suspend_google_account(google_account.user)

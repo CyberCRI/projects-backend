@@ -60,7 +60,9 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
                 "sender": mentoring.created_by,
                 "receiver": receiver,
                 "skill": getattr(
-                    mentoring.skill.tag, f"title_{language}", mentoring.skill.tag.title
+                    mentoring.skill.tag,
+                    f"title_{language}",
+                    mentoring.skill.tag.title,
                 ),
                 "organization": mentoring.organization,
                 "reply_to": reply_to,
@@ -69,7 +71,11 @@ def _send_mentoring_reminder(inactivity_days: int) -> None:
             subject, _ = render_message(f"{template_folder}/object", language, **kwargs)
             text, html = render_message(f"{template_folder}/mail", language, **kwargs)
             send_email(
-                subject, text, [receiver.email], html_content=html, reply_to=[reply_to]
+                subject,
+                text,
+                [receiver.email],
+                html_content=html,
+                reply_to=[reply_to],
             )
 
 

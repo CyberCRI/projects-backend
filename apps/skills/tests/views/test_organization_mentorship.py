@@ -165,7 +165,10 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("OrganizationMentorship-mentored-skill", args=(organization.code,)),
+            reverse(
+                "OrganizationMentorship-mentored-skill",
+                args=(organization.code,),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -191,7 +194,10 @@ class OrganizationMentorshipTestCase(JwtAPITestCase):
         user = self.get_parameterized_test_user(role, instances=[organization])
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse("OrganizationMentorship-mentoree-skill", args=(organization.code,)),
+            reverse(
+                "OrganizationMentorship-mentoree-skill",
+                args=(organization.code,),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

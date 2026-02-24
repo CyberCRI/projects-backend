@@ -63,7 +63,8 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
         }
         cls.search_objects = {
             key: SearchObject.objects.create(
-                type=SearchObject.SearchObjectType.PEOPLE_GROUP, people_group=value
+                type=SearchObject.SearchObjectType.PEOPLE_GROUP,
+                people_group=value,
             )
             for key, value in cls.groups.items()
         }
@@ -76,7 +77,10 @@ class PeopleGroupSearchTestCase(JwtAPITestCase, SearchTestCaseMixin):
                 TestRoles.SUPERADMIN,
                 ("public_1", "public_2", "private", "org", "member"),
             ),
-            (TestRoles.ORG_ADMIN, ("public_1", "public_2", "private", "org", "member")),
+            (
+                TestRoles.ORG_ADMIN,
+                ("public_1", "public_2", "private", "org", "member"),
+            ),
             (
                 TestRoles.ORG_FACILITATOR,
                 ("public_1", "public_2", "private", "org", "member"),

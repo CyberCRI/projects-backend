@@ -26,10 +26,14 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         cls.query_2 = faker.password(length=40, special_chars=False)
 
         cls.project = ProjectFactory(
-            organizations=[cls.organization], title=cls.query, description=cls.query_2
+            organizations=[cls.organization],
+            title=cls.query,
+            description=cls.query_2,
         )
         cls.people_group = PeopleGroupFactory(
-            organization=cls.organization, name=cls.query, description=cls.query_2
+            organization=cls.organization,
+            name=cls.query,
+            description=cls.query_2,
         )
         cls.user = UserFactory(given_name=cls.query, family_name=cls.query_2)
         cls.tag = TagFactory(
@@ -81,9 +85,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         ]
     )
     def test_multi_match_search(self, index, fields, expected_results):
-        indices = [
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}",
-        ]
+        indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"]
         response = OpenSearchService.multi_match_search(
             indices=indices, query=self.query_2, fields=fields
         )
@@ -105,7 +107,10 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
     def test_multi_match_search_highlight(self, index, highlight, expected_results):
         indices = f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
         response = OpenSearchService.multi_match_search(
-            indices=indices, query=self.query, fields=highlight, highlight=highlight
+            indices=indices,
+            query=self.query,
+            fields=highlight,
+            highlight=highlight,
         )
         hits = response.hits
         self.assertEqual(len(hits), len(expected_results))
@@ -121,25 +126,16 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
                 )
 
     def test_multi_match_search_multiple_indices(self):
-        indices = [
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
-        ]
+        indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"]
         response = OpenSearchService.multi_match_search(
-            indices=indices,
-            query=self.query_2,
-            fields=["title^2", "content^1"],
+            indices=indices, query=self.query_2, fields=["title^2", "content^1"]
         )
         hits = response.hits
         self.assertEqual(len(hits), 2)
-        self.assertSetEqual(
-            {hit.id for hit in hits},
-            {self.tag_2.id, self.tag.id},
-        )
+        self.assertSetEqual({hit.id for hit in hits}, {self.tag_2.id, self.tag.id})
 
     def test_multi_match_search_pagination(self):
-        indices = [
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
-        ]
+        indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"]
         response = OpenSearchService.multi_match_search(
             indices=indices,
             query=self.query_2,
@@ -177,9 +173,7 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
         ]
     )
     def test_multi_match_prefix_search(self, index, fields, expected_results):
-        indices = [
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}",
-        ]
+        indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"]
         response = OpenSearchService.multi_match_prefix_search(
             indices=indices, query=self.query_2, fields=fields
         )
@@ -203,7 +197,10 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
     ):
         indices = f"{settings.OPENSEARCH_INDEX_PREFIX}-{index}"
         response = OpenSearchService.multi_match_prefix_search(
-            indices=indices, query=self.query, fields=highlight, highlight=highlight
+            indices=indices,
+            query=self.query,
+            fields=highlight,
+            highlight=highlight,
         )
         hits = response.hits
         self.assertEqual(len(hits), len(expected_results))
@@ -219,25 +216,16 @@ class OpenSearchServiceTestCase(JwtAPITestCase):
                 )
 
     def test_multi_match_prefix_search_multiple_indices(self):
-        indices = [
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
-        ]
+        indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"]
         response = OpenSearchService.multi_match_prefix_search(
-            indices=indices,
-            query=self.query_2,
-            fields=["title^2", "content^1"],
+            indices=indices, query=self.query_2, fields=["title^2", "content^1"]
         )
         hits = response.hits
         self.assertEqual(len(hits), 2)
-        self.assertSetEqual(
-            {hit.id for hit in hits},
-            {self.tag_2.id, self.tag.id},
-        )
+        self.assertSetEqual({hit.id for hit in hits}, {self.tag_2.id, self.tag.id})
 
     def test_multi_match_prefix_search_pagination(self):
-        indices = [
-            f"{settings.OPENSEARCH_INDEX_PREFIX}-tag",
-        ]
+        indices = [f"{settings.OPENSEARCH_INDEX_PREFIX}-tag"]
         response = OpenSearchService.multi_match_prefix_search(
             indices=indices,
             query=self.query_2,

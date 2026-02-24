@@ -36,10 +36,7 @@ from .serializers import (
 class InvitationViewSet(viewsets.ModelViewSet):
     serializer_class = InvitationSerializer
     lookup_field = "id"
-    filter_backends = (
-        DjangoFilterBackend,
-        OrderingFilter,
-    )
+    filter_backends = (DjangoFilterBackend, OrderingFilter)
 
     ordering_fields = [
         "expire_at",
@@ -175,7 +172,8 @@ class AccessRequestViewSet(CreateListModelViewSet):
         return {"status": "success", "message": ""}
 
     @extend_schema(
-        request=AccessRequestManySerializer, responses=ProcessAccessRequestSerializer
+        request=AccessRequestManySerializer,
+        responses=ProcessAccessRequestSerializer,
     )
     @action(detail=False, methods=["POST"])
     def accept(self, request, *args, **kwargs):
@@ -183,11 +181,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
             data=request.data, context=self.get_serializer_context()
         )
         serializer.is_valid(raise_exception=True)
-        results = {
-            "success": [],
-            "error": [],
-            "warning": [],
-        }
+        results = {"success": [], "error": [], "warning": []}
         for access_request in serializer.validated_data["access_requests"]:
             result = self.perform_accept(access_request)
             results[result["status"]].append(
@@ -206,7 +200,8 @@ class AccessRequestViewSet(CreateListModelViewSet):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        request=AccessRequestManySerializer, responses=ProcessAccessRequestSerializer
+        request=AccessRequestManySerializer,
+        responses=ProcessAccessRequestSerializer,
     )
     @action(detail=False, methods=["POST"])
     def decline(self, request, *args, **kwargs):
@@ -214,11 +209,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
             data=request.data, context=self.get_serializer_context()
         )
         serializer.is_valid(raise_exception=True)
-        results = {
-            "success": [],
-            "error": [],
-            "warning": [],
-        }
+        results = {"success": [], "error": [], "warning": []}
         for access_request in serializer.validated_data["access_requests"]:
             result = self.perform_decline(access_request)
             results[result["status"]].append(

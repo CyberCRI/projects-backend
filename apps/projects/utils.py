@@ -1,4 +1,4 @@
-from typing import Any, Dict, Tuple, TypeVar
+from typing import Any, TypeVar
 
 from rest_framework import serializers
 from rest_framework.utils import model_meta
@@ -40,8 +40,8 @@ def get_views_from_serializer(
 
 
 def compute_project_changes(
-    project: Project, new_data: Dict[str, Any]
-) -> Dict[str, Tuple[T, T]]:
+    project: Project, new_data: dict[str, Any]
+) -> dict[str, tuple[T, T]]:
     """Return the changes between `project` and `new_data`.
 
     Return

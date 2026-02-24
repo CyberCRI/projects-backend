@@ -74,8 +74,7 @@ class UpdatePeopleGroupHeaderTestCase(JwtAPITestCase):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
         cls.people_group = PeopleGroupFactory(
-            organization=cls.organization,
-            header_image=cls.get_test_image(),
+            organization=cls.organization, header_image=cls.get_test_image()
         )
 
     @parameterized.expand(
@@ -149,14 +148,16 @@ class DeletePeopleGroupHeaderTestCase(JwtAPITestCase):
         people_group.header_image = self.get_test_image()
         people_group.save()
         user = self.get_parameterized_test_user(
-            role, owned_instance=people_group.header_image, instances=[people_group]
+            role,
+            owned_instance=people_group.header_image,
+            instances=[people_group],
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
             reverse(
                 "PeopleGroup-header-list",
                 args=(organization.code, people_group.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

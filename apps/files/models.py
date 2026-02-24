@@ -35,9 +35,9 @@ MAX_IMAGE_HEIGHT = 10000
 
 def dynamic_upload_to(instance: Model, filename: str):
     assert hasattr(instance, "_upload_to"), (
-        "Instance of '%s' using this function as callable for an `upload_to` "
+        f"Instance of '{instance.__class__.__name__}' using this function as callable for an `upload_to` "
         "argument should have a dynamic attribute `_upload_to` set before "
-        "saving it for the first time." % instance.__class__.__name__
+        "saving it for the first time."
     )
     upload_to = instance.__dict__.pop("_upload_to", instance._upload_to)
     return upload_to(instance, filename)
@@ -80,10 +80,7 @@ def people_group_images_directory_path(instance: "PeopleGroupImage", filename: s
 
 
 class AttachmentLink(
-    HasAutoTranslatedFields,
-    DuplicableModel,
-    ProjectRelated,
-    models.Model,
+    HasAutoTranslatedFields, DuplicableModel, ProjectRelated, models.Model
 ):
     """
     A link that is attached to a project.
@@ -95,7 +92,9 @@ class AttachmentLink(
         "projects.Project", on_delete=models.CASCADE, related_name="links"
     )
     attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.LINK
+        max_length=10,
+        choices=AttachmentType.choices,
+        default=AttachmentType.LINK,
     )
     category = models.CharField(
         max_length=50,
@@ -104,7 +103,8 @@ class AttachmentLink(
     )
     description = models.TextField(blank=True)
     preview_image_url = models.URLField(
-        max_length=2048, help_text="attachment link preview image, mostly thumbnails"
+        max_length=2048,
+        help_text="attachment link preview image, mostly thumbnails",
     )
     site_name = models.CharField(max_length=255)
     site_url = models.URLField(max_length=2048)
@@ -149,7 +149,9 @@ class OrganizationAttachmentFile(
         related_name="attachment_files",
     )
     attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.FILE
+        max_length=10,
+        choices=AttachmentType.choices,
+        default=AttachmentType.FILE,
     )
     file = models.FileField(upload_to=organization_attachment_directory_path)
     mime = models.CharField(max_length=100)
@@ -163,10 +165,7 @@ class OrganizationAttachmentFile(
 
 
 class AttachmentFile(
-    HasAutoTranslatedFields,
-    DuplicableModel,
-    ProjectRelated,
-    models.Model,
+    HasAutoTranslatedFields, DuplicableModel, ProjectRelated, models.Model
 ):
     """
     An attachment file that is related to a project.
@@ -178,7 +177,9 @@ class AttachmentFile(
         "projects.Project", on_delete=models.CASCADE, related_name="files"
     )
     attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.FILE
+        max_length=10,
+        choices=AttachmentType.choices,
+        default=AttachmentType.FILE,
     )
     file = models.FileField(upload_to=attachment_directory_path)
     mime = models.CharField(max_length=100)
@@ -422,7 +423,9 @@ class ProjectUserAttachmentFile(HasAutoTranslatedFields, HasOwner, models.Model)
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="files"
     )
     attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.FILE
+        max_length=10,
+        choices=AttachmentType.choices,
+        default=AttachmentType.FILE,
     )
     file = models.FileField(upload_to=user_attachment_directory_path)
     mime = models.CharField(max_length=100)
@@ -448,7 +451,9 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
         "accounts.ProjectUser", on_delete=models.CASCADE, related_name="links"
     )
     attachment_type = models.CharField(
-        max_length=10, choices=AttachmentType.choices, default=AttachmentType.LINK
+        max_length=10,
+        choices=AttachmentType.choices,
+        default=AttachmentType.LINK,
     )
     category = models.CharField(
         max_length=50,
@@ -457,7 +462,8 @@ class ProjectUserAttachmentLink(HasAutoTranslatedFields, HasOwner, models.Model)
     )
     description = models.TextField(blank=True)
     preview_image_url = models.URLField(
-        max_length=2048, help_text="attachment link preview image, mostly thumbnails"
+        max_length=2048,
+        help_text="attachment link preview image, mostly thumbnails",
     )
     site_name = models.CharField(max_length=255)
     site_url = models.URLField(max_length=2048)

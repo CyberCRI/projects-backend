@@ -36,7 +36,10 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
             "attachment_type": AttachmentType.FILE,
         }
         response = self.client.post(
-            reverse("OrganizationAttachmentFile-list", args=(self.organization.code,)),
+            reverse(
+                "OrganizationAttachmentFile-list",
+                args=(self.organization.code,),
+            ),
             data=payload,
             format="multipart",
         )
@@ -66,9 +69,7 @@ class OrganizationFileTranslatedFieldsTestCase(JwtAPITestCase):
         ).update(up_to_date=True)
 
         # Update one translated field
-        payload = {
-            OrganizationAttachmentFile._auto_translated_fields[0]: faker.word(),
-        }
+        payload = {OrganizationAttachmentFile._auto_translated_fields[0]: faker.word()}
         response = self.client.patch(
             reverse(
                 "OrganizationAttachmentFile-detail",

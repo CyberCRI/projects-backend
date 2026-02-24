@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import (
@@ -56,7 +54,7 @@ class UserRolePermissionDeniedError(PermissionDenied):
     default_detail = _("You do not have the permission to assign this role")
     default_code = "user_role_permission_denied"
 
-    def __init__(self, role: Optional[str] = None):
+    def __init__(self, role: str | None = None):
         detail = (
             _("You do not have the permission to assign this role : {role}").format(
                 role=role
@@ -89,7 +87,7 @@ class KeycloakSyncError(APIException):
     default_detail = _("An error occurred while syncing with Keycloak")
     default_code = "keycloak_sync_error"
 
-    def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
+    def __init__(self, message: str | None = None, code: int | None = None):
         detail = (
             _("An error occurred while syncing with Keycloak : {message}").format(
                 message=message
@@ -106,7 +104,7 @@ class GoogleSyncError(APIException):
     default_detail = _("An error occurred while syncing with Google")
     default_code = "google_sync_error"
 
-    def __init__(self, message: Optional[str] = None, code: Optional[int] = None):
+    def __init__(self, message: str | None = None, code: int | None = None):
         detail = (
             _("An error occurred while syncing with Google : {message}").format(
                 message=message
@@ -156,7 +154,7 @@ class UserRoleAssignmentError(ValidationError):
     default_detail = _("You cannot assign this role to a user")
     default_code = "user_role_assignment_error"
 
-    def __init__(self, role: Optional[str] = None):
+    def __init__(self, role: str | None = None):
         detail = (
             _("You cannot assign this role to a user : {role}").format(role=role)
             if role

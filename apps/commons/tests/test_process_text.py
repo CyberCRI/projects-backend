@@ -13,7 +13,11 @@ from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory
 from apps.files.enums import AttachmentType
 from apps.files.tests.views.mock_response import MockResponse
-from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.newsfeed.factories import (
+    EventFactory,
+    InstructionFactory,
+    NewsFactory,
+)
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.factories import (
     OrganizationFactory,
@@ -86,10 +90,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         content = response.json()
         self.assertNotIn("<img", content["description"] + content["short_description"])
 
-        payload = {
-            "description": texts[0],
-            "short_description": texts[1],
-        }
+        payload = {"description": texts[0], "short_description": texts[1]}
         response = self.client.patch(
             reverse(
                 "PeopleGroup-detail",
@@ -122,10 +123,7 @@ class TextProcessingTestCase(JwtAPITestCase):
         content = response.json()
         self.assertNotIn("<img", content["description"] + content["short_description"])
 
-        payload = {
-            "description": texts[0],
-            "short_description": texts[1],
-        }
+        payload = {"description": texts[0], "short_description": texts[1]}
         response = self.client.patch(
             reverse("ProjectUser-detail", args=(content["id"],)), data=payload
         )
@@ -152,10 +150,7 @@ class TextProcessingTestCase(JwtAPITestCase):
 
         payload = {"description": text}
         response = self.client.patch(
-            reverse(
-                "Announcement-detail",
-                args=(self.project.id, content["id"]),
-            ),
+            reverse("Announcement-detail", args=(self.project.id, content["id"])),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -244,7 +239,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             "attachment_type": AttachmentType.FILE,
         }
         response = self.client.post(
-            reverse("OrganizationAttachmentFile-list", args=(self.organization.code,)),
+            reverse(
+                "OrganizationAttachmentFile-list",
+                args=(self.organization.code,),
+            ),
             data=payload,
             format="multipart",
         )
@@ -277,7 +275,8 @@ class TextProcessingTestCase(JwtAPITestCase):
             "description": text,
         }
         response = self.client.post(
-            reverse("AttachmentLink-list", args=(self.project.id,)), data=payload
+            reverse("AttachmentLink-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -285,10 +284,7 @@ class TextProcessingTestCase(JwtAPITestCase):
 
         payload = {"description": text}
         response = self.client.patch(
-            reverse(
-                "AttachmentLink-detail",
-                args=(self.project.id, content["id"]),
-            ),
+            reverse("AttachmentLink-detail", args=(self.project.id, content["id"])),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -321,10 +317,7 @@ class TextProcessingTestCase(JwtAPITestCase):
 
         payload = {"description": text}
         response = self.client.patch(
-            reverse(
-                "AttachmentFile-detail",
-                args=(self.project.id, content["id"]),
-            ),
+            reverse("AttachmentFile-detail", args=(self.project.id, content["id"])),
             data=payload,
             format="multipart",
         )
@@ -481,13 +474,16 @@ class TextProcessingTestCase(JwtAPITestCase):
     def test_update_instruction(self):
         instruction = InstructionFactory(organization=self.organization)
         text = self.create_base64_image_text() + self.create_unlinked_image_text(
-            "Instruction-images-detail", self.organization.code, instruction.id
+            "Instruction-images-detail",
+            self.organization.code,
+            instruction.id,
         )
         self.client.force_authenticate(self.user)
         payload = {"content": text}
         response = self.client.patch(
             reverse(
-                "Instruction-detail", args=(self.organization.code, instruction.id)
+                "Instruction-detail",
+                args=(self.organization.code, instruction.id),
             ),
             data=payload,
         )
@@ -560,7 +556,8 @@ class TextProcessingTestCase(JwtAPITestCase):
             "comment_content": texts[6],
         }
         response = self.client.post(
-            reverse("Template-list", args=(self.organization.code,)), data=payload
+            reverse("Template-list", args=(self.organization.code,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -626,10 +623,7 @@ class TextProcessingTestCase(JwtAPITestCase):
     def test_create_category(self):
         text = self.create_base64_image_text()
         self.client.force_authenticate(self.user)
-        payload = {
-            "name": faker.sentence(),
-            "description": text,
-        }
+        payload = {"name": faker.sentence(), "description": text}
         response = self.client.post(
             reverse("Category-list", args=(self.organization.code,)),
             data=payload,
@@ -640,10 +634,7 @@ class TextProcessingTestCase(JwtAPITestCase):
 
         payload = {"description": text}
         response = self.client.patch(
-            reverse(
-                "Category-detail",
-                args=(self.organization.code, content["id"]),
-            ),
+            reverse("Category-detail", args=(self.organization.code, content["id"])),
             data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -733,7 +724,8 @@ class TextProcessingTestCase(JwtAPITestCase):
         blog = BlogEntryFactory(project=self.project)
         payload = {"content": text}
         response = self.client.patch(
-            reverse("BlogEntry-detail", args=(self.project.id, blog.id)), data=payload
+            reverse("BlogEntry-detail", args=(self.project.id, blog.id)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
@@ -749,11 +741,10 @@ class TextProcessingTestCase(JwtAPITestCase):
             "ProjectMessage-images-detail", self.project.id
         )
         self.client.force_authenticate(self.user)
-        payload = {
-            "content": text,
-        }
+        payload = {"content": text}
         response = self.client.post(
-            reverse("ProjectMessage-list", args=(self.project.id,)), data=payload
+            reverse("ProjectMessage-list", args=(self.project.id,)),
+            data=payload,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -761,7 +752,8 @@ class TextProcessingTestCase(JwtAPITestCase):
         for image_id in content["images"]:
             self.assertIn(
                 reverse(
-                    "ProjectMessage-images-detail", args=(self.project.id, image_id)
+                    "ProjectMessage-images-detail",
+                    args=(self.project.id, image_id),
                 ),
                 content["content"],
             )
@@ -775,7 +767,8 @@ class TextProcessingTestCase(JwtAPITestCase):
         payload = {"content": text}
         response = self.client.patch(
             reverse(
-                "ProjectMessage-detail", args=(self.project.id, project_message.id)
+                "ProjectMessage-detail",
+                args=(self.project.id, project_message.id),
             ),
             data=payload,
         )
@@ -785,7 +778,8 @@ class TextProcessingTestCase(JwtAPITestCase):
         for image_id in content["images"]:
             self.assertIn(
                 reverse(
-                    "ProjectMessage-images-detail", args=(self.project.id, image_id)
+                    "ProjectMessage-images-detail",
+                    args=(self.project.id, image_id),
                 ),
                 content["content"],
             )
@@ -800,8 +794,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "project_id": self.project.id,
         }
         response = self.client.post(
-            reverse("Goal-list", args=(self.project.id,)),
-            data=payload,
+            reverse("Goal-list", args=(self.project.id,)), data=payload
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         content = response.json()
@@ -848,10 +841,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "ProjectTab-images-detail", self.project.id
         )
         self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "description": text,
-        }
+        payload = {"title": faker.sentence(), "description": text}
         response = self.client.post(
             reverse("ProjectTab-list", args=(self.project.id,)), data=payload
         )
@@ -890,10 +880,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "ProjectTabItem-images-detail", self.project.id, tab.id
         )
         self.client.force_authenticate(self.user)
-        payload = {
-            "title": faker.sentence(),
-            "content": text,
-        }
+        payload = {"title": faker.sentence(), "content": text}
         response = self.client.post(
             reverse("ProjectTabItem-list", args=(self.project.id, tab.id)),
             data=payload,

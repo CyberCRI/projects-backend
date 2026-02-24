@@ -9,7 +9,10 @@ from apps.accounts.factories import UserFactory
 from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import FollowFactory, ReviewFactory
 from apps.notifications.models import Notification
-from apps.notifications.tasks import _notify_new_review, _notify_ready_for_review
+from apps.notifications.tasks import (
+    _notify_new_review,
+    _notify_ready_for_review,
+)
 from apps.organizations.factories import (
     CategoryFollowFactory,
     OrganizationFactory,
@@ -179,7 +182,12 @@ class NewReviewTestCase(JwtAPITestCase):
             self.assertEqual(notification.reminder_message_en, "")
 
         self.assertEqual(len(mail.outbox), 8)
-        for user in [notified, follower, category_follower, parent_category_follower]:
+        for user in [
+            notified,
+            follower,
+            category_follower,
+            parent_category_follower,
+        ]:
             self.assertEqual(
                 [mail.outbox[i].to[0] for i in range(8)].count(user.email), 2
             )

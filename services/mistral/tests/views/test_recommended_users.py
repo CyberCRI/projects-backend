@@ -13,7 +13,10 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
-from services.mistral.factories import ProjectEmbeddingFactory, UserEmbeddingFactory
+from services.mistral.factories import (
+    ProjectEmbeddingFactory,
+    UserEmbeddingFactory,
+)
 from services.mistral.models import UserEmbedding
 from services.mistral.testcases import MistralTestCaseMixin
 
@@ -31,12 +34,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[OrganizationFactory().get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=other_user,
-            completeness=20.0,
-            activity=5.0,
-            score=25.0,
-        )
+        UserScoreFactory(user=other_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
             item=other_user, embedding=[*1024 * [1.0]], is_visible=True
         )
@@ -47,10 +45,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             last_login=timezone.localtime(timezone.now()) - timedelta(days=365),
         )
         UserScoreFactory(
-            user=inactive_user,
-            completeness=20.0,
-            activity=0.09,
-            score=20.09,
+            user=inactive_user, completeness=20.0, activity=0.09, score=20.09
         )
         UserEmbeddingFactory(
             item=inactive_user, embedding=[*1024 * [1.0]], is_visible=True
@@ -61,12 +56,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=public_user,
-            completeness=20.0,
-            activity=5.0,
-            score=25.0,
-        )
+        UserScoreFactory(user=public_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
             item=public_user, embedding=[*1024 * [0.0]], is_visible=True
         )
@@ -77,13 +67,12 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             last_login=timezone.localtime(timezone.now()),
         )
         UserScoreFactory(
-            user=public_user_2,
-            completeness=10.0,
-            activity=5.0,
-            score=15.0,
+            user=public_user_2, completeness=10.0, activity=5.0, score=15.0
         )
         UserEmbeddingFactory(
-            item=public_user_2, embedding=[*768 * [0.0], *256 * [1.0]], is_visible=True
+            item=public_user_2,
+            embedding=[*768 * [0.0], *256 * [1.0]],
+            is_visible=True,
         )
         # Private user
         private_user = UserFactory(
@@ -91,14 +80,11 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=private_user,
-            completeness=20.0,
-            activity=5.0,
-            score=25.0,
-        )
+        UserScoreFactory(user=private_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
-            item=private_user, embedding=[*512 * [0.0], *512 * [1.0]], is_visible=True
+            item=private_user,
+            embedding=[*512 * [0.0], *512 * [1.0]],
+            is_visible=True,
         )
         # Organization user
         org_user = UserFactory(
@@ -106,14 +92,11 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             groups=[cls.organization.get_users()],
             last_login=timezone.localtime(timezone.now()),
         )
-        UserScoreFactory(
-            user=org_user,
-            completeness=20.0,
-            activity=5.0,
-            score=25.0,
-        )
+        UserScoreFactory(user=org_user, completeness=20.0, activity=5.0, score=25.0)
         UserEmbeddingFactory(
-            item=org_user, embedding=[*256 * [0.0], *768 * [1.0]], is_visible=True
+            item=org_user,
+            embedding=[*256 * [0.0], *768 * [1.0]],
+            is_visible=True,
         )
         cls.users = {
             "other": other_user,
@@ -135,7 +118,10 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.DEFAULT, ["public_2", "public"]),
             (TestRoles.SUPERADMIN, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2", "public"]),
-            (TestRoles.ORG_FACILITATOR, ["org", "private", "public_2", "public"]),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ["org", "private", "public_2", "public"],
+            ),
             (TestRoles.ORG_USER, ["org", "public_2", "public"]),
             (TestRoles.ORG_VIEWER, ["org", "public_2", "public"]),
         ]
@@ -146,10 +132,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             UserEmbeddingFactory(item=user, embedding=[*1024 * [1.0]], is_visible=True)
         self.client.force_authenticate(user)
         response = self.client.get(
-            reverse(
-                "RecommendedUsers-for-user",
-                args=(self.organization.code,),
-            ),
+            reverse("RecommendedUsers-for-user", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -183,7 +166,7 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             reverse(
                 "RecommendedUsers-for-project",
                 args=(self.organization.code, self.project.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -229,7 +212,10 @@ class UserRecommendedUsersTestCase(JwtAPITestCase, MistralTestCaseMixin):
             (TestRoles.DEFAULT, ["public_2", "public"]),
             (TestRoles.SUPERADMIN, ["org", "private", "public_2", "public"]),
             (TestRoles.ORG_ADMIN, ["org", "private", "public_2", "public"]),
-            (TestRoles.ORG_FACILITATOR, ["org", "private", "public_2", "public"]),
+            (
+                TestRoles.ORG_FACILITATOR,
+                ["org", "private", "public_2", "public"],
+            ),
             (TestRoles.ORG_USER, ["org", "public_2", "public"]),
             (TestRoles.ORG_VIEWER, ["org", "public_2", "public"]),
         ]

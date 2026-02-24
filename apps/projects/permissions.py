@@ -1,5 +1,4 @@
 from contextlib import suppress
-from typing import Optional
 
 from django.db.models import Model
 from rest_framework import permissions
@@ -18,8 +17,8 @@ from .models import Project
 
 class ProjectRelatedPermission(IgnoreCall):
     def get_related_project(
-        self, request: Request, view: GenericViewSet, obj: Optional[Model] = None
-    ) -> Optional[Project]:
+        self, request: Request, view: GenericViewSet, obj: Model | None = None
+    ) -> Project | None:
         if view.get_queryset().model == Project:
             pk = view.kwargs.get(view.lookup_url_kwarg) or view.kwargs.get(
                 view.lookup_field
@@ -117,7 +116,13 @@ class ProjectIsNotLocked(permissions.BasePermission, ProjectRelatedPermission):
         if (
             project
             and view.action
-            in ["update", "partial_update", "destroy", "add_member", "remove_member"]
+            in [
+                "update",
+                "partial_update",
+                "destroy",
+                "add_member",
+                "remove_member",
+            ]
             and project.is_locked
             and not self.user_can_modify_locked_project(project, request.user)
         ):

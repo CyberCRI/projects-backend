@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
@@ -60,12 +58,14 @@ class ProtectedImageError(APIException):
     default_detail = _("You can't delete this picture: It is related to another object")
     default_code = "protected_image_error"
 
-    def __init__(self, relation: Optional[dict] = None):
+    def __init__(self, relation: dict | None = None):
         detail = (
             _(
                 "You can't delete this picture: It is related to an instance of {model} with pk={pk} through field {field}"
             ).format(
-                model=relation["model"], pk=relation["pk"], field=relation["field"]
+                model=relation["model"],
+                pk=relation["pk"],
+                field=relation["field"],
             )
             if relation
             else self.default_detail

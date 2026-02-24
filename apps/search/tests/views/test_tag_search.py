@@ -60,12 +60,7 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
             description_fr="",
         )
 
-    @parameterized.expand(
-        [
-            (TestRoles.ANONYMOUS,),
-            (TestRoles.DEFAULT,),
-        ]
-    )
+    @parameterized.expand([(TestRoles.ANONYMOUS,), (TestRoles.DEFAULT,)])
     @patch("apps.search.interface.OpenSearchService.multi_match_prefix_search")
     def test_search_tags(self, role, mocked_search):
         mocked_search.return_value = self.opensearch_tags_mocked_return(
@@ -81,8 +76,7 @@ class SearchOrganizationTagTestCase(JwtAPITestCase, SearchTestCaseMixin):
         content = response.json()["results"]
         self.assertEqual(len(content), len(self.tags))
         self.assertListEqual(
-            [tag["id"] for tag in content],
-            [tag.id for tag in self.tags],
+            [tag["id"] for tag in content], [tag.id for tag in self.tags]
         )
         for tag in content:
             for value in tag["highlight"].values():
@@ -174,7 +168,7 @@ class SearchClassificationTagTestCase(WikipediaTestCase, SearchTestCaseMixin):
         ]
         cls.wikipedia_tag_classification = (
             TagClassification.get_or_create_default_classification(
-                classification_type=TagClassification.TagClassificationType.WIKIPEDIA,
+                classification_type=TagClassification.TagClassificationType.WIKIPEDIA
             )
         )
         cls.wikipedia_tag_classification.tags.add(

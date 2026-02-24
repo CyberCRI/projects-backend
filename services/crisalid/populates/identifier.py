@@ -31,10 +31,6 @@ class PopulateIdentifier(AbstractPopulate):
         if not all((harvester, value)):
             return None
 
-        identifier = self.cache.model(
-            Identifier,
-            value=value,
-            harvester=harvester,
-        )
+        identifier = self.cache.model(Identifier, value=value, harvester=harvester)
         self.cache.save(identifier)
         return identifier

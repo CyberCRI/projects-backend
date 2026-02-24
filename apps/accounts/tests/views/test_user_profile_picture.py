@@ -43,10 +43,7 @@ class CreateUserProfilePictureTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse(
-                "UserProfilePicture-list",
-                args=(instance.id,),
-            ),
+            reverse("UserProfilePicture-list", args=(instance.id,)),
             data=payload,
             format="multipart",
         )
@@ -150,7 +147,7 @@ class DeleteUserProfilePictureTestCase(JwtAPITestCase):
             reverse(
                 "UserProfilePicture-detail",
                 args=(instance.id, instance.profile_picture.id),
-            ),
+            )
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:

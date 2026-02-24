@@ -177,7 +177,7 @@ class PeopleGroupImageTestCase(JwtAPITestCase):
             reverse(
                 "PeopleGroupGallery-list",
                 args=(self.organization.code, people_group.id),
-            ),
+            )
         )
 
         self.assertEqual(response.status_code, role_status_code)
@@ -203,26 +203,19 @@ class PeopleGroupImageTestCase(JwtAPITestCase):
         self.client.force_authenticate(user)
         payload = {"file": get_image_file()}
         url = reverse(
-            "PeopleGroupGallery-list", args=(self.organization.code, self.group.id)
+            "PeopleGroupGallery-list",
+            args=(self.organization.code, self.group.id),
         )
 
         # create images
-        response = self.client.post(
-            url,
-            data=payload,
-            format="multipart",
-        )
+        response = self.client.post(url, data=payload, format="multipart")
         self.assertEqual(response.status_code, expected_code)
 
         if expected_code != status.HTTP_201_CREATED:
             return
 
         # get list images
-        response = self.client.get(
-            url,
-            data=payload,
-            format="multipart",
-        )
+        response = self.client.get(url, data=payload, format="multipart")
         data = response.json()
         self.assertEqual(len(data["results"]), 1)
 

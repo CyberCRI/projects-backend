@@ -1,5 +1,4 @@
 from types import SimpleNamespace
-from typing import Dict, List
 from unittest.mock import call, patch
 
 from django.conf import settings
@@ -18,7 +17,11 @@ from apps.files.factories import (
     OrganizationAttachmentFileFactory,
 )
 from apps.invitations.factories import AccessRequestFactory, InvitationFactory
-from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.newsfeed.factories import (
+    EventFactory,
+    InstructionFactory,
+    NewsFactory,
+)
 from apps.organizations.factories import (
     OrganizationFactory,
     ProjectCategoryFactory,
@@ -50,8 +53,8 @@ faker = Faker()
 class MockTranslateTestCase(JwtAPITestCase):
     @classmethod
     def translator_side_effect(
-        cls, body: List[str], to_language: List[str], text_type: str = "plain"
-    ) -> List[Dict]:
+        cls, body: list[str], to_language: list[str], text_type: str = "plain"
+    ) -> list[dict]:
         """
         This side effect is meant to be used with unittest mock. It will mock every call
         made to the Azure translator API.
@@ -78,7 +81,6 @@ class MockTranslateTestCase(JwtAPITestCase):
 
 
 class UpdateTranslationsTestCase(MockTranslateTestCase):
-
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
@@ -268,13 +270,19 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
 
         # MentoringMessage has indirect relation to organizations through Mentoring
         mentoring_1 = MentorCreatedMentoringFactory(
-            organization=cls.organization_1, mentor=cls.user_1, mentoree=cls.user_1
+            organization=cls.organization_1,
+            mentor=cls.user_1,
+            mentoree=cls.user_1,
         )
         mentoring_2 = MentorCreatedMentoringFactory(
-            organization=cls.organization_2, mentor=cls.user_2, mentoree=cls.user_2
+            organization=cls.organization_2,
+            mentor=cls.user_2,
+            mentoree=cls.user_2,
         )
         mentoring_3 = MentorCreatedMentoringFactory(
-            organization=cls.organization_3, mentor=cls.user_3, mentoree=cls.user_3
+            organization=cls.organization_3,
+            mentor=cls.user_3,
+            mentoree=cls.user_3,
         )
         data = {
             field: (
@@ -365,7 +373,8 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                 call(
                     body=[
                         getattr(
-                            instance, field.split(":", 1)[1] if ":" in field else field
+                            instance,
+                            field.split(":", 1)[1] if ":" in field else field,
                         )
                     ],
                     to_language=(
@@ -380,7 +389,7 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                         (data["instance_1"], field)
                         for data in self.instances
                         for field in data["model"].auto_translated_fields
-                    ],
+                    ]
                 ]
             ],
             any_order=True,

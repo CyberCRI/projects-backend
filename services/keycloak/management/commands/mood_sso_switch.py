@@ -16,7 +16,7 @@ class Command(BaseCommand):
 
         csv_file = f"{self.DIR}/users_in_projects.csv"
         users_in_projects = []
-        with open(csv_file, "r") as file:
+        with open(csv_file) as file:
             for line in file:
                 keycloak_id = line.strip()
                 users_in_projects.append(keycloak_id)
@@ -67,7 +67,7 @@ class Command(BaseCommand):
 
         csv_file = f"{self.DIR}/mood_users_to_create.csv"
         mood_users_to_create = []
-        with open(csv_file, "r") as file:
+        with open(csv_file) as file:
             for line in file:
                 email, given_name, family_name = line.strip().split(",")
                 mood_users_to_create.append(
@@ -108,7 +108,10 @@ class Command(BaseCommand):
                         organization=organization,
                     )
                     send_email(
-                        subject, text, [keycloak_account.email], html_content=html
+                        subject,
+                        text,
+                        [keycloak_account.email],
+                        html_content=html,
                     )
                     print(f"{user_data['email']},SUCCESS")
                     file.write(f"{user_data['email']},SUCCESS\n")
@@ -130,7 +133,7 @@ class Command(BaseCommand):
 
         csv_file = f"{self.DIR}/ydc_users_to_create.csv"
         self.ydc_users_to_create = []
-        with open(csv_file, "r") as file:
+        with open(csv_file) as file:
             for line in file:
                 email, given_name, family_name = line.strip().split(",")
                 self.ydc_users_to_create.append(
@@ -171,7 +174,10 @@ class Command(BaseCommand):
                         organization=organization,
                     )
                     send_email(
-                        subject, text, [keycloak_account.email], html_content=html
+                        subject,
+                        text,
+                        [keycloak_account.email],
+                        html_content=html,
                     )
                     print(f"{user_data['email']},SUCCESS")
                     file.write(f"{user_data['email']},SUCCESS\n")

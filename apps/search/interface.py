@@ -1,5 +1,3 @@
-from typing import List, Optional, Union
-
 from opensearchpy import Search
 from opensearchpy.helpers.query import Q
 from opensearchpy.helpers.response import Response
@@ -13,15 +11,15 @@ class OpenSearchService:
     @classmethod
     def multi_match_search(
         cls,
-        indices: List[str],
-        fields: List[str],
+        indices: list[str],
+        fields: list[str],
         query: str,
         search_type: str = "most_fields",
-        highlight: Optional[List[str]] = None,
+        highlight: list[str] | None = None,
         highlight_size: int = 150,
         limit: int = 100,
         offset: int = 0,
-        fuzziness: Union[int, str] = 1,
+        fuzziness: int | str = 1,
         prefix_length: int = 1,
         max_expansions: int = 10,
         fuzzy_transpositions: bool = True,
@@ -88,15 +86,15 @@ class OpenSearchService:
     @classmethod
     def multi_match_prefix_search(
         cls,
-        indices: List[str],
-        fields: List[str],
+        indices: list[str],
+        fields: list[str],
         query: str,
         search_type: str = "most_fields",
-        highlight: Optional[List[str]] = None,
+        highlight: list[str] | None = None,
         highlight_size: int = 150,
         limit: int = 100,
         offset: int = 0,
-        fuzziness: Union[int, str] = "AUTO",
+        fuzziness: int | str = "AUTO",
         prefix_length: int = 3,
         max_expansions: int = 10,
         fuzzy_transpositions: bool = True,

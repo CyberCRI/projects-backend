@@ -34,7 +34,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     job = factory.Faker("job")
     sdgs = factory.LazyFunction(
         lambda: sorted(
-            set(sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz()))
+            {sdg_factory().fuzz() for _ in range(FuzzyInteger(0, 17).fuzz())}
         )
     )
 
@@ -72,11 +72,7 @@ class UserFactory(factory.django.DjangoModelFactory):
     @factory.post_generation
     def keycloak_account(self, create, extracted, **kwargs):
         if create:
-            KeycloakAccountFactory(
-                user=self,
-                username=self.email,
-                email=self.email,
-            )
+            KeycloakAccountFactory(user=self, username=self.email, email=self.email)
 
 
 class SeedUserFactory(UserFactory):

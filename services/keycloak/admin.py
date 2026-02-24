@@ -4,25 +4,12 @@ from .models import IdentityProvider, KeycloakAccount
 
 
 class KeycloalAccountAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "keycloak_id",
-        "username",
-        "email",
-    )
-    search_fields = (
-        "keycloak_id",
-        "username",
-        "email",
-    )
+    list_display = ("id", "keycloak_id", "username", "email")
+    search_fields = ("keycloak_id", "username", "email")
 
 
 class IdentityProviderAdmin(admin.ModelAdmin):
-    list_display = (
-        "id",
-        "alias",
-        "enabled",
-    )
+    list_display = ("id", "alias", "enabled")
     search_fields = ("alias",)
 
 

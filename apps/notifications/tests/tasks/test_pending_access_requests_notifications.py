@@ -22,7 +22,9 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
 
     def test_notification_task(self):
         AccessRequestFactory.create_batch(
-            2, organization=self.organization, status=AccessRequest.Status.PENDING
+            2,
+            organization=self.organization,
+            status=AccessRequest.Status.PENDING,
         )
         AccessRequestFactory(
             organization=self.organization, status=AccessRequest.Status.ACCEPTED
@@ -44,7 +46,7 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
 
         self.client.force_authenticate(self.admins[0])
         response = self.client.get(
-            reverse("Notification-list", args=(self.organization.code,)),
+            reverse("Notification-list", args=(self.organization.code,))
         )
         results = response.json()["results"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -57,7 +59,9 @@ class PendingAccessRequestsNotificationsTestCase(JwtAPITestCase):
 
     def test_merged_notifications_task(self):
         AccessRequestFactory.create_batch(
-            2, organization=self.organization, status=AccessRequest.Status.PENDING
+            2,
+            organization=self.organization,
+            status=AccessRequest.Status.PENDING,
         )
         AccessRequestFactory(
             organization=self.organization, status=AccessRequest.Status.ACCEPTED

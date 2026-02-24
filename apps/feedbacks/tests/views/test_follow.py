@@ -53,9 +53,7 @@ class CreateFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
-            payload = {
-                "project_id": project.id,
-            }
+            payload = {"project_id": project.id}
             response = self.client.post(
                 reverse("Followed-list", args=(project.id,)), data=payload
             )
@@ -69,9 +67,7 @@ class CreateFollowTestCase(JwtAPITestCase):
 
     def test_create_followed_anonymous(self):
         for project in self.projects.values():
-            payload = {
-                "project_id": project.id,
-            }
+            payload = {"project_id": project.id}
             response = self.client.post(
                 reverse("Followed-list", args=(project.id,)), data=payload
             )
@@ -96,9 +92,7 @@ class CreateFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         for publication_status, project in self.projects.items():
-            payload = {
-                "project_id": project.id,
-            }
+            payload = {"project_id": project.id}
             response = self.client.post(
                 reverse("Follower-list", args=(user.id,)), data=payload
             )
@@ -128,8 +122,7 @@ class CreateFollowTestCase(JwtAPITestCase):
         payload = {"follows": [{"project_id": project.id} for project in instances]}
         self.client.force_authenticate(user)
         response = self.client.post(
-            reverse("Follower-follow-many", args=(user.id,)),
-            data=payload,
+            reverse("Follower-follow-many", args=(user.id,)), data=payload
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_201_CREATED:
@@ -173,13 +166,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Followed-detail",
-                args=(
-                    self.project.id,
-                    follow.id,
-                ),
-            )
+            reverse("Followed-detail", args=(self.project.id, follow.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -207,13 +194,7 @@ class DestroyFollowTestCase(JwtAPITestCase):
         )
         self.client.force_authenticate(user)
         response = self.client.delete(
-            reverse(
-                "Follower-detail",
-                args=(
-                    follower.id,
-                    instance.id,
-                ),
-            )
+            reverse("Follower-detail", args=(follower.id, instance.id))
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
@@ -268,20 +249,18 @@ class ListFollowTestCase(JwtAPITestCase):
     )
     def test_list_follower(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, instances=list(self.projects.values()), owned_instance=self.follower
+            role,
+            instances=list(self.projects.values()),
+            owned_instance=self.follower,
         )
         self.client.force_authenticate(user)
-        response = self.client.get(
-            reverse(
-                "Follower-list",
-                args=(self.follower.id,),
-            ),
-        )
+        response = self.client.get(reverse("Follower-list", args=(self.follower.id,)))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
         self.assertEqual(len(content), len(retrieved_follows))
         self.assertSetEqual(
-            {f["id"] for f in content}, {self.follows[f].id for f in retrieved_follows}
+            {f["id"] for f in content},
+            {self.follows[f].id for f in retrieved_follows},
         )
 
     @parameterized.expand(
@@ -301,13 +280,13 @@ class ListFollowTestCase(JwtAPITestCase):
     )
     def test_list_followed(self, role, retrieved_follows):
         user = self.get_parameterized_test_user(
-            role, instances=list(self.projects.values()), owned_instance=self.follower
+            role,
+            instances=list(self.projects.values()),
+            owned_instance=self.follower,
         )
         self.client.force_authenticate(user)
         for project_status, project in self.projects.items():
-            response = self.client.get(
-                reverse("Followed-list", args=(project.id,)),
-            )
+            response = self.client.get(reverse("Followed-list", args=(project.id,)))
             self.assertEqual(response.status_code, status.HTTP_200_OK)
             content = response.json()["results"]
             if project_status in retrieved_follows:

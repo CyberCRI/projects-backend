@@ -1,7 +1,6 @@
 import random
 import uuid
 from contextlib import suppress
-from typing import Optional
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.management.base import BaseCommand
@@ -25,9 +24,16 @@ from apps.files.factories import (
     OrganizationAttachmentFileFactory,
 )
 from apps.files.models import Image
-from apps.newsfeed.factories import EventFactory, InstructionFactory, NewsFactory
+from apps.newsfeed.factories import (
+    EventFactory,
+    InstructionFactory,
+    NewsFactory,
+)
 from apps.newsfeed.utils import init_newsfeed
-from apps.organizations.factories import OrganizationFactory, ProjectCategoryFactory
+from apps.organizations.factories import (
+    OrganizationFactory,
+    ProjectCategoryFactory,
+)
 from apps.organizations.models import Organization, ProjectCategory
 from apps.projects.factories import (
     BlogEntryFactory,
@@ -38,7 +44,11 @@ from apps.projects.factories import (
     ProjectMessageFactory,
 )
 from apps.projects.models import Stat
-from apps.skills.factories import SkillFactory, TagClassificationFactory, TagFactory
+from apps.skills.factories import (
+    SkillFactory,
+    TagClassificationFactory,
+    TagFactory,
+)
 from services.keycloak.interface import KeycloakService
 
 faker = Faker()
@@ -49,7 +59,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
-            "--organization", "-o", type=str, required=True, help="Organization code."
+            "--organization",
+            "-o",
+            type=str,
+            required=True,
+            help="Organization code.",
         )
         parser.add_argument(
             "--url", "-u", type=str, required=True, help="Organization URL."
@@ -66,9 +80,7 @@ class Command(BaseCommand):
             ),
         )
 
-    def create_image(
-        self, upload_to: str, owner: Optional[ProjectUser] = None
-    ) -> Image:
+    def create_image(self, upload_to: str, owner: ProjectUser | None = None) -> Image:
         image_data = faker.image((200, 200), image_format="jpeg")
         image = SimpleUploadedFile("image.jpg", image_data, content_type="image/jpeg")
         image_name = f"{uuid.uuid4()}.jpg"
@@ -94,10 +106,7 @@ class Command(BaseCommand):
         SeedUserFactory(
             email=username,
             personal_email=username,
-            keycloak_account={
-                "password": password,
-                "email_verified": True,
-            },
+            keycloak_account={"password": password, "email_verified": True},
             groups=[organization.get_or_create_group(role)],
         )
         self.stdout.write(self.style.SUCCESS(f"Account created: {username}"))
@@ -187,7 +196,8 @@ class Command(BaseCommand):
             NewsFactory(
                 organization=organization,
                 people_groups=random.sample(  # nosec B311
-                    people_groups, k=random.randint(1, 3)  # nosec B311
+                    people_groups,
+                    k=random.randint(1, 3),  # nosec B311
                 ),
                 publication_date=date,
             )
@@ -195,7 +205,8 @@ class Command(BaseCommand):
             InstructionFactory(
                 organization=organization,
                 people_groups=random.sample(  # nosec B311
-                    people_groups, k=random.randint(1, 3)  # nosec B311
+                    people_groups,
+                    k=random.randint(1, 3),  # nosec B311
                 ),
                 publication_date=date,
             )
@@ -203,7 +214,8 @@ class Command(BaseCommand):
             EventFactory(
                 organization=organization,
                 people_groups=random.sample(  # nosec B311
-                    people_groups, k=random.randint(1, 3)  # nosec B311
+                    people_groups,
+                    k=random.randint(1, 3),  # nosec B311
                 ),
                 event_date=date,
             )
@@ -266,7 +278,8 @@ class Command(BaseCommand):
             project.owners.add(owner)
             project.members.add(*members)
             ProjectMessageFactory(
-                project=project, author=random.choice([owner] + members)  # nosec B311
+                project=project,
+                author=random.choice([owner] + members),  # nosec B311
             )
         self.stdout.write(self.style.SUCCESS("Project related items created."))
 
