@@ -371,10 +371,8 @@ class PeopleGroupHierarchySerializer(
         mapping = context.get("mapping")
 
         if not mapping:
-            base_queryset = (
-                request.user.get_people_group_queryset()
-                .all()
-                .filter(organization=people_group.organization)
+            base_queryset = request.user.get_people_group_queryset().filter(
+                organization=people_group.organization
             )
             mapping = {group.id: group for group in base_queryset}
             context["mapping"] = mapping
