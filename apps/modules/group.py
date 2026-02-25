@@ -13,22 +13,23 @@ class PeopleGroupModules(AbstractModules):
     instance: PeopleGroup
 
     def members(self) -> QuerySet[ProjectUser]:
-        managers_ids = self.instance.managers.all().values_list("id", flat=True)
-        leaders_ids = self.instance.leaders.all().values_list("id", flat=True)
         skills_prefetch = Prefetch(
             "skills", queryset=Skill.objects.select_related("tag")
         )
+
         return (
             self.instance.get_all_members()
             .distinct()
             .annotate(
                 is_leader=Case(
-                    When(id__in=leaders_ids, then=True), default=Value(False)
+                    When(id__in=self.instance.leaders.all(), then=True),
+                    default=Value(False),
                 )
             )
             .annotate(
                 is_manager=Case(
-                    When(id__in=managers_ids, then=True), default=Value(False)
+                    When(id__in=self.instance.managers.all(), then=True),
+                    default=Value(False),
                 )
             )
             .order_by("-is_leader", "-is_manager")
@@ -36,11 +37,9 @@ class PeopleGroupModules(AbstractModules):
         )
 
     def featured_projects(self) -> QuerySet[Project]:
-        group_projects_ids = (
-            Project.objects.filter(groups__people_groups=self.instance)
-            .distinct()
-            .values_list("id", flat=True)
-        )
+        group_projects = Project.objects.filter(
+            groups__people_groups=self.instance
+        ).distinct()
 
         return (
             self.user.get_project_queryset()
@@ -49,7 +48,7 @@ class PeopleGroupModules(AbstractModules):
             )
             .annotate(
                 is_group_project=Case(
-                    When(id__in=group_projects_ids, then=True),
+                    When(id__in=group_projects, then=True),
                     default=Value(False),
                 ),
                 is_featured=Case(

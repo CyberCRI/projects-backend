@@ -361,28 +361,25 @@ class PeopleGroupHierarchySerializer(
             "subgroups": modules.subgroups().count(),
         }
 
-    def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
-        context = self.context
-        request = context.get("request")
-        mapping = context.get("mapping")
+    def __init__(self, instance, *ar, **kw):
+        super().__init__(instance, *ar, **kw)
+        mapping = self.context.get("mapping")
+        if mapping is None:
+            assert isinstance(
+                instance, self.Meta.model
+            ), f"invalid instance {type(instance)} {self.Meta.model}"
 
-        if not mapping:
-            base_queryset = request.user.get_people_group_queryset().filter(
-                organization=people_group.organization
+            request = self.context.get("request")
+            self.context["mapping"] = request.user.get_people_group_queryset().filter(
+                organization=instance.organization
             )
-            mapping = {group.id: group for group in base_queryset}
-            context["mapping"] = mapping
-        children_ids = list(people_group.children.all().values_list("id", flat=True))
-        if people_group.is_root:
-            children_ids += list(
-                PeopleGroup.objects.filter(
-                    organization=people_group.organization,
-                    parent__isnull=True,
-                    is_root=False,
-                ).values_list("id", flat=True)
-            )
-        children = [mapping.get(child) for child in children_ids if child in mapping]
-        return PeopleGroupHierarchySerializer(children, many=True, context=context).data
+
+    def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
+        mapping = self.context["mapping"]
+        children = people_group.children.filter(id__in=mapping)
+        return PeopleGroupHierarchySerializer(
+            children, many=True, context=self.context
+        ).data
 
 
 class PeopleGroupAddTeamMembersSerializer(serializers.Serializer):
