@@ -349,6 +349,19 @@ class PeopleGroupHierarchySerializer(
         ]
         fields = read_only_fields
 
+    def __init__(self, instance=None, *ar, **kw):
+        super().__init__(instance, *ar, **kw)
+        mapping = self.context.get("mapping")
+        if instance and mapping is None:
+            assert isinstance(
+                instance, self.Meta.model
+            ), f"invalid instance {type(instance)} {self.Meta.model}"
+
+            request = self.context.get("request")
+            self.context["mapping"] = request.user.get_people_group_queryset().filter(
+                organization=instance.organization
+            )
+
     def get_modules(self, people_group: PeopleGroup):
         context = self.context
         request = context.get("request")
@@ -360,19 +373,6 @@ class PeopleGroupHierarchySerializer(
             "members": modules.members().count(),
             "subgroups": modules.subgroups().count(),
         }
-
-    def __init__(self, instance, *ar, **kw):
-        super().__init__(instance, *ar, **kw)
-        mapping = self.context.get("mapping")
-        if mapping is None:
-            assert isinstance(
-                instance, self.Meta.model
-            ), f"invalid instance {type(instance)} {self.Meta.model}"
-
-            request = self.context.get("request")
-            self.context["mapping"] = request.user.get_people_group_queryset().filter(
-                organization=instance.organization
-            )
 
     def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         mapping = self.context["mapping"]
