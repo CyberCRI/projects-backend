@@ -747,6 +747,39 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
             set(retrieved_groups), {self.groups[g].id for g in expected_groups}
         )
 
+    def test_people_groups_hierarchy_params(self):
+        organization = self.organization
+        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN)
+        self.client.force_authenticate(user)
+
+        url = reverse(
+            "Organization-people-groups-hierarchy",
+            args=(organization.code,),
+        )
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["modules"], {})
+
+        response = self.client.get(url, {"modules": ["members", "subgroups"]})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertIsInstance(data["modules"]["members"], int)
+        self.assertIsInstance(data["modules"]["subgroups"], int)
+
+        response = self.client.get(url, {"depth": 0})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["children"], [])
+
+        parent = self.root_group.children.all().first()
+        response = self.client.get(url, {"depth": 0, "parent": parent.id})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["children"], [])
+        self.assertEqual(len(data["hierarchy"]), 1)
+        self.assertEqual(data["hierarchy"][0]["name"], self.root_group.name)
+
 
 class ValidateOrganizationTestCase(JwtAPITestCase):
     @classmethod

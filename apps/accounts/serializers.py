@@ -348,7 +348,7 @@ class PeopleGroupHierarchySerializer(
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         # add parent hierarchy only for first child
         if self.context.get("depth") not in (0, None):
-            return
+            return []
 
         request = self.context.get("request")
         groups_ids = request.user.get_people_group_queryset().values_list(
