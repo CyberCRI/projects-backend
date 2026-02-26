@@ -347,7 +347,7 @@ class PeopleGroupHierarchySerializer(
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         # add parent hierarchy only for first child
-        if self.context.get("depth") not in (0, None):
+        if self.context.get("depth") != 0:
             return []
 
         request = self.context.get("request")
@@ -372,8 +372,6 @@ class PeopleGroupHierarchySerializer(
         if depth is not None:
             if int(depth) <= context.get("depth"):
                 return []
-            context = self.context.copy()
-            context["depth"] += 1
 
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
@@ -391,6 +389,8 @@ class PeopleGroupHierarchySerializer(
                 ).values_list("id", flat=True)
             )
         children = [mapping.get(child) for child in children_ids if child in mapping]
+        context = self.context.copy()
+        context["depth"] += 1
         return PeopleGroupHierarchySerializer(children, many=True, context=context).data
 
 
