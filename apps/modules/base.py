@@ -3,6 +3,14 @@ import inspect
 from django.db import models
 from drf_spectacular.utils import OpenApiParameter
 
+IGNORE_MODULES_FUNCTION = "IGNORE_MODULES_FUNCTION"
+
+
+def ignore_method(method):
+    """ingore modules methods"""
+    setattr(method, IGNORE_MODULES_FUNCTION, True)
+    return method
+
 
 class AbstractModules:
     """abstract class for modules/queryset declarations"""
@@ -12,7 +20,8 @@ class AbstractModules:
         self.user = user
 
     @classmethod
-    def _items(cls, modules_keys: list[str] | None = None):
+    @ignore_method
+    def modules(cls, modules_keys: list[str] | None = None):
 
         def predicate(item):
             return inspect.ismethod(item) or inspect.isfunction(item)
@@ -20,25 +29,27 @@ class AbstractModules:
         members = inspect.getmembers(cls, predicate=predicate)
 
         for name, func in members:
-            # ignore private_method and "count" method (this method :D)
-            if name.startswith("_") or name in ("count", "ApiParameter"):
+            # ignore private_method and all method ignored
+            if name.startswith("_") or getattr(func, IGNORE_MODULES_FUNCTION, False):
                 continue
 
             # yield only keys are set or all keys needed
             if modules_keys is None or name in modules_keys:
                 yield name, func
 
+    @ignore_method
     def count(self, modules_keys: list[str] | None = None):
         modules = {}
-        for name, method in self._items(modules_keys):
+        for name, method in type(self).modules(modules_keys):
             # method is one modules (class method and not instance method)
             modules[name] = method(self).count()
         return modules
 
     @classmethod
+    @ignore_method
     def ApiParameter(cls, **kw):  # noqa: N802
         """generate OpenApiParameter from modules class"""
-        enum = [name for name, _ in cls._items()]
+        enum = [name for name, _ in cls.modules()]
         return OpenApiParameter(
             name="modules",
             description="modules keys to returns",

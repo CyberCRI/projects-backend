@@ -372,7 +372,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                 name="parent",
                 description="people group parents to serializer",
                 required=False,
-                enum=PeopleGroup.objects.all().values_list("id", flat=True),
+                type=int,
             ),
             PeopleGroupModules.ApiParameter(),
         ],
