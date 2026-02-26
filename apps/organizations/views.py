@@ -20,7 +20,6 @@ from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import (
     PeopleGroupHierarchySerializer,
-    PeopleGroupRootSerializer,
     UserSerializer,
 )
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
@@ -29,6 +28,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import CreateListDestroyViewSet, MultipleIDViewsetMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
+from apps.modules.group import PeopleGroupModules
 from apps.projects.models import Project
 from apps.projects.serializers import ProjectLightSerializer
 
@@ -359,6 +359,25 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         serializer.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="depth",
+                description="number of depths serializers",
+                required=False,
+                type=int,
+                default=None,
+            ),
+            OpenApiParameter(
+                name="parent",
+                description="people group parents to serializer",
+                required=False,
+                enum=PeopleGroup.objects.all().values_list("id", flat=True),
+            ),
+            PeopleGroupModules.ApiParameter(),
+        ],
+        responses=PeopleGroupHierarchySerializer,
+    )
     @action(
         detail=True,
         methods=["GET"],
@@ -369,28 +388,20 @@ class OrganizationViewSet(viewsets.ModelViewSet):
     def get_people_groups_hierarchy(self, request, *args, **kwargs):
         """Get the people groups hierarchy of the organization."""
         organization = self.get_object()
-        root_group = PeopleGroup.update_or_create_root(organization)
+
+        # get root "organization" group if parent is not set
+        if request.query_params.get("parent"):
+            root_group = get_object_or_404(
+                request.user.get_people_group_queryset(),
+                pk=request.query_params.get("parent"),
+            )
+        else:
+            root_group = PeopleGroup.update_or_create_root(organization)
+
         return Response(
             PeopleGroupHierarchySerializer(
                 root_group, context={"request": request}
             ).data,
-            status=status.HTTP_200_OK,
-        )
-
-    @action(
-        detail=True,
-        methods=["GET"],
-        url_path="root-people-groups",
-        url_name="root-people-groups",
-        permission_classes=[ReadOnly],
-    )
-    def get_people_groups_root(self, request, *args, **kwargs):
-        """Get the people groups hierarchy of the organization."""
-        organization = self.get_object()
-        root_group = PeopleGroup.update_or_create_root(organization)
-
-        return Response(
-            PeopleGroupRootSerializer(root_group, context={"request": request}).data,
             status=status.HTTP_200_OK,
         )
 

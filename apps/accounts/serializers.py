@@ -309,40 +309,11 @@ class PeopleGroupLightSerializer(
             "roles",
             "modules",
         ]
-
-    def get_modules(self, people_group: PeopleGroup):
-        context = self.context
-        request = context.get("request")
-
-        modules_manager = people_group.get_related_module()
-        modules = modules_manager(people_group, request.user)
-
-        # return only members and subgroups coun ( for card )
-        return {
-            "members": modules.members().count(),
-            "subgroups": modules.subgroups().count(),
-        }
-
-
-class PeopleGroupRootSerializer(PeopleGroupSuperLightSerializer):
-    childrens = serializers.SerializerMethodField()
-
-    class Meta(PeopleGroupSuperLightSerializer.Meta):
-        fields = (*PeopleGroupSuperLightSerializer.Meta.fields, "childrens")
-
-    def get_childrens(self, people_group: PeopleGroup):
-        context = self.context
-        request = context.get("request")
-
-        modules_manager = people_group.get_related_module()
-        modules = modules_manager(people_group, request.user)
-
-        return PeopleGroupLightSerializer(
-            modules.subgroups(), many=True, context=self.context
-        ).data
+        modules_keys = ("members", "subgroups")
 
 
 class PeopleGroupHierarchySerializer(
+    ModulesSerializers,
     AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
@@ -362,13 +333,25 @@ class PeopleGroupHierarchySerializer(
             "header_image",
             "children",
             "roles",
+            "modules",
         ]
         fields = read_only_fields
+        # by defualt modules keys is empty
+        modules_keys = []
+
+    def __init__(self, *ar, **kw):
+        super().__init__(*ar, **kw)
+        self.context.setdefault("depth", 0)
 
     def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
         mapping = context.get("mapping")
+
+        depth = request.query_params.get("depth")
+        if depth is not None and int(depth) <= context.get("depth"):
+            return []
+        context["depth"] += 1
 
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
