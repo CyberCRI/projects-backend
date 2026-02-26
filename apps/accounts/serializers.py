@@ -330,6 +330,7 @@ class PeopleGroupHierarchySerializer(
             "id",
             "slug",
             "name",
+            "short_description",
             "publication_status",
             "header_image",
             "hierarchy",
