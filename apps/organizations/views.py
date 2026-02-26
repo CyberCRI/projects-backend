@@ -392,7 +392,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         # get root "organization" group if parent is not set
         if request.query_params.get("parent"):
             root_group = get_object_or_404(
-                request.user.get_people_group_queryset(),
+                request.user.get_people_group_queryset().filter(
+                    organization=organization
+                ),
                 pk=request.query_params.get("parent"),
             )
         else:
