@@ -369,9 +369,8 @@ class PeopleGroupHierarchySerializer(
         mapping = context.get("mapping")
 
         depth = request.query_params.get("depth")
-        if depth is not None:
-            if int(depth) <= context.get("depth"):
-                return []
+        if depth is not None and int(depth) <= context.get("depth"):
+            return []
 
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
