@@ -864,6 +864,8 @@ class UserSerializer(
                     projects__in=group_projects, people_groups=instance
                 ).distinct()
                 additional_groups_to_add += list(group_projects_roles)
+            if self.instance and isinstance(instance, Organization):
+                self.instance.add_to_keycloak_group(instance)
         for group in groups_to_remove:
             instance = get_instance_from_group(group)
             self._validate_role(group, user, instance)
@@ -873,6 +875,8 @@ class UserSerializer(
                     projects__in=group_projects, people_groups=instance
                 ).distinct()
                 additional_groups_to_remove += list(group_projects_roles)
+            if self.instance and isinstance(instance, Organization):
+                self.instance.remove_from_keycloak_group(instance)
         default_group = get_default_group()
         if default_group not in groups:
             groups.append(default_group)

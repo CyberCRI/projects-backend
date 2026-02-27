@@ -943,14 +943,16 @@ class MiscUserTestCase(JwtAPITestCase):
 
     def test_add_organization_from_keycloak_attributes(self):
         organization = OrganizationFactory()
+        KeycloakService.create_organization_group(organization)
         payload = {
             "username": f"{faker.uuid4()}@{faker.domain_name()}",
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
             "firstName": faker.first_name(),
             "lastName": faker.last_name(),
-            "attributes": {"idp_organizations": [organization.code]},
+            "groups": [f"/organizations/{organization.code}"],
         }
         keycloak_id = KeycloakService._create_user(payload)
+
         user = ProjectUser.import_from_keycloak(keycloak_id)
         self.assertIsNotNone(user)
         self.assertIn(user, organization.users.all())
@@ -960,14 +962,9 @@ class MiscUserTestCase(JwtAPITestCase):
         organization_2 = OrganizationFactory()
 
         user_1 = SeedUserFactory(groups=[organization_1.get_users()])
-        payload_1 = {
-            "username": user_1.email,
-            "email": user_1.email,
-            "firstName": user_1.given_name,
-            "lastName": user_1.family_name,
-            "attributes": {"idp_organizations": [organization_2.code]},
-        }
-        KeycloakService._update_user(user_1.keycloak_id, payload_1)
+        KeycloakService.add_user_to_organization_group(
+            user_1.keycloak_account, organization_2
+        )
         self.client.force_authenticate(user_1)
         self.client.get(reverse("ProjectUser-detail", args=(user_1.id,)))
         user_1.refresh_from_db()
@@ -977,14 +974,9 @@ class MiscUserTestCase(JwtAPITestCase):
         user_2 = SeedUserFactory(
             groups=[organization_1.get_users(), organization_2.get_admins()]
         )
-        payload_2 = {
-            "username": user_2.email,
-            "email": user_2.email,
-            "firstName": user_2.given_name,
-            "lastName": user_2.family_name,
-            "attributes": {"idp_organizations": [organization_2.code]},
-        }
-        KeycloakService._update_user(user_2.keycloak_id, payload_2)
+        KeycloakService.add_user_to_organization_group(
+            user_2.keycloak_account, organization_2
+        )
         self.client.force_authenticate(user_2)
         self.client.get(reverse("ProjectUser-detail", args=(user_2.id,)))
         user_2.refresh_from_db()
