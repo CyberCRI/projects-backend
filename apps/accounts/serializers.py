@@ -309,19 +309,7 @@ class PeopleGroupLightSerializer(
             "roles",
             "modules",
         ]
-
-    def get_modules(self, people_group: PeopleGroup):
-        context = self.context
-        request = context.get("request")
-
-        modules_manager = people_group.get_related_module()
-        modules = modules_manager(people_group, request.user)
-
-        # return only members and subgroups coun ( for card )
-        return {
-            "members": modules.members().count(),
-            "subgroups": modules.subgroups().count(),
-        }
+        modules_keys = ("members", "subgroups")
 
 
 class PeopleGroupHierarchySerializer(
@@ -334,6 +322,7 @@ class PeopleGroupHierarchySerializer(
     roles = serializers.SlugRelatedField(
         many=True, slug_field="name", read_only=True, source="groups"
     )
+    hierarchy = serializers.SerializerMethodField()
 
     class Meta:
         model = PeopleGroup
@@ -341,30 +330,48 @@ class PeopleGroupHierarchySerializer(
             "id",
             "slug",
             "name",
+            "short_description",
             "publication_status",
             "header_image",
+            "hierarchy",
             "children",
             "roles",
             "modules",
         ]
         fields = read_only_fields
+        # by default modules keys is empty
+        modules_keys = ()
 
-    def get_modules(self, people_group: PeopleGroup):
-        context = self.context
-        request = context.get("request")
+    def __init__(self, *ar, **kw):
+        super().__init__(*ar, **kw)
+        self.context.setdefault("depth", 0)
 
-        modules_manager = people_group.get_related_module()
-        modules = modules_manager(people_group, request.user)
+    def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
+        # add parent hierarchy only for first child
+        if self.context.get("depth") != 0:
+            return []
 
-        return {
-            "members": modules.members().count(),
-            "subgroups": modules.subgroups().count(),
-        }
+        request = self.context.get("request")
+        groups_ids = request.user.get_people_group_queryset().values_list(
+            "id", flat=True
+        )
+        hierarchy = []
+        while obj.parent:
+            obj = obj.parent
+            if obj.id in groups_ids:
+                hierarchy.append(
+                    PeopleGroupSuperLightSerializer(obj, context=self.context).data
+                )
+        return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
 
     def get_children(self, people_group: PeopleGroup) -> list[dict[str, str | int]]:
         context = self.context
         request = context.get("request")
         mapping = context.get("mapping")
+
+        depth = request.query_params.get("depth")
+        if depth is not None and int(depth) <= context.get("depth"):
+            return []
 
         if not mapping:
             base_queryset = request.user.get_people_group_queryset().filter(
@@ -382,6 +389,8 @@ class PeopleGroupHierarchySerializer(
                 ).values_list("id", flat=True)
             )
         children = [mapping.get(child) for child in children_ids if child in mapping]
+        context = self.context.copy()
+        context["depth"] += 1
         return PeopleGroupHierarchySerializer(children, many=True, context=context).data
 
 
@@ -527,11 +536,13 @@ class PeopleGroupSerializer(
 
     def get_hierarchy(self, obj: PeopleGroup) -> list[dict[str, str | int]]:
         request = self.context.get("request")
-        queryset = request.user.get_people_group_queryset()
+        groups_ids = request.user.get_people_group_queryset().values_list(
+            "id", flat=True
+        )
         hierarchy = []
         while obj.parent and not obj.parent.is_root:
             obj = obj.parent
-            if obj in queryset:
+            if obj.id in groups_ids:
                 hierarchy.append(
                     PeopleGroupSuperLightSerializer(obj, context=self.context).data
                 )

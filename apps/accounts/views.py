@@ -49,6 +49,7 @@ from apps.commons.views import (
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
+from apps.modules.group import PeopleGroupModules
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
@@ -793,7 +794,19 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
         return self.get_paginated_response(project_serializer.data)
 
-    @extend_schema(responses=PeopleGroupHierarchySerializer)
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="depth",
+                description="number of depths serializers",
+                required=False,
+                type=int,
+                default=None,
+            ),
+            PeopleGroupModules.ApiParameter(),
+        ],
+        responses=PeopleGroupHierarchySerializer,
+    )
     @action(
         detail=True,
         methods=["GET"],

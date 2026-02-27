@@ -186,10 +186,14 @@ class PeopleGroup(
 
     @classmethod
     def update_or_create_root(cls, organization: "Organization"):
-        root_group, _ = cls.objects.update_or_create(
-            organization=organization,
-            is_root=True,
-            defaults={"name": organization.name},
+        root_group, _ = (
+            cls.objects.prefetch_related("children")
+            .select_related("organization")
+            .update_or_create(
+                organization=organization,
+                is_root=True,
+                defaults={"name": organization.name},
+            )
         )
         return root_group
 
