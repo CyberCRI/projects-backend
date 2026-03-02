@@ -1010,11 +1010,11 @@ description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["main", "dev"]
-markers = "platform_system == \"Windows\" or sys_platform == \"win32\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
+markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "coverage"
@@ -4310,24 +4310,23 @@ dev = ["coverage[toml]", "coveralls (>=3.3,<4.0)", "ruff", "twine"]
 
 [[package]]
 name = "python-keycloak"
-version = "3.12.0"
+version = "7.1.1"
 description = "python-keycloak is a Python package providing access to the Keycloak API."
 optional = false
-python-versions = "<4.0,>=3.8"
+python-versions = "<4,>=3.10"
 groups = ["main"]
 files = [
-    {file = "python_keycloak-3.12.0-py3-none-any.whl", hash = "sha256:e8073515e6b47500cf0bda0d7eb8dd0cd2e83fa537196aed7c359dec15a2ee81"},
-    {file = "python_keycloak-3.12.0.tar.gz", hash = "sha256:21dec81992db192a462a6f12b792fd1c84d18d9bf5e91dea033a46e6f51b6694"},
+    {file = "python_keycloak-7.1.1-py3-none-any.whl", hash = "sha256:d8295bec6c4805ab7335b03bc92753c8c6258d5511b080cac061da20ae77f61c"},
+    {file = "python_keycloak-7.1.1.tar.gz", hash = "sha256:38973e54694a656fe6f3f8fc2af0b89c78136863f928261f0d243445e9e486bc"},
 ]
 
 [package.dependencies]
+aiofiles = ">=24.1.0"
 deprecation = ">=2.1.0"
-jwcrypto = ">=1.5.4,<2.0.0"
+httpx = ">=0.23.2"
+jwcrypto = ">=1.5.4"
 requests = ">=2.20.0"
 requests-toolbelt = ">=0.6.0"
-
-[package.extras]
-docs = ["Sphinx (>=6.1.0,<7.0.0)", "alabaster (>=0.7.12,<0.8.0)", "commonmark (>=0.9.1,<0.10.0)", "m2r2 (>=0.3.2,<0.4.0)", "mock (>=4.0.3,<5.0.0)", "readthedocs-sphinx-ext (>=2.1.9,<3.0.0)", "recommonmark (>=0.7.1,<0.8.0)", "sphinx-autoapi (>=3.0.0,<4.0.0)", "sphinx-rtd-theme (>=1.0.0,<2.0.0)"]
 
 [[package]]
 name = "pytokens"
@@ -5332,4 +5331,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "38cc794823b03a9c8dec650cc5c7979fa1f19c493822bb51b97a881c08ad084b"
+content-hash = "600e26173fe0205c20339f7c515f6533d337b162d6bb3f9f33f5ed37f0c7a455"
