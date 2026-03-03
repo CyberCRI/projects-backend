@@ -1,5 +1,6 @@
 import math
 import uuid
+from contextlib import suppress
 from datetime import date
 from functools import cached_property
 from typing import Any, Optional
@@ -450,37 +451,27 @@ class ProjectUser(
             email=keycloak_user.get("email", ""),
             user=user,
         )
-        if KeycloakService.is_superuser(keycloak_account):
-            user.groups.add(get_superadmins_group())
-        # Users imported from an external IdP can be added to one or more organizations
-        organizations_codes = keycloak_user.get("attributes", {}).get(
-            "idp_organizations", []
-        )
-        organizations_codes = [code.split(",") for code in organizations_codes]
-        organizations_codes = [
-            item for sublist in organizations_codes for item in sublist
-        ]
-        organizations = Organization.objects.filter(code__in=organizations_codes)
-        user.groups.add(get_default_group(), *[o.get_users() for o in organizations])
+        KeycloakService.set_user_projects_groups(keycloak_account)
+        user.groups.add(get_default_group())
         return user
 
-    def add_idp_organizations(self) -> "ProjectUser":
-        try:
-            keycloak_user = KeycloakService.get_user(self.keycloak_id)
-            organizations_codes = keycloak_user.get("attributes", {}).get(
-                "idp_organizations", []
+    def sync_groups_from_keycloak(self) -> "ProjectUser":
+        with suppress(KeycloakGetError):
+            keycloak_account = KeycloakService.set_user_projects_groups(
+                self.keycloak_account
             )
-            organizations_codes = [code.split(",") for code in organizations_codes]
-            organizations_codes = [
-                item for sublist in organizations_codes for item in sublist
-            ]
-            organizations = Organization.objects.filter(
-                code__in=organizations_codes
-            ).exclude(groups__users=self)
-            self.groups.add(*[o.get_users() for o in organizations])
-        except KeycloakGetError:  # Needed for tests to pass
-            pass
+            return keycloak_account.user
         return self
+
+    def add_to_keycloak_group(self, organization: Organization):
+        return KeycloakService.add_user_to_organization_group(
+            self.keycloak_account, organization
+        )
+
+    def remove_from_keycloak_group(self, organization: Organization):
+        return KeycloakService.remove_user_from_organization_group(
+            self.keycloak_account, organization
+        )
 
     def is_owned_by(self, user: "ProjectUser") -> bool:
         """Whether the given user is the owner of the object."""
