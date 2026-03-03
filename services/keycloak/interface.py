@@ -306,6 +306,15 @@ class KeycloakService:
         return cls.service().get_user_groups(keycloak_account.keycloak_id)
 
     @classmethod
+    def get_organization_group(cls, organization: Organization) -> dict[str, str]:
+        try:
+            return cls.service().get_group_by_path(
+                f"/organizations/{organization.code}"
+            )
+        except KeycloakGetError:
+            return None
+
+    @classmethod
     def create_organization_group(cls, organization: Organization) -> str:
         service = cls.service()
         try:
@@ -357,31 +366,34 @@ class KeycloakService:
         organizations = Organization.objects.filter(
             groups__users__keycloak_account=keycloak_account
         ).distinct()
-        keycloak_groups = cls.get_user_groups(keycloak_account)
+        with suppress(KeycloakGetError):
+            keycloak_groups = cls.get_user_groups(keycloak_account)
 
-        # Handle superadmin group
-        if "/projects/administrators" in [
-            group.get("path") for group in keycloak_groups
-        ]:
-            keycloak_groups.remove("/projects/administrators")
-            keycloak_account.user.groups.add(get_superadmins_group())
+            # Handle superadmin group
+            if "/projects/administrators" in [
+                group.get("path") for group in keycloak_groups
+            ]:
+                keycloak_groups.remove("/projects/administrators")
+                keycloak_account.user.groups.add(get_superadmins_group())
 
-        keycloak_organization_codes = {
-            group.get("name")
-            for group in keycloak_groups
-            if group.get("path", "").startswith("/organizations/")
-        }
-        # Remove extra groups
-        for organization in organizations:
-            if organization.code not in keycloak_organization_codes:
-                # At the moment we don't perform destructive actions using this system
-                # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: E800
-                pass
-        # Add missing groups
-        for organization_code in keycloak_organization_codes:
-            if organization_code not in organizations.values_list("code", flat=True):
-                organization = Organization.objects.get(code=organization_code)
-                keycloak_account.user.groups.add(organization.get_users())
+            keycloak_organization_codes = {
+                group.get("name")
+                for group in keycloak_groups
+                if group.get("path", "").startswith("/organizations/")
+            }
+            # Remove extra groups
+            for organization in organizations:
+                if organization.code not in keycloak_organization_codes:
+                    # At the moment we don't perform destructive actions using this system
+                    # keycloak_account.user.groups.remove(*organization.groups.all())  # noqa: E800
+                    pass
+            # Add missing groups
+            for organization_code in keycloak_organization_codes:
+                if organization_code not in organizations.values_list(
+                    "code", flat=True
+                ):
+                    organization = Organization.objects.get(code=organization_code)
+                    keycloak_account.user.groups.add(organization.get_users())
         return keycloak_account
 
     @classmethod
@@ -391,27 +403,28 @@ class KeycloakService:
         organizations = Organization.objects.filter(
             groups__users__keycloak_account=keycloak_account
         ).distinct()
-        keycloak_groups = cls.get_user_groups(keycloak_account)
-        keycloak_organization_codes = {
-            group.get("name")
-            for group in keycloak_groups
-            if group.get("path", "").startswith("/organizations/")
-        }
-        # Add missing groups
-        for organization in organizations:
-            if organization.code not in keycloak_organization_codes:
-                organization = Organization.objects.get(code=organization.code)
-                cls.add_user_to_organization_group(keycloak_account, organization)
-        # Remove extra groups
-        organizations_codes = organizations.values_list("code", flat=True)
-        for group in keycloak_groups:
-            if group.get("path", "").startswith("/organizations/"):
-                organization_code = group.get("name")
-                if organization_code not in organizations_codes:
-                    organization = Organization.objects.get(code=organization_code)
-                    cls.remove_user_from_organization_group(
-                        keycloak_account, organization
-                    )
+        with suppress(KeycloakGetError):
+            keycloak_groups = cls.get_user_groups(keycloak_account)
+            keycloak_organization_codes = {
+                group.get("name")
+                for group in keycloak_groups
+                if group.get("path", "").startswith("/organizations/")
+            }
+            # Add missing groups
+            for organization in organizations:
+                if organization.code not in keycloak_organization_codes:
+                    organization = Organization.objects.get(code=organization.code)
+                    cls.add_user_to_organization_group(keycloak_account, organization)
+            # Remove extra groups
+            organizations_codes = organizations.values_list("code", flat=True)
+            for group in keycloak_groups:
+                if group.get("path", "").startswith("/organizations/"):
+                    organization_code = group.get("name")
+                    if organization_code not in organizations_codes:
+                        organization = Organization.objects.get(code=organization_code)
+                        cls.remove_user_from_organization_group(
+                            keycloak_account, organization
+                        )
         return keycloak_account
 
     @classmethod

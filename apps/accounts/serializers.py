@@ -875,7 +875,15 @@ class UserSerializer(
                     projects__in=group_projects, people_groups=instance
                 ).distinct()
                 additional_groups_to_remove += list(group_projects_roles)
-            if self.instance and isinstance(instance, Organization):
+            if (
+                self.instance
+                and isinstance(instance, Organization)
+                and (
+                    not self.instance.groups.filter(organizations=instance)
+                    .exclude(id=group.id)
+                    .exists()
+                )
+            ):
                 self.instance.remove_from_keycloak_group(instance)
         default_group = get_default_group()
         if default_group not in groups:

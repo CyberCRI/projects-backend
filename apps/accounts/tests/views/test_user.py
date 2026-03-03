@@ -862,6 +862,11 @@ class FilterSearchOrderUserTestCase(JwtAPITestCase):
 
 
 class MiscUserTestCase(JwtAPITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        cls.superadmin = UserFactory(groups=[get_superadmins_group()])
+
     def test_notifications_count(self):
         project = ProjectFactory()
         user = UserFactory()
@@ -878,8 +883,7 @@ class MiscUserTestCase(JwtAPITestCase):
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_language_from_organization(self, mocked):
         mocked.return_value = {}
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         organization = OrganizationFactory(language="fr")
         payload = {
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
@@ -899,8 +903,7 @@ class MiscUserTestCase(JwtAPITestCase):
     @patch("services.keycloak.interface.KeycloakService.send_email")
     def test_language_from_payload(self, mocked):
         mocked.return_value = {}
-        user = UserFactory(groups=[get_superadmins_group()])
-        self.client.force_authenticate(user)
+        self.client.force_authenticate(self.superadmin)
         organization = OrganizationFactory(language="en")
         payload = {
             "email": f"{faker.uuid4()}@{faker.domain_name()}",
@@ -919,7 +922,7 @@ class MiscUserTestCase(JwtAPITestCase):
         self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
 
     def test_keycloak_attributes_updated(self):
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(self.superadmin)
         user = SeedUserFactory(language="en")
         KeycloakService._update_user(
             user.keycloak_id,
@@ -940,48 +943,6 @@ class MiscUserTestCase(JwtAPITestCase):
         keycloak_user = KeycloakService.get_user(user.keycloak_id)
         self.assertEqual(keycloak_user["attributes"]["locale"], ["fr"])
         self.assertEqual(keycloak_user["attributes"]["attribute_1"], ["value_1"])
-
-    def test_add_organization_from_keycloak_attributes(self):
-        organization = OrganizationFactory()
-        KeycloakService.create_organization_group(organization)
-        payload = {
-            "username": f"{faker.uuid4()}@{faker.domain_name()}",
-            "email": f"{faker.uuid4()}@{faker.domain_name()}",
-            "firstName": faker.first_name(),
-            "lastName": faker.last_name(),
-            "groups": [f"/organizations/{organization.code}"],
-        }
-        keycloak_id = KeycloakService._create_user(payload)
-
-        user = ProjectUser.import_from_keycloak(keycloak_id)
-        self.assertIsNotNone(user)
-        self.assertIn(user, organization.users.all())
-
-    def test_add_organization_from_keycloak_attributes_existing_user(self):
-        organization_1 = OrganizationFactory()
-        organization_2 = OrganizationFactory()
-
-        user_1 = SeedUserFactory(groups=[organization_1.get_users()])
-        KeycloakService.add_user_to_organization_group(
-            user_1.keycloak_account, organization_2
-        )
-        self.client.force_authenticate(user_1)
-        self.client.get(reverse("ProjectUser-detail", args=(user_1.id,)))
-        user_1.refresh_from_db()
-        self.assertIn(user_1, organization_1.users.all())
-        self.assertIn(user_1, organization_2.users.all())
-
-        user_2 = SeedUserFactory(
-            groups=[organization_1.get_users(), organization_2.get_admins()]
-        )
-        KeycloakService.add_user_to_organization_group(
-            user_2.keycloak_account, organization_2
-        )
-        self.client.force_authenticate(user_2)
-        self.client.get(reverse("ProjectUser-detail", args=(user_2.id,)))
-        user_2.refresh_from_db()
-        self.assertIn(user_2, organization_1.users.all())
-        self.assertIn(user_2, organization_2.admins.all())
 
     def test_get_current_org_role(self):
         users = UserFactory.create_batch(3)
@@ -1131,7 +1092,7 @@ class MiscUserTestCase(JwtAPITestCase):
     def test_outdated_slug(self, mocked):
         mocked.return_value = {}
         organization = OrganizationFactory()
-        self.client.force_authenticate(UserFactory(groups=[get_superadmins_group()]))
+        self.client.force_authenticate(self.superadmin)
         given_name = faker.first_name()
         family_name_a = "name-a"
         family_name_b = "name-b"
@@ -1209,3 +1170,100 @@ class MiscUserTestCase(JwtAPITestCase):
         family_name = ""
         user = UserFactory(given_name=given_name, family_name=family_name)
         self.assertEqual(user.slug, f"user-{given_name}")
+
+    def test_add_organization_from_keycloak_attributes(self):
+        organization = OrganizationFactory()
+        KeycloakService.create_organization_group(organization)
+        payload = {
+            "username": f"{faker.uuid4()}@{faker.domain_name()}",
+            "email": f"{faker.uuid4()}@{faker.domain_name()}",
+            "firstName": faker.first_name(),
+            "lastName": faker.last_name(),
+            "groups": [f"/organizations/{organization.code}"],
+        }
+        keycloak_id = KeycloakService._create_user(payload)
+
+        user = ProjectUser.import_from_keycloak(keycloak_id)
+        self.assertIsNotNone(user)
+        self.assertIn(user, organization.users.all())
+
+    def test_add_organization_from_keycloak_attributes_existing_user(self):
+        organization_1 = OrganizationFactory()
+        organization_2 = OrganizationFactory()
+
+        user_1 = SeedUserFactory(groups=[organization_1.get_users()])
+        KeycloakService.add_user_to_organization_group(
+            user_1.keycloak_account, organization_2
+        )
+        self.client.force_authenticate(user_1)
+        self.client.get(reverse("ProjectUser-detail", args=(user_1.id,)))
+        user_1.refresh_from_db()
+        self.assertIn(user_1, organization_1.users.all())
+        self.assertIn(user_1, organization_2.users.all())
+
+        user_2 = SeedUserFactory(
+            groups=[organization_1.get_users(), organization_2.get_admins()]
+        )
+        KeycloakService.add_user_to_organization_group(
+            user_2.keycloak_account, organization_2
+        )
+        self.client.force_authenticate(user_2)
+        self.client.get(reverse("ProjectUser-detail", args=(user_2.id,)))
+        user_2.refresh_from_db()
+        self.assertIn(user_2, organization_1.users.all())
+        self.assertIn(user_2, organization_2.admins.all())
+
+    def test_keycloak_sync_add_to_organization(self):
+        self.client.force_authenticate(self.superadmin)
+        organization = OrganizationFactory()
+        organization_group = KeycloakService.create_organization_group(organization)
+        user = SeedUserFactory()
+        keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
+        self.assertNotIn(organization_group, [group["id"] for group in keycloak_groups])
+        payload = {"roles_to_add": [organization.get_users().name]}
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=(user.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
+        self.assertIn(organization_group, [group["id"] for group in keycloak_groups])
+
+    def test_keycloak_sync_remove_from_organization(self):
+        self.client.force_authenticate(self.superadmin)
+        organization = OrganizationFactory()
+        organization_group = KeycloakService.create_organization_group(organization)
+        user = SeedUserFactory(groups=[organization.get_users()])
+        KeycloakService.add_user_to_organization_group(
+            user.keycloak_account, organization
+        )
+        keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
+        self.assertIn(organization_group, [group["id"] for group in keycloak_groups])
+        payload = {"roles_to_remove": [organization.get_users().name]}
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=(user.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
+        self.assertNotIn(organization_group, [group["id"] for group in keycloak_groups])
+
+    def test_keycloak_sync_stay_in_organization(self):
+        self.client.force_authenticate(self.superadmin)
+        organization = OrganizationFactory()
+        organization_group = KeycloakService.create_organization_group(organization)
+        user = SeedUserFactory(
+            groups=[organization.get_users(), organization.get_admins()]
+        )
+        KeycloakService.add_user_to_organization_group(
+            user.keycloak_account, organization
+        )
+        keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
+        self.assertIn(organization_group, [group["id"] for group in keycloak_groups])
+        payload = {
+            "roles_to_remove": [organization.get_users().name],
+        }
+        response = self.client.patch(
+            reverse("ProjectUser-detail", args=(user.id,)), data=payload
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        keycloak_groups = KeycloakService.get_user_groups(user.keycloak_account)
+        self.assertIn(organization_group, [group["id"] for group in keycloak_groups])
