@@ -19,7 +19,6 @@ from apps.commons.views import (
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
 )
-from services.crisalid import relators
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -51,7 +50,7 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         name="roles",
         description="roles of researcher",
         required=False,
-        enum=[v for _, v in relators.choices],
+        enum=DocumentContributor.RolesChoices,
         many=True,
     ),
 ]

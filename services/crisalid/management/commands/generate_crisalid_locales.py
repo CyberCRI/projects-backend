@@ -3,8 +3,7 @@ import re
 
 from django.core.management.base import BaseCommand
 
-from services.crisalid.models import Document
-from services.crisalid.relators import choices
+from services.crisalid.models import Document, DocumentContributor
 
 INVALID_CHAR_REGEX = re.compile(r"[^a-zA-Z0-9-_]")
 
@@ -20,11 +19,11 @@ class Command(BaseCommand):
     def handle(self, **options):
         data = {
             "relators": {
-                self.sanitize_key(val): val for val in sorted(v for _, v in choices)
+                key: DocumentContributor.RolesChoices[key] for key in sorted(role.value for role in DocumentContributor.RolesChoices)
             },
             "document_types": {
-                self.sanitize_key(val): val
-                for val in sorted(doc.value for doc in Document.DocumentType)
+                key: key
+                for key in sorted(doc.value for doc in Document.DocumentType)
             },
         }
 

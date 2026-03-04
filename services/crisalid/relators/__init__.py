@@ -15,19 +15,18 @@ with open(RELATORS_FILE) as f:
 dict_relators = {}
 for relator in relators:
     url = relator["@id"]
-    if any(
-        (
-            "http://www.loc.gov/mads/rdf/v1#code" not in relator,
-            "http://www.loc.gov/mads/rdf/v1#authoritativeLabel" not in relator,
-        )
-    ):
+    if "http://www.loc.gov/mads/rdf/v1#code" not in relator:
         continue
 
-    dict_relators[url] = {
-        "key": relator["http://www.loc.gov/mads/rdf/v1#code"][0]["@value"].upper(),
-        "value": relator["http://www.loc.gov/mads/rdf/v1#authoritativeLabel"][0][
+    value = None
+    if "http://www.loc.gov/mads/rdf/v1#authoritativeLabel" in relator:
+        value = relator["http://www.loc.gov/mads/rdf/v1#authoritativeLabel"][0][
             "@value"
-        ],
+        ]
+
+    dict_relators[url] = {
+        "key": relator["http://www.loc.gov/mads/rdf/v1#code"][0]["@value"].lower(),
+        "value": value,
     }
 
 del relators

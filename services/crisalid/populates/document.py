@@ -32,8 +32,9 @@ class PopulateDocument(AbstractPopulate):
         """return all roles from relators json"""
         roles = []
         for role in data:
+            role = role.lower()
             if role in relators.dict_relators:
-                roles.append(relators.dict_relators[role]["value"])
+                roles.append(role)
             else:
                 logger.warning("Invalid role %s", role)
 
