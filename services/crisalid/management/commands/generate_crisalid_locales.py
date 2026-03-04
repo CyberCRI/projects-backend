@@ -19,11 +19,13 @@ class Command(BaseCommand):
     def handle(self, **options):
         data = {
             "relators": {
-                key: DocumentContributor.RolesChoices[key] for key in sorted(role.value for role in DocumentContributor.RolesChoices)
+                key: DocumentContributor.RolesChoices[key]
+                for key in sorted(
+                    role.value for role in DocumentContributor.RolesChoices
+                )
             },
             "document_types": {
-                key: key
-                for key in sorted(doc.value for doc in Document.DocumentType)
+                key: key for key in sorted(doc.value for doc in Document.DocumentType)
             },
         }
 
