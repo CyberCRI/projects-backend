@@ -90,11 +90,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
 
     def filter_roles(self, queryset, roles_enabled=True):
         # filter only by roles (author, co-authors ...ect)
-        roles = [
-            r.strip()
-            for r in self.request.query_params.get("roles", "").split(",")
-            if r.strip()
-        ]
+        roles = self.request.query_params.getlist("roles")
         if roles and roles_enabled:
             queryset = queryset.filter(documentcontributor__roles__contains=roles)
         return queryset
@@ -226,15 +222,11 @@ class AbstractResearcherDocumentViewSet(
 ):
     def filter_roles(self, queryset, roles_enabled=True):
         # filter only by roles (author, co-authors ...ect)
-        roles = [
-            r.strip()
-            for r in self.request.query_params.get("roles", "").split(",")
-            if r.strip()
-        ]
-        if roles and roles_enabled:
+        roles = self.request.query_params.getlist("roles")
+        if roles:
             queryset = queryset.filter(
                 documentcontributor__roles__contains=roles,
-                documentcontributor__research=self.researcher,
+                contributors=self.researcher,
             )
         return queryset
 
