@@ -35,6 +35,7 @@ class ResearcherSerializerLight(serializers.ModelSerializer):
         return instance.documents.group_count()
 
     def get_identifiers(self, instance):
+        """remove privacy identifiers (eppn/local)"""
         identifiers = []
         for identifier in instance.identifiers.all():
             if identifier.harvester in Researcher.PRIVACY_HARVESTER:
@@ -58,15 +59,10 @@ class ResearcherSerializer(serializers.ModelSerializer):
 
 class ResearcherDocumentsSerializer(ResearcherSerializer):
     user = ProjectUserMinimalSerializer()
-    identifiers = IdentifierSerializer(many=True)
-    display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Researcher
-        fields = ("identifiers", "display_name", "user", "id")
-
-    def get_display_name(self, instance):
-        return str(instance)
+        fields = ("display_name", "user", "id")
 
 
 class DocumentLightSerializer(AutoTranslatedModelSerializer):
