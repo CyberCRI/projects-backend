@@ -373,7 +373,6 @@ class KeycloakService:
             if "/projects/administrators" in [
                 group.get("path") for group in keycloak_groups
             ]:
-                keycloak_groups.remove("/projects/administrators")
                 keycloak_account.user.groups.add(get_superadmins_group())
 
             keycloak_organization_codes = {
