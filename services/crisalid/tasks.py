@@ -7,7 +7,6 @@ from services.crisalid.interface import CrisalidService
 from services.crisalid.models import (
     CrisalidConfig,
     Document,
-    Identifier,
     Researcher,
 )
 from services.crisalid.populates import PopulateDocument, PopulateResearcher
@@ -55,10 +54,9 @@ def delete_researcher(crisalid_config_id: int, fields: dict):
     logger.error("receive %s for organization %s", fields, config.organization)
 
     identifiers = [
-        {"harvester": iden["type"].lower(), "value": iden["value"]}
+        iden
         for iden in fields["identifiers"]
-        if iden["type"].lower()
-        not in (Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN)
+        if iden["harvester"].lower() not in Researcher.PRIVACY_HARVESTER
     ]
 
     # TODO(remi): check only one elements are deleted

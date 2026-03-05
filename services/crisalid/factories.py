@@ -25,18 +25,17 @@ class IdentifierFactory(factory.django.DjangoModelFactory):
 
     @factory.lazy_attribute
     def value(self):
-        return {
-            Identifier.Harvester.HAL: faker.unique.url(),
-            Identifier.Harvester.SCANR: faker.unique.url(),
-            Identifier.Harvester.OPENALEX: faker.unique.url(),
+        default = {
             Identifier.Harvester.IDREF: faker.unique.uuid4(),
             Identifier.Harvester.SCOPUS: faker.unique.uuid4(),
             Identifier.Harvester.ORCID: faker.unique.uuid4(),
             Identifier.Harvester.LOCAL: faker.unique.uuid4(),
             Identifier.Harvester.EPPN: faker.unique.email(),
-            Identifier.Harvester.DOI: faker.unique.doi(),
             Identifier.Harvester.PMID: faker.unique.url(),
-        }[self.harvester]
+        }
+        if self.harvester in default:
+            return default[self.harvester]
+        return faker.unique.url()
 
 
 class ResearcherFactory(factory.django.DjangoModelFactory):
@@ -79,7 +78,7 @@ class DocumentFactory(factory.django.DjangoModelFactory):
 
 
 class DocumentContributorFactory(factory.django.DjangoModelFactory):
-    roles = FuzzyChoice(relators.choices, getter=lambda obj: obj[0])
+    roles = FuzzyChoice(relators.RolesChoices, getter=lambda obj: obj["o"])
     document = factory.LazyFunction(lambda: DocumentFactory())
     researcher = factory.LazyFunction(lambda: ResearcherFactory())
 

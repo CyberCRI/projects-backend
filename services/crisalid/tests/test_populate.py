@@ -357,8 +357,6 @@ class TestPopulateDocument(test.TestCase):
             Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            self.popu.sanitize_document_type(
-                Document.DocumentType.AUDIOVISUAL_DOCUMENT.value
-            ),
-            Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
+            self.popu.sanitize_document_type(Document.DocumentType.PRESENTATION.value),
+            Document.DocumentType.PRESENTATION.value,
         )
