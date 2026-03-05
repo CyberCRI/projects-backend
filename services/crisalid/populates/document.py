@@ -33,8 +33,8 @@ class PopulateDocument(AbstractPopulate):
         roles = []
         for url_role in data:
             url_role = url_role.lower()
-            if url_role in relators.dict_relators:
-                roles.append(relators.dict_relators[url_role]["key"])
+            if url_role in relators.raw:
+                roles.append(relators.raw[url_role]["key"])
             else:
                 logger.warning("Invalid role %s", url_role)
 

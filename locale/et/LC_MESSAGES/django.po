@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-05 15:02+0100\n"
+"POT-Creation-Date: 2026-03-05 20:01+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -556,7 +556,7 @@ msgid ""
 msgstr "Juhiste inimrühmad peavad kuuluma samasse organisatsiooni"
 
 #: apps/notifications/tasks.py:200 apps/notifications/tasks.py:247
-#: services/crisalid/models.py:273
+#: services/crisalid/relators.py:883
 msgid "editor"
 msgstr "toimetaja"
 
@@ -565,7 +565,7 @@ msgid "participant"
 msgstr "osaleja"
 
 #: apps/notifications/tasks.py:202 apps/notifications/tasks.py:249
-#: services/crisalid/models.py:396
+#: services/crisalid/relators.py:1006
 msgid "reviewer"
 msgstr "hindaja"
 
@@ -2598,1312 +2598,1312 @@ msgstr ""
 "\n"
 "Kas soovite, et teid juhendataks %(skill)s valdkonnas? (meeldetuletus)\n"
 
-#: services/crisalid/models.py:161
-msgid "abridger"
-msgstr ""
-
-#: services/crisalid/models.py:162
-msgid "art copyist"
-msgstr ""
-
-#: services/crisalid/models.py:163
-msgid "actor"
-msgstr ""
-
-#: services/crisalid/models.py:164
-msgid "art director"
-msgstr ""
-
-#: services/crisalid/models.py:165
-msgid "adapter"
-msgstr ""
-
-#: services/crisalid/models.py:166
-msgid "author of afterword, colophon, etc."
-msgstr ""
-
-#: services/crisalid/models.py:167
-msgid "announcer"
-msgstr ""
-
-#: services/crisalid/models.py:168
-msgid "analyst"
-msgstr ""
-
-#: services/crisalid/models.py:169
-msgid "animator"
-msgstr ""
-
-#: services/crisalid/models.py:170
-msgid "annotator"
-msgstr ""
-
-#: services/crisalid/models.py:171
-msgid "bibliographic antecedent"
-msgstr ""
-
-#: services/crisalid/models.py:172
-msgid "appellee"
-msgstr ""
-
-#: services/crisalid/models.py:173
-msgid "appellant"
-msgstr ""
-
-#: services/crisalid/models.py:174
-#, fuzzy
-#| msgid "Applicant:"
-msgid "applicant"
-msgstr "Taotleja:"
-
-#: services/crisalid/models.py:175
-msgid "author in quotations or text abstracts"
-msgstr ""
-
-#: services/crisalid/models.py:176
-msgid "architect"
-msgstr ""
-
-#: services/crisalid/models.py:177
-msgid "artistic director"
-msgstr ""
-
-#: services/crisalid/models.py:178
-msgid "arranger"
-msgstr ""
-
-#: services/crisalid/models.py:179
-msgid "artist"
-msgstr ""
-
-#: services/crisalid/models.py:180
-msgid "assignee"
-msgstr ""
-
-#: services/crisalid/models.py:181
-msgid "associated name"
-msgstr ""
-
-#: services/crisalid/models.py:182
-msgid "autographer"
-msgstr ""
-
-#: services/crisalid/models.py:183
-msgid "attributed name"
-msgstr ""
-
-#: services/crisalid/models.py:184
-msgid "auctioneer"
-msgstr ""
-
-#: services/crisalid/models.py:185
-msgid "author of dialog"
-msgstr ""
-
-#: services/crisalid/models.py:186
-msgid "audio engineer"
-msgstr ""
-
-#: services/crisalid/models.py:187
-#, fuzzy
-#| msgid "Go to instruction"
-msgid "author of introduction, etc."
-msgstr "Mine juhise juurde"
-
-#: services/crisalid/models.py:188
-msgid "audio producer"
-msgstr ""
-
-#: services/crisalid/models.py:189
-msgid "screenwriter"
-msgstr ""
-
-#: services/crisalid/models.py:190
-msgid "author"
-msgstr ""
-
 #: services/crisalid/models.py:191
-msgid "binding designer"
-msgstr ""
-
-#: services/crisalid/models.py:192
-msgid "bookjacket designer"
-msgstr ""
-
-#: services/crisalid/models.py:193
-msgid "book artist"
-msgstr ""
-
-#: services/crisalid/models.py:194
-msgid "book designer"
-msgstr ""
-
-#: services/crisalid/models.py:195
-msgid "book producer"
-msgstr ""
-
-#: services/crisalid/models.py:196
-msgid "blurb writer"
-msgstr ""
-
-#: services/crisalid/models.py:197
-msgid "binder"
-msgstr ""
-
-#: services/crisalid/models.py:198
-msgid "bookplate designer"
-msgstr ""
-
-#: services/crisalid/models.py:199
-msgid "broadcaster"
-msgstr ""
-
-#: services/crisalid/models.py:200
-msgid "braille embosser"
-msgstr ""
-
-#: services/crisalid/models.py:201
-msgid "bookseller"
-msgstr ""
-
-#: services/crisalid/models.py:202
-msgid "casting director"
-msgstr ""
-
-#: services/crisalid/models.py:203
-msgid "caster"
-msgstr ""
-
-#: services/crisalid/models.py:204
-msgid "conceptor"
-msgstr ""
-
-#: services/crisalid/models.py:205
-msgid "choreographer"
-msgstr ""
-
-#: services/crisalid/models.py:206
-msgid "client"
-msgstr ""
-
-#: services/crisalid/models.py:207
-msgid "calligrapher"
-msgstr ""
-
-#: services/crisalid/models.py:208
-msgid "colorist"
-msgstr ""
-
-#: services/crisalid/models.py:209
-msgid "collotyper"
-msgstr ""
-
-#: services/crisalid/models.py:210
-msgid "commentator"
-msgstr ""
-
-#: services/crisalid/models.py:211
-msgid "composer"
-msgstr ""
-
-#: services/crisalid/models.py:212
-msgid "compositor"
-msgstr ""
-
-#: services/crisalid/models.py:213
-msgid "conductor"
-msgstr ""
-
-#: services/crisalid/models.py:214
-msgid "cinematographer"
-msgstr ""
-
-#: services/crisalid/models.py:215
-msgid "censor"
-msgstr ""
-
-#: services/crisalid/models.py:216
-msgid "contestant-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:217
-msgid "collector"
-msgstr ""
-
-#: services/crisalid/models.py:218
-msgid "compiler"
-msgstr ""
-
-#: services/crisalid/models.py:219
-msgid "conservator"
-msgstr ""
-
-#: services/crisalid/models.py:220
-msgid "camera operator"
-msgstr ""
-
-#: services/crisalid/models.py:221
-msgid "collection registrar"
-msgstr ""
-
-#: services/crisalid/models.py:222
-msgid "contestant"
-msgstr ""
-
-#: services/crisalid/models.py:223
-msgid "contestant-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:224
-msgid "court governed"
-msgstr ""
-
-#: services/crisalid/models.py:225
-msgid "cover designer"
-msgstr ""
-
-#: services/crisalid/models.py:226
-msgid "copyright claimant"
-msgstr ""
-
-#: services/crisalid/models.py:227
-msgid "complainant-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:228
-#, fuzzy
-#| msgid "Copyright"
-msgid "copyright holder"
-msgstr "Autoriõigus"
-
-#: services/crisalid/models.py:229
-msgid "complainant"
-msgstr ""
-
-#: services/crisalid/models.py:230
-msgid "complainant-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:231
-msgid "creator"
-msgstr ""
-
-#: services/crisalid/models.py:232
-msgid "correspondent"
-msgstr ""
-
-#: services/crisalid/models.py:233
-msgid "corrector"
-msgstr ""
-
-#: services/crisalid/models.py:234
-msgid "court reporter"
-msgstr ""
-
-#: services/crisalid/models.py:235
-msgid "consultant"
-msgstr ""
-
-#: services/crisalid/models.py:236
-#, fuzzy
-#| msgid "Go to project"
-msgid "consultant to a project"
-msgstr "Mine projekti juurde"
-
-#: services/crisalid/models.py:237
-msgid "costume designer"
-msgstr ""
-
-#: services/crisalid/models.py:238
-msgid "contributor"
-msgstr ""
-
-#: services/crisalid/models.py:239
-msgid "contestee-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:240
-msgid "cartographer"
-msgstr ""
-
-#: services/crisalid/models.py:241
-msgid "contractor"
-msgstr ""
-
-#: services/crisalid/models.py:242
-msgid "contestee"
-msgstr ""
-
-#: services/crisalid/models.py:243
-msgid "contestee-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:244
-msgid "curator"
-msgstr ""
-
-#: services/crisalid/models.py:245
-msgid "commentator for written text"
-msgstr ""
-
-#: services/crisalid/models.py:246
-msgid "dubbing director"
-msgstr ""
-
-#: services/crisalid/models.py:247
-msgid "distribution place"
-msgstr ""
-
-#: services/crisalid/models.py:248
-msgid "defendant"
-msgstr ""
-
-#: services/crisalid/models.py:249
-msgid "defendant-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:250
-msgid "defendant-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:251
-msgid "degree committee member"
-msgstr ""
-
-#: services/crisalid/models.py:252
-msgid "degree granting institution"
-msgstr ""
-
-#: services/crisalid/models.py:253
-msgid "degree supervisor"
-msgstr ""
-
-#: services/crisalid/models.py:254
-msgid "dissertant"
-msgstr ""
-
-#: services/crisalid/models.py:255
-msgid "dj"
-msgstr ""
-
-#: services/crisalid/models.py:256
-msgid "delineator"
-msgstr ""
-
-#: services/crisalid/models.py:257
-msgid "dancer"
-msgstr ""
-
-#: services/crisalid/models.py:258
-msgid "donor"
-msgstr ""
-
-#: services/crisalid/models.py:259
-msgid "depicted"
-msgstr ""
-
-#: services/crisalid/models.py:260
-#, fuzzy
-#| msgid "editor"
-msgid "depositor"
-msgstr "toimetaja"
-
-#: services/crisalid/models.py:261
-msgid "draftsman"
-msgstr ""
-
-#: services/crisalid/models.py:262
-msgid "director"
-msgstr ""
-
-#: services/crisalid/models.py:263
-msgid "designer"
-msgstr ""
-
-#: services/crisalid/models.py:264
-msgid "distributor"
-msgstr ""
-
-#: services/crisalid/models.py:265
-msgid "data contributor"
-msgstr ""
-
-#: services/crisalid/models.py:266
-msgid "dedicatee"
-msgstr ""
-
-#: services/crisalid/models.py:267
-msgid "data manager"
-msgstr ""
-
-#: services/crisalid/models.py:268
-msgid "dedicator"
-msgstr ""
-
-#: services/crisalid/models.py:269
-msgid "dubious author"
-msgstr ""
-
-#: services/crisalid/models.py:270
-msgid "editor of compilation"
-msgstr ""
-
-#: services/crisalid/models.py:271
-msgid "editorial director"
-msgstr ""
-
-#: services/crisalid/models.py:272
-msgid "editor of moving image work"
-msgstr ""
-
-#: services/crisalid/models.py:274
-msgid "engraver"
-msgstr ""
-
-#: services/crisalid/models.py:275
-msgid "electrician"
-msgstr ""
-
-#: services/crisalid/models.py:276
-msgid "electrotyper"
-msgstr ""
-
-#: services/crisalid/models.py:277
-msgid "engineer"
-msgstr ""
-
-#: services/crisalid/models.py:278
-msgid "enacting jurisdiction"
-msgstr ""
-
-#: services/crisalid/models.py:279
-msgid "etcher"
-msgstr ""
-
-#: services/crisalid/models.py:280
-msgid "event place"
-msgstr ""
-
-#: services/crisalid/models.py:281
-msgid "expert"
-msgstr ""
-
-#: services/crisalid/models.py:282
-msgid "facsimilist"
-msgstr ""
-
-#: services/crisalid/models.py:283
-msgid "film distributor"
-msgstr ""
-
-#: services/crisalid/models.py:284
-msgid "field director"
-msgstr ""
-
-#: services/crisalid/models.py:285
-#, fuzzy
-#| msgid "editor"
-msgid "film editor"
-msgstr "toimetaja"
-
-#: services/crisalid/models.py:286
-msgid "film director"
-msgstr ""
-
-#: services/crisalid/models.py:287
-msgid "filmmaker"
-msgstr ""
-
-#: services/crisalid/models.py:288
-msgid "former owner"
-msgstr ""
-
-#: services/crisalid/models.py:289
-msgid "film producer"
-msgstr ""
-
-#: services/crisalid/models.py:290
-msgid "funder"
-msgstr ""
-
-#: services/crisalid/models.py:291
-msgid "founder"
-msgstr ""
-
-#: services/crisalid/models.py:292
-msgid "first party"
-msgstr ""
-
-#: services/crisalid/models.py:293
-msgid "forger"
-msgstr ""
-
-#: services/crisalid/models.py:294
-msgid "game developer"
-msgstr ""
-
-#: services/crisalid/models.py:295
-msgid "geographic information specialist"
-msgstr ""
-
-#: services/crisalid/models.py:296
-#, fuzzy
-#| msgid "Go to instruction"
-msgid "host institution"
-msgstr "Mine juhise juurde"
-
-#: services/crisalid/models.py:297
-msgid "honoree"
-msgstr ""
-
-#: services/crisalid/models.py:298
-msgid "host"
-msgstr ""
-
-#: services/crisalid/models.py:299
-msgid "illustrator"
-msgstr ""
-
-#: services/crisalid/models.py:300
-msgid "illuminator"
-msgstr ""
-
-#: services/crisalid/models.py:301
-msgid "inker"
-msgstr ""
-
-#: services/crisalid/models.py:302
-msgid "inscriber"
-msgstr ""
-
-#: services/crisalid/models.py:303
-msgid "inventor"
-msgstr ""
-
-#: services/crisalid/models.py:304
-msgid "issuing body"
-msgstr ""
-
-#: services/crisalid/models.py:305
-msgid "instrumentalist"
-msgstr ""
-
-#: services/crisalid/models.py:306
-#, fuzzy
-#| msgid "reviewer"
-msgid "interviewee"
-msgstr "hindaja"
-
-#: services/crisalid/models.py:307
-#, fuzzy
-#| msgid "reviewer"
-msgid "interviewer"
-msgstr "hindaja"
-
-#: services/crisalid/models.py:308
-msgid "judge"
-msgstr ""
-
-#: services/crisalid/models.py:309
-msgid "jurisdiction governed"
-msgstr ""
-
-#: services/crisalid/models.py:310
-msgid "laboratory"
-msgstr ""
-
-#: services/crisalid/models.py:311
-msgid "librettist"
-msgstr ""
-
-#: services/crisalid/models.py:312
-msgid "laboratory director"
-msgstr ""
-
-#: services/crisalid/models.py:313
-msgid "lead"
-msgstr ""
-
-#: services/crisalid/models.py:314
-msgid "libelee-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:315
-msgid "libelee"
-msgstr ""
-
-#: services/crisalid/models.py:316
-msgid "lender"
-msgstr ""
-
-#: services/crisalid/models.py:317
-msgid "libelee-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:318
-msgid "lighting designer"
-msgstr ""
-
-#: services/crisalid/models.py:319
-msgid "libelant-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:320
-msgid "libelant"
-msgstr ""
-
-#: services/crisalid/models.py:321
-msgid "libelant-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:322
-msgid "landscape architect"
-msgstr ""
-
-#: services/crisalid/models.py:323
-msgid "licensee"
-msgstr ""
-
-#: services/crisalid/models.py:324
-msgid "licensor"
-msgstr ""
-
-#: services/crisalid/models.py:325
-msgid "lithographer"
-msgstr ""
-
-#: services/crisalid/models.py:326
-msgid "letterer"
-msgstr ""
-
-#: services/crisalid/models.py:327
-msgid "lyricist"
-msgstr ""
-
-#: services/crisalid/models.py:328
-msgid "music copyist"
-msgstr ""
-
-#: services/crisalid/models.py:329
-msgid "metadata contact"
-msgstr ""
-
-#: services/crisalid/models.py:330
-msgid "medium"
-msgstr ""
-
-#: services/crisalid/models.py:331
-msgid "manufacture place"
-msgstr ""
-
-#: services/crisalid/models.py:332
-msgid "manufacturer"
-msgstr ""
-
-#: services/crisalid/models.py:333
-msgid "makeup artist"
-msgstr ""
-
-#: services/crisalid/models.py:334
-msgid "moderator"
-msgstr ""
-
-#: services/crisalid/models.py:335
-#, fuzzy
-#| msgid "editor"
-msgid "monitor"
-msgstr "toimetaja"
-
-#: services/crisalid/models.py:336
-msgid "marbler"
-msgstr ""
-
-#: services/crisalid/models.py:337
-#, fuzzy
-#| msgid "editor"
-msgid "markup editor"
-msgstr "toimetaja"
-
-#: services/crisalid/models.py:338
-msgid "musical director"
-msgstr ""
-
-#: services/crisalid/models.py:339
-msgid "metal engraver"
-msgstr ""
-
-#: services/crisalid/models.py:340
-msgid "minute taker"
-msgstr ""
-
-#: services/crisalid/models.py:341
-msgid "music programmer"
-msgstr ""
-
-#: services/crisalid/models.py:342
-msgid "musician"
-msgstr ""
-
-#: services/crisalid/models.py:343
-msgid "mixing engineer"
-msgstr ""
-
-#: services/crisalid/models.py:344
-msgid "news anchor"
-msgstr ""
-
-#: services/crisalid/models.py:345
-msgid "narrator"
-msgstr ""
-
-#: services/crisalid/models.py:346
-#, fuzzy
-#| msgid "participant"
-msgid "onscreen participant"
-msgstr "osaleja"
-
-#: services/crisalid/models.py:347
-msgid "opponent"
-msgstr ""
-
-#: services/crisalid/models.py:348
-msgid "originator"
-msgstr ""
-
-#: services/crisalid/models.py:349
-msgid "organizer"
-msgstr ""
-
-#: services/crisalid/models.py:350
-msgid "onscreen presenter"
-msgstr ""
-
-#: services/crisalid/models.py:351
-msgid "other"
-msgstr ""
-
-#: services/crisalid/models.py:352
-msgid "owner"
-msgstr ""
-
-#: services/crisalid/models.py:353
-msgid "place of address"
-msgstr ""
-
-#: services/crisalid/models.py:354
-msgid "panelist"
-msgstr ""
-
-#: services/crisalid/models.py:355
-msgid "patron"
-msgstr ""
-
-#: services/crisalid/models.py:356
-msgid "publisher director"
-msgstr ""
-
-#: services/crisalid/models.py:357
-msgid "publisher"
-msgstr ""
-
-#: services/crisalid/models.py:358
-msgid "project director"
-msgstr ""
-
-#: services/crisalid/models.py:359
-msgid "proofreader"
-msgstr ""
-
-#: services/crisalid/models.py:360
-msgid "photographer"
-msgstr ""
-
-#: services/crisalid/models.py:361
-msgid "platemaker"
-msgstr ""
-
-#: services/crisalid/models.py:362
-msgid "permitting agency"
-msgstr ""
-
-#: services/crisalid/models.py:363
-msgid "production manager"
-msgstr ""
-
-#: services/crisalid/models.py:364
-msgid "penciller"
-msgstr ""
-
-#: services/crisalid/models.py:365
-msgid "printer of plates"
-msgstr ""
-
-#: services/crisalid/models.py:366
-msgid "papermaker"
-msgstr ""
-
-#: services/crisalid/models.py:367
-msgid "puppeteer"
-msgstr ""
-
-#: services/crisalid/models.py:368
-msgid "praeses"
-msgstr ""
-
-#: services/crisalid/models.py:369
-msgid "process contact"
-msgstr ""
-
-#: services/crisalid/models.py:370
-msgid "production personnel"
-msgstr ""
-
-#: services/crisalid/models.py:371
-msgid "presenter"
-msgstr ""
-
-#: services/crisalid/models.py:372
-msgid "performer"
-msgstr ""
-
-#: services/crisalid/models.py:373
-msgid "programmer"
-msgstr ""
-
-#: services/crisalid/models.py:374
-msgid "printmaker"
-msgstr ""
-
-#: services/crisalid/models.py:375
-msgid "production company"
-msgstr ""
-
-#: services/crisalid/models.py:376
-msgid "producer"
-msgstr ""
-
-#: services/crisalid/models.py:377
-msgid "production place"
-msgstr ""
-
-#: services/crisalid/models.py:378
-msgid "production designer"
-msgstr ""
-
-#: services/crisalid/models.py:379
-msgid "printer"
-msgstr ""
-
-#: services/crisalid/models.py:380
-msgid "provider"
-msgstr ""
-
-#: services/crisalid/models.py:381
-#, fuzzy
-#| msgid "Applicant:"
-msgid "patent applicant"
-msgstr "Taotleja:"
-
-#: services/crisalid/models.py:382
-msgid "plaintiff-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:383
-msgid "plaintiff"
-msgstr ""
-
-#: services/crisalid/models.py:384
-msgid "patent holder"
-msgstr ""
-
-#: services/crisalid/models.py:385
-msgid "plaintiff-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:386
-#, fuzzy
-#| msgid "Unknown publication status"
-msgid "publication place"
-msgstr "Tundmatu avaldamise olek"
-
-#: services/crisalid/models.py:387
-msgid "rapporteur"
-msgstr ""
-
-#: services/crisalid/models.py:388
-msgid "rubricator"
-msgstr ""
-
-#: services/crisalid/models.py:389
-msgid "recordist"
-msgstr ""
-
-#: services/crisalid/models.py:390
-msgid "recording engineer"
-msgstr ""
-
-#: services/crisalid/models.py:391
-msgid "addressee"
-msgstr ""
-
-#: services/crisalid/models.py:392
-msgid "radio director"
-msgstr ""
-
-#: services/crisalid/models.py:393
-msgid "redaktor"
-msgstr ""
-
-#: services/crisalid/models.py:394
-msgid "renderer"
-msgstr ""
-
-#: services/crisalid/models.py:395
-msgid "researcher"
-msgstr ""
-
-#: services/crisalid/models.py:397
-msgid "radio producer"
-msgstr ""
-
-#: services/crisalid/models.py:398
-#, fuzzy
-#| msgid "editor"
-msgid "repository"
-msgstr "toimetaja"
-
-#: services/crisalid/models.py:399
-msgid "reporter"
-msgstr ""
-
-#: services/crisalid/models.py:400
-msgid "responsible party"
-msgstr ""
-
-#: services/crisalid/models.py:401
-msgid "respondent-appellee"
-msgstr ""
-
-#: services/crisalid/models.py:402
-msgid "restager"
-msgstr ""
-
-#: services/crisalid/models.py:403
-msgid "respondent"
-msgstr ""
-
-#: services/crisalid/models.py:404
-msgid "restorationist"
-msgstr ""
-
-#: services/crisalid/models.py:405
-msgid "respondent-appellant"
-msgstr ""
-
-#: services/crisalid/models.py:406
-msgid "research team head"
-msgstr ""
-
-#: services/crisalid/models.py:407
-msgid "research team member"
-msgstr ""
-
-#: services/crisalid/models.py:408
-msgid "remix artist"
-msgstr ""
-
-#: services/crisalid/models.py:409
-msgid "scientific advisor"
-msgstr ""
-
-#: services/crisalid/models.py:410
-msgid "scenarist"
-msgstr ""
-
-#: services/crisalid/models.py:411
-msgid "sculptor"
-msgstr ""
-
-#: services/crisalid/models.py:412
-msgid "scribe"
-msgstr ""
-
-#: services/crisalid/models.py:413
-msgid "sound engineer"
-msgstr ""
-
-#: services/crisalid/models.py:414
-msgid "sound designer"
-msgstr ""
-
-#: services/crisalid/models.py:415
-msgid "secretary"
-msgstr ""
-
-#: services/crisalid/models.py:416
-msgid "special effects provider"
-msgstr ""
-
-#: services/crisalid/models.py:417
-msgid "stage director"
-msgstr ""
-
-#: services/crisalid/models.py:418
-msgid "signer"
-msgstr ""
-
-#: services/crisalid/models.py:419
-msgid "supporting host"
-msgstr ""
-
-#: services/crisalid/models.py:420
-msgid "seller"
-msgstr ""
-
-#: services/crisalid/models.py:421
-msgid "singer"
-msgstr ""
-
-#: services/crisalid/models.py:422
-msgid "speaker"
-msgstr ""
-
-#: services/crisalid/models.py:423
-msgid "sponsor"
-msgstr ""
-
-#: services/crisalid/models.py:424
-msgid "second party"
-msgstr ""
-
-#: services/crisalid/models.py:425
-msgid "surveyor"
-msgstr ""
-
-#: services/crisalid/models.py:426
-msgid "set designer"
-msgstr ""
-
-#: services/crisalid/models.py:427
-msgid "setting"
-msgstr ""
-
-#: services/crisalid/models.py:428
-msgid "storyteller"
-msgstr ""
-
-#: services/crisalid/models.py:429
-msgid "stage manager"
-msgstr ""
-
-#: services/crisalid/models.py:430
-msgid "standards body"
-msgstr ""
-
-#: services/crisalid/models.py:431
-msgid "stereotyper"
-msgstr ""
-
-#: services/crisalid/models.py:432
-msgid "software developer"
-msgstr ""
-
-#: services/crisalid/models.py:433
-msgid "technical advisor"
-msgstr ""
-
-#: services/crisalid/models.py:434
-msgid "television writer"
-msgstr ""
-
-#: services/crisalid/models.py:435
-msgid "technical director"
-msgstr ""
-
-#: services/crisalid/models.py:436
-msgid "teacher"
-msgstr ""
-
-#: services/crisalid/models.py:437
-msgid "thesis advisor"
-msgstr ""
-
-#: services/crisalid/models.py:438
-msgid "television director"
-msgstr ""
-
-#: services/crisalid/models.py:439
-msgid "television guest"
-msgstr ""
-
-#: services/crisalid/models.py:440
-msgid "television host"
-msgstr ""
-
-#: services/crisalid/models.py:441
-msgid "television producer"
-msgstr ""
-
-#: services/crisalid/models.py:442
-msgid "transcriber"
-msgstr ""
-
-#: services/crisalid/models.py:443
-msgid "translator"
-msgstr ""
-
-#: services/crisalid/models.py:444
-msgid "type designer"
-msgstr ""
-
-#: services/crisalid/models.py:445
-msgid "typographer"
-msgstr ""
-
-#: services/crisalid/models.py:446
-msgid "university place"
-msgstr ""
-
-#: services/crisalid/models.py:447
-msgid "voice actor"
-msgstr ""
-
-#: services/crisalid/models.py:448
-msgid "videographer"
-msgstr ""
-
-#: services/crisalid/models.py:449
-msgid "visual effects provider"
-msgstr ""
-
-#: services/crisalid/models.py:450
-msgid "vocalist"
-msgstr ""
-
-#: services/crisalid/models.py:451
-msgid "writer of added commentary"
-msgstr ""
-
-#: services/crisalid/models.py:452
-msgid "writer of added lyrics"
-msgstr ""
-
-#: services/crisalid/models.py:453
-msgid "writer of accompanying material"
-msgstr ""
-
-#: services/crisalid/models.py:454
-msgid "writer of added text"
-msgstr ""
-
-#: services/crisalid/models.py:455
-msgid "writer of afterword"
-msgstr ""
-
-#: services/crisalid/models.py:456
-msgid "woodcutter"
-msgstr ""
-
-#: services/crisalid/models.py:457
-msgid "wood engraver"
-msgstr ""
-
-#: services/crisalid/models.py:458
-msgid "writer of film story"
-msgstr ""
-
-#: services/crisalid/models.py:459
-msgid "writer of intertitles"
-msgstr ""
-
-#: services/crisalid/models.py:460
-msgid "writer of foreword"
-msgstr ""
-
-#: services/crisalid/models.py:461
-#, fuzzy
-#| msgid "Go to instruction"
-msgid "writer of introduction"
-msgstr "Mine juhise juurde"
-
-#: services/crisalid/models.py:462
-msgid "witness"
-msgstr ""
-
-#: services/crisalid/models.py:463
-msgid "writer of preface"
-msgstr ""
-
-#: services/crisalid/models.py:464
-msgid "writer of supplementary textual content"
-msgstr ""
-
-#: services/crisalid/models.py:465
-msgid "writer of television story"
-msgstr ""
-
-#: services/crisalid/models.py:501
 msgid "Document"
 msgstr ""
 
-#: services/crisalid/models.py:502
+#: services/crisalid/models.py:192
 msgid "Scholarly Publication"
 msgstr ""
 
-#: services/crisalid/models.py:503
+#: services/crisalid/models.py:193
 msgid "Article"
 msgstr ""
 
-#: services/crisalid/models.py:504
+#: services/crisalid/models.py:194
 msgid "Journal Article"
 msgstr ""
 
-#: services/crisalid/models.py:505
+#: services/crisalid/models.py:195
 #, fuzzy
 #| msgid "Review by"
 msgid "Conference Article"
 msgstr "Ülevaate autor"
 
-#: services/crisalid/models.py:506
+#: services/crisalid/models.py:196
 msgid "Conference Abstract"
 msgstr ""
 
-#: services/crisalid/models.py:507
+#: services/crisalid/models.py:197
 msgid "Preface"
 msgstr ""
 
-#: services/crisalid/models.py:508
+#: services/crisalid/models.py:198
 #, fuzzy
 #| msgid "Comment by"
 msgid "Comment"
 msgstr "Kommenteeris"
 
-#: services/crisalid/models.py:509
+#: services/crisalid/models.py:199
 msgid "Book Chapter"
 msgstr ""
 
-#: services/crisalid/models.py:510
+#: services/crisalid/models.py:200
 msgid "Book"
 msgstr ""
 
-#: services/crisalid/models.py:511
+#: services/crisalid/models.py:201
 msgid "Monograph"
 msgstr ""
 
-#: services/crisalid/models.py:512
+#: services/crisalid/models.py:202
 msgid "Proceedings"
 msgstr ""
 
-#: services/crisalid/models.py:513
+#: services/crisalid/models.py:203
 msgid "Book Of Chapters"
 msgstr ""
 
-#: services/crisalid/models.py:514
+#: services/crisalid/models.py:204
 msgid "Presentation"
 msgstr ""
 
-#: services/crisalid/models.py:515
+#: services/crisalid/models.py:205
 msgid "Unknown"
+msgstr ""
+
+#: services/crisalid/relators.py:771
+msgid "abridger"
+msgstr ""
+
+#: services/crisalid/relators.py:772
+msgid "art copyist"
+msgstr ""
+
+#: services/crisalid/relators.py:773
+msgid "actor"
+msgstr ""
+
+#: services/crisalid/relators.py:774
+msgid "art director"
+msgstr ""
+
+#: services/crisalid/relators.py:775
+msgid "adapter"
+msgstr ""
+
+#: services/crisalid/relators.py:776
+msgid "author of afterword, colophon, etc."
+msgstr ""
+
+#: services/crisalid/relators.py:777
+msgid "announcer"
+msgstr ""
+
+#: services/crisalid/relators.py:778
+msgid "analyst"
+msgstr ""
+
+#: services/crisalid/relators.py:779
+msgid "animator"
+msgstr ""
+
+#: services/crisalid/relators.py:780
+msgid "annotator"
+msgstr ""
+
+#: services/crisalid/relators.py:781
+msgid "bibliographic antecedent"
+msgstr ""
+
+#: services/crisalid/relators.py:782
+msgid "appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:783
+msgid "appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:784
+#, fuzzy
+#| msgid "Applicant:"
+msgid "applicant"
+msgstr "Taotleja:"
+
+#: services/crisalid/relators.py:785
+msgid "author in quotations or text abstracts"
+msgstr ""
+
+#: services/crisalid/relators.py:786
+msgid "architect"
+msgstr ""
+
+#: services/crisalid/relators.py:787
+msgid "artistic director"
+msgstr ""
+
+#: services/crisalid/relators.py:788
+msgid "arranger"
+msgstr ""
+
+#: services/crisalid/relators.py:789
+msgid "artist"
+msgstr ""
+
+#: services/crisalid/relators.py:790
+msgid "assignee"
+msgstr ""
+
+#: services/crisalid/relators.py:791
+msgid "associated name"
+msgstr ""
+
+#: services/crisalid/relators.py:792
+msgid "autographer"
+msgstr ""
+
+#: services/crisalid/relators.py:793
+msgid "attributed name"
+msgstr ""
+
+#: services/crisalid/relators.py:794
+msgid "auctioneer"
+msgstr ""
+
+#: services/crisalid/relators.py:795
+msgid "author of dialog"
+msgstr ""
+
+#: services/crisalid/relators.py:796
+msgid "audio engineer"
+msgstr ""
+
+#: services/crisalid/relators.py:797
+#, fuzzy
+#| msgid "Go to instruction"
+msgid "author of introduction, etc."
+msgstr "Mine juhise juurde"
+
+#: services/crisalid/relators.py:798
+msgid "audio producer"
+msgstr ""
+
+#: services/crisalid/relators.py:799
+msgid "screenwriter"
+msgstr ""
+
+#: services/crisalid/relators.py:800
+msgid "author"
+msgstr ""
+
+#: services/crisalid/relators.py:801
+msgid "binding designer"
+msgstr ""
+
+#: services/crisalid/relators.py:802
+msgid "bookjacket designer"
+msgstr ""
+
+#: services/crisalid/relators.py:803
+msgid "book artist"
+msgstr ""
+
+#: services/crisalid/relators.py:804
+msgid "book designer"
+msgstr ""
+
+#: services/crisalid/relators.py:805
+msgid "book producer"
+msgstr ""
+
+#: services/crisalid/relators.py:806
+msgid "blurb writer"
+msgstr ""
+
+#: services/crisalid/relators.py:807
+msgid "binder"
+msgstr ""
+
+#: services/crisalid/relators.py:808
+msgid "bookplate designer"
+msgstr ""
+
+#: services/crisalid/relators.py:809
+msgid "broadcaster"
+msgstr ""
+
+#: services/crisalid/relators.py:810
+msgid "braille embosser"
+msgstr ""
+
+#: services/crisalid/relators.py:811
+msgid "bookseller"
+msgstr ""
+
+#: services/crisalid/relators.py:812
+msgid "casting director"
+msgstr ""
+
+#: services/crisalid/relators.py:813
+msgid "caster"
+msgstr ""
+
+#: services/crisalid/relators.py:814
+msgid "conceptor"
+msgstr ""
+
+#: services/crisalid/relators.py:815
+msgid "choreographer"
+msgstr ""
+
+#: services/crisalid/relators.py:816
+msgid "client"
+msgstr ""
+
+#: services/crisalid/relators.py:817
+msgid "calligrapher"
+msgstr ""
+
+#: services/crisalid/relators.py:818
+msgid "colorist"
+msgstr ""
+
+#: services/crisalid/relators.py:819
+msgid "collotyper"
+msgstr ""
+
+#: services/crisalid/relators.py:820
+msgid "commentator"
+msgstr ""
+
+#: services/crisalid/relators.py:821
+msgid "composer"
+msgstr ""
+
+#: services/crisalid/relators.py:822
+msgid "compositor"
+msgstr ""
+
+#: services/crisalid/relators.py:823
+msgid "conductor"
+msgstr ""
+
+#: services/crisalid/relators.py:824
+msgid "cinematographer"
+msgstr ""
+
+#: services/crisalid/relators.py:825
+msgid "censor"
+msgstr ""
+
+#: services/crisalid/relators.py:826
+msgid "contestant-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:827
+msgid "collector"
+msgstr ""
+
+#: services/crisalid/relators.py:828
+msgid "compiler"
+msgstr ""
+
+#: services/crisalid/relators.py:829
+msgid "conservator"
+msgstr ""
+
+#: services/crisalid/relators.py:830
+msgid "camera operator"
+msgstr ""
+
+#: services/crisalid/relators.py:831
+msgid "collection registrar"
+msgstr ""
+
+#: services/crisalid/relators.py:832
+msgid "contestant"
+msgstr ""
+
+#: services/crisalid/relators.py:833
+msgid "contestant-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:834
+msgid "court governed"
+msgstr ""
+
+#: services/crisalid/relators.py:835
+msgid "cover designer"
+msgstr ""
+
+#: services/crisalid/relators.py:836
+msgid "copyright claimant"
+msgstr ""
+
+#: services/crisalid/relators.py:837
+msgid "complainant-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:838
+#, fuzzy
+#| msgid "Copyright"
+msgid "copyright holder"
+msgstr "Autoriõigus"
+
+#: services/crisalid/relators.py:839
+msgid "complainant"
+msgstr ""
+
+#: services/crisalid/relators.py:840
+msgid "complainant-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:841
+msgid "creator"
+msgstr ""
+
+#: services/crisalid/relators.py:842
+msgid "correspondent"
+msgstr ""
+
+#: services/crisalid/relators.py:843
+msgid "corrector"
+msgstr ""
+
+#: services/crisalid/relators.py:844
+msgid "court reporter"
+msgstr ""
+
+#: services/crisalid/relators.py:845
+msgid "consultant"
+msgstr ""
+
+#: services/crisalid/relators.py:846
+#, fuzzy
+#| msgid "Go to project"
+msgid "consultant to a project"
+msgstr "Mine projekti juurde"
+
+#: services/crisalid/relators.py:847
+msgid "costume designer"
+msgstr ""
+
+#: services/crisalid/relators.py:848
+msgid "contributor"
+msgstr ""
+
+#: services/crisalid/relators.py:849
+msgid "contestee-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:850
+msgid "cartographer"
+msgstr ""
+
+#: services/crisalid/relators.py:851
+msgid "contractor"
+msgstr ""
+
+#: services/crisalid/relators.py:852
+msgid "contestee"
+msgstr ""
+
+#: services/crisalid/relators.py:853
+msgid "contestee-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:854
+msgid "curator"
+msgstr ""
+
+#: services/crisalid/relators.py:855
+msgid "commentator for written text"
+msgstr ""
+
+#: services/crisalid/relators.py:856
+msgid "dubbing director"
+msgstr ""
+
+#: services/crisalid/relators.py:857
+msgid "distribution place"
+msgstr ""
+
+#: services/crisalid/relators.py:858
+msgid "defendant"
+msgstr ""
+
+#: services/crisalid/relators.py:859
+msgid "defendant-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:860
+msgid "defendant-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:861
+msgid "degree committee member"
+msgstr ""
+
+#: services/crisalid/relators.py:862
+msgid "degree granting institution"
+msgstr ""
+
+#: services/crisalid/relators.py:863
+msgid "degree supervisor"
+msgstr ""
+
+#: services/crisalid/relators.py:864
+msgid "dissertant"
+msgstr ""
+
+#: services/crisalid/relators.py:865
+msgid "dj"
+msgstr ""
+
+#: services/crisalid/relators.py:866
+msgid "delineator"
+msgstr ""
+
+#: services/crisalid/relators.py:867
+msgid "dancer"
+msgstr ""
+
+#: services/crisalid/relators.py:868
+msgid "donor"
+msgstr ""
+
+#: services/crisalid/relators.py:869
+msgid "depicted"
+msgstr ""
+
+#: services/crisalid/relators.py:870
+#, fuzzy
+#| msgid "editor"
+msgid "depositor"
+msgstr "toimetaja"
+
+#: services/crisalid/relators.py:871
+msgid "draftsman"
+msgstr ""
+
+#: services/crisalid/relators.py:872
+msgid "director"
+msgstr ""
+
+#: services/crisalid/relators.py:873
+msgid "designer"
+msgstr ""
+
+#: services/crisalid/relators.py:874
+msgid "distributor"
+msgstr ""
+
+#: services/crisalid/relators.py:875
+msgid "data contributor"
+msgstr ""
+
+#: services/crisalid/relators.py:876
+msgid "dedicatee"
+msgstr ""
+
+#: services/crisalid/relators.py:877
+msgid "data manager"
+msgstr ""
+
+#: services/crisalid/relators.py:878
+msgid "dedicator"
+msgstr ""
+
+#: services/crisalid/relators.py:879
+msgid "dubious author"
+msgstr ""
+
+#: services/crisalid/relators.py:880
+msgid "editor of compilation"
+msgstr ""
+
+#: services/crisalid/relators.py:881
+msgid "editorial director"
+msgstr ""
+
+#: services/crisalid/relators.py:882
+msgid "editor of moving image work"
+msgstr ""
+
+#: services/crisalid/relators.py:884
+msgid "engraver"
+msgstr ""
+
+#: services/crisalid/relators.py:885
+msgid "electrician"
+msgstr ""
+
+#: services/crisalid/relators.py:886
+msgid "electrotyper"
+msgstr ""
+
+#: services/crisalid/relators.py:887
+msgid "engineer"
+msgstr ""
+
+#: services/crisalid/relators.py:888
+msgid "enacting jurisdiction"
+msgstr ""
+
+#: services/crisalid/relators.py:889
+msgid "etcher"
+msgstr ""
+
+#: services/crisalid/relators.py:890
+msgid "event place"
+msgstr ""
+
+#: services/crisalid/relators.py:891
+msgid "expert"
+msgstr ""
+
+#: services/crisalid/relators.py:892
+msgid "facsimilist"
+msgstr ""
+
+#: services/crisalid/relators.py:893
+msgid "film distributor"
+msgstr ""
+
+#: services/crisalid/relators.py:894
+msgid "field director"
+msgstr ""
+
+#: services/crisalid/relators.py:895
+#, fuzzy
+#| msgid "editor"
+msgid "film editor"
+msgstr "toimetaja"
+
+#: services/crisalid/relators.py:896
+msgid "film director"
+msgstr ""
+
+#: services/crisalid/relators.py:897
+msgid "filmmaker"
+msgstr ""
+
+#: services/crisalid/relators.py:898
+msgid "former owner"
+msgstr ""
+
+#: services/crisalid/relators.py:899
+msgid "film producer"
+msgstr ""
+
+#: services/crisalid/relators.py:900
+msgid "funder"
+msgstr ""
+
+#: services/crisalid/relators.py:901
+msgid "founder"
+msgstr ""
+
+#: services/crisalid/relators.py:902
+msgid "first party"
+msgstr ""
+
+#: services/crisalid/relators.py:903
+msgid "forger"
+msgstr ""
+
+#: services/crisalid/relators.py:904
+msgid "game developer"
+msgstr ""
+
+#: services/crisalid/relators.py:905
+msgid "geographic information specialist"
+msgstr ""
+
+#: services/crisalid/relators.py:906
+#, fuzzy
+#| msgid "Go to instruction"
+msgid "host institution"
+msgstr "Mine juhise juurde"
+
+#: services/crisalid/relators.py:907
+msgid "honoree"
+msgstr ""
+
+#: services/crisalid/relators.py:908
+msgid "host"
+msgstr ""
+
+#: services/crisalid/relators.py:909
+msgid "illustrator"
+msgstr ""
+
+#: services/crisalid/relators.py:910
+msgid "illuminator"
+msgstr ""
+
+#: services/crisalid/relators.py:911
+msgid "inker"
+msgstr ""
+
+#: services/crisalid/relators.py:912
+msgid "inscriber"
+msgstr ""
+
+#: services/crisalid/relators.py:913
+msgid "inventor"
+msgstr ""
+
+#: services/crisalid/relators.py:914
+msgid "issuing body"
+msgstr ""
+
+#: services/crisalid/relators.py:915
+msgid "instrumentalist"
+msgstr ""
+
+#: services/crisalid/relators.py:916
+#, fuzzy
+#| msgid "reviewer"
+msgid "interviewee"
+msgstr "hindaja"
+
+#: services/crisalid/relators.py:917
+#, fuzzy
+#| msgid "reviewer"
+msgid "interviewer"
+msgstr "hindaja"
+
+#: services/crisalid/relators.py:918
+msgid "judge"
+msgstr ""
+
+#: services/crisalid/relators.py:919
+msgid "jurisdiction governed"
+msgstr ""
+
+#: services/crisalid/relators.py:920
+msgid "laboratory"
+msgstr ""
+
+#: services/crisalid/relators.py:921
+msgid "librettist"
+msgstr ""
+
+#: services/crisalid/relators.py:922
+msgid "laboratory director"
+msgstr ""
+
+#: services/crisalid/relators.py:923
+msgid "lead"
+msgstr ""
+
+#: services/crisalid/relators.py:924
+msgid "libelee-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:925
+msgid "libelee"
+msgstr ""
+
+#: services/crisalid/relators.py:926
+msgid "lender"
+msgstr ""
+
+#: services/crisalid/relators.py:927
+msgid "libelee-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:928
+msgid "lighting designer"
+msgstr ""
+
+#: services/crisalid/relators.py:929
+msgid "libelant-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:930
+msgid "libelant"
+msgstr ""
+
+#: services/crisalid/relators.py:931
+msgid "libelant-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:932
+msgid "landscape architect"
+msgstr ""
+
+#: services/crisalid/relators.py:933
+msgid "licensee"
+msgstr ""
+
+#: services/crisalid/relators.py:934
+msgid "licensor"
+msgstr ""
+
+#: services/crisalid/relators.py:935
+msgid "lithographer"
+msgstr ""
+
+#: services/crisalid/relators.py:936
+msgid "letterer"
+msgstr ""
+
+#: services/crisalid/relators.py:937
+msgid "lyricist"
+msgstr ""
+
+#: services/crisalid/relators.py:938
+msgid "music copyist"
+msgstr ""
+
+#: services/crisalid/relators.py:939
+msgid "metadata contact"
+msgstr ""
+
+#: services/crisalid/relators.py:940
+msgid "medium"
+msgstr ""
+
+#: services/crisalid/relators.py:941
+msgid "manufacture place"
+msgstr ""
+
+#: services/crisalid/relators.py:942
+msgid "manufacturer"
+msgstr ""
+
+#: services/crisalid/relators.py:943
+msgid "makeup artist"
+msgstr ""
+
+#: services/crisalid/relators.py:944
+msgid "moderator"
+msgstr ""
+
+#: services/crisalid/relators.py:945
+#, fuzzy
+#| msgid "editor"
+msgid "monitor"
+msgstr "toimetaja"
+
+#: services/crisalid/relators.py:946
+msgid "marbler"
+msgstr ""
+
+#: services/crisalid/relators.py:947
+#, fuzzy
+#| msgid "editor"
+msgid "markup editor"
+msgstr "toimetaja"
+
+#: services/crisalid/relators.py:948
+msgid "musical director"
+msgstr ""
+
+#: services/crisalid/relators.py:949
+msgid "metal engraver"
+msgstr ""
+
+#: services/crisalid/relators.py:950
+msgid "minute taker"
+msgstr ""
+
+#: services/crisalid/relators.py:951
+msgid "music programmer"
+msgstr ""
+
+#: services/crisalid/relators.py:952
+msgid "musician"
+msgstr ""
+
+#: services/crisalid/relators.py:953
+msgid "mixing engineer"
+msgstr ""
+
+#: services/crisalid/relators.py:954
+msgid "news anchor"
+msgstr ""
+
+#: services/crisalid/relators.py:955
+msgid "narrator"
+msgstr ""
+
+#: services/crisalid/relators.py:956
+#, fuzzy
+#| msgid "participant"
+msgid "onscreen participant"
+msgstr "osaleja"
+
+#: services/crisalid/relators.py:957
+msgid "opponent"
+msgstr ""
+
+#: services/crisalid/relators.py:958
+msgid "originator"
+msgstr ""
+
+#: services/crisalid/relators.py:959
+msgid "organizer"
+msgstr ""
+
+#: services/crisalid/relators.py:960
+msgid "onscreen presenter"
+msgstr ""
+
+#: services/crisalid/relators.py:961
+msgid "other"
+msgstr ""
+
+#: services/crisalid/relators.py:962
+msgid "owner"
+msgstr ""
+
+#: services/crisalid/relators.py:963
+msgid "place of address"
+msgstr ""
+
+#: services/crisalid/relators.py:964
+msgid "panelist"
+msgstr ""
+
+#: services/crisalid/relators.py:965
+msgid "patron"
+msgstr ""
+
+#: services/crisalid/relators.py:966
+msgid "publisher director"
+msgstr ""
+
+#: services/crisalid/relators.py:967
+msgid "publisher"
+msgstr ""
+
+#: services/crisalid/relators.py:968
+msgid "project director"
+msgstr ""
+
+#: services/crisalid/relators.py:969
+msgid "proofreader"
+msgstr ""
+
+#: services/crisalid/relators.py:970
+msgid "photographer"
+msgstr ""
+
+#: services/crisalid/relators.py:971
+msgid "platemaker"
+msgstr ""
+
+#: services/crisalid/relators.py:972
+msgid "permitting agency"
+msgstr ""
+
+#: services/crisalid/relators.py:973
+msgid "production manager"
+msgstr ""
+
+#: services/crisalid/relators.py:974
+msgid "penciller"
+msgstr ""
+
+#: services/crisalid/relators.py:975
+msgid "printer of plates"
+msgstr ""
+
+#: services/crisalid/relators.py:976
+msgid "papermaker"
+msgstr ""
+
+#: services/crisalid/relators.py:977
+msgid "puppeteer"
+msgstr ""
+
+#: services/crisalid/relators.py:978
+msgid "praeses"
+msgstr ""
+
+#: services/crisalid/relators.py:979
+msgid "process contact"
+msgstr ""
+
+#: services/crisalid/relators.py:980
+msgid "production personnel"
+msgstr ""
+
+#: services/crisalid/relators.py:981
+msgid "presenter"
+msgstr ""
+
+#: services/crisalid/relators.py:982
+msgid "performer"
+msgstr ""
+
+#: services/crisalid/relators.py:983
+msgid "programmer"
+msgstr ""
+
+#: services/crisalid/relators.py:984
+msgid "printmaker"
+msgstr ""
+
+#: services/crisalid/relators.py:985
+msgid "production company"
+msgstr ""
+
+#: services/crisalid/relators.py:986
+msgid "producer"
+msgstr ""
+
+#: services/crisalid/relators.py:987
+msgid "production place"
+msgstr ""
+
+#: services/crisalid/relators.py:988
+msgid "production designer"
+msgstr ""
+
+#: services/crisalid/relators.py:989
+msgid "printer"
+msgstr ""
+
+#: services/crisalid/relators.py:990
+msgid "provider"
+msgstr ""
+
+#: services/crisalid/relators.py:991
+#, fuzzy
+#| msgid "Applicant:"
+msgid "patent applicant"
+msgstr "Taotleja:"
+
+#: services/crisalid/relators.py:992
+msgid "plaintiff-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:993
+msgid "plaintiff"
+msgstr ""
+
+#: services/crisalid/relators.py:994
+msgid "patent holder"
+msgstr ""
+
+#: services/crisalid/relators.py:995
+msgid "plaintiff-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:996
+#, fuzzy
+#| msgid "Unknown publication status"
+msgid "publication place"
+msgstr "Tundmatu avaldamise olek"
+
+#: services/crisalid/relators.py:997
+msgid "rapporteur"
+msgstr ""
+
+#: services/crisalid/relators.py:998
+msgid "rubricator"
+msgstr ""
+
+#: services/crisalid/relators.py:999
+msgid "recordist"
+msgstr ""
+
+#: services/crisalid/relators.py:1000
+msgid "recording engineer"
+msgstr ""
+
+#: services/crisalid/relators.py:1001
+msgid "addressee"
+msgstr ""
+
+#: services/crisalid/relators.py:1002
+msgid "radio director"
+msgstr ""
+
+#: services/crisalid/relators.py:1003
+msgid "redaktor"
+msgstr ""
+
+#: services/crisalid/relators.py:1004
+msgid "renderer"
+msgstr ""
+
+#: services/crisalid/relators.py:1005
+msgid "researcher"
+msgstr ""
+
+#: services/crisalid/relators.py:1007
+msgid "radio producer"
+msgstr ""
+
+#: services/crisalid/relators.py:1008
+#, fuzzy
+#| msgid "editor"
+msgid "repository"
+msgstr "toimetaja"
+
+#: services/crisalid/relators.py:1009
+msgid "reporter"
+msgstr ""
+
+#: services/crisalid/relators.py:1010
+msgid "responsible party"
+msgstr ""
+
+#: services/crisalid/relators.py:1011
+msgid "respondent-appellee"
+msgstr ""
+
+#: services/crisalid/relators.py:1012
+msgid "restager"
+msgstr ""
+
+#: services/crisalid/relators.py:1013
+msgid "respondent"
+msgstr ""
+
+#: services/crisalid/relators.py:1014
+msgid "restorationist"
+msgstr ""
+
+#: services/crisalid/relators.py:1015
+msgid "respondent-appellant"
+msgstr ""
+
+#: services/crisalid/relators.py:1016
+msgid "research team head"
+msgstr ""
+
+#: services/crisalid/relators.py:1017
+msgid "research team member"
+msgstr ""
+
+#: services/crisalid/relators.py:1018
+msgid "remix artist"
+msgstr ""
+
+#: services/crisalid/relators.py:1019
+msgid "scientific advisor"
+msgstr ""
+
+#: services/crisalid/relators.py:1020
+msgid "scenarist"
+msgstr ""
+
+#: services/crisalid/relators.py:1021
+msgid "sculptor"
+msgstr ""
+
+#: services/crisalid/relators.py:1022
+msgid "scribe"
+msgstr ""
+
+#: services/crisalid/relators.py:1023
+msgid "sound engineer"
+msgstr ""
+
+#: services/crisalid/relators.py:1024
+msgid "sound designer"
+msgstr ""
+
+#: services/crisalid/relators.py:1025
+msgid "secretary"
+msgstr ""
+
+#: services/crisalid/relators.py:1026
+msgid "special effects provider"
+msgstr ""
+
+#: services/crisalid/relators.py:1027
+msgid "stage director"
+msgstr ""
+
+#: services/crisalid/relators.py:1028
+msgid "signer"
+msgstr ""
+
+#: services/crisalid/relators.py:1029
+msgid "supporting host"
+msgstr ""
+
+#: services/crisalid/relators.py:1030
+msgid "seller"
+msgstr ""
+
+#: services/crisalid/relators.py:1031
+msgid "singer"
+msgstr ""
+
+#: services/crisalid/relators.py:1032
+msgid "speaker"
+msgstr ""
+
+#: services/crisalid/relators.py:1033
+msgid "sponsor"
+msgstr ""
+
+#: services/crisalid/relators.py:1034
+msgid "second party"
+msgstr ""
+
+#: services/crisalid/relators.py:1035
+msgid "surveyor"
+msgstr ""
+
+#: services/crisalid/relators.py:1036
+msgid "set designer"
+msgstr ""
+
+#: services/crisalid/relators.py:1037
+msgid "setting"
+msgstr ""
+
+#: services/crisalid/relators.py:1038
+msgid "storyteller"
+msgstr ""
+
+#: services/crisalid/relators.py:1039
+msgid "stage manager"
+msgstr ""
+
+#: services/crisalid/relators.py:1040
+msgid "standards body"
+msgstr ""
+
+#: services/crisalid/relators.py:1041
+msgid "stereotyper"
+msgstr ""
+
+#: services/crisalid/relators.py:1042
+msgid "software developer"
+msgstr ""
+
+#: services/crisalid/relators.py:1043
+msgid "technical advisor"
+msgstr ""
+
+#: services/crisalid/relators.py:1044
+msgid "television writer"
+msgstr ""
+
+#: services/crisalid/relators.py:1045
+msgid "technical director"
+msgstr ""
+
+#: services/crisalid/relators.py:1046
+msgid "teacher"
+msgstr ""
+
+#: services/crisalid/relators.py:1047
+msgid "thesis advisor"
+msgstr ""
+
+#: services/crisalid/relators.py:1048
+msgid "television director"
+msgstr ""
+
+#: services/crisalid/relators.py:1049
+msgid "television guest"
+msgstr ""
+
+#: services/crisalid/relators.py:1050
+msgid "television host"
+msgstr ""
+
+#: services/crisalid/relators.py:1051
+msgid "television producer"
+msgstr ""
+
+#: services/crisalid/relators.py:1052
+msgid "transcriber"
+msgstr ""
+
+#: services/crisalid/relators.py:1053
+msgid "translator"
+msgstr ""
+
+#: services/crisalid/relators.py:1054
+msgid "type designer"
+msgstr ""
+
+#: services/crisalid/relators.py:1055
+msgid "typographer"
+msgstr ""
+
+#: services/crisalid/relators.py:1056
+msgid "university place"
+msgstr ""
+
+#: services/crisalid/relators.py:1057
+msgid "voice actor"
+msgstr ""
+
+#: services/crisalid/relators.py:1058
+msgid "videographer"
+msgstr ""
+
+#: services/crisalid/relators.py:1059
+msgid "visual effects provider"
+msgstr ""
+
+#: services/crisalid/relators.py:1060
+msgid "vocalist"
+msgstr ""
+
+#: services/crisalid/relators.py:1061
+msgid "writer of added commentary"
+msgstr ""
+
+#: services/crisalid/relators.py:1062
+msgid "writer of added lyrics"
+msgstr ""
+
+#: services/crisalid/relators.py:1063
+msgid "writer of accompanying material"
+msgstr ""
+
+#: services/crisalid/relators.py:1064
+msgid "writer of added text"
+msgstr ""
+
+#: services/crisalid/relators.py:1065
+msgid "writer of afterword"
+msgstr ""
+
+#: services/crisalid/relators.py:1066
+msgid "woodcutter"
+msgstr ""
+
+#: services/crisalid/relators.py:1067
+msgid "wood engraver"
+msgstr ""
+
+#: services/crisalid/relators.py:1068
+msgid "writer of film story"
+msgstr ""
+
+#: services/crisalid/relators.py:1069
+msgid "writer of intertitles"
+msgstr ""
+
+#: services/crisalid/relators.py:1070
+msgid "writer of foreword"
+msgstr ""
+
+#: services/crisalid/relators.py:1071
+#, fuzzy
+#| msgid "Go to instruction"
+msgid "writer of introduction"
+msgstr "Mine juhise juurde"
+
+#: services/crisalid/relators.py:1072
+msgid "witness"
+msgstr ""
+
+#: services/crisalid/relators.py:1073
+msgid "writer of preface"
+msgstr ""
+
+#: services/crisalid/relators.py:1074
+msgid "writer of supplementary textual content"
+msgstr ""
+
+#: services/crisalid/relators.py:1075
+msgid "writer of television story"
 msgstr ""
 
 #: services/google/exceptions.py:7

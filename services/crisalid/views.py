@@ -26,6 +26,7 @@ from services.crisalid.models import (
     Identifier,
     Researcher,
 )
+from services.crisalid.relators import RolesChoices
 from services.crisalid.serializers import (
     DocumentAnalyticsSerializer,
     DocumentSerializer,
@@ -50,7 +51,7 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         name="roles",
         description="roles of researcher",
         required=False,
-        enum=DocumentContributor.RolesChoices,
+        enum=RolesChoices,
         many=True,
     ),
 ]
