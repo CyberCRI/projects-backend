@@ -716,5 +716,4 @@ JAZZMIN_UI_TWEAKS = {
 ##############
 #  CRISALID  #
 ##############
-ENABLE_CRISALID_BUS = True
-# os.getenv("ENABLE_CRISALID_BUS", "false").lower() == "true"
+ENABLE_CRISALID_BUS = os.getenv("ENABLE_CRISALID_BUS", "false").lower() == "true"
