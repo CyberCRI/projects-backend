@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
+from apps.commons.fields import PrivacySettingProtectedMethodField
 from services.crisalid.models import Document, Identifier, Researcher
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -19,18 +20,27 @@ class ProjectUserMinimalSerializer(serializers.ModelSerializer):
 class IdentifierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Identifier
-        fields = "__all__"
+        exclude = ("id",)
 
 
 class ResearcherSerializerLight(serializers.ModelSerializer):
     documents = serializers.SerializerMethodField()
+    identifiers = PrivacySettingProtectedMethodField(privacy_field="socials")
 
     class Meta:
         model = Researcher
-        fields = ("id", "display_name", "documents")
+        fields = ("id", "display_name", "documents", "identifiers")
 
     def get_documents(self, instance):
         return instance.documents.group_count()
+
+    def get_identifiers(self, instance):
+        identifiers = []
+        for identifier in instance.identifiers.all():
+            if identifier.harvester in Researcher.PRIVACY_HARVESTER:
+                continue
+            identifiers.append(identifier)
+        return IdentifierSerializer(identifiers, many=True).data
 
 
 class ResearcherSerializer(serializers.ModelSerializer):

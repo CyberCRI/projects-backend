@@ -31,12 +31,12 @@ class PopulateDocument(AbstractPopulate):
     def sanitize_roles(self, data: list[str]) -> list[str]:
         """return all roles from relators json"""
         roles = []
-        for role in data:
-            role = role.lower()
-            if role in relators.dict_relators:
-                roles.append(role)
+        for url_role in data:
+            url_role = url_role.lower()
+            if url_role in relators.dict_relators:
+                roles.append(relators.dict_relators[url_role]["key"])
             else:
-                logger.warning("Invalid role %s", role)
+                logger.warning("Invalid role %s", url_role)
 
         return roles
 

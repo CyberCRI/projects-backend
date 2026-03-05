@@ -62,7 +62,7 @@ class TestCrisalidTasks(test.TestCase):
 
         fields = {
             "identifiers": [
-                {"type": identifier.harvester, "value": identifier.value}
+                {"harvester": identifier.harvester, "value": identifier.value}
                 for identifier in researcher.identifiers.all()
             ]
         }
@@ -78,7 +78,7 @@ class TestCrisalidTasks(test.TestCase):
         fields = {
             "identifiers": [
                 {
-                    "type": identifier.harvester,
+                    "harvester": identifier.harvester,
                     "value": identifier.value + "rand",
                 }
                 for identifier in researcher.identifiers.all()
@@ -101,7 +101,7 @@ class TestCrisalidTasks(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
 
@@ -155,18 +155,18 @@ class TestCrisalidTasks(test.TestCase):
                             ],
                             "identifiers": [
                                 {
-                                    "type": "eppn",
+                                    "harvester": "eppn",
                                     "value": "marty.mcfly@non-de-zeus.fr",
                                 },
-                                {"type": "idref", "value": "4545454545454"},
-                                {"type": "local", "value": "v55555"},
+                                {"harvester": "idref", "value": "4545454545454"},
+                                {"harvester": "local", "value": "v55555"},
                             ],
                         }
                     ],
                 }
             ],
             "recorded_by": [
-                {"type": Identifier.Harvester.HAL.value, "value": "hals-truc"}
+                {"harvester": Identifier.Harvester.HAL.value, "value": "hals-truc"}
             ],
         }
 

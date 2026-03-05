@@ -17,7 +17,7 @@ class RolesChoices(models.TextChoices):
 """
 
 for key, value in sorted(choices, key=lambda x: x[0]):
-    template += f'    {key.upper()} = "{key.upper()}", _("{value}")\n'
+    template += f'    {key.upper()} = "{key.lower()}", _("{value}")\n'
 
 with open(os.path.join(BASE, "choices.py"), "w") as f:
     f.write(template)

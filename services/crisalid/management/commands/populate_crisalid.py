@@ -44,14 +44,22 @@ class Command(BaseCommand):
         parser.add_argument("--limit", help="limit for graphql", default=100)
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
 
-    def delete_crisalid_models(self):
-        models = [
-            DocumentEmbedding,
-            DocumentContributor,
-            Identifier,
-            Researcher,
-            Document,
-        ]
+    def delete_crisalid_models(self, command):
+        models = []
+
+        if command in ("all", "document"):
+            models.extend(
+                (
+                    Document,
+                    DocumentEmbedding,
+                    DocumentContributor,
+                )
+            )
+        if command in ("all", "researcher"):
+            models.append(Researcher)
+
+        if command in ("all",):
+            models.append(Identifier)
 
         for model in models:
             deleted = model.objects.all().delete()
@@ -90,10 +98,11 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         config = CrisalidConfig.objects.get(organization__code=options["organization"])
-        if options["delete"]:
-            self.delete_crisalid_models()
-
         command = options["command"]
+        if options["delete"]:
+            self.delete_crisalid_models(command)
+            return
+
         service = CrisalidService(config)
 
         if command in ("all", "document"):

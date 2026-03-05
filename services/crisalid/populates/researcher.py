@@ -66,17 +66,17 @@ class PopulateResearcher(AbstractPopulate):
     def single(self, data: dict) -> Researcher | None:
         researcher_identifiers = self.populate_identifiers.multiple(data["identifiers"])
 
-        # researcher withtout any identifiers no neeeeeeed to be created
-        if not researcher_identifiers:
-            return None
-
         # remove local/eppn identifiers to match only hal/eppn/orcid ..ect
         researcher_identifiers_without_local = [
             identifier
             for identifier in researcher_identifiers
-            if identifier.harvester
-            not in [Identifier.Harvester.LOCAL, Identifier.Harvester.EPPN]
+            if identifier.harvester not in Researcher.PRIVACY_HARVESTER
         ]
+
+        # researcher withtout any identifiers no neeeeeeed to be created
+        if not researcher_identifiers_without_local:
+            return None
+
         researcher = self.cache.from_identifiers(
             Researcher, researcher_identifiers_without_local
         )
