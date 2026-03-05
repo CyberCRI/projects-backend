@@ -108,7 +108,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:157 apps/projects/models.py:164
+#: apps/accounts/models.py:158 apps/projects/models.py:164
 msgid "visibility"
 msgstr ""
 

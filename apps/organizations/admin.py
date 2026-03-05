@@ -37,6 +37,7 @@ class OrganizationAdmin(TranslateObjectAdminMixin, admin.ModelAdmin):
                 redirect_uris.append(f"{obj.website_url}/*")
                 data["redirectUris"] = redirect_uris
                 KeycloakService.update_client(client_id, data)
+        KeycloakService.create_organization_group(obj)
         super().save_model(request, obj, form, change)
 
 

@@ -198,18 +198,19 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         """
         Returns the object the view is displaying.
 
-        Overridden to add the organization role to the user if they have logged in
-        through an IdP for the first time.
+        Overridden to sync organizations if one was added through another app and sent
+        through the keycloak groups but not yet added to the user groups here.
 
         This would be better if it was done during authentication but it slows down
         every authenticated request instead of just this one.
 
-        This might cause some issues on the first login, because some other requests
-        might be made before this one and the organization role would not be added yet.
+        This might cause some issues on the first login after the role is given, because
+        some other requests might be made before this one and the organization role
+        would not be added yet.
         """
         instance: ProjectUser = super().get_object()
         if self.request.user.is_authenticated and instance.id == self.request.user.id:
-            instance = instance.add_idp_organizations()
+            instance.sync_groups_from_keycloak()
         return instance
 
     def get_serializer_class(self):
@@ -394,6 +395,7 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             keycloak_account = KeycloakService.create_user(
                 instance, self.request.data.get("password")
             )
+            KeycloakService.set_user_keycloak_groups(keycloak_account)
         update_new_user_pending_access_requests.delay(
             instance.id, redirect_organization_code
         )

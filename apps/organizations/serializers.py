@@ -131,6 +131,7 @@ class OrganizationAddTeamMembersSerializer(serializers.Serializer):
             for user in users:
                 user.groups.remove(*organization.groups.filter(users=user))
                 user.groups.add(group)
+                user.add_to_keycloak_group(organization)
         return validated_data
 
 
@@ -150,6 +151,7 @@ class OrganizationRemoveTeamMembersSerializer(serializers.Serializer):
         users = validated_data.get("users", [])
         for user in users:
             user.groups.remove(*organization.groups.filter(users=user))
+            user.remove_from_keycloak_group(organization)
         return validated_data
 
 
