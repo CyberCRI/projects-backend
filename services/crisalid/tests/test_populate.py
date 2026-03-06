@@ -26,7 +26,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
 
@@ -70,7 +70,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
@@ -104,7 +104,7 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value}
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value}
             ],
         }
         # create same object in db
@@ -115,7 +115,7 @@ class TestPopulateResearcher(test.TestCase):
         researcher.identifiers.add(iden)
 
         data["identifiers"].append(
-            {"value": "000-666-999", "type": Identifier.Harvester.ORCID.value}
+            {"value": "000-666-999", "harvester": Identifier.Harvester.ORCID.value}
         )
         self.popu.single(data)
 
@@ -139,10 +139,10 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
                 {
                     "value": "eppn@lpi.com",
-                    "type": Identifier.Harvester.EPPN.value,
+                    "harvester": Identifier.Harvester.EPPN.value,
                 },
             ],
         }
@@ -168,10 +168,10 @@ class TestPopulateResearcher(test.TestCase):
                 }
             ],
             "identifiers": [
-                {"value": "hals-truc", "type": Identifier.Harvester.HAL.value},
+                {"value": "hals-truc", "harvester": Identifier.Harvester.HAL.value},
                 {
                     "value": "eppn@lpi.com",
-                    "type": Identifier.Harvester.EPPN.value,
+                    "harvester": Identifier.Harvester.EPPN.value,
                 },
             ],
         }
@@ -229,18 +229,18 @@ class TestPopulateDocument(test.TestCase):
                             ],
                             "identifiers": [
                                 {
-                                    "type": "eppn",
+                                    "harvester": "eppn",
                                     "value": "marty.mcfly@non-de-zeus.fr",
                                 },
-                                {"type": "idref", "value": "4545454545454"},
-                                {"type": "local", "value": "v55555"},
+                                {"harvester": "idref", "value": "4545454545454"},
+                                {"harvester": "local", "value": "v55555"},
                             ],
                         }
                     ],
                 }
             ],
             "recorded_by": [
-                {"type": Identifier.Harvester.HAL.value, "value": "hals-truc"}
+                {"harvester": Identifier.Harvester.HAL.value, "value": "hals-truc"}
             ],
         }
 
@@ -282,11 +282,11 @@ class TestPopulateDocument(test.TestCase):
                             ],
                             "identifiers": [
                                 {
-                                    "type": "eppn",
+                                    "harvester": "eppn",
                                     "value": "marty.mcfly@non-de-zeus.fr",
                                 },
-                                {"type": "idref", "value": "4545454545454"},
-                                {"type": "local", "value": "v55555"},
+                                {"harvester": "idref", "value": "4545454545454"},
+                                {"harvester": "local", "value": "v55555"},
                             ],
                         }
                     ],
@@ -357,8 +357,6 @@ class TestPopulateDocument(test.TestCase):
             Document.DocumentType.UNKNOWN.value,
         )
         self.assertEqual(
-            self.popu.sanitize_document_type(
-                Document.DocumentType.AUDIOVISUAL_DOCUMENT.value
-            ),
-            Document.DocumentType.AUDIOVISUAL_DOCUMENT.value,
+            self.popu.sanitize_document_type(Document.DocumentType.PRESENTATION.value),
+            Document.DocumentType.PRESENTATION.value,
         )

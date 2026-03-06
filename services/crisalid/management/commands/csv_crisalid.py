@@ -32,11 +32,11 @@ class Command(BaseCommand):
                 "main_research_structure",
                 "tracking_id",
                 "eppn",
-                "idhal_s",
-                "idhal_i",
+                "idhals",
+                "idhali",
                 "orcid",
                 "idref",
-                "scopus_eid",
+                "scopus",
                 "institution_identifier",
                 "institution_id_nomenclature",
                 "position",
@@ -69,15 +69,15 @@ class Command(BaseCommand):
                     # eppn
                     identifiers.get(Identifier.Harvester.EPPN.value, ""),
                     # idhal_s,
-                    "",
+                    identifiers.get(Identifier.Harvester.IDHALS.value, ""),
                     # idhal_i,
-                    "",
+                    identifiers.get(Identifier.Harvester.IDHALI.value, ""),
                     # orcid
                     identifiers.get(Identifier.Harvester.ORCID.value, ""),
                     # idref
                     identifiers.get(Identifier.Harvester.IDREF.value, ""),
                     # scopus_eid
-                    "",
+                    identifiers.get(Identifier.Harvester.SCOPUS.value, ""),
                     # institution_identifier
                     "",
                     # institution_id_nomenclature

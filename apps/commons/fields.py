@@ -13,6 +13,7 @@ from rest_framework.serializers import BaseSerializer
 
 from apps.accounts.models import PrivacySettings, ProjectUser
 from apps.accounts.utils import get_superadmins_group
+from services.crisalid.models import Researcher
 
 
 @extend_schema_field(OpenApiTypes.UUID)
@@ -170,6 +171,9 @@ class PrivacySettingFieldMixin:
     def _get_user(self, value):
         if isinstance(value, ProjectUser):
             return value
+        if isinstance(value, Researcher):
+            return value.user
+
         user_data = getattr(self.parent, "instance", None) or getattr(
             self.parent, "queryset", None
         )

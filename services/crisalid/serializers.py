@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
 from apps.accounts.models import ProjectUser
+from apps.commons.fields import PrivacySettingProtectedMethodField
 from services.crisalid.models import Document, Identifier, Researcher
 from services.translator.serializers import AutoTranslatedModelSerializer
 
@@ -19,44 +20,41 @@ class ProjectUserMinimalSerializer(serializers.ModelSerializer):
 class IdentifierSerializer(serializers.ModelSerializer):
     class Meta:
         model = Identifier
-        fields = "__all__"
+        exclude = ("id",)
 
 
-class ResearcherSerializerLight(serializers.ModelSerializer):
-    documents = serializers.SerializerMethodField()
+class ResearcherSerializer(serializers.ModelSerializer):
+    user = ProjectUserMinimalSerializer()
+    # TODO(remi): change privacy field for identifiers (not based in socials)
+    identifiers = PrivacySettingProtectedMethodField(privacy_field="socials")
 
     class Meta:
         model = Researcher
-        fields = ("id", "display_name", "documents")
+        fields = ("id", "display_name", "identifiers", "user")
+
+    def get_identifiers(self, instance):
+        """remove privacy identifiers (eppn/local)"""
+        identifiers = []
+        for identifier in instance.identifiers.all():
+            if identifier.harvester in Researcher.PRIVACY_HARVESTER:
+                continue
+            identifiers.append(identifier)
+        return IdentifierSerializer(identifiers, many=True).data
+
+
+class ResearcherSerializerLight(ResearcherSerializer):
+    documents = serializers.SerializerMethodField()
+
+    class Meta(ResearcherSerializer.Meta):
+        fields = ("id", "display_name", "documents", "identifiers")
 
     def get_documents(self, instance):
         return instance.documents.group_count()
 
 
-class ResearcherSerializer(serializers.ModelSerializer):
-    user = ProjectUserMinimalSerializer()
-    identifiers = IdentifierSerializer(many=True)
-    display_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Researcher
-        fields = ("id", "user", "identifiers", "display_name")
-
-    def get_display_name(self, instance):
-        return str(instance)
-
-
 class ResearcherDocumentsSerializer(ResearcherSerializer):
-    user = ProjectUserMinimalSerializer()
-    identifiers = IdentifierSerializer(many=True)
-    display_name = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Researcher
-        fields = ("identifiers", "display_name", "user", "id")
-
-    def get_display_name(self, instance):
-        return str(instance)
+    class Meta(ResearcherSerializer.Meta):
+        fields = ("id", "user", "display_name")
 
 
 class DocumentLightSerializer(AutoTranslatedModelSerializer):

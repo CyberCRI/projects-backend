@@ -2,6 +2,7 @@ import json
 from unittest.mock import Mock, patch
 
 from django import test
+from django.conf import settings
 
 from services.crisalid.bus.client import CrisalidBusClient
 from services.crisalid.bus.constant import CrisalidEventEnum, CrisalidTypeEnum
@@ -126,6 +127,7 @@ class TestCrisalidBus(test.TestCase):
 
 @patch("services.crisalid.bus.runner.threading")
 @patch("services.crisalid.bus.runner.CrisalidBusClient")
+@patch.object(settings, "ENABLE_CRISALID_BUS", True)
 class TestCrisalidThread(test.TestCase):
     @classmethod
     def setUpClass(cls):

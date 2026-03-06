@@ -1,6 +1,9 @@
+from typing import Optional
+
 from services.crisalid.models import Identifier
 
 from .base import AbstractPopulate
+from .logger import logger
 
 
 class PopulateIdentifier(AbstractPopulate):
@@ -13,22 +16,25 @@ class PopulateIdentifier(AbstractPopulate):
     }
     """
 
-    def sanitize_harvester(self, harvester: str) -> str:
-        # TODO change when crisalid is ok with all identifiers
-        # harvester can be "orcid_id" or "orcid"
-        if harvester == "orcid_id":
-            return Identifier.Harvester.ORCID
-
+    def sanitize_harvester(self, harvester: str) -> Optional[str]:
+        """check if harvester is a valid identifier"""
         if harvester not in Identifier.Harvester:
             return None
 
         return harvester
 
     def single(self, data: dict) -> Identifier | None:
-        harvester = self.sanitize_harvester(self.sanitize_string(data["type"]).lower())
+        harvester = self.sanitize_harvester(
+            self.sanitize_string(data["harvester"]).lower()
+        )
         value = self.sanitize_string(data["value"])
 
         if not all((harvester, value)):
+            logger.error(
+                "Invalid Identifier: harvester=%s value=%s",
+                repr(harvester),
+                repr(value),
+            )
             return None
 
         identifier = self.cache.model(Identifier, value=value, harvester=harvester)
