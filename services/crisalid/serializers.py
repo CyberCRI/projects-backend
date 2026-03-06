@@ -23,16 +23,14 @@ class IdentifierSerializer(serializers.ModelSerializer):
         exclude = ("id",)
 
 
-class ResearcherSerializerLight(serializers.ModelSerializer):
-    documents = serializers.SerializerMethodField()
+class ResearcherSerializer(serializers.ModelSerializer):
+    user = ProjectUserMinimalSerializer()
+    # TODO(remi): change privacy field for identifiers (not based in socials)
     identifiers = PrivacySettingProtectedMethodField(privacy_field="socials")
 
     class Meta:
         model = Researcher
-        fields = ("id", "display_name", "documents", "identifiers")
-
-    def get_documents(self, instance):
-        return instance.documents.group_count()
+        fields = ("id", "display_name", "identifiers", "user")
 
     def get_identifiers(self, instance):
         """remove privacy identifiers (eppn/local)"""
@@ -44,25 +42,19 @@ class ResearcherSerializerLight(serializers.ModelSerializer):
         return IdentifierSerializer(identifiers, many=True).data
 
 
-class ResearcherSerializer(serializers.ModelSerializer):
-    user = ProjectUserMinimalSerializer()
-    identifiers = IdentifierSerializer(many=True)
-    display_name = serializers.SerializerMethodField()
+class ResearcherSerializerLight(ResearcherSerializer):
+    documents = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Researcher
-        fields = ("id", "user", "identifiers", "display_name")
+    class Meta(ResearcherSerializer.Meta):
+        fields = ("id", "display_name", "documents", "identifiers")
 
-    def get_display_name(self, instance):
-        return str(instance)
+    def get_documents(self, instance):
+        return instance.documents.group_count()
 
 
 class ResearcherDocumentsSerializer(ResearcherSerializer):
-    user = ProjectUserMinimalSerializer()
-
-    class Meta:
-        model = Researcher
-        fields = ("display_name", "user", "id")
+    class Meta(ResearcherSerializer.Meta):
+        fields = ("id", "user", "display_name")
 
 
 class DocumentLightSerializer(AutoTranslatedModelSerializer):
