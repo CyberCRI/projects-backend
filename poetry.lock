@@ -2953,14 +2953,14 @@ files = [
 
 [[package]]
 name = "mistralai"
-version = "1.10.0"
+version = "1.12.4"
 description = "Python Client SDK for the Mistral AI API."
 optional = false
-python-versions = ">=3.9"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "mistralai-1.10.0-py3-none-any.whl", hash = "sha256:fd37d15f077375f77cbfbbb57abed6b2c6ae0a3db39cf4815400742441b3b60a"},
-    {file = "mistralai-1.10.0.tar.gz", hash = "sha256:c92e9a5ec7057577b326d47a4b1c186f42660bccbe95167fc25c686fe658ad23"},
+    {file = "mistralai-1.12.4-py3-none-any.whl", hash = "sha256:7b69fcbc306436491ad3377fbdead527c9f3a0ce145ec029bf04c6308ff2cca6"},
+    {file = "mistralai-1.12.4.tar.gz", hash = "sha256:e52b53bab58025dcd208eeac13e3c3df5778d4112eeca1f08124096c7738929f"},
 ]
 
 [package.dependencies]
@@ -2970,15 +2970,15 @@ invoke = ">=2.2.0,<3.0.0"
 opentelemetry-api = ">=1.33.1,<2.0.0"
 opentelemetry-exporter-otlp-proto-http = ">=1.37.0,<2.0.0"
 opentelemetry-sdk = ">=1.33.1,<2.0.0"
-opentelemetry-semantic-conventions = ">=0.59b0,<0.60"
 pydantic = ">=2.10.3"
 python-dateutil = ">=2.8.2"
 pyyaml = ">=6.0.2,<7.0.0"
 typing-inspection = ">=0.4.0"
 
 [package.extras]
-agents = ["authlib (>=1.5.2,<2.0)", "griffe (>=1.7.3,<2.0)", "mcp (>=1.0,<2.0) ; python_version >= \"3.10\""]
+agents = ["authlib (>=1.5.2,<2.0)", "griffe (>=1.7.3,<2.0)", "mcp (>=1.0,<2.0)"]
 gcp = ["google-auth (>=2.27.0)", "requests (>=2.32.3)"]
+realtime = ["websockets (>=13.0)"]
 
 [[package]]
 name = "mixpanel-utils"
