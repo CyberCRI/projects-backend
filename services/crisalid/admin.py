@@ -1,11 +1,17 @@
+import json
 from contextlib import suppress
 
+from django import forms
 from django.contrib import admin, messages
+from django.contrib.admin.widgets import AdminFileWidget
+from django.core.exceptions import ValidationError
 from django.db.models import Count
+from django.shortcuts import render
+from django.views.generic import TemplateView
 
 from apps.accounts.models import ProjectUser
-from apps.commons.admin import TranslateObjectAdminMixin
-from services.crisalid.tasks import vectorize_documents
+from apps.commons.admin import ExtraAdminMixins, TranslateObjectAdminMixin
+from services.crisalid.tasks import load_apollo_data, vectorize_documents
 
 from .models import (
     CrisalidConfig,
@@ -37,8 +43,8 @@ class IdentifierAdmin(admin.ModelAdmin):
             super()
             .get_queryset(request)
             .prefetch_related("researchers", "documents")
-            .annotate(documents_count=Count("documents__id", distinct=True))
-            .annotate(researchers_count=Count("researchers__id", distinct=True))
+            .annotate(documents_count=Count("documents", distinct=True))
+            .annotate(researchers_count=Count("researchers", distinct=True))
         )
 
     @admin.display(description="researchers assosiate", ordering="researchers_count")
@@ -92,8 +98,8 @@ class DocumentAdmin(TranslateObjectAdminMixin, IdentifierAdminMixin, admin.Model
             super()
             .get_queryset(request)
             .prefetch_related("contributors", "identifiers")
-            .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(contributors_count=Count("contributors__id", distinct=True))
+            .annotate(identifiers_count=Count("identifiers", distinct=True))
+            .annotate(contributors_count=Count("contributors", distinct=True))
         )
 
     @admin.display(description="contributors count", ordering="contributors_count")
@@ -125,15 +131,15 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
             .get_queryset(request)
             .select_related("user")
             .prefetch_related("identifiers", "documents")
-            .annotate(identifiers_count=Count("identifiers__id"))
-            .annotate(documents_count=Count("documents__id", distinct=True))
+            .annotate(identifiers_count=Count("identifiers", distinct=True))
+            .annotate(documents_count=Count("documents", distinct=True))
         )
 
     @admin.action(description="assign researcher on projects")
     def assign_user(self, request, queryset):
         """Assign research to user if matching user/eppn"""
         researcher_updated = []
-        created = assigned = notfound = 0
+        assigned = notfound = 0
 
         for research in queryset.prefetch_related("identifiers").select_related("user"):
             # already set
@@ -141,7 +147,7 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
                 continue
 
             for identifier in research.identifiers.all():
-                if identifier.harvester != Identifier.Harvester.LOCAL.value:
+                if identifier.harvester != Identifier.Harvester.EPPN.value:
                     continue
 
                 user = None
@@ -150,26 +156,17 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
                     user = ProjectUser.objects.get(email=email)
 
                 if not user:
-                    created += 1
-                    user = ProjectUser(
-                        email=email,
-                        given_name=research.given_name,
-                        family_name=research.family_name,
-                    )
-                    user.save()
-                else:
-                    assigned += 1
+                    continue
 
                 research.user = user
                 researcher_updated.append(research)
+                assigned += 1
                 break
             else:
                 notfound += 1
 
         Researcher.objects.bulk_update(researcher_updated, fields=["user"])
 
-        if created:
-            messages.add_message(request, messages.INFO, f"Create {created} user.")
         if assigned:
             messages.add_message(request, messages.INFO, f"Assign {assigned} user.")
         if notfound:
@@ -182,15 +179,6 @@ class ResearcherAdmin(IdentifierAdminMixin, admin.ModelAdmin):
     @admin.display(description="documents count", ordering="documents_count")
     def get_documents(self, instance):
         return instance.documents_count
-
-    @admin.display(description="identifiers count", ordering="identifiers_count")
-    def get_identifiers(self, instance):
-        # list all harvester name from this profile
-        result = [o.harvester for o in instance.identifiers.all()]
-        if not result:
-            return None
-
-        return f"{', '.join(result)} ({len(result)})"
 
 
 @admin.register(CrisalidConfig)
@@ -227,3 +215,55 @@ class CrisalidConfigAdmin(admin.ModelAdmin):
         messages.add_message(
             request, messages.INFO, f"CrisalidBus listener stoped ({total})."
         )
+
+
+class CrisalidApolloImporterForm(forms.Form):
+    config = forms.ModelChoiceField(
+        queryset=CrisalidConfig.objects.all(), required=True
+    )
+    file = forms.FileField(
+        required=True,
+        label="apollo files",
+        widget=AdminFileWidget(),
+    )
+
+    def clean_file(self):
+        """check if file is a valid json"""
+        data = self.cleaned_data
+        content = data["file"].read()
+        try:
+            return json.loads(content)
+        except (TypeError, ValueError):
+            raise ValidationError("Invalid json files")
+
+
+class CrisalidApolloImporter(ExtraAdminMixins, TemplateView):
+    template_name = "importer.html"
+
+    def get_context_data(self, **kw):
+        ctx = super().get_context_data(**kw)
+        ctx["form"] = CrisalidApolloImporterForm()
+        return ctx
+
+    def post(self, request, **kw):
+        """check form and run celery task to import json/apollo result files"""
+        context = self.get_context_data()
+
+        form = CrisalidApolloImporterForm(request.POST, request.FILES)
+        context["form"] = form
+
+        if not form.is_valid():
+            messages.add_message(request, messages.ERROR, "Error in forms")
+            return render(request, self.template_name, context)
+
+        config_pk = form.cleaned_data["config"].pk
+        content = form.cleaned_data["file"]
+        load_apollo_data.apply_async((config_pk, content))
+
+        messages.add_message(request, messages.SUCCESS, "taks are sended")
+        return render(request, self.template_name, context)
+
+
+admin.site.register_extras(
+    "Crisalid", "Apollo importer", CrisalidApolloImporter, is_superuser=True
+)
