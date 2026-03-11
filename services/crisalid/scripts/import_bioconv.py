@@ -64,7 +64,7 @@ def fetch_image(url):
         if "image" not in response.headers["Content-Type"]:
             return None
         return response.content
-    except Exception:
+    except Exception:  # noqa: PIE786
         return None
 
 
@@ -166,17 +166,17 @@ def populate_image(image_url: str, group: PeopleGroup):
     content_type, _ = mimetypes.guess_file_type(name)
 
     if not content_type:
-        return
+        return False
 
     content = fetch_image(image_url)
     if not content:
-        return
+        return False
 
     # ignore small image
     width, height = PilImage.open(io.BytesIO(content)).size
     if width <= 120 or height <= 120:
         print(width, height, "IGNORED", image_url)
-        return
+        return False
 
     file = SimpleUploadedFile(name=name, content=content, content_type=content_type)
     image = Image(
@@ -234,7 +234,7 @@ def populate_lab(
     tags = set((*lab.get("tags", []), *lab.get("keyword", []), *lab.get("macro", [])))
     populate_tags(tags, group, tags_themes)
 
-    # guardianships (tutelle)
+    # guardianships / tutelle
     guardianships = set((*lab.get("guardianships", []),))
     populate_tags(
         guardianships, group, tags_guardianships, tags_description=GUARDIANSHIPS
