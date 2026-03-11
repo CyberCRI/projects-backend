@@ -1,12 +1,11 @@
 import json
 import math
+import os
 
 from django.core.management.base import BaseCommand
 
 from services.crisalid.interface import CrisalidService
-from services.crisalid.models import (
-    CrisalidConfig,
-)
+from services.crisalid.models import CrisalidConfig
 from services.crisalid.utils.timer import timeit
 
 
@@ -29,8 +28,8 @@ class Command(BaseCommand):
         parser.add_argument("--offset", help="offset for graphql", default=0)
         parser.add_argument("--limit", help="limit for graphql", default=100)
         parser.add_argument("--max", help="max loop for graphql", default=math.inf)
-        parser.add_argument("--ident", help="indent json output", default=None)
-        parser.add_argument("--ouput", help="output directory", default="./")
+        parser.add_argument("--indent", help="indent json output", default=None)
+        parser.add_argument("--output", help="output directory", default="./")
 
     def populate_crisalid(
         self,
@@ -39,10 +38,11 @@ class Command(BaseCommand):
         where: None = None,
         **options,
     ):
+        output = options["output"]
         offset = int(options["offset"])
         limit = int(options["limit"])
         max_elements = float(options["max"])
-        indent = int(options("indent")) if options("indent") else None
+        indent = int(options["indent"]) if options["indent"] else None
         total = 0
 
         with timeit(print, f"Populate All Data from '{query}'"):
@@ -54,7 +54,9 @@ class Command(BaseCommand):
 
                 total += len(data)
 
-                with open(f"{query}_{offset}.json", "w") as f:
+                file = os.path.join(output, f"{query}_{offset}.json")
+                print(f"dump {file} ...")
+                with open(file, "w") as f:
                     json.dump(data, f, indent=indent)
 
                 offset += limit

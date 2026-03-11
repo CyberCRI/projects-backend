@@ -2,6 +2,7 @@ import io
 import json
 import mimetypes
 import os
+import sys
 from contextlib import suppress
 from functools import cache
 from urllib.parse import urlparse
@@ -98,7 +99,7 @@ def populate_member(member: dict, organization: Organization) -> ProjectUser:
                 "family_name": member["last_name"],
             },
         )
-        if not created:
+        if created:
             privacy_settings = user.privacy_settings
             privacy_settings.publication_status = (
                 PrivacySettings.PrivacyChoices.ORGANIZATION.value
@@ -278,6 +279,10 @@ def run(code, file):
         title="Labs Guardianships",
     )
     tags_guardianships.tags.clear()
+
+    res = input(f"Are you sure to import json for {organization!r} ?\n").lower().strip()
+    if res not in ["y", "yes"]:
+        sys.exit("Exit...")
 
     with open(file) as f:
         datas = json.load(f)
