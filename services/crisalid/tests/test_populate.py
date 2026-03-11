@@ -360,3 +360,46 @@ class TestPopulateDocument(test.TestCase):
             self.popu.sanitize_document_type(Document.DocumentType.PRESENTATION.value),
             Document.DocumentType.PRESENTATION.value,
         )
+
+    def test_sanitize_html_content(self):
+        data = {
+            "uid": "05-11-1995-uuid",
+            "document_type": Document.DocumentType.ARTICLE.value,
+            "titles": [{"language": "en", "value": "title <h1>with</h1> html"}],
+            "abstracts": [
+                {"language": "en", "value": "description <h1>with</h1> html"}
+            ],
+            "publication_date": "1999",
+            "has_contributions": [
+                {
+                    "roles": ["http://id.loc.gov/vocabulary/relators/aut"],
+                    "contributor": [
+                        {
+                            "uid": "local-v9034",
+                            "names": [
+                                {
+                                    "first_names": [
+                                        {"value": "Marty", "language": "fr"}
+                                    ],
+                                }
+                            ],
+                            "identifiers": [
+                                {
+                                    "harvester": "eppn",
+                                    "value": "marty.mcfly@non-de-zeus.fr",
+                                },
+                            ],
+                        }
+                    ],
+                }
+            ],
+            "recorded_by": [
+                {"harvester": Identifier.Harvester.HAL.value, "value": "hals-truc"}
+            ],
+        }
+
+        new_obj = self.popu.single(data)
+
+        # html content are removed
+        self.assertEqual(new_obj.description, "description with html")
+        self.assertEqual(new_obj.title, "title with html")

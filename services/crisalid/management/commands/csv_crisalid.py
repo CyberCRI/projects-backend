@@ -21,9 +21,17 @@ class Command(BaseCommand):
         parser.add_argument(
             "command", choices=("researcher", "all"), help="elements to dumps"
         )
-        parser.add_argument("output", default="./", help="output path")
+        parser.add_argument("output", help="output path")
+        parser.add_argument(
+            "--generate-local",
+            help="generate local uid",
+            default=False,
+            action="store_true",
+        )
 
-    def csv_researcher(self, organization: Organization, output: pathlib.Path):
+    def csv_researcher(
+        self, organization: Organization, output: pathlib.Path, generate_local: bool
+    ):
         rows = [
             # headers csv
             [
@@ -46,15 +54,28 @@ class Command(BaseCommand):
             ]
         ]
 
+        local_idx = 0
+
         # fetch all users with eppn
-        for researcher in Researcher.objects.prefetch_related("identifiers").filter(
-            user__groups__in=(organization.get_users(),)
+        for researcher in (
+            Researcher.objects.prefetch_related("identifiers")
+            .select_related("user")
+            .filter(user__groups__in=(organization.get_users(),))
         ):
             # convert identifiers to a dict key/value
             identifiers = {
                 identifier.harvester: identifier.value
                 for identifier in researcher.identifiers.all()
             }
+
+            local = identifiers.get(Identifier.Harvester.LOCAL.value, "")
+            if generate_local:
+                local = f"U_{local_idx}"
+                local_idx += 1
+
+            eppn = identifiers.get(Identifier.Harvester.EPPN.value, "")
+            if not eppn and researcher.user:
+                eppn = researcher.user.email
 
             rows.append(
                 [
@@ -65,9 +86,9 @@ class Command(BaseCommand):
                     # main_research_structure
                     "",
                     # tracking_id
-                    identifiers.get(Identifier.Harvester.LOCAL.value, ""),
+                    local,
                     # eppn
-                    identifiers.get(Identifier.Harvester.EPPN.value, ""),
+                    eppn,
                     # idhal_s,
                     identifiers.get(Identifier.Harvester.IDHALS.value, ""),
                     # idhal_i,
@@ -104,5 +125,7 @@ class Command(BaseCommand):
 
         output = pathlib.Path(options["output"])
 
+        generate_local = options["generate_local"]
+
         if command in ("all", "researcher"):
-            self.csv_researcher(config, output)
+            self.csv_researcher(config.organization, output, generate_local)
