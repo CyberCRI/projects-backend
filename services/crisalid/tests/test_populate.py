@@ -360,13 +360,15 @@ class TestPopulateDocument(test.TestCase):
             self.popu.sanitize_document_type(Document.DocumentType.PRESENTATION.value),
             Document.DocumentType.PRESENTATION.value,
         )
-    
+
     def test_sanitize_html_content(self):
         data = {
             "uid": "05-11-1995-uuid",
             "document_type": Document.DocumentType.ARTICLE.value,
             "titles": [{"language": "en", "value": "title <h1>with</h1> html"}],
-            "abstracts": [{"language": "en", "value": "description <h1>with</h1> html"}],
+            "abstracts": [
+                {"language": "en", "value": "description <h1>with</h1> html"}
+            ],
             "publication_date": "1999",
             "has_contributions": [
                 {

@@ -265,5 +265,8 @@ class CrisalidApolloImporter(ExtraAdminMixins, TemplateView):
 
 
 admin.site.register_extras(
-    "Crisalid", "Apollo importer", CrisalidApolloImporter, is_superuser=True
+    "Crisalid",
+    "Apollo importer",
+    CrisalidApolloImporter,
+    permissions={"superuser": True},
 )

@@ -40,7 +40,7 @@ class PopulateDocument(AbstractPopulate):
                 logger.warning("Invalid role %s", url_role)
 
         return roles
-    
+
     def sanitize_content(self, content: str) -> str:
         """some text from crisalid is wrapped arround html,
         this method remove html content
@@ -61,7 +61,9 @@ class PopulateDocument(AbstractPopulate):
         self.cache.save(
             document,
             title=self.sanitize_content(self.sanitize_languages(data["titles"])),
-            description=self.sanitize_content(self.sanitize_languages(data["abstracts"])),
+            description=self.sanitize_content(
+                self.sanitize_languages(data["abstracts"])
+            ),
             publication_date=self.sanitize_date(data["publication_date"]),
             document_type=self.sanitize_document_type(data["document_type"]),
         )
