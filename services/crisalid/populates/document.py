@@ -1,3 +1,4 @@
+from apps.commons.utils import BeautifulSoupProjects
 from services.crisalid import relators
 from services.crisalid.models import (
     CrisalidConfig,
@@ -39,6 +40,13 @@ class PopulateDocument(AbstractPopulate):
                 logger.warning("Invalid role %s", url_role)
 
         return roles
+    
+    def sanitize_content(self, content: str) -> str:
+        """some text from crisalid is wrapped arround html,
+        this method remove html content
+        """
+
+        return str(BeautifulSoupProjects(content).text)
 
     def single(self, data: dict) -> Document | None:
         """this method create/update only on document from crisalid"""
@@ -52,8 +60,8 @@ class PopulateDocument(AbstractPopulate):
         document = self.cache.from_identifiers(Document, documents_identifiers)
         self.cache.save(
             document,
-            title=self.sanitize_languages(data["titles"]),
-            description=self.sanitize_languages(data["abstracts"]),
+            title=self.sanitize_content(self.sanitize_languages(data["titles"])),
+            description=self.sanitize_content(self.sanitize_languages(data["abstracts"])),
             publication_date=self.sanitize_date(data["publication_date"]),
             document_type=self.sanitize_document_type(data["document_type"]),
         )
