@@ -70,7 +70,8 @@ class KeycloakService:
                 user_realm_name=settings.KEYCLOAK_REALM,
                 verify=True,
             )
-            return service.token
+            service.connection.get_token()
+            return service.connection.token
         except KeycloakAuthenticationError as err:
             raise KeycloakApiAuthenticationError from err
 
