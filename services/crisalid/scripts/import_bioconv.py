@@ -217,11 +217,11 @@ def populate_lab(
 
     group, created = PeopleGroup.objects.update_or_create(
         name=title,
+        parent=parent,
+        organization=organization,
         defaults={
             "short_description": short_description,
             "description": f"<p>{description}</p>" if description else "",
-            "parent": parent,
-            "organization": organization,
         },
     )
     if created:
