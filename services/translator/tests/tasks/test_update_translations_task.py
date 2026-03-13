@@ -1,4 +1,3 @@
-from types import SimpleNamespace
 from unittest.mock import call, patch
 
 from django.conf import settings
@@ -9,7 +8,6 @@ from faker import Faker
 from apps.accounts.factories import PeopleGroupFactory, UserFactory
 from apps.accounts.models import ProjectUser
 from apps.announcements.factories import AnnouncementFactory
-from apps.commons.test import JwtAPITestCase
 from apps.feedbacks.factories import CommentFactory, ReviewFactory
 from apps.files.factories import (
     AttachmentFileFactory,
@@ -45,45 +43,19 @@ from apps.skills.factories import (
 )
 from services.translator.models import AutoTranslatedField
 from services.translator.tasks import automatic_translations
-from services.translator.utils import update_auto_translated_field
+from services.translator.tests.tasks.test_update_translations_task import (
+    MockTranslateTestCase,
+)
 
 faker = Faker()
 
 
-class MockTranslateTestCase(JwtAPITestCase):
-    @classmethod
-    def translator_side_effect(
-        cls, body: list[str], to_language: list[str], text_type: str = "plain"
-    ) -> list[dict]:
-        """
-        This side effect is meant to be used with unittest mock. It will mock every call
-        made to the Azure translator API.
-
-        Arguments
-        ---------
-        - content (str): The text content to be translated.
-        - languages (list of str): The target languages for translation.
-
-        Returns
-        -------
-        - A list of SimpleNamespace objects that simulates the Azure translator API response.
-        """
-
-        return [
-            SimpleNamespace(
-                detected_language=SimpleNamespace(language="en", score=1.0),
-                translations=[
-                    SimpleNamespace(text=f"{lang} : {body[0]}", to=lang)
-                    for lang in to_language
-                ],
-            )
-        ]
-
-
 class UpdateTranslationsTestCase(MockTranslateTestCase):
     @classmethod
-    def setUpTestData(cls) -> None:
+    @patch("azure.ai.translation.text.TextTranslationClient.translate")
+    def setUpTestData(cls, mock_translate) -> None:
         super().setUpTestData()
+        mock_translate.side_effect = cls.translator_side_effect
         cls.organization_data = {
             field: (
                 f"<p>{faker.word()}</p>"
@@ -214,9 +186,8 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
             cls.organization_2,
             cls.organization_3,
         ]:
-            TermsAndConditions.objects.update_or_create(
-                organization=organization, defaults=data
-            )
+            TermsAndConditions.objects.get_or_create(organization=organization)
+            TermsAndConditions.objects.filter(organization=organization).update(**data)
         cls.instances.append(
             {
                 "model": TermsAndConditions,
@@ -457,7 +428,7 @@ class MiscTranslationTestCase(MockTranslateTestCase):
             field_name="description",
         )
 
-        update_auto_translated_field(field)
+        field.update_translation()
         mock_translate.assert_has_calls([])
 
     @patch("azure.ai.translation.text.TextTranslationClient.translate")
@@ -482,7 +453,7 @@ class MiscTranslationTestCase(MockTranslateTestCase):
             object_id=project.pk,
             field_name="description",
         )
-        update_auto_translated_field(field)
+        field.update_translation()
         mock_translate.assert_has_calls(
             [
                 call(

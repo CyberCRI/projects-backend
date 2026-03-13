@@ -67,6 +67,7 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
 
     auto_translated_fields: list[str] = []
     auto_translate_all_languages: bool = False
+    auto_translate_instantly: bool = False
 
     _auto_translated_fields: list[str] = []
     _html_auto_translated_fields: list[str] = []
@@ -103,12 +104,14 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
                 or getattr(self, field)
                 != self._original_auto_translated_fields_values[field]
             ):
-                AutoTranslatedField.objects.update_or_create(
+                auto_translated_field, _ = AutoTranslatedField.objects.update_or_create(
                     content_type=content_type,
                     object_id=str(self.pk),
                     field_name=field,
                     defaults={"up_to_date": False, "field_type": field_type},
                 )
+                if self.auto_translate_instantly:
+                    auto_translated_field.update_translation()
 
     def _delete_auto_translated_fields(self):
         AutoTranslatedField.objects.filter(
