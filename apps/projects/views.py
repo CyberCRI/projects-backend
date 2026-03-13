@@ -978,17 +978,19 @@ class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet)
     http_method_names = ["get", "list"]
 
     def list(self, request, *args, **kwargs):
+        organizations = [self.organization]
+        organizations.extend(self.organization.children.all())
+
         qs_project = (
             request.user.get_project_related_queryset(Location.objects)
             .select_related("project")
-            .filter(project__organization=self.organization)
+            .filter(project__organizations__in=organizations)
         )
-
-        qs_group = (
-            request.user.get_people_group_related_queryset(PeopleGroupLocation.objects)
-            .select_related("people_group")
-            .filter(organization=self.organization)
-        )
+        qs_group = request.user.get_people_group_related_queryset(
+            PeopleGroupLocation.objects.filter(
+                people_group__organization__in=organizations
+            )
+        ).select_related("people_group")
 
         data = {
             "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
