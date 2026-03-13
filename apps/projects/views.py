@@ -43,6 +43,7 @@ from apps.notifications.tasks import (
     notify_new_private_message,
     notify_ready_for_review,
 )
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
@@ -978,8 +979,8 @@ class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet)
     http_method_names = ["get", "list"]
 
     def list(self, request, *args, **kwargs):
-        organizations = [self.organization]
-        organizations.extend(self.organization.children.all())
+        organizations_code = get_below_hierarchy_codes((self.organization.code,))
+        organizations = Organization.objects.filter(code__in=organizations_code)
 
         qs_project = (
             request.user.get_project_related_queryset(Location.objects)
