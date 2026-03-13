@@ -50,6 +50,7 @@ from apps.commons.views import (
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.modules.group import PeopleGroupModules
+from apps.newsfeed.serializers import NewsSerializer
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.serializers import LocationSerializer, ProjectLightSerializer
@@ -879,6 +880,23 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             LocationSerializer(queryset, many=True, context={"request": request}).data,
             status=status.HTTP_200_OK,
         )
+
+    @extend_schema(responses=NewsSerializer(many=True))
+    @action(
+        detail=True,
+        methods=["GET"],
+        url_path="news",
+        permission_classes=[ReadOnly],
+    )
+    def news(self, request, *args, **kwargs):
+        group = self.get_object()
+        modules_manager = group.get_related_module()
+        modules = modules_manager(group, request.user)
+        queryset = modules.news()
+
+        queryset_page = self.paginate_queryset(queryset)
+        data = NewsSerializer(queryset_page, many=True, context={"request": request})
+        return self.get_paginated_response(data.data)
 
 
 class PeopleGroupLocationViewSet(

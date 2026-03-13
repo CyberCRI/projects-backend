@@ -35,7 +35,7 @@ class CrisalidBusClient:
     def __init__(self, config: CrisalidConfig):
         self.config = config
         self._conn: pika.BlockingConnection | None = None
-        self._channel = pika.channel.Channel
+        self._channel: pika.channel.Channel | None = None
         self.logger = logging.getLogger(config.organization.code)
         self._stop_event: Event | None = None
 
