@@ -17,6 +17,7 @@ class ReadLocationTestCase(JwtAPITestCase):
     def setUpTestData(cls):
         super().setUpTestData()
         cls.organization = OrganizationFactory()
+        cls.organization_other = OrganizationFactory()
         cls.child_organization = OrganizationFactory(parent=cls.organization)
         cls.public_project = ProjectFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
@@ -47,6 +48,11 @@ class ReadLocationTestCase(JwtAPITestCase):
             "child": LocationFactory(project=cls.child_project),
         }
 
+        cls.projects_other_orga = ProjectFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organizations=[cls.organization_other],
+        )
+
         cls.public_group = PeopleGroupFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
             organization=cls.organization,
@@ -61,7 +67,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         )
         cls.child_group = PeopleGroupFactory(
             publication_status=Project.PublicationStatus.PUBLIC,
-            organization=cls.organization,
+            organization=cls.child_organization,
         )
 
         cls.groups = {
@@ -70,6 +76,10 @@ class ReadLocationTestCase(JwtAPITestCase):
             "private": cls.private_group,
             "child": cls.child_group,
         }
+        cls.group_other_orga = PeopleGroupFactory(
+            publication_status=Project.PublicationStatus.PUBLIC,
+            organization=cls.organization_other,
+        )
 
         cls.locations_group = {
             "public": PeopleGroupLocationFactory(people_group=cls.public_group),
@@ -103,7 +113,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
 
-        # projects
+        # projects (from organization, not organization_other)
         self.assertEqual(len(content["projects"]), len(retrieved_locations))
         self.assertSetEqual(
             {a["id"] for a in content["projects"]},
@@ -133,6 +143,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()
 
+        # groups (from organization, not organization_other)
         self.assertEqual(len(content["groups"]), len(retrieved_locations))
         self.assertSetEqual(
             {a["id"] for a in content["groups"]},

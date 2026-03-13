@@ -27,7 +27,10 @@ from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import MultipleIDViewsetMixin
+from apps.commons.views import (
+    MultipleIDViewsetMixin,
+    NestedOrganizationViewMixins,
+)
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.notifications.tasks import (
@@ -40,6 +43,7 @@ from apps.notifications.tasks import (
     notify_new_private_message,
     notify_ready_for_review,
 )
+from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.organizations.utils import get_below_hierarchy_codes
 from apps.projects.exceptions import (
@@ -971,16 +975,22 @@ class ProjectTabItemImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return None
 
 
-class GeneralLocationView(viewsets.GenericViewSet):
+class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet):
     http_method_names = ["get", "list"]
 
     def list(self, request, *args, **kwargs):
-        qs_project = self.request.user.get_project_related_queryset(
-            Location.objects
-        ).select_related("project")
+        organizations_code = get_below_hierarchy_codes((self.organization.code,))
+        organizations = Organization.objects.filter(code__in=organizations_code)
 
-        qs_group = self.request.user.get_people_group_related_queryset(
-            PeopleGroupLocation.objects
+        qs_project = (
+            request.user.get_project_related_queryset(Location.objects)
+            .select_related("project")
+            .filter(project__organizations__in=organizations)
+        )
+        qs_group = request.user.get_people_group_related_queryset(
+            PeopleGroupLocation.objects.filter(
+                people_group__organization__in=organizations
+            )
         ).select_related("people_group")
 
         data = {
