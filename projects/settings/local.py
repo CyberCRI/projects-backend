@@ -21,7 +21,7 @@ STORAGES = {
         "OPTIONS": {
             "endpoint_url": "http://localhost:9000",
             "access_key": "minioadmin",
-            "secret_key": "minioadmin",
+            "secret_key": "minioadmin",  # nosec
             "bucket_name": "projects",
             "proxies": {"http": "http://minio:9000"},
             "default_acl": None,
@@ -68,7 +68,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer", "JWT", "Invite", "Service"),
     "USER_ID_FIELD": "keycloak_account__keycloak_id",
     "USER_ID_CLAIM": "sub",
-    "TOKEN_TYPE_CLAIM": "typ",
+    "TOKEN_TYPE_CLAIM": "typ",  # nosec
     "AUTH_TOKEN_CLASSES": ("apps.accounts.authentication.BearerToken",),
     "ALGORITHM": "RS256",
     "VERIFYING_KEY": KEYCLOAK_PUBLIC_KEY,
