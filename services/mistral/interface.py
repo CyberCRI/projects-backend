@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from django.conf import settings
-from mistralai import Mistral
+from mistralai.client import Mistral
 
 
 class MistralService:
