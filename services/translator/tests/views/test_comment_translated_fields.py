@@ -21,7 +21,7 @@ class CommentTranslatedFieldsTestCase(MockTranslateTestCase):
     @classmethod
     def setUpTestData(cls) -> None:
         super().setUpTestData()
-        cls.organization = OrganizationFactory()
+        cls.organization = OrganizationFactory(auto_translate_content=True)
         cls.project = ProjectFactory(organizations=[cls.organization])
         cls.superadmin = UserFactory(groups=[get_superadmins_group()])
         cls.content_type = ContentType.objects.get_for_model(Comment)
@@ -31,7 +31,7 @@ class CommentTranslatedFieldsTestCase(MockTranslateTestCase):
         mock_translate.side_effect = self.translator_side_effect
 
         self.client.force_authenticate(self.superadmin)
-        payload = {"content": faker.word(), "project_id": self.project.id}
+        payload = {"content": f"<p>{faker.text()}</p>", "project_id": self.project.id}
         response = self.client.post(
             reverse("Comment-list", args=(self.project.id,)), data=payload
         )
@@ -78,7 +78,11 @@ class CommentTranslatedFieldsTestCase(MockTranslateTestCase):
         ).update(up_to_date=True)
 
         payload = {
-            translated_field: faker.word()
+            translated_field: (
+                f"<p>{faker.word()}</p>"
+                if translated_field in Comment._html_auto_translated_fields
+                else faker.word()
+            )
             for translated_field in Comment._auto_translated_fields
         }
         response = self.client.patch(
