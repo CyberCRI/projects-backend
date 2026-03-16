@@ -43,9 +43,7 @@ from apps.skills.factories import (
 )
 from services.translator.models import AutoTranslatedField
 from services.translator.tasks import automatic_translations
-from services.translator.tests.tasks.test_update_translations_task import (
-    MockTranslateTestCase,
-)
+from services.translator.testcases import MockTranslateTestCase
 
 faker = Faker()
 
@@ -238,6 +236,14 @@ class UpdateTranslationsTestCase(MockTranslateTestCase):
                     "instance_3": instance_3,
                 }
             )
+            if model.auto_translate_instantly:
+                model.objects.all().update(
+                    **{
+                        f"{field}_{lang}": ""
+                        for field in model._auto_translated_fields
+                        for lang in settings.REQUIRED_LANGUAGES
+                    }
+                )
 
         # MentoringMessage has indirect relation to organizations through Mentoring
         mentoring_1 = MentorCreatedMentoringFactory(

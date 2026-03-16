@@ -112,6 +112,7 @@ class Comment(HasAutoTranslatedFields, HasOwner, ProjectRelated, models.Model):
     """
 
     auto_translated_fields: list[str] = ["html:content"]
+    auto_translate_instantly: bool = True
 
     project = HistoricForeignKey(
         "projects.Project", on_delete=models.CASCADE, related_name="comments"

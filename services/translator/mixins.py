@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db import models
+from django.db import models, transaction
 
 from .models import AutoTranslatedField
 
@@ -120,14 +120,15 @@ class HasAutoTranslatedFields(metaclass=TranslatedModelMeta):
         ).delete()
 
     def save(self, *args, **kwargs):
-        instance = super().save(*args, **kwargs)
-        if not AutoTranslatedField.objects.filter(
-            content_type=ContentType.objects.get_for_model(self.__class__),
-            object_id=str(self.pk),
-        ).exists():
-            self.update_translated_fields(force_update=True)
-        else:
-            self.update_translated_fields(force_update=False)
+        with transaction.atomic():
+            instance = super().save(*args, **kwargs)
+            if not AutoTranslatedField.objects.filter(
+                content_type=ContentType.objects.get_for_model(self.__class__),
+                object_id=str(self.pk),
+            ).exists():
+                self.update_translated_fields(force_update=True)
+            else:
+                self.update_translated_fields(force_update=False)
         return instance
 
     def delete(self, using=None, keep_parents=False):
