@@ -348,7 +348,7 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer", "JWT", "Invite", "Service"),
     "USER_ID_FIELD": "keycloak_account__keycloak_id",
     "USER_ID_CLAIM": "sub",
-    "TOKEN_TYPE_CLAIM": "typ",
+    "TOKEN_TYPE_CLAIM": "typ",  # nosec
     "AUTH_TOKEN_CLASSES": ("apps.accounts.authentication.BearerToken",),
     "ALGORITHM": "RS256",
     "VERIFYING_KEY": KEYCLOAK_PUBLIC_KEY,
@@ -656,7 +656,7 @@ GOOGLE_CREDENTIALS = {
     "client_email": "lpi-accounts@lpi-accounts-391112.iam.gserviceaccount.com",
     "client_id": "111578588399348351692",
     "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-    "token_uri": "https://oauth2.googleapis.com/token",
+    "token_uri": "https://oauth2.googleapis.com/token",  # nosec
     "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
     "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/lpi-accounts%40lpi-accounts-391112.iam.gserviceaccount.com",
 }
