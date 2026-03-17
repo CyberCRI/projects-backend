@@ -1,4 +1,6 @@
 import inspect
+from collections.abc import Callable
+from functools import cache
 
 from django.db import models
 from drf_spectacular.utils import OpenApiParameter
@@ -21,7 +23,9 @@ class AbstractModules:
 
     @classmethod
     @ignore_method
-    def modules(cls, modules_keys: list[str] | None = None):
+    @cache
+    def all_modules(cls) -> tuple[str, Callable]:
+        modules_list = []
 
         def predicate(item):
             return inspect.ismethod(item) or inspect.isfunction(item)
@@ -33,12 +37,26 @@ class AbstractModules:
             if name.startswith("_") or getattr(func, IGNORE_MODULES_FUNCTION, False):
                 continue
 
+            modules_list.append((name, func))
+
+        return tuple(modules_list)
+
+    @classmethod
+    @ignore_method
+    @cache
+    def modules(cls, modules_keys: tuple[str] | None = None) -> tuple[str, Callable]:
+        modules_list = []
+
+        for name, func in cls.all_modules():
+
             # yield only keys are set or all keys needed
             if modules_keys is None or name in modules_keys:
-                yield name, func
+                modules_list.append((name, func))
+
+        return tuple(modules_list)
 
     @ignore_method
-    def count(self, modules_keys: list[str] | None = None):
+    def count(self, modules_keys: tuple[str] | None = None):
         modules = {}
         for name, method in type(self).modules(modules_keys):
             # method is one modules (class method and not instance method)
