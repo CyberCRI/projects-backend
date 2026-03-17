@@ -6,6 +6,7 @@ from apps.accounts.models import PeopleGroup
 from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.serializers import (
+    BaseLocationSerializer,
     OrganizationRelatedSerializer,
     StringsImagesSerializer,
 )
@@ -20,7 +21,12 @@ from .exceptions import (
     InstructionPeopleGroupOrganizationError,
     NewsPeopleGroupOrganizationError,
 )
-from .models import Event, Instruction, News, Newsfeed
+from .models import Event, Instruction, News, Newsfeed, NewsLocation
+
+
+class NewsLocationSerializer(BaseLocationSerializer):
+    class Meta(BaseLocationSerializer.Meta):
+        model = NewsLocation
 
 
 class NewsSerializer(
@@ -50,6 +56,8 @@ class NewsSerializer(
         required=False,
     )
 
+    location = NewsLocationSerializer(required=False, allow_null=True)
+
     class Meta:
         model = News
         fields = [
@@ -66,6 +74,7 @@ class NewsSerializer(
             "visible_by_all",
             # write_only
             "header_image_id",
+            "location",
         ]
 
     def validate_people_groups(self, value):
@@ -82,6 +91,40 @@ class NewsSerializer(
             "organization_code": instance.organization.code,
             "news_id": instance.id,
         }
+
+    def create(self, validated_data):
+        location = validated_data.pop("location")
+        instance = super().create(validated_data)
+        if location:
+            NewsLocationSerializer(location).create({**location, "news": instance})
+        return instance
+
+    def update(self, instance, validated_data):
+        location = validated_data.pop("location")
+        super().update(instance, validated_data)
+        location_instance = getattr(instance, "location", None)
+        if getattr(instance, "location", None) and not location:
+            location_instance.delete()
+        elif not location_instance and location:
+            NewsLocationSerializer(location).create({**location, "news": instance})
+        elif location_instance and location:
+            NewsLocationSerializer(location).update(
+                location_instance, {**location, "news": instance}
+            )
+        return instance
+
+
+class NewsLightSerializer(NewsSerializer):
+
+    class Meta(NewsSerializer.Meta):
+        fields = ("id", "title", "content", "publication_date", "header_image")
+
+
+class NewsLocationSerializerLight(NewsLocationSerializer):
+    news = NewsLightSerializer()
+
+    class Meta(NewsLocationSerializer.Meta):
+        fields = (*NewsLocationSerializer.Meta.fields, "news")
 
 
 class InstructionSerializer(

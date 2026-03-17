@@ -4,6 +4,7 @@ from django.db import models
 
 from apps.commons.enums import Language
 from apps.commons.mixins import HasOwner, OrganizationRelated
+from apps.projects.models import AbstractLocation
 from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
@@ -59,6 +60,20 @@ class Newsfeed(models.Model):
         choices=NewsfeedType.choices,
         default=NewsfeedType.PROJECT,
     )
+
+
+class NewsLocation(AbstractLocation):
+    news = models.OneToOneField(
+        "newsfeed.News",
+        related_name="location",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+    )
+
+    def get_related_organizations(self) -> list["Organization"]:
+        """Return the organizations related to this model."""
+        return self.news.get_related_organizations()
 
 
 class News(HasAutoTranslatedFields, OrganizationRelated, models.Model):
