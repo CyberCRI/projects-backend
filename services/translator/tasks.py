@@ -6,7 +6,6 @@ from apps.commons.utils import clear_memory
 from projects.celery import app
 
 from .models import AutoTranslatedField
-from .utils import update_auto_translated_field
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +15,7 @@ logger = logging.getLogger(__name__)
 def automatic_translations():
     for field in AutoTranslatedField.objects.filter(up_to_date=False):
         try:
-            update_auto_translated_field(field)
+            field.update_translation()
         except Exception as e:  # noqa: PIE786
             logger.error(f"Error updating auto-translated field {field.id}: {e}")
 
@@ -48,7 +47,7 @@ def translate_object(
 
     for field in queryset:
         try:
-            update_auto_translated_field(field)
+            field.update_translation()
         except Exception as e:  # noqa: PIE786
             logger.error(
                 f"Error updating model-translated {model} field {field.id}: {e}"

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 from faker import Faker
-from mistralai.models import (
+from mistralai.client.models import (
     AssistantMessage,
     ChatCompletionChoice,
     ChatCompletionResponse,

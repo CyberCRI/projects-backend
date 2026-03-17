@@ -389,7 +389,7 @@ class PeopleGroupHierarchySerializer(
                 ).values_list("id", flat=True)
             )
         children = [mapping.get(child) for child in children_ids if child in mapping]
-        context = self.context.copy()
+        context = context.copy()
         context["depth"] += 1
         return PeopleGroupHierarchySerializer(children, many=True, context=context).data
 

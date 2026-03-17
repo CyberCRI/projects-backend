@@ -163,7 +163,7 @@ class KeycloakService:
             f"&actions={','.join(actions)}"
             f"&redirect_uri={redirect_uri}"
         )
-        data_raw = service.raw_get(url)
+        data_raw = service.connection.raw_get(url)
         return raise_error_from_response(data_raw, KeycloakGetError)
 
     @classmethod
