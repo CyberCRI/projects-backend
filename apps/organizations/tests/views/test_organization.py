@@ -780,6 +780,23 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
         self.assertEqual(len(data["hierarchy"]), 1)
         self.assertEqual(data["hierarchy"][0]["name"], self.root_group.name)
 
+    def test_people_groups_hierarchy_slug_or_id(self):
+        organization = self.organization
+        user = self.get_parameterized_test_user(TestRoles.SUPERADMIN)
+        self.client.force_authenticate(user)
+
+        url = reverse(
+            "Organization-people-groups-hierarchy",
+            args=(organization.code,),
+        )
+        parent = self.root_group.children.all().first()
+        response = self.client.get(url, {"depth": 0, "parent": parent.id})
+        results_id = response.json()
+        response = self.client.get(url, {"depth": 0, "parent": parent.slug})
+        results_slug = response.json()
+
+        self.assertDictEqual(results_id, results_slug)
+
 
 class ValidateOrganizationTestCase(JwtAPITestCase):
     @classmethod
