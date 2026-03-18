@@ -6,6 +6,8 @@ from django.db import models
 from drf_spectacular.utils import OpenApiParameter
 
 IGNORE_MODULES_FUNCTION = "IGNORE_MODULES_FUNCTION"
+from django.core.exceptions import EmptyResultSet
+from django.db import connection
 
 
 def ignore_method(method):
@@ -16,6 +18,8 @@ def ignore_method(method):
 
 class AbstractModules:
     """abstract class for modules/queryset declarations"""
+
+    model = models.Model
 
     def __init__(self, instance, /, user, **kw):
         self.instance = instance
@@ -56,12 +60,34 @@ class AbstractModules:
         return tuple(modules_list)
 
     @ignore_method
-    def count(self, modules_keys: tuple[str] | None = None):
-        modules = {}
+    def count(self, modules_keys: tuple[str] | None = None) -> dict[str, int]:
+        counters: dict[str, int] = {}
+
+        cte = []
+        select = []
         for name, method in type(self).modules(modules_keys):
+            counters[name] = 0
             # method is one modules (class method and not instance method)
-            modules[name] = method(self).count()
-        return modules
+            query = method(self).values_list("id", flat=True)
+            try:
+                cte.append(f"{name} AS ({str(query.query)})")
+                select.append(f"(SELECT COUNT(*) FROM {name}) AS {name}")
+            except EmptyResultSet:
+                pass
+
+        with connection.cursor() as cursor:
+            query = f"WITH {' , '.join(cte)} SELECT {' , '.join(select)};"
+
+            with open("result.sql", "w") as f:
+                f.write(str(query))
+
+            cursor.execute(query)
+            columns = [col[0] for col in cursor.description]
+
+            row = cursor.fetchone()
+            results = dict(zip(columns, row, strict=True))
+
+            return counters | results
 
     @classmethod
     @ignore_method
@@ -91,6 +117,7 @@ def register_module(model: models.Model):
 
     def _wrap(cls):
         _modules[model] = cls
+        cls.model = model
         return cls
 
     return _wrap
