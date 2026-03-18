@@ -45,7 +45,7 @@ class CreateEventTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
             "people_groups": [self.people_group.id],
         }
 
@@ -89,7 +89,7 @@ class UpdateEventTestCase(JwtAPITestCase):
         payload = {
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
         }
         response = self.client.patch(
             reverse("Event-detail", args=(self.organization.code, self.event.id)),
@@ -235,7 +235,7 @@ class ValidateEventTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
             "people_groups": [self.other_org_people_group.id],
         }
         response = self.client.post(
@@ -284,9 +284,9 @@ class FilterOrderEventTestCase(JwtAPITestCase):
         cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
         cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
         cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
-        cls.event_1 = EventFactory(organization=cls.organization, event_date=cls.date_1)
-        cls.event_2 = EventFactory(organization=cls.organization, event_date=cls.date_2)
-        cls.event_3 = EventFactory(organization=cls.organization, event_date=cls.date_3)
+        cls.event_1 = EventFactory(organization=cls.organization, start_date=cls.date_1)
+        cls.event_2 = EventFactory(organization=cls.organization, start_date=cls.date_2)
+        cls.event_3 = EventFactory(organization=cls.organization, start_date=cls.date_3)
 
     def test_filter_from_date(self):
         self.client.force_authenticate(self.user)
@@ -314,11 +314,11 @@ class FilterOrderEventTestCase(JwtAPITestCase):
             {self.event_1.id, self.event_2.id},
         )
 
-    def test_order_by_event_date(self):
+    def test_order_by_start_date(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
             reverse("Event-list", args=(self.organization.code,))
-            + "?ordering=event_date"
+            + "?ordering=start_date"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -327,11 +327,11 @@ class FilterOrderEventTestCase(JwtAPITestCase):
             [self.event_1.id, self.event_2.id, self.event_3.id],
         )
 
-    def test_order_by_event_date_reverse(self):
+    def test_order_by_start_date_reverse(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
             reverse("Event-list", args=(self.organization.code,))
-            + "?ordering=-event_date"
+            + "?ordering=-start_date"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

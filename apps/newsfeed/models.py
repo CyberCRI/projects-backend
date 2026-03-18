@@ -199,6 +199,20 @@ class Instruction(HasAutoTranslatedFields, OrganizationRelated, HasOwner, models
         return self.owner == user
 
 
+class EventLocation(AbstractLocation):
+    event = models.OneToOneField(
+        "newsfeed.Event",
+        related_name="location",
+        on_delete=models.CASCADE,
+        null=False,
+        blank=False,
+    )
+
+    def get_related_organizations(self) -> list["Organization"]:
+        """Return the organizations related to this model."""
+        return self.event.get_related_organizations()
+
+
 class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
     """News isntance.
 
@@ -211,8 +225,10 @@ class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
         Title of the event.
     content: TextField
         Content of the event.
-    event_date: DateTimeField
-        Date of teh event' publication.
+    start_date: DateTimeField
+        Date of start teh event' publication.
+    end_date: DateTimeField
+        Date of end teh event' publication.
     groups: ManyToManyField
         Groups which have access to the event.
     created_at: DateTimeField
@@ -227,7 +243,9 @@ class Event(HasAutoTranslatedFields, OrganizationRelated, models.Model):
 
     title = models.CharField(max_length=255, verbose_name=("title"))
     content = models.TextField(blank=True, default="")
-    event_date = models.DateTimeField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField(null=True, blank=True)
+
     people_groups = models.ManyToManyField(
         "accounts.PeopleGroup", related_name="events"
     )

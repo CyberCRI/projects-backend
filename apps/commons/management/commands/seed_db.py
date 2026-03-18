@@ -217,9 +217,9 @@ class Command(BaseCommand):
                     people_groups,
                     k=random.randint(1, 3),  # nosec B311
                 ),
-                event_date=date,
+                start_date=date,
             )
-            EventFactory(organization=organization, event_date=date)
+            EventFactory(organization=organization, start_date=date)
             date += timezone.timedelta(days=5)
         init_newsfeed()
         self.stdout.write(self.style.SUCCESS("Newsfeed items created."))

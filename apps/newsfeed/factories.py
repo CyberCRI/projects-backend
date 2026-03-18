@@ -77,7 +77,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     )  # Subfactory seems to not trigger `create()`
     title = factory.Faker("sentence")
     content = factory.Faker("text")
-    event_date = timezone.localtime(timezone.now())
+    start_date = timezone.localtime(timezone.now())
     visible_by_all = False
 
     class Meta:

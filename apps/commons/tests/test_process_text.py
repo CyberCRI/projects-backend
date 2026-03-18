@@ -400,7 +400,7 @@ class TextProcessingTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": text,
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
             "people_groups": [self.people_group.id],
         }
 

@@ -30,7 +30,7 @@ class EventTranslatedFieldsTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.word(),
             "content": faker.word(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
             "people_groups": [],
         }
         response = self.client.post(

@@ -21,7 +21,14 @@ from .exceptions import (
     InstructionPeopleGroupOrganizationError,
     NewsPeopleGroupOrganizationError,
 )
-from .models import Event, Instruction, News, Newsfeed, NewsLocation
+from .models import (
+    Event,
+    EventLocation,
+    Instruction,
+    News,
+    Newsfeed,
+    NewsLocation,
+)
 
 
 class NewsLocationSerializer(BaseLocationSerializer):
@@ -208,6 +215,11 @@ class NewsfeedSerializer(serializers.ModelSerializer):
         ]
 
 
+class EventLocationSerializer(BaseLocationSerializer):
+    class Meta(BaseLocationSerializer.Meta):
+        model = EventLocation
+
+
 class EventSerializer(
     StringsImagesSerializer,
     AutoTranslatedModelSerializer,
@@ -225,6 +237,7 @@ class EventSerializer(
     people_groups = serializers.PrimaryKeyRelatedField(
         many=True, queryset=PeopleGroup.objects.all()
     )
+    location = EventLocationSerializer(required=False, allow_null=True)
 
     class Meta:
         model = Event
@@ -232,7 +245,7 @@ class EventSerializer(
             "id",
             "title",
             "content",
-            "event_date",
+            "start_date",
             "organization",
             "people_groups",
             "created_at",
@@ -254,3 +267,37 @@ class EventSerializer(
             "organization_code": instance.organization.code,
             "event_id": instance.id,
         }
+
+    def create(self, validated_data):
+        location = validated_data.pop("location")
+        instance = super().create(validated_data)
+        if location:
+            EventLocationSerializer(location).create({**location, "event": instance})
+        return instance
+
+    def update(self, instance, validated_data):
+        location = validated_data.pop("location")
+        super().update(instance, validated_data)
+        location_instance = getattr(instance, "location", None)
+        if getattr(instance, "location", None) and not location:
+            location_instance.delete()
+        elif not location_instance and location:
+            EventLocationSerializer(location).create({**location, "event": instance})
+        elif location_instance and location:
+            EventLocationSerializer(location).update(
+                location_instance, {**location, "event": instance}
+            )
+        return instance
+
+
+class EventLightSerializer(EventSerializer):
+
+    class Meta(EventSerializer.Meta):
+        fields = ("id", "title", "content", "publication_date", "header_image")
+
+
+class EventLocationSerializerLight(EventLocationSerializer):
+    event = EventLightSerializer()
+
+    class Meta(EventLocationSerializer.Meta):
+        fields = (*EventLocationSerializer.Meta.fields, "event")
