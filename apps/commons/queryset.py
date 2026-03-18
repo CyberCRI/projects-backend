@@ -5,10 +5,10 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
 
-class MultipleIdQuerySet(models.QuerySet):
+class MultipleIdsQuerySet(models.QuerySet):
     """queryset/manager to filter queryset by id or slug"""
 
-    def _related_field(self, model: models.Model, field: str) -> models.Field:
+    def _get_related_field(self, model: models.Model, field: str) -> models.Field:
         """traverse fields query to get real field model"""
 
         acutal_model = model
@@ -20,27 +20,27 @@ class MultipleIdQuerySet(models.QuerySet):
     def build_identifiers_query(self, identifiers: tuple[str | int]) -> models.Q:
         query = defaultdict(set)
 
-        for iden in identifiers:
-            field = self.model.get_id_field_name(iden)
+        for identifier in identifiers:
+            field = self.model.get_id_field_name(identifier)
             if field == "slug" and hasattr(self.model, "outdated_slugs"):
                 fields = (field, "outdated_slugs")
             else:
                 fields = (field,)
 
             for field in fields:
-                query[field].add(str(iden))
+                query[field].add(str(identifier))
 
-        fianl_query = models.Q()
+        final_query = models.Q()
         for field, values in query.items():
-            field_cls = self._related_field(self.model, field)
+            field_cls = self._get_related_field(self.model, field)
             if isinstance(field_cls, ArrayField):
                 lookup = "__contains"
             else:
                 lookup = "__in"
 
-            fianl_query |= models.Q(**{f"{field}{lookup}": list(values)})
+            final_query |= models.Q(**{f"{field}{lookup}": list(values)})
 
-        return fianl_query
+        return final_query
 
     def slug_or_id(self, identifier: str | int) -> Self:
         return self.filter(self.build_identifiers_query((identifier,)))

@@ -34,7 +34,7 @@ from apps.commons.mixins import (
     OrganizationRelated,
 )
 from apps.commons.models import GroupData
-from apps.commons.queryset import MultipleIdQuerySet
+from apps.commons.queryset import MultipleIdsQuerySet
 from apps.newsfeed.models import Event, Instruction, News
 from apps.organizations.models import Organization
 from apps.projects.models import AbstractLocation, Project
@@ -100,7 +100,7 @@ class PeopleGroup(
             The visibility setting of the group.
     """
 
-    objects = MultipleIdQuerySet.as_manager()
+    objects = MultipleIdsQuerySet.as_manager()
 
     auto_translated_fields: list[str] = [
         "name",

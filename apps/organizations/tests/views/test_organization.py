@@ -790,12 +790,17 @@ class OrganizationPeopleGroupsHierarchyTestCase(JwtAPITestCase):
             args=(organization.code,),
         )
         parent = self.root_group.children.all().first()
+        parent.outdated_slugs = [f"{parent.slug}-old"]
+        parent.save()
         response = self.client.get(url, {"depth": 0, "parent": parent.id})
         results_id = response.json()
         response = self.client.get(url, {"depth": 0, "parent": parent.slug})
         results_slug = response.json()
+        response = self.client.get(url, {"depth": 0, "parent": f"{parent.slug}-old"})
+        results_outdated_slug = response.json()
 
         self.assertDictEqual(results_id, results_slug)
+        self.assertDictEqual(results_id, results_outdated_slug)
 
 
 class ValidateOrganizationTestCase(JwtAPITestCase):
