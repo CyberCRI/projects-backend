@@ -372,7 +372,7 @@ class OrganizationViewSet(viewsets.ModelViewSet):
                 name="parent",
                 description="people group parents to serializer",
                 required=False,
-                type=int,
+                type=int | str,
             ),
             PeopleGroupModules.ApiParameter(),
         ],
@@ -392,10 +392,9 @@ class OrganizationViewSet(viewsets.ModelViewSet):
         # get root "organization" group if parent is not set
         if request.query_params.get("parent"):
             root_group = get_object_or_404(
-                request.user.get_people_group_queryset().filter(
-                    organization=organization
-                ),
-                pk=request.query_params.get("parent"),
+                request.user.get_people_group_queryset()
+                .filter(organization=organization)
+                .slug_or_id(request.query_params.get("parent"))
             )
         else:
             root_group = PeopleGroup.update_or_create_root(organization)
