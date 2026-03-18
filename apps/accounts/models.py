@@ -293,6 +293,8 @@ class ProjectUser(
     Override Django base user by a user of projects app
     """
 
+    objects = MultipleIdQuerySet.as_manager()
+
     organization_query_string: str = "groups__organizations"
     auto_translated_fields: list[str] = [
         "html:description",
