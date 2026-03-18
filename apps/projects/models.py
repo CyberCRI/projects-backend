@@ -881,6 +881,7 @@ class AbstractLocation(HasAutoTranslatedFields, DuplicableModel, models.Model):
         IMPACT = "impact"
         ADDRESS = "address"
         NEWS = "news"
+        EVENT = "event"
 
     class Meta:
         abstract = True

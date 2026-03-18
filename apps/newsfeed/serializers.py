@@ -1,5 +1,6 @@
 from typing import Any
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup
@@ -239,6 +240,8 @@ class EventSerializer(
     )
     location = EventLocationSerializer(required=False, allow_null=True)
 
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
+
     class Meta:
         model = Event
         fields = [
@@ -246,12 +249,25 @@ class EventSerializer(
             "title",
             "content",
             "start_date",
+            "end_date",
             "organization",
             "people_groups",
             "created_at",
             "updated_at",
             "visible_by_all",
+            "location",
         ]
+
+    def validate(self, cleanded_data: dict):
+        # if end date is not set, put same date are start_date
+        cleanded_data.setdefault("end_date", cleanded_data["start_date"])
+
+        if cleanded_data["start_date"] > cleanded_data["end_date"]:
+            raise serializers.ValidationError(
+                _("The end date must be later than the start date.")
+            )
+
+        return cleanded_data
 
     def validate_people_groups(self, value):
         for group in value:
@@ -293,7 +309,7 @@ class EventSerializer(
 class EventLightSerializer(EventSerializer):
 
     class Meta(EventSerializer.Meta):
-        fields = ("id", "title", "content", "publication_date", "header_image")
+        fields = ("id", "title", "content", "start_date", "end_date")
 
 
 class EventLocationSerializerLight(EventLocationSerializer):
