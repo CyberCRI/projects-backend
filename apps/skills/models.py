@@ -7,7 +7,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import ForeignObjectRel, QuerySet
 from django.utils import timezone
-from services.translator.mixins import HasAutoTranslatedFields
 
 from apps.commons.mixins import (
     HasMultipleIDs,
@@ -15,6 +14,7 @@ from apps.commons.mixins import (
     HasOwners,
     OrganizationRelated,
 )
+from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
