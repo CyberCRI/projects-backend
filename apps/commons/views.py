@@ -1,9 +1,18 @@
+from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, viewsets
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.settings import api_settings
 
+from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.accounts.permissions import HasBasePermission, HasPeopleGroupPermission
+from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
+from apps.commons.utils import map_action_to_permission
 from apps.organizations.models import Organization
+from apps.organizations.permissions import HasOrganizationPermission
+from apps.projects.models import Project
+from apps.projects.permissions import HasProjectPermission, ProjectIsNotLocked
 
 from .mixins import HasMultipleIDs
 
@@ -147,20 +156,398 @@ class PaginatedViewSet(viewsets.ViewSet):
         return Response(serializer.data)
 
 
-class NestedOrganizationViewMixins:
-    def initial(self, request, *args, **kwargs):
-        self.organization = get_object_or_404(
-            Organization, code=kwargs["organization_code"]
+class OrganizationRelatedViewset(viewsets.GenericViewSet):
+    """
+    A viewset for models related to an organization.
+
+    This viewset should only be accessed through a URL containing the
+    `organization_code` kwarg.
+    e.g. `/v1/organizations/{organization_code}/my_model/`
+
+    The viewset automatically handles filtering using the request user's permissions,
+    and it provides the organization in the serializer context.
+
+    Attributes :
+    ------------
+    organization_code_url_kwarg: str (default: "organization_code")
+        The name of the URL kwarg containing the organization code.
+    queryset_organization_field: str (default: "organization")
+        The name of the field to use for filtering the queryset by organization.
+    read_only_permissions: bool (default: True)
+        Whether the viewset should use read-only permissions. This is useful when the
+        read permissions are handled at the instance level.
+    permissions_app_label: str (default: "")
+        The app label to use in the default permissions check
+    permissions_base_codename: str (default: "")
+        The base codename to use for generating the permissions to check. If not set,
+        the `permissions_codename` attribute will be used as the codename for all actions.
+    permissions_codename: str (default: "change_organization")
+        The codename to use for the default permissions check if`permissions_base_codename`
+        is not set. This can be used if the same permission is used for all actions.
+    """
+
+    organization_code_url_kwarg: str = "organization_code"
+    queryset_organization_field: str = "organization"
+
+    read_only_permissions: bool = True
+    permissions_app_label: str = ""
+    permissions_base_codename: str = ""
+    permissions_codename: str = "change_organization"
+
+    def get_permissions(self):
+        if self.permissions_base_codename:
+            codename = map_action_to_permission(
+                self.action, self.permissions_base_codename
+            )
+        else:
+            codename = self.permissions_codename
+        if codename and self.permissions_app_label:
+            if self.read_only_permissions:
+                return [
+                    IsAuthenticatedOrReadOnly,
+                    ReadOnly
+                    | HasBasePermission(codename, self.permissions_app_label)
+                    | HasOrganizationPermission(codename),
+                ]
+            return [
+                IsAuthenticated,
+                HasBasePermission(codename, self.permissions_app_label)
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def organization_filter_queryset(self, queryset: "QuerySet") -> "QuerySet":
+        """
+        Filter the given queryset by the organization specified in the URL.
+        """
+        return queryset.filter(**{self.queryset_organization_field: self.organization})
+
+    def get_queryset(self):
+        """
+        Return the queryset for this viewset, filtered by the organization specified
+        in the URL.
+        """
+        return self.organization_filter_queryset(super().get_queryset())
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "organization": self.organization,
+        }
+
+    @property
+    def organization(self) -> Organization:
+        if not hasattr(self, "_organization"):
+            if self.organization_code_url_kwarg not in self.kwargs:
+                raise ValueError(
+                    f"URL kwarg '{self.organization_code_url_kwarg}' is required for a"
+                    f" viewset based on OrganizationRelatedViewset."
+                )
+            self._organization = get_object_or_404(
+                Organization, code=self.kwargs[self.organization_code_url_kwarg]
+            )
+        return self._organization
+
+
+class PeopleGroupRelatedViewset(MultipleIDViewsetMixin, OrganizationRelatedViewset):
+    """
+    A viewset for models related to a people group.
+
+    This viewset should only be accessed through a URL containing the `people_group_id`
+    and `organization_code` kwargs.
+    e.g. `/v1/organizations/{organization_code}/people_groups/{people_group_id}/my_model/`
+
+    The viewset automatically handles filtering using the request user's permissions,
+    and it provides the people group in the serializer context.
+
+    Attributes :
+    ------------
+    organization_code_url_kwarg: str (default: "organization_code")
+        The name of the URL kwarg containing the organization code.
+    people_group_id_url_kwarg: str (default: "people_group_id")
+        The name of the URL kwarg containing the people group id.
+    queryset_organization_field: str (default: "people_group__organization")
+        The name of the field to use for filtering the queryset by organization.
+    queryset_people_group_field: str (default: "people_group")
+        The name of the field to use for filtering the queryset by people group.
+    read_only_permissions: bool (default: True)
+        Whether the viewset should use read-only permissions. This is useful when the
+        read permissions are handled at the instance level.
+    permissions_app_label: str (default: "")
+        The app label to use in the default permissions check
+    permissions_base_codename: str (default: "")
+        The base codename to use for generating the permissions to check. If not set,
+        the `permissions_codename` attribute will be used as the codename for all actions.
+    permissions_codename: str (default: "change_peoplegroup")
+        The codename to use for the default permissions check if`permissions_base_codename`
+        is not set. This can be used if the same permission is used for all actions.
+    multiple_lookup_fields: list of tuple[HasMultipleIDs, str] (default: [])
+        Inherited from MultipleIDViewsetMixin. A list of tuples containing a model that
+        inherits from HasMultipleIDs and the name of the URL kwarg containing the id to
+        transform into the main id.
+    """
+
+    people_group_id_url_kwarg: str = "people_group_id"
+    queryset_organization_field: str = "people_group__organization"
+    queryset_people_group_field: str = "people_group"
+
+    read_only_permissions: bool = True
+    permissions_app_label: str = "accounts"
+    permissions_base_codename: str = ""
+    permissions_codename: str = "change_peoplegroup"
+
+    multiple_lookup_fields = [
+        (PeopleGroup, "people_group_id"),
+    ]
+
+    def get_permissions(self):
+        if self.permissions_base_codename:
+            codename = map_action_to_permission(
+                self.action, self.permissions_base_codename
+            )
+        else:
+            codename = self.permissions_codename
+        if codename and self.permissions_app_label:
+            if self.read_only_permissions:
+                permissions = [
+                    IsAuthenticatedOrReadOnly,
+                    ReadOnly
+                    | HasBasePermission(codename, self.permissions_app_label)
+                    | HasOrganizationPermission(codename)
+                    | HasPeopleGroupPermission(codename),
+                ]
+            else:
+                permissions = [
+                    IsAuthenticated,
+                    HasBasePermission(codename, self.permissions_app_label)
+                    | HasOrganizationPermission(codename)
+                    | HasPeopleGroupPermission(codename),
+                ]
+            return permissions
+        return super().get_permissions()
+
+    def people_group_filter_queryset(self, queryset: "QuerySet") -> "QuerySet":
+        """
+        Filter the given queryset by the people_group specified in the URL.
+        """
+        return self.request.user.get_people_group_related_queryset(
+            queryset.filter(**{self.queryset_people_group_field: self.people_group}),
+            self.queryset_people_group_field,
         )
 
-        super().initial(request, *args, **kwargs)
+    def get_queryset(self):
+        """
+        Return the queryset for this viewset, filtered by the people_group and the
+        organization specified in the URL.
+        """
+        return self.people_group_filter_queryset(super().get_queryset())
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "people_group": self.people_group,
+        }
+
+    @property
+    def people_group(self) -> PeopleGroup:
+        if not hasattr(self, "_people_group"):
+            if self.people_group_id_url_kwarg not in self.kwargs:
+                raise ValueError(
+                    f"URL kwarg '{self.people_group_id_url_kwarg}' is required for a"
+                    f" viewset based on PeopleGroupRelatedViewset."
+                )
+            self._people_group = get_object_or_404(
+                PeopleGroup, id=self.kwargs[self.people_group_id_url_kwarg]
+            )
+        return self._people_group
 
 
-class NestedPeopleGroupViewMixins:
-    def initial(self, request, *args, **kwargs):
-        self.people_group = get_object_or_404(
-            request.user.get_people_group_queryset(),
-            id=kwargs["people_group_id"],
+class ProjectRelatedViewset(MultipleIDViewsetMixin, OrganizationRelatedViewset):
+    """
+    A viewset for models related to a project.
+
+    This viewset should only be accessed through a URL containing the `project_id` and
+    `organization_code` kwargs.
+    e.g. `/v1/organizations/{organization_code}/projects/{project_id}/my_model/`
+
+    The viewset automatically handles filtering using the request user's permissions,
+    and it provides the project in the serializer context.
+
+    Attributes :
+    ------------
+    organization_code_url_kwarg: str (default: "organization_code")
+        The name of the URL kwarg containing the organization code.
+    project_id_url_kwarg: str (default: "project_id")
+        The name of the URL kwarg containing the project id.
+    queryset_organization_field: str (default: "project__organizations")
+        The name of the field to use for filtering the queryset by organization.
+    queryset_project_field: str (default: "project")
+        The name of the field to use for filtering the queryset by project.
+    read_only_permissions: bool (default: True)
+        Whether the viewset should use read-only permissions. This is useful when the
+        read permissions are handled at the instance level.
+    block_if_project_is_locked: bool (default: True)
+        Whether to block all actions if the project is locked.
+    permissions_app_label: str (default: "")
+        The app label to use in the default permissions check
+    permissions_base_codename: str (default: "")
+        The base codename to use for generating the permissions to check. If not set,
+        the `permissions_codename` attribute will be used as the codename for all actions.
+    permissions_codename: str (default: "change_project")
+        The codename to use for the default permissions check if`permissions_base_codename`
+        is not set. This can be used if the same permission is used for all actions.
+    multiple_lookup_fields: list of tuple[HasMultipleIDs, str] (default: [])
+        Inherited from MultipleIDViewsetMixin. A list of tuples containing a model that
+        inherits from HasMultipleIDs and the name of the URL kwarg containing the id to
+        transform into the main id.
+    """
+
+    project_id_url_kwarg: str = "project_id"
+    queryset_organization_field: str = "project__organizations"
+    queryset_project_field: str = "project"
+
+    read_only_permissions: bool = True
+    block_if_project_is_locked: bool = True
+    permissions_app_label: str = "projects"
+    permissions_base_codename: str = ""
+    permissions_codename: str = "change_project"
+
+    multiple_lookup_fields = [
+        (Project, "project_id"),
+    ]
+
+    def get_permissions(self):
+        if self.permissions_base_codename:
+            codename = map_action_to_permission(
+                self.action, self.permissions_base_codename
+            )
+        else:
+            codename = self.permissions_codename
+        if codename and self.permissions_app_label:
+            if self.read_only_permissions:
+                permissions = [
+                    IsAuthenticatedOrReadOnly,
+                    ReadOnly
+                    | HasBasePermission(codename, self.permissions_app_label)
+                    | HasOrganizationPermission(codename)
+                    | HasProjectPermission(codename),
+                ]
+            else:
+                permissions = [
+                    IsAuthenticated,
+                    HasBasePermission(codename, self.permissions_app_label)
+                    | HasOrganizationPermission(codename)
+                    | HasProjectPermission(codename),
+                ]
+            if self.block_if_project_is_locked:
+                permissions.insert(1, ProjectIsNotLocked)
+            return permissions
+        return super().get_permissions()
+
+    def project_filter_queryset(self, queryset: "QuerySet") -> "QuerySet":
+        """
+        Filter the given queryset by the project specified in the URL.
+        """
+        return self.request.user.get_project_related_queryset(
+            queryset.filter(**{self.queryset_project_field: self.project}),
+            self.queryset_project_field,
         )
 
-        super().initial(request, *args, **kwargs)
+    def get_queryset(self):
+        """
+        Return the queryset for this viewset, filtered by the project and the
+        organization specified in the URL.
+        """
+        return self.project_filter_queryset(super().get_queryset())
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "project": self.project,
+        }
+
+    @property
+    def project(self) -> Project:
+        if not hasattr(self, "_project"):
+            if self.project_id_url_kwarg not in self.kwargs:
+                raise ValueError(
+                    f"URL kwarg '{self.project_id_url_kwarg}' is required for a"
+                    f" viewset based on ProjectRelatedViewset."
+                )
+            self._project = get_object_or_404(
+                Project, id=self.kwargs[self.project_id_url_kwarg]
+            )
+        return self._project
+
+
+class UserRelatedViewset(OrganizationRelatedViewset):
+    user_id_url_kwarg: str = "user_id"
+    queryset_organization_field: str = "user__groups__organizations"
+    queryset_user_field: str = "user"
+
+    read_only_permissions: bool = True
+    permissions_app_label: str = "accounts"
+    permissions_base_codename: str = ""
+    permissions_codename: str = "change_projectuser"
+
+    def get_permissions(self):
+        if self.permissions_base_codename:
+            codename = map_action_to_permission(
+                self.action, self.permissions_base_codename
+            )
+        else:
+            codename = self.permissions_codename
+        if codename and self.permissions_app_label:
+            if self.read_only_permissions:
+                return [
+                    IsAuthenticatedOrReadOnly,
+                    ReadOnly
+                    | IsOwner
+                    | WillBeOwner
+                    | HasBasePermission(codename, self.permissions_app_label)
+                    | HasOrganizationPermission(codename),
+                ]
+            return [
+                IsAuthenticated,
+                IsOwner
+                | WillBeOwner
+                | HasBasePermission(codename, self.permissions_app_label)
+                | HasOrganizationPermission(codename),
+            ]
+        return super().get_permissions()
+
+    def user_filter_queryset(self, queryset: "QuerySet") -> "QuerySet":
+        """
+        Filter the given queryset by the user specified in the URL and by the read
+        permimssions given to the request user.
+        """
+        return self.request.user.get_user_related_queryset(
+            queryset.filter(**{self.queryset_user_field: self.user}),
+            self.queryset_user_field,
+        )
+
+    def get_queryset(self):
+        """
+        Return the queryset for this viewset, filtered by the user specified in the URL
+        and by the read permimssions given to the request user.
+        """
+        return self.user_filter_queryset(super().get_queryset())
+
+    def get_serializer_context(self):
+        return {
+            **super().get_serializer_context(),
+            "user": self.user,
+        }
+
+    @property
+    def user(self) -> ProjectUser:
+        if not hasattr(self, "_user"):
+            if self.user_id_url_kwarg not in self.kwargs:
+                raise ValueError(
+                    f"URL kwarg '{self.user_id_url_kwarg}' is required for a"
+                    f" viewset based on UserRelatedViewset."
+                )
+            self._user = get_object_or_404(
+                ProjectUser, id=self.kwargs[self.user_id_url_kwarg]
+            )
+        return self._user

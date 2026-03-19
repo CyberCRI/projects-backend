@@ -23,11 +23,7 @@ from apps.accounts.permissions import (
 )
 from apps.commons.permissions import IsOwner, ReadOnly, WillBeOwner
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import (
-    MultipleIDViewsetMixin,
-    NestedOrganizationViewMixins,
-    NestedPeopleGroupViewMixins,
-)
+from apps.commons.views import MultipleIDViewsetMixin, PeopleGroupRelatedViewset
 from apps.organizations.models import Organization
 from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
@@ -285,11 +281,7 @@ class ProjectUserAttachmentFileViewSet(viewsets.ModelViewSet):
         return super().create(request, *ar, **kw)
 
 
-class PeopleGroupGalleryViewSet(
-    NestedOrganizationViewMixins,
-    NestedPeopleGroupViewMixins,
-    viewsets.ModelViewSet,
-):
+class PeopleGroupGalleryViewSet(PeopleGroupRelatedViewset, viewsets.ModelViewSet):
     serializer_class = PeopleGroupImageSerializer
 
     def get_permissions(self):

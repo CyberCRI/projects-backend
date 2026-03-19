@@ -15,10 +15,7 @@ from drf_spectacular.utils import (
 from rest_framework import viewsets
 from rest_framework.decorators import action
 
-from apps.commons.views import (
-    NestedOrganizationViewMixins,
-    NestedPeopleGroupViewMixins,
-)
+from apps.commons.views import OrganizationRelatedViewset, PeopleGroupRelatedViewset
 from services.crisalid.models import (
     Document,
     DocumentContributor,
@@ -32,7 +29,7 @@ from services.crisalid.serializers import (
     DocumentSerializer,
     ResearcherSerializer,
 )
-from services.crisalid.utils.views import NestedResearcherViewMixins
+from services.crisalid.utils.views import ResearcherRelatedViewset
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
     OpenApiParameter(
@@ -84,7 +81,9 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
         ],
     ),
 )
-class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+class AbstractDocumentViewSet(
+    OrganizationRelatedViewset, viewsets.ReadOnlyModelViewSet
+):
     """Abstract class to get documents info from documents types"""
 
     serializer_class = DocumentSerializer
@@ -196,7 +195,7 @@ class AbstractDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         )
 
 
-class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
+class DocumentViewSet(AbstractDocumentViewSet):
     """general viewset documents"""
 
     def get_queryset(self) -> QuerySet[Document]:
@@ -207,9 +206,7 @@ class DocumentViewSet(NestedOrganizationViewMixins, AbstractDocumentViewSet):
         )
 
 
-class AbstractGroupDocumentViewSet(
-    NestedPeopleGroupViewMixins, AbstractDocumentViewSet
-):
+class AbstractGroupDocumentViewSet(PeopleGroupRelatedViewset, AbstractDocumentViewSet):
     def get_queryset(self):
         modules_manager = self.people_group.get_related_module()
         modules = modules_manager(self.people_group, self.request.user)
@@ -217,9 +214,7 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
-    NestedOrganizationViewMixins,
-    NestedResearcherViewMixins,
-    AbstractDocumentViewSet,
+    ResearcherRelatedViewset, AbstractDocumentViewSet
 ):
     def filter_roles(self, queryset, roles_enabled=True):
         # filter only by roles (author, co-authors ...ect)
@@ -342,7 +337,7 @@ class ConferenceViewSet(AbstractResearcherDocumentViewSet):
         ],
     ),
 )
-class ResearcherViewSet(NestedOrganizationViewMixins, viewsets.ReadOnlyModelViewSet):
+class ResearcherViewSet(OrganizationRelatedViewset, viewsets.ReadOnlyModelViewSet):
     serializer_class = ResearcherSerializer
     filter_backends = (DjangoFilterBackend,)
     filterset_fields = ("user_id", "id")

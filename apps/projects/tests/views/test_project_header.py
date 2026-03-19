@@ -48,7 +48,13 @@ class CreateProjectHeaderTestCase(JwtAPITestCase):
             "natural_ratio": faker.pyfloat(min_value=1.0, max_value=2.0),
         }
         response = self.client.post(
-            reverse("Project-header-list", args=(self.project.id,)),
+            reverse(
+                "Project-header-list",
+                args=(
+                    self.organization.code,
+                    self.project.id,
+                ),
+            ),
             data=payload,
             format="multipart",
         )
@@ -105,7 +111,11 @@ class UpdateProjectHeaderTestCase(JwtAPITestCase):
         response = self.client.patch(
             reverse(
                 "Project-header-detail",
-                args=(self.project.id, self.project.header_image.id),
+                args=(
+                    self.organization.code,
+                    self.project.id,
+                    self.project.header_image.id,
+                ),
             ),
             data=payload,
             format="multipart",
@@ -154,8 +164,8 @@ class DeleteProjectHeaderTestCase(JwtAPITestCase):
         response = self.client.delete(
             reverse(
                 "Project-header-detail",
-                args=(project.id, project.header_image.id),
-            )
+                args=(self.organization.code, project.id, project.header_image.id),
+            ),
         )
         self.assertEqual(response.status_code, expected_code)
         if expected_code == status.HTTP_204_NO_CONTENT:
