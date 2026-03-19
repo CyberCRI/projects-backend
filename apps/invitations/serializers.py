@@ -16,7 +16,7 @@ from apps.commons.serializers import (
 )
 from apps.invitations.models import AccessRequest
 from apps.organizations.models import Organization
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     AccessRequestDisabledError,
@@ -30,9 +30,9 @@ from .exceptions import (
 from .models import Invitation
 
 
+@auto_translated
 class InvitationSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -82,9 +82,9 @@ class InvitationSerializer(
         return Organization.objects.filter(code=self.context.get("organization_code"))
 
 
+@auto_translated
 class AccessRequestSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["message"]

@@ -9,14 +9,13 @@ from apps.commons.serializers import (
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .models import Announcement
 
 
-class ProjectAnnouncementSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class ProjectAnnouncementSerializer(serializers.ModelSerializer):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -32,9 +31,9 @@ class ProjectAnnouncementSerializer(
         ]
 
 
+@auto_translated
 class AnnouncementSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -82,6 +81,7 @@ class AnnouncementSerializer(
         return None
 
 
+@auto_translated
 class ApplyToAnnouncementSerializer(AnnouncementSerializer):
     applicant_name = serializers.CharField()
     applicant_firstname = serializers.CharField()

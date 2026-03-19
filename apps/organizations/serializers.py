@@ -28,7 +28,7 @@ from apps.skills.serializers import (
     TagRelatedField,
 )
 from services.keycloak.serializers import IdentityProviderSerializer
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CategoryHierarchyLoopError,
@@ -50,9 +50,9 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
+@auto_translated
 class TermsAndConditionsSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     """
@@ -203,9 +203,9 @@ class OrganizationRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
+@auto_translated
 class OrganizationSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -378,8 +378,8 @@ class OrganizationSerializer(
         return super(OrganizationSerializer, self).update(instance, validated_data)
 
 
+@auto_translated
 class OrganizationLightSerializer(
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -415,8 +415,8 @@ class OrganizationLightSerializer(
         return organization
 
 
+@auto_translated
 class TemplateLightSerializer(
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -430,16 +430,15 @@ class TemplateLightSerializer(
         return [self.instance.organization] if self.instance else []
 
 
-class ProjectCategorySuperLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class ProjectCategorySuperLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectCategory
         fields = ["id", "slug", "name"]
 
 
+@auto_translated
 class ProjectCategoryLightSerializer(
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -462,8 +461,8 @@ class ProjectCategoryLightSerializer(
         return [ProjectCategory.objects.get(id=self.validated_data["id"]).organization]
 
 
+@auto_translated
 class ProjectTemplateSerializer(
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -491,9 +490,9 @@ class ProjectTemplateSerializer(
         fields = read_only_fields
 
 
+@auto_translated
 class TemplateSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -562,8 +561,8 @@ class TemplateSerializer(
         }
 
 
+@auto_translated
 class ProjectCategoryHierarchySerializer(
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -607,9 +606,9 @@ class ProjectCategoryHierarchySerializer(
         ).data
 
 
+@auto_translated
 class ProjectCategorySerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
