@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-18 10:17+0100\n"
+"POT-Creation-Date: 2026-03-19 09:28+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -176,7 +176,7 @@ msgstr "Estado de publicación desconocido"
 msgid "Unknown publication status '{publication_status}'"
 msgstr "Estado de publicación desconocido '{publication_status}'"
 
-#: apps/commons/fields.py:31 apps/skills/serializers.py:113
+#: apps/commons/fields.py:31 apps/skills/serializers.py:108
 msgid "This field is required."
 msgstr "Este campo es obligatorio."
 
@@ -185,13 +185,13 @@ msgstr "Este campo es obligatorio."
 msgid "Invalid id \"{user_id}\" - object does not exist."
 msgstr "ID no válido \"{user_id}\" - el objeto no existe."
 
-#: apps/commons/fields.py:34 apps/skills/serializers.py:118
+#: apps/commons/fields.py:34 apps/skills/serializers.py:113
 #, python-brace-format
 msgid "Incorrect type. Expected str value, received {data_type}."
 msgstr ""
 "Tipo incorrecto. Se esperaba un valor de cadena, se recibió {data_type}."
 
-#: apps/commons/serializers.py:241
+#: apps/commons/serializers.py:210
 msgid "The value must be between -90 and 90."
 msgstr ""
 
@@ -1632,7 +1632,7 @@ msgstr "El título de la etiqueta debe tener 50 caracteres o menos"
 msgid "Tag description must be 500 characters or less"
 msgstr "La descripción de la etiqueta debe tener 500 caracteres o menos"
 
-#: apps/skills/serializers.py:115
+#: apps/skills/serializers.py:110
 #, python-brace-format
 msgid "Invalid id \"{tag_classification_id}\" - object does not exist."
 msgstr "ID no válida \"{tag_classification_id}\" - el objeto no existe."

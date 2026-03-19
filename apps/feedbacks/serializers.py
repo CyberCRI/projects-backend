@@ -23,7 +23,6 @@ from .exceptions import (
 from .models import Comment, Follow, Review
 
 
-@auto_translated
 class FollowSerializer(
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
