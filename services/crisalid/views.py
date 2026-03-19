@@ -29,7 +29,7 @@ from services.crisalid.serializers import (
     DocumentSerializer,
     ResearcherSerializer,
 )
-from services.crisalid.utils.views import NestedResearcherViewMixins
+from services.crisalid.utils.views import ResearcherRelatedViewset
 
 OPENAPI_PARAMTERS_DOCUMENTS = [
     OpenApiParameter(
@@ -82,9 +82,7 @@ OPENAPI_PARAMTERS_DOCUMENTS = [
     ),
 )
 class AbstractDocumentViewSet(
-    OrganizationRelatedViewset,
-    NestedResearcherViewMixins,
-    viewsets.ReadOnlyModelViewSet,
+    OrganizationRelatedViewset, viewsets.ReadOnlyModelViewSet
 ):
     """Abstract class to get documents info from documents types"""
 
@@ -197,7 +195,7 @@ class AbstractDocumentViewSet(
         )
 
 
-class DocumentViewSet(OrganizationRelatedViewset, AbstractDocumentViewSet):
+class DocumentViewSet(AbstractDocumentViewSet):
     """general viewset documents"""
 
     def get_queryset(self) -> QuerySet[Document]:
@@ -208,9 +206,7 @@ class DocumentViewSet(OrganizationRelatedViewset, AbstractDocumentViewSet):
         )
 
 
-class AbstractGroupDocumentViewSet(
-    PeopleGroupRelatedViewset, AbstractDocumentViewSet
-):
+class AbstractGroupDocumentViewSet(PeopleGroupRelatedViewset, AbstractDocumentViewSet):
     def get_queryset(self):
         modules_manager = self.people_group.get_related_module()
         modules = modules_manager(self.people_group, self.request.user)
@@ -218,9 +214,7 @@ class AbstractGroupDocumentViewSet(
 
 
 class AbstractResearcherDocumentViewSet(
-    OrganizationRelatedViewset,
-    NestedResearcherViewMixins,
-    AbstractDocumentViewSet,
+    ResearcherRelatedViewset, AbstractDocumentViewSet
 ):
     def filter_roles(self, queryset, roles_enabled=True):
         # filter only by roles (author, co-authors ...ect)

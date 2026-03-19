@@ -44,8 +44,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     DetailOnlyViewsetMixin,
     MultipleIDViewsetMixin,
-    OrganizationRelatedViewset,
-    NestedPeopleGroupViewMixins,
+    PeopleGroupRelatedViewset,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -881,11 +880,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
 
 
-class PeopleGroupLocationViewSet(
-    NestedOrganizationViewMixins,
-    NestedPeopleGroupViewMixins,
-    viewsets.ModelViewSet,
-):
+class PeopleGroupLocationViewSet(PeopleGroupRelatedViewset, viewsets.ModelViewSet):
     serializer_class = PeopleGroupLocationSerializer
 
     def get_permissions(self):
