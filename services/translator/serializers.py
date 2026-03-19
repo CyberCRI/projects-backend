@@ -5,7 +5,7 @@ from rest_framework.serializers import ALL_FIELDS
 from services.translator.mixins import HasAutoTranslatedFields
 
 
-def auto_translated(cls: serializers.Serializer) -> serializers.Serializer:
+def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerializer:
     """Automatically include translations fields for models with `HasAutoTranslatedFields` mixin.
 
     Because these are automatically generated, they are read-only.

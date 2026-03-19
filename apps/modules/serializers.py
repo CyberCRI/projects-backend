@@ -10,10 +10,10 @@ class ModulesSerializers(serializers.ModelSerializer):
     def __init__(self, *ar, **kw):
         super().__init__(*ar, **kw)
 
-        request = self.context.get("request")
-        query = request.query_params if request else QueryDict()
-
         if "modules_keys" not in self.context:
+            request = self.context.get("request")
+            query = request.query_params if request else QueryDict()
+
             modules_keys = None
             # if modules is set queryparams , return list elements (for multiples modules)
             if "modules" in query:
