@@ -5,6 +5,7 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Tag
 from apps.skills.serializers import TagSerializer
+from services.translator.serializers import auto_translated
 
 
 class StatsOrganizationSerializer(serializers.ModelSerializer):
@@ -40,6 +41,7 @@ class ProjectByMonth(serializers.Serializer):
     updated_count = serializers.IntegerField()
 
 
+@auto_translated
 class TagProjectSerializer(serializers.ModelSerializer):
     projects = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Project.objects.all()

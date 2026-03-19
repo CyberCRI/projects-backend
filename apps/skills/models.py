@@ -7,6 +7,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import ForeignObjectRel, QuerySet
 from django.utils import timezone
+from services.translator.mixins import HasAutoTranslatedFields
 
 from apps.commons.mixins import (
     HasMultipleIDs,
@@ -14,7 +15,6 @@ from apps.commons.mixins import (
     HasOwners,
     OrganizationRelated,
 )
-from services.translator.mixins import HasAutoTranslatedFields
 
 if TYPE_CHECKING:
     from apps.accounts.models import ProjectUser
@@ -45,6 +45,9 @@ class Tag(models.Model, OrganizationRelated):
     external_id: Charfield
         The ID of the tag in the external source. For custum tags, we use a UUID.
     """
+
+    # WARNING: this is not a models autotranslated, but fields are translated by external
+    _auto_translated_fields: list[str] = ["title", "alternative_titles", "description"]
 
     class TagType(models.TextChoices):
         """Main type of a tag."""

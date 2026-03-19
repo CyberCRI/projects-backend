@@ -173,6 +173,7 @@ class TagClassificationRemoveTagsSerializer(serializers.Serializer):
         return tag_classification
 
 
+@auto_translated
 class TagSerializer(serializers.ModelSerializer):
     mentors_count = serializers.IntegerField(required=False, read_only=True)
     mentorees_count = serializers.IntegerField(required=False, read_only=True)

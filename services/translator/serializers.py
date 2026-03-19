@@ -2,8 +2,6 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.serializers import ALL_FIELDS
 
-from services.translator.mixins import HasAutoTranslatedFields
-
 
 def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerializer:
     """Automatically include translations fields for models with `HasAutoTranslatedFields` mixin.
@@ -13,9 +11,9 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
 
     model = cls.Meta.model
 
-    assert issubclass(
-        model, HasAutoTranslatedFields
-    ), "You model need to inherit from 'HasAutoTranslatedFields'"
+    assert hasattr(
+        model, "_auto_translated_fields"
+    ), f"You model ({model}) need to specify '_auto_translated_fields'"
 
     # model translated field name
     auto_translated_fields = model._auto_translated_fields

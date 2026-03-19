@@ -9,6 +9,9 @@ if TYPE_CHECKING:
 
 
 class Notification(models.Model, HasOwner):
+    # WARNING: this is not a models autotranslated, but fields are translated by external
+    _auto_translated_fields: list[str] = ["reminder_message"]
+
     class Types(models.TextChoices):
         """Different types of notifications."""
 

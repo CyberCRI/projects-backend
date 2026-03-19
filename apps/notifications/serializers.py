@@ -4,6 +4,7 @@ from apps.accounts.serializers import UserLighterSerializer
 from apps.invitations.serializers import InvitationSerializer
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectSuperLightSerializer
+from services.translator.serializers import auto_translated
 
 from .models import Notification, NotificationSettings
 
@@ -21,6 +22,7 @@ class ContactSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
 
+@auto_translated
 class NotificationsSerializer(serializers.ModelSerializer):
     sender = UserLighterSerializer(read_only=True)
     project = ProjectSuperLightSerializer(read_only=True)
