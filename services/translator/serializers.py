@@ -2,6 +2,8 @@ from django.conf import settings
 from rest_framework import serializers
 from rest_framework.serializers import ALL_FIELDS
 
+from services.translator.mixins import HasAutoTranslatedFields
+
 
 def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerializer:
     """Automatically include translations fields for models with `HasAutoTranslatedFields` mixin.
@@ -27,8 +29,13 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
     if not fields_available:
         return cls
 
+    # for tag/notifications (from external translation) we d'ont have detected languages
+    if issubclass(model, HasAutoTranslatedFields):
+        fields_to_add = [f"{field}_detected_language" for field in fields_available]
+    else:
+        fields_to_add = []
+
     # generates all fields
-    fields_to_add = [f"{field}_detected_language" for field in fields_available]
     for field in fields_available:
         fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
 
