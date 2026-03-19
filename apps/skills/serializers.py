@@ -12,7 +12,10 @@ from apps.commons.fields import (
 )
 from apps.commons.serializers import LazySerializer, StringsImagesSerializer
 from apps.commons.utils import remove_images_text
-from services.translator.serializers import auto_translated
+from services.translator.serializers import (
+    auto_translated,
+    external_auto_translated,
+)
 
 from .exceptions import (
     TagDescriptionTooLongError,
@@ -173,7 +176,7 @@ class TagClassificationRemoveTagsSerializer(serializers.Serializer):
         return tag_classification
 
 
-@auto_translated
+@external_auto_translated
 class TagSerializer(serializers.ModelSerializer):
     mentors_count = serializers.IntegerField(required=False, read_only=True)
     mentorees_count = serializers.IntegerField(required=False, read_only=True)

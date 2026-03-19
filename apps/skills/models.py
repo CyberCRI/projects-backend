@@ -46,9 +46,6 @@ class Tag(models.Model, OrganizationRelated):
         The ID of the tag in the external source. For custum tags, we use a UUID.
     """
 
-    # WARNING: this is not a models autotranslated, but fields are translated by external
-    _auto_translated_fields: list[str] = ["title", "alternative_titles", "description"]
-
     class TagType(models.TextChoices):
         """Main type of a tag."""
 

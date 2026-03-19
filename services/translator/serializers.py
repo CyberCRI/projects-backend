@@ -1,4 +1,5 @@
 from django.conf import settings
+from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import serializers
 from rest_framework.serializers import ALL_FIELDS
 
@@ -13,9 +14,9 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
 
     model = cls.Meta.model
 
-    assert hasattr(
-        model, "_auto_translated_fields"
-    ), f"You model ({model}) need to specify '_auto_translated_fields'"
+    assert issubclass(
+        model, HasAutoTranslatedFields
+    ), f"You model ({model}) need to inherit 'HasAutoTranslatedFields'"
 
     # model translated field name
     auto_translated_fields = model._auto_translated_fields
@@ -29,12 +30,7 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
     if not fields_available:
         return cls
 
-    # for tag/notifications (from external translation) we d'ont have detected languages
-    if issubclass(model, HasAutoTranslatedFields):
-        fields_to_add = [f"{field}_detected_language" for field in fields_available]
-    else:
-        fields_to_add = []
-
+    fields_to_add = [f"{field}_detected_language" for field in fields_available]
     # generates all fields
     for field in fields_available:
         fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
@@ -42,6 +38,45 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
     # set all fields in read_only (use set to avoid duplicated refered)
     read_only_fields = getattr(cls.Meta, "read_only_fields", [])
     cls.Meta.read_only_fields = tuple(set(read_only_fields) | set(fields_to_add))
+
+    # set all fields in fields
+    fields = getattr(cls.Meta, "fields", None)
+    # if fields is set (can be None for exlucde content) and field is not "__all__" value
+    # (use set to avoid duplicated redered field)
+    if fields and fields != ALL_FIELDS:
+        cls.Meta.fields = tuple(set(fields) | set(fields_to_add))
+
+    return cls
+
+
+def external_auto_translated(
+    cls: serializers.ModelSerializer,
+) -> serializers.ModelSerializer:
+    """Automatically include translations fields for models with from `modeltranslation` lib.
+
+    all field generated is not read-only (cant be set from serializer).
+    """
+
+    model = cls.Meta.model
+
+    auto_translated_fields = get_translatable_fields_for_model(model)
+    assert (
+        auto_translated_fields is not None
+    ), f"You model ({model}) need to register from 'modeltranslation'"
+
+    fields_available = []
+    for name in cls().get_fields():
+        if name in auto_translated_fields:
+            fields_available.append(name)
+
+    # not fields is needed
+    if not fields_available:
+        return cls
+
+    fields_to_add = []
+    # generates all fields
+    for field in fields_available:
+        fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
 
     # set all fields in fields
     fields = getattr(cls.Meta, "fields", None)
