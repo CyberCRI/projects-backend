@@ -1,11 +1,11 @@
 from rest_framework import serializers
 
-from apps.commons.serializers import TranslatedModelSerializer
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Tag
 from apps.skills.serializers import TagSerializer
+from services.translator.serializers import external_auto_translated
 
 
 class StatsOrganizationSerializer(serializers.ModelSerializer):
@@ -41,7 +41,8 @@ class ProjectByMonth(serializers.Serializer):
     updated_count = serializers.IntegerField()
 
 
-class TagProjectSerializer(TranslatedModelSerializer):
+@external_auto_translated
+class TagProjectSerializer(serializers.ModelSerializer):
     projects = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Project.objects.all()
     )

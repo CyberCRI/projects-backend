@@ -13,7 +13,7 @@ from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectLightSerializer
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     EventPeopleGroupOrganizationError,
@@ -23,9 +23,9 @@ from .exceptions import (
 from .models import Event, Instruction, News, Newsfeed
 
 
+@auto_translated
 class NewsSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -84,9 +84,9 @@ class NewsSerializer(
         }
 
 
+@auto_translated
 class InstructionSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -165,9 +165,9 @@ class NewsfeedSerializer(serializers.ModelSerializer):
         ]
 
 
+@auto_translated
 class EventSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):

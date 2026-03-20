@@ -10,13 +10,12 @@ from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     UserMultipleIdRelatedField,
 )
-from apps.commons.serializers import (
-    LazySerializer,
-    StringsImagesSerializer,
-    TranslatedModelSerializer,
-)
+from apps.commons.serializers import LazySerializer, StringsImagesSerializer
 from apps.commons.utils import remove_images_text
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import (
+    auto_translated,
+    external_auto_translated,
+)
 
 from .exceptions import (
     TagDescriptionTooLongError,
@@ -28,9 +27,8 @@ from .exceptions import (
 from .models import Mentoring, Skill, Tag, TagClassification
 
 
-class TagClassificationLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class TagClassificationLightSerializer(serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
@@ -46,9 +44,9 @@ class TagClassificationLightSerializer(
         fields = read_only_fields
 
 
+@auto_translated
 class TagClassificationSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
@@ -178,7 +176,8 @@ class TagClassificationRemoveTagsSerializer(serializers.Serializer):
         return tag_classification
 
 
-class TagSerializer(TranslatedModelSerializer):
+@external_auto_translated
+class TagSerializer(serializers.ModelSerializer):
     mentors_count = serializers.IntegerField(required=False, read_only=True)
     mentorees_count = serializers.IntegerField(required=False, read_only=True)
     highlight = serializers.JSONField(required=False, read_only=True)

@@ -29,7 +29,7 @@ from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer, TagRelatedField
 from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -65,9 +65,8 @@ class PrivacySettingsSerializer(serializers.ModelSerializer):
         ]
 
 
-class UserAdminListSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class UserAdminListSerializer(serializers.ModelSerializer):
     current_org_role = serializers.CharField(required=False, read_only=True)
     email_verified = serializers.BooleanField(required=False, read_only=True)
     people_groups = serializers.SerializerMethodField()
@@ -104,7 +103,8 @@ class UserAdminListSerializer(
         ).data
 
 
-class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+@auto_translated
+class UserLighterSerializer(serializers.ModelSerializer):
     email = PrivacySettingProtectedEmailField(
         privacy_field="email", required=False, allow_blank=True
     )
@@ -149,7 +149,8 @@ class UserLighterSerializer(AutoTranslatedModelSerializer, serializers.ModelSeri
         }
 
 
-class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerializer):
+@auto_translated
+class UserLightSerializer(serializers.ModelSerializer):
     email = PrivacySettingProtectedEmailField(
         privacy_field="email", required=False, allow_blank=True
     )
@@ -236,9 +237,8 @@ class UserLightSerializer(AutoTranslatedModelSerializer, serializers.ModelSerial
         return []
 
 
-class PeopleGroupSuperLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class PeopleGroupSuperLightSerializer(serializers.ModelSerializer):
     organization = serializers.SlugRelatedField(read_only=True, slug_field="code")
 
     class Meta:
@@ -253,6 +253,7 @@ class PeopleGroupSuperLightSerializer(
         fields = read_only_fields
 
 
+@auto_translated
 class PeopleGroupLocationSerializer(BaseLocationSerializer):
     people_group = serializers.PrimaryKeyRelatedField(
         required=False, queryset=PeopleGroup.objects.all()
@@ -284,9 +285,9 @@ class PeopleGroupAddLocationsSerializer(serializers.Serializer):
         return PeopleGroupLocation.objects.bulk_create(locations_objs)
 
 
+@auto_translated
 class PeopleGroupLightSerializer(
     ModulesSerializers,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     header_image = ImageSerializer(read_only=True)
@@ -312,9 +313,9 @@ class PeopleGroupLightSerializer(
         modules_keys = ("members", "subgroups")
 
 
+@auto_translated
 class PeopleGroupHierarchySerializer(
     ModulesSerializers,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     children = serializers.SerializerMethodField()
@@ -374,8 +375,10 @@ class PeopleGroupHierarchySerializer(
             return []
 
         if not mapping:
-            base_queryset = request.user.get_people_group_queryset().filter(
-                organization=people_group.organization
+            base_queryset = (
+                request.user.get_people_group_queryset()
+                .filter(organization=people_group.organization)
+                .select_related("header_image")
             )
             mapping = {group.id: group for group in base_queryset}
             context["mapping"] = mapping
@@ -493,10 +496,10 @@ class PeopleGroupRemoveFeaturedProjectsSerializer(serializers.Serializer):
         return validated_data
 
 
+@auto_translated
 class PeopleGroupSerializer(
     ModulesSerializers,
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = [
@@ -645,9 +648,9 @@ class PeopleGroupSerializer(
 
 
 @extend_schema_serializer(exclude_fields=("roles",))
+@auto_translated
 class UserSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = [

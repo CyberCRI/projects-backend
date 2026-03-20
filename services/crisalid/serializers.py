@@ -3,7 +3,7 @@ from rest_framework import serializers
 from apps.accounts.models import ProjectUser
 from apps.commons.fields import PrivacySettingProtectedMethodField
 from services.crisalid.models import Document, Identifier, Researcher
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 
 class ProjectUserMinimalSerializer(serializers.ModelSerializer):
@@ -57,12 +57,14 @@ class ResearcherDocumentsSerializer(ResearcherSerializer):
         fields = ("id", "user", "display_name")
 
 
-class DocumentLightSerializer(AutoTranslatedModelSerializer):
+@auto_translated
+class DocumentLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = ("title", "publication_date", "document_type")
 
 
+@auto_translated
 class DocumentSerializer(DocumentLightSerializer):
     contributors = ResearcherDocumentsSerializer(many=True)
     identifiers = IdentifierSerializer(many=True)

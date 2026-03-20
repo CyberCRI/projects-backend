@@ -1,10 +1,8 @@
 from collections.abc import Collection
 from typing import Any
 
-from django.conf import settings
 from django.db.models import Model, Q
 from django.utils.translation import gettext_lazy as _
-from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import mixins, serializers, viewsets
 from rest_framework.settings import import_from_string
 
@@ -13,7 +11,6 @@ from apps.commons.utils import process_text, remove_images_text
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import AutoTranslatedModelSerializer
 
 
 class ProjectRelatedSerializer(serializers.ModelSerializer):
@@ -83,33 +80,6 @@ class LazySerializer(serializers.Serializer):
             self.__class__ = referenced_serializer
             self.__dict__.update(self._reference_as_serializer.__dict__)
         return object.__getattribute__(self, attr)
-
-
-class TranslatedModelSerializer(serializers.ModelSerializer):
-    """
-    Automatically translate model fields for model with registered translation
-    """
-
-    def get_field_names(self, declared_fields, info):
-        fields = super().get_field_names(declared_fields, info)
-        translated_fields = get_translatable_fields_for_model(self.Meta.model) or []
-        all_fields = []
-
-        requested_langs = []
-        if "request" in self.context:
-            lang_param = self.context["request"].query_params.get("lang")
-            requested_langs = lang_param.split(",") if lang_param else []
-
-        for field in fields:
-            all_fields.append(field)
-            if field in translated_fields:
-                for lang in settings.REQUIRED_LANGUAGES:
-                    if not requested_langs or lang in requested_langs:
-                        all_fields.append(f"{field}_{lang}")
-        return all_fields
-
-    class Meta:
-        model = None
 
 
 class RetrieveUpdateModelViewSet(
@@ -226,7 +196,6 @@ class StringsImagesSerializer(serializers.ModelSerializer):
 
 class BaseLocationSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
