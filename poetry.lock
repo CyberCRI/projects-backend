@@ -1010,11 +1010,11 @@ description = "Cross-platform colored terminal text."
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,!=3.6.*,>=2.7"
 groups = ["main", "dev"]
-markers = "platform_system == \"Windows\" or sys_platform == \"win32\""
 files = [
     {file = "colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6"},
     {file = "colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44"},
 ]
+markers = {main = "sys_platform == \"win32\" or platform_system == \"Windows\"", dev = "platform_system == \"Windows\" or sys_platform == \"win32\""}
 
 [[package]]
 name = "coverage"
@@ -1381,18 +1381,18 @@ drf = ["djangorestframework"]
 
 [[package]]
 name = "django-guardian"
-version = "2.4.0"
-description = "Implementation of per object permissions for Django."
+version = "3.3.0"
+description = "Per object permissions for Django"
 optional = false
-python-versions = ">=3.5"
+python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "django-guardian-2.4.0.tar.gz", hash = "sha256:c58a68ae76922d33e6bdc0e69af1892097838de56e93e78a8361090bcd9f89a0"},
-    {file = "django_guardian-2.4.0-py3-none-any.whl", hash = "sha256:440ca61358427e575323648b25f8384739e54c38b3d655c81d75e0cd0d61b697"},
+    {file = "django_guardian-3.3.0-py3-none-any.whl", hash = "sha256:4dca4fce104c7306e41b947a57d1cd6be46d9982548bef194ac8a6ad61d83686"},
+    {file = "django_guardian-3.3.0.tar.gz", hash = "sha256:abf1487399212cffdce7b3c909182a26fbe7e89746007299a8cab99f3d5ff009"},
 ]
 
 [package.dependencies]
-Django = ">=2.2"
+django = ">=3.2"
 
 [[package]]
 name = "django-import-export"
@@ -5258,4 +5258,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "eb3f2cbdb62b2fc824f7330e1a9da6896a73db475fe7f3ca218f890f2566d231"
+content-hash = "9560f4b8cf56cb3141e5019ab72b8b5d9030b74d675f18ff4c447fd84d5fd8d2"
