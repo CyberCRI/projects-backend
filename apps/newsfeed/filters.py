@@ -5,8 +5,8 @@ from .models import Event, Instruction, News
 
 
 class EventFilter(filters.FilterSet):
-    from_date = filters.CharFilter(method="range_filter_from", label="end_date")
-    to_date = filters.CharFilter(method="range_filter_to", label="startdate")
+    from_date = filters.CharFilter(method="range_filter_from", label="form_date")
+    to_date = filters.CharFilter(method="range_filter_to", label="to_date")
 
     class Meta:
         model = Event
@@ -16,7 +16,7 @@ class EventFilter(filters.FilterSet):
         return queryset.filter(Q(end_date__gte=value))
 
     def range_filter_to(self, queryset, name, value):
-        return queryset.filter(Q(start_date__lte=value))
+        return queryset.filter(Q(end_date__lte=value))
 
 
 class InstructionFilter(filters.FilterSet):

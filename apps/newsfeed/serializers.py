@@ -2,13 +2,9 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
-from services.translator.serializers import auto_translated
 
 from apps.accounts.models import PeopleGroup
-from apps.accounts.serializers import (
-    PeopleGroupExtraLightSerializer,
-    PeopleGroupLightSerializer,
-)
+from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.serializers import (
     BaseLocationSerializer,
@@ -19,6 +15,7 @@ from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectLightSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     EventPeopleGroupOrganizationError,
@@ -243,16 +240,12 @@ class EventSerializer(
         many=True,
         queryset=PeopleGroup.objects.all(),
     )
-    people_groups2 = PeopleGroupExtraLightSerializer(
-        many=True, read_only=True, source="people_groups"
-    )
     location = EventLocationSerializer(required=False, allow_null=True)
 
     end_date = serializers.DateTimeField(required=False, allow_null=True)
 
     class Meta:
         model = Event
-        read_only_fields = ["people_groups2"]
         fields = [
             "id",
             "title",
@@ -265,7 +258,6 @@ class EventSerializer(
             "updated_at",
             "visible_by_all",
             "location",
-            "people_groups2",
         ]
 
     def validate(self, cleanded_data: dict):
