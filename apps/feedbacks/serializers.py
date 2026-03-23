@@ -13,7 +13,7 @@ from apps.commons.serializers import (
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CommentProjectPermissionDeniedError,
@@ -24,7 +24,6 @@ from .models import Comment, Follow, Review
 
 
 class FollowSerializer(
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -75,9 +74,9 @@ class UserFollowManySerializer(serializers.Serializer):
         pass
 
 
+@auto_translated
 class ReviewSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -115,9 +114,9 @@ class ReviewSerializer(
         return None
 
 
+@auto_translated
 class CommentSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,

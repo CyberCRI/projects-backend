@@ -485,7 +485,7 @@ class ProjectHistoryTestCase(JwtAPITestCase):
         )
         self.assertEqual(version["purpose"], payload["purpose"])
         self.assertEqual(version["title"], payload["title"])
-        self.assertEqual(version["history_change_reason"], "Updated: title + purpose")
+        self.assertEqual(version["history_change_reason"], "Updated: purpose + title")
         project.refresh_from_db()
         self.assertNotEqual(updated_at, project.updated_at)
 

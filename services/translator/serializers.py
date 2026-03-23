@@ -1,40 +1,88 @@
 from django.conf import settings
+from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import serializers
+from rest_framework.serializers import ALL_FIELDS
+
+from services.translator.mixins import HasAutoTranslatedFields
 
 
-class AutoTranslatedModelSerializer(serializers.ModelSerializer):
-    """
-    Automatically include translations fields for models with `HasAutoTranslatedFields` mixin.
+def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerializer:
+    """Automatically include translations fields for models with `HasAutoTranslatedFields` mixin.
 
     Because these are automatically generated, they are read-only.
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Add translated fields to the read_only_fields
-        fields = getattr(self.Meta, "fields", [])
-        read_only_fields = getattr(self.Meta, "read_only_fields", [])
-        translated_fields = getattr(self.Meta.model, "_auto_translated_fields", [])
-        for field in fields:
-            if field in translated_fields:
-                read_only_fields.append(f"{field}_detected_language")
-                for lang in settings.REQUIRED_LANGUAGES:
-                    read_only_fields.append(f"{field}_{lang}")
-        self.Meta.read_only_fields = read_only_fields
+    model = cls.Meta.model
 
-    def get_field_names(self, declared_fields, info):
-        fields = super().get_field_names(declared_fields, info)
-        # Get HasAutoTranslatedFields mixin _auto_translated_fields
-        translated_fields = getattr(self.Meta.model, "_auto_translated_fields", [])
-        all_fields = []
-        for field in fields:
-            all_fields.append(field)
-            if field in translated_fields:
-                all_fields.append(f"{field}_detected_language")
-                for lang in settings.REQUIRED_LANGUAGES:
-                    all_fields.append(f"{field}_{lang}")
-        return all_fields
+    assert issubclass(
+        model, HasAutoTranslatedFields
+    ), f"You model ({model}) need to inherit 'HasAutoTranslatedFields'"
 
-    class Meta:
-        model = None
-        read_only_fields = []
+    # model translated field name
+    auto_translated_fields = model._auto_translated_fields
+
+    fields_available = []
+    for name in cls().get_fields():
+        if name in auto_translated_fields:
+            fields_available.append(name)
+
+    # not fields is needed
+    if not fields_available:
+        return cls
+
+    fields_to_add = [f"{field}_detected_language" for field in fields_available]
+    # generates all fields
+    for field in fields_available:
+        fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
+
+    # set all fields in read_only (use set to avoid duplicated refered)
+    read_only_fields = getattr(cls.Meta, "read_only_fields", [])
+    cls.Meta.read_only_fields = tuple(set(read_only_fields) | set(fields_to_add))
+
+    # set all fields in fields
+    fields = getattr(cls.Meta, "fields", None)
+    # if fields is set (can be None for exlucde content) and field is not "__all__" value
+    # (use set to avoid duplicated redered field)
+    if fields and fields != ALL_FIELDS:
+        cls.Meta.fields = tuple(set(fields) | set(fields_to_add))
+
+    return cls
+
+
+def external_auto_translated(
+    cls: serializers.ModelSerializer,
+) -> serializers.ModelSerializer:
+    """Automatically include translations fields for models with from `modeltranslation` lib.
+
+    all field generated is not read-only (cant be set from serializer).
+    """
+
+    model = cls.Meta.model
+
+    auto_translated_fields = get_translatable_fields_for_model(model)
+    assert (
+        auto_translated_fields is not None
+    ), f"You model ({model}) need to register from 'modeltranslation'"
+
+    fields_available = []
+    for name in cls().get_fields():
+        if name in auto_translated_fields:
+            fields_available.append(name)
+
+    # not fields is needed
+    if not fields_available:
+        return cls
+
+    fields_to_add = []
+    # generates all fields
+    for field in fields_available:
+        fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
+
+    # set all fields in fields
+    fields = getattr(cls.Meta, "fields", None)
+    # if fields is set (can be None for exlucde content) and field is not "__all__" value
+    # (use set to avoid duplicated redered field)
+    if fields and fields != ALL_FIELDS:
+        cls.Meta.fields = tuple(set(fields) | set(fields_to_add))
+
+    return cls

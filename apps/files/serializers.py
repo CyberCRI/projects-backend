@@ -18,7 +18,7 @@ from apps.commons.serializers import (
 )
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     ChangeFileProjectError,
@@ -172,10 +172,10 @@ class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
         return AttachmentType.LINK
 
 
+@auto_translated
 class AttachmentLinkSerializer(
     StringsImagesSerializer,
     AbstractAttachmentLink,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -246,9 +246,9 @@ class AttachmentLinkSerializer(
         return []
 
 
+@auto_translated
 class OrganizationAttachmentFileSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["description", "title"]
@@ -296,9 +296,9 @@ class OrganizationAttachmentFileSerializer(
         return file
 
 
+@auto_translated
 class AttachmentFileSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -442,10 +442,10 @@ class ImageSerializer(serializers.ModelSerializer):
             }
 
 
+@auto_translated
 class ProjectUserAttachmentLinkSerializer(
     AbstractAttachmentLink,
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
 ):
     string_images_forbid_fields: list[str] = ["title", "description"]
 
@@ -461,9 +461,8 @@ class ProjectUserAttachmentLinkSerializer(
         ]
 
 
-class ProjectUserAttachmentFileSerializer(
-    StringsImagesSerializer, AutoTranslatedModelSerializer
-):
+@auto_translated
+class ProjectUserAttachmentFileSerializer(StringsImagesSerializer):
     file = serializers.FileField()
     string_images_forbid_fields: list[str] = ["title", "description"]
 

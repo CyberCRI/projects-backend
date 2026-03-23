@@ -2,6 +2,7 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
+from services.translator.serializers import auto_translated
 
 from apps.accounts.models import PeopleGroup
 from apps.accounts.serializers import (
@@ -18,7 +19,6 @@ from apps.files.models import Image
 from apps.files.serializers import ImageSerializer
 from apps.organizations.models import Organization
 from apps.projects.serializers import ProjectLightSerializer
-from services.translator.serializers import AutoTranslatedModelSerializer
 
 from .exceptions import (
     EventPeopleGroupOrganizationError,
@@ -40,9 +40,9 @@ class NewsLocationSerializer(BaseLocationSerializer):
         model = NewsLocation
 
 
+@auto_translated
 class NewsSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -138,9 +138,9 @@ class NewsLocationSerializerLight(NewsLocationSerializer):
         fields = (*NewsLocationSerializer.Meta.fields, "news")
 
 
+@auto_translated
 class InstructionSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -219,14 +219,15 @@ class NewsfeedSerializer(serializers.ModelSerializer):
         ]
 
 
+@auto_translated
 class EventLocationSerializer(BaseLocationSerializer):
     class Meta(BaseLocationSerializer.Meta):
         model = EventLocation
 
 
+@auto_translated
 class EventSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):

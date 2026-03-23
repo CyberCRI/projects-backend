@@ -43,7 +43,7 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField, TagSerializer
-from services.translator.serializers import AutoTranslatedModelSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -70,9 +70,9 @@ from .models import (
 from .utils import compute_project_changes, get_views_from_serializer
 
 
+@auto_translated
 class BlogEntrySerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -141,9 +141,9 @@ class BlogEntrySerializer(
         return {"project_id": instance.project.id}
 
 
+@auto_translated
 class GoalSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     ProjectRelatedSerializer,
     serializers.ModelSerializer,
@@ -181,9 +181,8 @@ class GoalSerializer(
         return None
 
 
-class LocationProjectSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class LocationProjectSerializer(serializers.ModelSerializer):
     header_image = ImageSerializer(read_only=True)
 
     class Meta:
@@ -191,6 +190,7 @@ class LocationProjectSerializer(
         fields = ["id", "slug", "title", "purpose", "header_image"]
 
 
+@auto_translated
 class LocationSerializer(ProjectRelatedSerializer, BaseLocationSerializer):
     string_images_forbid_fields: list[str] = ["title", "description"]
 
@@ -223,17 +223,15 @@ class LocationSerializer(ProjectRelatedSerializer, BaseLocationSerializer):
         return None
 
 
-class ProjectSuperLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class ProjectSuperLightSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["id", "slug", "title"]
 
 
-class ProjectLightSerializer(
-    AutoTranslatedModelSerializer, serializers.ModelSerializer
-):
+@auto_translated
+class ProjectLightSerializer(serializers.ModelSerializer):
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
     header_image = ImageSerializer(read_only=True)
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -512,9 +510,9 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
         }
 
 
+@auto_translated
 class ProjectSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
 ):
@@ -868,9 +866,9 @@ class ProjectVersionListSerializer(serializers.ModelSerializer):
         ]
 
 
+@auto_translated
 class ProjectMessageSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_fields: list[str] = ["content"]
@@ -923,9 +921,9 @@ class ProjectMessageSerializer(
         return {"project_id": instance.project.id}
 
 
+@auto_translated
 class ProjectTabSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_fields: list[str] = ["description"]
@@ -960,9 +958,9 @@ class ProjectTabSerializer(
         return {"project_id": instance.project.id}
 
 
+@auto_translated
 class ProjectTabItemSerializer(
     StringsImagesSerializer,
-    AutoTranslatedModelSerializer,
     serializers.ModelSerializer,
 ):
     string_images_fields: list[str] = ["content"]

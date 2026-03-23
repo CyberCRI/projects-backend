@@ -157,7 +157,8 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_update(self, serializer: ProjectSerializer):
         project = serializer.save()
         changes = serializer.validated_data
-        update_change_reason(project, f"Updated: {' + '.join(changes.keys())}"[:100])
+        fields = sorted(changes.keys())
+        update_change_reason(project, f"Updated: {' + '.join(fields)}"[:100])
         if (
             settings.ENABLE_CACHE
             and changes.get("publication_status")
