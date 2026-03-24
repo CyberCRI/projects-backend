@@ -101,14 +101,15 @@ class NewsSerializer(
         }
 
     def create(self, validated_data):
-        location = validated_data.pop("location")
+        location = validated_data.pop("location", None)
         instance = super().create(validated_data)
         if location:
             NewsLocationSerializer(location).create({**location, "news": instance})
+            instance.refresh_from_db()
         return instance
 
     def update(self, instance, validated_data):
-        location = validated_data.pop("location")
+        location = validated_data.pop("location", None)
         super().update(instance, validated_data)
         location_instance = getattr(instance, "location", None)
         if getattr(instance, "location", None) and not location:
@@ -119,6 +120,7 @@ class NewsSerializer(
             NewsLocationSerializer(location).update(
                 location_instance, {**location, "news": instance}
             )
+        instance.refresh_from_db()
         return instance
 
 
@@ -261,13 +263,15 @@ class EventSerializer(
         ]
 
     def validate(self, cleanded_data: dict):
-        # if end date is not set, put same date are start_date
-        cleanded_data.setdefault("end_date", cleanded_data["start_date"])
 
-        if cleanded_data["start_date"] > cleanded_data["end_date"]:
-            raise serializers.ValidationError(
-                _("The end date must be later than the start date.")
-            )
+        if cleanded_data.get("start_date"):
+            # if end date is not set, put same date are start_date
+            cleanded_data.setdefault("end_date", cleanded_data["start_date"])
+
+            if cleanded_data["start_date"] > cleanded_data["end_date"]:
+                raise serializers.ValidationError(
+                    _("The end date must be later than the start date.")
+                )
 
         return cleanded_data
 
@@ -287,17 +291,20 @@ class EventSerializer(
         }
 
     def create(self, validated_data):
-        location = validated_data.pop("location")
+        location = validated_data.pop("location", None)
         instance = super().create(validated_data)
         if location:
             EventLocationSerializer(location).create({**location, "event": instance})
+            instance.refresh_from_db()
         return instance
 
     def update(self, instance, validated_data):
-        location = validated_data.pop("location")
+        location = validated_data.pop("location", None)
+
         super().update(instance, validated_data)
+
         location_instance = getattr(instance, "location", None)
-        if getattr(instance, "location", None) and not location:
+        if location_instance and not location:
             location_instance.delete()
         elif not location_instance and location:
             EventLocationSerializer(location).create({**location, "event": instance})
@@ -305,6 +312,7 @@ class EventSerializer(
             EventLocationSerializer(location).update(
                 location_instance, {**location, "event": instance}
             )
+        instance.refresh_from_db()
         return instance
 
 

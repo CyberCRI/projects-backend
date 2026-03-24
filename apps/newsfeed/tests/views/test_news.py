@@ -13,7 +13,7 @@ from apps.accounts.utils import get_superadmins_group
 from apps.commons.enums import Language
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.newsfeed.factories import NewsFactory
-from apps.newsfeed.models import News
+from apps.newsfeed.models import News, NewsLocation
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
@@ -50,6 +50,7 @@ class CreateNewsTestCase(JwtAPITestCase):
             "language": random.choice(Language.values),  # nosec
             "publication_date": datetime.date.today().isoformat(),
             "people_groups": [self.people_group.id],
+            "location": None,
         }
 
         response = self.client.post(
@@ -62,6 +63,24 @@ class CreateNewsTestCase(JwtAPITestCase):
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
             self.assertEqual(content["people_groups"], payload["people_groups"])
+
+        payload["location"] = {
+            "title": "title",
+            "lat": 44,
+            "lng": 33,
+            "type": NewsLocation.LocationType.NEWS.value,
+        }
+
+        response = self.client.post(
+            reverse("News-list", args=(organization.code,)), data=payload
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            self.assertEqual(content["location"]["title"], payload["location"]["title"])
+            self.assertEqual(content["location"]["lat"], payload["location"]["lat"])
+            self.assertEqual(content["location"]["lng"], payload["location"]["lng"])
+            self.assertEqual(content["location"]["type"], payload["location"]["type"])
 
 
 class UpdateNewsTestCase(JwtAPITestCase):
@@ -95,6 +114,12 @@ class UpdateNewsTestCase(JwtAPITestCase):
             "content": faker.text(),
             "language": "fr",
             "publication_date": datetime.date.today().isoformat(),
+            "location": {
+                "title": "title",
+                "lat": 44,
+                "lng": 33,
+                "type": NewsLocation.LocationType.EVENT.value,
+            },
         }
         response = self.client.patch(
             reverse("News-detail", args=(self.organization.code, self.news.id)),
@@ -106,6 +131,30 @@ class UpdateNewsTestCase(JwtAPITestCase):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["language"], payload["language"])
+
+        # location is removed
+        payload = {"location": {"title": "updated_title"}}
+        response = self.client.patch(
+            reverse("News-detail", args=(self.organization.code, self.news.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            self.assertEqual(content["location"]["title"], payload["location"]["title"])
+
+        # location is removed
+        payload = {
+            "location": None,
+        }
+        response = self.client.patch(
+            reverse("News-detail", args=(self.organization.code, self.news.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            self.assertIsNone(content["location"])
 
 
 class DeleteNewsTestCase(JwtAPITestCase):
