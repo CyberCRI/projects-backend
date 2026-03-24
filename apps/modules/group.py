@@ -3,7 +3,7 @@ from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.files.models import PeopleGroupImage
 from apps.modules.base import AbstractModules, register_module
-from apps.newsfeed.models import Event, EventLocation, News, NewsLocation
+from apps.newsfeed.models import Event, EventLocation, NewsLocation
 from apps.projects.models import Location, Project
 from apps.skills.models import Skill
 from services.crisalid.models import Document, DocumentTypeCentralized
@@ -91,14 +91,10 @@ class PeopleGroupModules(AbstractModules):
         return PeopleGroupImage.objects.filter(people_group=self.instance)
 
     def news(self):
-        return self.user.get_news_related_queryset(
-            News.objects.filter(people_groups=self.instance), news_related_name="pk"
-        )
+        return self.user.get_news_queryset().filter(people_groups=self.instance)
 
     def event(self) -> QuerySet[Event]:
-        return self.user.get_event_related_queryset(
-            Event.objects.filter(people_groups=self.instance), event_related_name="pk"
-        )
+        return self.user.get_event_queryset().filter(people_groups=self.instance)
 
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()

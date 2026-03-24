@@ -78,6 +78,7 @@ class EventFactory(factory.django.DjangoModelFactory):
     title = factory.Faker("sentence")
     content = factory.Faker("text")
     start_date = timezone.localtime(timezone.now())
+    end_date = start_date
     visible_by_all = False
 
     class Meta:
