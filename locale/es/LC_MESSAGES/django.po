@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-19 20:02+0100\n"
+"POT-Creation-Date: 2026-03-24 20:34+0100\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -568,6 +568,12 @@ msgid ""
 msgstr ""
 "Los grupos de personas de una instrucción deben pertenecer a la misma "
 "organización"
+
+#: apps/newsfeed/serializers.py:273
+#, fuzzy
+#| msgid "The parent category must belong to the same organization"
+msgid "The end date must be later than the start date."
+msgstr "La categoría padre debe pertenecer a la misma organización"
 
 #: apps/notifications/tasks.py:200 apps/notifications/tasks.py:247
 #: services/crisalid/relators.py:883
