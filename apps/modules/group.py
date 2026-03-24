@@ -72,7 +72,7 @@ class PeopleGroupModules(AbstractModules):
             pk__in=self.user.get_people_group_queryset()
         )
 
-    def projects_locations(self) -> QuerySet[Location]:
+    def locations(self) -> QuerySet[Location]:
         qs_project = Location.objects.filter(project__in=self.featured_projects())
         qs_news = NewsLocation.objects.filter(news__in=self.news())
         qs_group = PeopleGroupLocation.objects.filter(people_group__in=self.subgroups())

@@ -867,14 +867,14 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=["GET"],
-        url_path="projects-locations",
+        url_path="all-locations",
         permission_classes=[ReadOnly],
     )
     def locations(self, request, *args, **kwargs):
         group = self.get_object()
         modules_manager = group.get_related_module()
         modules = modules_manager(group, request.user)
-        queryset = modules.projects_locations()
+        queryset = modules.locations()
 
         return Response(
             LocationSerializer(queryset, many=True, context={"request": request}).data,
