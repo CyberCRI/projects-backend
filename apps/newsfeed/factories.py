@@ -5,7 +5,14 @@ from apps.announcements.factories import AnnouncementFactory
 from apps.organizations.factories import OrganizationFactory
 from apps.projects.factories import ProjectFactory
 
-from .models import Event, Instruction, News, Newsfeed
+from .models import (
+    Event,
+    EventLocation,
+    Instruction,
+    News,
+    Newsfeed,
+    NewsLocation,
+)
 
 
 class NewsfeedProjectFactory(factory.django.DjangoModelFactory):
@@ -88,3 +95,25 @@ class EventFactory(factory.django.DjangoModelFactory):
     def people_groups(self, create, extracted, **kwargs):
         if create and extracted:
             self.people_groups.add(*extracted)
+
+
+class EventLocationFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("sentence")
+    description = factory.Faker("text")
+    lat = factory.Faker("latitude")
+    lng = factory.Faker("longitude")
+    type = EventLocation.LocationType.EVENT.value
+
+    class Meta:
+        model = EventLocation
+
+
+class NewsLocationFactory(factory.django.DjangoModelFactory):
+    title = factory.Faker("sentence")
+    description = factory.Faker("text")
+    lat = factory.Faker("latitude")
+    lng = factory.Faker("longitude")
+    type = EventLocation.LocationType.NEWS.value
+
+    class Meta:
+        model = NewsLocation

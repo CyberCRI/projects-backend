@@ -13,10 +13,12 @@ class EventFilter(filters.FilterSet):
         fields = ["from_date", "to_date"]
 
     def range_filter_from(self, queryset, name, value):
-        return queryset.filter(Q(end_date__gte=value))
+        # filter by end_date (to catch event current running (start_date before value but end_date after))
+        return queryset.filter(end_date__gte=value)
 
     def range_filter_to(self, queryset, name, value):
-        return queryset.filter(Q(end_date__lte=value))
+        # same above but with start_date
+        return queryset.filter(start_date__lte=value)
 
 
 class InstructionFilter(filters.FilterSet):

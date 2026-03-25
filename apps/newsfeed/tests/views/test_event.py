@@ -339,9 +339,21 @@ class FilterOrderEventTestCase(JwtAPITestCase):
         cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
         cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
         cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
-        cls.event_1 = EventFactory(organization=cls.organization, start_date=cls.date_1)
-        cls.event_2 = EventFactory(organization=cls.organization, start_date=cls.date_2)
-        cls.event_3 = EventFactory(organization=cls.organization, start_date=cls.date_3)
+        cls.event_1 = EventFactory(
+            organization=cls.organization,
+            start_date=cls.date_1,
+            end_date=cls.date_1 + datetime.timedelta(days=90),
+        )
+        cls.event_2 = EventFactory(
+            organization=cls.organization,
+            start_date=cls.date_2,
+            end_date=cls.date_2 + datetime.timedelta(days=90),
+        )
+        cls.event_3 = EventFactory(
+            organization=cls.organization,
+            start_date=cls.date_3,
+            end_date=cls.date_3 + datetime.timedelta(days=90),
+        )
 
     def test_filter_from_date(self):
         self.client.force_authenticate(self.user)
