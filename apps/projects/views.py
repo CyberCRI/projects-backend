@@ -22,7 +22,6 @@ from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import PeopleGroupLocationSuperLightSerializer
 from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
@@ -50,6 +49,7 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
+from apps.projects.utils import annotate_queryset_location
 from services.mistral.models import ProjectEmbedding
 
 from .filters import ProjectFilter
@@ -66,6 +66,7 @@ from .models import (
 from .permissions import HasProjectPermission, ProjectIsNotLocked
 from .serializers import (
     BlogEntrySerializer,
+    GeneralLocationSerializer,
     GoalSerializer,
     LinkedProjectSerializer,
     LocationSerializer,
@@ -983,19 +984,16 @@ class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet)
         organizations_code = get_below_hierarchy_codes((self.organization.code,))
         organizations = Organization.objects.filter(code__in=organizations_code)
 
-        qs_project = (
-            request.user.get_project_related_queryset(Location.objects)
-            .select_related("project")
-            .filter(project__organizations__in=organizations)
+        qs_project = request.user.get_project_related_queryset(Location.objects).filter(
+            project__organizations__in=organizations
         )
         qs_group = request.user.get_people_group_related_queryset(
             PeopleGroupLocation.objects.filter(
                 people_group__organization__in=organizations
             )
-        ).select_related("people_group")
+        )
 
-        data = {
-            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
-            "projects": LocationSerializer(qs_project, many=True).data,
-        }
+        qs = annotate_queryset_location(qs_project, qs_group)
+
+        data = GeneralLocationSerializer(list(qs), many=True).data
         return Response(data, status=status.HTTP_200_OK)

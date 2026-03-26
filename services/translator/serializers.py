@@ -1,9 +1,26 @@
+import copy
+
 from django.conf import settings
 from modeltranslation.manager import get_translatable_fields_for_model
 from rest_framework import serializers
 from rest_framework.serializers import ALL_FIELDS
 
 from services.translator.mixins import HasAutoTranslatedFields
+
+
+def generate_translated_fields(fields_names: tuple[str]):
+    def _wraps(cls: serializers.BaseSerializer) -> serializers.BaseSerializer:
+
+        # generates all fields
+        for field in fields_names:
+            for lang in settings.REQUIRED_LANGUAGES:
+                field_name = f"{field}_{lang}"
+                duplicate = copy.deepcopy(cls._declared_fields[field])
+                cls._declared_fields[field_name] = duplicate
+
+        return cls
+
+    return _wraps
 
 
 def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerializer:

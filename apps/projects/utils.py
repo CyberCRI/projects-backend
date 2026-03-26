@@ -1,5 +1,7 @@
 from typing import Any, TypeVar
 
+from django.db.models import CharField, F, QuerySet, Value
+from django.db.models.functions import Cast
 from rest_framework import serializers
 from rest_framework.utils import model_meta
 
@@ -61,3 +63,27 @@ def compute_project_changes(
             changes[attr] = (old, new)
 
     return changes
+
+
+def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
+    """annoate queryset for lazy load linked elements"""
+
+    all_qs: QuerySet = None
+
+    for queryset in querysets:
+        model = queryset.model
+        content = model.get_related_content()
+        qs = queryset.annotate(
+            content_id=Cast(f"{content}_id", output_field=CharField()),
+            content_type=Value(content),
+        ).values(
+            "lat",
+            "lng",
+            "type",
+            "content_id",
+            "content_type",
+        )
+
+        all_qs = qs if all_qs is None else all_qs.union(qs)
+
+    return all_qs

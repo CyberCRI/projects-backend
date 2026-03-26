@@ -989,3 +989,11 @@ class ProjectTabItemSerializer(
             "project_id": instance.tab.project.id,
             "tab_id": instance.tab.id,
         }
+
+
+class GeneralLocationSerializer(serializers.Serializer):
+    content_id = serializers.CharField()
+    content_type = serializers.CharField()
+    lat = serializers.FloatField()
+    lng = serializers.FloatField()
+    type = serializers.CharField()
