@@ -556,10 +556,8 @@ msgid ""
 msgstr "Juhiste inimrühmad peavad kuuluma samasse organisatsiooni"
 
 #: apps/newsfeed/serializers.py:273
-#, fuzzy
-#| msgid "The parent category must belong to the same organization"
 msgid "The end date must be later than the start date."
-msgstr "Vanemkategooria peab kuuluma samasse organisatsiooni"
+msgstr "Lõppkuupäev peab olema hilisem kui alguskuupäev."
 
 #: apps/notifications/tasks.py:200 apps/notifications/tasks.py:247
 #: services/crisalid/relators.py:883
@@ -2621,10 +2619,8 @@ msgid "Journal Article"
 msgstr ""
 
 #: services/crisalid/models.py:195
-#, fuzzy
-#| msgid "Review by"
 msgid "Conference Article"
-msgstr "Ülevaate autor"
+msgstr "Konverentsiartikkel"
 
 #: services/crisalid/models.py:196
 msgid "Conference Abstract"
@@ -2635,10 +2631,8 @@ msgid "Preface"
 msgstr ""
 
 #: services/crisalid/models.py:198
-#, fuzzy
-#| msgid "Comment by"
 msgid "Comment"
-msgstr "Kommenteeris"
+msgstr "Kommentaar"
 
 #: services/crisalid/models.py:199
 msgid "Book Chapter"
@@ -2721,10 +2715,8 @@ msgid "appellant"
 msgstr ""
 
 #: services/crisalid/relators.py:784
-#, fuzzy
-#| msgid "Applicant:"
 msgid "applicant"
-msgstr "Taotleja:"
+msgstr "taotleja"
 
 #: services/crisalid/relators.py:785
 msgid "author in quotations or text abstracts"
@@ -2775,10 +2767,8 @@ msgid "audio engineer"
 msgstr ""
 
 #: services/crisalid/relators.py:797
-#, fuzzy
-#| msgid "Go to instruction"
 msgid "author of introduction, etc."
-msgstr "Mine juhise juurde"
+msgstr "sissejuhatuse autor jne."
 
 #: services/crisalid/relators.py:798
 msgid "audio producer"
@@ -2941,10 +2931,8 @@ msgid "complainant-appellee"
 msgstr ""
 
 #: services/crisalid/relators.py:838
-#, fuzzy
-#| msgid "Copyright"
 msgid "copyright holder"
-msgstr "Autoriõigus"
+msgstr "autoriõiguse valdaja"
 
 #: services/crisalid/relators.py:839
 msgid "complainant"
@@ -2975,10 +2963,8 @@ msgid "consultant"
 msgstr ""
 
 #: services/crisalid/relators.py:846
-#, fuzzy
-#| msgid "Go to project"
 msgid "consultant to a project"
-msgstr "Mine projekti juurde"
+msgstr "projekti konsultant"
 
 #: services/crisalid/relators.py:847
 msgid "costume designer"
@@ -3073,10 +3059,8 @@ msgid "depicted"
 msgstr ""
 
 #: services/crisalid/relators.py:870
-#, fuzzy
-#| msgid "editor"
 msgid "depositor"
-msgstr "toimetaja"
+msgstr "deposiitor"
 
 #: services/crisalid/relators.py:871
 msgid "draftsman"
@@ -3171,10 +3155,8 @@ msgid "field director"
 msgstr ""
 
 #: services/crisalid/relators.py:895
-#, fuzzy
-#| msgid "editor"
 msgid "film editor"
-msgstr "toimetaja"
+msgstr "filmi monteerija"
 
 #: services/crisalid/relators.py:896
 msgid "film director"
@@ -3217,10 +3199,8 @@ msgid "geographic information specialist"
 msgstr ""
 
 #: services/crisalid/relators.py:906
-#, fuzzy
-#| msgid "Go to instruction"
 msgid "host institution"
-msgstr "Mine juhise juurde"
+msgstr "vastuvõttev asutus"
 
 #: services/crisalid/relators.py:907
 msgid "honoree"
@@ -3259,16 +3239,12 @@ msgid "instrumentalist"
 msgstr ""
 
 #: services/crisalid/relators.py:916
-#, fuzzy
-#| msgid "reviewer"
 msgid "interviewee"
-msgstr "hindaja"
+msgstr "intervjueeritav"
 
 #: services/crisalid/relators.py:917
-#, fuzzy
-#| msgid "reviewer"
 msgid "interviewer"
-msgstr "hindaja"
+msgstr "intervjueerija"
 
 #: services/crisalid/relators.py:918
 msgid "judge"
@@ -3379,20 +3355,16 @@ msgid "moderator"
 msgstr ""
 
 #: services/crisalid/relators.py:945
-#, fuzzy
-#| msgid "editor"
 msgid "monitor"
-msgstr "toimetaja"
+msgstr "monitor"
 
 #: services/crisalid/relators.py:946
 msgid "marbler"
 msgstr ""
 
 #: services/crisalid/relators.py:947
-#, fuzzy
-#| msgid "editor"
 msgid "markup editor"
-msgstr "toimetaja"
+msgstr "märgistusredaktor"
 
 #: services/crisalid/relators.py:948
 msgid "musical director"
@@ -3427,10 +3399,8 @@ msgid "narrator"
 msgstr ""
 
 #: services/crisalid/relators.py:956
-#, fuzzy
-#| msgid "participant"
 msgid "onscreen participant"
-msgstr "osaleja"
+msgstr "ekraanil osaleja"
 
 #: services/crisalid/relators.py:957
 msgid "opponent"
@@ -3569,10 +3539,8 @@ msgid "provider"
 msgstr ""
 
 #: services/crisalid/relators.py:991
-#, fuzzy
-#| msgid "Applicant:"
 msgid "patent applicant"
-msgstr "Taotleja:"
+msgstr "patenditaotleja"
 
 #: services/crisalid/relators.py:992
 msgid "plaintiff-appellee"
@@ -3591,10 +3559,8 @@ msgid "plaintiff-appellant"
 msgstr ""
 
 #: services/crisalid/relators.py:996
-#, fuzzy
-#| msgid "Unknown publication status"
 msgid "publication place"
-msgstr "Tundmatu avaldamise olek"
+msgstr "ilmumiskoht"
 
 #: services/crisalid/relators.py:997
 msgid "rapporteur"
@@ -3637,10 +3603,8 @@ msgid "radio producer"
 msgstr ""
 
 #: services/crisalid/relators.py:1008
-#, fuzzy
-#| msgid "editor"
 msgid "repository"
-msgstr "toimetaja"
+msgstr "repositoorium"
 
 #: services/crisalid/relators.py:1009
 msgid "reporter"
@@ -3891,10 +3855,8 @@ msgid "writer of foreword"
 msgstr ""
 
 #: services/crisalid/relators.py:1071
-#, fuzzy
-#| msgid "Go to instruction"
 msgid "writer of introduction"
-msgstr "Mine juhise juurde"
+msgstr "sissejuhatuse kirjutaja"
 
 #: services/crisalid/relators.py:1072
 msgid "witness"
@@ -4432,22 +4394,14 @@ msgstr "Autoriõigus"
 msgid "All rights reserved."
 msgstr "Kõik õigused kaitstud."
 
-#, fuzzy
-#~| msgid "Review by"
 #~ msgid "Book Review"
-#~ msgstr "Ülevaate autor"
+#~ msgstr "Raamatuarvustus"
 
-#, fuzzy
-#~| msgid "editor"
 #~ msgid "Editorial"
-#~ msgstr "toimetaja"
+#~ msgstr "Juhtkiri"
 
-#, fuzzy
-#~| msgid "reviewer"
 #~ msgid "Peer review"
-#~ msgstr "hindaja"
+#~ msgstr "Eelretsenseerimine"
 
-#, fuzzy
-#~| msgid "reviewer"
 #~ msgid "Review Paper"
-#~ msgstr "hindaja"
+#~ msgstr "Ülevaateartikkel"

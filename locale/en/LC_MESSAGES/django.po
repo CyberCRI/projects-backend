@@ -2287,10 +2287,8 @@ msgid "complainant-appellee"
 msgstr ""
 
 #: services/crisalid/relators.py:838
-#, fuzzy
-#| msgid "Copyright"
 msgid "copyright holder"
-msgstr "Copyright"
+msgstr ""
 
 #: services/crisalid/relators.py:839
 msgid "complainant"
@@ -3595,8 +3593,8 @@ msgstr ""
 
 #: templates/admin/base.html:16
 msgid "Copyright"
-msgstr "Copyright"
+msgstr ""
 
 #: templates/admin/base.html:16
 msgid "All rights reserved."
-msgstr "All rights reserved."
+msgstr ""

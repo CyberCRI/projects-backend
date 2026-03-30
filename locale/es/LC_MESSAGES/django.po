@@ -570,10 +570,8 @@ msgstr ""
 "organización"
 
 #: apps/newsfeed/serializers.py:273
-#, fuzzy
-#| msgid "The parent category must belong to the same organization"
 msgid "The end date must be later than the start date."
-msgstr "La categoría padre debe pertenecer a la misma organización"
+msgstr "La fecha de fin debe ser posterior a la fecha de inicio."
 
 #: apps/notifications/tasks.py:200 apps/notifications/tasks.py:247
 #: services/crisalid/relators.py:883
@@ -2639,10 +2637,8 @@ msgid "Journal Article"
 msgstr ""
 
 #: services/crisalid/models.py:195
-#, fuzzy
-#| msgid "Review by"
 msgid "Conference Article"
-msgstr "Revisión de"
+msgstr "Artículo de conferencia"
 
 #: services/crisalid/models.py:196
 msgid "Conference Abstract"
@@ -2653,10 +2649,8 @@ msgid "Preface"
 msgstr ""
 
 #: services/crisalid/models.py:198
-#, fuzzy
-#| msgid "Comment by"
 msgid "Comment"
-msgstr "Comentario de"
+msgstr "Comentario"
 
 #: services/crisalid/models.py:199
 msgid "Book Chapter"
@@ -2739,10 +2733,8 @@ msgid "appellant"
 msgstr ""
 
 #: services/crisalid/relators.py:784
-#, fuzzy
-#| msgid "Applicant:"
 msgid "applicant"
-msgstr "Solicitante:"
+msgstr "solicitante"
 
 #: services/crisalid/relators.py:785
 msgid "author in quotations or text abstracts"
@@ -2793,10 +2785,8 @@ msgid "audio engineer"
 msgstr ""
 
 #: services/crisalid/relators.py:797
-#, fuzzy
-#| msgid "Go to instruction"
 msgid "author of introduction, etc."
-msgstr "Ir a la instrucción"
+msgstr "autor de la introducción, etc."
 
 #: services/crisalid/relators.py:798
 msgid "audio producer"
@@ -2959,10 +2949,8 @@ msgid "complainant-appellee"
 msgstr ""
 
 #: services/crisalid/relators.py:838
-#, fuzzy
-#| msgid "Copyright"
 msgid "copyright holder"
-msgstr "Derechos de autor"
+msgstr "titular de los derechos de autor"
 
 #: services/crisalid/relators.py:839
 msgid "complainant"
@@ -2993,10 +2981,8 @@ msgid "consultant"
 msgstr ""
 
 #: services/crisalid/relators.py:846
-#, fuzzy
-#| msgid "Go to project"
 msgid "consultant to a project"
-msgstr "Ir al proyecto"
+msgstr "consultor de un proyecto"
 
 #: services/crisalid/relators.py:847
 msgid "costume designer"
@@ -3091,10 +3077,8 @@ msgid "depicted"
 msgstr ""
 
 #: services/crisalid/relators.py:870
-#, fuzzy
-#| msgid "editor"
 msgid "depositor"
-msgstr "editor"
+msgstr "depositante"
 
 #: services/crisalid/relators.py:871
 msgid "draftsman"
@@ -3189,10 +3173,8 @@ msgid "field director"
 msgstr ""
 
 #: services/crisalid/relators.py:895
-#, fuzzy
-#| msgid "editor"
 msgid "film editor"
-msgstr "editor"
+msgstr "editor de película"
 
 #: services/crisalid/relators.py:896
 msgid "film director"
@@ -3235,10 +3217,8 @@ msgid "geographic information specialist"
 msgstr ""
 
 #: services/crisalid/relators.py:906
-#, fuzzy
-#| msgid "Go to instruction"
 msgid "host institution"
-msgstr "Ir a la instrucción"
+msgstr "institución anfitriona"
 
 #: services/crisalid/relators.py:907
 msgid "honoree"
@@ -3277,16 +3257,12 @@ msgid "instrumentalist"
 msgstr ""
 
 #: services/crisalid/relators.py:916
-#, fuzzy
-#| msgid "reviewer"
 msgid "interviewee"
-msgstr "revisor"
+msgstr "entrevistado"
 
 #: services/crisalid/relators.py:917
-#, fuzzy
-#| msgid "reviewer"
 msgid "interviewer"
-msgstr "revisor"
+msgstr "entrevistador"
 
 #: services/crisalid/relators.py:918
 msgid "judge"
@@ -3397,20 +3373,16 @@ msgid "moderator"
 msgstr ""
 
 #: services/crisalid/relators.py:945
-#, fuzzy
-#| msgid "editor"
 msgid "monitor"
-msgstr "editor"
+msgstr "monitor"
 
 #: services/crisalid/relators.py:946
 msgid "marbler"
 msgstr ""
 
 #: services/crisalid/relators.py:947
-#, fuzzy
-#| msgid "editor"
 msgid "markup editor"
-msgstr "editor"
+msgstr "editor de marcado"
 
 #: services/crisalid/relators.py:948
 msgid "musical director"
@@ -3445,10 +3417,8 @@ msgid "narrator"
 msgstr ""
 
 #: services/crisalid/relators.py:956
-#, fuzzy
-#| msgid "participant"
 msgid "onscreen participant"
-msgstr "participante"
+msgstr "participante en pantalla"
 
 #: services/crisalid/relators.py:957
 msgid "opponent"
@@ -3587,10 +3557,8 @@ msgid "provider"
 msgstr ""
 
 #: services/crisalid/relators.py:991
-#, fuzzy
-#| msgid "Applicant:"
 msgid "patent applicant"
-msgstr "Solicitante:"
+msgstr "solicitante de patente"
 
 #: services/crisalid/relators.py:992
 msgid "plaintiff-appellee"
@@ -3609,10 +3577,8 @@ msgid "plaintiff-appellant"
 msgstr ""
 
 #: services/crisalid/relators.py:996
-#, fuzzy
-#| msgid "Unknown publication status"
 msgid "publication place"
-msgstr "Estado de publicación desconocido"
+msgstr "lugar de publicación"
 
 #: services/crisalid/relators.py:997
 msgid "rapporteur"
@@ -3655,10 +3621,8 @@ msgid "radio producer"
 msgstr ""
 
 #: services/crisalid/relators.py:1008
-#, fuzzy
-#| msgid "editor"
 msgid "repository"
-msgstr "editor"
+msgstr "repositorio"
 
 #: services/crisalid/relators.py:1009
 msgid "reporter"
@@ -3909,10 +3873,8 @@ msgid "writer of foreword"
 msgstr ""
 
 #: services/crisalid/relators.py:1071
-#, fuzzy
-#| msgid "Go to instruction"
 msgid "writer of introduction"
-msgstr "Ir a la instrucción"
+msgstr "autor de la introducción"
 
 #: services/crisalid/relators.py:1072
 msgid "witness"
@@ -4456,22 +4418,14 @@ msgstr "Derechos de autor"
 msgid "All rights reserved."
 msgstr "Todos los derechos reservados."
 
-#, fuzzy
-#~| msgid "Review by"
 #~ msgid "Book Review"
-#~ msgstr "Revisión de"
+#~ msgstr "Reseña de libro"
 
-#, fuzzy
-#~| msgid "editor"
 #~ msgid "Editorial"
-#~ msgstr "editor"
+#~ msgstr "Editorial"
 
-#, fuzzy
-#~| msgid "reviewer"
 #~ msgid "Peer review"
-#~ msgstr "revisor"
+#~ msgstr "Revisión por pares"
 
-#, fuzzy
-#~| msgid "reviewer"
 #~ msgid "Review Paper"
-#~ msgstr "revisor"
+#~ msgstr "Artículo de revisión"
