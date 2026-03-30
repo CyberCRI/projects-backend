@@ -33,6 +33,11 @@ from apps.commons.views import (
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
+from apps.newsfeed.models import EventLocation, NewsLocation
+from apps.newsfeed.serializers import (
+    EventLocationSerializerLight,
+    NewsLocationSerializerLight,
+)
 from apps.notifications.tasks import (
     notify_group_as_member_added,
     notify_group_member_deleted,
@@ -988,14 +993,25 @@ class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet)
             .select_related("project")
             .filter(project__organizations__in=organizations)
         )
+
         qs_group = request.user.get_people_group_related_queryset(
             PeopleGroupLocation.objects.filter(
                 people_group__organization__in=organizations
             )
         ).select_related("people_group")
 
+        qs_news = request.user.get_news_related_queryset(
+            NewsLocation.objects.filter(news__organization__in=organizations)
+        ).select_related("news")
+
+        qs_event = request.user.get_event_related_queryset(
+            EventLocation.objects.filter(event__organization__in=organizations)
+        ).select_related("event")
+
         data = {
             "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
             "projects": LocationSerializer(qs_project, many=True).data,
+            "news": NewsLocationSerializerLight(qs_news, many=True).data,
+            "event": EventLocationSerializerLight(qs_event, many=True).data,
         }
         return Response(data, status=status.HTTP_200_OK)

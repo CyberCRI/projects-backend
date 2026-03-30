@@ -314,6 +314,13 @@ class PeopleGroupLightSerializer(
 
 
 @auto_translated
+class PeopleGroupExtraLightSerializer(PeopleGroupLightSerializer):
+    class Meta(PeopleGroupLightSerializer.Meta):
+        fields = ("id", "slug", "name", "roles")
+        modules_keys = ()
+
+
+@auto_translated
 class PeopleGroupHierarchySerializer(
     ModulesSerializers,
     serializers.ModelSerializer,

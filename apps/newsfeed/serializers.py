@@ -1,11 +1,13 @@
 from typing import Any
 
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.accounts.models import PeopleGroup
 from apps.accounts.serializers import PeopleGroupLightSerializer
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.serializers import (
+    BaseLocationSerializer,
     OrganizationRelatedSerializer,
     StringsImagesSerializer,
 )
@@ -20,7 +22,19 @@ from .exceptions import (
     InstructionPeopleGroupOrganizationError,
     NewsPeopleGroupOrganizationError,
 )
-from .models import Event, Instruction, News, Newsfeed
+from .models import (
+    Event,
+    EventLocation,
+    Instruction,
+    News,
+    Newsfeed,
+    NewsLocation,
+)
+
+
+class NewsLocationSerializer(BaseLocationSerializer):
+    class Meta(BaseLocationSerializer.Meta):
+        model = NewsLocation
 
 
 @auto_translated
@@ -50,6 +64,8 @@ class NewsSerializer(
         required=False,
     )
 
+    location = NewsLocationSerializer(required=False, allow_null=True)
+
     class Meta:
         model = News
         fields = [
@@ -66,6 +82,7 @@ class NewsSerializer(
             "visible_by_all",
             # write_only
             "header_image_id",
+            "location",
         ]
 
     def validate_people_groups(self, value):
@@ -82,6 +99,42 @@ class NewsSerializer(
             "organization_code": instance.organization.code,
             "news_id": instance.id,
         }
+
+    def create(self, validated_data):
+        location = validated_data.pop("location", None)
+        instance = super().create(validated_data)
+        if location:
+            NewsLocationSerializer(location).create({**location, "news": instance})
+            instance.refresh_from_db()
+        return instance
+
+    def update(self, instance, validated_data):
+        location = validated_data.pop("location", None)
+        super().update(instance, validated_data)
+        location_instance = getattr(instance, "location", None)
+        if getattr(instance, "location", None) and not location:
+            location_instance.delete()
+        elif not location_instance and location:
+            NewsLocationSerializer(location).create({**location, "news": instance})
+        elif location_instance and location:
+            NewsLocationSerializer(location).update(
+                location_instance, {**location, "news": instance}
+            )
+        instance.refresh_from_db()
+        return instance
+
+
+class NewsLightSerializer(NewsSerializer):
+
+    class Meta(NewsSerializer.Meta):
+        fields = ("id", "title", "content", "publication_date", "header_image")
+
+
+class NewsLocationSerializerLight(NewsLocationSerializer):
+    news = NewsLightSerializer()
+
+    class Meta(NewsLocationSerializer.Meta):
+        fields = (*NewsLocationSerializer.Meta.fields, "news")
 
 
 @auto_translated
@@ -166,6 +219,12 @@ class NewsfeedSerializer(serializers.ModelSerializer):
 
 
 @auto_translated
+class EventLocationSerializer(BaseLocationSerializer):
+    class Meta(BaseLocationSerializer.Meta):
+        model = EventLocation
+
+
+@auto_translated
 class EventSerializer(
     StringsImagesSerializer,
     OrganizationRelatedSerializer,
@@ -180,8 +239,12 @@ class EventSerializer(
         slug_field="code", queryset=Organization.objects.all()
     )
     people_groups = serializers.PrimaryKeyRelatedField(
-        many=True, queryset=PeopleGroup.objects.all()
+        many=True,
+        queryset=PeopleGroup.objects.all(),
     )
+    location = EventLocationSerializer(required=False, allow_null=True)
+
+    end_date = serializers.DateTimeField(required=False, allow_null=True)
 
     class Meta:
         model = Event
@@ -189,13 +252,28 @@ class EventSerializer(
             "id",
             "title",
             "content",
-            "event_date",
+            "start_date",
+            "end_date",
             "organization",
             "people_groups",
             "created_at",
             "updated_at",
             "visible_by_all",
+            "location",
         ]
+
+    def validate(self, cleanded_data: dict):
+
+        if cleanded_data.get("start_date"):
+            # if end date is not set, put same date are start_date
+            cleanded_data.setdefault("end_date", cleanded_data["start_date"])
+
+            if cleanded_data["start_date"] > cleanded_data["end_date"]:
+                raise serializers.ValidationError(
+                    _("The end date must be later than the start date.")
+                )
+
+        return cleanded_data
 
     def validate_people_groups(self, value):
         for group in value:
@@ -211,3 +289,41 @@ class EventSerializer(
             "organization_code": instance.organization.code,
             "event_id": instance.id,
         }
+
+    def create(self, validated_data):
+        location = validated_data.pop("location", None)
+        instance = super().create(validated_data)
+        if location:
+            EventLocationSerializer(location).create({**location, "event": instance})
+            instance.refresh_from_db()
+        return instance
+
+    def update(self, instance, validated_data):
+        location = validated_data.pop("location", None)
+
+        super().update(instance, validated_data)
+
+        location_instance = getattr(instance, "location", None)
+        if location_instance and not location:
+            location_instance.delete()
+        elif not location_instance and location:
+            EventLocationSerializer(location).create({**location, "event": instance})
+        elif location_instance and location:
+            EventLocationSerializer(location).update(
+                location_instance, {**location, "event": instance}
+            )
+        instance.refresh_from_db()
+        return instance
+
+
+class EventLightSerializer(EventSerializer):
+
+    class Meta(EventSerializer.Meta):
+        fields = ("id", "title", "content", "start_date", "end_date")
+
+
+class EventLocationSerializerLight(EventLocationSerializer):
+    event = EventLightSerializer()
+
+    class Meta(EventLocationSerializer.Meta):
+        fields = (*EventLocationSerializer.Meta.fields, "event")
