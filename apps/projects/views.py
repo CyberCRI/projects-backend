@@ -32,6 +32,11 @@ from apps.commons.views import (
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
+from apps.newsfeed.models import EventLocation, NewsLocation
+from apps.newsfeed.serializers import (
+    EventLocationSerializerLight,
+    NewsLocationSerializerLight,
+)
 from apps.notifications.tasks import (
     notify_group_as_member_added,
     notify_group_member_deleted,
@@ -168,7 +173,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         if settings.ENABLE_CACHE and instance.announcements.exists():
             cache.delete_many(cache.keys("announcements_list_cache*"))
-        super(ProjectViewSet, self).perform_destroy(instance)
+        super().perform_destroy(instance)
 
     @extend_schema(
         parameters=[
@@ -182,7 +187,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
-        return super(ProjectViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[
@@ -598,11 +603,11 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         redis_cache_view("locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL)
     )
     def list(self, request, *args, **kwargs):
-        return super(LocationViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @method_decorator(clear_cache_with_key("locations_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(LocationViewSet, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
@@ -658,14 +663,14 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
-        super(LinkedProjectViewSet, self).perform_create(serializer)
+        super().perform_create(serializer)
 
     @transaction.atomic
     def perform_update(self, serializer):
         project = serializer.validated_data.get("project")
         if project:
             self.check_linked_project_permission(project)
-        super(LinkedProjectViewSet, self).perform_update(serializer)
+        super().perform_update(serializer)
 
     @extend_schema(
         request=ProjectAddLinkedProjectSerializer, responses=ProjectSerializer
@@ -987,13 +992,21 @@ class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet)
         qs_project = request.user.get_project_related_queryset(Location.objects).filter(
             project__organizations__in=organizations
         )
+
         qs_group = request.user.get_people_group_related_queryset(
             PeopleGroupLocation.objects.filter(
                 people_group__organization__in=organizations
             )
         )
+        qs_news = request.user.get_news_related_queryset(
+            NewsLocation.objects.filter(news__organization__in=organizations)
+        )
 
-        qs = annotate_queryset_location(qs_project, qs_group)
+        qs_event = request.user.get_event_related_queryset(
+            EventLocation.objects.filter(event__organization__in=organizations)
+        )
+
+        qs = annotate_queryset_location(qs_project, qs_group, qs_news, qs_event)
 
         data = GeneralLocationSerializer(list(qs), many=True).data
         return Response(data, status=status.HTTP_200_OK)

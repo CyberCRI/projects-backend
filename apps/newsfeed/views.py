@@ -327,7 +327,7 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     filterset_class = EventFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["event_date"]
+    ordering_fields = ["start_date"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 

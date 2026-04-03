@@ -1,8 +1,9 @@
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
-from apps.accounts.models import PeopleGroup, ProjectUser
+from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.files.models import PeopleGroupImage
 from apps.modules.base import AbstractModules, register_module
+from apps.newsfeed.models import Event, EventLocation, NewsLocation
 from apps.projects.models import Location, Project
 from apps.skills.models import Skill
 from services.crisalid.models import Document, DocumentTypeCentralized
@@ -71,11 +72,29 @@ class PeopleGroupModules(AbstractModules):
             pk__in=self.user.get_people_group_queryset()
         )
 
-    def projects_locations(self) -> QuerySet[Location]:
-        return Location.objects.filter(project__in=self.featured_projects())
+    def locations(self) -> QuerySet[Location]:
+        qs_project = Location.objects.filter(project__in=self.featured_projects())
+        qs_news = NewsLocation.objects.filter(news__in=self.news())
+        qs_group = PeopleGroupLocation.objects.filter(people_group__in=self.subgroups())
+        qs_location = PeopleGroupLocation.objects.filter(people_group=self.instance)
+        qs_event = EventLocation.objects.filter(event__in=self.event())
+
+        return (
+            qs_group.union(qs_project)
+            .union(qs_news)
+            .union(qs_location)
+            .union(qs_event)
+            .values("lat", "lng", "id", "type", "title", "description")
+        )
 
     def gallery(self):
         return PeopleGroupImage.objects.filter(people_group=self.instance)
+
+    def news(self):
+        return self.user.get_news_queryset().filter(people_groups=self.instance)
+
+    def event(self) -> QuerySet[Event]:
+        return self.user.get_event_queryset().filter(people_groups=self.instance)
 
     def _documents(self, documents_type: DocumentTypeCentralized) -> QuerySet[Document]:
         members_qs = self.members()

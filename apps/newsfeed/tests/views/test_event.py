@@ -11,7 +11,7 @@ from apps.accounts.models import PeopleGroup
 from apps.accounts.utils import get_superadmins_group
 from apps.commons.test import JwtAPITestCase, TestRoles
 from apps.newsfeed.factories import EventFactory
-from apps.newsfeed.models import Event
+from apps.newsfeed.models import Event, EventLocation
 from apps.organizations.factories import OrganizationFactory
 
 faker = Faker()
@@ -45,8 +45,10 @@ class CreateEventTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
+            "end_date": datetime.date.today().isoformat(),
             "people_groups": [self.people_group.id],
+            "location": None,
         }
 
         response = self.client.post(
@@ -58,6 +60,25 @@ class CreateEventTestCase(JwtAPITestCase):
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
             self.assertEqual(content["people_groups"], payload["people_groups"])
+            self.assertIsNone(content["location"])
+
+        payload["location"] = {
+            "title": "title",
+            "lat": 44,
+            "lng": 33,
+            "type": EventLocation.LocationType.EVENT.value,
+        }
+
+        response = self.client.post(
+            reverse("Event-list", args=(organization.code,)), data=payload
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_201_CREATED:
+            content = response.json()
+            self.assertEqual(content["location"]["title"], payload["location"]["title"])
+            self.assertEqual(content["location"]["lat"], payload["location"]["lat"])
+            self.assertEqual(content["location"]["lng"], payload["location"]["lng"])
+            self.assertEqual(content["location"]["type"], payload["location"]["type"])
 
 
 class UpdateEventTestCase(JwtAPITestCase):
@@ -89,7 +110,13 @@ class UpdateEventTestCase(JwtAPITestCase):
         payload = {
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
+            "location": {
+                "title": "title",
+                "lat": 44,
+                "lng": 33,
+                "type": EventLocation.LocationType.EVENT.value,
+            },
         }
         response = self.client.patch(
             reverse("Event-detail", args=(self.organization.code, self.event.id)),
@@ -100,6 +127,34 @@ class UpdateEventTestCase(JwtAPITestCase):
             content = response.json()
             self.assertEqual(content["title"], payload["title"])
             self.assertEqual(content["content"], payload["content"])
+            self.assertEqual(content["location"]["title"], payload["location"]["title"])
+            self.assertEqual(content["location"]["lat"], payload["location"]["lat"])
+            self.assertEqual(content["location"]["lng"], payload["location"]["lng"])
+            self.assertEqual(content["location"]["type"], payload["location"]["type"])
+
+        # location is removed
+        payload = {"location": {"title": "updated_title"}}
+        response = self.client.patch(
+            reverse("Event-detail", args=(self.organization.code, self.event.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            self.assertEqual(content["location"]["title"], payload["location"]["title"])
+
+        # location is removed
+        payload = {
+            "location": None,
+        }
+        response = self.client.patch(
+            reverse("Event-detail", args=(self.organization.code, self.event.id)),
+            data=payload,
+        )
+        self.assertEqual(response.status_code, expected_code)
+        if expected_code == status.HTTP_200_OK:
+            content = response.json()
+            self.assertIsNone(content["location"])
 
 
 class DeleteEventTestCase(JwtAPITestCase):
@@ -235,7 +290,7 @@ class ValidateEventTestCase(JwtAPITestCase):
             "organization": self.organization.code,
             "title": faker.sentence(),
             "content": faker.text(),
-            "event_date": datetime.date.today().isoformat(),
+            "start_date": datetime.date.today().isoformat(),
             "people_groups": [self.other_org_people_group.id],
         }
         response = self.client.post(
@@ -284,9 +339,21 @@ class FilterOrderEventTestCase(JwtAPITestCase):
         cls.date_1 = make_aware(datetime.datetime(2020, 1, 1))
         cls.date_2 = make_aware(datetime.datetime(2021, 1, 1))
         cls.date_3 = make_aware(datetime.datetime(2022, 1, 1))
-        cls.event_1 = EventFactory(organization=cls.organization, event_date=cls.date_1)
-        cls.event_2 = EventFactory(organization=cls.organization, event_date=cls.date_2)
-        cls.event_3 = EventFactory(organization=cls.organization, event_date=cls.date_3)
+        cls.event_1 = EventFactory(
+            organization=cls.organization,
+            start_date=cls.date_1,
+            end_date=cls.date_1 + datetime.timedelta(days=90),
+        )
+        cls.event_2 = EventFactory(
+            organization=cls.organization,
+            start_date=cls.date_2,
+            end_date=cls.date_2 + datetime.timedelta(days=90),
+        )
+        cls.event_3 = EventFactory(
+            organization=cls.organization,
+            start_date=cls.date_3,
+            end_date=cls.date_3 + datetime.timedelta(days=90),
+        )
 
     def test_filter_from_date(self):
         self.client.force_authenticate(self.user)
@@ -314,11 +381,11 @@ class FilterOrderEventTestCase(JwtAPITestCase):
             {self.event_1.id, self.event_2.id},
         )
 
-    def test_order_by_event_date(self):
+    def test_order_by_start_date(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
             reverse("Event-list", args=(self.organization.code,))
-            + "?ordering=event_date"
+            + "?ordering=start_date"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
@@ -327,11 +394,11 @@ class FilterOrderEventTestCase(JwtAPITestCase):
             [self.event_1.id, self.event_2.id, self.event_3.id],
         )
 
-    def test_order_by_event_date_reverse(self):
+    def test_order_by_start_date_reverse(self):
         self.client.force_authenticate(self.user)
         response = self.client.get(
             reverse("Event-list", args=(self.organization.code,))
-            + "?ordering=-event_date"
+            + "?ordering=-start_date"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]
