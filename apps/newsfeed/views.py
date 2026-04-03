@@ -13,7 +13,7 @@ from rest_framework.settings import api_settings
 from apps.accounts.permissions import HasBasePermission
 from apps.commons.permissions import ReadOnly
 from apps.commons.utils import map_action_to_permission
-from apps.commons.views import ListViewSet
+from apps.commons.views import ListViewSet, QuerySerializersMixin
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.organizations.permissions import HasOrganizationPermission
@@ -22,9 +22,11 @@ from apps.projects.models import Project
 from .filters import EventFilter, InstructionFilter, NewsFilter
 from .models import Event, Instruction, News, Newsfeed
 from .serializers import (
+    EventLightSerializer,
     EventSerializer,
     InstructionSerializer,
     NewsfeedSerializer,
+    NewsLightSerializer,
     NewsSerializer,
 )
 
@@ -119,7 +121,7 @@ class NewsfeedViewSet(ListViewSet):
         return self.merge_querysets(announcements, news, projects)
 
 
-class NewsViewSet(viewsets.ModelViewSet):
+class NewsViewSet(QuerySerializersMixin, viewsets.ModelViewSet):
     """Main endpoints for news."""
 
     serializer_class = NewsSerializer
@@ -128,6 +130,7 @@ class NewsViewSet(viewsets.ModelViewSet):
     ordering_fields = ["updated_at", "publication_date"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    query_serializers = {"light": NewsLightSerializer}
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "news")
@@ -321,7 +324,7 @@ class InstructionImagesView(ImageStorageView):
         return None
 
 
-class EventViewSet(viewsets.ModelViewSet):
+class EventViewSet(QuerySerializersMixin, viewsets.ModelViewSet):
     """Main endpoints for projects."""
 
     serializer_class = EventSerializer
@@ -330,6 +333,7 @@ class EventViewSet(viewsets.ModelViewSet):
     ordering_fields = ["start_date"]
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
+    query_serializers = {"light": EventLightSerializer}
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "event")

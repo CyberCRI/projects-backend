@@ -43,7 +43,10 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField, TagSerializer
-from services.translator.serializers import auto_translated
+from services.translator.serializers import (
+    auto_translated,
+    generate_translated_fields,
+)
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -991,7 +994,10 @@ class ProjectTabItemSerializer(
         }
 
 
+@generate_translated_fields(("title", "description"))
 class GeneralLocationSerializer(serializers.Serializer):
+    title = serializers.CharField()
+    description = serializers.CharField()
     content_id = serializers.CharField()
     content_type = serializers.CharField()
     lat = serializers.FloatField()

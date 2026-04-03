@@ -8,13 +8,23 @@ from rest_framework.serializers import ALL_FIELDS
 from services.translator.mixins import HasAutoTranslatedFields
 
 
+def prefix_field_langs(field: str) -> list[str]:
+    return [f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES]
+
+
+def prefix_fields_langs(fields: list[str]) -> list[list[str]]:
+    final = []
+    for field in fields:
+        final.extend(prefix_field_langs(field))
+    return final
+
+
 def generate_translated_fields(fields_names: tuple[str]):
     def _wraps(cls: serializers.BaseSerializer) -> serializers.BaseSerializer:
 
         # generates all fields
         for field in fields_names:
-            for lang in settings.REQUIRED_LANGUAGES:
-                field_name = f"{field}_{lang}"
+            for field_name in prefix_field_langs(field):
                 duplicate = copy.deepcopy(cls._declared_fields[field])
                 cls._declared_fields[field_name] = duplicate
 
@@ -48,9 +58,10 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
         return cls
 
     fields_to_add = [f"{field}_detected_language" for field in fields_available]
+
     # generates all fields
     for field in fields_available:
-        fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
+        fields_to_add.extend(prefix_field_langs(field))
 
     # set all fields in read_only (use set to avoid duplicated refered)
     read_only_fields = getattr(cls.Meta, "read_only_fields", [])
@@ -90,10 +101,8 @@ def external_auto_translated(
     if not fields_available:
         return cls
 
-    fields_to_add = []
     # generates all fields
-    for field in fields_available:
-        fields_to_add.extend(f"{field}_{lang}" for lang in settings.REQUIRED_LANGUAGES)
+    fields_to_add = prefix_fields_langs(fields_available)
 
     # set all fields in fields
     fields = getattr(cls.Meta, "fields", None)

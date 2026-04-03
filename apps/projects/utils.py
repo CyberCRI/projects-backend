@@ -1,11 +1,12 @@
 from typing import Any, TypeVar
 
-from django.db.models import CharField, F, QuerySet, Value
+from django.db.models import CharField, QuerySet, Value
 from django.db.models.functions import Cast
 from rest_framework import serializers
 from rest_framework.utils import model_meta
 
 from apps.organizations.models import Organization
+from services.translator.serializers import prefix_fields_langs
 
 from .models import Project
 
@@ -69,6 +70,17 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
     """annoate queryset for lazy load linked elements"""
 
     all_qs: QuerySet = None
+    fields = (
+        "lat",
+        "lng",
+        "type",
+        "content_id",
+        "content_type",
+        "title",
+        "description",
+        # add generate field text
+        *prefix_fields_langs(("title", "description")),
+    )
 
     for queryset in querysets:
         model = queryset.model
@@ -76,13 +88,7 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
         qs = queryset.annotate(
             content_id=Cast(f"{content}_id", output_field=CharField()),
             content_type=Value(content),
-        ).values(
-            "lat",
-            "lng",
-            "type",
-            "content_id",
-            "content_type",
-        )
+        ).values(*fields)
 
         all_qs = qs if all_qs is None else all_qs.union(qs)
 
