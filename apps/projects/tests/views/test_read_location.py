@@ -111,12 +111,15 @@ class ReadLocationTestCase(JwtAPITestCase):
             reverse("General-location-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
+        locations = response.json()
 
         # projects (from organization, not organization_other)
-        self.assertEqual(len(content["projects"]), len(retrieved_locations))
         self.assertSetEqual(
-            {a["id"] for a in content["projects"]},
+            {
+                location["content_id"]
+                for location in locations
+                if location["content_type"] == "project"
+            },
             {a.id for a in [self.locations[a] for a in retrieved_locations]},
         )
 
@@ -141,11 +144,14 @@ class ReadLocationTestCase(JwtAPITestCase):
             reverse("General-location-list", args=(self.organization.code,))
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        content = response.json()
+        locations = response.json()
 
-        # groups (from organization, not organization_other)
-        self.assertEqual(len(content["groups"]), len(retrieved_locations))
+        # projects (from organization, not organization_other)
         self.assertSetEqual(
-            {a["id"] for a in content["groups"]},
-            {a.id for a in [self.locations_group[a] for a in retrieved_locations]},
+            {
+                location["content_id"]
+                for location in locations
+                if location["content_type"] == "people_group"
+            },
+            {a.id for a in [self.locations[a] for a in retrieved_locations]},
         )
