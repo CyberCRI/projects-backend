@@ -160,8 +160,9 @@ class NestedOrganizationViewMixins:
 class NestedPeopleGroupViewMixins:
     def initial(self, request, *args, **kwargs):
         self.people_group = get_object_or_404(
-            request.user.get_people_group_queryset(),
-            id=kwargs["people_group_id"],
+            request.user.get_people_group_queryset().slug_or_id(
+                kwargs["people_group_id"]
+            ),
         )
 
         super().initial(request, *args, **kwargs)
