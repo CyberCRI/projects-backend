@@ -1,12 +1,12 @@
 FROM python:3.13-slim AS builder
 
-ARG EXPORT_FLAG="--with dev"
+ARG EXPORT_FLAG="--all-groups"
 
-RUN pip install --upgrade pip poetry poetry-plugin-export
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
-COPY pyproject.toml poetry.toml poetry.lock ./
+COPY pyproject.toml uv.lock ./
 
-RUN poetry export -f requirements.txt $EXPORT_FLAG --without-hashes --output /tmp/requirements.txt
+RUN uv export ${EXPORT_FLAG:+$EXPORT_FLAG} --no-hashes --output-file /tmp/requirements.txt
 
 
 FROM python:3.13-slim
@@ -31,10 +31,10 @@ RUN pip install -r requirements.txt
 COPY devops-toolbox/scripts/secrets-entrypoint.sh secrets-entrypoint.sh
 COPY . .
 
-RUN django-admin compilemessages &&\
-    python manage.py spectacular --file assets/schema.yml &&\
-    python manage.py collectstatic &&\
-    rm -fr /app/assets/*
+RUN django-admin compilemessages
+RUN python manage.py spectacular --file assets/schema.yml
+RUN python manage.py collectstatic
+RUN rm -fr /app/assets/*
 
 USER app
 

@@ -61,7 +61,7 @@ services:
     build:
       context: .
       args:
-        EXPORT_FLAG: --with dev
+        EXPORT_FLAG: --all-groups
     env_file:
       - .env
       - ../.env
