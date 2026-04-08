@@ -153,5 +153,5 @@ class ReadLocationTestCase(JwtAPITestCase):
                 for location in locations
                 if location["content_type"] == "people_group"
             },
-            {a.id for a in [self.locations[a] for a in retrieved_locations]},
+            {a.id for a in [self.locations_group[a] for a in retrieved_locations]},
         )
