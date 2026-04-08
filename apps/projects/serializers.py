@@ -996,6 +996,7 @@ class ProjectTabItemSerializer(
 
 @generate_translated_fields(("title", "description"))
 class GeneralLocationSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
     title = serializers.CharField()
     description = serializers.CharField()
     content_id = serializers.CharField()
