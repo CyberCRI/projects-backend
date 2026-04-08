@@ -71,6 +71,7 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
 
     all_qs: QuerySet = None
     fields = (
+        "id",
         "lat",
         "lng",
         "type",
@@ -86,6 +87,7 @@ def annotate_queryset_location(*querysets: QuerySet) -> QuerySet:
         model = queryset.model
         content = model.get_related_content()
         qs = queryset.annotate(
+            # cast linked object to string (project is slug so string, but news/events is pk so int)
             content_id=Cast(f"{content}_id", output_field=CharField()),
             content_type=Value(content),
         ).values(*fields)

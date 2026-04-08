@@ -116,7 +116,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         # projects (from organization, not organization_other)
         self.assertSetEqual(
             {
-                location["content_id"]
+                location["id"]
                 for location in locations
                 if location["content_type"] == "project"
             },
@@ -149,7 +149,7 @@ class ReadLocationTestCase(JwtAPITestCase):
         # projects (from organization, not organization_other)
         self.assertSetEqual(
             {
-                location["content_id"]
+                location["id"]
                 for location in locations
                 if location["content_type"] == "people_group"
             },
