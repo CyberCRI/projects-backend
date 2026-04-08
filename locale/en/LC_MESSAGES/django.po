@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 20:34+0100\n"
+"POT-Creation-Date: 2026-04-03 13:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -108,7 +108,7 @@ msgstr ""
 msgid "You cannot assign this role to a user : {role}"
 msgstr ""
 
-#: apps/accounts/models.py:161 apps/projects/models.py:164
+#: apps/accounts/models.py:168 apps/projects/models.py:165
 msgid "visibility"
 msgstr ""
 
@@ -1225,23 +1225,23 @@ msgstr ""
 msgid "You cannot change the type of a project's tab"
 msgstr ""
 
-#: apps/projects/models.py:147
+#: apps/projects/models.py:148
 msgid "title"
 msgstr ""
 
-#: apps/projects/models.py:157
+#: apps/projects/models.py:158
 msgid "main goal"
 msgstr ""
 
-#: apps/projects/models.py:170
+#: apps/projects/models.py:171
 msgid "life status"
 msgstr ""
 
-#: apps/projects/models.py:181
+#: apps/projects/models.py:182
 msgid "categories"
 msgstr ""
 
-#: apps/projects/models.py:198
+#: apps/projects/models.py:199
 msgid "sustainable development goals"
 msgstr ""
 

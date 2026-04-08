@@ -46,6 +46,7 @@ from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
     NestedPeopleGroupViewMixins,
+    QuerySerializersMixin,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -89,6 +90,7 @@ from .serializers import (
     PeopleGroupRemoveFeaturedProjectsSerializer,
     PeopleGroupRemoveTeamMembersSerializer,
     PeopleGroupSerializer,
+    PeopleGroupSuperLightSerializer,
     PrivacySettingsSerializer,
     UserAdminListSerializer,
     UserLighterSerializer,
@@ -518,7 +520,9 @@ class UserViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 )
 
 
-class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class PeopleGroupViewSet(
+    QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     queryset = PeopleGroup.objects.all()
     serializer_class = PeopleGroupSerializer
     filterset_class = PeopleGroupFilter
@@ -530,6 +534,10 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         OrderingFilter,
     )
     multiple_lookup_fields = [(PeopleGroup, "id")]
+    query_serializers = {
+        "light": PeopleGroupLightSerializer,
+        "superlight": PeopleGroupSuperLightSerializer,
+    }
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "peoplegroup")
@@ -556,9 +564,8 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return PeopleGroup.objects.none()
 
     def get_serializer_class(self):
-        if self.action == "list":
-            return PeopleGroupLightSerializer
-        return self.serializer_class
+        query = "light" if self.action == "list" else None
+        return super().get_serializer_class(query)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
