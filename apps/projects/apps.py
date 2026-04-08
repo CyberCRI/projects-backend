@@ -8,4 +8,4 @@ class ProjectsConfig(AppConfig):
 
     def ready(self):
         """Register signals once the apps are loaded."""
-        import apps.projects.signals  # noqa
+        import apps.projects.signals  # noqa: F401

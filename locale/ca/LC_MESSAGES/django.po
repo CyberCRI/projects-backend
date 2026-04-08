@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 20:34+0100\n"
+"POT-Creation-Date: 2026-04-08 16:39+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -110,7 +110,7 @@ msgstr "No pots assignar aquest rol a un usuari"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "No pots assignar aquest rol a un usuari: {role}"
 
-#: apps/accounts/models.py:161 apps/projects/models.py:164
+#: apps/accounts/models.py:159 apps/projects/models.py:164
 msgid "visibility"
 msgstr "visibilitat"
 
@@ -567,7 +567,7 @@ msgstr ""
 "Els grups de persones d'una instrucció han de pertànyer a la mateixa "
 "organització"
 
-#: apps/newsfeed/serializers.py:273
+#: apps/newsfeed/serializers.py:272
 msgid "The end date must be later than the start date."
 msgstr "La data de finalització ha de ser posterior a la data d'inici."
 
@@ -2619,63 +2619,63 @@ msgstr ""
 "\n"
 "Vols ser mentoritzat en %(skill)s? (recordatori)\n"
 
-#: services/crisalid/models.py:191
+#: services/crisalid/models.py:189
 msgid "Document"
 msgstr ""
 
-#: services/crisalid/models.py:192
+#: services/crisalid/models.py:190
 msgid "Scholarly Publication"
 msgstr ""
 
-#: services/crisalid/models.py:193
+#: services/crisalid/models.py:191
 msgid "Article"
 msgstr ""
 
-#: services/crisalid/models.py:194
+#: services/crisalid/models.py:192
 msgid "Journal Article"
 msgstr ""
 
-#: services/crisalid/models.py:195
+#: services/crisalid/models.py:193
 msgid "Conference Article"
 msgstr "Article de conferència"
 
-#: services/crisalid/models.py:196
+#: services/crisalid/models.py:194
 msgid "Conference Abstract"
 msgstr ""
 
-#: services/crisalid/models.py:197
+#: services/crisalid/models.py:195
 msgid "Preface"
 msgstr ""
 
-#: services/crisalid/models.py:198
+#: services/crisalid/models.py:196
 msgid "Comment"
 msgstr "Comentari"
 
-#: services/crisalid/models.py:199
+#: services/crisalid/models.py:197
 msgid "Book Chapter"
 msgstr ""
 
-#: services/crisalid/models.py:200
+#: services/crisalid/models.py:198
 msgid "Book"
 msgstr ""
 
-#: services/crisalid/models.py:201
+#: services/crisalid/models.py:199
 msgid "Monograph"
 msgstr ""
 
-#: services/crisalid/models.py:202
+#: services/crisalid/models.py:200
 msgid "Proceedings"
 msgstr ""
 
-#: services/crisalid/models.py:203
+#: services/crisalid/models.py:201
 msgid "Book Of Chapters"
 msgstr ""
 
-#: services/crisalid/models.py:204
+#: services/crisalid/models.py:202
 msgid "Presentation"
 msgstr ""
 
-#: services/crisalid/models.py:205
+#: services/crisalid/models.py:203
 msgid "Unknown"
 msgstr ""
 

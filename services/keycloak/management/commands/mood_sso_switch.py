@@ -51,7 +51,7 @@ class Command(BaseCommand):
                     else:
                         print(f"{keycloak_id},NOT_FOUND")
                         file.write(f"{keycloak_id},NOT_FOUND\n")
-                except Exception as e:  # noqa: PIE786
+                except Exception as e:
                     print(f"{keycloak_id},ERROR,{str(e).replace('\n', ' ')[:120]}")
                     file.write(
                         f"{keycloak_id},ERROR,{str(e).replace('\n', ' ')[:120]}\n"
@@ -115,7 +115,7 @@ class Command(BaseCommand):
                     )
                     print(f"{user_data['email']},SUCCESS")
                     file.write(f"{user_data['email']},SUCCESS\n")
-                except Exception as e:  # noqa: PIE786
+                except Exception as e:
                     print(
                         f"{user_data['email']},ERROR,{str(e).replace('\n', ' ')[:120]}"
                     )
@@ -181,7 +181,7 @@ class Command(BaseCommand):
                     )
                     print(f"{user_data['email']},SUCCESS")
                     file.write(f"{user_data['email']},SUCCESS\n")
-                except Exception as e:  # noqa: PIE786
+                except Exception as e:
                     print(
                         f"{user_data['email']},ERROR,{str(e).replace('\n', ' ')[:120]}"
                     )

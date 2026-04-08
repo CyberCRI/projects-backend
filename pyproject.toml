@@ -105,19 +105,20 @@ extend-exclude = [
 [tool.ruff.lint]
 select = ["E", "W", "F", "B", "A", "ERA", "PIE", "RET", "SIM", "N", "DJ", "I"]
 ignore = [
-    "E501",   # line too long (handled by formatter)
-    "E221",   # multiple spaces before operator
-    "E226",   # missing whitespace around arithmetic operator
-    "E231",   # missing whitespace after operator
-    "E702",   # multiple statements on one line
-    "E203",   # whitespace before ':'
-    "W505",   # doc line too long
-    "N818",   # exception name should be named with an Error suffix
-    "PIE790", # unnecessary pass
-    "PIE800", # no-unnecessary-class
-    # "PIE803", # prefer-logging-interpolation
-    "RET504", # unnecessary variable assignment before return statement
-    "DJ008",  # model does not define __str__ method
+    "DJ001",  # Avoid using `null=True` on string-based fields such as `CharField`
+    "DJ007",  # Do not use `__all__` with `ModelForm`, use `fields` instead
+    "DJ008",  # Model does not define __str__ method.
+    "E221",  # Multiple spaces before operator
+    "E226",  # Missing whitespace around arithmetic operator
+    "E231",  # Missing whitespace after operator
+    "E501",  # Line too long
+    "E702",  # Multiple statements on one line
+    "N818",  # Exception name should be named with an Error suffix
+    "PIE790",  # Unnecessary `pass` can be removed.
+    "PIE800",  # no-unnecessary-spread: Consider inlining the dict values.
+    "S101",  # Use of assert in code
+    "S311",  # Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+    "W505",  # Doc line too long
 ]
 
 [tool.ruff.lint.per-file-ignores]

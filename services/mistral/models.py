@@ -88,7 +88,7 @@ class Embedding(models.Model):
                 if self.embedding is not None:
                     self.embedding = None
                     self.save()
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             EmbeddingError.objects.create(
                 item_type=self.item.__class__.__name__,
                 item_id=self.item.id,
@@ -361,7 +361,9 @@ class UserProjectsEmbedding(Embedding, HasWeight):
         ]
         total_weight = sum(d["weight"] for d in data)
         vectors = [[i * d["weight"] for i in d["vector"]] for d in data]
-        self.embedding = [sum(row) / total_weight for row in zip(*vectors)] or None
+        self.embedding = [
+            sum(row) / total_weight for row in zip(*vectors, strict=False)
+        ] or None
         self.save()
         return self
 
@@ -406,7 +408,9 @@ class UserEmbedding(Embedding):
                 results.append([e * score for e in embedding.embedding])
                 total_score += score
         try:
-            self.embedding = [sum(row) / total_score for row in zip(*results)] or None
+            self.embedding = [
+                sum(row) / total_score for row in zip(*results, strict=False)
+            ] or None
         except ZeroDivisionError:
             self.embedding = None
         self.save()

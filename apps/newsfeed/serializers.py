@@ -125,7 +125,6 @@ class NewsSerializer(
 
 
 class NewsLightSerializer(NewsSerializer):
-
     class Meta(NewsSerializer.Meta):
         fields = ("id", "title", "content", "publication_date", "header_image")
 
@@ -317,7 +316,6 @@ class EventSerializer(
 
 
 class EventLightSerializer(EventSerializer):
-
     class Meta(EventSerializer.Meta):
         fields = ("id", "title", "content", "start_date", "end_date")
 

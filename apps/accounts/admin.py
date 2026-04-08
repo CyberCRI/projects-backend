@@ -58,9 +58,7 @@ class UserAdmin(TranslateObjectAdminMixin, ExportActionMixin, RoleBasedAccessAdm
                 "admin:keycloak_keycloakaccount_change",
                 args=(obj.keycloak_account.pk,),
             )
-            return mark_safe(
-                f'<a href="{admin_page}">{obj.keycloak_account}</a>'
-            )  # nosec
+            return mark_safe(f'<a href="{admin_page}">{obj.keycloak_account}</a>')  # nosec
         return None
 
     keycloak_account_link.short_description = "Keycloak account"

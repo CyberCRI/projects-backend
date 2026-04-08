@@ -16,7 +16,7 @@ def automatic_translations():
     for field in AutoTranslatedField.objects.filter(up_to_date=False):
         try:
             field.update_translation()
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             logger.error(f"Error updating auto-translated field {field.id}: {e}")
 
 
@@ -48,7 +48,7 @@ def translate_object(
     for field in queryset:
         try:
             field.update_translation()
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             logger.error(
                 f"Error updating model-translated {model} field {field.id}: {e}"
             )

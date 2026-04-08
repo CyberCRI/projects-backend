@@ -7,4 +7,4 @@ class OrganizationsConfig(AppConfig):
 
     def ready(self):
         """Register signals once the apps are loaded."""
-        import apps.organizations.signals  # noqa
+        import apps.organizations.signals  # noqa: F401

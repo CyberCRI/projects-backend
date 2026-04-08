@@ -49,7 +49,7 @@ def _update_esco_tag_data(esco_skill: Tag) -> Tag:
 def update_esco_tag_data(esco_tag: Tag) -> Tag:
     try:
         _update_esco_tag_data(esco_tag)
-    except Exception as e:  # noqa: PIE786
+    except Exception as e:
         logger.error(f"Error updating ESCO tag {esco_tag.external_id}: {e}")
     return esco_tag
 

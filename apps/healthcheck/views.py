@@ -12,5 +12,5 @@ def readiness(request):
         if not connection.is_usable():
             return HttpResponseServerError("Database is not usable.")
         return HttpResponse("OK")
-    except Exception:  # noqa: PIE786
+    except Exception:
         return HttpResponseServerError("Cannot connect to database.")
