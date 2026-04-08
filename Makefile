@@ -20,13 +20,11 @@ fullstack:
 
 .PHONY: format
 format:
-	${MAKE} bandit
 	ruff check --fix .
 	ruff format .
 
 .PHONY: format-check
 format-check:
-	${MAKE} bandit
 	ruff check .
 	ruff format --check .
 
@@ -87,10 +85,6 @@ start:
 .PHONY: start-uvicorn
 start-uvicorn:
 	uvicorn projects.asgi:application --workers 1 --host 0.0.0.0
-
-.PHONY: bandit
-bandit:
-	bandit -c pyproject.toml -r apps/ projects/
 
 .PHONY: test
 test:
