@@ -20,13 +20,15 @@ fullstack:
 
 .PHONY: format
 format:
-	isort .
-	black .
+	${MAKE} bandit
+	ruff check --fix .
+	ruff format .
 
 .PHONY: format-check
 format-check:
-	isort . -c
-	black --check .
+	${MAKE} bandit
+	ruff check .
+	ruff format --check .
 
 DJANGO_CHECK_FAIL_LEVEL ?= WARNING
 .PHONY: check
@@ -90,13 +92,6 @@ start-uvicorn:
 bandit:
 	bandit -c pyproject.toml -r apps/ projects/
 
-.PHONY: flake8
-flake8:
-	flake8 apps projects services
-
-.PHONY: lint
-lint: flake8 bandit
-
 .PHONY: test
 test:
 	coverage run
@@ -133,6 +128,5 @@ rebuild-index:
 .PHONY: precommit
 precommit:
 	${MAKE} format
-	${MAKE} lint
 	${MAKE} locales
 	${MAKE} migrations
