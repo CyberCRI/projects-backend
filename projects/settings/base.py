@@ -634,6 +634,9 @@ STATICFILES_DIRS = [
     BASE_DIR / "assets",
 ]
 
+# Don't fail collectstatic when third-party packages reference missing source maps.
+WHITENOISE_MANIFEST_STRICT = False
+
 
 ##############
 #  MIXPANEL  #
