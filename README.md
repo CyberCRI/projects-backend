@@ -18,10 +18,9 @@ git clone --recurse-submodules git@github.com:CyberCRI/projects-backend.git
 cd projects-backend
 ```
 
-### Install dependencies and pre-commit hooks
+### Install dependencies
 ```bash
 uv sync
-uv run pre-commit install
 ```
 
 ### Set up your environment variables
