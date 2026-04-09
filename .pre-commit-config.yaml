@@ -1,0 +1,6 @@
+repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.11.2
+    hooks:
+      - id: uv-export
+        args: ["--frozen", "--no-hashes", "-o", "requirements.txt"]
