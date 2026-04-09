@@ -24,8 +24,9 @@ class BaseCache(metaclass=abc.ABCMeta):
     def model(self, model, *fields):
         """get object element from model/fields"""
 
-    @abc.abstractclassmethod
-    def from_identifiers(self, model, identifiers: list[Identifier]):
+    @classmethod
+    @abc.abstractmethod
+    def from_identifiers(cls, model, identifiers: list[Identifier]):
         """get object element from identifiers lists"""
 
 

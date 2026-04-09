@@ -107,9 +107,3 @@ class RebuildIndex(PostDeployTask):
     task_name = "rebuild_index"
     priority = 6
     task = rebuild_index
-
-
-# class CreateDefaultTagClassifications(PostDeployTask):  # noqa
-#     task_name = "default_tag_classifications"  # noqa
-#     priority = 6  # noqa
-#     task = default_tag_classifications  # noqa

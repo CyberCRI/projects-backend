@@ -71,6 +71,9 @@ class Announcement(
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return str(self.title)
+
     def get_related_organizations(self) -> list["Organization"]:
         """Return the organizations related to this model."""
         return self.project.get_related_organizations()
@@ -78,6 +81,3 @@ class Announcement(
     def get_related_project(self) -> Optional["Project"]:
         """Return the project related to this model."""
         return self.project
-
-    def __str__(self):
-        return str(self.title)

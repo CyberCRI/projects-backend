@@ -48,7 +48,6 @@ class AbstractModules:
         modules_list = []
 
         for name, func in cls.all_modules():
-
             # yield only keys are set or all keys needed
             if modules_keys is None or name in modules_keys:
                 modules_list.append((name, func))

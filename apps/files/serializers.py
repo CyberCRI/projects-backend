@@ -68,7 +68,7 @@ class StdImageField(serializers.ImageField):
             # Get the variations
             variations = field.variations
             # Go through the variations dict
-            for key in variations.keys():
+            for key in variations:
                 # Just to be sure if the stdimage object has it stored in the obj
                 if hasattr(obj, key):
                     # get the by stdimage properties
@@ -129,10 +129,15 @@ class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
     @staticmethod
     def find_attribute(soup, attr):
         attribute = soup.find(
-            lambda tag: tag.name == "meta"
-            and (
-                ("name" in tag.attrs and tag.attrs["name"] == f"twitter:{attr}")
-                or ("property" in tag.attrs and tag.attrs["property"] == f"og:{attr}")
+            lambda tag: (
+                tag.name == "meta"
+                and (
+                    ("name" in tag.attrs and tag.attrs["name"] == f"twitter:{attr}")
+                    or (
+                        "property" in tag.attrs
+                        and tag.attrs["property"] == f"og:{attr}"
+                    )
+                )
             )
         )
         return attribute["content"] if attribute else ""
@@ -152,7 +157,7 @@ class AbstractAttachmentLink(metaclass=serializers.SerializerMetaclass):
                 timeout=1,
             )
             return f"https://api.faviconkit.com/{urlparse(url).netloc}/128"
-        except Exception:  # noqa: PIE786
+        except Exception:
             return ""
 
     @staticmethod

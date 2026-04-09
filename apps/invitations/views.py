@@ -150,7 +150,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
         except (KeycloakPostError, KeycloakPutError) as e:
             message = json.loads(e.response_body.decode()).get("errorMessage")
             return {"status": "error", "message": f"Keycloak error : {message}"}
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             return {"status": "error", "message": str(e)}
         return {"status": "success", "message": ""}
 
@@ -167,7 +167,7 @@ class AccessRequestViewSet(CreateListModelViewSet):
             }
         try:
             access_request.decline()
-        except Exception as e:  # noqa: PIE786
+        except Exception as e:
             return {"status": "error", "message": str(e)}
         return {"status": "success", "message": ""}
 

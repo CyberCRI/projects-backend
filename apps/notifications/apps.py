@@ -7,4 +7,4 @@ class NotificationsConfig(AppConfig):
 
     def ready(self):
         """Register signals once the apps are loaded."""
-        import apps.notifications.signals  # noqa
+        import apps.notifications.signals  # noqa: F401

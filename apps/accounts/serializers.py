@@ -1016,7 +1016,7 @@ class UserSerializer(
         organization_groups = Group.objects.filter(
             organizations__isnull=False, name__in=groups_to_add
         )
-        if organization_groups.exists() and "language" not in data.keys():
+        if organization_groups.exists() and "language" not in data:
             group = organization_groups.first()
             organization = group.organizations.first()
             data["language"] = organization.language

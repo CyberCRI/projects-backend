@@ -14,9 +14,9 @@ def auto_translated(cls: serializers.ModelSerializer) -> serializers.ModelSerial
 
     model = cls.Meta.model
 
-    assert issubclass(
-        model, HasAutoTranslatedFields
-    ), f"You model ({model}) need to inherit 'HasAutoTranslatedFields'"
+    assert issubclass(model, HasAutoTranslatedFields), (
+        f"You model ({model}) need to inherit 'HasAutoTranslatedFields'"
+    )
 
     # model translated field name
     auto_translated_fields = model._auto_translated_fields
@@ -60,9 +60,9 @@ def external_auto_translated(
     model = cls.Meta.model
 
     auto_translated_fields = get_translatable_fields_for_model(model)
-    assert (
-        auto_translated_fields is not None
-    ), f"You model ({model}) need to register from 'modeltranslation'"
+    assert auto_translated_fields is not None, (
+        f"You model ({model}) need to register from 'modeltranslation'"
+    )
 
     fields_available = []
     for name in cls().get_fields():
