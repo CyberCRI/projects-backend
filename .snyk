@@ -1,4 +1,0 @@
-# uv is not supported by Snyk, requirements.txt is used instead
-exclude:
-  global:
-    - pyproject.toml
