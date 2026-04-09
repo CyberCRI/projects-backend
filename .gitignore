@@ -373,6 +373,3 @@ apps/commons/management/commands/*.csv
 *.pgdump
 
 charts/
-
-# Ruff
-.ruff_cache
