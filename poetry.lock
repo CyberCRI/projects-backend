@@ -2955,14 +2955,14 @@ files = [
 
 [[package]]
 name = "mistralai"
-version = "2.3.1"
+version = "2.3.2"
 description = "Python Client SDK for the Mistral AI API."
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "mistralai-2.3.1-py3-none-any.whl", hash = "sha256:8f4f783cb7603f6060490105f55b16a5d0a7e854c05e96fed316efcc4b393fe3"},
-    {file = "mistralai-2.3.1.tar.gz", hash = "sha256:02989e509124cb28aaffd92660bf7511b3f8f5c215e1de8d49d0c8276bacc72a"},
+    {file = "mistralai-2.3.2-py3-none-any.whl", hash = "sha256:dec05f446502289b76add9796d75465c070fc539b3c01d6f7d3297833bb64981"},
+    {file = "mistralai-2.3.2.tar.gz", hash = "sha256:a02c7e90ac165e8680c849551ff5fe9788e9fc10b7dbe71817443dc63cc5e9c9"},
 ]
 
 [package.dependencies]
@@ -5275,4 +5275,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "~3.13"
-content-hash = "6c92a641428b660661b28fc85f1e06e595c02f6af3f251b0c5cb64e90496862d"
+content-hash = "a20243ee0d5980ff41e92e6768a8d507290bd9f4e6410a14655791178816df7a"
