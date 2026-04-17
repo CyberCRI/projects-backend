@@ -1,9 +1,12 @@
 import inspect
+from ast import Call
 from collections.abc import Callable
 from functools import cache
 
 from django.db import models
 from drf_spectacular.utils import OpenApiParameter
+
+from apps.accounts.models import ProjectUser
 
 IGNORE_MODULES_FUNCTION = "IGNORE_MODULES_FUNCTION"
 
@@ -17,14 +20,14 @@ def ignore_method(method):
 class AbstractModules:
     """abstract class for modules/queryset declarations"""
 
-    def __init__(self, instance, /, user, **kw):
+    def __init__(self, instance, /, user: ProjectUser, **kw):
         self.instance = instance
         self.user = user
 
     @classmethod
     @ignore_method
     @cache
-    def all_modules(cls) -> tuple[str, Callable]:
+    def all_modules(cls) -> tuple[tuple[str, Callable]]:
         modules_list = []
 
         def predicate(item):
@@ -44,7 +47,9 @@ class AbstractModules:
     @classmethod
     @ignore_method
     @cache
-    def modules(cls, modules_keys: tuple[str] | None = None) -> tuple[str, Callable]:
+    def modules(
+        cls, modules_keys: tuple[str] | None = None
+    ) -> tuple[tuple[str, Callable]]:
         modules_list = []
 
         for name, func in cls.all_modules():
@@ -80,7 +85,7 @@ class AbstractModules:
         )
 
 
-_modules: dict[models.Model] = {}
+_modules: dict[models.Model, AbstractModules] = {}
 
 
 def register_module(model: models.Model):

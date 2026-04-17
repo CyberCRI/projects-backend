@@ -6,6 +6,7 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from services.translator.serializers import auto_translated
 
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
@@ -34,6 +35,7 @@ from apps.files.serializers import (
     AttachmentLinkSerializer,
     ImageSerializer,
 )
+from apps.modules.serializers import ModulesSerializers
 from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
 from apps.organizations.serializers import (
@@ -43,7 +45,6 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField, TagSerializer
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -120,7 +121,7 @@ class BlogEntrySerializer(
                 created_at=self.initial_data["created_at"]
             )
             instance.refresh_from_db()
-        return super(BlogEntrySerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     def get_related_organizations(self) -> list[Organization]:
         """Retrieve the related organizations"""
@@ -512,6 +513,7 @@ class ProjectRemoveTeamMembersSerializer(serializers.Serializer):
 
 @auto_translated
 class ProjectSerializer(
+    ModulesSerializers,
     StringsImagesSerializer,
     OrganizationRelatedSerializer,
     serializers.ModelSerializer,
@@ -620,6 +622,7 @@ class ProjectSerializer(
             "organizations_codes",
             "images_ids",
             "team",
+            "modules",
         ]
 
     @staticmethod
@@ -658,7 +661,7 @@ class ProjectSerializer(
 
     def create(self, validated_data):
         team = validated_data.pop("team", {})
-        project = super(ProjectSerializer, self).create(validated_data)
+        project = super().create(validated_data)
         ProjectAddTeamMembersSerializer().create({"project": project, **team})
         notify_new_project.delay(project.pk, self.context["request"].user.pk)
         return project
@@ -669,7 +672,7 @@ class ProjectSerializer(
         notify_project_changes.delay(
             instance.pk, changes, self.context["request"].user.pk
         )
-        return super(ProjectSerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     def validate_organizations_codes(self, value: list[Organization]):
         if len(value) < 1:
