@@ -2,7 +2,7 @@ from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
-from apps.feedbacks.models import Comment
+from apps.feedbacks.models import Comment, Review
 from apps.files.models import AttachmentFile, AttachmentLink
 from apps.modules.base import AbstractModules, register_module
 from apps.projects.models import BlogEntry, Goal, Location, Project
@@ -50,3 +50,6 @@ class ProjectModules(AbstractModules):
 
     def announcements(self) -> QuerySet[Announcement]:
         return self.instance.announcements.all()
+
+    def reviews(self) -> QuerySet[Review]:
+        return self.instance.reviews.all()

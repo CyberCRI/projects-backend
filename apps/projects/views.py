@@ -18,6 +18,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from services.mistral.models import ProjectEmbedding
 from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation
@@ -55,7 +56,6 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
-from services.mistral.models import ProjectEmbedding
 
 from .filters import ProjectFilter
 from .models import (
@@ -172,7 +172,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         if settings.ENABLE_CACHE and instance.announcements.exists():
             cache.delete_many(cache.keys("announcements_list_cache*"))
-        super(ProjectViewSet, self).perform_destroy(instance)
+        super().perform_destroy(instance)
 
     @extend_schema(
         parameters=[
@@ -186,7 +186,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         ]
     )
     def list(self, request, *args, **kwargs):
-        return super(ProjectViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[
@@ -218,6 +218,22 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
+    @action(
+        detail=False,
+        methods=["GET", "LIST"],
+        url_path="member",
+        permission_classes=[
+            IsAuthenticated,
+            ProjectIsNotLocked,
+        ],
+    )
+    def members(self, request, *ar, **kwargs):
+        project = self.get_object()
+        modules_manager = project.get_related_module()
+        modules = modules_manager(project, request.user)
+
+        return modules.members()
+
     @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
     @action(
         detail=True,
@@ -225,7 +241,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         url_path="member/add",
         permission_classes=[
             IsAuthenticated,
-            ProjectIsNotLocked,
             HasBasePermission("change_project", "projects")
             | HasOrganizationPermission("change_project")
             | HasProjectPermission("change_project"),
@@ -602,11 +617,11 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         redis_cache_view("locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL)
     )
     def list(self, request, *args, **kwargs):
-        return super(LocationViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @method_decorator(clear_cache_with_key("locations_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(LocationViewSet, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
@@ -662,14 +677,14 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
-        super(LinkedProjectViewSet, self).perform_create(serializer)
+        super().perform_create(serializer)
 
     @transaction.atomic
     def perform_update(self, serializer):
         project = serializer.validated_data.get("project")
         if project:
             self.check_linked_project_permission(project)
-        super(LinkedProjectViewSet, self).perform_update(serializer)
+        super().perform_update(serializer)
 
     @extend_schema(
         request=ProjectAddLinkedProjectSerializer, responses=ProjectSerializer
