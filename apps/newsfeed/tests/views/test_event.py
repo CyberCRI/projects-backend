@@ -372,7 +372,7 @@ class FilterOrderEventTestCase(JwtAPITestCase):
         self.client.force_authenticate(self.user)
         response = self.client.get(
             reverse("Event-list", args=(self.organization.code,))
-            + f"?to_date={self.date_2.date()}"
+            + f"?to_date={self.event_2.end_date.date()}"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         content = response.json()["results"]

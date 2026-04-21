@@ -17,7 +17,7 @@ class EventFilter(filters.FilterSet):
 
     def range_filter_to(self, queryset, name, value):
         # same above but with start_date
-        return queryset.filter(start_date__lte=value)
+        return queryset.filter(end_date__lte=value)
 
 
 class InstructionFilter(filters.FilterSet):
