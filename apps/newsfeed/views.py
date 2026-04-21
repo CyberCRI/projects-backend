@@ -125,7 +125,7 @@ class NewsViewSet(viewsets.ModelViewSet):
     serializer_class = NewsSerializer
     filterset_class = NewsFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at", "created_at", "publication_date"]
+    ordering_fields = ("updated_at", "created_at", "publication_date")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 
@@ -242,7 +242,7 @@ class InstructionViewSet(viewsets.ModelViewSet):
     serializer_class = InstructionSerializer
     filterset_class = InstructionFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["updated_at", "created_at", "publication_date"]
+    ordering_fields = ("updated_at", "created_at", "publication_date")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 
@@ -327,7 +327,7 @@ class EventViewSet(viewsets.ModelViewSet):
     serializer_class = EventSerializer
     filterset_class = EventFilter
     filter_backends = [DjangoFilterBackend, OrderingFilter]
-    ordering_fields = ["start_date", "end_date", "updated_at", "created_at"]
+    ordering_fields = ("start_date", "end_date", "updated_at", "created_at")
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
 

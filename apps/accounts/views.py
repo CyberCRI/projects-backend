@@ -895,7 +895,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         modules = modules_manager(group, request.user)
         queryset = modules.news()
 
-        # user eventViewset to filter/order events
+        # use NewsViewSet to filter/order events
         queryset = NewsViewSet(request=self.request).filter_queryset(queryset)
 
         queryset_page = self.paginate_queryset(queryset)
@@ -917,7 +917,7 @@ class PeopleGroupViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         modules = modules_manager(group, request.user)
         queryset = modules.event()
 
-        # user eventViewset to filter/order events
+        # use EventViewSet to filter/order events
         queryset = EventViewSet(request=self.request).filter_queryset(queryset)
 
         queryset_page = self.paginate_queryset(queryset)
