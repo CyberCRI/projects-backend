@@ -20,6 +20,7 @@ from .views import (
     HistoricalProjectViewSet,
     LinkedProjectViewSet,
     LocationViewSet,
+    MembersProjectViewSet,
     ProjectHeaderView,
     ProjectImagesView,
     ProjectMessageImagesView,
@@ -40,6 +41,9 @@ router.register(r"project", ProjectViewSet, basename="Project")
 
 project_router_register(
     router, r"history", HistoricalProjectViewSet, basename="Project-versions"
+)
+project_router_register(
+    router, r"members", MembersProjectViewSet, basename="Project-members"
 )
 project_router_register(router, r"blog-entry", BlogEntryViewSet, basename="BlogEntry")
 project_router_register(

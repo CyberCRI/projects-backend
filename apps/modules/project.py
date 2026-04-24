@@ -13,9 +13,17 @@ class ProjectModules(AbstractModules):
     instance: Project
 
     def members(self) -> QuerySet[ProjectUser]:
-        return self.instance.get_all_members().filter(
-            pk__in=self.user.get_user_queryset()
+
+        owners = self.instance.get_owners().users.all().annotate(role=Value("owners"))
+        reviewers = (
+            self.instance.get_reviewers().users.all().annotate(role=Value("reviewers"))
         )
+        members = (
+            self.instance.get_members().users.all().annotate(role=Value("members"))
+        )
+
+        all_members = owners | reviewers | members
+        return all_members.filter(pk__in=self.user.get_user_queryset())
 
     def groups(self) -> QuerySet[PeopleGroup]:
         return self.instance.get_all_groups().filter(

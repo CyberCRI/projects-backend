@@ -156,6 +156,15 @@ class NestedOrganizationViewMixins:
         super().initial(request, *args, **kwargs)
 
 
+class NestedProjectViewMixins:
+    def initial(self, request, *args, **kwargs):
+        self.project = get_object_or_404(
+            request.user.get_project_queryset().slug_or_id(kwargs["project_id"]),
+        )
+
+        super().initial(request, *args, **kwargs)
+
+
 class NestedPeopleGroupViewMixins:
     def initial(self, request, *args, **kwargs):
         self.people_group = get_object_or_404(

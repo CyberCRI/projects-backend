@@ -18,7 +18,6 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
-from services.mistral.models import ProjectEmbedding
 from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation
@@ -31,6 +30,7 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
+    NestedProjectViewMixins,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
@@ -56,6 +56,7 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
+from services.mistral.models import ProjectEmbedding
 
 from .filters import ProjectFilter
 from .models import (
@@ -83,6 +84,7 @@ from .serializers import (
     ProjectSerializer,
     ProjectTabItemSerializer,
     ProjectTabSerializer,
+    ProjectTeamMembersSerializer,
     ProjectVersionListSerializer,
     ProjectVersionSerializer,
 )
@@ -492,9 +494,35 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return None
 
 
+class MembersProjectViewSet(
+    NestedProjectViewMixins,
+    MultipleIDViewsetMixin,
+    viewsets.ModelViewSet,
+):
+    serializer_class = ProjectTeamMembersSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    lookup_field = "id"
+    lookup_value_regex = "[0-9]+"
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
+        ReadOnly
+        | HasBasePermission("change_project", "projects")
+        | HasOrganizationPermission("change_project")
+        | HasProjectPermission("change_project"),
+    ]
+    multiple_lookup_fields = [(Project, "project_id")]
+
+    def get_queryset(self) -> QuerySet:
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+        return modules.members()
+
+
 class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = BlogEntrySerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     permission_classes = [
@@ -648,7 +676,6 @@ class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelVie
 
 class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = LinkedProjectSerializer
-    http_method_names = ["post", "patch", "delete"]
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     permission_classes = [

@@ -7,6 +7,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.filters import OrderingFilter
 from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 
@@ -23,7 +24,7 @@ from apps.organizations.permissions import HasOrganizationPermission
 from apps.projects.models import Project
 from apps.projects.permissions import HasProjectPermission
 
-from .filters import ReviewFilter
+from .filters import CommentFilter, ReviewFilter
 from .models import Comment, Follow, Review
 from .permissions import IsReviewable
 from .serializers import (
@@ -36,8 +37,9 @@ from .serializers import (
 
 class ReviewViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = ReviewFilter
+    ordering_fields = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [(ProjectUser, "user_id"), (Project, "project_id")]
@@ -154,7 +156,9 @@ class ProjectFollowViewSet(FollowViewSet):
 
 class CommentViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     serializer_class = CommentSerializer
-    filter_backends = [DjangoFilterBackend]
+    filterset_class = CommentFilter
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    ordering_fields = ("created_at", "updated_at")
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
     multiple_lookup_fields = [(Project, "project_id")]

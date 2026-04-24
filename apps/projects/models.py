@@ -14,7 +14,6 @@ from django.db import models, transaction
 from django.db.models import QuerySet
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from services.translator.mixins import HasAutoTranslatedFields
 from simple_history.models import HistoricalRecords, HistoricForeignKey
 
 from apps.analytics.models import Stat
@@ -29,7 +28,9 @@ from apps.commons.mixins import (
     ProjectRelated,
 )
 from apps.commons.models import GroupData
+from apps.commons.queryset import MultipleIdsQuerySet
 from apps.commons.utils import get_write_permissions_from_subscopes
+from services.translator.mixins import HasAutoTranslatedFields
 
 from .exceptions import WrongProjectOrganizationError
 
@@ -48,7 +49,7 @@ def uuid_generator() -> str:
     return shortuuid.ShortUUID().random(length=8)
 
 
-class SoftDeleteManager(models.Manager):
+class SoftDeleteManager(MultipleIdsQuerySet):
     """Exclude by default soft-deleted Projects."""
 
     def get_queryset(self):
@@ -221,7 +222,7 @@ class Project(
         max_length=8, null=True, blank=True, default=None
     )
     permissions_up_to_date = models.BooleanField(default=False)
-    objects = SoftDeleteManager()
+    objects = SoftDeleteManager.as_manager()
 
     class Meta:
         write_only_subscopes = (

@@ -6,12 +6,13 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
-from services.translator.serializers import auto_translated
 
 from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
     PeopleGroupLightSerializer,
     UserLighterSerializer,
+    UserLightSerializer,
+    UserSerializer,
 )
 from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.fields import (
@@ -45,6 +46,7 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField, TagSerializer
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -535,6 +537,16 @@ class PeopleGroupLightSerializerPrimaryKeyRelatedField(
 
     def to_internal_value(self, data):
         return serializers.PrimaryKeyRelatedField.to_internal_value(self, data)
+
+
+class ProjectTeamMembersSerializer(UserLightSerializer):
+    role = serializers.SerializerMethodField()
+
+    class Meta(UserLightSerializer.Meta):
+        fields = UserLightSerializer.Meta.fields + ("role",)
+
+    def get_role(self, instance: ProjectUser):
+        return instance.role
 
 
 class ProjectAddTeamMembersSerializer(serializers.Serializer):

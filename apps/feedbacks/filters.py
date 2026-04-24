@@ -2,7 +2,7 @@ from django_filters import rest_framework as filters
 
 from apps.commons.filters import UserMultipleIDFilter
 
-from .models import Review
+from .models import Comment, Review
 
 
 class ReviewFilter(filters.FilterSet):
@@ -12,3 +12,9 @@ class ReviewFilter(filters.FilterSet):
     class Meta:
         model = Review
         fields = ["project", "reviewer"]
+
+
+class CommentFilter(filters.FilterSet):
+    class Meta:
+        model = Comment
+        fields = ("id",)

@@ -73,7 +73,7 @@ class AnnouncementViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
 
     @method_decorator(clear_cache_with_key("announcements_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(AnnouncementViewSet, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class ReadAnnouncementViewSet(AnnouncementViewSet):
@@ -85,4 +85,4 @@ class ReadAnnouncementViewSet(AnnouncementViewSet):
         )
     )
     def list(self, request, *args, **kwargs):
-        return super(ReadAnnouncementViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
