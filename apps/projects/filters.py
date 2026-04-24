@@ -102,3 +102,11 @@ class LocationFilter(filters.FilterSet):
         return queryset.filter(
             project__organizations__code__in=get_below_hierarchy_codes(value)
         ).distinct()
+
+
+class ProjectMembersFilter(filters.FilterSet):
+    role = MultiValueCharFilter()
+
+    class Meta:
+        model = ProjectUser
+        fields = ("role",)

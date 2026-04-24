@@ -54,17 +54,17 @@ class SoftDeleteManager(MultipleIdsQuerySet):
 
     def get_queryset(self):
         """Exclude by default soft-deleted Projects."""
-        return super().get_queryset().filter(deleted_at=None)
+        return self.filter(deleted_at=None)
 
     def all_with_delete(self, pk=None):
         """Retrieve all projects, or the one corresponding to `pk` if given."""
         if pk is None:
-            return super().get_queryset()
-        return super().get_queryset().get(pk=pk)
+            return self.get_queryset()
+        return self.get_queryset().get(pk=pk)
 
     def deleted_projects(self):
         """Retrieve all soft-deleted projects."""
-        return super().get_queryset().exclude(deleted_at=None)
+        return self.get_queryset().exclude(deleted_at=None)
 
 
 class Project(

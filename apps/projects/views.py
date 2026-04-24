@@ -58,7 +58,7 @@ from apps.projects.exceptions import (
 )
 from services.mistral.models import ProjectEmbedding
 
-from .filters import ProjectFilter
+from .filters import ProjectFilter, ProjectMembersFilter
 from .models import (
     BlogEntry,
     Goal,
@@ -501,7 +501,9 @@ class MembersProjectViewSet(
 ):
     serializer_class = ProjectTeamMembersSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProjectMembersFilter
     lookup_field = "id"
+    ordering_fields = ("role",)
     lookup_value_regex = "[0-9]+"
     permission_classes = [
         IsAuthenticatedOrReadOnly,
