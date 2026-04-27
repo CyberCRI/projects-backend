@@ -927,7 +927,7 @@ class Location(ProjectRelated, AbstractLocation):
 
 class ProjectMessage(HasAutoTranslatedFields, ProjectRelated, HasOwner, models.Model):
     """
-    A message in a project.
+    A message in a project (private-exchange)
 
     Attributes
     ----------

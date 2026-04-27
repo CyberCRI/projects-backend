@@ -5,7 +5,13 @@ from apps.announcements.models import Announcement
 from apps.feedbacks.models import Comment, Review
 from apps.files.models import AttachmentFile, AttachmentLink
 from apps.modules.base import AbstractModules, register_module
-from apps.projects.models import BlogEntry, Goal, Location, Project
+from apps.projects.models import (
+    BlogEntry,
+    Goal,
+    Location,
+    Project,
+    ProjectMessage,
+)
 
 
 @register_module(Project)
@@ -61,3 +67,6 @@ class ProjectModules(AbstractModules):
 
     def reviews(self) -> QuerySet[Review]:
         return self.instance.reviews.all()
+
+    def messages(self) -> QuerySet[ProjectMessage]:
+        return self.instance.messages.all()
