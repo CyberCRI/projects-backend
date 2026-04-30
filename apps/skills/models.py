@@ -96,7 +96,12 @@ class Tag(models.Model, OrganizationRelated):
         """
         if not self.external_id:
             self.external_id = str(uuid.uuid4())
-        return super().save(force_insert, force_update, using, update_fields)
+        return super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+        )
 
     def get_related_organizations(self):
         """Return the organizations related to this model."""

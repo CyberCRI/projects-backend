@@ -51,7 +51,7 @@ SIMPLE_JWT["ALGORITHM"] = "HS256"  # noqa: F405
 #   EMAILS   #
 ##############
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 ##############
 #   GOOGLE   #
