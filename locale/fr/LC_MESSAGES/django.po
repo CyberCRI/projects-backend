@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 20:34+0100\n"
+"POT-Creation-Date: 2026-04-03 13:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -112,7 +112,7 @@ msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice"
 msgid "You cannot assign this role to a user : {role}"
 msgstr "Vous ne pouvez pas assigner ce rôle à un·e utilisateur·ice : {role}"
 
-#: apps/accounts/models.py:161 apps/projects/models.py:164
+#: apps/accounts/models.py:168 apps/projects/models.py:165
 msgid "visibility"
 msgstr "visibilité"
 
@@ -1563,23 +1563,23 @@ msgstr "Un message ne peut pas être une réponse à lui-même"
 msgid "You cannot change the type of a project's tab"
 msgstr "Vous ne pouvez pas changer le type d'un onglet de projet"
 
-#: apps/projects/models.py:147
+#: apps/projects/models.py:148
 msgid "title"
 msgstr "titre"
 
-#: apps/projects/models.py:157
+#: apps/projects/models.py:158
 msgid "main goal"
 msgstr "objectif principal"
 
-#: apps/projects/models.py:170
+#: apps/projects/models.py:171
 msgid "life status"
 msgstr "état d'avancement"
 
-#: apps/projects/models.py:181
+#: apps/projects/models.py:182
 msgid "categories"
 msgstr "catégories"
 
-#: apps/projects/models.py:198
+#: apps/projects/models.py:199
 msgid "sustainable development goals"
 msgstr "objectifs de développement durable"
 

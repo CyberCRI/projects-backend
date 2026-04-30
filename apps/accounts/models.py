@@ -30,6 +30,7 @@ from apps.commons.mixins import (
     HasMultipleIDs,
     HasOwner,
     HasPermissionsSetup,
+    HasRelatedLocationContent,
     HasRelatedModules,
     OrganizationRelated,
 )
@@ -44,7 +45,9 @@ from services.keycloak.models import KeycloakAccount
 from services.translator.mixins import HasAutoTranslatedFields
 
 
-class PeopleGroupLocation(OrganizationRelated, AbstractLocation):
+class PeopleGroupLocation(
+    OrganizationRelated, HasRelatedLocationContent, AbstractLocation
+):
     """base location for group"""
 
     people_group = models.ForeignKey(
@@ -52,6 +55,10 @@ class PeopleGroupLocation(OrganizationRelated, AbstractLocation):
         on_delete=models.CASCADE,
         related_name="locations",
     )
+
+    @classmethod
+    def get_related_content(cls):
+        return cls.people_group.field.name
 
     def get_related_organizations(self) -> list["Organization"]:
         return [self.people_group.organization]
