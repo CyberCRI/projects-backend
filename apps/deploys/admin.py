@@ -41,10 +41,10 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
         error = error.split("\n")
         last_2_lines = error[-5:-3]
         error = "\n".join(last_2_lines)
-        return format_html(f"<pre>{error}</pre>")
+        return format_html("<pre>{}</pre>", error)
 
     def traceback(self, instance):
-        return format_html(f"<pre>{instance.error}</pre>")
+        return format_html("<pre>{}</pre>", instance.error)
 
     @staticmethod
     def format_status(status):
@@ -53,7 +53,11 @@ class PostDeployProcessAdmin(admin.ModelAdmin):
             PostDeployProcess.PostDeployProcessStatus.SUCCESS: "#339933",
             PostDeployProcess.PostDeployProcessStatus.FAILURE: "#A00000",
         }.get(status, "#686868")
-        return format_html(f'<b style="color:{color};">{status.capitalize()}</b>')
+        return format_html(
+            '<b style="color:{};">{}</b>',
+            color,
+            status.capitalize(),
+        )
 
 
 admin.site.register(PostDeployProcess, PostDeployProcessAdmin)
