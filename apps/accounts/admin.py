@@ -140,7 +140,7 @@ class GroupAdmin(admin.ModelAdmin):
     def format_permissions_up_to_date(permissions_up_to_date: bool) -> str:
         colors = {False: "#A00000", True: "#339933"}
         color = colors.get(permissions_up_to_date, "#686868")
-        return format_html(f'<b style="color:{color};">{permissions_up_to_date}</b>')
+        return format_html('<b style="color:{};">{}</b>', color, permissions_up_to_date)
 
     def permissions_up_to_date(self, instance: Group) -> str:
         with suppress(Project.DoesNotExist):

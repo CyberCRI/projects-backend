@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 20:34+0100\n"
+"POT-Creation-Date: 2026-05-06 09:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4410,13 +4410,11 @@ msgstr "El idioma no es compatible"
 msgid "Language {language} is not supported"
 msgstr "El idioma {language} no es compatible"
 
-#: templates/admin/base.html:16
-msgid "Copyright"
-msgstr "Derechos de autor"
+#~ msgid "Copyright"
+#~ msgstr "Derechos de autor"
 
-#: templates/admin/base.html:16
-msgid "All rights reserved."
-msgstr "Todos los derechos reservados."
+#~ msgid "All rights reserved."
+#~ msgstr "Todos los derechos reservados."
 
 #~ msgid "Book Review"
 #~ msgstr "Reseña de libro"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-24 20:34+0100\n"
+"POT-Creation-Date: 2026-05-06 09:44+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4426,13 +4426,11 @@ msgstr "Taal wordt niet ondersteund"
 msgid "Language {language} is not supported"
 msgstr "Taal {language} wordt niet ondersteund"
 
-#: templates/admin/base.html:16
-msgid "Copyright"
-msgstr "Auteursrecht"
+#~ msgid "Copyright"
+#~ msgstr "Auteursrecht"
 
-#: templates/admin/base.html:16
-msgid "All rights reserved."
-msgstr "Alle rechten voorbehouden."
+#~ msgid "All rights reserved."
+#~ msgstr "Alle rechten voorbehouden."
 
 #~ msgid "Book Review"
 #~ msgstr "Boekbespreking"
