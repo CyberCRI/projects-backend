@@ -220,22 +220,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    @action(
-        detail=False,
-        methods=["GET", "LIST"],
-        url_path="member",
-        permission_classes=[
-            IsAuthenticated,
-            ProjectIsNotLocked,
-        ],
-    )
-    def members(self, request, *ar, **kwargs):
-        project = self.get_object()
-        modules_manager = project.get_related_module()
-        modules = modules_manager(project, request.user)
-
-        return modules.members()
-
     @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
     @action(
         detail=True,

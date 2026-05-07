@@ -2,6 +2,7 @@ from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
+from apps.commons.models import GroupData
 from apps.feedbacks.models import Comment, Review
 from apps.files.models import AttachmentFile, AttachmentLink
 from apps.modules.base import AbstractModules, register_module
@@ -20,16 +21,23 @@ class ProjectModules(AbstractModules):
 
     def members(self) -> QuerySet[ProjectUser]:
 
-        owners = self.instance.get_owners().users.all().annotate(role=Value("owners"))
-        reviewers = (
-            self.instance.get_reviewers().users.all().annotate(role=Value("reviewers"))
-        )
-        members = (
-            self.instance.get_members().users.all().annotate(role=Value("members"))
+        owners = self.instance.get_owners().users.all()
+        reviewers = self.instance.get_reviewers().users.all()
+        members = self.instance.get_members().users.all()
+
+        all_members = (
+            self.instance.get_all_members()
+            .filter(pk__in=self.user.get_user_queryset())
+            .annotate(
+                role=Case(
+                    When(pk__in=owners, then=Value(GroupData.Role.OWNERS)),
+                    When(pk__in=reviewers, then=Value(GroupData.Role.REVIEWERS)),
+                    When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
+                )
+            )
         )
 
-        all_members = owners | reviewers | members
-        return all_members.filter(pk__in=self.user.get_user_queryset())
+        return all_members
 
     def groups(self) -> QuerySet[PeopleGroup]:
         return self.instance.get_all_groups().filter(
