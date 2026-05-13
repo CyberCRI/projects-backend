@@ -384,26 +384,21 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     )
     @action(detail=True, methods=["GET"], permission_classes=[ReadOnly])
     def similar(self, request, *args, **kwargs):
-        project = self.get_object()
-        embedding, _ = ProjectEmbedding.objects.get_or_create(item=project)
-        if embedding.embedding is None:
-            embedding = embedding.vectorize()
-        vector = embedding.embedding
-        if vector is None:
-            return Response([])
-        organizations = [
-            o for o in request.query_params.get("organizations", "").split(",") if o
-        ]
+        organizations = request.query_params.getlist("organizations")
         if not organizations:
             raise OrganizationsParameterMissing
+
+        project = self.get_object()
+        modules_manager = project.get_related_module()
+        modules = modules_manager(project, request.user)
+
         threshold = int(request.query_params.get("threshold", 5))
         queryset = (
-            self.request.user.get_project_queryset()
+            modules.similars()
             .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
-            .exclude(id=project.id)
             .prefetch_related("categories")
-        )
-        queryset = ProjectEmbedding.vector_search(vector, queryset)[:threshold]
+        )[:threshold]
+
         return Response(ProjectLightSerializer(queryset, many=True).data)
 
 

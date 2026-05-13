@@ -21,18 +21,44 @@ class ProjectModules(AbstractModules):
 
     def members(self) -> QuerySet[ProjectUser]:
 
-        owners = self.instance.get_owners().users.all()
-        reviewers = self.instance.get_reviewers().users.all()
-        members = self.instance.get_members().users.all()
+        owners = self.instance.owners.all()
+        reviewers = self.instance.reviewers.all()
+        members = self.instance.members.all()
+
+        owner_groups_users = self.instance.owner_groups_users.all()
+        member_groups_users = self.instance.member_groups_users.all()
+        reviewer_groups_users = self.instance.reviewer_groups_users.all()
 
         all_members = (
-            self.instance.get_all_members()
+            owners
+            | reviewers
+            | members
+            | owner_groups_users
+            | member_groups_users
+            | reviewer_groups_users
+        )
+        all_members = (
+            all_members.distinct()
             .filter(pk__in=self.user.get_user_queryset())
             .annotate(
                 role=Case(
                     When(pk__in=owners, then=Value(GroupData.Role.OWNERS)),
                     When(pk__in=reviewers, then=Value(GroupData.Role.REVIEWERS)),
                     When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
+                    # group
+                    When(
+                        pk__in=owner_groups_users,
+                        then=Value(GroupData.Role.OWNER_GROUPS),
+                    ),
+                    When(
+                        pk__in=reviewer_groups_users,
+                        then=Value(GroupData.Role.REVIEWER_GROUPS),
+                    ),
+                    When(
+                        pk__in=member_groups_users,
+                        then=Value(GroupData.Role.MEMBER_GROUPS),
+                    ),
+                    default=Value(None),
                 )
             )
         )
@@ -49,8 +75,8 @@ class ProjectModules(AbstractModules):
             project__in=self.user.get_project_queryset()
         )
 
-    # def similars(self) -> QuerySet[Project]:
-    #     return self.instance.similars().filter(pk__in=self.user.get_project_queryset())
+    def similars(self) -> QuerySet[Project]:
+        return self.instance.similars().filter(pk__in=self.user.get_project_queryset())
 
     def locations(self) -> QuerySet[Location]:
         return self.instance.locations.all()
