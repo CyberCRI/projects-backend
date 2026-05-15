@@ -25,18 +25,7 @@ class ProjectModules(AbstractModules):
         reviewers = self.instance.reviewers.all()
         members = self.instance.members.all()
 
-        owner_groups_users = self.instance.owner_groups_users.all()
-        member_groups_users = self.instance.member_groups_users.all()
-        reviewer_groups_users = self.instance.reviewer_groups_users.all()
-
-        all_members = (
-            owners
-            | reviewers
-            | members
-            | owner_groups_users
-            | member_groups_users
-            | reviewer_groups_users
-        )
+        all_members = owners | reviewers | members
         all_members = (
             all_members.distinct()
             .filter(pk__in=self.user.get_user_queryset())
@@ -45,20 +34,6 @@ class ProjectModules(AbstractModules):
                     When(pk__in=owners, then=Value(GroupData.Role.OWNERS)),
                     When(pk__in=reviewers, then=Value(GroupData.Role.REVIEWERS)),
                     When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
-                    # group
-                    When(
-                        pk__in=owner_groups_users,
-                        then=Value(GroupData.Role.OWNER_GROUPS),
-                    ),
-                    When(
-                        pk__in=reviewer_groups_users,
-                        then=Value(GroupData.Role.REVIEWER_GROUPS),
-                    ),
-                    When(
-                        pk__in=member_groups_users,
-                        then=Value(GroupData.Role.MEMBER_GROUPS),
-                    ),
-                    default=Value(None),
                 )
             )
         )
@@ -66,9 +41,29 @@ class ProjectModules(AbstractModules):
         return all_members
 
     def groups(self) -> QuerySet[PeopleGroup]:
-        return self.instance.get_all_groups().filter(
-            pk__in=self.user.get_people_group_queryset()
+        owner_groups = self.instance.owner_groups.all()
+        reviewer_groups = self.instance.reviewer_groups.all()
+        member_groups = self.instance.member_groups.all()
+
+        all_groups = owner_groups | reviewer_groups | member_groups
+        all_groups = (
+            all_groups.distinct()
+            .filter(pk__in=self.user.get_people_group_queryset())
+            .annotate(
+                role=Case(
+                    When(pk__in=owner_groups, then=Value(GroupData.Role.OWNER_GROUPS)),
+                    When(
+                        pk__in=reviewer_groups,
+                        then=Value(GroupData.Role.REVIEWER_GROUPS),
+                    ),
+                    When(
+                        pk__in=member_groups, then=Value(GroupData.Role.MEMBER_GROUPS)
+                    ),
+                )
+            )
         )
+
+        return all_groups
 
     def linked_projects(self) -> QuerySet[Project]:
         return self.instance.linked_projects.filter(

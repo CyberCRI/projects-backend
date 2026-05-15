@@ -6,15 +6,14 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from services.translator.serializers import auto_translated
 
-from apps.accounts.models import AnonymousUser, PeopleGroup, ProjectUser
+from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
     PeopleGroupLightSerializer,
     UserLighterSerializer,
     UserLightSerializer,
-    UserSerializer,
 )
-from apps.announcements.serializers import AnnouncementSerializer
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
     RecursiveField,
@@ -29,13 +28,9 @@ from apps.commons.serializers import (
     StringsImagesSerializer,
 )
 from apps.feedbacks.models import Comment, Follow
-from apps.feedbacks.serializers import CommentSerializer, ReviewSerializer
+from apps.feedbacks.serializers import CommentSerializer
 from apps.files.models import Image
-from apps.files.serializers import (
-    AttachmentFileSerializer,
-    AttachmentLinkSerializer,
-    ImageSerializer,
-)
+from apps.files.serializers import ImageSerializer
 from apps.modules.serializers import ModulesSerializers
 from apps.notifications.tasks import notify_new_project, notify_project_changes
 from apps.organizations.models import Organization, ProjectCategory, Template
@@ -45,8 +40,7 @@ from apps.organizations.serializers import (
     ProjectTemplateSerializer,
 )
 from apps.skills.models import Tag
-from apps.skills.serializers import TagRelatedField, TagSerializer
-from services.translator.serializers import auto_translated
+from apps.skills.serializers import TagRelatedField
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -546,6 +540,16 @@ class ProjectTeamMembersSerializer(UserLightSerializer):
         fields = UserLightSerializer.Meta.fields + ("role",)
 
     def get_role(self, instance: ProjectUser):
+        return instance.role
+
+
+class ProjectGroupSerializer(PeopleGroupLightSerializer):
+    role = serializers.SerializerMethodField()
+
+    class Meta(PeopleGroupLightSerializer.Meta):
+        fields = PeopleGroupLightSerializer.Meta.fields + ("role",)
+
+    def get_role(self, instance: PeopleGroup):
         return instance.role
 
 

@@ -18,6 +18,7 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
+from services.mistral.models import ProjectEmbedding
 from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation
@@ -56,9 +57,8 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
-from services.mistral.models import ProjectEmbedding
 
-from .filters import ProjectFilter, ProjectMembersFilter
+from .filters import ProjectFilter, ProjectGroupsFilter, ProjectMembersFilter
 from .models import (
     BlogEntry,
     Goal,
@@ -77,6 +77,7 @@ from .serializers import (
     LocationSerializer,
     ProjectAddLinkedProjectSerializer,
     ProjectAddTeamMembersSerializer,
+    ProjectGroupSerializer,
     ProjectLightSerializer,
     ProjectMessageSerializer,
     ProjectRemoveLinkedProjectSerializer,
@@ -220,89 +221,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             status=status.HTTP_201_CREATED,
         )
 
-    @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
-    @action(
-        detail=True,
-        methods=["POST"],
-        url_path="member/add",
-        permission_classes=[
-            IsAuthenticated,
-            HasBasePermission("change_project", "projects")
-            | HasOrganizationPermission("change_project")
-            | HasProjectPermission("change_project"),
-        ],
-    )
-    @transaction.atomic
-    def add_member(self, request, *args, **kwargs):
-        """Add users to the project's group of the given name or add group to project.member_groups."""
-        project = self.get_object()
-        serializer = ProjectAddTeamMembersSerializer(
-            data={"project": project.pk, **request.data}
-        )
-        serializer.is_valid(raise_exception=True)
-        instances = serializer.save()
-        self.notify_add_members(instances)
-        project.refresh_from_db()
-        project._change_reason = "Added members"
-        project.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def notify_add_members(self, instances):
-        for instance in instances:
-            if instance["type"] == "projectuser":
-                notification = (
-                    notify_member_added
-                    if instance["created"]
-                    else notify_member_updated
-                )
-                notification.delay(
-                    instance["project"].pk,
-                    instance["user"].pk,
-                    self.request.user.pk,
-                    instance["role"],
-                )
-            if instance["type"] == "peoplegroup" and instance["created"]:
-                notify_group_as_member_added.delay(
-                    instance["project"].pk,
-                    instance["people_group"].pk,
-                    self.request.user.pk,
-                    instance["role"],
-                )
-
-    @extend_schema(
-        request=ProjectRemoveTeamMembersSerializer, responses=ProjectSerializer
-    )
-    @action(
-        detail=True,
-        methods=["POST"],
-        url_path="member/remove",
-        permission_classes=[
-            IsAuthenticated,
-            ProjectIsNotLocked,
-            HasBasePermission("change_project", "projects")
-            | HasOrganizationPermission("change_project")
-            | HasProjectPermission("change_project"),
-        ],
-    )
-    @transaction.atomic
-    def remove_member(self, request, *args, **kwargs):
-        """Remove users from the project's group of the given name."""
-        project = self.get_object()
-        # The following 3 lines are here for backward compatibility
-        data = request.data.copy()
-        if "user" in data and "users" not in data:
-            data = {"users": [data["user"]]}
-        serializer = ProjectRemoveTeamMembersSerializer(
-            data={"project": project.pk, **data}
-        )
-        serializer.is_valid(raise_exception=True)
-        instances = serializer.save()
-        self.notify_remove_members(instances)
-        project.refresh_from_db()
-        project._change_reason = "Removed members"
-        project.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
     @action(
         detail=True,
         methods=["DELETE"],
@@ -376,8 +294,9 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
             ),
             OpenApiParameter(
                 name="organizations",
-                description="Comma-separated list of organization codes.",
+                description="list of organization codes.",
                 required=False,
+                many=True,
                 type=str,
             ),
         ],
@@ -473,7 +392,7 @@ class ProjectImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return None
 
 
-class MembersProjectViewSet(
+class ProjectMembersViewSet(
     NestedProjectViewMixins,
     MultipleIDViewsetMixin,
     viewsets.ModelViewSet,
@@ -499,8 +418,119 @@ class MembersProjectViewSet(
         modules = modules_manager(self.project, self.request.user)
         return modules.members()
 
+    @extend_schema(request=ProjectAddTeamMembersSerializer, responses=ProjectSerializer)
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="add",
+        permission_classes=[
+            IsAuthenticated,
+            HasBasePermission("change_project", "projects")
+            | HasOrganizationPermission("change_project")
+            | HasProjectPermission("change_project"),
+        ],
+    )
+    @transaction.atomic
+    def add_member(self, request, *args, **kwargs):
+        """Add users to the project's group of the given name or add group to project.member_groups."""
+        serializer = ProjectAddTeamMembersSerializer(
+            data={"project": self.project.pk, **request.data}
+        )
+        serializer.is_valid(raise_exception=True)
+        instances = serializer.save()
+        self.notify_add_members(instances)
+        self.project.refresh_from_db()
+        self.project._change_reason = "Added members"
+        self.project.save()
 
-class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def notify_add_members(self, instances):
+        for instance in instances:
+            if instance["type"] == "projectuser":
+                notification = (
+                    notify_member_added
+                    if instance["created"]
+                    else notify_member_updated
+                )
+                notification.delay(
+                    instance["project"].pk,
+                    instance["user"].pk,
+                    self.request.user.pk,
+                    instance["role"],
+                )
+            if instance["type"] == "peoplegroup" and instance["created"]:
+                notify_group_as_member_added.delay(
+                    instance["project"].pk,
+                    instance["people_group"].pk,
+                    self.request.user.pk,
+                    instance["role"],
+                )
+
+    @extend_schema(
+        request=ProjectRemoveTeamMembersSerializer, responses=ProjectSerializer
+    )
+    @action(
+        detail=False,
+        methods=["POST"],
+        url_path="remove",
+        permission_classes=[
+            IsAuthenticated,
+            ProjectIsNotLocked,
+            HasBasePermission("change_project", "projects")
+            | HasOrganizationPermission("change_project")
+            | HasProjectPermission("change_project"),
+        ],
+    )
+    @transaction.atomic
+    def remove_member(self, request, *args, **kwargs):
+        """Remove users from the project's group of the given name."""
+        # The following 3 lines are here for backward compatibility
+        data = request.data.copy()
+        if "user" in data and "users" not in data:
+            data = {"users": [data["user"]]}
+        serializer = ProjectRemoveTeamMembersSerializer(
+            data={"project": self.project.pk, **data}
+        )
+        serializer.is_valid(raise_exception=True)
+        instances = serializer.save()
+        self.notify_remove_members(instances)
+        self.project.refresh_from_db()
+        self.project._change_reason = "Removed members"
+        self.project.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ProjectGroupsViewSet(
+    NestedProjectViewMixins,
+    MultipleIDViewsetMixin,
+    viewsets.ModelViewSet,
+):
+    serializer_class = ProjectGroupSerializer
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
+    filterset_class = ProjectGroupsFilter
+    lookup_field = "id"
+    ordering_fields = ("role",)
+    lookup_value_regex = "[0-9]+"
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        ProjectIsNotLocked,
+        ReadOnly
+        | HasBasePermission("change_project", "projects")
+        | HasOrganizationPermission("change_project")
+        | HasProjectPermission("change_project"),
+    ]
+    multiple_lookup_fields = [(Project, "project_id")]
+
+    def get_queryset(self) -> QuerySet:
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+        return modules.groups()
+
+
+class BlogEntryViewSet(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     serializer_class = BlogEntrySerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     ordering_fields = ("created_at", "updated_at")
@@ -517,22 +547,19 @@ class BlogEntryViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        if "project_id" in self.kwargs:
-            return (
-                self.request.user.get_project_related_queryset(
-                    BlogEntry.objects.filter(project=self.kwargs["project_id"])
-                )
-                .prefetch_related("images")
-                .select_related("project")
-            )
-        return BlogEntry.objects.none()
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+
+        return modules.blogs().prefetch_related("images").select_related("project")
 
     def perform_create(self, serializer):
         instance = serializer.save()
         notify_new_blogentry.delay(instance.pk, self.request.user.pk)
 
 
-class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
+class BlogEntryImagesView(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, ImageStorageView
+):
     permission_classes = [
         IsAuthenticatedOrReadOnly,
         ProjectIsNotLocked,
@@ -545,16 +572,14 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                Image.objects.filter(blog_entries__project=self.kwargs["project_id"]),
-                project_related_name="blog_entries__project",
-            )
-            # Retrieve images before blog entry is posted
-            if self.request.user.is_authenticated:
-                qs = qs | Image.objects.filter(owner=self.request.user)
-            return qs.distinct()
-        return Image.objects.none()
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+
+        qs = Image.objects.filter(pk__in=modules.blog())
+        # Retrieve images before blog entry is posted
+        if self.request.user.is_authenticated:
+            qs = qs | Image.objects.filter(owner=self.request.user)
+        return qs.distinct()
 
     @staticmethod
     def upload_to(instance, filename) -> str:
@@ -579,7 +604,9 @@ class BlogEntryImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return None
 
 
-class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class GoalViewSet(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     serializer_class = GoalSerializer
     filter_backends = [DjangoFilterBackend]
     lookup_field = "id"
@@ -595,13 +622,15 @@ class GoalViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self) -> QuerySet:
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(Goal.objects.all())
-            return qs.filter(project=self.kwargs["project_id"])
-        return Goal.objects.none()
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+
+        return modules.goals()
 
 
-class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class LocationViewSet(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     serializer_class = LocationSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -617,10 +646,10 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        qs = self.request.user.get_project_related_queryset(Location.objects)
-        if "project_id" in self.kwargs:
-            qs = qs.filter(project=self.kwargs["project_id"])
-        return qs.select_related("project")
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+
+        return modules.locations()
 
     @method_decorator(
         redis_cache_view("locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL)
@@ -655,7 +684,9 @@ class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelVie
         return apps.get_model("projects", "HistoricalProject").objects.none()
 
 
-class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class LinkedProjectViewSet(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     serializer_class = LinkedProjectSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -670,12 +701,10 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_queryset(self):
-        if "project_id" in self.kwargs:
-            qs = self.request.user.get_project_related_queryset(
-                LinkedProject.objects.all(), project_related_name="target"
-            )
-            return qs.filter(target__id=self.kwargs["project_id"])
-        return LinkedProject.objects.none()
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+
+        return modules.linked_projects()
 
     def check_linked_project_permission(self, project):
         if not self.request.user.can_see_project(project):
@@ -718,6 +747,7 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
                 serializer = LinkedProjectSerializer(data=linked_project)
                 serializer.is_valid(raise_exception=True)
                 self.perform_create(serializer)
+
         context = {"request": request}
         return Response(
             ProjectSerializer(target, context=context).data,
@@ -764,7 +794,9 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
 
 
-class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectMessageViewSet(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     serializer_class = ProjectMessageSerializer
     lookup_field = "id"
     lookup_value_regex = "[0-9]+"
@@ -783,15 +815,16 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return super().get_permissions()
 
     def get_queryset(self):
-        if "project_id" in self.kwargs:
-            # get_project_related_queryset is not needed because the publication_status is not checked here
-            queryset = ProjectMessage.objects.filter(project=self.kwargs["project_id"])
-            if self.action in ["retrieve", "list"]:
-                queryset = queryset.exclude(reply_on__isnull=False)
-            return queryset.select_related("author").prefetch_related(
-                "replies", "images"
-            )
-        return ProjectMessage.objects.none()
+        # get_project_related_queryset is not needed because the publication_status is not checked here
+
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+        queryset = modules.messages()
+
+        if self.action in ["retrieve", "list"]:
+            queryset = queryset.exclude(reply_on__isnull=False)
+
+        return queryset.select_related("author").prefetch_related("replies", "images")
 
     def perform_create(self, serializer):
         message = serializer.save(
@@ -803,7 +836,9 @@ class ProjectMessageViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         instance.soft_delete()
 
 
-class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
+class ProjectMessageImagesView(
+    NestedProjectViewMixins, MultipleIDViewsetMixin, ImageStorageView
+):
     multiple_lookup_fields = [(Project, "project_id")]
 
     def get_permissions(self):
@@ -819,10 +854,12 @@ class ProjectMessageImagesView(MultipleIDViewsetMixin, ImageStorageView):
         return super().get_permissions()
 
     def get_queryset(self):
+        modules_manager = self.project.get_related_module()
+        modules = modules_manager(self.project, self.request.user)
+        queryset = modules.messages()
+
         if "project_id" in self.kwargs:
-            qs = Image.objects.filter(
-                project_messages__project=self.kwargs["project_id"]
-            )
+            qs = Image.objects.filter(project_messages__in=queryset)
             # Retrieve images before message is posted
             if self.request.user.is_authenticated:
                 qs = qs | Image.objects.filter(owner=self.request.user)

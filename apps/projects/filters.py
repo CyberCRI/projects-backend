@@ -110,3 +110,11 @@ class ProjectMembersFilter(filters.FilterSet):
     class Meta:
         model = ProjectUser
         fields = ("role",)
+
+
+class ProjectGroupsFilter(filters.FilterSet):
+    role = MultiValueCharFilter()
+
+    class Meta:
+        model = PeopleGroup
+        fields = ("role",)
