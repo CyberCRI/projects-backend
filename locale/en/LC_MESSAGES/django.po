@@ -3590,11 +3590,3 @@ msgstr ""
 #, python-brace-format
 msgid "Language {language} is not supported"
 msgstr ""
-
-#: templates/admin/base.html:16
-msgid "Copyright"
-msgstr ""
-
-#: templates/admin/base.html:16
-msgid "All rights reserved."
-msgstr ""
