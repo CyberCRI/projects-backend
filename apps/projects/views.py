@@ -1,5 +1,5 @@
-import enum
 import uuid
+from functools import cached_property
 
 from django.apps import apps
 from django.conf import settings
@@ -22,7 +22,6 @@ from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation
 from apps.accounts.permissions import HasBasePermission
-from apps.accounts.serializers import PeopleGroupLocationSuperLightSerializer
 from apps.analytics.models import Stat
 from apps.commons.cache import clear_cache_with_key, redis_cache_view
 from apps.commons.permissions import IsOwner, ReadOnly
@@ -30,14 +29,11 @@ from apps.commons.utils import map_action_to_permission
 from apps.commons.views import (
     MultipleIDViewsetMixin,
     NestedOrganizationViewMixins,
+    QuerySerializersMixin,
 )
 from apps.files.models import Image
 from apps.files.views import ImageStorageView
 from apps.newsfeed.models import EventLocation, NewsLocation
-from apps.newsfeed.serializers import (
-    EventLocationSerializerLight,
-    NewsLocationSerializerLight,
-)
 from apps.notifications.tasks import (
     notify_group_as_member_added,
     notify_group_member_deleted,
@@ -55,6 +51,7 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
+from apps.projects.utils import annotate_queryset_location
 from services.mistral.models import ProjectEmbedding
 
 from .filters import ProjectFilter
@@ -71,6 +68,7 @@ from .models import (
 from .permissions import HasProjectPermission, ProjectIsNotLocked
 from .serializers import (
     BlogEntrySerializer,
+    GeneralLocationSerializer,
     GoalSerializer,
     LinkedProjectSerializer,
     LocationSerializer,
@@ -81,6 +79,7 @@ from .serializers import (
     ProjectRemoveLinkedProjectSerializer,
     ProjectRemoveTeamMembersSerializer,
     ProjectSerializer,
+    ProjectSuperLightSerializer,
     ProjectTabItemSerializer,
     ProjectTabSerializer,
     ProjectVersionListSerializer,
@@ -88,11 +87,10 @@ from .serializers import (
 )
 
 
-class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
+class ProjectViewSet(
+    QuerySerializersMixin, MultipleIDViewsetMixin, viewsets.ModelViewSet
+):
     """Main endpoints for projects."""
-
-    class InfoDetails(enum.Enum):
-        SUMMARY = "summary"
 
     serializer_class = ProjectSerializer
     filter_backends = [DjangoFilterBackend, OrderingFilter]
@@ -101,6 +99,10 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     lookup_field = "id"
     lookup_value_regex = "[^/]+"
     multiple_lookup_fields = [(Project, "id")]
+    query_serializers = {
+        "light": ProjectLightSerializer,
+        "superlight": ProjectSuperLightSerializer,
+    }
 
     def get_permissions(self):
         codename = map_action_to_permission(self.action, "project")
@@ -134,13 +136,8 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         )
 
     def get_serializer_class(self):
-        is_summary = (
-            self.request.query_params.get("info_details")
-            == ProjectViewSet.InfoDetails.SUMMARY
-        )
-        if self.action == "list" or is_summary:
-            return ProjectLightSerializer
-        return self.serializer_class
+        query = "light" if self.action == "list" else None
+        return super().get_serializer_class(query)
 
     def get_serializer_context(self):
         """Adds request to the serializer's context."""
@@ -172,21 +169,13 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_destroy(self, instance):
         if settings.ENABLE_CACHE and instance.announcements.exists():
             cache.delete_many(cache.keys("announcements_list_cache*"))
-        super(ProjectViewSet, self).perform_destroy(instance)
+        super().perform_destroy(instance)
 
     @extend_schema(
-        parameters=[
-            OpenApiParameter(
-                name="info_details",
-                description='set this parameter to "summary" to get less details '
-                "about the project",
-                required=False,
-                type=str,
-            )
-        ]
+        parameters=[QuerySerializersMixin.OpenApiParameter(query_serializers)]
     )
     def list(self, request, *args, **kwargs):
-        return super(ProjectViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @extend_schema(
         parameters=[
@@ -602,11 +591,11 @@ class LocationViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         redis_cache_view("locations_list_cache", settings.CACHE_LOCATIONS_LIST_TTL)
     )
     def list(self, request, *args, **kwargs):
-        return super(LocationViewSet, self).list(request, *args, **kwargs)
+        return super().list(request, *args, **kwargs)
 
     @method_decorator(clear_cache_with_key("locations_list_cache"))
     def dispatch(self, request, *args, **kwargs):
-        return super(LocationViewSet, self).dispatch(request, *args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
 
 class HistoricalProjectViewSet(MultipleIDViewsetMixin, viewsets.ReadOnlyModelViewSet):
@@ -662,14 +651,14 @@ class LinkedProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
     def perform_create(self, serializer):
         project = serializer.validated_data["project"]
         self.check_linked_project_permission(project)
-        super(LinkedProjectViewSet, self).perform_create(serializer)
+        super().perform_create(serializer)
 
     @transaction.atomic
     def perform_update(self, serializer):
         project = serializer.validated_data.get("project")
         if project:
             self.check_linked_project_permission(project)
-        super(LinkedProjectViewSet, self).perform_update(serializer)
+        super().perform_update(serializer)
 
     @extend_schema(
         request=ProjectAddLinkedProjectSerializer, responses=ProjectSerializer
@@ -984,34 +973,40 @@ class ProjectTabItemImagesView(MultipleIDViewsetMixin, ImageStorageView):
 class GeneralLocationView(NestedOrganizationViewMixins, viewsets.GenericViewSet):
     http_method_names = ["get", "list"]
 
-    def list(self, request, *args, **kwargs):
+    @cached_property
+    def organizations(self) -> QuerySet[Organization]:
         organizations_code = get_below_hierarchy_codes((self.organization.code,))
-        organizations = Organization.objects.filter(code__in=organizations_code)
+        return Organization.objects.filter(code__in=organizations_code)
 
-        qs_project = (
-            request.user.get_project_related_queryset(Location.objects)
-            .select_related("project")
-            .filter(project__organizations__in=organizations)
+    def get_queryset_project(self) -> QuerySet[Location]:
+        return self.request.user.get_project_related_queryset(Location.objects).filter(
+            project__organizations__in=self.organizations
         )
 
-        qs_group = request.user.get_people_group_related_queryset(
+    def get_queryset_groups(self) -> QuerySet[PeopleGroupLocation]:
+        return self.request.user.get_people_group_related_queryset(
             PeopleGroupLocation.objects.filter(
-                people_group__organization__in=organizations
+                people_group__organization__in=self.organizations
             )
-        ).select_related("people_group")
+        )
 
-        qs_news = request.user.get_news_related_queryset(
-            NewsLocation.objects.filter(news__organization__in=organizations)
-        ).select_related("news")
+    def get_queryset_news(self) -> QuerySet[NewsLocation]:
+        return self.request.user.get_news_related_queryset(
+            NewsLocation.objects.filter(news__organization__in=self.organizations)
+        )
 
-        qs_event = request.user.get_event_related_queryset(
-            EventLocation.objects.filter(event__organization__in=organizations)
-        ).select_related("event")
+    def get_queryset_event(self) -> QuerySet[EventLocation]:
+        return self.request.user.get_event_related_queryset(
+            EventLocation.objects.filter(event__organization__in=self.organizations)
+        )
 
-        data = {
-            "groups": PeopleGroupLocationSuperLightSerializer(qs_group, many=True).data,
-            "projects": LocationSerializer(qs_project, many=True).data,
-            "news": NewsLocationSerializerLight(qs_news, many=True).data,
-            "event": EventLocationSerializerLight(qs_event, many=True).data,
-        }
+    def list(self, request, *args, **kwargs):
+        qs_project = self.get_queryset_project()
+        qs_groups = self.get_queryset_groups()
+        qs_news = self.get_queryset_news()
+        qs_event = self.get_queryset_event()
+
+        qs = annotate_queryset_location(qs_project, qs_groups, qs_news, qs_event)
+
+        data = GeneralLocationSerializer(list(qs), many=True).data
         return Response(data, status=status.HTTP_200_OK)

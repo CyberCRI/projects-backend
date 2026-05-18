@@ -476,3 +476,8 @@ class HasEmbedding:
                 pk=self.pk
             )
         return type(self).objects.none()
+
+
+class HasRelatedLocationContent:
+    def get_related_content(self):
+        raise NotImplementedError
