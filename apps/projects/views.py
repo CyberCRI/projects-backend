@@ -240,16 +240,6 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         project.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def notify_remove_members(self, instances):
-        for user in instances["users"]:
-            notify_member_deleted.delay(
-                instances["project"].pk, user.pk, self.request.user.pk
-            )
-        for people_group in instances["people_groups"]:
-            notify_group_member_deleted.delay(
-                instances["project"].pk, people_group.pk, self.request.user.pk
-            )
-
     def _toggle_is_locked(self, value):
         project = self.get_object()
         project.is_locked = value
@@ -444,6 +434,16 @@ class ProjectMembersViewSet(
         self.project.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def notify_remove_members(self, instances):
+        for user in instances["users"]:
+            notify_member_deleted.delay(
+                instances["project"].pk, user.pk, self.request.user.pk
+            )
+        for people_group in instances["people_groups"]:
+            notify_group_member_deleted.delay(
+                instances["project"].pk, people_group.pk, self.request.user.pk
+            )
 
     def notify_add_members(self, instances):
         for instance in instances:
