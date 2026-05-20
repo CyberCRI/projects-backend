@@ -1,12 +1,13 @@
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
+from services.crisalid.models import Document, DocumentTypeCentralized
 
 from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
+from apps.commons.models import GroupData
 from apps.files.models import PeopleGroupImage
 from apps.modules.base import AbstractModules, register_module
 from apps.newsfeed.models import Event, EventLocation, NewsLocation
 from apps.projects.models import Location, Project
 from apps.skills.models import Skill
-from services.crisalid.models import Document, DocumentTypeCentralized
 
 
 @register_module(PeopleGroup)
@@ -18,24 +19,32 @@ class PeopleGroupModules(AbstractModules):
             "skills", queryset=Skill.objects.select_related("tag")
         )
 
-        return (
-            self.instance.get_all_members()
-            .distinct()
+        leaders = self.instance.leaders.all()
+        managers = self.instance.managers.all()
+        members = self.instance.members.all()
+
+        all_members = leaders | managers | members
+        all_members = (
+            all_members.distinct()
+            .filter(pk__in=self.user.get_user_queryset())
             .annotate(
-                is_leader=Case(
-                    When(id__in=self.instance.leaders.all(), then=True),
-                    default=Value(False),
-                )
+                role=Case(
+                    When(pk__in=leaders, then=Value(GroupData.Role.LEADERS)),
+                    When(pk__in=managers, then=Value(GroupData.Role.MANAGERS)),
+                    When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
+                ),
+                # add sort order priority (first leader, manager and members)
+                priority_role_order=Case(
+                    When(pk__in=leaders, then=1),
+                    When(pk__in=managers, then=2),
+                    When(pk__in=members, then=3),
+                ),
             )
-            .annotate(
-                is_manager=Case(
-                    When(id__in=self.instance.managers.all(), then=True),
-                    default=Value(False),
-                )
-            )
-            .order_by("-is_leader", "-is_manager")
+            .order_by("priority_role_order")
             .prefetch_related(skills_prefetch, "groups")
         )
+
+        return all_members
 
     def featured_projects(self) -> QuerySet[Project]:
         group_projects = Project.objects.filter(

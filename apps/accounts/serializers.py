@@ -6,6 +6,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import extend_schema_serializer
 from rest_framework import serializers
+from services.crisalid.serializers import ResearcherSerializerLight
+from services.translator.serializers import auto_translated
 
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -28,8 +30,6 @@ from apps.organizations.models import Organization
 from apps.projects.models import Project
 from apps.skills.models import Skill
 from apps.skills.serializers import SkillLightSerializer, TagRelatedField
-from services.crisalid.serializers import ResearcherSerializerLight
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     FeaturedProjectPermissionDeniedError,
@@ -111,8 +111,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
     profile_picture = PrivacySettingProtectedMethodField(
         privacy_field="profile_picture"
     )
-    is_manager = serializers.BooleanField(required=False, read_only=True)
-    is_leader = serializers.BooleanField(required=False, read_only=True)
+    role = serializers.CharField(required=False, read_only=True)
 
     class Meta:
         model = ProjectUser
@@ -126,8 +125,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
             "pronouns",
             "job",
             "profile_picture",
-            "is_manager",
-            "is_leader",
+            "role",
         ]
         fields = read_only_fields
 
@@ -144,8 +142,7 @@ class UserLighterSerializer(serializers.ModelSerializer):
             return super().to_representation(instance)
         return {
             **AnonymousUser.serialize(with_permissions=False),
-            "is_manager": False,
-            "is_leader": False,
+            "role": None,
         }
 
 
@@ -608,7 +605,7 @@ class PeopleGroupSerializer(
         featured_projects = validated_data.pop("featured_projects", [])
         locations = validated_data.pop("locations", [])
 
-        people_group = super(PeopleGroupSerializer, self).create(validated_data)
+        people_group = super().create(validated_data)
         PeopleGroupAddTeamMembersSerializer().create(
             {"people_group": people_group, **team}
         )
@@ -628,7 +625,7 @@ class PeopleGroupSerializer(
         validated_data.pop("featured_projects", [])
         validated_data.pop("locations", None)
 
-        return super(PeopleGroupSerializer, self).update(instance, validated_data)
+        return super().update(instance, validated_data)
 
     class Meta:
         model = PeopleGroup
@@ -825,8 +822,6 @@ class UserSerializer(
         return {
             **AnonymousUser.serialize(with_permissions=False),
             "current_org_role": None,
-            "is_manager": False,
-            "is_leader": False,
         }
 
     def _validate_role(
@@ -964,7 +959,7 @@ class UserSerializer(
                 "natural_ratio",
             ]
         }
-        instance = super(UserSerializer, self).create(validated_data)
+        instance = super().create(validated_data)
         if profile_picture["file"]:
             image = Image(
                 name=profile_picture["file"].name,

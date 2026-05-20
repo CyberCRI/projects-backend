@@ -1068,29 +1068,37 @@ class MiscPeopleGroupTestCase(JwtAPITestCase):
         batch_1_ids = [user["id"] for user in batch_1]
         leaders_managers_ids = [user.id for user in leaders_managers]
         self.assertEqual(leaders_managers_ids.sort(), batch_1_ids.sort())
-        self.assertTrue(all(user["is_manager"] is True for user in batch_1))
-        self.assertTrue(all(user["is_leader"] is True for user in batch_1))
+        self.assertTrue(
+            all(user["role"] == GroupData.Role.MANAGERS for user in batch_1)
+        )
+        self.assertTrue(all(user["role"] == GroupData.Role.LEADERS for user in batch_1))
 
         batch_2 = results[2:4]
         batch_2_ids = [user["id"] for user in batch_2]
         leaders_members_ids = [user.id for user in leaders_members]
         self.assertEqual(leaders_members_ids.sort(), batch_2_ids.sort())
-        self.assertTrue(all(user["is_manager"] is False for user in batch_2))
-        self.assertTrue(all(user["is_leader"] is True for user in batch_2))
+        self.assertTrue(
+            all(user["role"] == GroupData.Role.MANAGERS for user in batch_2)
+        )
+        self.assertTrue(all(user["role"] == GroupData.Role.LEADERS for user in batch_2))
 
         batch_3 = results[4:6]
         batch_3_ids = [user["id"] for user in batch_3]
         managers_ids = [user.id for user in managers]
         self.assertEqual(managers_ids.sort(), batch_3_ids.sort())
-        self.assertTrue(all(user["is_manager"] is True for user in batch_3))
-        self.assertTrue(all(user["is_leader"] is False for user in batch_3))
+        self.assertTrue(
+            all(user["role"] == GroupData.Role.MANAGERS for user in batch_3)
+        )
+        self.assertTrue(all(user["role"] != GroupData.Role.LEADERS for user in batch_3))
 
         batch_4 = results[6:]
         batch_4_ids = [user["id"] for user in batch_4]
         members_ids = [user.id for user in members]
         self.assertEqual(members_ids.sort(), batch_4_ids.sort())
-        self.assertTrue(all(user["is_manager"] is False for user in batch_4))
-        self.assertTrue(all(user["is_leader"] is False for user in batch_4))
+        self.assertTrue(
+            all(user["role"] == GroupData.Role.MANAGERS for user in batch_4)
+        )
+        self.assertTrue(all(user["role"] != GroupData.Role.LEADERS for user in batch_4))
 
     def test_root_group_creation(self):
         organization = OrganizationFactory()
