@@ -1,6 +1,7 @@
 from typing import Any, Optional
 
 from rest_framework import serializers
+from services.translator.serializers import auto_translated
 
 from apps.accounts.serializers import UserLighterSerializer
 from apps.commons.fields import RecursiveField, WritableSerializerMethodField
@@ -13,7 +14,6 @@ from apps.commons.serializers import (
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
-from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CommentProjectPermissionDeniedError,
@@ -60,6 +60,17 @@ class FollowSerializer(
         if "project" in self.validated_data:
             return self.validated_data["project"]
         return None
+
+    def create(self, validated_data):
+        project = validated_data["project"]
+        follower = validated_data["follower"]
+
+        # if already follo ignore
+        follow, _ = Follow.objects.get_or_create(
+            project=project,
+            follower=follower,
+        )
+        return follow
 
 
 class UserFollowManySerializer(serializers.Serializer):

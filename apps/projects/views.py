@@ -21,7 +21,7 @@ from rest_framework.response import Response
 from services.mistral.models import ProjectEmbedding
 from simple_history.utils import update_change_reason
 
-from apps.accounts.models import PeopleGroupLocation
+from apps.accounts.models import PeopleGroupLocation, ProjectUser
 from apps.accounts.permissions import HasBasePermission
 from apps.accounts.serializers import PeopleGroupLocationSuperLightSerializer
 from apps.analytics.models import Stat
@@ -83,6 +83,7 @@ from .serializers import (
     ProjectRemoveLinkedProjectSerializer,
     ProjectRemoveTeamMembersSerializer,
     ProjectSerializer,
+    ProjectSuperLightSerializer,
     ProjectTabItemSerializer,
     ProjectTabSerializer,
     ProjectTeamMembersSerializer,
@@ -273,7 +274,7 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         return self._toggle_is_locked(value=False)
 
     @extend_schema(
-        responses=ProjectLightSerializer,
+        responses=ProjectSuperLightSerializer(many=True),
         parameters=[
             OpenApiParameter(
                 name="threshold",
@@ -300,15 +301,13 @@ class ProjectViewSet(MultipleIDViewsetMixin, viewsets.ModelViewSet):
         project = self.get_object()
         modules_manager = project.get_related_module()
         modules = modules_manager(project, request.user)
+        queryset = modules.similars().filter(
+            organizations__code__in=get_below_hierarchy_codes(organizations)
+        )
 
-        threshold = int(request.query_params.get("threshold", 5))
-        queryset = (
-            modules.similars()
-            .filter(organizations__code__in=get_below_hierarchy_codes(organizations))
-            .prefetch_related("categories")
-        )[:threshold]
-
-        return Response(ProjectLightSerializer(queryset, many=True).data)
+        page = self.paginate_queryset(queryset)
+        serializer = ProjectSuperLightSerializer(page, many=True)
+        return self.get_paginated_response(serializer.data)
 
 
 class ProjectHeaderView(MultipleIDViewsetMixin, ImageStorageView):
@@ -403,7 +402,7 @@ class ProjectMembersViewSet(
     ]
     multiple_lookup_fields = [(Project, "project_id")]
 
-    def get_queryset(self) -> QuerySet:
+    def get_queryset(self) -> QuerySet[ProjectUser]:
         modules_manager = self.project.get_related_module()
         modules = modules_manager(self.project, self.request.user)
         return modules.members()
@@ -434,16 +433,6 @@ class ProjectMembersViewSet(
         self.project.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def notify_remove_members(self, instances):
-        for user in instances["users"]:
-            notify_member_deleted.delay(
-                instances["project"].pk, user.pk, self.request.user.pk
-            )
-        for people_group in instances["people_groups"]:
-            notify_group_member_deleted.delay(
-                instances["project"].pk, people_group.pk, self.request.user.pk
-            )
 
     def notify_add_members(self, instances):
         for instance in instances:
@@ -500,6 +489,16 @@ class ProjectMembersViewSet(
         self.project.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+    def notify_remove_members(self, instances):
+        for user in instances["users"]:
+            notify_member_deleted.delay(
+                instances["project"].pk, user.pk, self.request.user.pk
+            )
+        for people_group in instances["people_groups"]:
+            notify_group_member_deleted.delay(
+                instances["project"].pk, people_group.pk, self.request.user.pk
+            )
+
 
 class ProjectGroupsViewSet(
     NestedProjectViewMixins,
@@ -525,7 +524,7 @@ class ProjectGroupsViewSet(
     def get_queryset(self) -> QuerySet:
         modules_manager = self.project.get_related_module()
         modules = modules_manager(self.project, self.request.user)
-        return modules.groups()
+        return modules.groups().select_related("organization")
 
 
 class BlogEntryViewSet(
@@ -550,7 +549,7 @@ class BlogEntryViewSet(
         modules_manager = self.project.get_related_module()
         modules = modules_manager(self.project, self.request.user)
 
-        return modules.blogs().prefetch_related("images").select_related("project")
+        return modules.blogs().prefetch_related("images")
 
     def perform_create(self, serializer):
         instance = serializer.save()

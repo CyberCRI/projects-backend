@@ -533,14 +533,11 @@ class PeopleGroupLightSerializerPrimaryKeyRelatedField(
         return serializers.PrimaryKeyRelatedField.to_internal_value(self, data)
 
 
-class ProjectTeamMembersSerializer(UserLightSerializer):
-    role = serializers.SerializerMethodField()
+class ProjectTeamMembersSerializer(UserLighterSerializer):
+    role = serializers.CharField()
 
-    class Meta(UserLightSerializer.Meta):
-        fields = UserLightSerializer.Meta.fields + ("role",)
-
-    def get_role(self, instance: ProjectUser):
-        return instance.role
+    class Meta(UserLighterSerializer.Meta):
+        fields = UserLighterSerializer.Meta.fields + ("role",)
 
 
 class ProjectGroupSerializer(PeopleGroupLightSerializer):

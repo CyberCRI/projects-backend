@@ -527,13 +527,6 @@ class PeopleGroupSerializer(
     roles = serializers.SlugRelatedField(
         many=True, slug_field="name", read_only=True, source="groups"
     )
-    team = PeopleGroupAddTeamMembersSerializer(required=False, write_only=True)
-    featured_projects = serializers.PrimaryKeyRelatedField(
-        many=True,
-        write_only=True,
-        required=False,
-        queryset=Project.objects.all(),
-    )
     tags = TagRelatedField(many=True, required=False)
     sdgs = serializers.ListField(
         child=serializers.IntegerField(min_value=1, max_value=17),
@@ -554,12 +547,6 @@ class PeopleGroupSerializer(
                     PeopleGroupSuperLightSerializer(obj, context=self.context).data
                 )
         return [{"order": i, **h} for i, h in enumerate(hierarchy[::-1])]
-
-    def validate_featured_projects(self, projects: list[Project]) -> list[Project]:
-        request = self.context.get("request")
-        if not all(request.user.can_see_project(project) for project in projects):
-            raise FeaturedProjectPermissionDeniedError
-        return projects
 
     def validate_organization(self, value):
         if self.instance and self.instance.organization != value:
@@ -601,28 +588,15 @@ class PeopleGroupSerializer(
         return value
 
     def create(self, validated_data):
-        team = validated_data.pop("team", {})
-        featured_projects = validated_data.pop("featured_projects", [])
         locations = validated_data.pop("locations", [])
 
         people_group = super().create(validated_data)
-        PeopleGroupAddTeamMembersSerializer().create(
-            {"people_group": people_group, **team}
-        )
-        PeopleGroupAddFeaturedProjectsSerializer().create(
-            {
-                "people_group": people_group,
-                "featured_projects": featured_projects,
-            }
-        )
         PeopleGroupAddLocationsSerializer().create(
             {"people_group": people_group, "locations": locations}
         )
         return people_group
 
     def update(self, instance, validated_data):
-        validated_data.pop("team", {})
-        validated_data.pop("featured_projects", [])
         validated_data.pop("locations", None)
 
         return super().update(instance, validated_data)
@@ -646,8 +620,6 @@ class PeopleGroupSerializer(
             "tags",
             "locations",
             "publication_status",
-            "team",
-            "featured_projects",
         ]
 
 
