@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from contextlib import suppress
 from copy import copy
+from functools import cached_property
 from typing import TYPE_CHECKING, Any, Optional, Self
 
 from django.contrib.auth.models import Group, Permission
@@ -456,6 +457,15 @@ class HasRelatedModules:
         from apps.modules.base import get_module
 
         return get_module(type(self))
+
+    @cached_property
+    def modules(self):
+        from apps.accounts.models import InternalAdmin
+
+        internaladmin = InternalAdmin()
+
+        modules_manager = self.get_related_module()
+        return modules_manager(self, internaladmin)
 
 
 class HasEmbedding:

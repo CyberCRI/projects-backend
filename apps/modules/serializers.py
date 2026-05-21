@@ -32,5 +32,4 @@ class ModulesSerializers(serializers.ModelSerializer):
         request = self.context.get("request")
 
         modules_manager = instance.get_related_module()
-        res = modules_manager(instance, user=request.user).count(self.__modules_keys)
-        return res
+        return modules_manager(instance, user=request.user).count(self.__modules_keys)

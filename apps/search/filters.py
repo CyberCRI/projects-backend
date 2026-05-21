@@ -3,9 +3,11 @@ from django_filters import rest_framework as filters
 from rest_framework.filters import SearchFilter
 from rest_framework.settings import api_settings
 
+from apps.accounts.models import PeopleGroup
 from apps.commons.filters import MultiValueCharFilter, UserMultipleIDFilter
 from apps.commons.utils import ArrayPosition
 from apps.organizations.utils import get_below_hierarchy_codes
+from apps.projects.models import Project
 
 from .interface import OpenSearchService
 from .models import SearchObject
@@ -138,6 +140,26 @@ class SearchObjectFilter(filters.FilterSet):
     members = UserMultipleIDFilter(method="filter_members")
     tags = MultiValueCharFilter(method="filter_tags")
 
+    exclude_projects = MultiValueCharFilter(method="filter_exclude_projects")
+    exclude_projects_in_project = filters.CharFilter(
+        method="filter_exclude_projects_in_project"
+    )
+    exclude_groups_in_project = filters.CharFilter(
+        method="filter_exclude_groups_in_project"
+    )
+    exclude_users_in_project = filters.CharFilter(
+        method="filter_exclude_users_in_project"
+    )
+
+    exclude_groups = MultiValueCharFilter(method="filter_exclude_groups")
+    exclude_projects_in_group = filters.CharFilter(
+        method="filter_exclude_projects_in_group"
+    )
+    exclude_groups_in_group = filters.CharFilter(
+        method="filter_exclude_groups_in_group"
+    )
+    exclude_users_in_group = filters.CharFilter(method="filter_exclude_users_in_group")
+
     def filter_organizations(self, queryset, name, value):
         return queryset.filter(
             Q(project__organizations__code__in=get_below_hierarchy_codes(value))
@@ -235,6 +257,116 @@ class SearchObjectFilter(filters.FilterSet):
             | Q(type__in=unaffected_types)
         ).distinct()
 
+    # this is for projects
+
+    def filter_exclude_projects(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+            SearchObject.SearchObjectType.USER,
+        ]
+        projects = Project.objects.slug_or_ids(value)
+        return queryset.filter(
+            ~Q(project__in=projects) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_exclude_projects_in_project(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+            SearchObject.SearchObjectType.USER,
+        ]
+
+        project = Project.objects.slug_or_id(value).first()
+        if not project:
+            return queryset
+        linked = project.modules.linked_projects().values_list("project", flat=True)
+
+        return queryset.filter(
+            ~Q(project__in=linked) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_exclude_groups_in_project(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.USER,
+        ]
+        project = Project.objects.slug_or_id(value).first()
+        if not project:
+            return queryset
+        groups = project.modules.groups()
+
+        return queryset.filter(
+            ~Q(people_group__in=groups) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_exclude_users_in_project(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+        ]
+        project = Project.objects.slug_or_id(value).first()
+        if not project:
+            return queryset
+        users = project.modules.members()
+
+        return queryset.filter(
+            ~Q(user__in=users) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    # this is for groups
+
+    def filter_exclude_groups(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.USER,
+        ]
+        groups = PeopleGroup.objects.slug_or_ids(value)
+        return queryset.filter(
+            ~Q(people_group__in=groups) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_exclude_projects_in_group(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+            SearchObject.SearchObjectType.USER,
+        ]
+
+        group = PeopleGroup.objects.slug_or_id(value).first()
+        if not group:
+            return queryset
+        featured_projects = group.modules.featured_projects()
+
+        return queryset.filter(
+            ~Q(project__in=featured_projects) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_exclude_groups_in_group(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.USER,
+        ]
+        group = PeopleGroup.objects.slug_or_id(value).first()
+        if not group:
+            return queryset
+        groups = group.modules.subgroups()
+
+        return queryset.filter(
+            ~Q(people_group__in=groups) | Q(type__in=unaffected_types)
+        ).distinct()
+
+    def filter_exclude_users_in_group(self, queryset, name, value):
+        unaffected_types = [
+            SearchObject.SearchObjectType.PROJECT,
+            SearchObject.SearchObjectType.PEOPLE_GROUP,
+        ]
+        group = PeopleGroup.objects.slug_or_id(value).first()
+        if not group:
+            return queryset
+        users = group.modules.members()
+
+        return queryset.filter(
+            ~Q(user__in=users) | Q(type__in=unaffected_types)
+        ).distinct()
+
     class Meta:
         model = SearchObject
         fields = [
@@ -250,4 +382,12 @@ class SearchObjectFilter(filters.FilterSet):
             "needs_mentor",
             "can_mentor_on",
             "needs_mentor_on",
+            "exclude_projects",
+            "exclude_projects_in_project",
+            "exclude_groups_in_project",
+            "exclude_users_in_project",
+            "exclude_groups",
+            "exclude_projects_in_group",
+            "exclude_groups_in_group",
+            "exclude_users_in_group",
         ]

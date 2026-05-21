@@ -18,7 +18,6 @@ from rest_framework.permissions import (
     IsAuthenticatedOrReadOnly,
 )
 from rest_framework.response import Response
-from services.mistral.models import ProjectEmbedding
 from simple_history.utils import update_change_reason
 
 from apps.accounts.models import PeopleGroupLocation, ProjectUser
@@ -57,11 +56,11 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
+from services.mistral.models import ProjectEmbedding
 
 from .filters import ProjectFilter, ProjectGroupsFilter, ProjectMembersFilter
 from .models import (
     BlogEntry,
-    Goal,
     LinkedProject,
     Location,
     Project,

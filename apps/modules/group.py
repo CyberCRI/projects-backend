@@ -1,5 +1,4 @@
 from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
-from services.crisalid.models import Document, DocumentTypeCentralized
 
 from apps.accounts.models import PeopleGroup, PeopleGroupLocation, ProjectUser
 from apps.commons.models import GroupData
@@ -8,6 +7,7 @@ from apps.modules.base import AbstractModules, register_module
 from apps.newsfeed.models import Event, EventLocation, NewsLocation
 from apps.projects.models import Location, Project
 from apps.skills.models import Skill
+from services.crisalid.models import Document, DocumentTypeCentralized
 
 
 @register_module(PeopleGroup)
@@ -24,7 +24,7 @@ class PeopleGroupModules(AbstractModules):
         members = self.instance.members.all()
 
         all_members = leaders | managers | members
-        all_members = (
+        return (
             all_members.distinct()
             .filter(pk__in=self.user.get_user_queryset())
             .annotate(
@@ -43,8 +43,6 @@ class PeopleGroupModules(AbstractModules):
             .order_by("priority_role_order")
             .prefetch_related(skills_prefetch, "groups")
         )
-
-        return all_members
 
     def featured_projects(self) -> QuerySet[Project]:
         group_projects = Project.objects.filter(

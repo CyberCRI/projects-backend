@@ -1,7 +1,6 @@
 from typing import Any, Optional
 
 from rest_framework import serializers
-from services.translator.serializers import auto_translated
 
 from apps.accounts.serializers import UserLighterSerializer
 from apps.commons.fields import RecursiveField, WritableSerializerMethodField
@@ -14,6 +13,7 @@ from apps.commons.serializers import (
 from apps.files.models import Image
 from apps.organizations.models import Organization
 from apps.projects.models import Project
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     CommentProjectPermissionDeniedError,

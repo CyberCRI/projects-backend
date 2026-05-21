@@ -7,7 +7,6 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueTogetherValidator
-from services.translator.serializers import auto_translated
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
@@ -41,6 +40,7 @@ from apps.organizations.serializers import (
 )
 from apps.skills.models import Tag
 from apps.skills.serializers import TagRelatedField
+from services.translator.serializers import auto_translated
 
 from .exceptions import (
     AddProjectToOrganizationPermissionError,
@@ -191,16 +191,13 @@ class ProjectSerializer(
     string_images_view: str = "Project-images-detail"
     string_images_process_template: bool = True
 
-    # team = ProjectAddTeamMembersSerializer(required=False, source="*", write_only=True)
     tags = TagRelatedField(many=True, required=False)
 
     # read_only
     header_image = ImageSerializer(read_only=True)
     categories = ProjectCategoryLightSerializer(many=True, read_only=True)
-    # last_comment = serializers.SerializerMsethodField(read_only=True)
     organizations = OrganizationSerializer(many=True, read_only=True)
 
-    # images = ImageSerializer(many=True, read_only=True)
     template = ProjectTemplateSerializer(read_only=True)
     views = serializers.SerializerMethodField()
     is_followed = serializers.SerializerMethodField(read_only=True)
@@ -275,13 +272,6 @@ class ProjectSerializer(
             # "team",
             "modules",
         ]
-
-    # @staticmethod
-    # def get_last_comment(project: Project) -> dict | None:
-    #     last_comment = (
-    #         project.comments.filter(reply_on=None).order_by("-created_at").first()
-    #     )
-    #     return CommentSerializer(last_comment).data if last_comment else None
 
     def get_is_followed(self, project: Project) -> dict[str, Any]:
         if "request" in self.context:

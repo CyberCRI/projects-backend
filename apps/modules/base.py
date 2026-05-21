@@ -1,5 +1,4 @@
 import inspect
-from ast import Call
 from collections.abc import Callable
 from functools import cache
 

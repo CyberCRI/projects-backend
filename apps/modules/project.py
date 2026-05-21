@@ -1,4 +1,4 @@
-from django.db.models import Case, Prefetch, Q, QuerySet, Value, When
+from django.db.models import QuerySet, Value
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
