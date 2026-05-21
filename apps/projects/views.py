@@ -75,7 +75,6 @@ from .serializers import (
     GoalSerializer,
     LinkedProjectSerializer,
     LocationSerializer,
-    ProjectAddLinkedProjectSerializer,
     ProjectAddTeamMembersSerializer,
     ProjectGroupSerializer,
     ProjectLightSerializer,
@@ -723,7 +722,7 @@ class LinkedProjectViewSet(
         super().perform_update(serializer)
 
     @extend_schema(
-        request=ProjectAddLinkedProjectSerializer, responses=ProjectSerializer
+        request=LinkedProjectSerializer(many=True), responses=ProjectSerializer
     )
     @action(
         detail=False,
@@ -740,16 +739,14 @@ class LinkedProjectViewSet(
     )
     def add_many(self, request, *args, **kwargs):
         """Link projects to a given project."""
-        target = Project.objects.get(id=self.kwargs["project_id"])
-        with transaction.atomic():
-            for linked_project in request.data["projects"]:
-                serializer = LinkedProjectSerializer(data=linked_project)
-                serializer.is_valid(raise_exception=True)
-                self.perform_create(serializer)
+        serializer = LinkedProjectSerializer(
+            data=request.data, many=True, context={"validate_unique": False}
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(validate=False)
 
-        context = {"request": request}
         return Response(
-            ProjectSerializer(target, context=context).data,
+            serializer.data,
             status=status.HTTP_200_OK,
         )
 
@@ -779,7 +776,7 @@ class LinkedProjectViewSet(
     )
     def delete_many(self, request, *args, **kwargs):
         """Unlink projects from another projects."""
-        project = Project.objects.get(id=self.kwargs["project_id"])
+        project = self.project
         serializer = ProjectRemoveLinkedProjectSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 

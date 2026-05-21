@@ -6,13 +6,13 @@ from django.contrib.auth.models import Group
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework import serializers
+from rest_framework.validators import UniqueTogetherValidator
 from services.translator.serializers import auto_translated
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.accounts.serializers import (
     PeopleGroupLightSerializer,
     UserLighterSerializer,
-    UserLightSerializer,
 )
 from apps.commons.fields import (
     HiddenPrimaryKeyRelatedField,
@@ -479,6 +479,15 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
         model = LinkedProject
         fields = ["id", "project_id", "target_id", "project"]
 
+    def run_validators(self, value):
+        # ignore unique_together
+        self.validators = [
+            validator
+            for validator in self.validators
+            if not isinstance(validator, UniqueTogetherValidator)
+        ]
+        return super().run_validators(value)
+
     def validate(self, data):
         project = None
         target = None
@@ -486,31 +495,26 @@ class LinkedProjectSerializer(serializers.ModelSerializer):
             project = data["project"]
         elif self.instance:
             project = self.instance.project
+
         if "target" in data:
             target = data["target"]
         elif self.instance:
             target = self.instance.target
+
         if project and target and project == target:
             raise LinkProjectToSelfError(target.title)
+
         return data
 
+    def create(self, validate_data: dict) -> LinkedProject:
+        linked, _ = LinkedProject.objects.get_or_create(
+            project=validate_data["project"],
+            target=validate_data["target"],
+        )
+        return linked
 
-class ProjectAddLinkedProjectSerializer(serializers.Serializer):
-    """Used to link projects to another one."""
-
-    projects = LinkedProjectSerializer(many=True)
-
-    def update(self, instance, validated_data):
-        pass
-
-    def create(self, validated_data):
-        pass
-
-
-class ProjectIdSerializer(serializers.Serializer):
-    """Used to retrieve a project from their `id`."""
-
-    project = serializers.PrimaryKeyRelatedField(queryset=Project.objects.all())
+    def update(self, instance, validate_data: dict) -> LinkedProject:
+        return instance
 
 
 class UserLighterSerializerKeycloakRelatedField(
