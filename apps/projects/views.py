@@ -56,7 +56,6 @@ from apps.projects.exceptions import (
     LinkedProjectPermissionDeniedError,
     OrganizationsParameterMissing,
 )
-from services.mistral.models import ProjectEmbedding
 
 from .filters import ProjectFilter, ProjectGroupsFilter, ProjectMembersFilter
 from .models import (
