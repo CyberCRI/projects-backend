@@ -1,4 +1,4 @@
-from django.db.models import QuerySet, Value
+from django.db.models import Case, QuerySet, Value, When
 
 from apps.accounts.models import PeopleGroup, ProjectUser
 from apps.announcements.models import Announcement
@@ -20,35 +20,65 @@ class ProjectModules(AbstractModules):
     instance: Project
 
     def members(self) -> QuerySet[ProjectUser]:
-
         # get all members and annote role
-        owners = self.instance.owners.all().annotate(role=Value(GroupData.Role.OWNERS))
-        reviewers = self.instance.reviewers.all().annotate(
-            role=Value(GroupData.Role.REVIEWERS)
-        )
-        members = self.instance.members.all().annotate(
-            role=Value(GroupData.Role.MEMBERS)
-        )
+        owners = self.instance.owners.all()
+        members = self.instance.members.all()
+        reviewers = self.instance.reviewers.all()
 
         # union all and filter by request.user
-        all_members = owners | reviewers | members
-        return all_members.filter(pk__in=self.user.get_user_queryset()).distinct()
+        all_members = owners | members | reviewers
+        return (
+            all_members.distinct()
+            .filter(pk__in=self.user.get_user_queryset())
+            .annotate(
+                role=Case(
+                    When(pk__in=owners, then=Value(GroupData.Role.OWNERS)),
+                    When(pk__in=members, then=Value(GroupData.Role.MEMBERS)),
+                    When(pk__in=reviewers, then=Value(GroupData.Role.REVIEWERS)),
+                ),
+                # add sort order priority (first leader, manager and members)
+                priority_role_order=Case(
+                    When(pk__in=owners, then=1),
+                    When(pk__in=members, then=2),
+                    When(pk__in=reviewers, then=3),
+                ),
+            )
+            .order_by("priority_role_order")
+            .distinct()
+        )
 
     def groups(self) -> QuerySet[PeopleGroup]:
-        owner_groups = self.instance.owner_groups.all().annotate(
-            role=Value(GroupData.Role.OWNER_GROUPS)
-        )
-        reviewer_groups = self.instance.reviewer_groups.all().annotate(
-            role=Value(GroupData.Role.REVIEWER_GROUPS)
-        )
-        member_groups = self.instance.member_groups.all().annotate(
-            role=Value(GroupData.Role.MEMBER_GROUPS)
-        )
+        # get all members and annote role
+        owner_groups = self.instance.owner_groups.all()
+        member_groups = self.instance.member_groups.all()
+        reviewer_groups = self.instance.reviewer_groups.all()
 
-        all_groups = owner_groups | reviewer_groups | member_groups
-        return all_groups.filter(
-            pk__in=self.user.get_people_group_queryset()
-        ).distinct()
+        # union all and filter by request.user
+        all_members = owner_groups | member_groups | reviewer_groups
+        return (
+            all_members.distinct()
+            .filter(pk__in=self.user.get_people_group_queryset())
+            .annotate(
+                role=Case(
+                    When(pk__in=owner_groups, then=Value(GroupData.Role.OWNER_GROUPS)),
+                    When(
+                        pk__in=member_groups, then=Value(GroupData.Role.MEMBER_GROUPS)
+                    ),
+                    When(
+                        pk__in=reviewer_groups,
+                        then=Value(GroupData.Role.REVIEWER_GROUPS),
+                    ),
+                ),
+                # add sort order priority (first leader, manager and members)
+                priority_role_order=Case(
+                    When(pk__in=owner_groups, then=1),
+                    When(pk__in=member_groups, then=2),
+                    When(pk__in=reviewer_groups, then=3),
+                ),
+            )
+            .order_by("priority_role_order")
+            .distinct()
+        )
 
     def linked_projects(self) -> QuerySet[Project]:
         return self.instance.linked_projects.filter(
