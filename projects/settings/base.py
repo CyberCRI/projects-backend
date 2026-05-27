@@ -98,7 +98,7 @@ ALLOWED_HOSTS = [
 
 # Application definition
 INSTALLED_APPS = [
-    # "jazzmin",
+    "jazzmin",
     # extra admins
     "projects.admin.ExtraAdminConfig",
     # built-in
@@ -400,7 +400,7 @@ STORAGES = {
         },
     },
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "projects.storage.RelaxedManifestStaticFilesStorage",
     },
 }
 
